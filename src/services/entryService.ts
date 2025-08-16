@@ -384,12 +384,31 @@ export async function updateEntryCheckinStatus(
   checkinStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate'
 ): Promise<boolean> {
   try {
+    // Convert string status to integer code matching database schema
+    let statusCode = 0;
+    switch (checkinStatus) {
+      case 'none':
+        statusCode = 0;
+        break;
+      case 'checked-in':
+        statusCode = 1;
+        break;
+      case 'conflict':
+        statusCode = 2;
+        break;
+      case 'pulled':
+        statusCode = 3;
+        break;
+      case 'at-gate':
+        statusCode = 4;
+        break;
+    }
+
     const updateData: any = {
-      checked_in: checkinStatus !== 'none',
-      check_in_status: checkinStatus
+      checkin_status: statusCode  // Use correct field name and integer code
     };
 
-    console.log('Updating entry check-in status:', { entryId, updateData });
+    console.log('Updating entry check-in status:', { entryId, checkinStatus, statusCode, updateData });
 
     const { error, data } = await supabase
       .from('tbl_entry_queue')
@@ -407,7 +426,7 @@ export async function updateEntryCheckinStatus(
     // Verify the update by reading it back
     const { data: verifyData, error: verifyError } = await supabase
       .from('tbl_entry_queue')
-      .select('id, checked_in, check_in_status')
+      .select('id, checkin_status')
       .eq('id', entryId)
       .single();
     
