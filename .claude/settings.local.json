@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(start publicicon-generator.html)",
+      "Bash(npm run build:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm start)",
+      "Bash(npm run lint)",
+      "Bash(npm update:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "acceptEdits"
+  },
+  "outputStyle": "default"
+}

@@ -1,0 +1,419 @@
+/* Extends the base scoresheet styles */
+.akc-fastcat {
+  background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+}
+
+/* Timer Section */
+.timer-section {
+  margin: 24px 0;
+}
+
+/* Time Input Section */
+.time-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.time-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #333;
+  border-bottom: 2px solid #FF9800;
+  padding-bottom: 8px;
+}
+
+.time-input {
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.time-input label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.time-input input {
+  padding: 20px;
+  border: 3px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 32px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  text-align: center;
+  transition: border-color 0.3s, background-color 0.3s;
+  background: #f8f9fa;
+}
+
+.time-input input:focus {
+  outline: none;
+  border-color: #FF9800;
+  background: white;
+}
+
+.time-input input::placeholder {
+  color: #999;
+  font-style: italic;
+  font-size: 28px;
+}
+
+/* Results Section */
+.results-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.result-card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 3px solid #FF9800;
+}
+
+.result-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.result-value {
+  font-size: 48px;
+  font-weight: bold;
+  color: #FF9800;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  line-height: 1;
+}
+
+/* Qualifying Section */
+.qualifying-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qualifying-section label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.qualifying-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.qual-button {
+  padding: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.qual-button:hover {
+  background: #f5f5f5;
+}
+
+.qual-button.active {
+  background: #FF9800;
+  color: white;
+  border-color: #FF9800;
+}
+
+.qual-button:nth-child(1).active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.qual-button:nth-child(2).active {
+  background: #FF9800;
+  border-color: #FF9800;
+}
+
+.qual-button:nth-child(3).active {
+  background: #9E9E9E;
+  border-color: #9E9E9E;
+}
+
+.qual-button:nth-child(4).active {
+  background: #F44336;
+  border-color: #F44336;
+}
+
+/* Reason Section */
+.reason-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reason-section label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reason-section textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.3s;
+}
+
+.reason-section textarea:focus {
+  outline: none;
+  border-color: #FF9800;
+}
+
+/* Action Buttons */
+.action-buttons {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 16px;
+}
+
+.nav-button {
+  padding: 14px 24px;
+  font-size: 16px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-button:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #FF9800;
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit-button {
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Confirmation Dialog */
+.confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirmation-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.confirmation-dialog h2 {
+  margin: 0 0 24px 0;
+  color: #333;
+}
+
+.confirmation-details {
+  margin-bottom: 24px;
+}
+
+.confirmation-details p {
+  margin: 8px 0;
+  color: #666;
+}
+
+.confirmation-details strong {
+  color: #333;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+}
+
+.confirmation-buttons button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.confirmation-buttons button:first-child {
+  background: white;
+  border: 2px solid #e0e0e0;
+  color: #666;
+}
+
+.confirmation-buttons button:first-child:hover {
+  background: #f5f5f5;
+}
+
+.confirm-button {
+  background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+  color: white;
+  border: none;
+}
+
+.confirm-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .results-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .result-card {
+    padding: 24px;
+  }
+  
+  .result-value {
+    font-size: 36px;
+  }
+  
+  .time-input input {
+    font-size: 24px;
+    padding: 16px;
+  }
+  
+  .time-input input::placeholder {
+    font-size: 20px;
+  }
+  
+  .qualifying-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-button:first-child {
+    order: 2;
+  }
+  
+  .submit-button {
+    order: 1;
+  }
+  
+  .nav-button:last-child {
+    order: 3;
+  }
+}
+
+@media (max-width: 480px) {
+  .qualifying-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .result-value {
+    font-size: 28px;
+  }
+}

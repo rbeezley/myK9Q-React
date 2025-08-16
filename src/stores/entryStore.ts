@@ -1,0 +1,247 @@
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+export interface Entry {
+  id: number;
+  armband: number;
+  callName: string;
+  breed: string;
+  handler: string;
+  jumpHeight?: string;
+  preferredTime?: string;
+  isScored: boolean;
+  inRing: boolean;
+  resultText?: string;
+  searchTime?: string;
+  faultCount?: number;
+  placement?: number;
+  classId: number;
+  className: string;
+  section?: string;
+  element?: string;
+  level?: string;
+  checkedIn?: boolean;
+  checkinStatus?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate';
+}
+
+interface EntryFilters {
+  showScored: boolean;
+  showUnscored: boolean;
+  searchTerm: string;
+  sortBy: 'armband' | 'callName' | 'handler' | 'status';
+  sortDirection: 'asc' | 'desc';
+}
+
+interface EntryState {
+  // Data
+  entries: Entry[];
+  currentClassEntries: Entry[];
+  currentEntry: Entry | null;
+  
+  // UI State
+  filters: EntryFilters;
+  isLoading: boolean;
+  error: string | null;
+  
+  // Pagination
+  currentPage: number;
+  entriesPerPage: number;
+  totalEntries: number;
+  
+  // Actions
+  setEntries: (entries: Entry[]) => void;
+  setCurrentClassEntries: (classId: number) => void;
+  setCurrentEntry: (entry: Entry | null) => void;
+  updateEntry: (entryId: number, updates: Partial<Entry>) => void;
+  markAsScored: (entryId: number, resultText: string) => void;
+  markInRing: (entryId: number, inRing: boolean) => void;
+  
+  // Filter Actions
+  setFilter: (filter: Partial<EntryFilters>) => void;
+  resetFilters: () => void;
+  
+  // Pagination Actions
+  setPage: (page: number) => void;
+  nextPage: () => void;
+  previousPage: () => void;
+  
+  // Utility
+  getFilteredEntries: () => Entry[];
+  getEntryByArmband: (armband: number) => Entry | undefined;
+  getPendingEntries: () => Entry[];
+  getScoredEntries: () => Entry[];
+}
+
+const defaultFilters: EntryFilters = {
+  showScored: true,
+  showUnscored: true,
+  searchTerm: '',
+  sortBy: 'armband',
+  sortDirection: 'asc'
+};
+
+export const useEntryStore = create<EntryState>()(
+  devtools(
+    (set, get) => ({
+      // Initial state
+      entries: [],
+      currentClassEntries: [],
+      currentEntry: null,
+      filters: defaultFilters,
+      isLoading: false,
+      error: null,
+      currentPage: 1,
+      entriesPerPage: 20,
+      totalEntries: 0,
+
+      // Data Actions
+      setEntries: (entries) => {
+        set({
+          entries,
+          totalEntries: entries.length,
+          currentPage: 1,
+          error: null
+        });
+      },
+
+      setCurrentClassEntries: (classId) => {
+        const classEntries = get().entries.filter(e => e.classId === classId);
+        set({
+          currentClassEntries: classEntries,
+          totalEntries: classEntries.length,
+          currentPage: 1
+        });
+      },
+
+      setCurrentEntry: (entry) => {
+        set({ currentEntry: entry });
+      },
+
+      updateEntry: (entryId, updates) => {
+        set((state) => ({
+          entries: state.entries.map(entry =>
+            entry.id === entryId ? { ...entry, ...updates } : entry
+          ),
+          currentClassEntries: state.currentClassEntries.map(entry =>
+            entry.id === entryId ? { ...entry, ...updates } : entry
+          ),
+          currentEntry: state.currentEntry?.id === entryId
+            ? { ...state.currentEntry, ...updates }
+            : state.currentEntry
+        }));
+      },
+
+      markAsScored: (entryId, resultText) => {
+        get().updateEntry(entryId, {
+          isScored: true,
+          resultText,
+          inRing: false
+        });
+      },
+
+      markInRing: (entryId, inRing) => {
+        get().updateEntry(entryId, { inRing });
+      },
+
+      // Filter Actions
+      setFilter: (filter) => {
+        set((state) => ({
+          filters: { ...state.filters, ...filter },
+          currentPage: 1
+        }));
+      },
+
+      resetFilters: () => {
+        set({
+          filters: defaultFilters,
+          currentPage: 1
+        });
+      },
+
+      // Pagination Actions
+      setPage: (page) => {
+        const maxPage = Math.ceil(get().totalEntries / get().entriesPerPage);
+        set({
+          currentPage: Math.min(Math.max(1, page), maxPage)
+        });
+      },
+
+      nextPage: () => {
+        const { currentPage, totalEntries, entriesPerPage } = get();
+        const maxPage = Math.ceil(totalEntries / entriesPerPage);
+        if (currentPage < maxPage) {
+          set({ currentPage: currentPage + 1 });
+        }
+      },
+
+      previousPage: () => {
+        const { currentPage } = get();
+        if (currentPage > 1) {
+          set({ currentPage: currentPage - 1 });
+        }
+      },
+
+      // Utility Functions
+      getFilteredEntries: () => {
+        const { currentClassEntries, filters } = get();
+        
+        let filtered = [...currentClassEntries];
+
+        // Apply scored/unscored filter
+        if (!filters.showScored) {
+          filtered = filtered.filter(e => !e.isScored);
+        }
+        if (!filters.showUnscored) {
+          filtered = filtered.filter(e => e.isScored);
+        }
+
+        // Apply search filter
+        if (filters.searchTerm) {
+          const term = filters.searchTerm.toLowerCase();
+          filtered = filtered.filter(e =>
+            e.callName.toLowerCase().includes(term) ||
+            e.handler.toLowerCase().includes(term) ||
+            e.breed.toLowerCase().includes(term) ||
+            e.armband.toString().includes(term)
+          );
+        }
+
+        // Apply sorting
+        filtered.sort((a, b) => {
+          let comparison = 0;
+          
+          switch (filters.sortBy) {
+            case 'armband':
+              comparison = a.armband - b.armband;
+              break;
+            case 'callName':
+              comparison = a.callName.localeCompare(b.callName);
+              break;
+            case 'handler':
+              comparison = a.handler.localeCompare(b.handler);
+              break;
+            case 'status':
+              comparison = (a.isScored ? 1 : 0) - (b.isScored ? 1 : 0);
+              break;
+          }
+
+          return filters.sortDirection === 'asc' ? comparison : -comparison;
+        });
+
+        return filtered;
+      },
+
+      getEntryByArmband: (armband) => {
+        return get().entries.find(e => e.armband === armband);
+      },
+
+      getPendingEntries: () => {
+        return get().currentClassEntries.filter(e => !e.isScored);
+      },
+
+      getScoredEntries: () => {
+        return get().currentClassEntries.filter(e => e.isScored);
+      }
+    })
+  )
+);

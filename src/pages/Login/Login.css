@@ -1,0 +1,225 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #6B46C1 0%, #4C1D95 100%);
+  z-index: 0;
+}
+
+.wave-pattern {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%237C3AED' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+  background-size: cover;
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  color: white;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem; /* Reduced from 3rem */
+}
+
+.logo-image {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 1rem;
+  filter: brightness(0) invert(1); /* Ensures the logo is white */
+  opacity: 0.95;
+}
+
+.app-title {
+  font-size: 4rem;
+  font-weight: 300;
+  margin: 0.5rem 0;
+  letter-spacing: -2px;
+}
+
+.version {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.tagline {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.passcode-section {
+  margin: 1rem 0; /* Reduced from 2rem */
+  text-align: center;
+}
+
+.instruction {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.95;
+}
+
+.passcode-inputs {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.passcode-input {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.passcode-input:focus {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.passcode-input.error {
+  border-color: #EF4444;
+  animation: shake 0.5s;
+}
+
+.passcode-input:disabled {
+  opacity: 0.5;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.error-message {
+  color: #FCA5A5;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.loading-message {
+  color: white;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+.info-section {
+  max-width: 500px;
+  text-align: center;
+  margin: 1rem 0; /* Reduced from 2rem */
+  padding-bottom: 4rem; /* Add padding to prevent help button overlap */
+}
+
+.info-text {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin: 1rem 0;
+  line-height: 1.5;
+}
+
+.website-link {
+  font-size: 0.95rem;
+  margin: 1.5rem 0;
+  opacity: 0.9;
+}
+
+.requirements {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  line-height: 1.5;
+}
+
+.help-button {
+  position: absolute; /* Changed from fixed to absolute */
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.help-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-50%) scale(1.05); /* Fixed hover transform */
+}
+
+.help-icon {
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .app-title {
+    font-size: 3rem;
+  }
+  
+  .passcode-input {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .passcode-inputs {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .passcode-input {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+  
+  .passcode-inputs {
+    gap: 0.5rem;
+  }
+}
