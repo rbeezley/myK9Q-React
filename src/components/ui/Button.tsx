@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
 import './Button.css';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,10 +18,13 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props 
 }) => {
+  const hapticFeedback = useHapticFeedback();
+  
   return (
     <button 
       className={`btn btn-${variant} btn-${size} ${fullWidth ? 'btn-full' : ''} ${className}`}
       disabled={disabled}
+      {...(!disabled ? hapticFeedback : {})}
       {...props}
     >
       {children}

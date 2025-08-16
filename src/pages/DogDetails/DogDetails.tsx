@@ -3,6 +3,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
+import { Card, CardContent, Button } from '../../components/ui';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { 
+  ArrowLeft, 
+  RefreshCw, 
+  Trophy, 
+  Clock, 
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  CircleDot,
+  Home as HomeIcon,
+  MessageSquare,
+  Calendar,
+  Settings,
+  Download
+} from 'lucide-react';
 import './DogDetails.css';
 
 interface ClassEntry {
@@ -32,11 +49,16 @@ export const DogDetails: React.FC = () => {
   const navigate = useNavigate();
   const { showContext } = useAuth();
   const { hasPermission, isExhibitor: _isExhibitor } = usePermission();
+  const hapticFeedback = useHapticFeedback();
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
 
   useEffect(() => {
     if (armband && showContext) {
@@ -136,6 +158,7 @@ export const DogDetails: React.FC = () => {
   const handleStatusChange = async (classId: number, status: ClassEntry['check_in_status']) => {
     try {
       console.log('Updating status:', classId, status);
+      hapticFeedback.impact('medium');
       
       // Update local state immediately for better UX
       setClasses(prev => prev.map(c => 
@@ -151,6 +174,7 @@ export const DogDetails: React.FC = () => {
       
       // Close popup
       setActivePopup(null);
+      setPopupPosition(null);
 
       // Update database - use checkin_status column (not result_text)
       const updateData: any = {};
@@ -272,170 +296,312 @@ export const DogDetails: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="dog-details-container">
-        <div className="loading">Loading...</div>
+      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 text-muted-foreground animate-spin mx-auto mb-2" />
+            <p className="text-muted-foreground">Loading dog details...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!dogInfo) {
     return (
-      <div className="dog-details-container">
-        <div className="error">Dog not found</div>
+      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-foreground text-lg font-semibold mb-2">Dog not found</p>
+            <Button onClick={() => navigate(-1)} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go Back
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="dog-details-container">
-      <header className="dog-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-          </svg>
-        </button>
-        <h1>{dogInfo.call_name}</h1>
-        <button className="refresh-button" onClick={loadDogDetails}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-          </svg>
-        </button>
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+      {/* Header with outdoor-ready contrast */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/30">
+        <div className="flex items-center justify-between h-16 px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
+          >
+            <ArrowLeft className="h-5 w-5 text-foreground" />
+          </Button>
+          
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">
+            {dogInfo.call_name}
+          </h1>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={loadDogDetails}
+            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
+          >
+            <RefreshCw className="h-5 w-5 text-foreground" />
+          </Button>
+        </div>
       </header>
 
-      <div className="dog-info-card">
-        <div className="armband-display">{dogInfo.armband}</div>
-        <div className="dog-details">
-          <h2>{dogInfo.call_name}</h2>
-          <p className="breed">{dogInfo.breed}</p>
-          <p className="handler">{dogInfo.handler}</p>
+      {/* Prominent Dog Info Card */}
+      <div className="p-4">
+        <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg hover:shadow-xl transition-all duration-500">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-6">
+              {/* Extra Prominent Armband for Outdoor Visibility */}
+              <div className="flex-shrink-0">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 rounded-2xl flex items-center justify-center shadow-lg">
+                  <span className="text-2xl font-bold text-primary">
+                    {dogInfo.armband}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Dog Information */}
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  {dogInfo.call_name}
+                </h2>
+                <p className="text-base text-muted-foreground mb-1">
+                  {dogInfo.breed}
+                </p>
+                <p className="text-sm text-muted-foreground/80">
+                  Handler: {dogInfo.handler}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground/60 bg-muted/20 px-4 py-2 rounded-lg inline-block">
+            Results below are preliminary
+          </p>
         </div>
       </div>
 
-      <p className="results-notice">Results below are Preliminary</p>
-
-      <div className="classes-list">
-        {classes.map((entry) => (
-          <div key={entry.id} className={`class-card ${getStatusColor(entry)}`}>
-            <div className="class-position">
-              {entry.position ? (
-                <span className="position-badge">{entry.position}nd</span>
-              ) : (
-                <span className="position-placeholder">--</span>
-              )}
-            </div>
-            
-            <div className="class-info">
-              <div className="class-date">
-                {entry.trial_date} - {entry.trial_name}
-              </div>
-              <div className="class-name">{entry.class_name}</div>
-              <div className="class-stats">
-                Time: {formatTime(entry.search_time)} &nbsp;&nbsp; 
-                Faults: {entry.fault_count || 0}
-              </div>
-            </div>
-
-            <div className="class-actions">
-              <button 
-                className={`status-button ${getStatusColor(entry)}`}
-                onClick={(e) => !entry.is_scored && handleOpenPopup(e, entry.id)}
-                disabled={entry.is_scored}
-              >
-                {getStatusLabel(entry)}
-              </button>
-              
-            </div>
-          </div>
-        ))}
+      {/* Class Entry Cards with Status Indicators */}
+      <div className="px-4 pb-24 space-y-4">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          Class Entries
+        </h3>
+        
+        {classes.map((entry) => {
+          const statusColor = getStatusColor(entry);
+          const isScored = entry.is_scored;
+          
+          return (
+            <Card 
+              key={entry.id}
+              className={`transition-all duration-500 backdrop-blur-xl border border-border/30 hover:shadow-lg ${
+                statusColor === 'qualified' ? 'bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20' :
+                statusColor === 'not-qualified' ? 'bg-gradient-to-br from-red-500/10 to-red-600/5 border-red-500/20' :
+                statusColor === 'at-gate' ? 'bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20' :
+                statusColor === 'checked-in' ? 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20' :
+                'bg-card/80'
+              }`}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  {/* Position Badge */}
+                  <div className="flex-shrink-0">
+                    {entry.position ? (
+                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/20 rounded-xl flex items-center justify-center">
+                        <Trophy className="h-5 w-5 text-yellow-600" />
+                        <span className="absolute text-xs font-bold text-yellow-600 mt-1">{entry.position}</span>
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 bg-muted/20 border border-border/30 rounded-xl flex items-center justify-center">
+                        <span className="text-sm text-muted-foreground">--</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Class Information */}
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-3">
+                      <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide mb-1">
+                        {entry.trial_date} • {entry.trial_name}
+                      </p>
+                      <h4 className="text-base font-semibold text-foreground mb-2">
+                        {entry.class_name}
+                      </h4>
+                    </div>
+                    
+                    {/* Performance Stats */}
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground">
+                          {formatTime(entry.search_time)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground">
+                          {entry.fault_count || 0} faults
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Status Button */}
+                  <div className="flex-shrink-0">
+                    <Button
+                      variant={isScored ? "outline" : "ghost"}
+                      size="sm"
+                      onClick={(e) => !isScored && handleOpenPopup(e, entry.id)}
+                      disabled={isScored}
+                      className={`min-w-[100px] h-10 rounded-lg border transition-all duration-200 ${
+                        statusColor === 'qualified' ? 'border-green-500/30 text-green-600 bg-green-500/10 hover:bg-green-500/20' :
+                        statusColor === 'not-qualified' ? 'border-red-500/30 text-red-600 bg-red-500/10 hover:bg-red-500/20' :
+                        statusColor === 'at-gate' ? 'border-blue-500/30 text-blue-600 bg-blue-500/10 hover:bg-blue-500/20' :
+                        statusColor === 'checked-in' ? 'border-orange-500/30 text-orange-600 bg-orange-500/10 hover:bg-orange-500/20' :
+                        'border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/20'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {statusColor === 'qualified' && <CheckCircle className="h-4 w-4" />}
+                        {statusColor === 'not-qualified' && <XCircle className="h-4 w-4" />}
+                        {statusColor === 'at-gate' && <CircleDot className="h-4 w-4" />}
+                        {statusColor === 'checked-in' && <CheckCircle className="h-4 w-4" />}
+                        <span className="text-xs font-medium">
+                          {getStatusLabel(entry)}
+                        </span>
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Status Popup */}
-      {activePopup !== null && popupPosition && (
-        <div 
-          className="status-popup" 
-          style={{ 
-            top: popupPosition.top, 
-            left: popupPosition.left 
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button 
-            className="popup-option none"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStatusChange(activePopup, 'none');
-            }}
-          >
-            <span className="popup-icon">⚪</span> Not Checked In
-          </button>
-          <button 
-            className="popup-option checked-in"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStatusChange(activePopup, 'checked-in');
-            }}
-          >
-            <span className="popup-icon">✓</span> Check-in
-          </button>
-          <button 
-            className="popup-option conflict"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStatusChange(activePopup, 'conflict');
-            }}
-          >
-            <span className="popup-icon">⚠</span> Conflict
-          </button>
-          <button 
-            className="popup-option pulled"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStatusChange(activePopup, 'pulled');
-            }}
-          >
-            <span className="popup-icon">✕</span> Pulled
-          </button>
-          {hasPermission('canAccessScoresheet') && (
-            <button 
-              className="popup-option at-gate"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleStatusChange(activePopup, 'at-gate');
-              }}
-            >
-              <span className="popup-icon">▶</span> At Gate
-            </button>
-          )}
+      {/* Status Management Popup */}
+      {activePopup !== null && (
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-background/80" onClick={() => {
+          setActivePopup(null);
+          setPopupPosition(null);
+        }}>
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw]">
+            <Card className="backdrop-blur-xl bg-card/95 border border-border/30 shadow-2xl">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Check-in Status</h3>
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-muted/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(activePopup, 'none');
+                    }}
+                  >
+                    <span className="text-lg">⚪</span>
+                    <span className="text-sm font-medium">Not Checked In</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-orange-500/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(activePopup, 'checked-in');
+                    }}
+                  >
+                    <CheckCircle className="h-5 w-5 text-orange-600" />
+                    <span className="text-sm font-medium">Check-in</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-yellow-500/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(activePopup, 'conflict');
+                    }}
+                  >
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <span className="text-sm font-medium">Conflict</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-red-500/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStatusChange(activePopup, 'pulled');
+                    }}
+                  >
+                    <XCircle className="h-5 w-5 text-red-600" />
+                    <span className="text-sm font-medium">Pulled</span>
+                  </Button>
+                  
+                  {hasPermission('canAccessScoresheet') && (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-blue-500/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(activePopup, 'at-gate');
+                      }}
+                    >
+                      <CircleDot className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm font-medium">At Gate</span>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
-      {/* Bottom Navigation */}
-      <nav className="bottom-nav">
-        <button className="nav-button" onClick={() => navigate('/home')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/announcements')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/calendar')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/settings')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => {}}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/>
-          </svg>
-        </button>
+      {/* Bottom Navigation with Outdoor-Ready Design */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-t border-border/30">
+        <div className="flex items-center justify-around h-20 px-4">
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/home')}
+          >
+            <HomeIcon className="h-6 w-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/announcements')}
+          >
+            <MessageSquare className="h-6 w-6" />
+            <span className="text-xs font-medium">News</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/calendar')}
+          >
+            <Calendar className="h-6 w-6" />
+            <span className="text-xs font-medium">Calendar</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/settings')}
+          >
+            <Settings className="h-6 w-6" />
+            <span className="text-xs font-medium">Settings</span>
+          </Button>
+        </div>
       </nav>
     </div>
   );

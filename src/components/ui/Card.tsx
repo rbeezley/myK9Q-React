@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
 import './Card.css';
 
 interface CardProps {
@@ -15,12 +16,14 @@ export const Card: React.FC<CardProps> = ({
   onClick 
 }) => {
   const isClickable = variant === 'clickable' || !!onClick;
+  const hapticFeedback = useHapticFeedback();
   
   return (
     <div 
       className={`card ${variant} ${isClickable ? 'clickable' : ''} ${className}`}
       onClick={onClick}
       style={{ cursor: isClickable ? 'pointer' : 'default' }}
+      {...(isClickable ? hapticFeedback : {})}
     >
       {children}
     </div>

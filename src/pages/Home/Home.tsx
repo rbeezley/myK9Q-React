@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
+import { Card, CardContent, Button } from '../../components/ui';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { RefreshCw, Home as HomeIcon, MessageSquare, Calendar, Settings, Download, Heart, User, Hash, Users } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -32,11 +35,16 @@ export const Home: React.FC = () => {
   const navigate = useNavigate();
   const { showContext, logout, role } = useAuth();
   const { hasPermission: _hasPermission } = usePermission();
+  const hapticFeedback = useHapticFeedback();
   const [activeTab, setActiveTab] = useState<'armband' | 'name' | 'handler' | 'favorites'>('armband');
   const [entries, setEntries] = useState<EntryData[]>([]);
   const [trials, setTrials] = useState<TrialData[]>([]);
   const [_isLoading, _setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
 
   useEffect(() => {
     if (showContext) {
@@ -139,11 +147,13 @@ export const Home: React.FC = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    hapticFeedback.impact('medium');
     await loadDashboardData();
     setRefreshing(false);
   };
 
   const toggleFavorite = (armband: number) => {
+    hapticFeedback.impact('light');
     setEntries(prev => prev.map(entry => 
       entry.armband === armband 
         ? { ...entry, is_favorite: !entry.is_favorite }
@@ -152,7 +162,7 @@ export const Home: React.FC = () => {
   };
   
   const handleDogClick = (armband: number) => {
-    // Navigate to dog details page
+    hapticFeedback.impact('light');
     navigate(`/dog/${armband}`);
   };
 
@@ -174,172 +184,314 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="home-container">
-      <header className="home-header">
-        <div className="header-left">
-          <button className="icon-button" onClick={logout}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-          </button>
-        </div>
-        <div className="header-center">
-          <h1>Home</h1>
-        </div>
-        <div className="header-right">
-          <button 
-            className="icon-button" 
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+      {/* Header with outdoor-ready contrast */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/30">
+        <div className="flex items-center justify-between h-16 px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={logout}
+            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
+          >
+            <HomeIcon className="h-5 w-5 text-foreground" />
+          </Button>
+          
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">
+            Dashboard
+          </h1>
+          
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleRefresh}
             disabled={refreshing}
+            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
           >
-            <svg 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="white"
-              className={refreshing ? 'rotating' : ''}
-            >
-              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-            </svg>
-          </button>
+            <RefreshCw className={`h-5 w-5 text-foreground transition-transform duration-500 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </header>
 
-      <div className="show-info">
-        <h2>{showContext?.clubName}</h2>
-        <p className="show-date">{showContext?.showName}</p>
-        <p className="user-role">Logged in as: {role}</p>
+      {/* Show Info Card with Glass Morphism */}
+      <div className="p-4">
+        <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg hover:shadow-xl transition-all duration-500">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              {showContext?.clubName}
+            </h2>
+            <p className="text-base text-muted-foreground mb-1">
+              {showContext?.showName}
+            </p>
+            <p className="text-sm text-muted-foreground/80">
+              Logged in as: <span className="font-medium text-foreground">{role}</span>
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Trial Cards - Horizontal Scroll */}
-      <div className="trials-section">
-        <div className="trials-scroll">
-          {trials.map((trial) => (
-            <div 
-              key={trial.id} 
-              className="trial-card"
-              onClick={() => navigate(`/trial/${trial.trialid}/classes`)}
-            >
-              <div className="trial-image">
-                {/* Placeholder image */}
-                <div className="trial-image-placeholder" />
-              </div>
-              <div className="trial-info">
-                <h3>{trial.trial_name}</h3>
-                <p className="trial-date">{trial.trial_date}</p>
-                <p className="trial-type">{trial.trial_type}</p>
-                <div className="trial-progress">
-                  <p>[{trial.classes_completed}] of [{trial.classes_total}] Classes Remaining</p>
-                  <p>[{trial.entries_completed}] of [{trial.entries_total}] Entries Remaining</p>
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Trial Cards with Orange Glow for Active */}
+      <div className="px-4 mb-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          Active Trials
+        </h3>
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          {trials.map((trial) => {
+            const hasActiveClasses = trial.classes_total > trial.classes_completed;
+            return (
+              <Card 
+                key={trial.id}
+                className={`min-w-[280px] cursor-pointer group transition-all duration-500 backdrop-blur-xl border border-border/30 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 active:scale-98 ${
+                  hasActiveClasses 
+                    ? 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 shadow-orange-500/20' 
+                    : 'bg-card/80'
+                }`}
+                onClick={() => {
+                  hapticFeedback.impact('medium');
+                  navigate(`/trial/${trial.trialid}/classes`);
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h4 className="text-base font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                        {trial.trial_name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {trial.trial_date}
+                      </p>
+                      <p className="text-xs text-muted-foreground/80 uppercase tracking-wide">
+                        {trial.trial_type}
+                      </p>
+                    </div>
+                    {hasActiveClasses && (
+                      <div className="w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50 animate-pulse" />
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                        Classes
+                      </span>
+                      <span className="text-sm font-semibold text-foreground">
+                        {trial.classes_completed} / {trial.classes_total}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                        Entries
+                      </span>
+                      <span className="text-sm font-semibold text-foreground">
+                        {trial.entries_completed} / {trial.entries_total}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
-      {/* Entry Tabs */}
-      <div className="entry-tabs">
-        <button 
-          className={`tab-button ${activeTab === 'armband' ? 'active' : ''}`}
-          onClick={() => setActiveTab('armband')}
-        >
-          Armband
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'name' ? 'active' : ''}`}
-          onClick={() => setActiveTab('name')}
-        >
-          Name
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'handler' ? 'active' : ''}`}
-          onClick={() => setActiveTab('handler')}
-        >
-          Handler
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'favorites' ? 'active' : ''}`}
-          onClick={() => setActiveTab('favorites')}
-        >
-          Favorites
-        </button>
+      {/* Entry Tabs with Apple-inspired Design */}
+      <div className="px-4 mb-6">
+        <div className="bg-gradient-to-r from-muted/50 to-muted/30 border border-border/30 rounded-xl p-1 grid grid-cols-4 gap-1">
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              activeTab === 'armband'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setActiveTab('armband');
+            }}
+          >
+            <Hash className="h-4 w-4" />
+            <span className="hidden sm:inline">Armband</span>
+          </button>
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              activeTab === 'name'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setActiveTab('name');
+            }}
+          >
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Name</span>
+          </button>
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              activeTab === 'handler'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setActiveTab('handler');
+            }}
+          >
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Handler</span>
+          </button>
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              activeTab === 'favorites'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setActiveTab('favorites');
+            }}
+          >
+            <Heart className="h-4 w-4" />
+            <span className="hidden sm:inline">Favorites</span>
+          </button>
+        </div>
       </div>
 
-      {/* Entry List */}
-      <div className="entry-list">
+      {/* Entry List with Glass Morphism */}
+      <div className="px-4 pb-24">
         {activeTab === 'favorites' && getFilteredEntries().length === 0 ? (
-          <div className="no-favorites">
-            <p>[0] Dogs Entered</p>
-          </div>
+          <Card className="backdrop-blur-xl bg-card/80 border border-border/30">
+            <CardContent className="p-8 text-center">
+              <Heart className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No Favorites Yet
+              </h3>
+              <p className="text-muted-foreground">
+                Tap the heart icon on any dog to add them to your favorites
+              </p>
+            </CardContent>
+          </Card>
         ) : (
-          <>
-            <p className="entry-count">[{getFilteredEntries().length}] Dogs Entered</p>
-            {getFilteredEntries().map((entry) => (
-              <div key={entry.armband} className="entry-card">
-                <div 
-                  className="entry-content"
-                  onClick={() => handleDogClick(entry.armband)}
-                  style={{ cursor: 'pointer', flex: 1, display: 'flex' }}
-                >
-                  <div className="entry-armband">
-                    <span className="armband-number">{entry.armband}</span>
-                  </div>
-                  <div className="entry-details">
-                    <p className="entry-name">{entry.call_name}</p>
-                    <p className="entry-breed">{entry.breed}</p>
-                    <p className="entry-handler">{entry.handler}</p>
-                  </div>
-                </div>
-                <div className="entry-actions">
-                  <button 
-                    className="favorite-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(entry.armband);
-                    }}
-                    aria-label={entry.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">
+                Dogs Entered
+              </h3>
+              <span className="text-sm font-medium text-muted-foreground bg-muted/20 px-3 py-1 rounded-full">
+                {getFilteredEntries().length}
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              {getFilteredEntries().map((entry) => {
+                const hasScore = entry.is_scored;
+                return (
+                  <Card 
+                    key={entry.armband}
+                    className={`cursor-pointer group transition-all duration-300 backdrop-blur-xl border border-border/30 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5 active:scale-98 ${
+                      hasScore 
+                        ? 'bg-gradient-to-br from-green-500/10 to-green-600/5' 
+                        : 'bg-card/80'
+                    }`}
+                    onClick={() => handleDogClick(entry.armband)}
                   >
-                    <svg width="24" height="24" viewBox="0 0 24 24">
-                      <path 
-                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                        fill={entry.is_favorite ? '#ff4757' : '#666'}
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        {/* Prominent Armband */}
+                        <div className="flex-shrink-0">
+                          <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
+                            <span className="text-lg font-bold text-primary">
+                              {entry.armband}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Dog Details */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-base font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                            {entry.call_name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-0.5">
+                            {entry.breed}
+                          </p>
+                          <p className="text-xs text-muted-foreground/80">
+                            {entry.handler}
+                          </p>
+                          {entry.class_name && (
+                            <p className="text-xs text-muted-foreground/60 mt-1">
+                              {entry.class_name}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Status and Actions */}
+                        <div className="flex items-center gap-3">
+                          {hasScore && (
+                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(entry.armband);
+                            }}
+                            className="h-11 w-11 rounded-xl hover:bg-muted/20 active:scale-95"
+                          >
+                            <Heart 
+                              className={`h-5 w-5 transition-colors ${
+                                entry.is_favorite 
+                                  ? 'text-red-500 fill-red-500' 
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`} 
+                            />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="bottom-nav">
-        <button className="nav-button active" onClick={() => navigate('/home')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-          <span>Home</span>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/announcements')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/>
-          </svg>
-          <span>Announcements</span>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/calendar')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-          </svg>
-          <span>Calendar</span>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/settings')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-          </svg>
-          <span>Settings</span>
-        </button>
+      {/* Bottom Navigation with Outdoor-Ready Design */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-t border-border/30">
+        <div className="flex items-center justify-around h-20 px-4">
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl bg-primary/10 text-primary"
+            onClick={() => navigate('/home')}
+          >
+            <HomeIcon className="h-6 w-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/announcements')}
+          >
+            <MessageSquare className="h-6 w-6" />
+            <span className="text-xs font-medium">News</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/calendar')}
+          >
+            <Calendar className="h-6 w-6" />
+            <span className="text-xs font-medium">Calendar</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/settings')}
+          >
+            <Settings className="h-6 w-6" />
+            <span className="text-xs font-medium">Settings</span>
+          </Button>
+        </div>
       </nav>
     </div>
   );

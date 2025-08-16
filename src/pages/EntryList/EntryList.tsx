@@ -5,6 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { getClassEntries, updateEntryCheckinStatus } from '../../services/entryService';
 import { Entry } from '../../stores/entryStore';
 import { Card, CardContent, Button, ArmbandBadge } from '../../components/ui';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
 import './EntryList.css';
 
 type TabType = 'pending' | 'completed';
@@ -14,6 +15,7 @@ export const EntryList: React.FC = () => {
   const navigate = useNavigate();
   const { showContext } = useAuth();
   const { hasPermission } = usePermission();
+  const hapticFeedback = useHapticFeedback();
   
   const [entries, setEntries] = useState<Entry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -294,6 +296,7 @@ export const EntryList: React.FC = () => {
         <button 
           className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
+          {...hapticFeedback}
         >
           <span className="status-icon">⏳</span>
           Pending ({pendingEntries.length})
@@ -301,6 +304,7 @@ export const EntryList: React.FC = () => {
         <button 
           className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
+          {...hapticFeedback}
         >
           <span className="status-icon">✓</span>
           Completed ({completedEntries.length})
@@ -320,7 +324,17 @@ export const EntryList: React.FC = () => {
                 key={entry.id} 
                 variant={entry.isScored ? 'scored' : 'unscored'}
                 onClick={() => hasPermission('canScore') && handleEntryClick(entry)}
-                className={`entry-card ${!entry.isScored ? `checkin-${(entry.checkinStatus || 'none').replace(' ', '-')}` : ''}`}
+                className={`entry-card ${
+                  !entry.isScored ? 'unscored' : 'scored'
+                } ${
+                  !entry.isScored && !entry.checkinStatus ? 'checkin-none' : ''
+                } ${
+                  !entry.isScored && !entry.checkinStatus ? 'pending-entry' : ''
+                } ${
+                  !entry.isScored ? `checkin-${(entry.checkinStatus || 'none').replace(' ', '-')}` : ''
+                } ${
+                  hasPermission('canScore') ? 'clickable' : ''
+                }`}
               >
                 <ArmbandBadge number={entry.armband} />
                 
@@ -329,6 +343,7 @@ export const EntryList: React.FC = () => {
                     className={`checkin-status ${(entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')}`}
                     onClick={(e) => handleStatusClick(e, entry.id)}
                     title="Click to change check-in status"
+                    {...hapticFeedback}
                   >
                     {(() => {
                       const status = entry.checkinStatus || 'none';
@@ -389,30 +404,35 @@ export const EntryList: React.FC = () => {
             <button 
               className="status-option status-none"
               onClick={() => handleStatusChange(activeStatusPopup, 'none')}
+              {...hapticFeedback}
             >
               <span className="popup-icon">⚪</span> Not Set
             </button>
             <button 
               className="status-option status-checked-in"
               onClick={() => handleStatusChange(activeStatusPopup, 'checked-in')}
+              {...hapticFeedback}
             >
               <span className="popup-icon">✓</span> Checked-in
             </button>
             <button 
               className="status-option status-conflict"
               onClick={() => handleStatusChange(activeStatusPopup, 'conflict')}
+              {...hapticFeedback}
             >
               <span className="popup-icon">⚠</span> Conflict
             </button>
             <button 
               className="status-option status-pulled"
               onClick={() => handleStatusChange(activeStatusPopup, 'pulled')}
+              {...hapticFeedback}
             >
               <span className="popup-icon">✕</span> Pulled
             </button>
             <button 
               className="status-option status-at-gate"
               onClick={() => handleStatusChange(activeStatusPopup, 'at-gate')}
+              {...hapticFeedback}
             >
               <span className="popup-icon">▶</span> At Gate
             </button>

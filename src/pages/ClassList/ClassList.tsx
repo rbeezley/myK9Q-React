@@ -3,6 +3,26 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
+import { Card, CardContent, Button } from '../../components/ui';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { 
+  ArrowLeft, 
+  RefreshCw, 
+  Heart, 
+  Eye, 
+  Play, 
+  MoreVertical, 
+  Clock, 
+  CheckCircle, 
+  Users, 
+  ChevronDown, 
+  ChevronUp,
+  Home as HomeIcon,
+  MessageSquare,
+  Calendar,
+  Settings,
+  Download
+} from 'lucide-react';
 import './ClassList.css';
 
 interface ClassEntry {
@@ -41,6 +61,7 @@ export const ClassList: React.FC = () => {
   const navigate = useNavigate();
   const { showContext } = useAuth();
   const { hasPermission } = usePermission();
+  const hapticFeedback = useHapticFeedback();
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +69,10 @@ export const ClassList: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<'all' | 'favorites' | 'in_progress'>('all');
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
 
   useEffect(() => {
     if (trialId && showContext) {
@@ -194,6 +219,7 @@ export const ClassList: React.FC = () => {
   };
 
   const handleViewEntries = (classEntry: ClassEntry) => {
+    hapticFeedback.impact('medium');
     navigate(`/class/${classEntry.id}/entries`);
   };
 
@@ -287,6 +313,7 @@ export const ClassList: React.FC = () => {
   };
 
   const toggleFavorite = async (classId: number) => {
+    hapticFeedback.impact('light');
     setClasses(prev => prev.map(c => 
       c.id === classId ? { ...c, is_favorite: !c.is_favorite } : c
     ));
@@ -347,6 +374,7 @@ export const ClassList: React.FC = () => {
   };
 
   const toggleClassExpansion = (classId: number) => {
+    hapticFeedback.impact('light');
     setExpandedClasses(prev => {
       const newSet = new Set(prev);
       if (newSet.has(classId)) {
@@ -372,336 +400,438 @@ export const ClassList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="class-list-container">
-        <div className="loading">Loading...</div>
+      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 text-muted-foreground animate-spin mx-auto mb-2" />
+            <p className="text-muted-foreground">Loading classes...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!trialInfo) {
     return (
-      <div className="class-list-container">
-        <div className="error">Trial not found</div>
+      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-foreground text-lg font-semibold mb-2">Trial not found</p>
+            <Button onClick={() => navigate(-1)} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go Back
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="class-list-container">
-      <header className="class-list-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-          </svg>
-        </button>
-        <h1>Select Class</h1>
-        <button className="refresh-button" onClick={loadClassList}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-          </svg>
-        </button>
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+      {/* Header with outdoor-ready contrast */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/30">
+        <div className="flex items-center justify-between h-16 px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
+          >
+            <ArrowLeft className="h-5 w-5 text-foreground" />
+          </Button>
+          
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">
+            Select Class
+          </h1>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={loadClassList}
+            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
+          >
+            <RefreshCw className="h-5 w-5 text-foreground" />
+          </Button>
+        </div>
       </header>
 
-      <div className="trial-info">
-        <div className="trial-details">
-          <h2>{trialInfo.trial_date}</h2>
-          <p>{trialInfo.trial_name}</p>
-        </div>
-        <div className="class-count">
-          {trialInfo.total_classes} Classes
-        </div>
-      </div>
-
-      <div className="status-tabs">
-        <button 
-          className={`status-tab ${statusFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('pending')}
-        >
-          <span className="status-icon">⏳</span>
-          {trialInfo.pending_classes} Pending
-        </button>
-        <button 
-          className={`status-tab ${statusFilter === 'completed' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('completed')}
-        >
-          <span className="status-icon">✅</span>
-          {trialInfo.completed_classes} Completed
-        </button>
-      </div>
-
-      <div className="filter-tabs">
-        <button 
-          className={`filter-tab ${typeFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setTypeFilter('all')}
-        >
-          All
-        </button>
-        <button 
-          className={`filter-tab ${typeFilter === 'favorites' ? 'active' : ''}`}
-          onClick={() => setTypeFilter('favorites')}
-        >
-          Favorites
-        </button>
-        <button 
-          className={`filter-tab ${typeFilter === 'in_progress' ? 'active' : ''}`}
-          onClick={() => setTypeFilter('in_progress')}
-        >
-          In-Progress
-        </button>
-      </div>
-
-      <div className="classes-list">
-        {filteredClasses.map((classEntry) => (
-          <div 
-            key={classEntry.id} 
-            className="class-card clickable"
-            onClick={() => handleViewEntries(classEntry)}
-          >
-            <div className="class-header">
-              <div className="class-info">
-                <h3>{classEntry.class_name}</h3>
-                <p className="judge-name">Judge: {classEntry.judge_name}</p>
-                <p className="entry-stats">
-                  {classEntry.completed_count} of {classEntry.entry_count} Remaining
+      {/* Trial Info Card */}
+      <div className="p-4">
+        <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-foreground mb-1">
+                  {trialInfo.trial_date}
+                </h2>
+                <p className="text-base text-muted-foreground">
+                  {trialInfo.trial_name}
                 </p>
               </div>
-              <div className="class-actions">
-                <button 
-                  className="favorite-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(classEntry.id);
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill={classEntry.is_favorite ? "#ff4757" : "none"} stroke="white">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                </button>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-primary">
+                  {trialInfo.total_classes}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                  Classes
+                </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <div className="class-content">
-              <div className="class-entries">
-                {classEntry.dogs.length > 0 ? (
-                  <>
-                    {getVisibleDogs(classEntry.dogs, classEntry.id).map((dog) => (
-                      <div 
-                        key={dog.id} 
-                        className={`entry-item ${getDogStatusColor(dog)}`}
-                        onClick={() => navigate(`/dog/${dog.armband}`)}
-                      >
-                        <span className="entry-status">{getDogStatusIcon(dog)}</span>
-                        <span className="entry-armband">{dog.armband}</span>
-                        <span className="entry-name">{dog.call_name}</span>
-                      </div>
-                    ))}
-                    
-                    {!expandedClasses.has(classEntry.id) && classEntry.dogs.length > 5 && (
-                      <button 
-                        className="show-all-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleClassExpansion(classEntry.id);
-                        }}
-                      >
-                        ▼ Show all {classEntry.dogs.length} remaining
-                      </button>
-                    )}
-                    
-                    {expandedClasses.has(classEntry.id) && classEntry.dogs.length > 5 && (
-                      <button 
-                        className="show-less-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleClassExpansion(classEntry.id);
-                        }}
-                      >
-                        ▲ Show less
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <div className="no-entries">
-                    <p>No dogs entered yet</p>
-                    <span className="entry-count-text">Entries will appear here when dogs are registered</span>
+      {/* Status Tabs with Apple Design */}
+      <div className="px-4 mb-6">
+        <div className="bg-gradient-to-r from-muted/50 to-muted/30 border border-border/30 rounded-xl p-1 grid grid-cols-2 gap-1">
+          <button
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              statusFilter === 'pending'
+                ? 'bg-gradient-to-r from-orange-500/10 to-orange-600/5 text-orange-600 shadow-sm border border-orange-500/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setStatusFilter('pending');
+            }}
+          >
+            <Clock className="h-4 w-4" />
+            <span>{trialInfo.pending_classes} Pending</span>
+            {trialInfo.pending_classes > 0 && (
+              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            )}
+          </button>
+          <button
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              statusFilter === 'completed'
+                ? 'bg-gradient-to-r from-green-500/10 to-green-600/5 text-green-600 shadow-sm border border-green-500/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setStatusFilter('completed');
+            }}
+          >
+            <CheckCircle className="h-4 w-4" />
+            <span>{trialInfo.completed_classes} Completed</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="px-4 mb-6">
+        <div className="bg-gradient-to-r from-muted/50 to-muted/30 border border-border/30 rounded-xl p-1 grid grid-cols-3 gap-1">
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              typeFilter === 'all'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setTypeFilter('all');
+            }}
+          >
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">All</span>
+          </button>
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              typeFilter === 'favorites'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setTypeFilter('favorites');
+            }}
+          >
+            <Heart className="h-4 w-4" />
+            <span className="hidden sm:inline">Favorites</span>
+          </button>
+          <button
+            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              typeFilter === 'in_progress'
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+            }`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setTypeFilter('in_progress');
+            }}
+          >
+            <Play className="h-4 w-4" />
+            <span className="hidden sm:inline">Active</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Classes List with Premium Cards */}
+      <div className="px-4 pb-24 space-y-4">
+        {filteredClasses.map((classEntry) => {
+          const hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
+          const isInProgress = classEntry.class_status === 'in_progress';
+          return (
+            <Card 
+              key={classEntry.id}
+              className={`cursor-pointer group transition-all duration-500 backdrop-blur-xl border border-border/30 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 active:scale-98 ${
+                hasPendingEntries || isInProgress
+                  ? 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 shadow-orange-500/20' 
+                  : 'bg-card/80'
+              }`}
+              onClick={() => handleViewEntries(classEntry)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      {classEntry.class_name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Judge: {classEntry.judge_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground/80">
+                      {classEntry.completed_count} of {classEntry.entry_count} entries scored
+                    </p>
                   </div>
-                )}
-              </div>
-            </div>
+                  
+                  <div className="flex items-center gap-3">
+                    {(hasPendingEntries || isInProgress) && (
+                      <div className="w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50 animate-pulse" />
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(classEntry.id);
+                      }}
+                      className="h-11 w-11 rounded-xl hover:bg-muted/20 active:scale-95"
+                    >
+                      <Heart 
+                        className={`h-5 w-5 transition-colors ${
+                          classEntry.is_favorite 
+                            ? 'text-red-500 fill-red-500' 
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`} 
+                      />
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="class-status-section">
-              <div className="class-status-actions">
-                <button 
-                  className={`status-button ${getStatusColor(classEntry.class_status)}`}
-                >
-                  {getStatusLabel(classEntry.class_status)}
-                </button>
+                {/* Entry Preview */}
+                <div className="space-y-3">
+                  {classEntry.dogs.length > 0 ? (
+                    <>
+                      <div className="space-y-2">
+                        {getVisibleDogs(classEntry.dogs, classEntry.id).map((dog) => {
+                          const statusColor = getDogStatusColor(dog);
+                          const statusIcon = getDogStatusIcon(dog);
+                          return (
+                            <div 
+                              key={dog.id}
+                              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer group/dog ${
+                                statusColor === 'completed' ? 'bg-green-500/10 border border-green-500/20' :
+                                statusColor === 'in-ring' ? 'bg-orange-500/10 border border-orange-500/20' :
+                                statusColor === 'at-gate' ? 'bg-blue-500/10 border border-blue-500/20' :
+                                'bg-muted/20 border border-transparent hover:border-border/30'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                hapticFeedback.impact('light');
+                                navigate(`/dog/${dog.armband}`);
+                              }}
+                            >
+                              <span className="text-lg">{statusIcon}</span>
+                              <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
+                                <span className="text-sm font-bold text-primary">{dog.armband}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground group-hover/dog:text-primary transition-colors">
+                                  {dog.call_name}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {!expandedClasses.has(classEntry.id) && classEntry.dogs.length > 5 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleClassExpansion(classEntry.id);
+                          }}
+                          className="w-full justify-center gap-2 h-10 text-sm rounded-lg border-border/30 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                          Show all {classEntry.dogs.length} dogs
+                        </Button>
+                      )}
+                      
+                      {expandedClasses.has(classEntry.id) && classEntry.dogs.length > 5 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleClassExpansion(classEntry.id);
+                          }}
+                          className="w-full justify-center gap-2 h-10 text-sm rounded-lg border-border/30 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                          Show less
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm">No dogs entered yet</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">
+                        Entries will appear when dogs are registered
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-border/20">
+                  <div className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                    getStatusColor(classEntry.class_status) === 'in-progress' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' :
+                    getStatusColor(classEntry.class_status) === 'completed' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                    'bg-muted/20 text-muted-foreground border-border/30'
+                  }`}>
+                    {getStatusLabel(classEntry.class_status)}
+                  </div>
+                  
+                  {classEntry.entry_count > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewEntries(classEntry);
+                      }}
+                      className="h-8 px-3 text-xs rounded-lg border-border/30 hover:border-primary/30 transition-all duration-200"
+                    >
+                      <Eye className="h-3 w-3 mr-1.5" />
+                      View Entries
+                    </Button>
+                  )}
+                  
+                  {hasPermission('canScore') && classEntry.entry_count > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewEntries(classEntry);
+                      }}
+                      className="h-8 px-3 text-xs rounded-lg border-orange-500/30 hover:border-orange-500/50 text-orange-600 hover:bg-orange-500/10 transition-all duration-200"
+                    >
+                      <Play className="h-3 w-3 mr-1.5" />
+                      Score Class
+                    </Button>
+                  )}
                 
-                {classEntry.entry_count > 0 && (
-                  <button
-                    className="view-entries-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewEntries(classEntry);
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    View Entries
-                  </button>
-                )}
-                
-                {hasPermission('canScore') && classEntry.entry_count > 0 && (
-                  <button
-                    className="score-class-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewEntries(classEntry); // Navigate to entries instead of direct scoring
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                      <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-                    </svg>
-                    Score Class
-                  </button>
-                )}
-                
-                {hasPermission('canManageClasses') && (
-                  <div className="menu-container">
-                    <button 
-                      className="class-menu-button"
+                  
+                  {hasPermission('canManageClasses') && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
                         setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
                       }}
+                      className="h-8 w-8 rounded-lg hover:bg-muted/20 active:scale-95"
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                        <circle cx="12" cy="12" r="2"/>
-                        <circle cx="12" cy="5" r="2"/>
-                        <circle cx="12" cy="19" r="2"/>
-                      </svg>
-                    </button>
-                    
-                    {activePopup === classEntry.id && (
-                      <div className="class-popup" onClick={(e) => e.stopPropagation()}>
-                        <div className="popup-section">
-                          <div className="popup-section-title">Class Status</div>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'none');
-                            }}
-                          >
-                            <span className="popup-icon">⚪</span> None
-                          </button>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'setup');
-                            }}
-                          >
-                            <span className="popup-icon">🔧</span> Setup
-                          </button>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'briefing');
-                            }}
-                          >
-                            <span className="popup-icon">📋</span> Briefing
-                          </button>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'break');
-                            }}
-                          >
-                            <span className="popup-icon">☕</span> Break
-                          </button>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'start_time');
-                            }}
-                          >
-                            <span className="popup-icon">⏰</span> Start Time
-                          </button>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'in_progress');
-                            }}
-                          >
-                            <span className="popup-icon">🏃</span> In Progress
-                          </button>
-                          <button 
-                            className="popup-option"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClassStatusChange(classEntry.id, 'completed');
-                            }}
-                          >
-                            <span className="popup-icon">✅</span> Completed
-                          </button>
-                        </div>
-                        
-                        <div className="popup-divider"></div>
-                        
-                        <div className="popup-section">
-                          <button className="popup-option">
-                            <span className="popup-icon">📋</span> Class Requirements
-                          </button>
-                          <button className="popup-option">
-                            <span className="popup-icon">⚙️</span> Class Settings
-                          </button>
-                          <button className="popup-option">
-                            <span className="popup-icon">📊</span> Class Statistics
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="bottom-nav">
-        <button className="nav-button" onClick={() => navigate('/home')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/announcements')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/calendar')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => navigate('/settings')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-          </svg>
-        </button>
-        <button className="nav-button" onClick={() => {}}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/>
-          </svg>
-        </button>
+      {/* Status Management Popup */}
+      {activePopup !== null && (
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-background/80" onClick={() => setActivePopup(null)}>
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw]">
+            <Card className="backdrop-blur-xl bg-card/95 border border-border/30 shadow-2xl">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Class Status</h3>
+                <div className="space-y-2">
+                  {[
+                    { status: 'none', label: 'None', icon: '⚪' },
+                    { status: 'setup', label: 'Setup', icon: '🔧' },
+                    { status: 'briefing', label: 'Briefing', icon: '📋' },
+                    { status: 'break', label: 'Break', icon: '☕' },
+                    { status: 'start_time', label: 'Start Time', icon: '⏰' },
+                    { status: 'in_progress', label: 'In Progress', icon: '🏃' },
+                    { status: 'completed', label: 'Completed', icon: '✅' }
+                  ].map(({ status, label, icon }) => (
+                    <Button
+                      key={status}
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-muted/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClassStatusChange(activePopup, status as any);
+                      }}
+                    >
+                      <span className="text-lg">{icon}</span>
+                      <span className="text-sm font-medium">{label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Navigation with Outdoor-Ready Design */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-t border-border/30">
+        <div className="flex items-center justify-around h-20 px-4">
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/home')}
+          >
+            <HomeIcon className="h-6 w-6" />
+            <span className="text-xs font-medium">Home</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/announcements')}
+          >
+            <MessageSquare className="h-6 w-6" />
+            <span className="text-xs font-medium">News</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/calendar')}
+          >
+            <Calendar className="h-6 w-6" />
+            <span className="text-xs font-medium">Calendar</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            onClick={() => navigate('/settings')}
+          >
+            <Settings className="h-6 w-6" />
+            <span className="text-xs font-medium">Settings</span>
+          </Button>
+        </div>
       </nav>
     </div>
   );
