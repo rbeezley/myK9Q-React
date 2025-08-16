@@ -17,7 +17,7 @@ interface AreaScore {
 export const AKCScentWorkScoresheet: React.FC = () => {
   const { classId, entryId } = useParams<{ classId: string; entryId: string }>();
   const navigate = useNavigate();
-  const { showContext } = useAuth();
+  const { showContext, role } = useAuth();
   
   // Store hooks
   const {
@@ -32,6 +32,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   const {
     currentClassEntries,
     currentEntry,
+    setEntries,
     setCurrentClassEntries,
     setCurrentEntry,
     markAsScored,
@@ -136,7 +137,8 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   const loadClassEntries = async () => {
     try {
       const entries = await getClassEntries(parseInt(classId!), showContext!.licenseKey);
-      setCurrentClassEntries(entries);
+      setEntries(entries);
+      setCurrentClassEntries(parseInt(classId!));
       
       // Find and set current entry
       let targetEntry;
@@ -148,7 +150,17 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       
       if (targetEntry) {
         setCurrentEntry(targetEntry);
-        startScoringSession(parseInt(classId!), targetEntry.id);
+        // Get the first entry to determine class name and judge
+        const firstEntry = entries[0];
+        if (firstEntry) {
+          startScoringSession(
+            parseInt(classId!), 
+            firstEntry.className || 'AKC Scent Work',
+            'AKC_SCENT_WORK',
+            role || 'judge',
+            entries.length
+          );
+        }
       }
     } catch (error) {
       console.error('Error loading class entries:', error);
@@ -209,28 +221,30 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     try {
       const scoreData = {
-        entryId: currentEntry.id,
-        classId: parseInt(classId!),
+        resultText: qualifying || 'NQ',
         searchTime: totalTime,
-        resultText: qualifying,
         faultCount,
-        nonQualifyingReason: qualifying === 'NQ' ? nonQualifyingReason : null,
-        areas: areas,
-        isScored: true
+        nonQualifyingReason: qualifying === 'NQ' ? nonQualifyingReason || undefined : undefined,
+        areas: areas.reduce((acc, area) => {
+          acc[area.areaName] = area.time;
+          return acc;
+        }, {} as { [key: string]: string })
       };
 
       if (isOnline) {
-        await submitScore(scoreData);
+        await submitScore(currentEntry.id, scoreData);
       } else {
-        addToQueue('submitScore', scoreData);
+        addToQueue({
+          entryId: currentEntry.id,
+          armband: currentEntry.armband,
+          classId: parseInt(classId!),
+          className: currentEntry.className,
+          scoreData
+        });
       }
 
       // Mark entry as scored
-      markAsScored(currentEntry.id, {
-        searchTime: totalTime,
-        resultText: qualifying,
-        faultCount
-      });
+      markAsScored(currentEntry.id, qualifying || 'NQ');
 
       // Move to next entry or show confirmation
       const pendingEntries = getPendingEntries();

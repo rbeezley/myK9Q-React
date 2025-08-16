@@ -4,8 +4,8 @@ import './Button.css';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline' | 'gradient';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'outline' | 'gradient' | 'ghost';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
   fullWidth?: boolean;
 }
 

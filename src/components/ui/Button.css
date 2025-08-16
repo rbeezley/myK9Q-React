@@ -36,6 +36,14 @@
   min-height: 56px; /* Enhanced for stress conditions */
 }
 
+.btn-icon {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 0.75rem;
+}
+
 /* Style variants */
 .btn-primary {
   background: var(--primary);
@@ -99,6 +107,22 @@
 }
 
 .btn-gradient:active:not(:disabled) {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+  border: none;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--muted);
+  transform: translateY(-0.5px);
+}
+
+.btn-ghost:active:not(:disabled) {
   transform: scale(0.98);
   transition: transform 0.1s ease-out;
 }

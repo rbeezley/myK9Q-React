@@ -48,8 +48,33 @@ export const useHapticFeedback = () => {
     // Reset handled by simulateHapticFeedback timeout
   };
 
+  const impact = (type: 'light' | 'medium' | 'heavy' = 'medium') => {
+    // Simulate haptic feedback based on type
+    if ('vibrate' in navigator) {
+      switch (type) {
+        case 'light':
+          navigator.vibrate(10);
+          break;
+        case 'medium':
+          navigator.vibrate(20);
+          break;
+        case 'heavy':
+          navigator.vibrate(50);
+          break;
+      }
+    }
+  };
+
+  const success = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([30, 10, 30]);
+    }
+  };
+
   return {
     onTouchStart: handleTouchStart,
     onTouchEnd: handleTouchEnd,
+    impact,
+    success,
   };
 };

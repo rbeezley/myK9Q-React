@@ -359,7 +359,7 @@ export const DogDetails: React.FC = () => {
                   </div>
                 </div>
                 
-                {hasPermission('canManageCheckin') && !classEntry.is_scored && (
+                {hasPermission('canCheckInDogs') && !classEntry.is_scored && (
                   <button 
                     className="apple-button-secondary status-button"
                     onClick={(e) => {
