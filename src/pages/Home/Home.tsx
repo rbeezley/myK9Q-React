@@ -5,7 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { Card, CardContent, Button } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Home as HomeIcon, MessageSquare, Calendar, Settings, Download, Heart, User, Hash, Users } from 'lucide-react';
+import { RefreshCw, Home as HomeIcon, MessageSquare, Calendar, Settings, Heart, User, Hash, Users } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -184,313 +184,236 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
-      {/* Header with outdoor-ready contrast */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/30">
-        <div className="flex items-center justify-between h-16 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={logout}
-            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
-          >
-            <HomeIcon className="h-5 w-5 text-foreground" />
-          </Button>
-          
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">
-            Dashboard
-          </h1>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
-          >
-            <RefreshCw className={`h-5 w-5 text-foreground transition-transform duration-500 ${refreshing ? 'animate-spin' : ''}`} />
-          </Button>
+    <div className={`home-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
+      {/* Theme Toggle */}
+      <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)} title="Toggle theme">
+        {darkMode ? '☀️' : '🌙'}
+      </button>
+      
+      {/* Enhanced Header with Glass Morphism */}
+      <header className="home-header">
+        <button
+          className="icon-button"
+          onClick={logout}
+          title="Logout"
+        >
+          <HomeIcon className="h-5 w-5" />
+        </button>
+        
+        <div className="header-center">
+          <h1>Dashboard</h1>
         </div>
+        
+        <button
+          className={`icon-button ${refreshing ? 'rotating' : ''}`}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title="Refresh"
+        >
+          <RefreshCw className="h-5 w-5" />
+        </button>
       </header>
 
-      {/* Show Info Card with Glass Morphism */}
-      <div className="p-4">
-        <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg hover:shadow-xl transition-all duration-500">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold text-foreground mb-2">
-              {showContext?.clubName}
-            </h2>
-            <p className="text-base text-muted-foreground mb-1">
-              {showContext?.showName}
-            </p>
-            <p className="text-sm text-muted-foreground/80">
-              Logged in as: <span className="font-medium text-foreground">{role}</span>
-            </p>
-          </CardContent>
-        </Card>
+      {/* Show Info Card with Enhanced Glass Morphism */}
+      <div className="show-info">
+        <h2>{showContext?.clubName}</h2>
+        <p className="show-date">{showContext?.showName}</p>
+        <p className="user-role">
+          Logged in as: <span>{role}</span>
+        </p>
       </div>
 
-      {/* Trial Cards with Orange Glow for Active */}
-      <div className="px-4 mb-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">
-          Active Trials
-        </h3>
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      {/* Enhanced Active Trials Section */}
+      <div className="trials-section">
+        <h3>Active Trials</h3>
+        <div className="trials-scroll">
           {trials.map((trial) => {
             const hasActiveClasses = trial.classes_total > trial.classes_completed;
             return (
-              <Card 
+              <div 
                 key={trial.id}
-                className={`min-w-[280px] cursor-pointer group transition-all duration-500 backdrop-blur-xl border border-border/30 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 active:scale-98 ${
-                  hasActiveClasses 
-                    ? 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 shadow-orange-500/20' 
-                    : 'bg-card/80'
-                }`}
+                className={`trial-card ${hasActiveClasses ? 'active' : ''}`}
                 onClick={() => {
                   hapticFeedback.impact('medium');
                   navigate(`/trial/${trial.trialid}/classes`);
                 }}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h4 className="text-base font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                        {trial.trial_name}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {trial.trial_date}
-                      </p>
-                      <p className="text-xs text-muted-foreground/80 uppercase tracking-wide">
-                        {trial.trial_type}
-                      </p>
+                <div className="trial-info">
+                  <div className="trial-header">
+                    <div>
+                      <h3>{trial.trial_name}</h3>
+                      <p className="trial-date">{trial.trial_date}</p>
+                      <p className="trial-type">{trial.trial_type}</p>
                     </div>
                     {hasActiveClasses && (
-                      <div className="w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50 animate-pulse" />
+                      <div className="trial-status-indicator" />
                     )}
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
-                        Classes
-                      </span>
-                      <span className="text-sm font-semibold text-foreground">
+                  <div className="trial-progress">
+                    <div className="progress-item">
+                      <span className="progress-label">Classes</span>
+                      <span className="progress-value">
                         {trial.classes_completed} / {trial.classes_total}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
-                        Entries
-                      </span>
-                      <span className="text-sm font-semibold text-foreground">
+                    <div className="progress-item">
+                      <span className="progress-label">Entries</span>
+                      <span className="progress-value">
                         {trial.entries_completed} / {trial.entries_total}
                       </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Entry Tabs with Apple-inspired Design */}
-      <div className="px-4 mb-6">
-        <div className="bg-gradient-to-r from-muted/50 to-muted/30 border border-border/30 rounded-xl p-1 grid grid-cols-4 gap-1">
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              activeTab === 'armband'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setActiveTab('armband');
-            }}
-          >
-            <Hash className="h-4 w-4" />
-            <span className="hidden sm:inline">Armband</span>
-          </button>
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              activeTab === 'name'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setActiveTab('name');
-            }}
-          >
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">Name</span>
-          </button>
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              activeTab === 'handler'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setActiveTab('handler');
-            }}
-          >
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Handler</span>
-          </button>
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              activeTab === 'favorites'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setActiveTab('favorites');
-            }}
-          >
-            <Heart className="h-4 w-4" />
-            <span className="hidden sm:inline">Favorites</span>
-          </button>
-        </div>
+      {/* Enhanced Entry Tabs with Apple Design */}
+      <div className="entry-tabs">
+        <button
+          className={`tab-button ${activeTab === 'armband' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setActiveTab('armband');
+          }}
+        >
+          <Hash className="tab-icon" />
+          <span className="tab-text">Armband</span>
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'name' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setActiveTab('name');
+          }}
+        >
+          <User className="tab-icon" />
+          <span className="tab-text">Name</span>
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'handler' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setActiveTab('handler');
+          }}
+        >
+          <Users className="tab-icon" />
+          <span className="tab-text">Handler</span>
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'favorites' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setActiveTab('favorites');
+          }}
+        >
+          <Heart className="tab-icon" />
+          <span className="tab-text">Favorites</span>
+        </button>
       </div>
 
-      {/* Entry List with Glass Morphism */}
-      <div className="px-4 pb-24">
+      {/* Enhanced Entry List Section */}
+      <div className="entry-list">
         {activeTab === 'favorites' && getFilteredEntries().length === 0 ? (
-          <Card className="backdrop-blur-xl bg-card/80 border border-border/30">
-            <CardContent className="p-8 text-center">
-              <Heart className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                No Favorites Yet
-              </h3>
-              <p className="text-muted-foreground">
-                Tap the heart icon on any dog to add them to your favorites
-              </p>
-            </CardContent>
-          </Card>
+          <div className="no-favorites">
+            <Heart className="no-favorites-icon" />
+            <h3>No Favorites Yet</h3>
+            <p>Tap the heart icon on any dog to add them to your favorites</p>
+          </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-foreground">
-                Dogs Entered
-              </h3>
-              <span className="text-sm font-medium text-muted-foreground bg-muted/20 px-3 py-1 rounded-full">
+          <>
+            <div className="entry-list-header">
+              <h3 className="entry-list-title">Dogs Entered</h3>
+              <span className="entry-count">
                 {getFilteredEntries().length}
               </span>
             </div>
             
-            <div className="space-y-3">
+            <div className="entry-grid">
               {getFilteredEntries().map((entry) => {
                 const hasScore = entry.is_scored;
                 return (
-                  <Card 
+                  <div 
                     key={entry.armband}
-                    className={`cursor-pointer group transition-all duration-300 backdrop-blur-xl border border-border/30 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5 active:scale-98 ${
-                      hasScore 
-                        ? 'bg-gradient-to-br from-green-500/10 to-green-600/5' 
-                        : 'bg-card/80'
-                    }`}
+                    className={`entry-card ${hasScore ? 'scored' : ''}`}
                     onClick={() => handleDogClick(entry.armband)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {/* Prominent Armband */}
-                        <div className="flex-shrink-0">
-                          <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
-                            <span className="text-lg font-bold text-primary">
-                              {entry.armband}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        {/* Dog Details */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-base font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                            {entry.call_name}
-                          </h4>
-                          <p className="text-sm text-muted-foreground mb-0.5">
-                            {entry.breed}
-                          </p>
-                          <p className="text-xs text-muted-foreground/80">
-                            {entry.handler}
-                          </p>
-                          {entry.class_name && (
-                            <p className="text-xs text-muted-foreground/60 mt-1">
-                              {entry.class_name}
-                            </p>
-                          )}
-                        </div>
-                        
-                        {/* Status and Actions */}
-                        <div className="flex items-center gap-3">
-                          {hasScore && (
-                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(entry.armband);
-                            }}
-                            className="h-11 w-11 rounded-xl hover:bg-muted/20 active:scale-95"
-                          >
-                            <Heart 
-                              className={`h-5 w-5 transition-colors ${
-                                entry.is_favorite 
-                                  ? 'text-red-500 fill-red-500' 
-                                  : 'text-muted-foreground hover:text-foreground'
-                              }`} 
-                            />
-                          </Button>
+                    <div className="entry-content">
+                      {/* Prominent Armband */}
+                      <div className="entry-armband">
+                        <div className="armband-badge">
+                          {entry.armband}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                      
+                      {/* Dog Details */}
+                      <div className="entry-details">
+                        <h4 className="entry-name">{entry.call_name}</h4>
+                        <p className="entry-breed">{entry.breed}</p>
+                        <p className="entry-handler">{entry.handler}</p>
+                        {entry.class_name && (
+                          <p className="entry-class">{entry.class_name}</p>
+                        )}
+                      </div>
+                      
+                      {/* Status and Actions */}
+                      <div className="entry-actions">
+                        {hasScore && (
+                          <div className="score-status" />
+                        )}
+                        <button
+                          className={`favorite-button ${entry.is_favorite ? 'favorited' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(entry.armband);
+                          }}
+                        >
+                          <Heart className="favorite-icon" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
-          </div>
+          </>
         )}
       </div>
 
-      {/* Bottom Navigation with Outdoor-Ready Design */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-t border-border/30">
-        <div className="flex items-center justify-around h-20 px-4">
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl bg-primary/10 text-primary"
+      {/* Enhanced Bottom Navigation with Glass Morphism */}
+      <nav className="bottom-nav">
+        <div className="nav-container">
+          <button
+            className="nav-button active"
             onClick={() => navigate('/home')}
           >
-            <HomeIcon className="h-6 w-6" />
-            <span className="text-xs font-medium">Home</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            <HomeIcon className="nav-icon" />
+            <span className="nav-text">Home</span>
+          </button>
+          <button
+            className="nav-button"
             onClick={() => navigate('/announcements')}
           >
-            <MessageSquare className="h-6 w-6" />
-            <span className="text-xs font-medium">News</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            <MessageSquare className="nav-icon" />
+            <span className="nav-text">News</span>
+          </button>
+          <button
+            className="nav-button"
             onClick={() => navigate('/calendar')}
           >
-            <Calendar className="h-6 w-6" />
-            <span className="text-xs font-medium">Calendar</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
+            <Calendar className="nav-icon" />
+            <span className="nav-text">Calendar</span>
+          </button>
+          <button
+            className="nav-button"
             onClick={() => navigate('/settings')}
           >
-            <Settings className="h-6 w-6" />
-            <span className="text-xs font-medium">Settings</span>
-          </Button>
+            <Settings className="nav-icon" />
+            <span className="nav-text">Settings</span>
+          </button>
         </div>
       </nav>
     </div>
