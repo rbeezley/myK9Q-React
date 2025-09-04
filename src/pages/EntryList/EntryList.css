@@ -498,7 +498,7 @@
 }
 
 .checkin-status.checked-in {
-  background: #0d8043;             /* Darker green for checked-in */
+  background: #2563eb;             /* Darker green for checked-in */
   color: white;
 }
 
@@ -519,7 +519,7 @@
 
 /* Dark mode check-in status - same colors for consistency */
 [data-theme="dark"] .checkin-status.checked-in {
-  background: #0d8043;             /* Darker green for checked-in */
+  background: #2563eb;             /* Darker green for checked-in */
 }
 
 [data-theme="dark"] .checkin-status.conflict {
@@ -617,7 +617,7 @@
 }
 
 .status-option.status-checked-in {
-  color: #0d8043;                  /* Darker green for checked-in */
+  color: #2563eb;                  /* Darker green for checked-in */
 }
 
 .status-option.status-conflict {
@@ -638,7 +638,7 @@
 }
 
 [data-theme="dark"] .status-option.status-checked-in {
-  color: #0d8043;                  /* Darker green for checked-in */
+  color: #2563eb;                  /* Darker green for checked-in */
 }
 
 [data-theme="dark"] .status-option.status-conflict {
@@ -695,7 +695,7 @@
 }
 
 .status-option.status-checked-in .popup-icon {
-  color: #0d8043;
+  color: #2563eb;
 }
 
 .status-option.status-conflict .popup-icon {

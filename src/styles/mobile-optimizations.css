@@ -1,0 +1,434 @@
+/* Mobile-First Optimizations for myK9Q - Outdoor Dog Show Usage */
+
+/* Touch Target Size Improvements */
+.touch-optimized .passcode-input {
+  width: 60px !important;
+  height: 60px !important;
+  font-size: 1.5rem !important;
+}
+
+.touch-optimized .status-button {
+  min-width: 120px !important;
+  min-height: 44px !important;
+  padding: 0.75rem 1rem !important;
+  margin: 0.25rem 0 !important;
+}
+
+.touch-optimized .nav-button {
+  min-width: 68px !important;
+  min-height: 68px !important;
+  padding: 0.875rem 1.125rem !important;
+}
+
+/* Outdoor Visibility Enhancements */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #000000;
+    --text-secondary: #1a1a1a;
+    --background: #ffffff;
+    --border: #333333;
+    --success-contrast: #0a5d00;
+    --error-contrast: #b91c1c;
+    --warning-contrast: #a16207;
+  }
+  
+  [data-theme="dark"] {
+    --text-primary: #ffffff;
+    --text-secondary: #f5f5f5;
+    --background: #000000;
+    --border: #cccccc;
+  }
+  
+  /* Remove glass morphism for better contrast */
+  .dog-info-card,
+  .class-card,
+  .status-popup,
+  .home-header,
+  .bottom-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--background) !important;
+    border: 2px solid var(--border) !important;
+  }
+}
+
+/* One-Handed Operation - Bottom Sheet Modals */
+.mobile-optimized .status-popup {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  transform: none !important;
+  border-radius: 20px 20px 0 0 !important;
+  animation: slideUpFromBottom 0.3s ease-out !important;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUpFromBottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Thumb Zone Quick Actions */
+.thumb-zone-actions {
+  position: fixed;
+  bottom: 100px;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quick-action-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-action-button:hover {
+  transform: scale(1.1);
+}
+
+.quick-action-button:active {
+  transform: scale(0.95);
+}
+
+/* Network Status Banner */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--warning);
+  color: white;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideDownBanner 0.3s ease-out;
+}
+
+@keyframes slideDownBanner {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+.connection-weak {
+  background: var(--warning-contrast);
+}
+
+.connection-strong {
+  background: var(--success-contrast);
+}
+
+/* Battery Saving Mode */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0s !important;
+    transition-duration: 0.1s !important;
+  }
+  
+  .trial-status-indicator,
+  .position-badge {
+    animation: none !important;
+  }
+}
+
+/* Power Saving Mode (when battery is low) */
+.power-saving-mode {
+  filter: contrast(1.2) brightness(0.8);
+}
+
+.power-saving-mode * {
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+}
+
+.power-saving-mode .backdrop-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Improved Readability for Small Screens */
+@media (max-width: 390px) {
+  .entry-name {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .entry-breed {
+    font-size: 0.875rem !important;
+  }
+  
+  .entry-handler {
+    font-size: 0.75rem !important;
+  }
+  
+  .class-name {
+    font-size: 1.125rem !important;
+    font-weight: 650 !important;
+  }
+  
+  /* Larger armband display for quick identification */
+  .armband-display {
+    width: 72px !important;
+    height: 72px !important;
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+  }
+  
+  .armband-badge {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Swipe Gestures for Quick Actions */
+.swipeable-card {
+  position: relative;
+  transition: transform 0.2s ease;
+  overflow: hidden;
+}
+
+.swipeable-card::after {
+  content: '';
+  position: absolute;
+  left: -100%;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  background: linear-gradient(90deg, transparent, var(--success), transparent);
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.swipeable-card.swiping::after {
+  left: 0;
+  opacity: 0.3;
+}
+
+/* Enhanced Status Colors for Outdoor Visibility */
+.status-button.checked-in {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 2px solid #1e40af !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+}
+
+.status-button.conflict {
+  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%) !important;
+  border: 2px solid #c2410c !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4) !important;
+}
+
+.status-button.pulled {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+  border: 2px solid #b91c1c !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+}
+
+.status-button.at-gate {
+  background: linear-gradient(135deg, #0891b2 0%, #0284c7 100%) !important;
+  border: 2px solid #0369a1 !important;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4) !important;
+}
+
+/* Contextual Navigation for Different User Roles */
+.role-exhibitor .nav-container {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.role-exhibitor .nav-button.admin-only {
+  display: none !important;
+}
+
+.role-secretary .nav-button.exhibitor-only {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Quick Access Toolbar for Frequent Actions */
+.quick-access-toolbar {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 12px 0 0 12px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  z-index: 20;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-access-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-access-button:hover {
+  background: var(--muted);
+  transform: translateX(-4px);
+}
+
+.quick-access-button:active {
+  transform: translateX(-2px) scale(0.95);
+}
+
+/* Bulk Actions for Multi-Dog Management */
+.bulk-actions {
+  position: sticky;
+  top: 64px;
+  background: var(--background);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bulk-action-button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bulk-action-button:hover {
+  background: var(--muted);
+}
+
+.bulk-action-button:active {
+  transform: scale(0.98);
+}
+
+.bulk-action-button.check-in-all {
+  background: var(--success);
+  color: white;
+}
+
+.bulk-action-button.clear-all {
+  background: var(--error);
+  color: white;
+}
+
+/* Emergency Mode (Low Battery + Poor Connection) */
+.emergency-mode {
+  filter: grayscale(0.5) contrast(1.3);
+}
+
+.emergency-mode .glass-morphism,
+.emergency-mode .backdrop-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--background) !important;
+}
+
+.emergency-mode * {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
+
+.emergency-mode .armband-display,
+.emergency-mode .status-button {
+  border: 3px solid var(--border) !important;
+  font-weight: 900 !important;
+}
+
+/* Improved Loading States */
+.mobile-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.mobile-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--muted);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Focus Management for Accessibility */
+.focus-visible {
+  outline: 3px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 10000;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* High Contrast Mode Override */
+@media (prefers-contrast: high) {
+  .status-button,
+  .nav-button,
+  .passcode-input {
+    border-width: 2px !important;
+    border-color: currentColor !important;
+  }
+  
+  .armband-display,
+  .armband-badge {
+    border: 3px solid white !important;
+    box-shadow: 0 0 0 2px var(--foreground) !important;
+  }
+}

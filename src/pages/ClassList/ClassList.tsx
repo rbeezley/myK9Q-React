@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { Card, CardContent, Button } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { 
   ArrowLeft, 
@@ -21,7 +20,9 @@ import {
   MessageSquare,
   Calendar,
   Settings,
-  Download
+  Menu,
+  X,
+  Award
 } from 'lucide-react';
 import './ClassList.css';
 
@@ -59,16 +60,20 @@ interface TrialInfo {
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
-  const { showContext } = useAuth();
+  const { showContext, role, logout } = useAuth();
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'pending' | 'completed'>('pending');
   const [typeFilter, setTypeFilter] = useState<'all' | 'favorites' | 'in_progress'>('all');
   const [activePopup, setActivePopup] = useState<number | null>(null);
+  const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
   const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
+  const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map()); // classId -> status filter
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -86,16 +91,26 @@ export const ClassList: React.FC = () => {
       if (!target.closest('.class-popup') && !target.closest('.class-menu-button')) {
         setActivePopup(null);
       }
+      if (!target.closest('.status-popup') && !target.closest('.status-badge')) {
+        setActiveStatusPopup(null);
+      }
     };
 
-    if (activePopup !== null) {
+    if (activePopup !== null || activeStatusPopup !== null) {
       setTimeout(() => {
         document.addEventListener('click', handleClickOutside);
       }, 0);
       
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [activePopup]);
+  }, [activePopup, activeStatusPopup]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    hapticFeedback.impact('medium');
+    await loadClassList();
+    setRefreshing(false);
+  };
 
   const loadClassList = useCallback(async () => {
     setIsLoading(true);
@@ -290,7 +305,6 @@ export const ClassList: React.FC = () => {
     setClasses(prev => prev.map(c => 
       c.id === classId ? { ...c, class_status: status } : c
     ));
-    setActivePopup(null);
 
     // Update database
     try {
@@ -346,10 +360,10 @@ export const ClassList: React.FC = () => {
   };
 
   const getDogStatusIcon = (dog: ClassEntry['dogs'][0]) => {
-    if (dog.is_scored) return '✅';
+    if (dog.is_scored) return '🟣'; // Purple circle for DONE (scored)
     if (dog.in_ring) return '🏃';
     if (dog.checkin_status === 4) return '🚪'; // At gate
-    if (dog.checkin_status === 1) return '✅'; // Checked in
+    if (dog.checkin_status === 1) return '🔵'; // Blue circle for READY (checked in)
     if (dog.checkin_status === 2) return '⚠️'; // Conflict
     if (dog.checkin_status === 3) return '❌'; // Pulled
     return '⏳'; // Not checked in
@@ -365,12 +379,41 @@ export const ClassList: React.FC = () => {
     return 'not-checked-in';
   };
 
+  const getDogStatusCounts = (dogs: ClassEntry['dogs']) => {
+    const counts = {
+      all: dogs.length,
+      pending: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 0).length,
+      ready: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1).length,
+      active: dogs.filter(dog => dog.in_ring || dog.checkin_status === 4).length,
+      completed: dogs.filter(dog => dog.is_scored).length,
+    };
+    return counts;
+  };
+
+  const getFilteredDogs = (dogs: ClassEntry['dogs'], statusFilter: string) => {
+    switch (statusFilter) {
+      case 'pending':
+        return dogs.filter(dog => !dog.is_scored && dog.checkin_status === 0);
+      case 'ready':
+        return dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1);
+      case 'active':
+        return dogs.filter(dog => dog.in_ring || dog.checkin_status === 4);
+      case 'completed':
+        return dogs.filter(dog => dog.is_scored);
+      default:
+        return dogs;
+    }
+  };
+
   const getVisibleDogs = (dogs: ClassEntry['dogs'], classId: number) => {
     const isExpanded = expandedClasses.has(classId);
-    if (isExpanded) return dogs;
+    const statusFilter = dogStatusFilters.get(classId) || 'all';
+    const filteredDogs = getFilteredDogs(dogs, statusFilter);
     
-    // Show first 5 dogs, prioritizing in-ring and at-gate
-    return dogs.slice(0, 5);
+    if (isExpanded) return filteredDogs;
+    
+    // Show first 9 dogs in 3x3 grid for mobile-first compact design
+    return filteredDogs.slice(0, 9);
   };
 
   const toggleClassExpansion = (classId: number) => {
@@ -383,6 +426,15 @@ export const ClassList: React.FC = () => {
         newSet.add(classId);
       }
       return newSet;
+    });
+  };
+
+  const handleDogStatusFilter = (classId: number, statusFilter: string) => {
+    hapticFeedback.impact('light');
+    setDogStatusFilters(prev => {
+      const newMap = new Map(prev);
+      newMap.set(classId, statusFilter);
+      return newMap;
     });
   };
 
@@ -400,7 +452,7 @@ export const ClassList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+      <div className={`class-list-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 text-muted-foreground animate-spin mx-auto mb-2" />
@@ -413,14 +465,17 @@ export const ClassList: React.FC = () => {
 
   if (!trialInfo) {
     return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+      <div className={`class-list-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-foreground text-lg font-semibold mb-2">Trial not found</p>
-            <Button onClick={() => navigate(-1)} variant="outline">
+            <button
+              onClick={() => navigate(-1)}
+              className="icon-button"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
-            </Button>
+            </button>
           </div>
         </div>
       </div>
@@ -428,411 +483,485 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
-      {/* Header with outdoor-ready contrast */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/30">
-        <div className="flex items-center justify-between h-16 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
-          >
-            <ArrowLeft className="h-5 w-5 text-foreground" />
-          </Button>
-          
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">
-            Select Class
-          </h1>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={loadClassList}
-            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
-          >
-            <RefreshCw className="h-5 w-5 text-foreground" />
-          </Button>
+    <div className={`class-list-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
+      {/* Theme Toggle */}
+      <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)} title="Toggle theme">
+        {darkMode ? '☀️' : '🌙'}
+      </button>
+      
+      {/* Enhanced Header with Glass Morphism */}
+      <header className="class-list-header">
+        <button
+          className="icon-button"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          title="Menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        
+        <div className="header-center">
+          <h1>Select Class</h1>
         </div>
+        
+        <button
+          className={`icon-button ${refreshing ? 'rotating' : ''}`}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title="Refresh"
+        >
+          <RefreshCw className="h-5 w-5" />
+        </button>
       </header>
 
-      {/* Trial Info Card */}
-      <div className="p-4">
-        <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-foreground mb-1">
-                  {trialInfo.trial_date}
-                </h2>
-                <p className="text-base text-muted-foreground">
-                  {trialInfo.trial_name}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-primary">
-                  {trialInfo.total_classes}
-                </p>
-                <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
-                  Classes
-                </p>
-              </div>
+      {/* Trial Info Card with Glass Morphism */}
+      <div className="trial-info-section">
+        <div className="trial-info-card">
+          <div className="trial-info-content">
+            <div>
+              <h2>{trialInfo.trial_name}</h2>
+              <p className="trial-date">{trialInfo.trial_date}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Status Tabs with Apple Design */}
-      <div className="px-4 mb-6">
-        <div className="bg-gradient-to-r from-muted/50 to-muted/30 border border-border/30 rounded-xl p-1 grid grid-cols-2 gap-1">
-          <button
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              statusFilter === 'pending'
-                ? 'bg-gradient-to-r from-orange-500/10 to-orange-600/5 text-orange-600 shadow-sm border border-orange-500/20'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setStatusFilter('pending');
-            }}
-          >
-            <Clock className="h-4 w-4" />
-            <span>{trialInfo.pending_classes} Pending</span>
-            {trialInfo.pending_classes > 0 && (
-              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-            )}
-          </button>
-          <button
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              statusFilter === 'completed'
-                ? 'bg-gradient-to-r from-green-500/10 to-green-600/5 text-green-600 shadow-sm border border-green-500/20'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setStatusFilter('completed');
-            }}
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span>{trialInfo.completed_classes} Completed</span>
-          </button>
+            <div className="trial-stats">
+              <div className="stat-value">{trialInfo.total_classes}</div>
+              <div className="stat-label">Classes</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="px-4 mb-6">
-        <div className="bg-gradient-to-r from-muted/50 to-muted/30 border border-border/30 rounded-xl p-1 grid grid-cols-3 gap-1">
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              typeFilter === 'all'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setTypeFilter('all');
-            }}
-          >
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">All</span>
-          </button>
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              typeFilter === 'favorites'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setTypeFilter('favorites');
-            }}
-          >
-            <Heart className="h-4 w-4" />
-            <span className="hidden sm:inline">Favorites</span>
-          </button>
-          <button
-            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-              typeFilter === 'in_progress'
-                ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-            }`}
-            onClick={() => {
-              hapticFeedback.impact('light');
-              setTypeFilter('in_progress');
-            }}
-          >
-            <Play className="h-4 w-4" />
-            <span className="hidden sm:inline">Active</span>
-          </button>
-        </div>
+      {/* Enhanced Status Tabs with Apple Design */}
+      <div className="status-tabs">
+        <button
+          className={`tab-button ${statusFilter === 'pending' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setStatusFilter('pending');
+          }}
+        >
+          <Clock className="tab-icon" />
+          <span className="tab-text">{trialInfo.pending_classes} Pending</span>
+          {trialInfo.pending_classes > 0 && (
+            <div className="status-indicator" />
+          )}
+        </button>
+        <button
+          className={`tab-button ${statusFilter === 'completed' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setStatusFilter('completed');
+          }}
+        >
+          <CheckCircle className="tab-icon" />
+          <span className="tab-text">{trialInfo.completed_classes} Completed</span>
+        </button>
       </div>
 
-      {/* Classes List with Premium Cards */}
-      <div className="px-4 pb-24 space-y-4">
+      {/* Enhanced Filter Tabs with Apple Design */}
+      <div className="filter-tabs">
+        <button
+          className={`tab-button ${typeFilter === 'all' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setTypeFilter('all');
+          }}
+        >
+          <Users className="tab-icon" />
+          <span className="tab-text">All</span>
+        </button>
+        <button
+          className={`tab-button ${typeFilter === 'favorites' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setTypeFilter('favorites');
+          }}
+        >
+          <Heart className="tab-icon" />
+          <span className="tab-text">Favorites</span>
+        </button>
+        <button
+          className={`tab-button ${typeFilter === 'in_progress' ? 'active' : ''}`}
+          onClick={() => {
+            hapticFeedback.impact('light');
+            setTypeFilter('in_progress');
+          }}
+        >
+          <Play className="tab-icon" />
+          <span className="tab-text">Active</span>
+        </button>
+      </div>
+
+      {/* Enhanced Classes List Section */}
+      <div className="class-list">
         {filteredClasses.map((classEntry) => {
           const hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
           const isInProgress = classEntry.class_status === 'in_progress';
           return (
-            <Card 
+            <div 
               key={classEntry.id}
-              className={`cursor-pointer group transition-all duration-500 backdrop-blur-xl border border-border/30 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 active:scale-98 ${
+              className={`class-card ${
                 hasPendingEntries || isInProgress
-                  ? 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 shadow-orange-500/20' 
-                  : 'bg-card/80'
+                  ? 'pending' 
+                  : ''
               }`}
               onClick={() => handleViewEntries(classEntry)}
             >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                      {classEntry.class_name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Judge: {classEntry.judge_name}
-                    </p>
-                    <p className="text-xs text-muted-foreground/80">
+              <div className="class-content">
+                <div className="class-header">
+                  <div className="class-details">
+                    <h3 className="class-name">{classEntry.class_name}</h3>
+                    <p className="class-judge">Judge: {classEntry.judge_name}</p>
+                    <p className="class-progress">
                       {classEntry.completed_count} of {classEntry.entry_count} entries scored
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="class-actions">
                     {(hasPendingEntries || isInProgress) && (
-                      <div className="w-3 h-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50 animate-pulse" />
+                      <div className="status-dot" />
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
+                      className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleFavorite(classEntry.id);
                       }}
-                      className="h-11 w-11 rounded-xl hover:bg-muted/20 active:scale-95"
                     >
-                      <Heart 
-                        className={`h-5 w-5 transition-colors ${
-                          classEntry.is_favorite 
-                            ? 'text-red-500 fill-red-500' 
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`} 
-                      />
-                    </Button>
+                      <Heart className="favorite-icon" />
+                    </button>
+                    
+                    {/* Status Badge in Header */}
+                    <div className="status-container">
+                      {hasPermission('canManageClasses') ? (
+                        <button
+                          className={`status-badge ${getStatusColor(classEntry.class_status)} clickable`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveStatusPopup(activeStatusPopup === classEntry.id ? null : classEntry.id);
+                          }}
+                        >
+                          {getStatusLabel(classEntry.class_status)}
+                        </button>
+                      ) : (
+                        <div className={`status-badge ${getStatusColor(classEntry.class_status)}`}>
+                          {getStatusLabel(classEntry.class_status)}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* 3-Dot Menu in Header */}
+                    <button
+                      className="menu-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
+                      }}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Entry Preview */}
-                <div className="space-y-3">
+                {/* Entry Preview with Status Filter */}
+                <div className="dog-preview-section">
                   {classEntry.dogs.length > 0 ? (
                     <>
-                      <div className="space-y-2">
+                      {/* Dog Status Filter Tabs */}
+                      <div className="dog-status-filter">
+                        {[
+                          { key: 'all', label: 'All', count: getDogStatusCounts(classEntry.dogs).all },
+                          { key: 'pending', label: 'Pending', count: getDogStatusCounts(classEntry.dogs).pending },
+                          { key: 'ready', label: 'Ready', count: getDogStatusCounts(classEntry.dogs).ready },
+                          { key: 'active', label: 'Active', count: getDogStatusCounts(classEntry.dogs).active },
+                          { key: 'completed', label: 'Done', count: getDogStatusCounts(classEntry.dogs).completed },
+                        ].filter(status => status.count > 0).map((status) => (
+                          <button
+                            key={status.key}
+                            className={`dog-status-tab ${
+                              (dogStatusFilters.get(classEntry.id) || 'all') === status.key ? 'active' : ''
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDogStatusFilter(classEntry.id, status.key);
+                            }}
+                          >
+                            {status.label}
+                            <span className="status-count">{status.count}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Compact Grid Layout */}
+                      <div className="dog-list">
                         {getVisibleDogs(classEntry.dogs, classEntry.id).map((dog) => {
                           const statusColor = getDogStatusColor(dog);
-                          const statusIcon = getDogStatusIcon(dog);
                           return (
                             <div 
                               key={dog.id}
-                              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer group/dog ${
-                                statusColor === 'completed' ? 'bg-green-500/10 border border-green-500/20' :
-                                statusColor === 'in-ring' ? 'bg-orange-500/10 border border-orange-500/20' :
-                                statusColor === 'at-gate' ? 'bg-blue-500/10 border border-blue-500/20' :
-                                'bg-muted/20 border border-transparent hover:border-border/30'
-                              }`}
+                              className={`dog-entry ${statusColor}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 hapticFeedback.impact('light');
                                 navigate(`/dog/${dog.armband}`);
                               }}
                             >
-                              <span className="text-lg">{statusIcon}</span>
-                              <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
-                                <span className="text-sm font-bold text-primary">{dog.armband}</span>
+                              <div className="dog-status"></div>
+                              <div className="dog-armband">
+                                {dog.armband}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground group-hover/dog:text-primary transition-colors">
-                                  {dog.call_name}
-                                </p>
+                              <div className="dog-info">
+                                <div className="dog-name">{dog.call_name}</div>
+                                <div className="dog-handler">{dog.handler}</div>
                               </div>
                             </div>
                           );
                         })}
                       </div>
                       
-                      {!expandedClasses.has(classEntry.id) && classEntry.dogs.length > 5 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleClassExpansion(classEntry.id);
-                          }}
-                          className="w-full justify-center gap-2 h-10 text-sm rounded-lg border-border/30 hover:border-primary/30 transition-all duration-200"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                          Show all {classEntry.dogs.length} dogs
-                        </Button>
-                      )}
-                      
-                      {expandedClasses.has(classEntry.id) && classEntry.dogs.length > 5 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleClassExpansion(classEntry.id);
-                          }}
-                          className="w-full justify-center gap-2 h-10 text-sm rounded-lg border-border/30 hover:border-primary/30 transition-all duration-200"
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                          Show less
-                        </Button>
-                      )}
+                      {/* Smart Expand/Collapse with Summary */}
+                      {(() => {
+                        const statusFilter = dogStatusFilters.get(classEntry.id) || 'all';
+                        const filteredDogs = getFilteredDogs(classEntry.dogs, statusFilter);
+                        const visibleCount = getVisibleDogs(classEntry.dogs, classEntry.id).length;
+                        const totalCount = filteredDogs.length;
+                        
+                        if (!expandedClasses.has(classEntry.id) && totalCount > 9) {
+                          const hiddenDogs = filteredDogs.slice(9);
+                          const hiddenCounts = getDogStatusCounts(hiddenDogs);
+                          
+                          return (
+                            <button
+                              className="dog-grid-summary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleClassExpansion(classEntry.id);
+                              }}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                              <span>+{totalCount - 9} more dogs</span>
+                              <div className="grid-summary-stats">
+                                {hiddenCounts.pending > 0 && (
+                                  <div className="summary-stat">
+                                    <div className="summary-dot" style={{color: '#6b7280'}}></div>
+                                    {hiddenCounts.pending}
+                                  </div>
+                                )}
+                                {hiddenCounts.ready > 0 && (
+                                  <div className="summary-stat">
+                                    <div className="summary-dot" style={{color: '#047857'}}></div>
+                                    {hiddenCounts.ready}
+                                  </div>
+                                )}
+                                {hiddenCounts.active > 0 && (
+                                  <div className="summary-stat">
+                                    <div className="summary-dot" style={{color: '#c2410c'}}></div>
+                                    {hiddenCounts.active}
+                                  </div>
+                                )}
+                                {hiddenCounts.completed > 0 && (
+                                  <div className="summary-stat">
+                                    <div className="summary-dot" style={{color: '#047857'}}></div>
+                                    {hiddenCounts.completed}
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        }
+                        
+                        if (expandedClasses.has(classEntry.id) && totalCount > 9) {
+                          return (
+                            <button
+                              className="expand-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleClassExpansion(classEntry.id);
+                              }}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                              Show less
+                            </button>
+                          );
+                        }
+                        
+                        return null;
+                      })()}
                     </>
                   ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Users className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-sm">No dogs entered yet</p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">
+                    <div className="no-dogs">
+                      <Users className="no-dogs-icon" />
+                      <p>No dogs entered yet</p>
+                      <p className="no-dogs-subtitle">
                         Entries will appear when dogs are registered
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-border/20">
-                  <div className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
-                    getStatusColor(classEntry.class_status) === 'in-progress' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' :
-                    getStatusColor(classEntry.class_status) === 'completed' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                    'bg-muted/20 text-muted-foreground border-border/30'
-                  }`}>
-                    {getStatusLabel(classEntry.class_status)}
-                  </div>
-                  
-                  {classEntry.entry_count > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewEntries(classEntry);
-                      }}
-                      className="h-8 px-3 text-xs rounded-lg border-border/30 hover:border-primary/30 transition-all duration-200"
-                    >
-                      <Eye className="h-3 w-3 mr-1.5" />
-                      View Entries
-                    </Button>
-                  )}
-                  
-                  {hasPermission('canScore') && classEntry.entry_count > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewEntries(classEntry);
-                      }}
-                      className="h-8 px-3 text-xs rounded-lg border-orange-500/30 hover:border-orange-500/50 text-orange-600 hover:bg-orange-500/10 transition-all duration-200"
-                    >
-                      <Play className="h-3 w-3 mr-1.5" />
-                      Score Class
-                    </Button>
-                  )}
-                
-                  
-                  {hasPermission('canManageClasses') && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
-                      }}
-                      className="h-8 w-8 rounded-lg hover:bg-muted/20 active:scale-95"
-                    >
-                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>
 
-      {/* Status Management Popup */}
-      {activePopup !== null && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-background/80" onClick={() => setActivePopup(null)}>
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw]">
-            <Card className="backdrop-blur-xl bg-card/95 border border-border/30 shadow-2xl">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Class Status</h3>
-                <div className="space-y-2">
-                  {[
-                    { status: 'none', label: 'None', icon: '⚪' },
-                    { status: 'setup', label: 'Setup', icon: '🔧' },
-                    { status: 'briefing', label: 'Briefing', icon: '📋' },
-                    { status: 'break', label: 'Break', icon: '☕' },
-                    { status: 'start_time', label: 'Start Time', icon: '⏰' },
-                    { status: 'in_progress', label: 'In Progress', icon: '🏃' },
-                    { status: 'completed', label: 'Completed', icon: '✅' }
-                  ].map(({ status, label, icon }) => (
-                    <Button
-                      key={status}
-                      variant="ghost"
-                      className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-muted/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClassStatusChange(activePopup, status as any);
-                      }}
-                    >
-                      <span className="text-lg">{icon}</span>
-                      <span className="text-sm font-medium">{label}</span>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+      {/* Status Selection Popup */}
+      {activeStatusPopup !== null && (
+        <div className="popup-overlay" onClick={() => setActiveStatusPopup(null)}>
+          <div className="popup-container">
+            <div className="popup-content">
+              <h3>Class Status</h3>
+              <div className="status-options">
+                {[
+                  { status: 'none', label: 'None', icon: '⚪' },
+                  { status: 'setup', label: 'Setup', icon: '🔧' },
+                  { status: 'briefing', label: 'Briefing', icon: '📋' },
+                  { status: 'break', label: 'Break', icon: '☕' },
+                  { status: 'start_time', label: 'Start Time', icon: '⏰' },
+                  { status: 'in_progress', label: 'In Progress', icon: '🏃' },
+                  { status: 'completed', label: 'Completed', icon: '✅' }
+                ].map(({ status, label, icon }) => (
+                  <button
+                    key={status}
+                    className="status-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClassStatusChange(activeStatusPopup, status as any);
+                      setActiveStatusPopup(null);
+                    }}
+                  >
+                    <span className="status-icon">{icon}</span>
+                    <span className="status-label">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation with Outdoor-Ready Design */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-t border-border/30">
-        <div className="flex items-center justify-around h-20 px-4">
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/home')}
-          >
-            <HomeIcon className="h-6 w-6" />
-            <span className="text-xs font-medium">Home</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/announcements')}
-          >
-            <MessageSquare className="h-6 w-6" />
-            <span className="text-xs font-medium">News</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/calendar')}
-          >
-            <Calendar className="h-6 w-6" />
-            <span className="text-xs font-medium">Calendar</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="h-6 w-6" />
-            <span className="text-xs font-medium">Settings</span>
-          </Button>
+      {/* Navigation Menu Popup */}
+      {activePopup !== null && (
+        <div className="popup-overlay" onClick={() => setActivePopup(null)}>
+          <div className="popup-container">
+            <div className="popup-content">
+              <h3>Class Options</h3>
+              <div className="menu-options">
+                <button
+                  className="menu-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to class requirements
+                    console.log('Navigate to class requirements for class', activePopup);
+                    setActivePopup(null);
+                  }}
+                >
+                  <span className="menu-icon">📋</span>
+                  <span className="menu-label">Requirements</span>
+                </button>
+                <button
+                  className="menu-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to class settings
+                    console.log('Navigate to class settings for class', activePopup);
+                    setActivePopup(null);
+                  }}
+                >
+                  <span className="menu-icon">⚙️</span>
+                  <span className="menu-label">Settings</span>
+                </button>
+                <button
+                  className="menu-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to class statistics
+                    console.log('Navigate to class statistics for class', activePopup);
+                    setActivePopup(null);
+                  }}
+                >
+                  <span className="menu-icon">📈</span>
+                  <span className="menu-label">Statistics</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </nav>
+      )}
+
+      {/* Hamburger Menu Overlay */}
+      {isMenuOpen && (
+        <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}>
+          <nav className="hamburger-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="menu-header">
+              <div className="menu-header-info">
+                <h3>{showContext?.clubName}</h3>
+                <p className="show-info-detail">{showContext?.showName}</p>
+                <p className="user-info">Logged in as: <span>{role}</span></p>
+              </div>
+              <button 
+                className="menu-close"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="menu-items">
+              <button
+                className="menu-item"
+                onClick={() => {
+                  navigate('/home');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <HomeIcon className="menu-icon" />
+                <span>Home</span>
+              </button>
+              <button
+                className="menu-item"
+                onClick={() => {
+                  navigate('/announcements');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <MessageSquare className="menu-icon" />
+                <span>News</span>
+              </button>
+              <button
+                className="menu-item"
+                onClick={() => {
+                  navigate('/calendar');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Calendar className="menu-icon" />
+                <span>Calendar</span>
+              </button>
+              <button
+                className="menu-item"
+                onClick={() => {
+                  navigate('/settings');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Settings className="menu-icon" />
+                <span>Settings</span>
+              </button>
+              
+              <div className="menu-divider" />
+              
+              <button
+                className="menu-item logout"
+                onClick={() => {
+                  logout();
+                  setIsMenuOpen(false);
+                }}
+              >
+                <span>Logout</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
     </div>
   );
 };

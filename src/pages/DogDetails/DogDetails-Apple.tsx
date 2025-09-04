@@ -151,7 +151,7 @@ export const DogDetails: React.FC = () => {
 
   const getStatusIcon = (status: ClassEntry['check_in_status']) => {
     switch (status) {
-      case 'checked-in': return '✅';
+      case 'checked-in': return '🔵'; // Blue circle for ready (checked-in)
       case 'conflict': return '⚠️';
       case 'pulled': return '❌';
       case 'at-gate': return '🚪';
