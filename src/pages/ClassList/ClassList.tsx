@@ -134,7 +134,6 @@ export const ClassList: React.FC = () => {
       }
 
       // Debug: log trial data to see available fields
-      console.log('Trial data loaded:', trialData);
 
       // Load classes for this trial
       const { data: classData, error: classError } = await supabase
@@ -149,7 +148,6 @@ export const ClassList: React.FC = () => {
       }
 
       // Debug: log class data to see what's loaded
-      console.log('Class data loaded:', classData?.length, 'classes');
 
       if (trialData && classData) {
         // Set trial info
@@ -179,7 +177,6 @@ export const ClassList: React.FC = () => {
           console.error('Error loading trial entries:', trialEntriesError);
         }
 
-        console.log(`Found ${allTrialEntries?.length || 0} entries for trial ${trialData.trial_date} - ${trialData.trial_number}`);
 
         // Process classes with entry data
         const processedClasses = classData.map((cls: any) => {
@@ -190,7 +187,6 @@ export const ClassList: React.FC = () => {
             entry.section === cls.section
           );
           
-          console.log(`Class ${cls.id} (${cls.element} ${cls.level} ${cls.section}): ${entryData.length} entries`);
 
           // Process dog entries with custom status priority sorting
           const dogs = (entryData || []).map(entry => ({
@@ -273,8 +269,7 @@ export const ClassList: React.FC = () => {
           table: 'tbl_entry_queue',
           filter: `mobile_app_lic_key=eq.${showContext.licenseKey}`
         },
-        (payload) => {
-          console.log('Real-time entry update received in ClassList:', payload);
+        (_payload) => {
           // Reload class list when entries change (in-ring status, scoring, etc.)
           loadClassList();
         }
@@ -287,13 +282,8 @@ export const ClassList: React.FC = () => {
   }, [trialId, showContext?.licenseKey, loadClassList]);
 
   const parseOrganizationData = (orgString: string) => {
-    console.log('🔍 parseOrganizationData DEBUG:');
-    console.log('Input orgString:', JSON.stringify(orgString));
-    console.log('orgString type:', typeof orgString);
-    console.log('orgString length:', orgString?.length || 'undefined');
     
     if (!orgString || orgString.trim() === '') {
-      console.log('⚠️ Empty orgString - defaulting to AKC Scent Work');
       // Default to AKC Scent Work for this show based on the user's report
       return {
         organization: 'AKC',
@@ -308,7 +298,6 @@ export const ClassList: React.FC = () => {
       activity_type: parts.slice(1).join(' '), // "Obedience", "Scent Work", "FastCat"
     };
     
-    console.log('Parsed organization data:', result);
     return result;
   };
 
@@ -331,7 +320,6 @@ export const ClassList: React.FC = () => {
         return false;
       }
       
-      console.log(`Dog ${dogId} ring status set to: ${inRing}`);
       return true;
     } catch (error) {
       console.error('Error setting dog ring status:', error);

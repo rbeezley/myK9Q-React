@@ -1,29 +1,66 @@
+import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { Login } from './pages/Login/Login';
-import { Home } from './pages/Home/Home';
-import { DogDetails } from './pages/DogDetails/DogDetails';
-import { ClassList } from './pages/ClassList/ClassList';
-import { EntryList } from './pages/EntryList/EntryList';
-import { UKCObedienceScoresheet } from './pages/scoresheets/UKC/UKCObedienceScoresheet';
-import { UKCRallyScoresheet } from './pages/scoresheets/UKC/UKCRallyScoresheet';
-import { AKCScentWorkScoresheet } from './pages/scoresheets/AKC/AKCScentWorkScoresheet';
-import { AKCFastCatScoresheet } from './pages/scoresheets/AKC/AKCFastCatScoresheet';
-import { ASCAScentDetectionScoresheet } from './pages/scoresheets/ASCA/ASCAScentDetectionScoresheet';
-import { TestScoresheet } from './components/TestScoresheet';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
+import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+
+// Eager load critical components
+import { Login } from './pages/Login/Login';
+
+// Lazy load pages for code splitting
+const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ default: module.Home })));
+const DogDetails = React.lazy(() => import('./pages/DogDetails/DogDetails').then(module => ({ default: module.DogDetails })));
+const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(module => ({ default: module.ClassList })));
+const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
+
+// Lazy load scoresheets (grouped by organization for better chunking)
+const UKCObedienceScoresheet = React.lazy(() => 
+  import('./pages/scoresheets/UKC/UKCObedienceScoresheet').then(module => ({ 
+    default: module.UKCObedienceScoresheet 
+  }))
+);
+const UKCRallyScoresheet = React.lazy(() => 
+  import('./pages/scoresheets/UKC/UKCRallyScoresheet').then(module => ({ 
+    default: module.UKCRallyScoresheet 
+  }))
+);
+const AKCScentWorkScoresheet = React.lazy(() => 
+  import('./pages/scoresheets/AKC/AKCScentWorkScoresheet').then(module => ({ 
+    default: module.AKCScentWorkScoresheet 
+  }))
+);
+const AKCFastCatScoresheet = React.lazy(() => 
+  import('./pages/scoresheets/AKC/AKCFastCatScoresheet').then(module => ({ 
+    default: module.AKCFastCatScoresheet 
+  }))
+);
+const ASCAScentDetectionScoresheet = React.lazy(() => 
+  import('./pages/scoresheets/ASCA/ASCAScentDetectionScoresheet').then(module => ({ 
+    default: module.ASCAScentDetectionScoresheet 
+  }))
+);
+const TestScoresheet = React.lazy(() => 
+  import('./components/TestScoresheet').then(module => ({ 
+    default: module.TestScoresheet 
+  }))
+);
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route 
             path="/home" 
             element={
               <ProtectedRoute>
-                <Home />
+                <Suspense fallback={<PageLoader message="Loading dashboard..." />}>
+                  <Home />
+                </Suspense>
               </ProtectedRoute>
             } 
           />
@@ -31,7 +68,9 @@ function App() {
             path="/dog/:armband" 
             element={
               <ProtectedRoute>
-                <DogDetails />
+                <Suspense fallback={<PageLoader message="Loading dog details..." />}>
+                  <DogDetails />
+                </Suspense>
               </ProtectedRoute>
             } 
           />
@@ -39,7 +78,9 @@ function App() {
             path="/trial/:trialId/classes" 
             element={
               <ProtectedRoute>
-                <ClassList />
+                <Suspense fallback={<PageLoader message="Loading classes..." />}>
+                  <ClassList />
+                </Suspense>
               </ProtectedRoute>
             } 
           />
@@ -47,7 +88,9 @@ function App() {
             path="/class/:classId/entries" 
             element={
               <ProtectedRoute>
-                <EntryList />
+                <Suspense fallback={<PageLoader message="Loading entries..." />}>
+                  <EntryList />
+                </Suspense>
               </ProtectedRoute>
             } 
           />
@@ -55,7 +98,11 @@ function App() {
             path="/scoresheet/ukc-obedience/:classId/:entryId" 
             element={
               <ProtectedRoute>
-                <UKCObedienceScoresheet />
+                <ScoresheetErrorBoundary>
+                  <Suspense fallback={<ScoresheetLoader />}>
+                    <UKCObedienceScoresheet />
+                  </Suspense>
+                </ScoresheetErrorBoundary>
               </ProtectedRoute>
             } 
           />
@@ -63,7 +110,11 @@ function App() {
             path="/scoresheet/ukc-rally/:classId/:entryId" 
             element={
               <ProtectedRoute>
-                <UKCRallyScoresheet />
+                <ScoresheetErrorBoundary>
+                  <Suspense fallback={<ScoresheetLoader />}>
+                    <UKCRallyScoresheet />
+                  </Suspense>
+                </ScoresheetErrorBoundary>
               </ProtectedRoute>
             } 
           />
@@ -71,19 +122,33 @@ function App() {
             path="/scoresheet/akc-scent-work/:classId/:entryId" 
             element={
               <ProtectedRoute>
-                <AKCScentWorkScoresheet />
+                <ScoresheetErrorBoundary>
+                  <Suspense fallback={<ScoresheetLoader />}>
+                    <AKCScentWorkScoresheet />
+                  </Suspense>
+                </ScoresheetErrorBoundary>
               </ProtectedRoute>
             } 
           />
           <Route 
             path="/test/scoresheet" 
-            element={<TestScoresheet />} 
+            element={
+              <ScoresheetErrorBoundary>
+                <Suspense fallback={<ScoresheetLoader />}>
+                  <TestScoresheet />
+                </Suspense>
+              </ScoresheetErrorBoundary>
+            } 
           />
           <Route 
             path="/scoresheet/akc-fastcat/:classId/:entryId" 
             element={
               <ProtectedRoute>
-                <AKCFastCatScoresheet />
+                <ScoresheetErrorBoundary>
+                  <Suspense fallback={<ScoresheetLoader />}>
+                    <AKCFastCatScoresheet />
+                  </Suspense>
+                </ScoresheetErrorBoundary>
               </ProtectedRoute>
             } 
           />
@@ -91,14 +156,19 @@ function App() {
             path="/scoresheet/asca-scent-detection/:classId/:entryId" 
             element={
               <ProtectedRoute>
-                <ASCAScentDetectionScoresheet />
+                <ScoresheetErrorBoundary>
+                  <Suspense fallback={<ScoresheetLoader />}>
+                    <ASCAScentDetectionScoresheet />
+                  </Suspense>
+                </ScoresheetErrorBoundary>
               </ProtectedRoute>
             } 
           />
           <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

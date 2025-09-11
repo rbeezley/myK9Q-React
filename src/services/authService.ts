@@ -32,7 +32,6 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
     }
 
     if (!shows || shows.length === 0) {
-      console.log('No shows found');
       return null;
     }
 
@@ -52,7 +51,6 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
     }
 
     if (!matchedShow) {
-      console.log('No matching show found for passcode');
       return null;
     }
 
@@ -89,12 +87,7 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
       console.error('Error fetching license data:', licenseError);
     }
 
-    console.log('License data from view_unique_mobile_app_lic_key:', licenseData);
-    console.log('Matched show data:', {
-      id: matchedShow.id,
-      show_name: matchedShow.show_name,
-      // org: matchedShow.org // Check if org is in the main show table
-    });
+    // License validation successful - matchedShow contains validated data
 
     // Step 6: Return show data
     return {
@@ -193,7 +186,6 @@ export async function testDatabaseConnection(): Promise<boolean> {
       return false;
     }
 
-    console.log('Database connection successful');
     return true;
   } catch (error) {
     console.error('Database connection failed:', error);

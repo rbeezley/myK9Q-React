@@ -25,7 +25,6 @@ export async function getClassEntries(
   licenseKey: string
 ): Promise<Entry[]> {
   try {
-    console.log('getClassEntries called with:', { classId, licenseKey });
     
     // First, get the class details to know what element, level, section to filter by
     const { data: classData, error: classError } = await supabase
@@ -39,7 +38,6 @@ export async function getClassEntries(
       throw new Error('Could not find class');
     }
     
-    console.log('Class data:', classData);
     
     // Query the view for main entry data
     const { data: viewData, error: viewError } = await supabase
@@ -53,12 +51,6 @@ export async function getClassEntries(
       .eq('trial_number', classData.trial_number)
       .order('armband', { ascending: true });
     
-    console.log('View query result:', { 
-      viewData: viewData?.length, 
-      viewError,
-      sampleRow: viewData?.[0],
-      allFieldsInFirstRow: viewData?.[0] ? Object.keys(viewData[0]) : []
-    });
 
     if (viewError) {
       console.error('Error fetching class entries from view:', viewError);
@@ -73,13 +65,11 @@ export async function getClassEntries(
     const entryIds = viewData.map(row => row.id);
     
     // Query the base table for check-in status data
-    console.log('Querying check-in status for entry IDs:', entryIds);
     const { data: checkinData, error: checkinError } = await supabase
       .from('tbl_entry_queue')
       .select('id, checkin_status, in_ring')
       .in('id', entryIds);
     
-    console.log('Check-in query result:', { checkinData, checkinError });
 
     if (checkinError) {
       console.error('Error fetching check-in status:', checkinError);
@@ -103,7 +93,6 @@ export async function getClassEntries(
     if (checkinData) {
       checkinData.forEach(item => {
         const convertedStatus = convertStatusCodeToString(item.checkin_status);
-        console.log(`💾 Entry ${item.id}: checkin_status DB=${item.checkin_status} -> converted='${convertedStatus}'`);
         checkinMap.set(item.id, {
           checkedIn: item.checkin_status > 0, // Derive checked_in from status code
           checkinStatus: convertedStatus,
@@ -112,13 +101,6 @@ export async function getClassEntries(
       });
     }
 
-    console.log('Supabase query result:', { 
-      viewData: viewData?.length, 
-      checkinData: checkinData?.length,
-      sampleViewRow: viewData?.[0],
-      sampleCheckinRow: checkinData?.[0],
-      checkinMap: Object.fromEntries(checkinMap)
-    });
 
     // Map database fields to Entry interface, combining view data with check-in status
     return viewData.map(row => {
@@ -247,13 +229,8 @@ export async function submitScore(
       updateData.reason = scoreData.nonQualifyingReason;
     }
 
-    console.log('💾 Submitting to database:', {
-      entryId,
-      updateData,
-      tableName: 'tbl_entry_queue'
-    });
 
-    const { error, data } = await supabase
+    const { error } = await supabase
       .from('tbl_entry_queue')
       .update(updateData)
       .eq('id', entryId)
@@ -272,7 +249,6 @@ export async function submitScore(
       throw error;
     }
 
-    console.log('✅ Database update successful:', data);
 
     return true;
   } catch (error) {
@@ -399,7 +375,6 @@ export function subscribeToEntryUpdates(
         filter: `class_id=eq.${classId}`
       },
       (payload) => {
-        console.log('Entry update received:', payload);
         onUpdate(payload);
       }
     )
@@ -444,11 +419,8 @@ export async function updateEntryCheckinStatus(
       in_ring: false  // Clear in-ring status when manually changing checkin status
     };
     
-    console.log('📡 Attempting database update with data:', updateData, 'for entryId:', entryId);
 
-    console.log('Updating entry check-in status:', { entryId, checkinStatus, statusCode, updateData });
-
-    const { error, data } = await supabase
+    const { error } = await supabase
       .from('tbl_entry_queue')
       .update(updateData)
       .eq('id', entryId)
@@ -461,16 +433,14 @@ export async function updateEntryCheckinStatus(
       throw new Error(`Database update failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
-    console.log('Successfully updated check-in status:', { entryId, checkinStatus, updatedRecord: data });
     
     // Verify the update by reading it back
-    const { data: verifyData, error: verifyError } = await supabase
+    await supabase
       .from('tbl_entry_queue')
       .select('id, checkin_status, in_ring')
       .eq('id', entryId)
       .single();
     
-    console.log('Verification read:', { verifyData, verifyError });
     
     return true;
   } catch (error) {
@@ -506,13 +476,8 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
     updateData.incorrect_count = 0;
     updateData.no_finish = 0;
 
-    console.log('💾 Resetting score in database:', {
-      entryId,
-      updateData,
-      tableName: 'tbl_entry_queue'
-    });
 
-    const { error, data } = await supabase
+    const { error } = await supabase
       .from('tbl_entry_queue')
       .update(updateData)
       .eq('id', entryId)
@@ -531,7 +496,6 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       throw new Error(`Database reset failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
-    console.log('✅ Score reset successful:', data);
     return true;
   } catch (error) {
     console.error('Error in resetEntryScore:', error);

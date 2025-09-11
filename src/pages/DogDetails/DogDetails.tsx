@@ -107,8 +107,7 @@ export const DogDetails: React.FC = () => {
 
         // Debug: log the first entry to see available fields
         if (data.length > 0) {
-          console.log('Available entry fields:', Object.keys(data[0]));
-          console.log('First entry data:', data[0]);
+          // Entry data loaded successfully
         }
 
         // Process all classes - map integer checkin_status to our types
@@ -164,7 +163,6 @@ export const DogDetails: React.FC = () => {
 
   const handleStatusChange = async (classId: number, status: ClassEntry['check_in_status']) => {
     try {
-      console.log('Updating status:', classId, status);
       hapticFeedback.impact('medium');
       
       // Update local state immediately for better UX
@@ -201,7 +199,6 @@ export const DogDetails: React.FC = () => {
         // Don't set in_ring = true here - that should only happen when scoresheet opens
       }
 
-      console.log('Updating database with:', updateData);
       
       const { error } = await supabase
         .from('tbl_entry_queue')
@@ -216,7 +213,7 @@ export const DogDetails: React.FC = () => {
         // Revert local state if database update fails
         await loadDogDetails();
       } else {
-        console.log('Database update successful');
+        // Database update successful
       }
     } catch (error) {
       console.error('Error:', error);

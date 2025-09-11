@@ -25,7 +25,8 @@
       "Bash(grep:*)",
       "Bash(cd:*)",
       "Bash(cd:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

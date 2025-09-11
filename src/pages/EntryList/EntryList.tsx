@@ -47,8 +47,7 @@ export const EntryList: React.FC = () => {
     const unsubscribe = subscribeToEntryUpdates(
       parseInt(classId),
       showContext.licenseKey,
-      (payload) => {
-        console.log('Real-time entry update received:', payload);
+      (_payload) => {
         // Reload entries when changes occur
         loadEntries();
       }
@@ -81,8 +80,6 @@ export const EntryList: React.FC = () => {
     const originalEntries = entries;
     
     try {
-      console.log('🚀 EntryList: handleStatusChange called with:', { entryId, status });
-      console.log('🔍 EntryList: Target entry before update:', entries.find(e => e.id === entryId));
       
       // Update local state immediately for better UX
       setEntries(prev => {
@@ -96,7 +93,6 @@ export const EntryList: React.FC = () => {
               } 
             : entry
         );
-        console.log('💾 EntryList: Updated local state, entry after change:', newEntries.find(e => e.id === entryId));
         return newEntries;
       });
       
@@ -105,15 +101,12 @@ export const EntryList: React.FC = () => {
       setPopupPosition(null);
       
       // Make API call to update database - always update, including 'none' status
-      console.log('📡 EntryList: Making API call to update database...');
-      const success = await updateEntryCheckinStatus(entryId, status);
-      console.log('✅ EntryList: API call result:', success, 'for entry:', entryId);
+      await updateEntryCheckinStatus(entryId, status);
       
     } catch (error) {
       console.error('❌ EntryList: Failed to update check-in status:', error);
       
       // Revert local state changes on error
-      console.log('🔄 EntryList: Reverting local state changes due to error');
       setEntries(originalEntries);
       
       // Show error message to user
@@ -140,16 +133,12 @@ export const EntryList: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading entries for classId:', classId, 'licenseKey:', showContext.licenseKey);
       const classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
-      console.log('Loaded entries:', classEntries);
-      console.log('Check-in statuses:', classEntries.map(e => ({ id: e.id, armband: e.armband, checkinStatus: e.checkinStatus, checkedIn: e.checkedIn })));
       setEntries(classEntries);
       
       // Get class info from first entry
       if (classEntries.length > 0) {
         const firstEntry = classEntries[0];
-        console.log('First entry:', firstEntry);
         setClassInfo({
           className: firstEntry.className,
           element: firstEntry.element || '',
@@ -167,13 +156,7 @@ export const EntryList: React.FC = () => {
   };
 
   const parseOrganizationData = (orgString: string) => {
-    console.log('🔍 parseOrganizationData DEBUG:');
-    console.log('Input orgString:', JSON.stringify(orgString));
-    console.log('orgString type:', typeof orgString);
-    console.log('orgString length:', orgString?.length || 'undefined');
-    
     if (!orgString || orgString.trim() === '') {
-      console.log('⚠️ Empty orgString - defaulting to AKC Scent Work');
       // Default to AKC Scent Work for this show based on the user's report
       return {
         organization: 'AKC',
@@ -186,7 +169,6 @@ export const EntryList: React.FC = () => {
       organization: parts[0], // "AKC"
       activity_type: parts.slice(1).join(' ') // "Scent Work" (keep spaces)
     };
-    console.log('Parsed organization data:', result);
     return result;
   };
 
@@ -237,7 +219,6 @@ export const EntryList: React.FC = () => {
   // Add database update function
   const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
     try {
-      console.log(`📂 Setting dog ${dogId} in_ring status to:`, inRing);
       const { error } = await supabase
         .from('tbl_entry_queue')
         .update({ in_ring: inRing })
@@ -249,7 +230,6 @@ export const EntryList: React.FC = () => {
         return false;
       }
       
-      console.log(`✅ Successfully set dog ${dogId} in_ring status to:`, inRing);
       return true;
     } catch (error) {
       console.error('Error setting dog ring status:', error);
@@ -258,17 +238,9 @@ export const EntryList: React.FC = () => {
   };
 
   const handleEntryClick = async (entry: Entry) => {
-    console.log('🔍 EntryList handleEntryClick DEBUG:');
-    console.log('Entry clicked:', entry);
-    console.log('Entry ID:', entry.id);
-    console.log('Entry armband:', entry.armband);
-    console.log('Entry callName:', entry.callName);
-    console.log('ShowContext:', showContext);
-    console.log('ClassId:', classId);
     
     // Don't navigate if the entry is already scored
     if (entry.isScored) {
-      console.log('Entry is already scored, not navigating to scoresheet');
       return;
     }
     
@@ -279,7 +251,6 @@ export const EntryList: React.FC = () => {
     
     // Set dog status to in-ring when scoresheet opens
     if (entry.id && !entry.isScored) {
-      console.log(`🔄 Setting dog ${entry.armband} (ID: ${entry.id}) to in-ring status before opening scoresheet...`);
       const success = await setDogInRingStatus(entry.id, true);
       if (success) {
         // Update local state to reflect the change immediately
@@ -290,7 +261,6 @@ export const EntryList: React.FC = () => {
     }
     
     const route = getScoreSheetRoute(entry);
-    console.log('Generated route:', route);
     
     navigate(route);
   };
@@ -336,8 +306,6 @@ export const EntryList: React.FC = () => {
       
       // Switch to pending tab to show the reset entry
       setActiveTab('pending');
-      
-      console.log(`✅ Reset score for ${resetConfirmDialog.entry.callName} (${resetConfirmDialog.entry.armband})`);
     } catch (error) {
       console.error('Failed to reset score:', error);
       alert(`Failed to reset score: ${error instanceof Error ? error.message : 'Unknown error'}`);

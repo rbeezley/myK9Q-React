@@ -37,7 +37,7 @@ class SyncService {
    * Handle online event
    */
   private handleOnline = () => {
-    console.log('Connection restored - starting sync');
+    // Connection restored - starting sync
     useOfflineQueueStore.getState().setOnlineStatus(true);
     this.syncQueue();
   };
@@ -46,7 +46,7 @@ class SyncService {
    * Handle offline event
    */
   private handleOffline = () => {
-    console.log('Connection lost - pausing sync');
+    // Connection lost - pausing sync
     useOfflineQueueStore.getState().setOnlineStatus(false);
   };
   
@@ -84,7 +84,6 @@ class SyncService {
    */
   async syncQueue() {
     if (this.isSyncing) {
-      console.log('Sync already in progress');
       return;
     }
     
@@ -95,7 +94,6 @@ class SyncService {
       return;
     }
     
-    console.log(`Starting sync of ${pendingCount} pending items`);
     this.isSyncing = true;
     store.startSync();
     
@@ -119,7 +117,6 @@ class SyncService {
       // Update sync status
       store.syncComplete(successful, failed);
       
-      console.log(`Sync complete: ${successful.length} successful, ${failed.length} failed`);
       
       // If there are failed items that haven't exceeded retry limit, retry them
       const retryableItems = store.queue.filter(
@@ -127,7 +124,6 @@ class SyncService {
       );
       
       if (retryableItems.length > 0) {
-        console.log(`Scheduling retry for ${retryableItems.length} items`);
         setTimeout(() => this.syncQueue(), 5000); // Retry after 5 seconds
       }
       
@@ -149,7 +145,6 @@ class SyncService {
    * Force sync regardless of online status
    */
   async forceSync() {
-    console.log('Force sync initiated');
     await this.syncQueue();
   }
   
