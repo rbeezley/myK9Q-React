@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore } from '../../../services/entryService';
+import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import '../BaseScoresheet.css';
 import './UKCObedienceScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'EX' | 'DQ';
@@ -40,13 +41,44 @@ export const UKCObedienceScoresheet: React.FC = () => {
   const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
   
+  // Apply theme to document root
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+  };
+
   // Load class entries on mount
   useEffect(() => {
     if (classId && showContext?.licenseKey) {
       loadEntries();
     }
   }, [classId, showContext]);
+  
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, [currentEntry?.id]);
   
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
@@ -59,6 +91,13 @@ export const UKCObedienceScoresheet: React.FC = () => {
       const pending = entries.filter(e => !e.isScored);
       if (pending.length > 0) {
         setCurrentEntry(pending[0]);
+        
+        // Mark dog as in-ring when scoresheet opens
+        if (pending[0].id) {
+          markInRing(pending[0].id, true).catch(error => {
+            console.error('Failed to mark dog in-ring on scoresheet open:', error);
+          });
+        }
         
         // Start scoring session if not already started
         if (!isScoring) {
@@ -195,7 +234,11 @@ export const UKCObedienceScoresheet: React.FC = () => {
   const currentIndex = currentClassEntries.findIndex(e => e.id === currentEntry.id) + 1;
   
   return (
-    <div className="scoresheet-container ukc-obedience">
+    <div className="scoresheet-container ukc-obedience" data-theme={darkMode ? 'dark' : 'light'}>
+      {/* Theme Toggle */}
+      <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
+        {darkMode ? '☀️' : '🌙'}
+      </button>
       <header className="scoresheet-header">
         <button className="back-button" onClick={() => navigate(-1)}>
           ← Back
@@ -217,7 +260,8 @@ export const UKCObedienceScoresheet: React.FC = () => {
           totalEntries={currentClassEntries.length}
         />
         
-        <div className="scoring-form">
+        <div className="scoring-form form-section">
+          <h3>Obedience Scoring</h3>
           <div className="score-input-section">
             <label htmlFor="points">Score Points</label>
             <input
@@ -278,7 +322,7 @@ export const UKCObedienceScoresheet: React.FC = () => {
           
           <div className="action-buttons">
             <button
-              className="nav-button"
+              className="nav-button btn-secondary"
               onClick={handlePrevious}
               disabled={currentIndex === 1}
             >
@@ -286,7 +330,7 @@ export const UKCObedienceScoresheet: React.FC = () => {
             </button>
             
             <button
-              className="submit-button"
+              className="submit-button btn-primary"
               onClick={handleSubmit}
               disabled={!points || isSubmitting}
             >
@@ -294,7 +338,7 @@ export const UKCObedienceScoresheet: React.FC = () => {
             </button>
             
             <button
-              className="nav-button"
+              className="nav-button btn-secondary"
               onClick={handleNext}
               disabled={currentIndex === currentClassEntries.length}
             >

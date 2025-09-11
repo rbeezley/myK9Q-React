@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-export type QualifyingResult = 'Q' | 'NQ' | 'EX' | 'DQ' | 'E' | 'ABS' | null;
+export type QualifyingResult = 'Q' | 'NQ' | 'EX' | 'DQ' | 'E' | 'ABS' | 'WD' | null;
 export type CompetitionType = 
   | 'UKC_OBEDIENCE'
   | 'UKC_RALLY' 

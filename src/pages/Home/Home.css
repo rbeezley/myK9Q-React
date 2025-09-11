@@ -66,7 +66,7 @@
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding-bottom: 90px; /* Space for enhanced bottom nav */
+  /* No bottom padding needed - using hamburger menu instead of bottom nav */
 }
 
 /* Sophisticated Header with Glass Morphism */
@@ -77,11 +77,11 @@
   backdrop-filter: blur(20px);
   background: rgba(255, 255, 255, 0.8);
   border-bottom: 1px solid var(--border);
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.5rem; /* Reduced from 1rem for more compact design */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 64px;
+  min-height: 56px; /* Reduced from 64px */
 }
 
 [data-theme="dark"] .home-header {
@@ -151,7 +151,7 @@
 /* Show Info Card with Glass Morphism */
 .show-info {
   margin: 1rem 1.5rem;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem; /* Reduced vertical padding */
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
@@ -184,29 +184,18 @@
 }
 
 .show-date {
-  margin: 0.25rem 0 0.75rem 0;
+  margin: 0.25rem 0 0 0; /* Removed bottom margin */
   font-size: 1rem;
   font-weight: 500;
   color: var(--text-secondary);
   line-height: 1.4;
 }
 
-.user-role {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  line-height: 1.4;
-}
-
-.user-role span {
-  font-weight: 600;
-  color: var(--foreground);
-}
+/* User role styling moved to hamburger menu (.user-info) */
 
 /* Active Trials Section with Enhanced Design */
 .trials-section {
-  padding: 0 1.5rem 1.5rem;
+  padding: 1rem 1.5rem 1.5rem; /* Added top padding for breathing room */
 }
 
 .trials-section h3 {
@@ -239,10 +228,9 @@
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  overflow: hidden;
   cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   position: relative;
 }
 
@@ -252,13 +240,14 @@
 }
 
 .trial-card.active {
-  border-color: var(--warning);
-  box-shadow: 0 0 0 2px var(--warning), 0 8px 24px rgba(255, 149, 0, 0.3);
+  /* Remove orange border - use same styling as regular cards */
+  border-color: var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .trial-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   border-color: rgba(0, 122, 255, 0.3);
 }
 
@@ -270,22 +259,71 @@
   transform: scale(0.98);
 }
 
-.trial-info {
-  padding: 1.5rem;
-  position: relative;
+.trial-content {
+  padding: 1rem;
 }
 
-.trial-status-indicator {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--warning);
-  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.3);
-  animation: pulse 2s infinite;
+.trial-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
+
+.trial-title {
+  background: var(--accent-secondary);
+  color: var(--accent-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.trial-name-number {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.trial-icon {
+  color: var(--accent-primary);
+  opacity: 0.8;
+}
+
+.trial-date-line {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 0.125rem;
+}
+
+.trial-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  text-align: left;
+}
+
+.progress-icon {
+  color: var(--accent-primary);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* Removed confusing blue status circle */
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
@@ -299,10 +337,31 @@
   margin-bottom: 1rem;
 }
 
+.trial-main-info {
+  flex: 1;
+}
+
+.trial-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.trial-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(0, 122, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
 .trial-info h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
+  margin: 0 0 0.5rem 0; /* Added bottom margin for better spacing */
+  font-size: 1.125rem; /* Slightly larger like entry cards */
+  font-weight: 600;
   color: var(--foreground);
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -314,7 +373,7 @@
 }
 
 .trial-date {
-  margin: 0.25rem 0;
+  margin: 0 0 0.25rem 0; /* Better spacing */
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -325,37 +384,51 @@
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--primary); /* Make it more prominent like entry cards */
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.2;
 }
 
 .trial-progress {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
+}
+
+.progress-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .progress-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
+  flex: 1;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  gap: 0.25rem;
+}
+
+[data-theme="dark"] .progress-item {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .progress-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
+  font-size: 0.8125rem; /* Slightly larger for better readability */
+  font-weight: 500;
+  color: var(--text-secondary); /* Less muted for better readability */
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em; /* Reduced letter spacing */
 }
 
 .progress-value {
-  font-size: 0.875rem;
-  font-weight: 650;
+  font-size: 0.9375rem; /* Slightly larger for emphasis */
+  font-weight: 600;
   color: var(--foreground);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Enhanced Entry Tabs with Apple Design */
@@ -668,90 +741,152 @@
   fill: currentColor;
 }
 
-/* Enhanced Bottom Navigation with Glass Morphism */
-.bottom-nav {
+/* Hamburger Menu Overlay */
+.menu-overlay {
   position: fixed;
-  bottom: 0;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.hamburger-menu {
+  position: fixed;
+  top: 0;
   left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border);
-  z-index: 100;
-  padding: 0.75rem 1rem 1.5rem;
+  width: 280px;
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  animation: slideInFromLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
 }
 
-[data-theme="dark"] .bottom-nav {
-  background: rgba(26, 29, 35, 0.8);
-}
-
-@media (min-width: 768px) {
-  .bottom-nav {
-    max-width: 768px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 1rem 1rem 0 0;
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
-.nav-container {
+.menu-header {
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  max-width: 400px;
-  margin: 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.nav-button {
+.menu-header-info {
+  flex: 1;
+}
+
+.menu-header h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.show-info-detail {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.user-info {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.user-info span {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.menu-close {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.75rem 1rem;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   background: transparent;
   border: none;
-  border-radius: 0.75rem;
-  color: var(--text-tertiary);
+  border-radius: 6px;
+  color: var(--muted-foreground);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  min-width: 64px;
-  min-height: 64px;
+  transition: all 0.2s ease;
 }
 
-.nav-button.active {
+.menu-close:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.menu-items {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  min-height: 48px; /* Maintain touch target */
+}
+
+.menu-item:hover {
+  background: var(--muted);
+}
+
+.menu-item.active {
   background: rgba(0, 122, 255, 0.1);
   color: var(--primary);
+  font-weight: 600;
 }
 
-.nav-button:not(.active):hover {
-  color: var(--foreground);
-  background: rgba(0, 0, 0, 0.05);
+.menu-item.logout {
+  color: var(--destructive);
+  margin-top: auto;
 }
 
-[data-theme="dark"] .nav-button:not(.active):hover {
-  background: rgba(255, 255, 255, 0.05);
+.menu-item.logout:hover {
+  background: rgba(239, 68, 68, 0.1);
 }
 
-.nav-button:active {
-  transform: scale(0.95);
+.menu-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }
 
-.nav-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  transition: all 0.3s;
-}
-
-.nav-text {
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1;
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 1.5rem;
 }
 
 /* Responsive Design Optimizations */
 @media (max-width: 640px) {
   .home-header {
-    padding: 1rem;
+    padding: 0.75rem 1rem; /* More compact on mobile */
   }
   
   .header-center h1 {
@@ -768,31 +903,70 @@
   }
   
   .trials-section {
-    padding: 0 1rem 1rem;
+    padding: 1rem 1rem 1rem; /* Added top padding on mobile too */
   }
   
   .trial-card {
-    flex: 0 0 240px;
+    flex: 0 0 280px; /* Increased from 240px for better mobile experience */
   }
   
   .trial-info {
-    padding: 1.25rem;
+    padding: 1.5rem; /* Better mobile padding */
   }
   
+  .trial-title {
+    font-size: 1.125rem; /* Slightly smaller on mobile but still readable */
+  }
+  
+  .trial-metadata {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .trial-separator {
+    display: none; /* Hide separators on mobile for cleaner look */
+  }
+  
+  .metric-label {
+    font-size: 0.75rem; /* Adjusted for mobile */
+  }
+  
+  .metric-percentage {
+    font-size: 1rem; /* Slightly smaller on mobile */
+  }
+  
+  .progress-grid {
+    gap: 0.75rem; /* Reduced gap on mobile */
+  }
+  
+  /* Compact mobile tabs to save screen space */
   .entry-tabs {
-    margin: 0 1rem 1rem;
+    margin: 0 1rem 0.75rem;
+    padding: 0.125rem; /* Reduced from 0.25rem */
+  }
+  
+  .tab-button {
+    min-height: 40px; /* Reduced from 52px */
+    padding: 0.5rem 0.25rem; /* Reduced padding */
   }
   
   .tab-text {
     display: none;
   }
   
+  .tab-icon {
+    width: 1.25rem; /* Slightly larger since no text */
+    height: 1.25rem;
+  }
+  
   .entry-list {
-    padding: 0 1rem 2rem;
+    padding: 0 1rem 1rem; /* Reduced from 2rem */
   }
   
   .entry-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem; /* Reduced gap for more content */
   }
   
   .armband-badge {
@@ -811,6 +985,16 @@
   
   .entry-handler {
     font-size: 0.6875rem;
+  }
+  
+  /* Mobile hamburger menu optimizations */
+  .hamburger-menu {
+    width: 260px; /* Slightly narrower on mobile */
+  }
+  
+  /* Remove bottom padding since no bottom nav */
+  .home-container {
+    padding-bottom: 1rem; /* Just normal content padding */
   }
 }
 
@@ -846,7 +1030,15 @@
   }
   
   .trial-card {
-    flex: 0 0 320px;
+    flex: 0 0 360px; /* Even more space on desktop */
+  }
+  
+  .trial-title {
+    font-size: 1.375rem; /* Larger title on desktop */
+  }
+  
+  .progress-grid {
+    gap: 1.25rem; /* More spacing on desktop */
   }
 }
 
@@ -896,6 +1088,14 @@
   }
   
   .trial-status-indicator {
+    animation: none !important;
+  }
+  
+  .status-dot {
+    animation: none !important;
+  }
+  
+  .progress-fill::after {
     animation: none !important;
   }
 }

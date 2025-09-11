@@ -30,7 +30,7 @@ export async function getClassEntries(
     // First, get the class details to know what element, level, section to filter by
     const { data: classData, error: classError } = await supabase
       .from('tbl_class_queue')
-      .select('element, level, section, trial_date, trial_number')
+      .select('element, level, section, trial_date, trial_number, areas')
       .eq('id', classId)
       .single();
     
@@ -76,7 +76,7 @@ export async function getClassEntries(
     console.log('Querying check-in status for entry IDs:', entryIds);
     const { data: checkinData, error: checkinError } = await supabase
       .from('tbl_entry_queue')
-      .select('id, checked_in, check_in_status')
+      .select('id, checkin_status, in_ring')
       .in('id', entryIds);
     
     console.log('Check-in query result:', { checkinData, checkinError });
@@ -86,13 +86,28 @@ export async function getClassEntries(
       // Don't throw here, continue with default values
     }
 
+    // Helper function to convert database integer codes back to string status
+    const convertStatusCodeToString = (statusCode: number | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
+      switch (statusCode) {
+        case 0: return 'none';
+        case 1: return 'checked-in';
+        case 2: return 'conflict';
+        case 3: return 'pulled';
+        case 4: return 'at-gate';
+        default: return 'none';
+      }
+    };
+
     // Create a map of check-in data for quick lookup
     const checkinMap = new Map();
     if (checkinData) {
       checkinData.forEach(item => {
+        const convertedStatus = convertStatusCodeToString(item.checkin_status);
+        console.log(`💾 Entry ${item.id}: checkin_status DB=${item.checkin_status} -> converted='${convertedStatus}'`);
         checkinMap.set(item.id, {
-          checkedIn: item.checked_in || false,
-          checkinStatus: item.check_in_status || 'none'
+          checkedIn: item.checkin_status > 0, // Derive checked_in from status code
+          checkinStatus: convertedStatus,
+          inRing: item.in_ring || false
         });
       });
     }
@@ -107,7 +122,7 @@ export async function getClassEntries(
 
     // Map database fields to Entry interface, combining view data with check-in status
     return viewData.map(row => {
-      const checkinInfo = checkinMap.get(row.id) || { checkedIn: false, checkinStatus: 'none' };
+      const checkinInfo = checkinMap.get(row.id) || { checkedIn: false, checkinStatus: 'none', inRing: false };
       
       return {
         id: row.id,
@@ -118,7 +133,7 @@ export async function getClassEntries(
         jumpHeight: row.jump_height,
         preferredTime: row.preferred_time,
         isScored: row.is_scored || false,
-        inRing: row.in_ring || false,
+        inRing: checkinInfo.inRing,
         resultText: row.result_text,
         searchTime: row.search_time,
         faultCount: row.fault_count,
@@ -129,7 +144,11 @@ export async function getClassEntries(
         element: row.element,
         level: row.level,
         checkedIn: checkinInfo.checkedIn,
-        checkinStatus: checkinInfo.checkinStatus
+        checkinStatus: checkinInfo.checkinStatus,
+        timeLimit: row.time_limit,
+        timeLimit2: row.time_limit2,
+        timeLimit3: row.time_limit3,
+        areas: classData.areas
       };
     });
   } catch (error) {
@@ -211,33 +230,49 @@ export async function submitScore(
     const updateData: any = {
       is_scored: true,
       result_text: scoreData.resultText,
-      scored_at: new Date().toISOString(),
       in_ring: false
     };
 
-    // Add optional fields if provided
+    // Add optional fields if provided - using correct database field names
     if (scoreData.searchTime !== undefined) {
       updateData.search_time = scoreData.searchTime;
     }
     if (scoreData.faultCount !== undefined) {
       updateData.fault_count = scoreData.faultCount;
     }
-    if (scoreData.points !== undefined) {
-      updateData.score_points = scoreData.points;
+    if (scoreData.score !== undefined) {
+      updateData.score = scoreData.score?.toString() || '0'; // score is text field in DB
     }
     if (scoreData.nonQualifyingReason) {
-      updateData.non_qualifying_reason = scoreData.nonQualifyingReason;
+      updateData.reason = scoreData.nonQualifyingReason;
     }
 
-    const { error } = await supabase
+    console.log('💾 Submitting to database:', {
+      entryId,
+      updateData,
+      tableName: 'tbl_entry_queue'
+    });
+
+    const { error, data } = await supabase
       .from('tbl_entry_queue')
       .update(updateData)
-      .eq('id', entryId);
+      .eq('id', entryId)
+      .select();
 
     if (error) {
-      console.error('Error submitting score:', error);
+      console.error('❌ Database error:', {
+        error,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        errorHint: error.hint,
+        entryId,
+        updateData
+      });
       throw error;
     }
+
+    console.log('✅ Database update successful:', data);
 
     return true;
   } catch (error) {
@@ -405,8 +440,11 @@ export async function updateEntryCheckinStatus(
     }
 
     const updateData: any = {
-      checkin_status: statusCode  // Use correct field name and integer code
+      checkin_status: statusCode,   // Use correct database field name
+      in_ring: false  // Clear in-ring status when manually changing checkin status
     };
+    
+    console.log('📡 Attempting database update with data:', updateData, 'for entryId:', entryId);
 
     console.log('Updating entry check-in status:', { entryId, checkinStatus, statusCode, updateData });
 
@@ -417,8 +455,10 @@ export async function updateEntryCheckinStatus(
       .select();
 
     if (error) {
-      console.error('Error updating check-in status:', error);
-      throw error;
+      console.error('❌ Database error updating check-in status:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      console.error('❌ Update data that failed:', updateData);
+      throw new Error(`Database update failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
     console.log('Successfully updated check-in status:', { entryId, checkinStatus, updatedRecord: data });
@@ -426,7 +466,7 @@ export async function updateEntryCheckinStatus(
     // Verify the update by reading it back
     const { data: verifyData, error: verifyError } = await supabase
       .from('tbl_entry_queue')
-      .select('id, checkin_status')
+      .select('id, checkin_status, in_ring')
       .eq('id', entryId)
       .single();
     
@@ -435,6 +475,66 @@ export async function updateEntryCheckinStatus(
     return true;
   } catch (error) {
     console.error('Error in updateEntryCheckinStatus:', error);
+    throw error;
+  }
+}
+
+/**
+ * Reset a dog's score and return them to pending status
+ */
+export async function resetEntryScore(entryId: number): Promise<boolean> {
+  try {
+    // Reset to default values based on actual table schema
+    const updateData: any = {
+      is_scored: false,
+      result_text: 'None',           // Default from schema
+      search_time: '00:00.00',       // Default from schema  
+      fault_count: 0,                // Default from schema
+      placement: 0,                  // Default from schema (bigint)
+      in_ring: false,
+      reason: 'None',                // Default from schema
+      score: '0'                     // Default from schema (text field, not score_points)
+    };
+
+    // Reset area times to defaults
+    updateData.areatime1 = '00:00.00';
+    updateData.areatime2 = '00:00.00'; 
+    updateData.areatime3 = '00:00.00';
+    
+    // Reset count fields to defaults
+    updateData.correct_count = 0;
+    updateData.incorrect_count = 0;
+    updateData.no_finish = 0;
+
+    console.log('💾 Resetting score in database:', {
+      entryId,
+      updateData,
+      tableName: 'tbl_entry_queue'
+    });
+
+    const { error, data } = await supabase
+      .from('tbl_entry_queue')
+      .update(updateData)
+      .eq('id', entryId)
+      .select();
+
+    if (error) {
+      console.error('❌ Database error resetting score:', {
+        error,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        errorHint: error.hint,
+        entryId,
+        updateData
+      });
+      throw new Error(`Database reset failed: ${error.message || error.code || 'Unknown database error'}`);
+    }
+
+    console.log('✅ Score reset successful:', data);
+    return true;
+  } catch (error) {
+    console.error('Error in resetEntryScore:', error);
     throw error;
   }
 }

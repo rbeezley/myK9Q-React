@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { MultiTimer } from '../../../components/scoring/MultiTimer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore } from '../../../services/entryService';
+import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import './ASCAScentDetectionScoresheet.css';
 
@@ -65,6 +65,17 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
     }
   }, [classId, showContext]);
   
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, [currentEntry?.id]);
+  
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
     
@@ -76,6 +87,13 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
       const pending = entries.filter(e => !e.isScored);
       if (pending.length > 0) {
         setCurrentEntry(pending[0]);
+        
+        // Mark dog as in-ring when scoresheet opens
+        if (pending[0].id) {
+          markInRing(pending[0].id, true).catch(error => {
+            console.error('Failed to mark dog in-ring on scoresheet open:', error);
+          });
+        }
         
         // Start scoring session if not already started
         if (!isScoring) {

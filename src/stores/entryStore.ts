@@ -22,6 +22,10 @@ export interface Entry {
   level?: string;
   checkedIn?: boolean;
   checkinStatus?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate';
+  timeLimit?: string;
+  timeLimit2?: string;
+  timeLimit3?: string;
+  areas?: number;
 }
 
 interface EntryFilters {

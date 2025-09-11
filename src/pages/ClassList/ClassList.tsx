@@ -3,26 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
+import { HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { 
   ArrowLeft, 
   RefreshCw, 
   Heart, 
-  Eye, 
-  Play, 
+  Eye as _Eye, 
+  Play as _Play, 
   MoreVertical, 
   Clock, 
   CheckCircle, 
   Users, 
   ChevronDown, 
   ChevronUp,
-  Home as HomeIcon,
-  MessageSquare,
-  Calendar,
-  Settings,
-  Menu,
-  X,
-  Award
+  Award as _Award
 } from 'lucide-react';
 import './ClassList.css';
 
@@ -52,6 +47,7 @@ interface ClassEntry {
 interface TrialInfo {
   trial_name: string;
   trial_date: string;
+  trial_number: number;
   total_classes: number;
   pending_classes: number;
   completed_classes: number;
@@ -60,30 +56,39 @@ interface TrialInfo {
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
-  const { showContext, role, logout } = useAuth();
+  const { showContext, role: _role, logout: _logout } = useAuth();
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'pending' | 'completed'>('pending');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'favorites' | 'in_progress'>('all');
+  const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
   const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
-  const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map()); // classId -> status filter
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
+  const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map());
+
+  // Format date with abbreviated month and trial number
+  const formatTrialDate = (dateStr: string, trialNumber: number) => {
+    const date = new Date(dateStr);
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dayName = days[date.getDay()];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    
+    return `${dayName}, ${month} ${day}, ${year} - ${trialNumber}`;
+  };
 
   useEffect(() => {
     if (trialId && showContext) {
       loadClassList();
     }
   }, [trialId, showContext]);
+
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -128,6 +133,9 @@ export const ClassList: React.FC = () => {
         return;
       }
 
+      // Debug: log trial data to see available fields
+      console.log('Trial data loaded:', trialData);
+
       // Load classes for this trial
       const { data: classData, error: classError } = await supabase
         .from('tbl_class_queue')
@@ -140,14 +148,18 @@ export const ClassList: React.FC = () => {
         return;
       }
 
+      // Debug: log class data to see what's loaded
+      console.log('Class data loaded:', classData?.length, 'classes');
+
       if (trialData && classData) {
         // Set trial info
         setTrialInfo({
           trial_name: trialData.trial_name,
           trial_date: trialData.trial_date,
+          trial_number: trialData.trial_number || trialData.trialid,
           total_classes: classData.length,
-          pending_classes: classData.filter(c => c.class_status !== 'completed').length,
-          completed_classes: classData.filter(c => c.class_status === 'completed').length
+          pending_classes: classData.filter(c => c.is_completed !== true).length,
+          completed_classes: classData.filter(c => c.is_completed === true).length
         });
 
 
@@ -158,9 +170,10 @@ export const ClassList: React.FC = () => {
           .eq('mobile_app_lic_key', showContext?.licenseKey)
           .eq('trial_date', trialData.trial_date)
           .eq('trial_number', trialData.trial_number)
-          .order('in_ring', { ascending: false }) // In ring first
-          .order('checkin_status', { ascending: false }) // Then by checkin status
-          .order('armband', { ascending: true }); // Then by armband
+          .order('in_ring', { ascending: false })
+          .order('checkin_status', { ascending: false })
+          .order('armband', { ascending: true });
+          // Custom sorting will be applied after data retrieval
 
         if (trialEntriesError) {
           console.error('Error loading trial entries:', trialEntriesError);
@@ -179,7 +192,7 @@ export const ClassList: React.FC = () => {
           
           console.log(`Class ${cls.id} (${cls.element} ${cls.level} ${cls.section}): ${entryData.length} entries`);
 
-          // Process dog entries with status priorities
+          // Process dog entries with custom status priority sorting
           const dogs = (entryData || []).map(entry => ({
             id: entry.id,
             armband: entry.armband,
@@ -189,7 +202,29 @@ export const ClassList: React.FC = () => {
             in_ring: entry.in_ring || false,
             checkin_status: entry.checkin_status || 0,
             is_scored: entry.is_scored || false
-          }));
+          })).sort((a, b) => {
+            // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
+            const getStatusPriority = (dog: typeof a) => {
+              if (dog.is_scored) return 7; // Completed (last)
+              if (dog.in_ring) return 1; // In-ring (first)
+              if (dog.checkin_status === 4) return 2; // At gate
+              if (dog.checkin_status === 1) return 3; // Checked-in
+              if (dog.checkin_status === 2) return 4; // Conflict
+              if (dog.checkin_status === 0) return 5; // Not checked-in (pending)
+              if (dog.checkin_status === 3) return 6; // Pulled
+              return 8; // Unknown status
+            };
+            
+            const priorityA = getStatusPriority(a);
+            const priorityB = getStatusPriority(b);
+            
+            if (priorityA !== priorityB) {
+              return priorityA - priorityB;
+            }
+            
+            // Secondary sort by armband number
+            return a.armband - b.armband;
+          });
 
           // Count totals
           const entryCount = dogs.length;
@@ -223,19 +258,197 @@ export const ClassList: React.FC = () => {
     }
   }, [showContext?.licenseKey, trialId]);
 
+  // Subscribe to real-time entry updates for all classes in this trial
+  useEffect(() => {
+    if (!trialId || !showContext?.licenseKey) return;
+    
+    // Subscribe to entry changes that affect classes in this trial
+    const subscription = supabase
+      .channel(`entries-trial-${trialId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tbl_entry_queue',
+          filter: `mobile_app_lic_key=eq.${showContext.licenseKey}`
+        },
+        (payload) => {
+          console.log('Real-time entry update received in ClassList:', payload);
+          // Reload class list when entries change (in-ring status, scoring, etc.)
+          loadClassList();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [trialId, showContext?.licenseKey, loadClassList]);
 
   const parseOrganizationData = (orgString: string) => {
+    console.log('🔍 parseOrganizationData DEBUG:');
+    console.log('Input orgString:', JSON.stringify(orgString));
+    console.log('orgString type:', typeof orgString);
+    console.log('orgString length:', orgString?.length || 'undefined');
+    
+    if (!orgString || orgString.trim() === '') {
+      console.log('⚠️ Empty orgString - defaulting to AKC Scent Work');
+      // Default to AKC Scent Work for this show based on the user's report
+      return {
+        organization: 'AKC',
+        activity_type: 'Scent Work'
+      };
+    }
+    
     // Parse organization string like "UKC Obedience", "AKC Scent Work"
     const parts = orgString.split(' ');
-    return {
+    const result = {
       organization: parts[0], // "UKC", "AKC", "ASCA"
       activity_type: parts.slice(1).join(' '), // "Obedience", "Scent Work", "FastCat"
     };
+    
+    console.log('Parsed organization data:', result);
+    return result;
   };
 
   const handleViewEntries = (classEntry: ClassEntry) => {
     hapticFeedback.impact('medium');
     navigate(`/class/${classEntry.id}/entries`);
+  };
+
+  // Function to set a dog's in-ring status
+  const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('tbl_entry_queue')
+        .update({ in_ring: inRing })
+        .eq('id', dogId)
+        .eq('mobile_app_lic_key', showContext?.licenseKey);
+
+      if (error) {
+        console.error('Error updating dog ring status:', error);
+        return false;
+      }
+      
+      console.log(`Dog ${dogId} ring status set to: ${inRing}`);
+      return true;
+    } catch (error) {
+      console.error('Error setting dog ring status:', error);
+      return false;
+    }
+  };
+
+  // Function to handle opening scoresheet for a specific dog
+  const handleDogScoresheet = async (dog: ClassEntry['dogs'][0], classEntry: ClassEntry) => {
+    // First, set the dog to in-ring status
+    console.log(`Setting dog ${dog.call_name} (ID: ${dog.id}) to in-ring status...`);
+    const success = await setDogInRingStatus(dog.id, true);
+    
+    if (!success) {
+      console.error('Failed to set dog in-ring status');
+      // Continue anyway - don't block scoresheet opening
+    } else {
+      console.log(`Successfully set dog ${dog.call_name} to in-ring status`);
+      // Refresh the class list to show updated status immediately
+      await loadClassList();
+    }
+
+    // Navigate to the appropriate scoresheet with specific dog
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const competition_type = showContext?.competition_type || 'Regular';
+    const element = classEntry.element || '';
+    
+    console.log('Opening scoresheet for dog:', { 
+      dogId: dog.id,
+      armband: dog.armband,
+      callName: dog.call_name,
+      classId: classEntry.id,
+      className: classEntry.class_name,
+      orgString: showContext?.org || '',
+      organization: orgData.organization,
+      activity_type: orgData.activity_type,
+      element,
+      competition_type
+    });
+    
+    // Organization-based routing with specific dog ID
+    console.log('Route selection logic:', {
+      orgMatches: orgData.organization === 'AKC',
+      activityMatches: orgData.activity_type === 'Scent Work' || orgData.activity_type === 'ScentWork'
+    });
+
+    if (orgData.organization === 'AKC') {
+      console.log('✅ AKC route selected');
+      if (orgData.activity_type === 'Scent Work' || orgData.activity_type === 'ScentWork') {
+        console.log('✅ AKC Scent Work route selected');
+        const route = `/scoresheet/akc-scent-work/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else if (orgData.activity_type === 'FastCat' || orgData.activity_type === 'Fast Cat') {
+        console.log('✅ AKC FastCat route selected');
+        const route = `/scoresheet/akc-fastcat/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else {
+        console.log('✅ AKC default (Scent Work) route selected');
+        const route = `/scoresheet/akc-scent-work/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      }
+    } else if (orgData.organization === 'UKC') {
+      console.log('✅ UKC route selected');
+      if (orgData.activity_type === 'Obedience' || element === 'Obedience') {
+        const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else if (element === 'Rally' || orgData.activity_type === 'Rally') {
+        const route = `/scoresheet/ukc-rally/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else if (orgData.activity_type === 'Nosework') {
+        const route = `/scoresheet/asca-scent-detection/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else {
+        if (element === 'Obedience') {
+          const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
+          console.log('Navigating to:', route);
+          navigate(route);
+        } else {
+          const route = `/scoresheet/ukc-rally/${classEntry.id}/${dog.id}`;
+          console.log('Navigating to:', route);
+          navigate(route);
+        }
+      }
+    } else if (orgData.organization === 'ASCA') {
+      console.log('✅ ASCA route selected');
+      if (orgData.activity_type === 'ScentDetection' || orgData.activity_type.includes('Scent')) {
+        const route = `/scoresheet/asca-scent-detection/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else {
+        const route = `/scoresheet/asca-scent-detection/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      }
+    } else {
+      console.log('⚠️ Fallback route selected (unknown organization)');
+      // Default fallback
+      if (element === 'Obedience') {
+        const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else if (element === 'Rally') {
+        const route = `/scoresheet/ukc-rally/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      } else {
+        const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
+        console.log('Navigating to:', route);
+        navigate(route);
+      }
+    }
   };
 
   const _handleStartScoring = (classEntry: ClassEntry) => {
@@ -360,13 +573,23 @@ export const ClassList: React.FC = () => {
   };
 
   const getDogStatusIcon = (dog: ClassEntry['dogs'][0]) => {
-    if (dog.is_scored) return '🟣'; // Purple circle for DONE (scored)
-    if (dog.in_ring) return '🏃';
-    if (dog.checkin_status === 4) return '🚪'; // At gate
-    if (dog.checkin_status === 1) return '🔵'; // Blue circle for READY (checked in)
-    if (dog.checkin_status === 2) return '⚠️'; // Conflict
-    if (dog.checkin_status === 3) return '❌'; // Pulled
-    return '⏳'; // Not checked in
+    if (dog.is_scored) return '♦'; // Diamond for DONE (scored)
+    if (dog.in_ring) return '▶'; // Play icon for IN RING
+    if (dog.checkin_status === 4) return '★'; // Star for AT GATE
+    if (dog.checkin_status === 1) return '✓'; // Checkmark for READY (checked in)
+    if (dog.checkin_status === 2) return '!'; // Exclamation for CONFLICT
+    if (dog.checkin_status === 3) return '✕'; // X mark for PULLED
+    return '●'; // Circle for NOT CHECKED IN
+  };
+
+  const _getDogStatusText = (dog: ClassEntry['dogs'][0]) => {
+    if (dog.is_scored) return 'Completed';
+    if (dog.in_ring) return 'In Ring';
+    if (dog.checkin_status === 4) return 'At Gate';
+    if (dog.checkin_status === 1) return 'Checked-in';
+    if (dog.checkin_status === 2) return 'Conflict';
+    if (dog.checkin_status === 3) return 'Pulled';
+    return 'Not Checked-in';
   };
 
   const getDogStatusColor = (dog: ClassEntry['dogs'][0]) => {
@@ -383,7 +606,7 @@ export const ClassList: React.FC = () => {
     const counts = {
       all: dogs.length,
       pending: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 0).length,
-      ready: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1).length,
+      checkedin: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1).length,
       active: dogs.filter(dog => dog.in_ring || dog.checkin_status === 4).length,
       completed: dogs.filter(dog => dog.is_scored).length,
     };
@@ -394,7 +617,7 @@ export const ClassList: React.FC = () => {
     switch (statusFilter) {
       case 'pending':
         return dogs.filter(dog => !dog.is_scored && dog.checkin_status === 0);
-      case 'ready':
+      case 'checkedin':
         return dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1);
       case 'active':
         return dogs.filter(dog => dog.in_ring || dog.checkin_status === 4);
@@ -439,20 +662,17 @@ export const ClassList: React.FC = () => {
   };
 
   const filteredClasses = classes.filter(classEntry => {
-    // Status filter
-    if (statusFilter === 'pending' && classEntry.class_status === 'completed') return false;
-    if (statusFilter === 'completed' && classEntry.class_status !== 'completed') return false;
-    
-    // Type filter
-    if (typeFilter === 'favorites' && !classEntry.is_favorite) return false;
-    if (typeFilter === 'in_progress' && classEntry.class_status !== 'in_progress') return false;
+    // Combined filter logic
+    if (combinedFilter === 'pending' && classEntry.class_status === 'completed') return false;
+    if (combinedFilter === 'completed' && classEntry.class_status !== 'completed') return false;
+    if (combinedFilter === 'favorites' && !classEntry.is_favorite) return false;
     
     return true;
   });
 
   if (isLoading) {
     return (
-      <div className={`class-list-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="class-list-container">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 text-muted-foreground animate-spin mx-auto mb-2" />
@@ -465,7 +685,7 @@ export const ClassList: React.FC = () => {
 
   if (!trialInfo) {
     return (
-      <div className={`class-list-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="class-list-container">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-foreground text-lg font-semibold mb-2">Trial not found</p>
@@ -483,21 +703,16 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className={`class-list-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
-      {/* Theme Toggle */}
-      <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)} title="Toggle theme">
-        {darkMode ? '☀️' : '🌙'}
-      </button>
-      
+    <div className="class-list-container">
       {/* Enhanced Header with Glass Morphism */}
       <header className="class-list-header">
-        <button
-          className="icon-button"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          title="Menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        <HamburgerMenu 
+          currentPage="entries" 
+          backNavigation={{
+            label: "Back to Home",
+            action: () => navigate('/home')
+          }}
+        />
         
         <div className="header-center">
           <h1>Select Class</h1>
@@ -519,7 +734,7 @@ export const ClassList: React.FC = () => {
           <div className="trial-info-content">
             <div>
               <h2>{trialInfo.trial_name}</h2>
-              <p className="trial-date">{trialInfo.trial_date}</p>
+              <p className="trial-date">{formatTrialDate(trialInfo.trial_date, trialInfo.trial_number)}</p>
             </div>
             <div className="trial-stats">
               <div className="stat-value">{trialInfo.total_classes}</div>
@@ -529,64 +744,37 @@ export const ClassList: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Status Tabs with Apple Design */}
+      {/* Combined Class Filter Tabs */}
       <div className="status-tabs">
         <button
-          className={`tab-button ${statusFilter === 'pending' ? 'active' : ''}`}
+          className={`tab-button ${combinedFilter === 'pending' ? 'active' : ''}`}
           onClick={() => {
             hapticFeedback.impact('light');
-            setStatusFilter('pending');
+            setCombinedFilter('pending');
           }}
         >
           <Clock className="tab-icon" />
-          <span className="tab-text">{trialInfo.pending_classes} Pending</span>
-          {trialInfo.pending_classes > 0 && (
-            <div className="status-indicator" />
-          )}
+          <span className="tab-text">Pending</span>
         </button>
         <button
-          className={`tab-button ${statusFilter === 'completed' ? 'active' : ''}`}
+          className={`tab-button ${combinedFilter === 'favorites' ? 'active' : ''}`}
           onClick={() => {
             hapticFeedback.impact('light');
-            setStatusFilter('completed');
-          }}
-        >
-          <CheckCircle className="tab-icon" />
-          <span className="tab-text">{trialInfo.completed_classes} Completed</span>
-        </button>
-      </div>
-
-      {/* Enhanced Filter Tabs with Apple Design */}
-      <div className="filter-tabs">
-        <button
-          className={`tab-button ${typeFilter === 'all' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setTypeFilter('all');
-          }}
-        >
-          <Users className="tab-icon" />
-          <span className="tab-text">All</span>
-        </button>
-        <button
-          className={`tab-button ${typeFilter === 'favorites' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setTypeFilter('favorites');
+            setCombinedFilter('favorites');
           }}
         >
           <Heart className="tab-icon" />
           <span className="tab-text">Favorites</span>
         </button>
         <button
-          className={`tab-button ${typeFilter === 'in_progress' ? 'active' : ''}`}
+          className={`tab-button ${combinedFilter === 'completed' ? 'active' : ''}`}
           onClick={() => {
             hapticFeedback.impact('light');
-            setTypeFilter('in_progress');
+            setCombinedFilter('completed');
           }}
         >
-          <Play className="tab-icon" />
-          <span className="tab-text">Active</span>
+          <CheckCircle className="tab-icon" />
+          <span className="tab-text">Completed</span>
         </button>
       </div>
 
@@ -616,9 +804,6 @@ export const ClassList: React.FC = () => {
                   </div>
                   
                   <div className="class-actions">
-                    {(hasPendingEntries || isInProgress) && (
-                      <div className="status-dot" />
-                    )}
                     <button
                       className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
                       onClick={(e) => {
@@ -665,14 +850,14 @@ export const ClassList: React.FC = () => {
                 <div className="dog-preview-section">
                   {classEntry.dogs.length > 0 ? (
                     <>
-                      {/* Dog Status Filter Tabs */}
+                      {/* Dog Status Filter Tabs with Legend Dots */}
                       <div className="dog-status-filter">
                         {[
-                          { key: 'all', label: 'All', count: getDogStatusCounts(classEntry.dogs).all },
-                          { key: 'pending', label: 'Pending', count: getDogStatusCounts(classEntry.dogs).pending },
-                          { key: 'ready', label: 'Ready', count: getDogStatusCounts(classEntry.dogs).ready },
-                          { key: 'active', label: 'Active', count: getDogStatusCounts(classEntry.dogs).active },
-                          { key: 'completed', label: 'Done', count: getDogStatusCounts(classEntry.dogs).completed },
+                          { key: 'all', label: 'All', shortLabel: 'All', count: getDogStatusCounts(classEntry.dogs).all },
+                          { key: 'pending', label: 'None', shortLabel: 'None', count: getDogStatusCounts(classEntry.dogs).pending },
+                          { key: 'checkedin', label: 'Checked-in', shortLabel: 'Ready', count: getDogStatusCounts(classEntry.dogs).checkedin },
+                          { key: 'active', label: 'At Ring', shortLabel: 'Ring', count: getDogStatusCounts(classEntry.dogs).active },
+                          { key: 'completed', label: 'Completed', shortLabel: 'Done', count: getDogStatusCounts(classEntry.dogs).completed },
                         ].filter(status => status.count > 0).map((status) => (
                           <button
                             key={status.key}
@@ -684,8 +869,24 @@ export const ClassList: React.FC = () => {
                               handleDogStatusFilter(classEntry.id, status.key);
                             }}
                           >
-                            {status.label}
-                            <span className="status-count">{status.count}</span>
+                            <span className="tab-label-full">{status.label}</span>
+                            <span className="tab-label-short">{status.shortLabel}</span>
+                            <span 
+                              className="status-count"
+                              style={{
+                                backgroundColor: 
+                                  status.key === 'all' ? 'var(--text-secondary)' :
+                                  status.key === 'pending' ? 'var(--status-not-checked-in)' :
+                                  status.key === 'checkedin' ? 'var(--status-checked-in)' :
+                                  status.key === 'active' ? 'var(--status-in-ring)' :
+                                  status.key === 'completed' ? 'var(--status-done)' :
+                                  'var(--text-secondary)',
+                                color: 'white',
+                                fontWeight: '600'
+                              }}
+                            >
+                              {status.count}
+                            </span>
                           </button>
                         ))}
                       </div>
@@ -698,13 +899,18 @@ export const ClassList: React.FC = () => {
                             <div 
                               key={dog.id}
                               className={`dog-entry ${statusColor}`}
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
                                 hapticFeedback.impact('light');
-                                navigate(`/dog/${dog.armband}`);
+                                // Open scoresheet and automatically set dog to in-ring status
+                                await handleDogScoresheet(dog, classEntry);
                               }}
                             >
-                              <div className="dog-status"></div>
+                              <div className="dog-status">
+                                <span className="dog-status-icon">
+                                  {getDogStatusIcon(dog)}
+                                </span>
+                              </div>
                               <div className="dog-armband">
                                 {dog.armband}
                               </div>
@@ -721,7 +927,7 @@ export const ClassList: React.FC = () => {
                       {(() => {
                         const statusFilter = dogStatusFilters.get(classEntry.id) || 'all';
                         const filteredDogs = getFilteredDogs(classEntry.dogs, statusFilter);
-                        const visibleCount = getVisibleDogs(classEntry.dogs, classEntry.id).length;
+                        const _visibleCount = getVisibleDogs(classEntry.dogs, classEntry.id).length;
                         const totalCount = filteredDogs.length;
                         
                         if (!expandedClasses.has(classEntry.id) && totalCount > 9) {
@@ -745,10 +951,10 @@ export const ClassList: React.FC = () => {
                                     {hiddenCounts.pending}
                                   </div>
                                 )}
-                                {hiddenCounts.ready > 0 && (
+                                {hiddenCounts.checkedin > 0 && (
                                   <div className="summary-stat">
                                     <div className="summary-dot" style={{color: '#047857'}}></div>
-                                    {hiddenCounts.ready}
+                                    {hiddenCounts.checkedin}
                                   </div>
                                 )}
                                 {hiddenCounts.active > 0 && (
@@ -887,81 +1093,6 @@ export const ClassList: React.FC = () => {
         </div>
       )}
 
-      {/* Hamburger Menu Overlay */}
-      {isMenuOpen && (
-        <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}>
-          <nav className="hamburger-menu" onClick={(e) => e.stopPropagation()}>
-            <div className="menu-header">
-              <div className="menu-header-info">
-                <h3>{showContext?.clubName}</h3>
-                <p className="show-info-detail">{showContext?.showName}</p>
-                <p className="user-info">Logged in as: <span>{role}</span></p>
-              </div>
-              <button 
-                className="menu-close"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="menu-items">
-              <button
-                className="menu-item"
-                onClick={() => {
-                  navigate('/home');
-                  setIsMenuOpen(false);
-                }}
-              >
-                <HomeIcon className="menu-icon" />
-                <span>Home</span>
-              </button>
-              <button
-                className="menu-item"
-                onClick={() => {
-                  navigate('/announcements');
-                  setIsMenuOpen(false);
-                }}
-              >
-                <MessageSquare className="menu-icon" />
-                <span>News</span>
-              </button>
-              <button
-                className="menu-item"
-                onClick={() => {
-                  navigate('/calendar');
-                  setIsMenuOpen(false);
-                }}
-              >
-                <Calendar className="menu-icon" />
-                <span>Calendar</span>
-              </button>
-              <button
-                className="menu-item"
-                onClick={() => {
-                  navigate('/settings');
-                  setIsMenuOpen(false);
-                }}
-              >
-                <Settings className="menu-icon" />
-                <span>Settings</span>
-              </button>
-              
-              <div className="menu-divider" />
-              
-              <button
-                className="menu-item logout"
-                onClick={() => {
-                  logout();
-                  setIsMenuOpen(false);
-                }}
-              >
-                <span>Logout</span>
-              </button>
-            </div>
-          </nav>
-        </div>
-      )}
     </div>
   );
 };

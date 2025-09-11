@@ -10,6 +10,7 @@ import { UKCRallyScoresheet } from './pages/scoresheets/UKC/UKCRallyScoresheet';
 import { AKCScentWorkScoresheet } from './pages/scoresheets/AKC/AKCScentWorkScoresheet';
 import { AKCFastCatScoresheet } from './pages/scoresheets/AKC/AKCFastCatScoresheet';
 import { ASCAScentDetectionScoresheet } from './pages/scoresheets/ASCA/ASCAScentDetectionScoresheet';
+import { TestScoresheet } from './components/TestScoresheet';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
@@ -73,6 +74,10 @@ function App() {
                 <AKCScentWorkScoresheet />
               </ProtectedRoute>
             } 
+          />
+          <Route 
+            path="/test/scoresheet" 
+            element={<TestScoresheet />} 
           />
           <Route 
             path="/scoresheet/akc-fastcat/:classId/:entryId" 

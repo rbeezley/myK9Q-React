@@ -44,7 +44,7 @@ export const useHapticFeedback = () => {
     simulateHapticFeedback(e.currentTarget);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent<HTMLElement>) => {
+  const handleTouchEnd = (_e: React.TouchEvent<HTMLElement>) => {
     // Reset handled by simulateHapticFeedback timeout
   };
 

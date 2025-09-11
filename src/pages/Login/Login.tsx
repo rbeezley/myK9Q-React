@@ -2,9 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authenticatePasscode } from '../../services/authService';
-import { Card, CardContent, Button } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { HelpCircle, Loader2, Wifi, WifiOff } from 'lucide-react';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -15,26 +13,10 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const hapticFeedback = useHapticFeedback();
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Focus first input on mount and setup network monitoring
+  // Focus first input on mount
   useEffect(() => {
     inputRefs.current[0]?.focus();
-    
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
   }, []);
 
   const handleInputChange = (index: number, value: string) => {
@@ -108,12 +90,6 @@ export const Login: React.FC = () => {
       return;
     }
 
-    if (!isOnline) {
-      hapticFeedback.impact('heavy');
-      setError('No internet connection. Please check your connectivity.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
     hapticFeedback.impact('medium');
@@ -133,7 +109,7 @@ export const Login: React.FC = () => {
     } catch (err) {
       console.error('Login error:', err);
       hapticFeedback.impact('heavy');
-      setError('Invalid passcode. Please check your connection and try again.');
+      setError('Invalid passcode. Please check and try again.');
       setPasscode(['', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -142,146 +118,98 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-gradient-to-br from-primary/5 to-secondary/5'}`}>
-      {/* Outdoor-Ready Background Pattern */}
-      <div className="absolute inset-0 bg-grid-white/10 bg-[size:20px_20px] mask-fade-out" />
+    <div className="login-container">
+      {/* Purple gradient background matching Flutter */}
+      <div className="login-background" />
       
-      <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
-        {/* Network Status Indicator */}
-        <div className="absolute top-4 right-4">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium ${
-            isOnline 
-              ? 'bg-green-500/10 text-green-600 border border-green-500/20' 
-              : 'bg-red-500/10 text-red-600 border border-red-500/20'
-          }`}>
-            {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-            {isOnline ? 'Connected' : 'Offline'}
-          </div>
-        </div>
-        
+      <div className="login-content">
         {/* Logo and Branding */}
-        <div className="text-center mb-8">
-          <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-2xl p-8 max-w-md mx-auto">
-            <CardContent className="p-0">
-              <div className="mb-6">
-                <img 
-                  src="/myK9Q-logo-white.png" 
-                  alt="myK9Q Logo" 
-                  className="w-16 h-16 mx-auto mb-4 filter brightness-0 invert dark:brightness-100 dark:invert-0"
+        <div className="logo-container">
+          <div className="logo-circle">
+            <svg className="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="48" fill="none" stroke="white" strokeWidth="2" />
+              <text x="50" y="65" textAnchor="middle" fontSize="40" fill="white">Q</text>
+              {/* Simple dog silhouette */}
+              <path d="M 30 45 Q 35 35, 45 40 L 45 55 L 35 55 L 35 50 Q 30 50, 30 45" 
+                    fill="white" opacity="0.9" transform="scale(0.8) translate(15, 10)" />
+            </svg>
+          </div>
+          
+          <h1 className="app-title">myK9Q</h1>
+          <p className="version">v2.0.8</p>
+          <p className="tagline">Queue and Qualify</p>
+        </div>
+
+        {/* Passcode Input Section */}
+        <div className="passcode-section">
+          <p className="instruction">Enter Pass Code provided by Host Club</p>
+          
+          <div className="passcode-inputs">
+            {passcode.map((digit, index) => (
+              <div key={index} className="input-wrapper">
+                <input
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleInputChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={index === 0 ? handlePaste : undefined}
+                  className={`passcode-input ${error ? 'error' : ''}`}
+                  disabled={isLoading}
+                  inputMode="text"
+                  autoComplete="off"
+                  aria-label={`Passcode digit ${index + 1}`}
                 />
-                <h1 className="text-3xl font-bold text-foreground mb-2">myK9Q</h1>
-                <div className="text-xs font-medium text-muted-foreground/60 bg-muted/20 px-2 py-1 rounded-full inline-block mb-2">
-                  v1.0.0
-                </div>
-                <p className="text-base font-medium text-primary">
-                  Queue and Qualify
-                </p>
+                <div className="input-dot" />
               </div>
+            ))}
+          </div>
 
-              {/* Passcode Input Section */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <p className="text-sm font-medium text-muted-foreground mb-4">
-                    Enter Pass Code provided by Host Club
-                  </p>
-                  
-                  {/* Outdoor-Ready Large Touch Targets */}
-                  <div className="flex justify-center gap-3 mb-6">
-                    {passcode.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(el) => (inputRefs.current[index] = el)}
-                        type="text"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleInputChange(index, e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(index, e)}
-                        onPaste={index === 0 ? handlePaste : undefined}
-                        className={`w-14 h-14 text-center text-xl font-bold rounded-xl border-2 transition-all duration-200 bg-input text-foreground ${
-                          error 
-                            ? 'border-red-500 shadow-red-500/20 shadow-lg' 
-                            : 'border-border/30 focus:border-primary focus:shadow-primary/20 focus:shadow-lg'
-                        } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50'}`}
-                        disabled={isLoading}
-                        inputMode="text"
-                        autoComplete="off"
-                        aria-label={`Passcode digit ${index + 1}`}
-                        style={{ fontSize: '1.25rem' }}
-                      />
-                    ))}
-                  </div>
+          {/* Error Message */}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
 
-                  {/* Error Message */}
-                  {error && (
-                    <div className="text-sm font-medium text-red-600 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-4">
-                      {error}
-                    </div>
-                  )}
-
-                  {/* Loading State */}
-                  {isLoading && (
-                    <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Validating passcode...
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="loading-message">
+              Validating passcode...
+            </div>
+          )}
         </div>
 
         {/* Information Section */}
-        <div className="max-w-md mx-auto mt-8 space-y-4">
-          <Card className="backdrop-blur-xl bg-card/60 border border-border/20">
-            <CardContent className="p-6 text-center">
-              <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  myK9Q allows exhibitors to check-in, indicate conflicts, view running 
-                  order and preliminary results.
-                </p>
-                <p>
-                  Eliminates manual data entry by the trial secretary.
-                </p>
-                <p className="text-primary font-medium">
-                  Visit www.myk9t.com for more information.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Connectivity Requirements */}
-          <Card className="backdrop-blur-xl bg-card/40 border border-border/20">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
-                  isOnline ? 'bg-green-500' : 'bg-red-500'
-                }`}>
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  <p className="font-medium mb-1">Connectivity Required</p>
-                  <p>Requires reliable internet connection via cellular data or Wi-Fi</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="info-section">
+          <p className="info-text">
+            myK9Q allows exhibitors to check-in, indicate conflicts, view running 
+            order and preliminary results.
+          </p>
+          <p className="info-text">
+            Eliminates manual data entry by the trial secretary.
+          </p>
+          <p className="website-link">
+            Visit www.myk9t.com for more information.
+          </p>
+          <p className="requirements">
+            ** Requires reliable internet connectivity<br />
+            via Cellular data service or Wi-Fi.
+          </p>
         </div>
 
-        {/* Help Button - Outdoor-Ready Size */}
-        <div className="fixed bottom-6 right-6">
-          <Button 
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              hapticFeedback.impact('light');
-              window.open('https://www.myk9t.com/help', '_blank');
-            }}
-            className="h-14 w-14 rounded-full backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-          >
-            <HelpCircle className="h-6 w-6 text-muted-foreground" />
-          </Button>
-        </div>
+        {/* Help Button */}
+        <button 
+          className="help-button"
+          onClick={() => {
+            hapticFeedback.impact('light');
+            window.open('https://www.myk9t.com/help', '_blank');
+          }}
+        >
+          <span className="help-icon">?</span>
+          <span>Help</span>
+        </button>
       </div>
     </div>
   );

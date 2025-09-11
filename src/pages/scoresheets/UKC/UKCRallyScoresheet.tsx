@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { Timer } from '../../../components/scoring/Timer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore } from '../../../services/entryService';
+import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import '../BaseScoresheet.css';
 import './UKCRallyScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ';
@@ -43,13 +44,44 @@ export const UKCRallyScoresheet: React.FC = () => {
   const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
   
+  // Apply theme to document root
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+  };
+
   // Load class entries on mount
   useEffect(() => {
     if (classId && showContext?.licenseKey) {
       loadEntries();
     }
   }, [classId, showContext]);
+  
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, [currentEntry?.id]);
   
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
@@ -62,6 +94,13 @@ export const UKCRallyScoresheet: React.FC = () => {
       const pending = entries.filter(e => !e.isScored);
       if (pending.length > 0) {
         setCurrentEntry(pending[0]);
+        
+        // Mark dog as in-ring when scoresheet opens
+        if (pending[0].id) {
+          markInRing(pending[0].id, true).catch(error => {
+            console.error('Failed to mark dog in-ring on scoresheet open:', error);
+          });
+        }
         
         // Start scoring session if not already started
         if (!isScoring) {
@@ -205,7 +244,12 @@ export const UKCRallyScoresheet: React.FC = () => {
   const calculatedQualifying = calculateQualifying();
   
   return (
-    <div className="scoresheet-container ukc-rally">
+    <div className="scoresheet-container ukc-rally" data-theme={darkMode ? 'dark' : 'light'}>
+      {/* Theme Toggle */}
+      <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
+        {darkMode ? '☀️' : '🌙'}
+      </button>
+      
       <header className="scoresheet-header">
         <button className="back-button" onClick={() => navigate(-1)}>
           ← Back
@@ -228,7 +272,8 @@ export const UKCRallyScoresheet: React.FC = () => {
         />
         
         {/* Timer Section */}
-        <div className="timer-section">
+        <div className="timer-section scoresheet-card">
+          <h3>Rally Course Timer</h3>
           <Timer
             areaId="rally-course"
             areaName="Rally Course"
@@ -239,7 +284,7 @@ export const UKCRallyScoresheet: React.FC = () => {
         </div>
         
         {/* Score Input Section */}
-        <div className="score-section">
+        <div className="score-section form-section">
           <h3>Rally Scoring</h3>
           
           <div className="score-inputs">
@@ -325,7 +370,7 @@ export const UKCRallyScoresheet: React.FC = () => {
         
         <div className="action-buttons">
           <button
-            className="nav-button"
+            className="nav-button btn-secondary"
             onClick={handlePrevious}
             disabled={currentIndex === 1}
           >
@@ -333,7 +378,7 @@ export const UKCRallyScoresheet: React.FC = () => {
           </button>
           
           <button
-            className="submit-button"
+            className="submit-button btn-primary"
             onClick={handleSubmit}
             disabled={isSubmitting || !courseTime}
           >
@@ -341,7 +386,7 @@ export const UKCRallyScoresheet: React.FC = () => {
           </button>
           
           <button
-            className="nav-button"
+            className="nav-button btn-secondary"
             onClick={handleNext}
             disabled={currentIndex === currentClassEntries.length}
           >

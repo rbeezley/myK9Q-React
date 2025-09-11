@@ -1,126 +1,272 @@
-# MyK9Q React - Dog Show Scoring Application
+# Claude Code Configuration - SPARC Development Environment
+
+## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+
+**ABSOLUTE RULES**:
+1. ALL operations MUST be concurrent/parallel in a single message
+2. **NEVER save working files, text/mds and tests to the root folder**
+3. ALWAYS organize files in appropriate subdirectories
+
+### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+
+**MANDATORY PATTERNS:**
+- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
+- **Task tool**: ALWAYS spawn ALL agents in ONE message with full instructions
+- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
+- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
+- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
+
+### 📁 File Organization Rules
+
+**NEVER save to root folder. Use these directories:**
+- `/src` - Source code files
+- `/tests` - Test files
+- `/docs` - Documentation and markdown files
+- `/config` - Configuration files
+- `/scripts` - Utility scripts
+- `/examples` - Example code
 
 ## Project Overview
 
-This is a React-based dog show scoring application designed to integrate with the main myK9Show platform. The app provides mobile-first scoring interfaces for judges and secretaries during live dog show events.
+This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
 
-## Key Project Context
+## SPARC Commands
 
-### Purpose
-- **Primary Goal**: Create mobile-optimized scoring interfaces for dog show trials
-- **Integration Target**: Will eventually integrate into the main myK9Show Flutter application
-- **Users**: Judges, secretaries, and show officials using phones/tablets during live events
-- **Environment**: Used in real-time during outdoor dog show trials
+### Core Commands
+- `npx claude-flow sparc modes` - List available modes
+- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
+- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
+- `npx claude-flow sparc info <mode>` - Get mode details
 
-### Technology Stack
-- **Framework**: React 18 with TypeScript and Vite
-- **State Management**: Zustand for scoring, entry, timer, and offline queue stores  
-- **Database**: Supabase with view-based queries
-- **UI Library**: ShadCN UI components with Tailwind CSS
-- **Icons**: Lucide React
-- **Routing**: React Router with entry-specific parameters
+### Batchtools Commands
+- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
+- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
+- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
 
-## Critical Design Requirements
+### Build Commands
+- `npm run build` - Build project
+- `npm run test` - Run tests
+- `npm run lint` - Linting
+- `npm run typecheck` - Type checking
 
-### Must Follow MyK9Show Design System
-**Location**: `/docs/style-guides/` contains comprehensive design system documentation:
-- `design-system.md` - Complete Apple-inspired component patterns
-- `design-tokens.json` - Color palettes, typography, spacing, animation tokens
-- `page-templates.md` - Layout templates and responsive patterns
+## SPARC Workflow Phases
 
-### Apple-Inspired Aesthetic
-- **Primary Colors**: #007AFF (blue) to #5856D6 (purple) gradients
-- **Typography**: Apple system font stack with specific weights (590, 650, 700)
-- **Cards**: Premium styling with `border border-border`, `backdrop-blur-xl`, subtle shadows
-- **Animations**: Apple easing curves `cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
+2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
+3. **Architecture** - System design (`sparc run architect`)
+4. **Refinement** - TDD implementation (`sparc tdd`)
+5. **Completion** - Integration (`sparc run integration`)
 
-### Mobile-First Requirements
-- **Touch Targets**: Minimum 44px for thumb-friendly operation
-- **One-Handed Use**: Large central buttons easily reachable with thumb
-- **Responsive Design**: Must work perfectly on phones during outdoor trials
-- **Performance**: Fast loading and offline capability for poor network conditions
+## Code Style & Best Practices
 
-## Scoring System Architecture
+- **Modular Design**: Files under 500 lines
+- **Environment Safety**: Never hardcode secrets
+- **Test-First**: Write tests before implementation
+- **Clean Architecture**: Separate concerns
+- **Documentation**: Keep updated
 
-### 4-Tier Scoresheet Selection
-Organization → Activity Type → Trial Type → Competition Type
-- Each combination routes to specific scoresheet components
-- Organization-specific scoresheets: UKC, AKC, ASCA with distinct scoring rules
+## 🚀 Available Agents (54 Total)
 
-### Current Scoresheets
-- **UKC Obedience**: Multi-exercise scoring with timers
-- **AKC Scent Work**: Area-based search timing with element/level configurations
-- **Additional**: ASCA, Rally, and other organization scoresheets
+### Core Development
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
 
-### Key Features
-- **Dynamic Area Configuration**: Based on element/level combinations (AKC Scent Work)
-- **Timer Integration**: Stopwatch functionality with auto-population of time fields
-- **Offline Capability**: Queue system for scoring without internet connection
-- **Entry Management**: Navigation through class entries with proper identification
+### Swarm Coordination
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
 
-## Current Known Issues
+### Consensus & Distributed
+`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
 
-### Recent Development Context
-The AKC Scent Work scoresheet was recently redesigned for mobile compactness but the result was visually poor. Key issues:
-- **Design Consistency**: Not following myK9Show's Apple-inspired patterns
-- **Mobile UX**: Poor touch targets and layout for one-handed phone use
-- **Visual Hierarchy**: Inadequate armband prominence and information organization
-- **Color Scheme**: Using wrong colors that don't match myK9Show design system
+### Performance & Optimization
+`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
 
-### User Feedback Priorities
-1. **Armband Prominence**: Must be large and clearly visible (primary dog identification)
-2. **Mobile Optimization**: Everything on one screen, no scrolling required
-3. **Apple-Inspired Design**: Must match myK9Show's established visual language
-4. **Functional UX**: Thumb-friendly controls, logical information flow
+### GitHub & Repository
+`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
 
-## Available Sub-Agents
+### SPARC Methodology
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
 
-### UI Designer Agent
-**Location**: `.claude/agents/ui-designer`
-- Understands myK9Show's Apple-inspired design patterns
-- Can implement proper card styling, typography, and color schemes
-- References design-tokens.json and design-system.md correctly
+### Specialized Development
+`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
 
-### UX Researcher Agent  
-**Location**: `.claude/agents/ux-researcher`
-- Evaluates mobile usability and touch-friendly patterns
-- Validates user flows against established UX conventions
-- Ensures one-handed mobile operation during trials
+### Testing & Validation
+`tdd-london-swarm`, `production-validator`
 
-### Usage Guidance
-- **Always consult** these agents for design decisions
-- **Reference them** before implementing new components
-- **Use them** to validate mobile usability and visual consistency
+### Migration & Planning
+`migration-planner`, `swarm-init`
 
-## Development Workflow
+## 🎯 Claude Code vs MCP Tools
 
-### For New Components
-1. **Consult UX researcher** for user flow and mobile requirements
-2. **Work with UI designer** to ensure design system compliance
-3. **Reference style guides** in `/docs/style-guides/` for implementation details
-4. **Test on mobile devices** for real-world trial usage
+### Claude Code Handles ALL:
+- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
+- Code generation and programming
+- Bash commands and system operations
+- Implementation work
+- Project navigation and analysis
+- TodoWrite and task management
+- Git operations
+- Package management
+- Testing and debugging
 
-### For Design Issues
-1. **Use UI designer agent** to evaluate against myK9Show design standards
-2. **Apply design tokens** from design-tokens.json
-3. **Follow page templates** from page-templates.md
-4. **Validate with UX researcher** for mobile usability
+### MCP Tools ONLY:
+- Coordination and planning
+- Memory management
+- Neural features
+- Performance tracking
+- Swarm orchestration
+- GitHub integration
 
-## Integration Goals
+**KEY**: MCP coordinates, Claude Code executes.
 
-### myK9Show Compatibility
-- **Design Consistency**: Must look and feel like part of myK9Show
-- **Component Reusability**: Create components that can be integrated into Flutter app
-- **User Experience**: Seamless transition between React scoring and Flutter app features
-- **Data Flow**: Compatible with myK9Show's existing data structures and APIs
+## 🚀 Quick Setup
 
-### Success Criteria
-- Judges can score efficiently on mobile devices during live trials
-- Visual design is indistinguishable from myK9Show's quality standards
-- Touch interactions are optimized for one-handed operation
-- Performance is excellent even with poor network connectivity
-- Components can be easily integrated into the main myK9Show application
+```bash
+# Add Claude Flow MCP server
+claude mcp add claude-flow npx claude-flow@alpha mcp start
+```
 
-## Current Priority
+## MCP Tool Categories
 
-The immediate focus is fixing the AKC Scent Work scoresheet to properly follow myK9Show's design system and provide excellent mobile UX for trial scoring. This serves as the foundation for implementing other organization-specific scoresheets with consistent quality.
+### Coordination
+`swarm_init`, `agent_spawn`, `task_orchestrate`
+
+### Monitoring
+`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
+
+### Memory & Neural
+`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
+
+### GitHub Integration
+`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
+
+### System
+`benchmark_run`, `features_detect`, `swarm_monitor`
+
+## 📋 Agent Coordination Protocol
+
+### Every Agent MUST:
+
+**1️⃣ BEFORE Work:**
+```bash
+npx claude-flow@alpha hooks pre-task --description "[task]"
+npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
+```
+
+**2️⃣ DURING Work:**
+```bash
+npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
+npx claude-flow@alpha hooks notify --message "[what was done]"
+```
+
+**3️⃣ AFTER Work:**
+```bash
+npx claude-flow@alpha hooks post-task --task-id "[task]"
+npx claude-flow@alpha hooks session-end --export-metrics true
+```
+
+## 🎯 Concurrent Execution Examples
+
+### ✅ CORRECT (Single Message):
+```javascript
+[BatchTool]:
+  // Initialize swarm
+  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
+  mcp__claude-flow__agent_spawn { type: "researcher" }
+  mcp__claude-flow__agent_spawn { type: "coder" }
+  mcp__claude-flow__agent_spawn { type: "tester" }
+  
+  // Spawn agents with Task tool
+  Task("Research agent: Analyze requirements...")
+  Task("Coder agent: Implement features...")
+  Task("Tester agent: Create test suite...")
+  
+  // Batch todos
+  TodoWrite { todos: [
+    {id: "1", content: "Research", status: "in_progress", priority: "high"},
+    {id: "2", content: "Design", status: "pending", priority: "high"},
+    {id: "3", content: "Implement", status: "pending", priority: "high"},
+    {id: "4", content: "Test", status: "pending", priority: "medium"},
+    {id: "5", content: "Document", status: "pending", priority: "low"}
+  ]}
+  
+  // File operations
+  Bash "mkdir -p app/{src,tests,docs}"
+  Write "app/src/index.js"
+  Write "app/tests/index.test.js"
+  Write "app/docs/README.md"
+```
+
+### ❌ WRONG (Multiple Messages):
+```javascript
+Message 1: mcp__claude-flow__swarm_init
+Message 2: Task("agent 1")
+Message 3: TodoWrite { todos: [single todo] }
+Message 4: Write "file.js"
+// This breaks parallel coordination!
+```
+
+## Performance Benefits
+
+- **84.8% SWE-Bench solve rate**
+- **32.3% token reduction**
+- **2.8-4.4x speed improvement**
+- **27+ neural models**
+
+## Hooks Integration
+
+### Pre-Operation
+- Auto-assign agents by file type
+- Validate commands for safety
+- Prepare resources automatically
+- Optimize topology by complexity
+- Cache searches
+
+### Post-Operation
+- Auto-format code
+- Train neural patterns
+- Update memory
+- Analyze performance
+- Track token usage
+
+### Session Management
+- Generate summaries
+- Persist state
+- Track metrics
+- Restore context
+- Export workflows
+
+## Advanced Features (v2.0.0)
+
+- 🚀 Automatic Topology Selection
+- ⚡ Parallel Execution (2.8-4.4x speed)
+- 🧠 Neural Training
+- 📊 Bottleneck Analysis
+- 🤖 Smart Auto-Spawning
+- 🛡️ Self-Healing Workflows
+- 💾 Cross-Session Memory
+- 🔗 GitHub Integration
+
+## Integration Tips
+
+1. Start with basic swarm init
+2. Scale agents gradually
+3. Use memory for context
+4. Monitor progress regularly
+5. Train patterns from success
+6. Enable hooks automation
+7. Use GitHub tools first
+
+## Support
+
+- Documentation: https://github.com/ruvnet/claude-flow
+- Issues: https://github.com/ruvnet/claude-flow/issues
+
+---
+
+Remember: **Claude Flow coordinates, Claude Code creates!**
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+Never save working files, text/mds and tests to the root folder.

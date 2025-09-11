@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { Card, CardContent, Button } from '../../components/ui';
+import { Button, HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { 
   ArrowLeft, 
@@ -13,12 +13,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  CircleDot,
-  Home as HomeIcon,
-  MessageSquare,
-  Calendar,
-  Settings,
-  Download
+  CircleDot
 } from 'lucide-react';
 import './DogDetails.css';
 
@@ -35,6 +30,11 @@ interface ClassEntry {
   checked_in: boolean;
   check_in_status?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate';
   position?: number;
+  // Additional fields that might contain element/level/section info
+  element?: string;
+  level?: string;
+  section?: string;
+  trial_number?: number;
 }
 
 interface DogInfo {
@@ -47,18 +47,14 @@ interface DogInfo {
 export const DogDetails: React.FC = () => {
   const { armband } = useParams<{ armband: string }>();
   const navigate = useNavigate();
-  const { showContext } = useAuth();
+  const { showContext, role: _role } = useAuth();
   const { hasPermission, isExhibitor: _isExhibitor } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activePopup, setActivePopup] = useState<number | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
+  const [_popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     if (armband && showContext) {
@@ -109,6 +105,12 @@ export const DogDetails: React.FC = () => {
           handler: firstEntry.handler
         });
 
+        // Debug: log the first entry to see available fields
+        if (data.length > 0) {
+          console.log('Available entry fields:', Object.keys(data[0]));
+          console.log('First entry data:', data[0]);
+        }
+
         // Process all classes - map integer checkin_status to our types
         setClasses(data.map((entry, index) => {
           let check_in_status: ClassEntry['check_in_status'] = 'none';
@@ -144,7 +146,12 @@ export const DogDetails: React.FC = () => {
             is_scored: entry.is_scored || false,
             checked_in: check_in_status !== 'none',
             check_in_status,
-            position: index === 1 ? 2 : undefined // Mark second entry as "2nd" for demo
+            position: index === 1 ? 2 : undefined, // Mark second entry as "2nd" for demo
+            // Map additional fields if they exist
+            element: entry.element || entry.Element || null,
+            level: entry.level || entry.Level || null,
+            section: entry.section || entry.Section || null,
+            trial_number: entry.trial_number || entry.trialid || null
           };
         }));
       }
@@ -296,11 +303,11 @@ export const DogDetails: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <RefreshCw className="h-8 w-8 text-muted-foreground animate-spin mx-auto mb-2" />
-            <p className="text-muted-foreground">Loading dog details...</p>
+      <div className="dog-details-container">
+        <div className="loading-container">
+          <div className="loading-content">
+            <RefreshCw className="loading-spinner" />
+            <p className="loading-text">Loading dog details...</p>
           </div>
         </div>
       </div>
@@ -309,11 +316,11 @@ export const DogDetails: React.FC = () => {
 
   if (!dogInfo) {
     return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-foreground text-lg font-semibold mb-2">Dog not found</p>
-            <Button onClick={() => navigate(-1)} variant="outline">
+      <div className="dog-details-container">
+        <div className="error-container">
+          <div className="error-content">
+            <p className="error-message">Dog not found</p>
+            <Button onClick={() => navigate(-1)} variant="outline" className="error-button">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Button>
@@ -324,285 +331,199 @@ export const DogDetails: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-[#1a1d23]' : 'bg-background'}`}>
+    <div className="dog-details-container">
+      
       {/* Header with outdoor-ready contrast */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/30">
-        <div className="flex items-center justify-between h-16 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
-          >
-            <ArrowLeft className="h-5 w-5 text-foreground" />
-          </Button>
-          
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">
-            {dogInfo.call_name}
-          </h1>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={loadDogDetails}
-            className="h-11 w-11 rounded-xl transition-all duration-300 hover:bg-muted/20 active:scale-95"
-          >
-            <RefreshCw className="h-5 w-5 text-foreground" />
-          </Button>
+      <header className="dog-header">
+        <HamburgerMenu 
+          backNavigation={{
+            label: "Back",
+            action: () => navigate(-1)
+          }}
+        />
+        
+        <h1>{dogInfo.call_name}</h1>
+        
+        <div className="header-actions">
+          <button className="refresh-button" onClick={loadDogDetails}>
+            <RefreshCw className="h-5 w-5" />
+          </button>
         </div>
       </header>
 
       {/* Prominent Dog Info Card */}
-      <div className="p-4">
-        <Card className="backdrop-blur-xl bg-card/80 border border-border/30 shadow-lg hover:shadow-xl transition-all duration-500">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-6">
-              {/* Extra Prominent Armband for Outdoor Visibility */}
-              <div className="flex-shrink-0">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl font-bold text-primary">
-                    {dogInfo.armband}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Dog Information */}
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  {dogInfo.call_name}
-                </h2>
-                <p className="text-base text-muted-foreground mb-1">
-                  {dogInfo.breed}
-                </p>
-                <p className="text-sm text-muted-foreground/80">
-                  Handler: {dogInfo.handler}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <div className="mt-4 text-center">
-          <p className="text-sm text-muted-foreground/60 bg-muted/20 px-4 py-2 rounded-lg inline-block">
-            Results below are preliminary
-          </p>
+      <div className="dog-info-card">
+        <div className="dog-info-content">
+          {/* Extra Prominent Armband for Outdoor Visibility */}
+          <div className="armband-display">
+            {dogInfo.armband}
+          </div>
+          
+          {/* Dog Information */}
+          <div className="dog-details">
+            <h2>{dogInfo.call_name}</h2>
+            <p className="breed">{dogInfo.breed}</p>
+            <p className="handler">Handler: {dogInfo.handler}</p>
+          </div>
         </div>
       </div>
+      
+      <p className="results-notice">
+        Results below are preliminary
+      </p>
 
       {/* Class Entry Cards with Status Indicators */}
-      <div className="px-4 pb-24 space-y-4">
-        <h3 className="text-lg font-semibold text-foreground mb-4">
-          Class Entries
-        </h3>
+      <div className="classes-section">
+        <h3 className="classes-header">Class Entries</h3>
         
         {classes.map((entry) => {
           const statusColor = getStatusColor(entry);
           const isScored = entry.is_scored;
           
           return (
-            <Card 
-              key={entry.id}
-              className={`transition-all duration-500 backdrop-blur-xl border border-border/30 hover:shadow-lg ${
-                statusColor === 'qualified' ? 'bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20' :
-                statusColor === 'not-qualified' ? 'bg-gradient-to-br from-red-500/10 to-red-600/5 border-red-500/20' :
-                statusColor === 'at-gate' ? 'bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20' :
-                statusColor === 'checked-in' ? 'bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20' :
-                'bg-card/80'
-              }`}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  {/* Position Badge */}
-                  <div className="flex-shrink-0">
-                    {entry.position ? (
-                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/20 rounded-xl flex items-center justify-center">
-                        <Trophy className="h-5 w-5 text-yellow-600" />
-                        <span className="absolute text-xs font-bold text-yellow-600 mt-1">{entry.position}</span>
-                      </div>
-                    ) : (
-                      <div className="w-12 h-12 bg-muted/20 border border-border/30 rounded-xl flex items-center justify-center">
-                        <span className="text-sm text-muted-foreground">--</span>
-                      </div>
-                    )}
+            <div key={entry.id} className={`class-card ${statusColor}`}>
+              <div className="class-content">
+                {/* Position Badge */}
+                <div className="class-position">
+                  {entry.position ? (
+                    <div className="position-badge">
+                      <Trophy />
+                      <span className="position-number">{entry.position}</span>
+                    </div>
+                  ) : (
+                    <span className="position-placeholder">--</span>
+                  )}
+                </div>
+                  
+                {/* Class Information */}
+                <div className="class-info">
+                  <div className="class-meta">
+                    <h4 className="class-name">
+                      {entry.class_name}
+                    </h4>
+                    <p className="class-type">
+                      {[
+                        entry.class_type,
+                        entry.element,
+                        entry.level,
+                        entry.section && entry.section !== '-' ? entry.section : null
+                      ].filter(Boolean).join(' • ')}
+                    </p>
+                    <p className="class-date">
+                      {entry.trial_date} • {entry.trial_name} 
+                      {entry.trial_number && ` • ${entry.trial_number}`}
+                    </p>
                   </div>
                   
-                  {/* Class Information */}
-                  <div className="flex-1 min-w-0">
-                    <div className="mb-3">
-                      <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide mb-1">
-                        {entry.trial_date} • {entry.trial_name}
-                      </p>
-                      <h4 className="text-base font-semibold text-foreground mb-2">
-                        {entry.class_name}
-                      </h4>
-                    </div>
-                    
-                    {/* Performance Stats */}
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground">
+                  {/* Performance Stats - only show if dog has completed the class */}
+                  {entry.is_scored && (
+                    <div className="class-stats">
+                      <div className="stat-item">
+                        <Clock />
+                        <span className="stat-value">
                           {formatTime(entry.search_time)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground">
+                      <div className="stat-item">
+                        <AlertTriangle />
+                        <span className="stat-value">
                           {entry.fault_count || 0} faults
                         </span>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Status Button */}
-                  <div className="flex-shrink-0">
-                    <Button
-                      variant={isScored ? "outline" : "ghost"}
-                      size="sm"
-                      onClick={(e) => !isScored && handleOpenPopup(e, entry.id)}
-                      disabled={isScored}
-                      className={`min-w-[100px] h-10 rounded-lg border transition-all duration-200 ${
-                        statusColor === 'qualified' ? 'border-green-500/30 text-green-600 bg-green-500/10 hover:bg-green-500/20' :
-                        statusColor === 'not-qualified' ? 'border-red-500/30 text-red-600 bg-red-500/10 hover:bg-red-500/20' :
-                        statusColor === 'at-gate' ? 'border-blue-500/30 text-blue-600 bg-blue-500/10 hover:bg-blue-500/20' :
-                        statusColor === 'checked-in' ? 'border-orange-500/30 text-orange-600 bg-orange-500/10 hover:bg-orange-500/20' :
-                        'border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/20'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {statusColor === 'qualified' && <CheckCircle className="h-4 w-4" />}
-                        {statusColor === 'not-qualified' && <XCircle className="h-4 w-4" />}
-                        {statusColor === 'at-gate' && <CircleDot className="h-4 w-4" />}
-                        {statusColor === 'checked-in' && <CheckCircle className="h-4 w-4" />}
-                        <span className="text-xs font-medium">
-                          {getStatusLabel(entry)}
-                        </span>
-                      </div>
-                    </Button>
-                  </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+                
+                {/* Status Button */}
+                <button
+                  onClick={(e) => !isScored && handleOpenPopup(e, entry.id)}
+                  disabled={isScored}
+                  className={`status-button ${statusColor}`}
+                >
+                  {statusColor === 'qualified' && <CheckCircle />}
+                  {statusColor === 'not-qualified' && <XCircle />}
+                  {statusColor === 'at-gate' && <CircleDot />}
+                  {statusColor === 'checked-in' && <CheckCircle />}
+                  {getStatusLabel(entry)}
+                </button>
+              </div>
+            </div>
           );
         })}
       </div>
 
       {/* Status Management Popup */}
       {activePopup !== null && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-background/80" onClick={() => {
+        <div className="status-popup-overlay" onClick={() => {
           setActivePopup(null);
           setPopupPosition(null);
         }}>
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw]">
-            <Card className="backdrop-blur-xl bg-card/95 border border-border/30 shadow-2xl">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Check-in Status</h3>
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-muted/20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStatusChange(activePopup, 'none');
-                    }}
-                  >
-                    <span className="text-lg">⚪</span>
-                    <span className="text-sm font-medium">Not Checked In</span>
-                  </Button>
+          <div className="status-popup">
+            <div className="popup-header">
+              <h3 className="popup-title">Check-in Status</h3>
+            </div>
+            <div className="popup-options">
+              <button
+                className="popup-option none"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(activePopup, 'none');
+                }}
+              >
+                <span className="popup-icon">⚪</span>
+                Not Checked In
+              </button>
                   
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-orange-500/20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStatusChange(activePopup, 'checked-in');
-                    }}
-                  >
-                    <CheckCircle className="h-5 w-5 text-orange-600" />
-                    <span className="text-sm font-medium">Check-in</span>
-                  </Button>
+              <button
+                className="popup-option checked-in"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(activePopup, 'checked-in');
+                }}
+              >
+                <CheckCircle className="popup-icon" />
+                Check-in
+              </button>
                   
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-yellow-500/20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStatusChange(activePopup, 'conflict');
-                    }}
-                  >
-                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                    <span className="text-sm font-medium">Conflict</span>
-                  </Button>
+              <button
+                className="popup-option conflict"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(activePopup, 'conflict');
+                }}
+              >
+                <AlertTriangle className="popup-icon" />
+                Conflict
+              </button>
                   
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-red-500/20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStatusChange(activePopup, 'pulled');
-                    }}
-                  >
-                    <XCircle className="h-5 w-5 text-red-600" />
-                    <span className="text-sm font-medium">Pulled</span>
-                  </Button>
-                  
-                  {hasPermission('canAccessScoresheet') && (
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-3 h-12 text-left rounded-lg hover:bg-blue-500/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(activePopup, 'at-gate');
-                      }}
-                    >
-                      <CircleDot className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm font-medium">At Gate</span>
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              <button
+                className="popup-option pulled"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(activePopup, 'pulled');
+                }}
+              >
+                <XCircle className="popup-icon" />
+                Pulled
+              </button>
+              
+              {hasPermission('canAccessScoresheet') && (
+                <button
+                  className="popup-option at-gate"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStatusChange(activePopup, 'at-gate');
+                  }}
+                >
+                  <CircleDot className="popup-icon" />
+                  At Gate
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation with Outdoor-Ready Design */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-t border-border/30">
-        <div className="flex items-center justify-around h-20 px-4">
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/home')}
-          >
-            <HomeIcon className="h-6 w-6" />
-            <span className="text-xs font-medium">Home</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/announcements')}
-          >
-            <MessageSquare className="h-6 w-6" />
-            <span className="text-xs font-medium">News</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/calendar')}
-          >
-            <Calendar className="h-6 w-6" />
-            <span className="text-xs font-medium">Calendar</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-1 h-16 w-16 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/20"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="h-6 w-6" />
-            <span className="text-xs font-medium">Settings</span>
-          </Button>
-        </div>
-      </nav>
     </div>
   );
 };

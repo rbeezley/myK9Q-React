@@ -21,9 +21,9 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   
   // Store hooks
   const {
-    isScoring,
+    isScoring: _isScoring,
     startScoringSession,
-    submitScore: addScoreToSession,
+    submitScore: _addScoreToSession,
     moveToNextEntry,
     moveToPreviousEntry,
     endScoringSession

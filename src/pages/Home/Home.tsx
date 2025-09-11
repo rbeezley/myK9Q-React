@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { Card, CardContent, Button } from '../../components/ui';
+import { HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Home as HomeIcon, MessageSquare, Calendar, Settings, Heart, User, Hash, Users } from 'lucide-react';
+import { RefreshCw, Heart, User, Hash, Users, Award, Clock as _Clock, CheckCircle, Dog } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -33,7 +33,7 @@ interface TrialData {
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { showContext, logout, role } = useAuth();
+  const { showContext, logout: _logout, role: _role } = useAuth();
   const { hasPermission: _hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [activeTab, setActiveTab] = useState<'armband' | 'name' | 'handler' | 'favorites'>('armband');
@@ -41,10 +41,6 @@ export const Home: React.FC = () => {
   const [trials, setTrials] = useState<TrialData[]>([]);
   const [_isLoading, _setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
 
   useEffect(() => {
     if (showContext) {
@@ -84,14 +80,14 @@ export const Home: React.FC = () => {
             .from('tbl_class_queue')
             .select('*', { count: 'exact', head: true })
             .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.trialid);
+            .eq('trialid_fk', trial.id);
 
           // Get completed class counts (assuming classes with all entries scored)
           const { count: completedClasses } = await supabase
             .from('tbl_class_queue')
             .select('*', { count: 'exact', head: true })
             .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trial_id', trial.id)
+            .eq('trialid_fk', trial.id)
             .eq('is_completed', true);
 
           // Get entry counts
@@ -166,6 +162,21 @@ export const Home: React.FC = () => {
     navigate(`/dog/${armband}`);
   };
 
+  const formatTrialDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const shortDate = date.toLocaleDateString('en-US', { 
+        month: 'numeric', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      return `${dayName} ${shortDate}`;
+    } catch {
+      return dateString; // Fallback to original if parsing fails
+    }
+  };
+
   const getFilteredEntries = () => {
     if (activeTab === 'favorites') {
       return entries.filter(e => e.is_favorite);
@@ -184,21 +195,10 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className={`home-container ${darkMode ? '' : ''}`} data-theme={darkMode ? 'dark' : 'light'}>
-      {/* Theme Toggle */}
-      <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)} title="Toggle theme">
-        {darkMode ? '☀️' : '🌙'}
-      </button>
-      
+    <div className="home-container">
       {/* Enhanced Header with Glass Morphism */}
       <header className="home-header">
-        <button
-          className="icon-button"
-          onClick={logout}
-          title="Logout"
-        >
-          <HomeIcon className="h-5 w-5" />
-        </button>
+        <HamburgerMenu currentPage="home" />
         
         <div className="header-center">
           <h1>Dashboard</h1>
@@ -214,20 +214,13 @@ export const Home: React.FC = () => {
         </button>
       </header>
 
-      {/* Show Info Card with Enhanced Glass Morphism */}
-      <div className="show-info">
-        <h2>{showContext?.clubName}</h2>
-        <p className="show-date">{showContext?.showName}</p>
-        <p className="user-role">
-          Logged in as: <span>{role}</span>
-        </p>
-      </div>
+      {/* Show info moved to hamburger menu for maximum screen space */}
 
       {/* Enhanced Active Trials Section */}
       <div className="trials-section">
         <h3>Active Trials</h3>
         <div className="trials-scroll">
-          {trials.map((trial) => {
+          {trials.map((trial, index) => {
             const hasActiveClasses = trial.classes_total > trial.classes_completed;
             return (
               <div 
@@ -235,33 +228,34 @@ export const Home: React.FC = () => {
                 className={`trial-card ${hasActiveClasses ? 'active' : ''}`}
                 onClick={() => {
                   hapticFeedback.impact('medium');
+                  console.log('Navigating to trial:', trial.id, 'trialid:', trial.trialid);
                   navigate(`/trial/${trial.trialid}/classes`);
                 }}
               >
-                <div className="trial-info">
-                  <div className="trial-header">
-                    <div>
-                      <h3>{trial.trial_name}</h3>
-                      <p className="trial-date">{trial.trial_date}</p>
-                      <p className="trial-type">{trial.trial_type}</p>
-                    </div>
-                    {hasActiveClasses && (
-                      <div className="trial-status-indicator" />
-                    )}
-                  </div>
-                  
-                  <div className="trial-progress">
-                    <div className="progress-item">
-                      <span className="progress-label">Classes</span>
-                      <span className="progress-value">
-                        {trial.classes_completed} / {trial.classes_total}
+                <div className="trial-content">
+                  <div className="trial-details">
+                    {/* Trial Name and Number */}
+                    <div className="trial-title">
+                      <span className="trial-name-number">
+                        {trial.trial_name} 
+                        <Award className="trial-icon" size={14} />
+                        Trial {index + 1}
                       </span>
                     </div>
-                    <div className="progress-item">
-                      <span className="progress-label">Entries</span>
-                      <span className="progress-value">
-                        {trial.entries_completed} / {trial.entries_total}
-                      </span>
+                    
+                    {/* Date and Type */}
+                    <p className="trial-date-line">{formatTrialDate(trial.trial_date)}</p>
+                    
+                    {/* Progress - Each on separate row */}
+                    <div className="trial-progress">
+                      <div className="progress-row">
+                        <CheckCircle className="progress-icon" size={12} />
+                        <span>Classes judged: {trial.classes_completed} of {trial.classes_total}</span>
+                      </div>
+                      <div className="progress-row">
+                        <Dog className="progress-icon" size={12} />
+                        <span>Dogs scored: {trial.entries_completed} of {trial.entries_total}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -383,39 +377,6 @@ export const Home: React.FC = () => {
         )}
       </div>
 
-      {/* Enhanced Bottom Navigation with Glass Morphism */}
-      <nav className="bottom-nav">
-        <div className="nav-container">
-          <button
-            className="nav-button active"
-            onClick={() => navigate('/home')}
-          >
-            <HomeIcon className="nav-icon" />
-            <span className="nav-text">Home</span>
-          </button>
-          <button
-            className="nav-button"
-            onClick={() => navigate('/announcements')}
-          >
-            <MessageSquare className="nav-icon" />
-            <span className="nav-text">News</span>
-          </button>
-          <button
-            className="nav-button"
-            onClick={() => navigate('/calendar')}
-          >
-            <Calendar className="nav-icon" />
-            <span className="nav-text">Calendar</span>
-          </button>
-          <button
-            className="nav-button"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="nav-icon" />
-            <span className="nav-text">Settings</span>
-          </button>
-        </div>
-      </nav>
     </div>
   );
 };
