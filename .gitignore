@@ -103,3 +103,7 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+
+# Test results and reports (generated files)
+test-results/
+playwright-report/
