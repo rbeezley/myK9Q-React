@@ -8,12 +8,15 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Eager load critical components
 import { Login } from './pages/Login/Login';
+import { DatabaseTest } from './components/DatabaseTest';
 
 // Lazy load pages for code splitting
 const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ default: module.Home })));
 const DogDetails = React.lazy(() => import('./pages/DogDetails/DogDetails').then(module => ({ default: module.DogDetails })));
 const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(module => ({ default: module.ClassList })));
 const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
+const TVDashboard = React.lazy(() => import('./pages/TVDashboard/TVDashboard').then(module => ({ default: module.TVDashboard })));
+const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));
 
 // Lazy load scoresheets (grouped by organization for better chunking)
 const UKCObedienceScoresheet = React.lazy(() => 
@@ -163,6 +166,23 @@ function App() {
                 </ScoresheetErrorBoundary>
               </ProtectedRoute>
             } 
+          />
+          <Route path="/debug" element={<DatabaseTest />} />
+          <Route
+            path="/tv/:licenseKey"
+            element={
+              <Suspense fallback={<PageLoader message="Loading TV Dashboard..." />}>
+                <TVDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/:licenseKey"
+            element={
+              <Suspense fallback={<PageLoader message="Loading Competition Admin..." />}>
+                <CompetitionAdmin />
+              </Suspense>
+            }
           />
           <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>

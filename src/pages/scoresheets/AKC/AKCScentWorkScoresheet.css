@@ -1,6 +1,6 @@
-/* Mobile-First AKC Scent Work Scoresheet - Critical UX Fix */
+/* Mobile-First AKC Scent Work Scoresheet - Enhanced UX */
 
-/* Container - Full height, scrollable */
+/* Container - Full height, scrollable, optimized for touch */
 .mobile-scoresheet {
   min-height: 100vh;
   overflow-y: auto;
@@ -9,6 +9,10 @@
   display: flex;
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .mobile-scoresheet[data-theme="light"],
@@ -70,16 +74,17 @@
 
 /* COMPACT DOG INFO - Maximum 80px height */
 .dog-info-compact {
-  height: 76px;
-  min-height: 76px;
-  max-height: 76px;
+  height: 88px;
+  min-height: 88px;
+  max-height: 88px;
   background: #333333;
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  gap: 10px;
+  padding: 16px 20px;
+  gap: 16px;
   border-bottom: none;
-  margin-bottom: -10px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .dog-info-compact {
@@ -88,11 +93,14 @@
 }
 
 .armband {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  min-width: 60px;
+  min-width: 70px;
   text-align: center;
   color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  padding: 8px 4px;
 }
 
 .dog-details {
@@ -104,10 +112,11 @@
 }
 
 .dog-name {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #ffffff;
   text-align: left;
+  margin-bottom: 2px;
 }
 
 [data-theme="light"] .dog-name {
@@ -115,10 +124,11 @@
 }
 
 .dog-breed, .dog-handler {
-  font-size: 14px;
+  font-size: 15px;
   color: #aaaaaa;
-  line-height: 1.2;
+  line-height: 1.3;
   text-align: left;
+  margin-bottom: 1px;
 }
 
 [data-theme="light"] .dog-breed,
@@ -138,24 +148,29 @@
 
 
 .class-info {
-  font-size: 9px;
-  font-weight: 400;
+  font-size: 10px;
+  font-weight: 500;
   color: #888888;
   text-align: right;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  margin-bottom: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 [data-theme="light"] .class-info {
   color: #666666;
 }
 
-/* TIMER SECTION - Integrated design */
+/* TIMER SECTION - More breathing room for mobile */
 .mobile-scoresheet .timer-section {
   flex: 0 0 auto;
   background: #2a2a2a !important;
-  padding: 0px 16px 2px 16px;
+  padding: 20px 20px 24px 20px;
   border-bottom: 1px solid #444 !important;
+  margin: 8px 0;
 }
 
 .mobile-scoresheet[data-theme="light"] .timer-section,
@@ -166,16 +181,17 @@
 
 .timer-display {
   text-align: center;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .timer-time {
-  font-size: 28px;
+  font-size: 40px;
   font-weight: 700;
   font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
   color: #ffffff;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
   letter-spacing: -1px;
+  padding: 8px 0;
 }
 
 [data-theme="light"] .timer-time {
@@ -186,44 +202,58 @@
   color: #ff4444;
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .timer-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .timer-btn-secondary {
-  width: 60px;
-  height: 60px;
-  border-radius: 30px;
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
   background: #4A90E2;
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: 22px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.timer-btn-secondary:active {
+  transform: scale(0.95);
+  background: #357ABD;
 }
 
 .timer-btn-main {
-  width: 120px;
-  height: 60px;
-  border-radius: 30px;
+  width: 140px;
+  height: 70px;
+  border-radius: 35px;
   background: #ff4757;
   border: none;
   color: white;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+.timer-btn-main:active {
+  transform: scale(0.95);
 }
 
 .timer-btn-main.start {
@@ -236,6 +266,8 @@
   justify-content: space-between;
   font-size: 14px;
   color: #aaaaaa;
+  margin-top: 4px;
+  padding: 0 4px;
 }
 
 [data-theme="light"] .timer-setting {
@@ -246,32 +278,44 @@
   font-size: 20px;
 }
 
-/* AREAS INPUT - Vertical list, compact */
+/* AREAS INPUT - More breathing room for mobile interaction */
 .areas-input {
   flex: 1 1 auto;
-  padding: 2px 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 16px;
+  margin: 8px 0;
 }
 
 .area-input-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 36px;
+  gap: 16px;
+  height: 60px;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0 16px;
 }
 
 .area-btn {
-  flex: 0 0 70px;
-  height: 32px;
-  border-radius: 16px;
+  flex: 0 0 76px;
+  height: 40px;
+  border-radius: 20px;
   background: #4A90E2;
   border: none;
   color: white;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.area-btn:active {
+  transform: scale(0.95);
+  background: #357ABD;
 }
 
 .area-btn.active {
@@ -279,17 +323,69 @@
   box-shadow: 0 0 0 2px #ffffff;
 }
 
+/* Time Input Wrapper for clear button */
+.time-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .area-time-input {
   flex: 1;
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  background: #444444;
+  border: 2px solid #666;
+  border-radius: 24px;
+  color: #ffffff;
+  font-size: 16px;
+  text-align: center;
+  padding: 0 20px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.clear-time-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
   height: 32px;
-  background: #333333;
-  border: 1px solid #555;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   color: #ffffff;
-  font-size: 12px;
-  text-align: center;
-  padding: 0 12px;
-  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  z-index: 2;
+}
+
+.clear-time-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.clear-time-btn:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Adjust input padding when clear button is present */
+.time-input-wrapper .area-time-input {
+  padding-right: 48px;
 }
 
 [data-theme="light"] .area-time-input {
@@ -298,10 +394,25 @@
   color: #000000;
 }
 
+[data-theme="light"] .clear-time-btn {
+  background: rgba(0, 0, 0, 0.1);
+  color: #000000;
+}
+
+[data-theme="light"] .clear-time-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .clear-time-btn:active {
+  background: rgba(0, 0, 0, 0.3);
+}
+
 .area-time-input:focus {
   outline: none;
   border-color: #4A90E2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+  transform: scale(1.02);
 }
 
 .area-time-input::placeholder {
@@ -310,23 +421,25 @@
 }
 
 .max-time {
-  flex: 0 0 60px;
-  font-size: 12px;
+  flex: 0 0 64px;
+  font-size: 13px;
   color: #aaaaaa;
   text-align: right;
+  font-weight: 500;
 }
 
 [data-theme="light"] .max-time {
   color: #666666;
 }
 
-/* RESULT BUTTONS - Single row, compact */
+/* RESULT BUTTONS - More breathing room */
 .result-section {
   flex: 0 0 auto;
-  padding: 4px 16px;
+  padding: 20px 20px;
   background: #2a2a2a;
   border-top: 1px solid #444;
   border-bottom: 1px solid #444;
+  margin: 8px 0;
 }
 
 [data-theme="light"] .result-section {
@@ -337,21 +450,27 @@
 
 .result-row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: space-between;
 }
 
 .result-btn {
   flex: 1;
-  height: 32px;
-  border-radius: 6px;
+  height: 52px;
+  min-height: 52px;
+  border-radius: 12px;
   background: #555555;
   border: none;
   color: #ffffff;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .result-btn {
@@ -363,9 +482,14 @@
   background: #4A90E2;
   color: white;
   transform: scale(0.95);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
 }
 
-/* FAULTS SECTION - Two rows, compact buttons */
+.result-btn:active {
+  transform: scale(0.92);
+}
+
+/* FAULTS SECTION - More breathing room for mobile */
 .faults-section {
   flex: 0 0 auto;
   padding: 16px;
@@ -380,8 +504,8 @@
 
 .faults-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .faults-row:last-child {
@@ -390,17 +514,23 @@
 
 .fault-btn {
   flex: 1;
-  height: 45px;
-  border-radius: 6px;
+  height: 48px;
+  min-height: 48px;
+  border-radius: 8px;
   background: #555555;
   border: none;
   color: #ffffff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  padding: 8px;
+  padding: 10px 8px;
   text-align: center;
   line-height: 1.2;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 [data-theme="light"] .fault-btn {
@@ -411,14 +541,16 @@
 .fault-btn:active {
   background: #ff4757;
   color: white;
+  transform: scale(0.95);
 }
 
-/* SUBMIT BUTTON - Prominent, always visible */
+/* SUBMIT BUTTON - More breathing room */
 .submit-section {
   flex: 0 0 auto;
-  padding: 4px 16px;
+  padding: 20px 20px 24px 20px;
   background: #2a2a2a;
   border-bottom: 1px solid #444;
+  margin: 8px 0;
 }
 
 [data-theme="light"] .submit-section {
@@ -428,16 +560,23 @@
 
 .submit-btn {
   width: 100%;
-  height: 36px;
-  border-radius: 8px;
+  height: 56px;
+  min-height: 56px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
   border: none;
   color: white;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
 }
 
 .submit-btn:disabled {
@@ -447,6 +586,7 @@
 
 .submit-btn:not(:disabled):active {
   transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
 }
 
 /* STATUS BAR - Essential info, minimal height */
@@ -487,58 +627,105 @@
   color: #4CAF50;
 }
 
-/* Mobile Responsive - Ensure it works on smallest screens */
+/* Mobile Responsive - Enhanced for touch interaction */
 @media (max-width: 375px) {
   .timer-time {
-    font-size: 26px;
+    font-size: 28px;
   }
   
   .timer-btn-main {
-    width: 100px;
-    height: 50px;
+    width: 110px;
+    height: 56px;
     font-size: 14px;
   }
   
   .timer-btn-secondary {
-    width: 50px;
-    height: 50px;
+    width: 56px;
+    height: 56px;
     font-size: 18px;
   }
   
-  .result-btn, .fault-btn {
+  .result-btn {
+    height: 40px;
     font-size: 12px;
+  }
+  
+  .fault-btn {
+    height: 44px;
+    font-size: 12px;
+  }
+  
+  .area-time-input {
+    height: 36px;
+    font-size: 13px;
+  }
+  
+  .area-btn {
+    height: 36px;
+    font-size: 12px;
+    flex: 0 0 72px;
   }
   
   .armband {
     font-size: 24px;
     min-width: 70px;
   }
+  
+  .submit-btn {
+    height: 44px;
+    font-size: 15px;
+  }
 }
 
 /* Height adjustments for different screen sizes */
 @media (max-height: 667px) {
   .areas-input {
-    max-height: 150px;
+    max-height: 180px;
+    overflow-y: auto;
   }
   
   .timer-section {
-    padding: 6px 16px;
+    padding: 8px 16px 12px 16px;
+  }
+  
+  .result-section, .submit-section {
+    padding: 8px 16px;
   }
 }
 
 @media (max-height: 568px) {
   .areas-input {
-    max-height: 120px;
+    max-height: 140px;
+    overflow-y: auto;
   }
   
   .timer-time {
-    font-size: 24px;
+    font-size: 28px;
+  }
+  
+  .timer-btn-main {
+    height: 56px;
+    width: 120px;
+  }
+  
+  .timer-btn-secondary {
+    height: 56px;
+    width: 56px;
   }
   
   .dog-info-compact {
     height: 70px;
     min-height: 70px;
     max-height: 70px;
+    padding: 8px 16px;
+  }
+  
+  .result-btn, .fault-btn {
+    height: 40px;
+  }
+  
+  .submit-btn {
+    height: 44px;
   }
 }
 
@@ -773,11 +960,12 @@
 
 /* NQ Reason Section */
 .nq-reason-section {
-  padding: 8px 16px;
+  padding: 16px 20px;
   background: #2a2a2a;
-  margin: 8px 16px;
-  border-radius: 8px;
+  margin: 12px 20px;
+  border-radius: 12px;
   border: 1px solid #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .nq-reason-section {
@@ -799,26 +987,27 @@
 .nq-reasons-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
 }
 
 .nq-reason-btn {
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
+  border: 2px solid #333;
+  border-radius: 8px;
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   text-align: center;
   transition: all 0.2s ease;
-  height: 32px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
   min-width: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .nq-reason-btn {
@@ -849,11 +1038,12 @@
 
 /* Faults Section */
 .faults-section {
-  padding: 8px 16px;
+  padding: 16px 20px;
   background: #2a2a2a;
-  margin: 8px 16px;
-  border-radius: 8px;
+  margin: 12px 20px;
+  border-radius: 12px;
   border: 1px solid #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .faults-section {
@@ -877,23 +1067,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 24px;
+  padding: 8px 0;
 }
 
 .fault-btn-counter {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border: none;
-  border-radius: 18px;
+  border-radius: 24px;
   background: #4A90E2;
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
 }
 
 .fault-btn-counter:hover:not(:disabled) {
@@ -908,11 +1100,14 @@
 }
 
 .fault-count-display {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: bold;
   color: #ffffff;
-  min-width: 40px;
+  min-width: 60px;
   text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px;
 }
 
 [data-theme="light"] .fault-count-display {

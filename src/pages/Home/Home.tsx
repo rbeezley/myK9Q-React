@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -41,12 +41,90 @@ export const Home: React.FC = () => {
   const [trials, setTrials] = useState<TrialData[]>([]);
   const [_isLoading, _setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [favoriteDogs, setFavoriteDogs] = useState<Set<number>>(new Set());
+  const [dogFavoritesLoaded, setDogFavoritesLoaded] = useState(false);
+
+  // Load dog favorites from localStorage
+  useEffect(() => {
+    const loadDogFavorites = () => {
+      try {
+        const favoritesKey = `dog_favorites_${showContext?.licenseKey || 'default'}`;
+        console.log('🐕 Loading dog favorites with key:', favoritesKey);
+        const savedFavorites = localStorage.getItem(favoritesKey);
+        console.log('🐕 Raw localStorage value for dog favorites:', savedFavorites);
+        if (savedFavorites) {
+          const favoriteIds = JSON.parse(savedFavorites) as number[];
+          // Validate the data is an array of numbers
+          if (Array.isArray(favoriteIds) && favoriteIds.every(id => typeof id === 'number')) {
+            console.log('🐕 Setting favoriteDogs from localStorage:', favoriteIds);
+            setFavoriteDogs(new Set(favoriteIds));
+          } else {
+            console.warn('🐕 Invalid dog favorites data in localStorage, clearing it');
+            localStorage.removeItem(favoritesKey);
+            setFavoriteDogs(new Set());
+          }
+        } else {
+          console.log('🐕 No saved dog favorites found');
+          setFavoriteDogs(new Set());
+        }
+        setDogFavoritesLoaded(true);
+      } catch (error) {
+        console.error('Error loading dog favorites from localStorage:', error);
+        // Clear corrupted data
+        const favoritesKey = `dog_favorites_${showContext?.licenseKey || 'default'}`;
+        localStorage.removeItem(favoritesKey);
+        setFavoriteDogs(new Set());
+        setDogFavoritesLoaded(true);
+      }
+    };
+    
+    if (showContext?.licenseKey) {
+      loadDogFavorites();
+    }
+  }, [showContext?.licenseKey]);
+
+  // Save dog favorites to localStorage whenever favoriteDogs changes (but only after initial load)
+  useEffect(() => {
+    if (dogFavoritesLoaded) {
+      try {
+        const favoritesKey = `dog_favorites_${showContext?.licenseKey || 'default'}`;
+        const favoriteIds = Array.from(favoriteDogs);
+        console.log('🐕 Saving dog favorites to localStorage:', favoritesKey, favoriteIds);
+        localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
+        console.log('🐕 Saved dog favorites successfully');
+      } catch (error) {
+        console.error('Error saving dog favorites to localStorage:', error);
+      }
+    } else {
+      console.log('🐕 Not saving dog favorites - not loaded yet:', { licenseKey: showContext?.licenseKey, dogFavoritesLoaded, size: favoriteDogs.size });
+    }
+  }, [favoriteDogs, showContext?.licenseKey, dogFavoritesLoaded]);
+
+  // Update entries' is_favorite property when favoriteDogs changes
+  useEffect(() => {
+    if (entries.length > 0 && dogFavoritesLoaded) {
+      console.log('🐕 Updating entries is_favorite based on favoriteDogs:', Array.from(favoriteDogs));
+      console.log('🐕 Current entries armbands:', entries.map(e => e.armband));
+      setEntries(prevEntries => {
+        const updatedEntries = prevEntries.map(entry => {
+          const shouldBeFavorite = favoriteDogs.has(entry.armband);
+          console.log(`🐕 Entry ${entry.armband} (${entry.call_name}): favorite=${shouldBeFavorite}`);
+          return {
+            ...entry,
+            is_favorite: shouldBeFavorite
+          };
+        });
+        console.log('🐕 Updated entries with favorites:', updatedEntries.map(e => `${e.armband}:${e.is_favorite}`));
+        return updatedEntries;
+      });
+    }
+  }, [favoriteDogs, dogFavoritesLoaded]);
 
   useEffect(() => {
-    if (showContext) {
+    if (showContext && dogFavoritesLoaded) {
       loadDashboardData();
     }
-  }, [showContext]);
+  }, [showContext, dogFavoritesLoaded]);
 
   const loadDashboardData = async () => {
     _setIsLoading(true);
@@ -125,14 +203,17 @@ export const Home: React.FC = () => {
               call_name: entry.call_name,
               breed: entry.breed,
               handler: entry.handler,
-              is_favorite: false, // TODO: Persist favorites in localStorage or database
+              is_favorite: favoriteDogs.has(entry.armband), // Use current favoriteDogs state
               class_name: entry.class_name,
               is_scored: entry.is_scored
             });
           }
         });
         
-        setEntries(Array.from(uniqueDogs.values()));
+        const newEntries = Array.from(uniqueDogs.values());
+        console.log('🐕 Setting new entries with armbands:', newEntries.map(e => e.armband));
+        console.log('🐕 Entries with favorites:', newEntries.map(e => `${e.armband}:${e.is_favorite}`));
+        setEntries(newEntries);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -148,14 +229,26 @@ export const Home: React.FC = () => {
     setRefreshing(false);
   };
 
-  const toggleFavorite = (armband: number) => {
+  const toggleFavorite = useCallback((armband: number) => {
+    console.log('🐕 toggleFavorite called for armband:', armband);
     hapticFeedback.impact('light');
-    setEntries(prev => prev.map(entry => 
-      entry.armband === armband 
-        ? { ...entry, is_favorite: !entry.is_favorite }
-        : entry
-    ));
-  };
+    
+    // Update the favoriteDogs set for localStorage persistence
+    setFavoriteDogs(prev => {
+      const newFavorites = new Set(prev);
+      const wasAlreadyFavorite = newFavorites.has(armband);
+      
+      if (wasAlreadyFavorite) {
+        newFavorites.delete(armband);
+        console.log('🐕 Removing from dog favorites:', armband);
+      } else {
+        newFavorites.add(armband);
+        console.log('🐕 Adding to dog favorites:', armband);
+      }
+      console.log('🐕 New dog favorites set:', Array.from(newFavorites));
+      return newFavorites;
+    });
+  }, [hapticFeedback]);
   
   const handleDogClick = (armband: number) => {
     hapticFeedback.impact('light');
@@ -328,11 +421,10 @@ export const Home: React.FC = () => {
             
             <div className="entry-grid">
               {getFilteredEntries().map((entry) => {
-                const hasScore = entry.is_scored;
                 return (
                   <div 
                     key={entry.armband}
-                    className={`entry-card ${hasScore ? 'scored' : ''}`}
+                    className="entry-card"
                     onClick={() => handleDogClick(entry.armband)}
                   >
                     <div className="entry-content">
@@ -353,17 +445,28 @@ export const Home: React.FC = () => {
                         )}
                       </div>
                       
-                      {/* Status and Actions */}
+                      {/* Actions */}
                       <div className="entry-actions">
-                        {hasScore && (
-                          <div className="score-status" />
-                        )}
                         <button
+                          type="button"
                           className={`favorite-button ${entry.is_favorite ? 'favorited' : ''}`}
                           onClick={(e) => {
+                            console.log('🚨 Dog heart button clicked! Armband:', entry.armband, 'Target:', e.target);
+                            e.preventDefault();
                             e.stopPropagation();
+                            e.nativeEvent.stopImmediatePropagation();
                             toggleFavorite(entry.armband);
+                            return false;
                           }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          style={{ zIndex: 15 }}
                         >
                           <Heart className="favorite-icon" />
                         </button>

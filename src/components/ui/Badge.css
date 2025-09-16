@@ -80,7 +80,7 @@
   justify-content: center;
   font-weight: 700;
   font-size: 1.125rem;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+  /* Removed glow effect for cleaner appearance */
   border: 2px solid rgba(255, 255, 255, 0.2);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
 }

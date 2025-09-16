@@ -1,25 +1,25 @@
 /* MyK9Show Entry List - Apple-inspired Light/Dark Mode with Proper Contrast */
 
-/* CSS Variables - Enhanced for outdoor trial readability */
+/* CSS Variables - Optimized for both indoor and outdoor use */
 :root {
-  /* Light theme */
-  --background: #fefefe;
-  --foreground: #0a0a0a;
+  /* Light theme - High contrast for outdoor visibility */
+  --background: #ffffff;       /* Pure white background */
+  --foreground: #000000;       /* Pure black text for maximum contrast */
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --muted: #f6f6f6;
-  --muted-foreground: #6b7280;
-  --border: #e5e7eb;
-  --input: #f3f4f6;
-  --primary: #2563eb;
+  --card-foreground: #000000;
+  --muted: #f8f9fa;           /* Slightly warmer muted */
+  --muted-foreground: #495057; /* Darker muted text */
+  --border: #dee2e6;          /* Slightly darker border */
+  --input: #f1f3f4;
+  --primary: #0066cc;         /* Higher contrast primary */
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary: #e9ecef;
+  --secondary-foreground: #212529;
   
-  /* Enhanced text contrast for outdoor visibility */
-  --text-primary: #0a0a0a;
-  --text-secondary: #374151;
-  --text-tertiary: #6b7280;
+  /* Enhanced text contrast for both indoor and outdoor */
+  --text-primary: #000000;     /* Pure black for maximum contrast */
+  --text-secondary: #2d3748;   /* Darker secondary text */
+  --text-tertiary: #4a5568;    /* Darker tertiary text */
   
   /* MyK9Show brand colors */
   --brand-blue: #007AFF;
@@ -51,24 +51,24 @@
 }
 
 [data-theme="dark"] {
-  /* Dark theme - Enhanced for Outdoor Visibility */
-  --background: #1a1d23;
-  --foreground: #ffffff;
-  --card: #374151;
+  /* Dark theme - High contrast for indoor fluorescent lighting */
+  --background: #111827;       /* Darker background for less eye strain */
+  --foreground: #ffffff;       /* Pure white text */
+  --card: #1f2937;            /* Darker card background */
   --card-foreground: #ffffff;
-  --muted: #2a2a2a;
-  --muted-foreground: #ffffff;
-  --border: #6b7280;
-  --input: #262626;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #262626;
+  --muted: #374151;
+  --muted-foreground: #e5e7eb; /* Lighter muted text for contrast */
+  --border: #4b5563;          /* More visible borders */
+  --input: #374151;
+  --primary: #60a5fa;         /* Brighter primary for dark mode */
+  --primary-foreground: #111827;
+  --secondary: #374151;
   --secondary-foreground: #ffffff;
   
-  /* Enhanced text contrast for outdoor visibility */
-  --text-primary: #ffffff;
-  --text-secondary: #ffffff;
-  --text-tertiary: #ffffff;
+  /* Enhanced text contrast for indoor use */
+  --text-primary: #ffffff;     /* Pure white for maximum contrast */
+  --text-secondary: #f3f4f6;   /* Slightly softer but still high contrast */
+  --text-tertiary: #d1d5db;    /* Readable tertiary text */
   
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
@@ -100,6 +100,25 @@
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* Desktop - constrained page width */
+@media (min-width: 1400px) {
+  .entry-list-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  .status-tabs {
+    max-width: 600px;
+    margin: 1rem auto;
+  }
+  
+  .mobile-search-container {
+    max-width: 600px;
+    margin: 1rem auto 0 auto;
+  }
+}
+
 /* Sophisticated header */
 .entry-list-header {
   display: flex;
@@ -109,7 +128,7 @@
   padding: 1.5rem;
   background: var(--card);
   border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(20px);
+  /* backdrop-filter: blur(20px); */ /* Removed - creates stacking context that blocks hamburger menu */
 }
 
 .back-button {
@@ -168,6 +187,41 @@
   font-weight: 500;
   color: var(--muted-foreground);
   margin-top: 0.125rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.trial-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.trial-detail {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+  background: var(--muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+}
+
+/* Mobile responsive trial info */
+@media (max-width: 640px) {
+  .trial-info {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  
+  .trial-detail {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+  }
 }
 
 .section-info {
@@ -211,7 +265,240 @@
   box-shadow: none;
 }
 
-/* Elegant tab system */
+/* Inline Search System */
+.inline-search-container {
+  margin: 1rem 1.5rem 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+/* Desktop - constrained search width */
+@media (min-width: 1024px) {
+  .inline-search-container {
+    max-width: 600px;
+    margin: 1rem auto 0 auto;
+  }
+}
+
+/* Full-width search and sort container */
+.search-sort-container {
+  padding: 1rem 1.5rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input-full {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 2.75rem;
+  font-size: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--background);
+  color: var(--foreground);
+  transition: all 0.2s;
+  min-height: 52px;
+}
+
+.search-input-full:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input-full::placeholder {
+  color: var(--muted-foreground);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--muted-foreground);
+  z-index: 1;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 1rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--muted-foreground);
+}
+
+.clear-search-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Sort controls */
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sort-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sort-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.sort-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.search-results-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.5rem 0;
+}
+
+/* Drag and drop styles */
+.sortable-item {
+  position: relative;
+}
+
+.drag-handle {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: grab;
+  padding: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.entries-grid.drag-mode {
+  padding-left: 50px;
+}
+
+.entries-grid.drag-mode .entry-card {
+  margin-bottom: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.entries-grid.drag-mode .sortable-item {
+  cursor: grab;
+}
+
+.entries-grid.drag-mode .sortable-item:active {
+  cursor: grabbing;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .search-sort-container {
+    padding: 0.75rem 1rem;
+  }
+  
+  .search-input-full {
+    padding: 0.75rem 0.875rem 0.75rem 2.5rem;
+    font-size: 0.9rem;
+    min-height: 48px;
+  }
+  
+  .search-icon {
+    left: 0.875rem;
+  }
+  
+  .clear-search-btn {
+    right: 0.875rem;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .sort-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.8rem;
+  }
+  
+  .entries-grid.drag-mode {
+    padding-left: 35px;
+  }
+  
+  .drag-handle {
+    left: -30px;
+    padding: 0.375rem;
+  }
+}
+
+/* Moved to search-sort-container section above */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.clear-search-btn:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+
+/* Responsive tab system */
 .status-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -220,6 +507,14 @@
   border-radius: 0.75rem;
   padding: 0.25rem;
   margin: 1rem 1.5rem;
+}
+
+/* Desktop - constrained tab width */
+@media (min-width: 1024px) {
+  .status-tabs {
+    max-width: 600px;
+    margin: 1rem auto;
+  }
 }
 
 .status-tab {
@@ -270,24 +565,67 @@
 
 .entries-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 100%;
   margin: 0 auto;
 }
 
-/* Extremely compact entry cards optimized for mobile */
-.entry-card {
+/* Tablet - 2 columns */
+@media (min-width: 768px) {
+  .entries-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    max-width: 800px;
+  }
+}
+
+/* Desktop - 3 columns max (not 4) */
+@media (min-width: 1200px) {
+  .entries-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1000px;
+  }
+}
+
+/* Ultra-wide - still max 3 columns */
+@media (min-width: 1600px) {
+  .entries-grid {
+    max-width: 1200px;
+  }
+}
+
+/* Mobile-first entry cards optimized for outdoor use */
+.entry-card.mobile-optimized {
   position: relative;
   overflow: hidden;
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: 1rem;
-  padding: 0.375rem;           /* Minimal padding */
+  padding: 1rem;
   color: var(--card-foreground);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  min-height: 2.5rem;          /* Extremely compact - 40px */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-height: 4.5rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Multi-column layouts - taller cards to accommodate status badge below content */
+@media (min-width: 768px) {
+  .entry-card.mobile-optimized {
+    min-height: 5.5rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Desktop - more compact */
+@media (min-width: 1024px) {
+  .entry-card.mobile-optimized {
+    min-height: 5rem;
+    padding: 0.75rem;
+  }
 }
 
 .entry-card::before {
@@ -313,53 +651,161 @@
   border-color: rgba(0, 122, 255, 0.2);
 }
 
-/* Sophisticated status styling */
-.entry-card.scored {
-  border-left: 3px solid var(--success);
+/* Check-in status left border - matches badge colors */
+.entry-card.checkin-none {
+  border-left: 4px solid var(--status-not-checked-in);
 }
 
-.entry-card.unscored {
-  border-left: 3px solid var(--warning);
+.entry-card.checkin-checked-in {
+  border-left: 4px solid var(--status-checked-in);
+}
+
+.entry-card.checkin-at-gate {
+  border-left: 4px solid var(--status-at-gate);
+}
+
+.entry-card.checkin-in-ring,
+.entry-card.in-ring {
+  border: 3px solid var(--status-in-ring);
+  position: relative;
+  animation: slow-flash 3s infinite ease-in-out;
+}
+
+@keyframes slow-flash {
+  0%, 100% {
+    border-color: var(--status-in-ring);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3);
+  }
+  50% {
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  }
+}
+
+/* Add prominent "IN RING" indicator */
+.entry-card.in-ring::before {
+  content: "IN RING";
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  background: var(--status-in-ring);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+  z-index: 10;
+  letter-spacing: 0.5px;
+  animation: slow-flash 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.entry-card.checkin-conflict {
+  border-left: 4px solid var(--status-conflict);
+}
+
+.entry-card.checkin-pulled {
+  border-left: 4px solid var(--status-pulled);
+}
+
+.entry-card.scored {
+  border-left: 4px solid var(--status-done);
 }
 
 /* Extremely compact armband badge positioned for mobile-first layout */
-.armband-badge {
+.entry-card.mobile-optimized .armband-badge {
   position: absolute;
-  top: 0.375rem;               /* Moved even higher */
-  left: 0.375rem;              /* Moved closer to edge */
+  top: 0.75rem;
+  left: 0.75rem;
   background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
   color: white;
   border-radius: 50%;
-  width: 2.25rem;              /* 36px - extremely compact */
-  height: 2.25rem;
-  min-width: 2.25rem;
-  min-height: 2.25rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  min-width: 3.5rem;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.8125rem;        /* Smaller font for extreme compactness */
-  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  z-index: 1;
+  font-weight: 900;
+  font-size: clamp(0.875rem, 4vw, 1.25rem); /* Responsive font size */
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  z-index: 3;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  line-height: 1;
+  letter-spacing: -0.02em; /* Tighter spacing for longer numbers */
+  padding: 0.125rem; /* Small padding for better fit */
 }
 
-/* Enhanced status indicators for high visibility */
+/* 4+ digit armband numbers - adaptive sizing */
+.entry-card.mobile-optimized .armband-badge.long-number {
+  font-size: clamp(0.75rem, 3.5vw, 1rem) !important;
+  letter-spacing: -0.04em !important;
+  font-weight: 800 !important; /* Slightly lighter to fit better */
+}
+
+/* Multi-column long numbers */
+@media (min-width: 768px) {
+  .entry-card.mobile-optimized .armband-badge.long-number {
+    font-size: clamp(0.65rem, 2.5vw, 0.875rem) !important;
+  }
+}
+
+/* Desktop long numbers */
+@media (min-width: 1024px) {
+  .entry-card.mobile-optimized .armband-badge.long-number {
+    font-size: clamp(0.6rem, 2vw, 0.8125rem) !important;
+  }
+}
+
+/* Multi-column - prominent armband badge */
+@media (min-width: 768px) {
+  .entry-card.mobile-optimized .armband-badge {
+    width: 3rem;
+    height: 3rem;
+    min-width: 3rem;
+    min-height: 3rem;
+    font-size: clamp(0.75rem, 3vw, 1.1rem);
+    font-weight: 900;
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+}
+
+/* Desktop - still prominent with responsive text */
+@media (min-width: 1024px) {
+  .entry-card.mobile-optimized .armband-badge {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font-size: clamp(0.7rem, 2.5vw, 1rem);
+    font-weight: 900;
+  }
+}
+
+/* Enhanced status indicators for high visibility - both indoor and outdoor */
 .score-indicator {
   position: absolute;
   top: 1rem;
   right: 1rem;
   background: var(--success-contrast);
   color: white;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 1rem;
-  padding: 0.5rem 1rem;        /* Increased padding */
+  padding: 0.6rem 1.2rem;
   display: flex;
   align-items: center;
-  gap: 0.375rem;              /* Increased gap */
-  font-size: 0.875rem;        /* Increased from 0.75rem */
-  font-weight: 600;           /* Increased from 590 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  min-height: 44px;            /* Touch target */
 }
 
 .pending-indicator {
@@ -380,14 +826,30 @@
   font-size: 0.875rem;
 }
 
-/* Extremely compact mobile-first layout with enhanced readability */
-.entry-content {
-  margin-top: 0.125rem;        /* Extremely minimal top margin */
-  margin-bottom: 0;            /* No bottom margin */
-  margin-left: 3.25rem;        /* Reduced for compactness */
+/* Mobile-first layout for outdoor readability */
+.entry-content.mobile-content {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  margin-left: 5rem;
+  margin-right: 4rem;
   padding: 0;
-  line-height: 1;
-  text-align: left !important; /* Force left alignment on container */
+  line-height: 1.4;
+  text-align: left !important;
+}
+
+/* Multi-column layouts - remove right margin since status moves below */
+@media (min-width: 768px) {
+  .entry-content.mobile-content {
+    margin-right: 0;
+    margin-left: 4.25rem;
+  }
+}
+
+/* Desktop - accommodate prominent armband badge */
+@media (min-width: 1024px) {
+  .entry-content.mobile-content {
+    margin-left: 4rem;
+  }
 }
 
 .entry-info-compact {
@@ -407,15 +869,16 @@
   width: 100%;                 /* Take full width to prevent centering */
 }
 
-.dog-name {
+.dog-name-mobile {
   margin: 0;
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--text-primary) !important;  /* Force proper color */
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  text-shadow: none;           /* Remove text shadow that might cause issues */
-  text-align: left !important; /* Force left align */
+  font-size: 1.5rem;           /* Larger for mobile */
+  font-weight: 800;            /* Bolder for outdoor visibility */
+  color: var(--text-primary) !important;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);  /* Subtle shadow for contrast */
+  text-align: left !important;
+  word-break: break-word;      /* Handle long names better */
 }
 
 /* Light mode override to ensure visibility */
@@ -428,14 +891,107 @@
   color: #ffffff !important;
 }
 
-.breed {
+.breed-mobile {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-secondary) !important; /* Force proper color */
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-tertiary) !important;
   line-height: 1.3;
-  text-shadow: none;            /* Remove text shadow */
-  text-align: left !important;  /* Force left align */
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  text-align: left !important;
+  opacity: 0.8;
+}
+
+/* Mobile-optimized layout containers */
+.entry-info-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left !important;
+  align-items: flex-start !important;
+  width: 100%;
+}
+
+.mobile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.mobile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+/* Mobile-optimized result badges */
+.result-mobile {
+  flex-shrink: 0;
+}
+
+.mobile-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.result-mobile-corner {
+  margin-left: auto;
+}
+
+.result-badge-mobile {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  min-height: 32px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.result-badge-mobile.qualified,
+.result-badge-mobile.q {
+  background: var(--success-contrast, #047857);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.result-badge-mobile.nq {
+  background: var(--error-contrast, #dc2626);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.result-badge-mobile.abs {
+  background: var(--text-tertiary, #6b7280);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.time-mobile {
+  flex-shrink: 0;
+}
+
+.time-badge-mobile {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
 }
 
 /* Light mode override to ensure visibility */
@@ -456,14 +1012,15 @@
   text-align: left;            /* Left align handler info */
 }
 
-.handler {
+.handler-mobile {
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--text-secondary) !important; /* Force proper color */
+  font-size: 1rem;             /* Larger for mobile readability */
+  font-weight: 600;
+  color: var(--text-secondary) !important;
   line-height: 1.4;
-  text-shadow: none;            /* Remove text shadow */
-  text-align: left !important;  /* Force left align */
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  text-align: left !important;
+  margin-bottom: 0.25rem;
 }
 
 /* Light mode override to ensure visibility */
@@ -562,24 +1119,77 @@
 }
 
 /* Check-in status indicator for pending entries */
-.checkin-status {
-  position: absolute;
-  top: 0.375rem;
-  right: 0.375rem;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.625rem;
+.checkin-status.mobile-touch-target {
+  position: static;
+  margin-top: 0.75rem;
+  margin-left: auto;
+  margin-right: 0;
+  width: fit-content;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0.015em;
-  line-height: 1;
-  z-index: 2;
+  line-height: 1.1;
+  z-index: 1000;
+  pointer-events: all;
+  position: relative; /* Create new stacking context */
+  isolation: isolate; /* Ensure it creates its own layer */
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  min-height: 32px;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-height: 36px;
+  min-width: 36px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Multi-column layouts - move status below content with better touch targets */
+@media (min-width: 768px) {
+  .checkin-status.mobile-touch-target {
+    position: static;
+    margin-top: 0.5rem;
+    margin-left: auto;
+    margin-right: 0;
+    width: fit-content;
+    font-size: 0.6875rem;
+    min-height: 36px; /* Increased for better touch */
+    min-width: 60px;  /* Ensure minimum clickable width */
+    padding: 0.375rem 0.75rem; /* Larger padding for easier clicking */
+    border-radius: 0.375rem;
+    cursor: pointer;
+    z-index: 1000; /* Ensure it's above other elements */
+    pointer-events: all;
+    position: relative; /* Create new stacking context */
+    isolation: isolate; /* Ensure it creates its own layer */
+  }
+}
+
+/* Desktop - still clickable but compact */
+@media (min-width: 1024px) {
+  .checkin-status.mobile-touch-target {
+    font-size: 0.625rem;
+    min-height: 32px; /* Still adequate for mouse clicks */
+    min-width: 50px;  /* Minimum clickable area */
+    padding: 0.3rem 0.6rem; /* Enough padding for easy clicking */
+    margin-top: 0.375rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    z-index: 1000;
+    pointer-events: all;
+    position: relative; /* Create new stacking context */
+    isolation: isolate; /* Ensure it creates its own layer */
+  }
+  
+  /* Desktop hover effect for better feedback */
+  .checkin-status.mobile-touch-target:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .checkin-status:active {
@@ -657,55 +1267,190 @@
 }
 
 
-/* Orange Glow for Pending Entries - Outdoor Visibility */
+/* Removed orange borders for not checked-in entries - cleaner look */
 .entry-card.checkin-none {
-  box-shadow: 0 0 0 2px #FF9500, 0 4px 12px rgba(255, 149, 0, 0.3);
-  border-color: #FF9500;
+  /* Orange border removed */
 }
 
 .entry-card.pending-entry {
-  box-shadow: 0 0 0 2px #FF9500, 0 4px 12px rgba(255, 149, 0, 0.3);
-  border-color: #FF9500;
+  /* Orange border removed */
 }
 
-/* Enhanced pending state visibility */
+/* Enhanced pending state visibility - removed orange border */
 .entry-card.unscored:not(.checkin-checked-in):not(.checkin-conflict):not(.checkin-pulled):not(.checkin-at-gate) {
-  box-shadow: 0 0 0 2px #FF9500, 0 4px 12px rgba(255, 149, 0, 0.3);
-  border-color: #FF9500;
+  /* Orange border removed */
 }
 
-/* Status Change Popup */
+/* Mobile-First Status Change - Bottom Sheet with Backdrop */
+.bottom-sheet-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
 .status-popup {
   pointer-events: all;
+  position: fixed !important;
+  top: auto !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000;
+  transform: translateY(0);
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Tablet responsive - centered bottom sheet */
+@media (min-width: 768px) {
+  .status-popup {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 0 2rem 2rem 2rem;
+  }
+}
+
+/* Desktop responsive - constrained width */
+@media (min-width: 1024px) {
+  .status-popup {
+    padding: 0 2rem 3rem 2rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 .status-popup-content {
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  padding: 0.5rem;
-  min-width: 140px;
+  border: 2px solid var(--border);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  min-width: 100%;
   backdrop-filter: blur(20px);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+/* Tablet - constrained width bottom sheet */
+@media (min-width: 768px) {
+  .status-popup-content {
+    min-width: 420px;
+    max-width: 420px;
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Desktop - compact modal */
+@media (min-width: 1024px) {
+  .status-popup-content {
+    min-width: 380px;
+    max-width: 380px;
+    border-radius: 1rem;
+  }
+}
+
+.mobile-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.mobile-sheet-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Desktop - more compact header */
+@media (min-width: 1024px) {
+  .mobile-sheet-header {
+    padding: 1.25rem 1.5rem 0.75rem 1.5rem;
+  }
+  
+  .mobile-sheet-header h3 {
+    font-size: 1.1rem;
+  }
+}
+
+.close-sheet-btn {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.close-sheet-btn:hover {
+  background: var(--border);
+  color: var(--text-primary);
+  transform: scale(1.05);
 }
 
 .status-option {
   display: block;
-  width: 100%;
-  padding: 0.625rem 0.875rem;
+  width: calc(100% - 3rem);
+  margin: 0 1.5rem 0.75rem 1.5rem;
+  padding: 1rem 1.5rem;
   background: transparent;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   text-align: left;
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  margin-bottom: 0.125rem;
-  min-height: 52px;
+  min-height: 60px;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Desktop - more compact options */
+@media (min-width: 1024px) {
+  .status-option {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    min-height: 48px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .status-option:hover {
+    background: var(--muted);
+    transform: translateX(4px);
+  }
+}
+
+.status-option:last-child {
+  margin-bottom: 1.5rem;
 }
 
 .status-option:active {
@@ -878,6 +1623,14 @@
   max-width: 400px;
   width: calc(100% - 2rem);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+/* Desktop - more compact dialog */
+@media (min-width: 1024px) {
+  .reset-dialog {
+    padding: 1.5rem;
+    max-width: 350px;
+  }
 }
 
 .reset-dialog h3 {

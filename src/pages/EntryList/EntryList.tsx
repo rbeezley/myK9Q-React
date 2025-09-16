@@ -2,9 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, resetEntryScore } from '../../services/entryService';
+import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, resetEntryScore, updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { Entry } from '../../stores/entryStore';
 import { Card, CardContent, ArmbandBadge, HamburgerMenu } from '../../components/ui';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { supabase } from '../../lib/supabase';
 import './EntryList.css';
@@ -27,12 +47,88 @@ export const EntryList: React.FC = () => {
     element: string;
     level: string;
     section: string;
+    trialDate?: string;
+    trialNumber?: string;
+    judgeName?: string;
+    actualClassId?: number; // The real classid for real-time subscriptions
   } | null>(null);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'manual'>('run');
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [manualOrder, setManualOrder] = useState<Entry[]>([]);
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+  // Removed showSearch state - using persistent search instead
+
+  // Helper function to convert database status codes to strings
+  const convertStatusCodeToString = (statusCode: number | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
+    switch (statusCode) {
+      case 0: return 'none';
+      case 1: return 'checked-in';
+      case 2: return 'conflict';
+      case 3: return 'pulled';
+      case 4: return 'at-gate';
+      default: return 'none';
+    }
+  };
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end - Updates database for persistent reordering
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (active.id !== over?.id) {
+      const oldIndex = currentEntries.findIndex(entry => entry.id === active.id);
+      const newIndex = currentEntries.findIndex(entry => entry.id === over?.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        // Create new reordered array
+        const reorderedCurrentEntries = arrayMove(currentEntries, oldIndex, newIndex);
+        
+        // Update local state immediately for smooth UX
+        const otherEntries = entries.filter(entry => !currentEntries.find(ce => ce.id === entry.id));
+        const newAllEntries = [...otherEntries, ...reorderedCurrentEntries];
+        setEntries(newAllEntries);
+        setManualOrder(reorderedCurrentEntries);
+        setSortOrder('manual');
+        
+        // Update database with new exhibitor_order values
+        setIsUpdatingOrder(true);
+        try {
+          await updateExhibitorOrder(reorderedCurrentEntries);
+          
+          // Update local entries with new exhibitor_order values
+          const updatedEntries = newAllEntries.map(entry => {
+            const reorderedIndex = reorderedCurrentEntries.findIndex(re => re.id === entry.id);
+            if (reorderedIndex !== -1) {
+              return { ...entry, exhibitorOrder: reorderedIndex + 1 };
+            }
+            return entry;
+          });
+          setEntries(updatedEntries);
+          
+          console.log('✅ Successfully updated run order in database');
+        } catch (error) {
+          console.error('❌ Failed to update run order in database:', error);
+          // TODO: Show user error message and optionally revert local changes
+        } finally {
+          setIsUpdatingOrder(false);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     if (classId && showContext?.licenseKey) {
@@ -42,19 +138,67 @@ export const EntryList: React.FC = () => {
 
   // Subscribe to real-time entry updates
   useEffect(() => {
-    if (!classId || !showContext?.licenseKey) return;
+    if (!classId || !showContext?.licenseKey || !classInfo?.actualClassId) return;
+    
+    console.log('🔌 Setting up real-time subscription for ACTUAL classId:', classInfo.actualClassId, '(URL classId was:', classId, ')');
     
     const unsubscribe = subscribeToEntryUpdates(
-      parseInt(classId),
+      classInfo.actualClassId, // Use the ACTUAL classid (275) instead of URL parameter (340)
       showContext.licenseKey,
-      (_payload) => {
-        // Reload entries when changes occur
-        loadEntries();
+      (payload) => {
+        console.log('🔄 Real-time entry update received:', payload);
+        console.log('🔄 Event type:', payload.eventType);
+        console.log('🔄 Old data:', payload.old);
+        console.log('🔄 New data:', payload.new);
+        
+        const newData = payload.new as any;
+        const oldData = payload.old as any;
+        
+        // Check if this is an in_ring status change
+        if (newData?.in_ring !== oldData?.in_ring) {
+          console.log('📍 In-ring status changed:', {
+            entryId: newData?.id,
+            oldInRing: oldData?.in_ring,
+            newInRing: newData?.in_ring,
+            armband: newData?.armband
+          });
+        }
+        
+        // Instead of reloading all entries, update only the specific entry that changed
+        if (newData?.id) {
+          console.log('🎯 Updating specific entry ID:', newData.id, 'without full page reload');
+          
+          setEntries(prev => prev.map(entry => {
+            if (entry.id === newData.id) {
+              const updatedEntry = {
+                ...entry,
+                inRing: newData.in_ring || false,
+                isScored: newData.is_scored || false,
+                resultText: newData.result_text || entry.resultText,
+                searchTime: newData.search_time || entry.searchTime,
+                faultCount: newData.fault_count || entry.faultCount,
+                placement: newData.placement || entry.placement,
+                checkinStatus: convertStatusCodeToString(newData.checkin_status) || entry.checkinStatus
+              };
+              
+              console.log('✅ Updated entry:', {
+                id: updatedEntry.id,
+                armband: updatedEntry.armband,
+                callName: updatedEntry.callName,
+                inRing: updatedEntry.inRing,
+                isScored: updatedEntry.isScored
+              });
+              
+              return updatedEntry;
+            }
+            return entry;
+          }));
+        }
       }
     );
     
     return unsubscribe;
-  }, [classId, showContext?.licenseKey]);
+  }, [classId, showContext?.licenseKey, classInfo?.actualClassId]);
 
   // Close popups when clicking outside
   useEffect(() => {
@@ -117,34 +261,105 @@ export const EntryList: React.FC = () => {
   const handleStatusClick = (e: React.MouseEvent, entryId: number) => {
     e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPopupPosition({
       top: rect.bottom + 5,
       left: rect.left
     });
     setActiveStatusPopup(entryId);
+    
+    return false;
   };
 
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
     
+    console.log('🔄 LoadEntries called - refreshing entry data...');
     setIsLoading(true);
     setError(null);
     
     try {
       const classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
+      
+      // Debug: Show in-ring status for all entries
+      const inRingEntries = classEntries.filter(entry => entry.inRing);
+      if (inRingEntries.length > 0) {
+        console.log('📍 In-ring entries found:', inRingEntries.map(e => ({
+          id: e.id,
+          armband: e.armband,
+          callName: e.callName,
+          inRing: e.inRing
+        })));
+      } else {
+        console.log('📍 No entries currently in ring');
+      }
+      
       setEntries(classEntries);
       
-      // Get class info from first entry
+      // Get class info from first entry and fetch additional class data
       if (classEntries.length > 0) {
         const firstEntry = classEntries[0];
-        setClassInfo({
+        
+        // Fetch additional class data including trial info and judge
+        const { data: classData, error: classError } = await supabase
+          .from('tbl_class_queue')
+          .select('trial_date, trial_number, judge_name')
+          .eq('id', parseInt(classId))
+          .single();
+          
+        console.log('🔍 Class data fetched:', classData);
+        console.log('🔍 Class error:', classError);
+        
+        // SCHEMA DISCOVERY: Get a complete sample record to see all available fields
+        try {
+          const { data: sampleClass, error: sampleError } = await supabase
+            .from('tbl_class_queue')
+            .select('*')
+            .limit(1)
+            .single();
+          console.log('🔍 COMPLETE tbl_class_queue record with ALL fields:');
+          console.log('🔍 STRUCTURE:', Object.keys(sampleClass || {}).sort());
+          console.log('🔍 SAMPLE DATA:', sampleClass);
+          console.log('🔍 Sample error:', sampleError);
+          
+          // Also try to find judge-related tables by trying common names
+          const judgeTableTests = ['tbl_judge', 'tbl_judges', 'judges', 'judge_info', 'judge_list'];
+          for (const tableName of judgeTableTests) {
+            try {
+              const { data: judgeTest, error: judgeError } = await supabase
+                .from(tableName)
+                .select('*')
+                .limit(1)
+                .single();
+              if (!judgeError && judgeTest) {
+                console.log(`🔍 FOUND JUDGE TABLE "${tableName}" with sample record:`, judgeTest);
+              }
+            } catch (_e) {
+              // Table doesn't exist, continue
+            }
+          }
+        } catch (schemaError) {
+          console.log('🔍 Schema discovery failed:', schemaError);
+        }
+          
+        // Get judge name from class data
+        const judgeName = classData?.judge_name || 'No Judge Assigned';
+        
+        const classInfoData = {
           className: firstEntry.className,
           element: firstEntry.element || '',
           level: firstEntry.level || '',
-          section: firstEntry.section || ''
-        });
+          section: firstEntry.section || '',
+          trialDate: classData?.trial_date || '',
+          trialNumber: classData?.trial_number || '',
+          judgeName: judgeName || 'No Judge Assigned',
+          actualClassId: firstEntry.actualClassId // Store the actual classid for real-time subscriptions
+        };
+        
+        console.log('🔍 Setting class info:', classInfoData);
+        setClassInfo(classInfoData);
       }
     } catch (err) {
       console.error('Error loading entries:', err);
@@ -216,20 +431,29 @@ export const EntryList: React.FC = () => {
     }
   };
 
-  // Add database update function
+  // Clear all dogs in ring for this class, then set the specific dog
   const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
     try {
-      const { error } = await supabase
-        .from('tbl_entry_queue')
-        .update({ in_ring: inRing })
-        .eq('id', dogId)
-        .eq('mobile_app_lic_key', showContext?.licenseKey);
-      
-      if (error) {
-        console.error('Database error setting in_ring status:', error);
-        return false;
+      if (inRing) {
+        // Only clear other dogs if this dog is not already in ring
+        // This prevents clearing the dog that's currently being scored
+        const currentDog = entries.find(entry => entry.id === dogId);
+        if (!currentDog?.inRing) {
+          // First clear all other dogs in this class (but not the target dog)
+          const otherEntries = entries.filter(entry => entry.id !== dogId && entry.inRing);
+          if (otherEntries.length > 0) {
+            await Promise.all(
+              otherEntries.map(entry => markInRing(entry.id, false))
+            );
+          }
+        }
       }
       
+      // Now set the specific dog's status (only if it's different)
+      const currentDog = entries.find(entry => entry.id === dogId);
+      if (currentDog?.inRing !== inRing) {
+        await markInRing(dogId, inRing);
+      }
       return true;
     } catch (error) {
       console.error('Error setting dog ring status:', error);
@@ -238,7 +462,6 @@ export const EntryList: React.FC = () => {
   };
 
   const handleEntryClick = async (entry: Entry) => {
-    
     // Don't navigate if the entry is already scored
     if (entry.isScored) {
       return;
@@ -341,10 +564,176 @@ export const EntryList: React.FC = () => {
 
   const scoredCount = entries.filter(e => e.isScored).length;
   const totalCount = entries.length;
-  const pendingEntries = entries.filter(e => !e.isScored);
-  const completedEntries = entries.filter(e => e.isScored);
+  
+  // Filter and sort entries (but don't sort when in drag mode)
+  const filteredEntries = entries
+    .filter(entry => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        entry.callName.toLowerCase().includes(term) ||
+        entry.handler.toLowerCase().includes(term) ||
+        entry.breed.toLowerCase().includes(term) ||
+        entry.armband.toString().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      // PRIORITY 1: In-ring dogs ALWAYS come first
+      if (a.inRing && !b.inRing) return -1;
+      if (!a.inRing && b.inRing) return 1;
+      
+      // PRIORITY 2: Apply normal sorting for dogs not in ring
+      // When in manual mode (drag mode or after dragging), use the manual order
+      if (sortOrder === 'manual') {
+        const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
+        const bIndex = manualOrder.findIndex(entry => entry.id === b.id);
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex;
+        }
+        // Fall back to armband if not in manual order
+        return a.armband - b.armband;
+      }
+      
+      if (sortOrder === 'run') {
+        // Sort by exhibitor_order (when available), then by armband
+        const aOrder = a.exhibitorOrder || a.armband;
+        const bOrder = b.exhibitorOrder || b.armband;
+        return aOrder - bOrder;
+      } else {
+        // Sort by armband number
+        return a.armband - b.armband;
+      }
+    });
+  
+  const pendingEntries = filteredEntries.filter(e => !e.isScored);
+  const completedEntries = filteredEntries.filter(e => e.isScored);
   
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+
+  // Sortable Entry Card Component
+  const SortableEntryCard = ({ entry }: { entry: Entry }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: entry.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <div ref={setNodeRef} style={style} className={isDragMode ? 'sortable-item' : ''}>
+        {isDragMode && (
+          <div {...attributes} {...listeners} className="drag-handle">
+            <GripVertical size={20} />
+          </div>
+        )}
+        <Card 
+          key={entry.id} 
+          variant={entry.isScored ? 'scored' : 'unscored'}
+          onClick={() => {
+            if (isDragMode) return; // Disable navigation in drag mode
+            if (hasPermission('canScore')) handleEntryClick(entry); // Entry click handler
+          }}
+          className={`entry-card mobile-optimized ${
+            !entry.isScored ? 'unscored' : 'scored'
+          } ${
+            !entry.isScored && !entry.checkinStatus ? 'checkin-none' : ''
+          } ${
+            !entry.isScored && !entry.checkinStatus ? 'pending-entry' : ''
+          } ${
+            !entry.isScored ? `checkin-${(entry.checkinStatus || 'none').replace(' ', '-')}` : ''
+          } ${
+            entry.inRing ? 'in-ring' : ''
+          } ${
+            hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
+          }`}
+        >
+          <ArmbandBadge number={entry.armband} />
+          
+          {!entry.isScored && (
+            <div 
+              className={`checkin-status mobile-touch-target ${
+                entry.inRing ? 'in-ring' : 
+                (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
+              }`}
+              onClick={(e) => handleStatusClick(e, entry.id)}
+              title="Tap to change status"
+              {...hapticFeedback}
+            >
+              {(() => {
+                if (entry.inRing) {
+                  return <><span className="status-icon">▶</span> In Ring</>;
+                }
+                const status = entry.checkinStatus || 'none';
+                switch(status) {
+                  case 'none': return <><span className="status-icon">●</span> Not Checked-in</>;
+                  case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
+                  case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
+                  case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
+                  case 'at-gate': return <><span className="status-icon">★</span> At Gate</>;
+                  default: return status;
+                }
+              })()}
+            </div>
+          )}
+          
+          {entry.isScored && (
+            <button
+              className="reset-menu-button"
+              onClick={(e) => handleResetMenuClick(e, entry.id)}
+              title="Reset score"
+              {...hapticFeedback}
+            >
+              ⋯
+            </button>
+          )}
+          
+          <CardContent className="entry-content mobile-content">
+            <div className="entry-info-mobile">
+              <div className="mobile-header">
+                <h3 className="dog-name-mobile">{entry.callName}</h3>
+              </div>
+              <div className="mobile-details">
+                <p className="handler-mobile">{entry.handler}</p>
+                <p className="breed-mobile">{entry.breed}</p>
+                <div className="mobile-footer">
+                  {entry.isScored && entry.searchTime && (
+                    <div className="time-mobile">
+                      <span className="time-badge-mobile">{entry.searchTime}</span>
+                    </div>
+                  )}
+                  {entry.isScored && entry.resultText && (
+                    <div className="result-mobile-corner">
+                      <span className={`result-badge-mobile ${entry.resultText.toLowerCase()}`}>
+                        {(() => {
+                          const result = entry.resultText.toLowerCase();
+                          if (result === 'q' || result === 'qualified') return 'Qualified';
+                          if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                          if (result === 'abs' || result === 'absent' || result === 'e') return 'Absent';
+                          if (result === 'ex' || result === 'excused') return 'Excused';
+                          if (result === 'wd' || result === 'withdrawn') return 'Withdrawn';
+                          if (result === 'none') return 'Pending';
+                          // Return as-is if already in proper format
+                          return entry.resultText;
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   return (
     <div className="entry-list-container">
@@ -357,12 +746,98 @@ export const EntryList: React.FC = () => {
           currentPage="entries"
         />
         <div className="class-info">
-          <h1>{classInfo?.className}</h1>
+          <h1>{classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h1>
           <div className="class-subtitle">
+            <div className="trial-info">
+              {classInfo?.trialDate && classInfo.trialDate !== '' && (
+                <span className="trial-detail">
+                  <Calendar size={14} /> {new Date(classInfo.trialDate).toLocaleDateString()}
+                </span>
+              )}
+              {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
+                <span className="trial-detail"><Target size={14} /> {classInfo.trialNumber}</span>
+              )}
+              {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
+                <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
+              )}
+            </div>
             <span className="progress">{scoredCount}/{totalCount} Scored</span>
           </div>
         </div>
       </header>
+
+      {/* Search and Sort Controls */}
+      <div className="search-sort-container">
+        <div className="search-input-wrapper">
+          <Search className="search-icon" size={18} />
+          <input
+            type="text"
+            placeholder="Search dog name, handler, breed, or armband..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input-full"
+          />
+          {searchTerm && (
+            <button 
+              className="clear-search-btn"
+              onClick={() => setSearchTerm('')}
+              {...hapticFeedback}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        
+        <div className="sort-controls">
+          <span className="sort-label">Sort:</span>
+          <button
+            className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
+            onClick={() => {
+              setSortOrder('run');
+              setIsDragMode(false); // Exit drag mode when switching sorts
+            }}
+            {...hapticFeedback}
+          >
+            <ArrowUpDown size={16} />
+            Run Order
+          </button>
+          <button
+            className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
+            onClick={() => {
+              setSortOrder('armband');
+              setIsDragMode(false); // Exit drag mode when switching sorts
+            }}
+            {...hapticFeedback}
+          >
+            <ArrowUpDown size={16} />
+            Armband
+          </button>
+          {hasPermission('canChangeRunOrder') && (
+            <button
+              className={`sort-btn ${isDragMode ? 'active' : ''} ${isUpdatingOrder ? 'loading' : ''}`}
+              onClick={() => {
+                if (!isDragMode) {
+                  // Entering drag mode - preserve current visible order
+                  setManualOrder([...currentEntries]);
+                  setSortOrder('manual');
+                }
+                setIsDragMode(!isDragMode);
+              }}
+              disabled={isUpdatingOrder}
+              {...hapticFeedback}
+            >
+              <GripVertical size={16} />
+              {isUpdatingOrder ? 'Saving...' : (isDragMode ? 'Done' : 'Reorder')}
+            </button>
+          )}
+        </div>
+        
+        {searchTerm && (
+          <div className="search-results-count">
+            {filteredEntries.length} of {entries.length}
+          </div>
+        )}
+      </div>
 
       <div className="status-tabs">
         <button 
@@ -370,8 +845,7 @@ export const EntryList: React.FC = () => {
           onClick={() => setActiveTab('pending')}
           {...hapticFeedback}
         >
-          <span className="status-icon">⏳</span>
-          <span style={{fontSize: '0.75rem', marginRight: '0.25rem'}}>●</span>
+          <Clock className="status-icon" size={16} />
           Pending ({pendingEntries.length})
         </button>
         <button 
@@ -379,8 +853,7 @@ export const EntryList: React.FC = () => {
           onClick={() => setActiveTab('completed')}
           {...hapticFeedback}
         >
-          <span className="status-icon">✓</span>
-          <span style={{fontSize: '0.75rem', marginRight: '0.25rem'}}>♦</span>
+          <CheckCircle className="status-icon" size={16} />
           Completed ({completedEntries.length})
         </button>
       </div>
@@ -392,108 +865,47 @@ export const EntryList: React.FC = () => {
             <p>{activeTab === 'pending' ? 'All entries have been scored.' : 'No entries have been scored yet.'}</p>
           </div>
         ) : (
-          <div className="entries-grid">
-            {currentEntries.map((entry) => (
-              <Card 
-                key={entry.id} 
-                variant={entry.isScored ? 'scored' : 'unscored'}
-                onClick={() => hasPermission('canScore') && handleEntryClick(entry)}
-                className={`entry-card ${
-                  !entry.isScored ? 'unscored' : 'scored'
-                } ${
-                  !entry.isScored && !entry.checkinStatus ? 'checkin-none' : ''
-                } ${
-                  !entry.isScored && !entry.checkinStatus ? 'pending-entry' : ''
-                } ${
-                  !entry.isScored ? `checkin-${(entry.checkinStatus || 'none').replace(' ', '-')}` : ''
-                } ${
-                  entry.inRing ? 'in-ring' : ''
-                } ${
-                  hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
-                }`}
-              >
-                <ArmbandBadge number={entry.armband} />
-                
-                {!entry.isScored && (
-                  <div 
-                    className={`checkin-status ${
-                      entry.inRing ? 'in-ring' : 
-                      (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
-                    }`}
-                    onClick={(e) => handleStatusClick(e, entry.id)}
-                    title="Click to change check-in status"
-                    {...hapticFeedback}
-                  >
-                    {(() => {
-                      if (entry.inRing) {
-                        return <><span className="status-icon">▶</span> In Ring</>;
-                      }
-                      const status = entry.checkinStatus || 'none';
-                      switch(status) {
-                        case 'none': return <><span className="status-icon">●</span> Not Checked-in</>;
-                        case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
-                        case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
-                        case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
-                        case 'at-gate': return <><span className="status-icon">★</span> At Gate</>;
-                        default: return status;
-                      }
-                    })()}
-                  </div>
-                )}
-                
-                {entry.isScored && (
-                  <button
-                    className="reset-menu-button"
-                    onClick={(e) => handleResetMenuClick(e, entry.id)}
-                    title="Reset score"
-                    {...hapticFeedback}
-                  >
-                    ⋯
-                  </button>
-                )}
-                
-                <CardContent className="entry-content">
-                  <div className="entry-info-compact">
-                    <div className="dog-info">
-                      <h3 className="dog-name">{entry.callName}</h3>
-                      <p className="breed">{entry.breed}</p>
-                    </div>
-                    <div className="handler-info">
-                      <span className="handler">{entry.handler}</span>
-                      {entry.isScored && entry.resultText && (
-                        <div className="result-inline">
-                          <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
-                            {entry.resultText.toLowerCase() === 'q' ? 'QUALIFIED' : entry.resultText.toUpperCase()}
-                          </span>
-                          {entry.searchTime && (
-                            <span className="time-badge">
-                              {entry.searchTime}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-                
-              </Card>
-            ))}
-          </div>
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext 
+              items={currentEntries.map(e => e.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className={`entries-grid ${isDragMode ? 'drag-mode' : ''}`}>
+                {currentEntries.map((entry) => (
+                  <SortableEntryCard key={entry.id} entry={entry} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 
-      {/* Status Change Popup */}
-      {activeStatusPopup !== null && popupPosition && (
-        <div 
-          className="status-popup"
-          style={{
-            position: 'fixed',
-            top: popupPosition.top,
-            left: popupPosition.left,
-            zIndex: 1000
-          }}
-        >
-          <div className="status-popup-content">
+      {/* Mobile Status Change Bottom Sheet */}
+      {activeStatusPopup !== null && (
+        <>
+          <div className="bottom-sheet-backdrop" onClick={() => {
+            setActiveStatusPopup(null);
+            setPopupPosition(null);
+          }} />
+          <div className="status-popup">
+            <div className="status-popup-content">
+            <div className="mobile-sheet-header">
+              <h3>Change Status</h3>
+              <button 
+                className="close-sheet-btn"
+                onClick={() => {
+                  setActiveStatusPopup(null);
+                  setPopupPosition(null);
+                }}
+                {...hapticFeedback}
+              >
+                ✕
+              </button>
+            </div>
             <button 
               className="status-option status-none"
               onClick={() => handleStatusChange(activeStatusPopup, 'none')}
@@ -529,8 +941,9 @@ export const EntryList: React.FC = () => {
             >
               <span className="popup-icon">★</span> At Gate
             </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Reset Menu Popup */}
@@ -565,7 +978,7 @@ export const EntryList: React.FC = () => {
           <div className="reset-dialog">
             <h3>Reset Score</h3>
             <p>
-              Are you sure you want to reset the score for <strong>{resetConfirmDialog.entry.callName}</strong> (#{resetConfirmDialog.entry.armband})?
+              Are you sure you want to reset the score for <strong>{resetConfirmDialog.entry.callName}</strong> ({resetConfirmDialog.entry.armband})?
             </p>
             <p className="reset-dialog-warning">
               This will remove their current score and move them back to the pending list.

@@ -10,14 +10,18 @@ import {
   RefreshCw, 
   Heart, 
   Eye as _Eye, 
-  Play as _Play, 
+  Play, 
   MoreVertical, 
   Clock, 
   CheckCircle, 
   Users, 
-  ChevronDown, 
-  ChevronUp,
-  Award as _Award
+  // ChevronDown,
+  // ChevronUp,
+  Award as _Award,
+  Circle,
+  Settings,
+  FileText,
+  Coffee
 } from 'lucide-react';
 import './ClassList.css';
 
@@ -27,6 +31,7 @@ interface ClassEntry {
   level: string;
   section: string;
   class_name: string;
+  class_order: number;
   judge_name: string;
   entry_count: number;
   completed_count: number;
@@ -68,6 +73,70 @@ export const ClassList: React.FC = () => {
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
   const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
   const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map());
+  const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
+    console.log('🔄 Initializing favoriteClasses state');
+    return new Set();
+  });
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
+
+  // Load favorites from localStorage on component mount
+  useEffect(() => {
+    const loadFavorites = () => {
+      try {
+        const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
+        console.log('🔍 Loading with key:', favoritesKey);
+        console.log('🗄️ All localStorage keys:', Object.keys(localStorage));
+        console.log('🗄️ All localStorage favorites keys:', Object.keys(localStorage).filter(k => k.startsWith('favorites_')));
+        const savedFavorites = localStorage.getItem(favoritesKey);
+        console.log('💾 Raw localStorage value for key:', savedFavorites);
+        if (savedFavorites) {
+          const favoriteIds = JSON.parse(savedFavorites) as number[];
+          console.log('📥 Setting favoriteClasses from localStorage:', favoriteIds);
+          setFavoriteClasses(new Set(favoriteIds));
+        } else {
+          console.log('❌ No saved favorites found, setting empty set');
+          setFavoriteClasses(new Set());
+        }
+        setFavoritesLoaded(true);
+      } catch (error) {
+        console.error('Error loading favorites from localStorage:', error);
+      }
+    };
+    
+    if (showContext?.licenseKey && trialId) {
+      loadFavorites();
+    }
+  }, [showContext?.licenseKey, trialId]);
+
+  // Save favorites to localStorage whenever favoriteClasses changes (but only after initial load)
+  useEffect(() => {
+    if (showContext?.licenseKey && trialId && favoritesLoaded) {
+      try {
+        const favoritesKey = `favorites_${showContext.licenseKey}_${trialId}`;
+        const favoriteIds = Array.from(favoriteClasses);
+        console.log('💾 Saving favorites to localStorage:', favoritesKey, favoriteIds);
+        localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
+        console.log('✅ Saved to localStorage successfully');
+      } catch (error) {
+        console.error('Error saving favorites to localStorage:', error);
+      }
+    } else {
+      console.log('⚠️ Not saving favorites - missing context, trialId, or not loaded yet:', { licenseKey: showContext?.licenseKey, trialId, favoritesLoaded, size: favoriteClasses.size });
+    }
+  }, [favoriteClasses, showContext?.licenseKey, trialId, favoritesLoaded]);
+
+  // Update classes' is_favorite property when favoriteClasses changes
+  useEffect(() => {
+    if (classes.length > 0) {
+      console.log('🔄 Updating classes is_favorite based on favoriteClasses:', Array.from(favoriteClasses));
+      setClasses(prevClasses => 
+        prevClasses.map(classEntry => ({
+          ...classEntry,
+          is_favorite: favoriteClasses.has(classEntry.id)
+        }))
+      );
+    }
+  }, [favoriteClasses]);
 
   // Format date with abbreviated month and trial number
   const formatTrialDate = (dateStr: string, trialNumber: number) => {
@@ -119,6 +188,27 @@ export const ClassList: React.FC = () => {
 
   const loadClassList = useCallback(async () => {
     setIsLoading(true);
+    
+    // Load favorites first to ensure they're available when processing classes
+    let currentFavorites = new Set<number>();
+    try {
+      const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
+      console.log('🔍 Loading favorites with key:', favoritesKey);
+      const savedFavorites = localStorage.getItem(favoritesKey);
+      console.log('💾 Raw localStorage value:', savedFavorites);
+      if (savedFavorites) {
+        const favoriteIds = JSON.parse(savedFavorites) as number[];
+        currentFavorites = new Set(favoriteIds);
+        setFavoriteClasses(currentFavorites);
+        console.log('✅ Loaded favorites:', Array.from(currentFavorites));
+      } else {
+        console.log('📭 No favorites found in localStorage');
+      }
+      setFavoritesLoaded(true);
+    } catch (error) {
+      console.error('Error loading favorites from localStorage in loadClassList:', error);
+    }
+    
     try {
       // Load trial info
       const { data: trialData, error: trialError } = await supabase
@@ -235,17 +325,48 @@ export const ClassList: React.FC = () => {
             level: cls.level,
             section: cls.section,
             class_name: className,
+            class_order: cls.class_order || 999, // Default high value for classes without order
             class_type: cls.class_type,
             judge_name: cls.judge_name || 'TBA',
             entry_count: entryCount,
             completed_count: completedCount,
-            class_status: cls.class_status || 'pending',
-            is_favorite: false, // TODO: Load from user preferences
+            class_status: dbToStatusMapping[cls.class_status] || 'none',
+            is_favorite: currentFavorites.has(cls.id),
             dogs: dogs
           };
         });
 
-        setClasses(processedClasses);
+        // Sort classes by class_order first, then element, level, section
+        const sortedClasses = processedClasses.sort((a, b) => {
+          // Primary sort: class_order (ascending)
+          if (a.class_order !== b.class_order) {
+            return a.class_order - b.class_order;
+          }
+          
+          // Secondary sort: element (alphabetical)
+          if (a.element !== b.element) {
+            return a.element.localeCompare(b.element);
+          }
+          
+          // Tertiary sort: level (custom order for common levels)
+          const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
+          const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
+          const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+          
+          if (aLevelOrder !== bLevelOrder) {
+            return aLevelOrder - bLevelOrder;
+          }
+          
+          // If same level order, sort alphabetically
+          if (a.level !== b.level) {
+            return a.level.localeCompare(b.level);
+          }
+          
+          // Quaternary sort: section (alphabetical)
+          return a.section.localeCompare(b.section);
+        });
+        
+        setClasses(sortedClasses);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -328,6 +449,7 @@ export const ClassList: React.FC = () => {
   };
 
   // Function to handle opening scoresheet for a specific dog
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDogScoresheet = async (dog: ClassEntry['dogs'][0], classEntry: ClassEntry) => {
     // First, set the dog to in-ring status
     console.log(`Setting dog ${dog.call_name} (ID: ${dog.id}) to in-ring status...`);
@@ -501,7 +623,35 @@ export const ClassList: React.FC = () => {
     }
   };
 
+  // Map string status to database numeric values
+  const statusToDbMapping: Record<ClassEntry['class_status'], number> = {
+    'none': 0,
+    'setup': 1,
+    'briefing': 2,
+    'break': 3,
+    'start_time': 4,
+    'in_progress': 5,
+    'completed': 6
+  };
+
+  // Map database numeric values back to string status
+  const dbToStatusMapping: Record<number, ClassEntry['class_status']> = {
+    0: 'none',
+    1: 'setup',
+    2: 'briefing',
+    3: 'break',
+    4: 'start_time',
+    5: 'in_progress',
+    6: 'completed'
+  };
+
   const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
+    console.log('🎯 Updating class status:', { classId, status });
+    
+    // Convert string status to database numeric value
+    const dbStatusValue = statusToDbMapping[status];
+    console.log('📊 Database value:', dbStatusValue);
+    
     // Update local state
     setClasses(prev => prev.map(c => 
       c.id === classId ? { ...c, class_status: status } : c
@@ -509,34 +659,62 @@ export const ClassList: React.FC = () => {
 
     // Update database
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tbl_class_queue')
-        .update({ class_status: status })
-        .eq('id', classId);
+        .update({ class_status: dbStatusValue })
+        .eq('id', classId)
+        .select();
 
       if (error) {
-        console.error('Error updating class status:', error);
+        console.error('❌ Error updating class status:', error);
         // Revert on error
         loadClassList();
       } else {
-        console.log('Class status updated successfully');
+        console.log('✅ Class status updated successfully:', data);
+        // Refresh to ensure UI is in sync
+        await loadClassList();
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('💥 Exception:', error);
       loadClassList();
     }
   };
 
   const toggleFavorite = async (classId: number) => {
-    hapticFeedback.impact('light');
+    const classEntry = classes.find(c => c.id === classId);
+    const isCurrentlyFavorite = classEntry?.is_favorite;
+    console.log('💖 Toggling favorite for class:', classId, 'Currently favorite:', isCurrentlyFavorite);
+    
+    // Enhanced haptic feedback for outdoor/gloved use
+    if (isCurrentlyFavorite) {
+      // Removing favorite - softer feedback
+      hapticFeedback.impact('light');
+    } else {
+      // Adding favorite - stronger feedback for confirmation
+      hapticFeedback.impact('medium');
+    }
+    
+    // Update favorites set for localStorage persistence
+    setFavoriteClasses(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(classId)) {
+        newFavorites.delete(classId);
+        console.log('🗑️ Removing from favorites:', classId);
+      } else {
+        newFavorites.add(classId);
+        console.log('⭐ Adding to favorites:', classId);
+      }
+      console.log('💾 New favorites set:', Array.from(newFavorites));
+      return newFavorites;
+    });
+    
+    // Update classes state to reflect the change immediately
     setClasses(prev => prev.map(c => 
       c.id === classId ? { ...c, is_favorite: !c.is_favorite } : c
     ));
-    
-    // TODO: Update user preferences
   };
 
-  const getStatusColor = (status: ClassEntry['class_status']) => {
+  const getStatusColor = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     switch (status) {
       case 'setup': return 'setup';
       case 'briefing': return 'briefing';
@@ -544,11 +722,22 @@ export const ClassList: React.FC = () => {
       case 'start_time': return 'start-time';
       case 'in_progress': return 'in-progress';
       case 'completed': return 'completed';
-      default: return 'none';
+      default:
+        // Intelligent color based on actual class progress
+        if (classEntry) {
+          const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
+          const hasDogsInRing = classEntry.dogs.some(dog => dog.in_ring);
+          
+          if (isCompleted) return 'completed';
+          if (hasDogsInRing) return 'in-progress';
+          if (classEntry.completed_count > 0) return 'in-progress';
+          return 'none';
+        }
+        return 'none';
     }
   };
 
-  const getStatusLabel = (status: ClassEntry['class_status']) => {
+  const getStatusLabel = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     switch (status) {
       case 'setup': return 'Setup';
       case 'briefing': return 'Briefing';
@@ -556,10 +745,22 @@ export const ClassList: React.FC = () => {
       case 'start_time': return 'Start Time';
       case 'in_progress': return 'In Progress';
       case 'completed': return 'Completed';
-      default: return 'None';
+      default: 
+        // Show intelligent status when class_status is 'none'
+        if (classEntry) {
+          const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
+          const hasDogsInRing = classEntry.dogs.some(dog => dog.in_ring);
+          
+          if (isCompleted) return 'Completed';
+          if (hasDogsInRing) return 'In Ring';
+          if (classEntry.completed_count > 0) return 'In Progress';
+          return 'Ready';
+        }
+        return 'Ready';
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getDogStatusIcon = (dog: ClassEntry['dogs'][0]) => {
     if (dog.is_scored) return '♦'; // Diamond for DONE (scored)
     if (dog.in_ring) return '▶'; // Play icon for IN RING
@@ -580,6 +781,7 @@ export const ClassList: React.FC = () => {
     return 'Not Checked-in';
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getDogStatusColor = (dog: ClassEntry['dogs'][0]) => {
     if (dog.is_scored) return 'completed';
     if (dog.in_ring) return 'in-ring';
@@ -590,6 +792,7 @@ export const ClassList: React.FC = () => {
     return 'not-checked-in';
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getDogStatusCounts = (dogs: ClassEntry['dogs']) => {
     const counts = {
       all: dogs.length,
@@ -599,6 +802,59 @@ export const ClassList: React.FC = () => {
       completed: dogs.filter(dog => dog.is_scored).length,
     };
     return counts;
+  };
+
+  // Smart contextual preview helper functions
+  const getClassDisplayStatus = (classEntry: ClassEntry): 'not-started' | 'in-progress' | 'completed' => {
+    // A class is completed when all dogs are scored (regardless of class_status)
+    const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
+    if (isCompleted) {
+      return 'completed';
+    }
+    // A class is in progress if it has dogs in the ring or officially marked as in-progress
+    if (classEntry.class_status === 'in_progress' || classEntry.dogs.some(dog => dog.in_ring)) {
+      return 'in-progress';  
+    }
+    return 'not-started';
+  };
+
+  const getContextualPreview = (classEntry: ClassEntry): string => {
+    const status = getClassDisplayStatus(classEntry);
+    
+    switch (status) {
+      case 'not-started':
+        return `${classEntry.entry_count} entries • Starts after current class`;
+        
+      case 'completed':
+        return `Completed • ${classEntry.completed_count} of ${classEntry.entry_count} scored`;
+        
+      case 'in-progress': {
+        const inRingDog = classEntry.dogs.find(dog => dog.in_ring);
+        const nextDogs = classEntry.dogs
+          .filter(dog => !dog.is_scored && !dog.in_ring)
+          .slice(0, 3);
+
+        let preview = '';
+        if (inRingDog) {
+          preview += `In Ring: ${inRingDog.armband} (${inRingDog.call_name})`;
+        }
+        
+        if (nextDogs.length > 0) {
+          const nextArmband = nextDogs.map(dog => dog.armband).join(', ');
+          preview += inRingDog ? ` • Next: ${nextArmband}` : `Next: ${nextArmband}`;
+        }
+        
+        if (preview) {
+          preview += `\n${classEntry.completed_count} of ${classEntry.entry_count} remaining`;
+        } else {
+          preview = `${classEntry.completed_count} of ${classEntry.entry_count} remaining`;
+        }
+        
+        return preview;
+      }
+      default:
+        return `${classEntry.completed_count} of ${classEntry.entry_count} entries scored`;
+    }
   };
 
   const getFilteredDogs = (dogs: ClassEntry['dogs'], statusFilter: string) => {
@@ -616,6 +872,7 @@ export const ClassList: React.FC = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getVisibleDogs = (dogs: ClassEntry['dogs'], classId: number) => {
     const isExpanded = expandedClasses.has(classId);
     const statusFilter = dogStatusFilters.get(classId) || 'all';
@@ -627,6 +884,7 @@ export const ClassList: React.FC = () => {
     return filteredDogs.slice(0, 9);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const toggleClassExpansion = (classId: number) => {
     hapticFeedback.impact('light');
     setExpandedClasses(prev => {
@@ -640,6 +898,7 @@ export const ClassList: React.FC = () => {
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDogStatusFilter = (classId: number, statusFilter: string) => {
     hapticFeedback.impact('light');
     setDogStatusFilters(prev => {
@@ -650,9 +909,12 @@ export const ClassList: React.FC = () => {
   };
 
   const filteredClasses = classes.filter(classEntry => {
+    // Determine if class is truly completed (all dogs scored)
+    const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
+    
     // Combined filter logic
-    if (combinedFilter === 'pending' && classEntry.class_status === 'completed') return false;
-    if (combinedFilter === 'completed' && classEntry.class_status !== 'completed') return false;
+    if (combinedFilter === 'pending' && isCompleted) return false;
+    if (combinedFilter === 'completed' && !isCompleted) return false;
     if (combinedFilter === 'favorites' && !classEntry.is_favorite) return false;
     
     return true;
@@ -779,7 +1041,10 @@ export const ClassList: React.FC = () => {
                   ? 'pending' 
                   : ''
               }`}
-              onClick={() => handleViewEntries(classEntry)}
+              onClick={(e) => {
+                console.log('🔵 Class card clicked', e.target, e.currentTarget);
+                handleViewEntries(classEntry);
+              }}
             >
               <div className="class-content">
                 <div className="class-header">
@@ -793,11 +1058,25 @@ export const ClassList: React.FC = () => {
                   
                   <div className="class-actions">
                     <button
+                      type="button"
                       className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
                       onClick={(e) => {
+                        console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
+                        e.preventDefault();
                         e.stopPropagation();
+                        e.nativeEvent.stopImmediatePropagation();
                         toggleFavorite(classEntry.id);
+                        return false;
                       }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      style={{ zIndex: 15 }} // Inline style to ensure it's on top
                     >
                       <Heart className="favorite-icon" />
                     </button>
@@ -806,17 +1085,17 @@ export const ClassList: React.FC = () => {
                     <div className="status-container">
                       {hasPermission('canManageClasses') ? (
                         <button
-                          className={`status-badge ${getStatusColor(classEntry.class_status)} clickable`}
+                          className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveStatusPopup(activeStatusPopup === classEntry.id ? null : classEntry.id);
                           }}
                         >
-                          {getStatusLabel(classEntry.class_status)}
+                          {getStatusLabel(classEntry.class_status, classEntry)}
                         </button>
                       ) : (
-                        <div className={`status-badge ${getStatusColor(classEntry.class_status)}`}>
-                          {getStatusLabel(classEntry.class_status)}
+                        <div className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
+                          {getStatusLabel(classEntry.class_status, classEntry)}
                         </div>
                       )}
                     </div>
@@ -834,158 +1113,22 @@ export const ClassList: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Entry Preview with Status Filter */}
-                <div className="dog-preview-section">
+                {/* Smart Contextual Preview */}
+                <div className="class-preview-section">
                   {classEntry.dogs.length > 0 ? (
-                    <>
-                      {/* Dog Status Filter Tabs with Legend Dots */}
-                      <div className="dog-status-filter">
-                        {[
-                          { key: 'all', label: 'All', shortLabel: 'All', count: getDogStatusCounts(classEntry.dogs).all },
-                          { key: 'pending', label: 'None', shortLabel: 'None', count: getDogStatusCounts(classEntry.dogs).pending },
-                          { key: 'checkedin', label: 'Checked-in', shortLabel: 'Ready', count: getDogStatusCounts(classEntry.dogs).checkedin },
-                          { key: 'active', label: 'At Ring', shortLabel: 'Ring', count: getDogStatusCounts(classEntry.dogs).active },
-                          { key: 'completed', label: 'Completed', shortLabel: 'Done', count: getDogStatusCounts(classEntry.dogs).completed },
-                        ].filter(status => status.count > 0).map((status) => (
-                          <button
-                            key={status.key}
-                            className={`dog-status-tab ${
-                              (dogStatusFilters.get(classEntry.id) || 'all') === status.key ? 'active' : ''
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDogStatusFilter(classEntry.id, status.key);
-                            }}
-                          >
-                            <span className="tab-label-full">{status.label}</span>
-                            <span className="tab-label-short">{status.shortLabel}</span>
-                            <span 
-                              className="status-count"
-                              style={{
-                                backgroundColor: 
-                                  status.key === 'all' ? 'var(--text-secondary)' :
-                                  status.key === 'pending' ? 'var(--status-not-checked-in)' :
-                                  status.key === 'checkedin' ? 'var(--status-checked-in)' :
-                                  status.key === 'active' ? 'var(--status-in-ring)' :
-                                  status.key === 'completed' ? 'var(--status-done)' :
-                                  'var(--text-secondary)',
-                                color: 'white',
-                                fontWeight: '600'
-                              }}
-                            >
-                              {status.count}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Compact Grid Layout */}
-                      <div className="dog-list">
-                        {getVisibleDogs(classEntry.dogs, classEntry.id).map((dog) => {
-                          const statusColor = getDogStatusColor(dog);
-                          return (
-                            <div 
-                              key={dog.id}
-                              className={`dog-entry ${statusColor}`}
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                hapticFeedback.impact('light');
-                                // Open scoresheet and automatically set dog to in-ring status
-                                await handleDogScoresheet(dog, classEntry);
-                              }}
-                            >
-                              <div className="dog-status">
-                                <span className="dog-status-icon">
-                                  {getDogStatusIcon(dog)}
-                                </span>
-                              </div>
-                              <div className="dog-armband">
-                                {dog.armband}
-                              </div>
-                              <div className="dog-info">
-                                <div className="dog-name">{dog.call_name}</div>
-                                <div className="dog-handler">{dog.handler}</div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Smart Expand/Collapse with Summary */}
-                      {(() => {
-                        const statusFilter = dogStatusFilters.get(classEntry.id) || 'all';
-                        const filteredDogs = getFilteredDogs(classEntry.dogs, statusFilter);
-                        const _visibleCount = getVisibleDogs(classEntry.dogs, classEntry.id).length;
-                        const totalCount = filteredDogs.length;
-                        
-                        if (!expandedClasses.has(classEntry.id) && totalCount > 9) {
-                          const hiddenDogs = filteredDogs.slice(9);
-                          const hiddenCounts = getDogStatusCounts(hiddenDogs);
-                          
-                          return (
-                            <button
-                              className="dog-grid-summary"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleClassExpansion(classEntry.id);
-                              }}
-                            >
-                              <ChevronDown className="h-4 w-4" />
-                              <span>+{totalCount - 9} more dogs</span>
-                              <div className="grid-summary-stats">
-                                {hiddenCounts.pending > 0 && (
-                                  <div className="summary-stat">
-                                    <div className="summary-dot" style={{color: '#6b7280'}}></div>
-                                    {hiddenCounts.pending}
-                                  </div>
-                                )}
-                                {hiddenCounts.checkedin > 0 && (
-                                  <div className="summary-stat">
-                                    <div className="summary-dot" style={{color: '#047857'}}></div>
-                                    {hiddenCounts.checkedin}
-                                  </div>
-                                )}
-                                {hiddenCounts.active > 0 && (
-                                  <div className="summary-stat">
-                                    <div className="summary-dot" style={{color: '#c2410c'}}></div>
-                                    {hiddenCounts.active}
-                                  </div>
-                                )}
-                                {hiddenCounts.completed > 0 && (
-                                  <div className="summary-stat">
-                                    <div className="summary-dot" style={{color: '#047857'}}></div>
-                                    {hiddenCounts.completed}
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        }
-                        
-                        if (expandedClasses.has(classEntry.id) && totalCount > 9) {
-                          return (
-                            <button
-                              className="expand-button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleClassExpansion(classEntry.id);
-                              }}
-                            >
-                              <ChevronUp className="h-4 w-4" />
-                              Show less
-                            </button>
-                          );
-                        }
-                        
-                        return null;
-                      })()}
-                    </>
+                    <div className="contextual-preview">
+                      {getContextualPreview(classEntry).split('\n').map((line, index) => (
+                        <p key={index} className={`preview-line ${index === 0 ? 'preview-primary' : 'preview-secondary'}`}>
+                          {line}
+                        </p>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="no-dogs">
-                      <Users className="no-dogs-icon" />
-                      <p>No dogs entered yet</p>
-                      <p className="no-dogs-subtitle">
-                        Entries will appear when dogs are registered
+                    <div className="no-entries">
+                      <Users className="no-entries-icon" />
+                      <p>No entries yet</p>
+                      <p className="no-entries-subtitle">
+                        Dogs will appear when registered
                       </p>
                     </div>
                   )}
@@ -997,39 +1140,48 @@ export const ClassList: React.FC = () => {
         })}
       </div>
 
-      {/* Status Selection Popup */}
+      {/* Status Selection - Responsive Bottom Sheet */}
       {activeStatusPopup !== null && (
-        <div className="popup-overlay" onClick={() => setActiveStatusPopup(null)}>
-          <div className="popup-container">
-            <div className="popup-content">
-              <h3>Class Status</h3>
-              <div className="status-options">
-                {[
-                  { status: 'none', label: 'None', icon: '⚪' },
-                  { status: 'setup', label: 'Setup', icon: '🔧' },
-                  { status: 'briefing', label: 'Briefing', icon: '📋' },
-                  { status: 'break', label: 'Break', icon: '☕' },
-                  { status: 'start_time', label: 'Start Time', icon: '⏰' },
-                  { status: 'in_progress', label: 'In Progress', icon: '🏃' },
-                  { status: 'completed', label: 'Completed', icon: '✅' }
-                ].map(({ status, label, icon }) => (
-                  <button
-                    key={status}
-                    className="status-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleClassStatusChange(activeStatusPopup, status as any);
-                      setActiveStatusPopup(null);
-                    }}
-                  >
-                    <span className="status-icon">{icon}</span>
-                    <span className="status-label">{label}</span>
-                  </button>
-                ))}
+        <>
+          <div className="bottom-sheet-backdrop" onClick={() => setActiveStatusPopup(null)} />
+          <div className="status-popup">
+            <div className="status-popup-content">
+              <div className="mobile-sheet-header">
+                <h3>Class Status</h3>
+                <button 
+                  className="close-sheet-btn"
+                  onClick={() => setActiveStatusPopup(null)}
+                >
+                  ✕
+                </button>
               </div>
+              {[
+                { status: 'none', label: 'None', icon: Circle },
+                { status: 'setup', label: 'Setup', icon: Settings },
+                { status: 'briefing', label: 'Briefing', icon: FileText },
+                { status: 'break', label: 'Break', icon: Coffee },
+                { status: 'start_time', label: 'Start Time', icon: Clock },
+                { status: 'in_progress', label: 'In Progress', icon: Play },
+                { status: 'completed', label: 'Completed', icon: CheckCircle }
+              ].map(({ status, label, icon: IconComponent }) => (
+                <button
+                  key={status}
+                  className={`status-option status-${status}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClassStatusChange(activeStatusPopup, status as any);
+                    setActiveStatusPopup(null);
+                  }}
+                >
+                  <span className="popup-icon">
+                    <IconComponent size={18} />
+                  </span>
+                  <span className="popup-label">{label}</span>
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Navigation Menu Popup */}

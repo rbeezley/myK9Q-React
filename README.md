@@ -46,17 +46,37 @@ A modern, production-ready Progressive Web App (PWA) for professional dog show r
 
 1. **Clone and install dependencies:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/rbeezley/myK9Q-React.git
    cd myK9Q-React-new
    npm install
    ```
 
 2. **Environment Configuration:**
-   Create `.env.local`:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   
+   **🚨 IMPORTANT: Required for login to work!**
+   
+   **Option A: Automated Setup (Recommended)**
+   ```bash
+   npm run setup
    ```
+   This interactive script will guide you through setting up your Supabase credentials.
+   
+   **Option B: Manual Setup**
+   ```bash
+   # Copy the environment template
+   cp .env.local.example .env.local
+   ```
+   
+   Then edit `.env.local` with your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   ```
+   
+   **Where to find these values:**
+   - Go to https://app.supabase.com/project/[your-project]/settings/api
+   - Copy your Project URL and anon/public key
+   - Paste them into `.env.local`
 
 3. **Database Setup:**
    ```sql
@@ -255,9 +275,35 @@ VITE_ENVIRONMENT=production
 - **Deployment Guide**: See `docs/deployment.md`
 
 ### Common Issues
-1. **Connection Issues**: Check Supabase configuration and network
-2. **Authentication Problems**: Verify license key format and database access
-3. **Offline Sync**: Monitor browser storage and service worker status
+
+#### 🚫 "Missing Supabase environment variables" Error
+**Symptoms:** Login page doesn't load, console shows Supabase error
+**Solution:**
+1. Ensure `.env.local` file exists in project root
+2. Verify it contains valid `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+3. Restart development server: `npm run dev`
+4. Check browser console for detailed error messages
+
+#### 🌐 Connection Issues
+**Symptoms:** API calls failing, network errors
+**Solutions:**
+- Check Supabase project status and configuration
+- Verify network connectivity
+- Check browser network tab for failed requests
+
+#### 🔐 Authentication Problems  
+**Symptoms:** Login fails, invalid credentials
+**Solutions:**
+- Verify license key format and database access
+- Check Supabase RLS policies
+- Ensure passcode generation logic matches database
+
+#### 📱 PWA/Offline Issues
+**Symptoms:** App doesn't work offline, sync problems
+**Solutions:**
+- Monitor browser storage and service worker status
+- Check Application tab in browser dev tools
+- Clear cache and reload if needed
 
 ## License
 

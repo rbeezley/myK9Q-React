@@ -1,0 +1,596 @@
+/* Championship Chase Styles for TV Dashboard */
+
+.championship-chase {
+  height: 100%;
+  padding: 1vw;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: white;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.championship-chase.loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2vw;
+}
+
+.loading-spinner {
+  width: 4vw;
+  height: 4vw;
+  border: 0.3vw solid rgba(255, 255, 255, 0.3);
+  border-top: 0.3vw solid var(--akc-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  font-size: 1.8vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Header Section */
+.championship-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2vw;
+  padding-bottom: 1.5vw;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.championship-title h2 {
+  font-size: 3vw;
+  font-weight: 800;
+  margin: 0;
+  color: var(--akc-gold);
+  text-shadow: 0 0.2vw 0.8vw rgba(255, 215, 0, 0.3);
+}
+
+.championship-subtitle {
+  font-size: 1.4vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.5vw;
+}
+
+.championship-stats {
+  display: flex;
+  gap: 2.5vw;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2.5vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 1.1vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.3vw;
+}
+
+/* Current Leader Section */
+.current-leader {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 1.5vw;
+  padding: 1.5vw 2vw;
+  margin-bottom: 2vw;
+  backdrop-filter: blur(10px);
+}
+
+.leader-badge {
+  font-size: 1.2vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+  margin-bottom: 1vw;
+  text-align: center;
+  text-shadow: 0 0.1vw 0.3vw rgba(255, 215, 0, 0.5);
+}
+
+.leader-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1vw;
+}
+
+.leader-primary {
+  display: flex;
+  align-items: center;
+  gap: 1.5vw;
+}
+
+.leader-armband {
+  font-size: 1.8vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+  background: rgba(255, 215, 0, 0.2);
+  padding: 0.3vw 0.8vw;
+  border-radius: 0.5vw;
+}
+
+.leader-name {
+  font-size: 2.2vw;
+  font-weight: 700;
+  color: white;
+}
+
+.leader-breed {
+  font-size: 1.4vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.leader-secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3vw;
+}
+
+.leader-handler {
+  font-size: 1.3vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.leader-score {
+  font-size: 2vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+}
+
+.leader-progress {
+  display: flex;
+  align-items: center;
+  gap: 1.5vw;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 0.8vw;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0.4vw;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 0.4vw;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 1.1vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+/* Championship Content */
+.championship-content {
+  height: 45vh;
+  overflow: hidden;
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5vw;
+}
+
+.view-header h3 {
+  font-size: 2vw;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.view-indicator {
+  font-size: 1.1vw;
+  font-weight: 500;
+  color: var(--akc-gold);
+  background: rgba(255, 215, 0, 0.1);
+  padding: 0.4vw 1vw;
+  border-radius: 0.5vw;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Leaderboard View */
+.qualifiers-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1vw;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.qualifier-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1vw;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 0.3vw solid var(--status-color);
+  border-radius: 0.8vw;
+  padding: 0.8vw 1vw;
+  transition: all 0.3s ease;
+}
+
+.qualifier-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-0.1vw);
+}
+
+.qualifier-rank {
+  font-size: 1.8vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+  min-width: 3vw;
+}
+
+.qualifier-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vw;
+}
+
+.qualifier-primary {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+}
+
+.qualifier-armband {
+  font-size: 1.1vw;
+  font-weight: 600;
+  color: var(--akc-gold);
+  background: rgba(255, 215, 0, 0.15);
+  padding: 0.2vw 0.5vw;
+  border-radius: 0.3vw;
+}
+
+.qualifier-name {
+  font-size: 1.4vw;
+  font-weight: 600;
+  color: white;
+}
+
+.qualifier-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2vw;
+}
+
+.qualifier-breed {
+  font-size: 1vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.qualifier-handler {
+  font-size: 1vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.qualifier-scores {
+  text-align: right;
+}
+
+.combined-score {
+  font-size: 1.6vw;
+  font-weight: 700;
+  color: white;
+}
+
+.daily-scores {
+  display: flex;
+  gap: 0.8vw;
+  margin-top: 0.2vw;
+}
+
+.daily-scores span {
+  font-size: 0.9vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.qualifier-status {
+  text-align: center;
+}
+
+.status-badge {
+  font-size: 0.9vw;
+  font-weight: 600;
+  color: white;
+  padding: 0.3vw 0.8vw;
+  border-radius: 0.4vw;
+  white-space: nowrap;
+}
+
+/* Bracket View */
+.bracket-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2vw;
+  max-height: 40vh;
+  overflow: hidden;
+}
+
+.bracket-round {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.round-title {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+  text-align: center;
+  margin-bottom: 1vw;
+  padding-bottom: 0.5vw;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.bracket-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vw;
+  overflow-y: auto;
+}
+
+.bracket-seed {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5vw;
+  padding: 0.8vw 1vw;
+  transition: all 0.3s ease;
+}
+
+.bracket-seed:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.seed-number {
+  font-size: 1vw;
+  font-weight: 600;
+  color: var(--akc-gold);
+  min-width: 2.5vw;
+}
+
+.seed-name {
+  font-size: 1.2vw;
+  font-weight: 600;
+  color: white;
+  flex: 1;
+}
+
+.seed-score {
+  font-size: 1.1vw;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Progress View */
+.progress-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1vw;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.progress-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.8vw;
+  padding: 1.2vw;
+  transition: all 0.3s ease;
+}
+
+.progress-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  margin-bottom: 1vw;
+}
+
+.progress-rank {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+}
+
+.progress-name {
+  font-size: 1.4vw;
+  font-weight: 600;
+  color: white;
+}
+
+.progress-breed {
+  font-size: 1.1vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.progress-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vw;
+}
+
+.progress-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1vw;
+  font-weight: 500;
+}
+
+.progress-status {
+  font-weight: 600;
+}
+
+/* Championship Timeline */
+.championship-timeline {
+  margin-top: 2vw;
+  padding: 1.5vw 2vw;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 1vw;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timeline-title {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: var(--akc-gold);
+  text-align: center;
+  margin-bottom: 1vw;
+}
+
+.timeline-items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.timeline-items::before {
+  content: '';
+  position: absolute;
+  top: 1vw;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--akc-gold) 66%, rgba(255, 255, 255, 0.3) 66%);
+  z-index: 0;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8vw;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-dot {
+  width: 2vw;
+  height: 2vw;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.timeline-item.completed .timeline-dot {
+  background: var(--akc-gold);
+  border-color: var(--akc-gold);
+  box-shadow: 0 0 1vw rgba(255, 215, 0, 0.4);
+}
+
+.timeline-item.active .timeline-dot {
+  background: var(--akc-gold);
+  border-color: var(--akc-gold);
+  box-shadow: 0 0 1.5vw rgba(255, 215, 0, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.timeline-content {
+  text-align: center;
+}
+
+.timeline-time {
+  font-size: 1.1vw;
+  font-weight: 600;
+  color: white;
+}
+
+.timeline-text {
+  font-size: 1vw;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.2vw;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 1.5vw rgba(255, 215, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 2vw rgba(255, 215, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 1.5vw rgba(255, 215, 0, 0.6);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1600px) {
+  .qualifiers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scrollbar styling */
+.qualifiers-grid::-webkit-scrollbar,
+.bracket-matches::-webkit-scrollbar,
+.progress-grid::-webkit-scrollbar {
+  width: 0.5vw;
+}
+
+.qualifiers-grid::-webkit-scrollbar-track,
+.bracket-matches::-webkit-scrollbar-track,
+.progress-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.25vw;
+}
+
+.qualifiers-grid::-webkit-scrollbar-thumb,
+.bracket-matches::-webkit-scrollbar-thumb,
+.progress-grid::-webkit-scrollbar-thumb {
+  background: var(--akc-gold);
+  border-radius: 0.25vw;
+}
+
+.qualifiers-grid::-webkit-scrollbar-thumb:hover,
+.bracket-matches::-webkit-scrollbar-thumb:hover,
+.progress-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.8);
+}

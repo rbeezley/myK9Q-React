@@ -9,6 +9,7 @@ interface ShowContext {
   licenseKey: string;
   org: string; // Organization type (e.g., 'UKC Obedience', 'AKC Scent Work')
   competition_type: string; // Competition type (e.g., 'National', 'Regular')
+  showType?: string; // Show type for nationals detection
 }
 
 interface AuthState {

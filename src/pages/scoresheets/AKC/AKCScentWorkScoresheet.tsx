@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 // import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
@@ -103,6 +103,19 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
   const [stopwatchInterval, setStopwatchInterval] = useState<NodeJS.Timeout | null>(null);
   const [currentAreaIndex, setCurrentAreaIndex] = useState(0);
+
+  // Refs to capture current values for cleanup
+  const currentEntryRef = useRef(currentEntry);
+  const stopwatchIntervalRef = useRef(stopwatchInterval);
+
+  // Update refs when values change
+  useEffect(() => {
+    currentEntryRef.current = currentEntry;
+  }, [currentEntry]);
+
+  useEffect(() => {
+    stopwatchIntervalRef.current = stopwatchInterval;
+  }, [stopwatchInterval]);
   
   // Apply theme to document root
   useEffect(() => {
@@ -145,11 +158,19 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       // Move to next area if available, otherwise stay on current
       if (currentAreaIndex < areas.length - 1) {
         setCurrentAreaIndex(prev => prev + 1);
+        // Reset stopwatch for next area (multi-area workflow)
+        resetStopwatch();
       }
     }
-    
-    // Reset stopwatch
-    resetStopwatch();
+  };
+  
+  const pauseStopwatch = () => {
+    setIsStopwatchRunning(false);
+    if (stopwatchInterval) {
+      clearInterval(stopwatchInterval);
+      setStopwatchInterval(null);
+    }
+    // Just pause without moving to next area or resetting
   };
   
   const resetStopwatch = () => {
@@ -168,31 +189,96 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     return `${minutes}:${seconds.padStart(5, '0')}`;
   };
   
+  // Helper functions for time input formatting
+  const isDetectiveSearch = (entry?: any): boolean => {
+    const targetEntry = entry || currentEntry;
+    return targetEntry?.element?.toLowerCase() === 'detective' || 
+           targetEntry?.className?.toLowerCase().includes('detective');
+  };
+  
+  const getMaxDigits = (entry?: any): number => {
+    return isDetectiveSearch(entry) ? 6 : 5; // Detective: MM:SS.SS (6), Others: M:SS.SS (5)
+  };
+  
+  const formatTimeInput = (input: string, entry?: any): string => {
+    // Remove all non-digit characters
+    const digits = input.replace(/[^\d]/g, '');
+    const maxDigits = getMaxDigits(entry);
+    
+    // Limit to max digits
+    const limitedDigits = digits.substring(0, maxDigits);
+    
+    if (limitedDigits.length === 0) return '';
+    
+    // Format based on length
+    if (limitedDigits.length <= 2) {
+      // Just seconds: "12" -> "12"
+      return limitedDigits;
+    } else if (limitedDigits.length <= 4) {
+      // Seconds with decimals: "1234" -> "12.34"
+      const seconds = limitedDigits.substring(0, limitedDigits.length - 2);
+      const centiseconds = limitedDigits.substring(limitedDigits.length - 2);
+      return `${seconds}.${centiseconds}`;
+    } else {
+      // Minutes and seconds: "12345" -> "1:23.45" or "123456" -> "12:34.56"
+      const isDetective = maxDigits === 6;
+      const minutesLength = isDetective ? 2 : 1;
+      
+      const minutes = limitedDigits.substring(0, minutesLength);
+      const seconds = limitedDigits.substring(minutesLength, minutesLength + 2);
+      const centiseconds = limitedDigits.substring(minutesLength + 2);
+      
+      return `${minutes}:${seconds}.${centiseconds}`;
+    }
+  };
+  
+  const handleTimeInputChange = (index: number, value: string, sampleEntry?: any) => {
+    const entryToUse = sampleEntry || currentEntry;
+    const formattedTime = formatTimeInput(value, entryToUse);
+    handleAreaUpdate(index, 'time', formattedTime);
+  };
+  
   // Load class entries on mount or set test data
   useEffect(() => {
+    console.log('🔍 AKC Scent Work useEffect triggered:', { classId, licenseKey: showContext?.licenseKey, entryId });
     if (classId && showContext?.licenseKey) {
+      console.log('📞 Calling loadEntries()...');
       loadEntries();
     } else if (!classId) {
+      console.log('🧪 Test mode: initializing sample areas');
       // For test route without parameters, initialize sample areas
       const sampleAreas = initializeAreas("Interior", "Masters");
       setAreas(sampleAreas);
+    } else {
+      console.log('❌ Missing required params:', { classId: !!classId, licenseKey: !!showContext?.licenseKey });
     }
   }, [classId, entryId, showContext]);
 
   // Cleanup stopwatch and clear in-ring status on unmount
   useEffect(() => {
     return () => {
-      if (stopwatchInterval) {
-        clearInterval(stopwatchInterval);
+      const currentEntryAtCleanup = currentEntryRef.current;
+      const stopwatchIntervalAtCleanup = stopwatchIntervalRef.current;
+      
+      console.log('🧹 Cleanup running - currentEntry:', currentEntryAtCleanup?.id, 'stopwatchInterval:', !!stopwatchIntervalAtCleanup);
+      
+      if (stopwatchIntervalAtCleanup) {
+        console.log('🕐 Clearing stopwatch interval');
+        clearInterval(stopwatchIntervalAtCleanup);
       }
-      // Clear in-ring status when leaving scoresheet
-      if (currentEntry?.id) {
-        markInRing(currentEntry.id, false).catch(error => {
+      
+      // Always clear in-ring status when leaving scoresheet
+      // This handles both cases: confirming score OR clicking back to classes
+      if (currentEntryAtCleanup?.id) {
+        console.log('🐕 Clearing dog', currentEntryAtCleanup.id, 'from ring');
+        markInRing(currentEntryAtCleanup.id, false).catch(error => {
           console.error('Failed to clear in-ring status on unmount:', error);
         });
+      } else {
+        console.log('❌ No currentEntry.id found during cleanup');
       }
     };
-  }, [stopwatchInterval, currentEntry?.id]);
+  }, []); // Empty dependency array - only run on unmount
   
   // Auto-stop stopwatch when time expires
   useEffect(() => {
@@ -395,6 +481,9 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     // Use the user's selected qualification directly
     const finalQualifying = qualifying || 'NQ';
+    
+    // Result is already in full word format
+    const finalResultText = finalQualifying;
     const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
     
     // Prepare area results
@@ -422,7 +511,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       if (isOnline) {
         // Submit directly if online
         await submitScore(currentEntry.id, {
-          resultText: finalQualifying || 'NQ',
+          resultText: finalResultText,
           searchTime: finalTotalTime,
           nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined
         });
@@ -434,7 +523,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
           classId: parseInt(classId!),
           className: currentEntry.className,
           scoreData: {
-            resultText: finalQualifying || 'NQ',
+            resultText: finalResultText,
             searchTime: finalTotalTime,
             nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
             areas: areaResults
@@ -468,7 +557,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
         errorStack: error instanceof Error ? error.stack : 'No stack trace',
         currentEntry: currentEntry?.id,
         scoreData: {
-          resultText: finalQualifying || 'NQ',
+          resultText: finalResultText,
           searchTime: finalTotalTime,
           nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined
         },
@@ -541,7 +630,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       setAreas(sampleAreas);
     }
     
-    const allAreasScored = areas.every(area => area.time && area.time !== '');
+    const allAreasScored = qualifying !== 'Q' || areas.every(area => area.time && area.time !== '');
     const isResultSelected = qualifying !== '';
     const isNQReasonRequired = (qualifying === 'NQ' || qualifying === 'EX' || qualifying === 'WD') && nonQualifyingReason === '';
     
@@ -603,7 +692,9 @@ export const AKCScentWorkScoresheet: React.FC = () => {
                 {isStopwatchRunning ? '⏸' : '▶'}
                 {isStopwatchRunning ? ' Stop' : ' Start'}
               </button>
-              <button className="timer-btn-secondary">⏱</button>
+              {isStopwatchRunning && (
+                <button className="timer-btn-secondary" onClick={pauseStopwatch} title="Pause without moving to next area">⏸️</button>
+              )}
             </div>
           </div>
         </div>
@@ -621,13 +712,27 @@ export const AKCScentWorkScoresheet: React.FC = () => {
                     Area {index + 1}
                   </button>
                 )}
-                <input
-                  type="text"
-                  placeholder="Enter Area Time"
-                  value={area.time}
-                  onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
-                  className="area-time-input"
-                />
+                <div className="time-input-wrapper">
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder={isDetectiveSearch(sampleEntry) ? "Enter 6 Digits Only (00:00.00)" : "Enter 5 Digits Only (0:00.00)"}
+                    value={area.time}
+                    onChange={(e) => handleTimeInputChange(index, e.target.value, sampleEntry)}
+                    onFocus={(e) => e.target.select()}
+                    className="area-time-input"
+                    maxLength={isDetectiveSearch(sampleEntry) ? 8 : 7}
+                  />
+                  {area.time && (
+                    <button 
+                      className="clear-time-btn"
+                      onClick={() => handleAreaUpdate(index, 'time', '')}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
                 <span className="max-time">Max: {getMaxTimeForArea(index)}</span>
               </div>
             );
@@ -641,7 +746,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
               className={`result-btn ${qualifying === 'Q' ? 'active' : ''}`}
               onClick={() => setQualifying('Q')}
             >
-              Qualified
+              Qualified (Q)
             </button>
             <button
               className={`result-btn ${qualifying === 'NQ' ? 'active' : ''}`}
@@ -653,10 +758,10 @@ export const AKCScentWorkScoresheet: React.FC = () => {
               NQ
             </button>
             <button
-              className={`result-btn ${qualifying === 'E' ? 'active' : ''}`}
-              onClick={() => setQualifying('E')}
+              className={`result-btn ${qualifying === 'ABS' ? 'active' : ''}`}
+              onClick={() => setQualifying('ABS')}
             >
-              Absent
+              Absent (ABS)
             </button>
             <button
               className={`result-btn ${qualifying === 'EX' ? 'active' : ''}`}
@@ -860,7 +965,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   }
   
   const _currentIndex = currentClassEntries.findIndex(e => e.id === currentEntry.id) + 1;
-  const allAreasScored = areas.every(area => area.time && area.time !== '');
+  const allAreasScored = qualifying !== 'Q' || areas.every(area => area.time && area.time !== '');
   const isResultSelected = qualifying !== '';
   const isNQReasonRequired = (qualifying === 'NQ' || qualifying === 'EX' || qualifying === 'WD') && nonQualifyingReason === '';
   
@@ -909,7 +1014,9 @@ export const AKCScentWorkScoresheet: React.FC = () => {
               {isStopwatchRunning ? '⏸' : '▶'}
               {isStopwatchRunning ? ' Stop' : ' Start'}
             </button>
-            <button className="timer-btn-secondary">⏱</button>
+            {isStopwatchRunning && (
+              <button className="timer-btn-secondary" onClick={pauseStopwatch} title="Pause without moving to next area">⏸️</button>
+            )}
           </div>
         </div>
       </div>
@@ -927,13 +1034,27 @@ export const AKCScentWorkScoresheet: React.FC = () => {
                   Area {index + 1}
                 </button>
               )}
-              <input
-                type="text"
-                placeholder="Enter Area Time"
-                value={area.time}
-                onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
-                className="area-time-input"
-              />
+              <div className="time-input-wrapper">
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder={isDetectiveSearch() ? "Enter 6 Digits Only (00:00.00)" : "Enter 5 Digits Only (0:00.00)"}
+                  value={area.time}
+                  onChange={(e) => handleTimeInputChange(index, e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  className="area-time-input"
+                  maxLength={isDetectiveSearch() ? 8 : 7}
+                />
+                {area.time && (
+                  <button 
+                    className="clear-time-btn"
+                    onClick={() => handleAreaUpdate(index, 'time', '')}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
               <span className="max-time">Max: {getMaxTimeForArea(index)}</span>
             </div>
           );
@@ -947,7 +1068,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
             className={`result-btn ${qualifying === 'Q' ? 'active' : ''}`}
             onClick={() => setQualifying('Q')}
           >
-            Qualified
+            Qualified (Q)
           </button>
           <button
             className={`result-btn ${qualifying === 'NQ' ? 'active' : ''}`}
@@ -959,10 +1080,10 @@ export const AKCScentWorkScoresheet: React.FC = () => {
             NQ
           </button>
           <button
-            className={`result-btn ${qualifying === 'E' ? 'active' : ''}`}
-            onClick={() => setQualifying('E')}
+            className={`result-btn ${qualifying === 'ABS' ? 'active' : ''}`}
+            onClick={() => setQualifying('ABS')}
           >
-            Absent
+            Absent (ABS)
           </button>
           <button
             className={`result-btn ${qualifying === 'EX' ? 'active' : ''}`}
@@ -986,7 +1107,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       </div>
       
       {/* Faults Count Section - Only show for Qualified */}
-      {qualifying === 'Q' && (
+      {qualifying === 'Qualified' && (
         <div className="faults-section">
           <h3>Faults Count</h3>
           <div className="fault-counter">
@@ -1135,7 +1256,15 @@ export const AKCScentWorkScoresheet: React.FC = () => {
         <div className="confirmation-overlay">
           <div className="confirmation-dialog">
             <div className={`confirmation-header ${qualifying?.toLowerCase() || ''}`}>
-              {qualifying === 'Q' ? 'QUALIFIED' : qualifying}
+              {(() => {
+                const result = qualifying?.toLowerCase() || '';
+                if (result === 'qualified') return 'QUALIFIED';
+                if (result === 'nq') return 'NON-QUALIFYING';
+                if (result === 'absent') return 'ABSENT';
+                if (result === 'excused') return 'EXCUSED';
+                if (result === 'withdrawn') return 'WITHDRAWN';
+                return qualifying?.toUpperCase() || '';
+              })()}
             </div>
             <div className="confirmation-details">
               <div className="confirmation-dog-info">

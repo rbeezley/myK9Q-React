@@ -70,7 +70,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
         });
       }
     };
-  }, [currentEntry?.id]);
+  }, []); // Fixed: removed currentEntry?.id dependency
   
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;

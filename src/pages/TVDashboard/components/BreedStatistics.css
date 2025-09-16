@@ -1,0 +1,493 @@
+/* Breed Statistics Component Styles */
+.breed-statistics {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, rgba(0, 122, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 1.2vw;
+  padding: 2vw;
+  height: 100%;
+  overflow-y: auto;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Header */
+.breed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5vw;
+  padding-bottom: 1vw;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.breed-header h2 {
+  color: var(--akc-gold);
+  font-size: 2.8vw;
+  font-weight: bold;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8vw;
+}
+
+.breed-icon {
+  font-size: 3.2vw;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+}
+
+.view-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0.6vw;
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.view-toggle button {
+  background: transparent;
+  border: none;
+  padding: 0.6vw 1.2vw;
+  font-size: 1.2vw;
+  font-weight: 500;
+  color: var(--akc-black);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-toggle button.active {
+  background: var(--akc-gold);
+  color: var(--akc-black);
+  font-weight: bold;
+}
+
+.view-toggle button:hover:not(.active) {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* Overview Mode */
+.breed-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 2vw;
+}
+
+.breed-rankings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vw;
+}
+
+.breed-rank-item {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 0.8vw;
+  padding: 1vw 1.2vw;
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.breed-rank-item:hover {
+  background: rgba(255, 215, 0, 0.05);
+  transform: translateX(0.3vw);
+  box-shadow: 0 0.5vw 1.5vw rgba(255, 215, 0, 0.3);
+}
+
+.rank-position {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  min-width: 4vw;
+}
+
+.rank-number {
+  background: var(--akc-gold);
+  color: var(--akc-black);
+  font-size: 1.4vw;
+  font-weight: bold;
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-medal {
+  font-size: 2vw;
+  animation: sparkle 3s infinite;
+}
+
+.breed-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.breed-name {
+  color: var(--akc-black);
+  font-size: 1.8vw;
+  font-weight: bold;
+  margin-bottom: 0.3vw;
+}
+
+.breed-stats-summary {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 1.2vw;
+}
+
+.breed-performance {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  min-width: 8vw;
+}
+
+.performance-bar {
+  height: 0.8vw;
+  border-radius: 0.4vw;
+  transition: width 0.8s ease-in-out;
+  position: relative;
+  min-width: 6vw;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.performance-score {
+  color: var(--akc-black);
+  font-size: 1.4vw;
+  font-weight: bold;
+  min-width: 3vw;
+  text-align: right;
+}
+
+/* Insights */
+.breed-insights h3 {
+  color: var(--akc-gold);
+  font-size: 2.2vw;
+  font-weight: bold;
+  margin-bottom: 1vw;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1vw;
+}
+
+.insight-item {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 0.8vw;
+  padding: 1vw;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  transition: all 0.3s ease;
+}
+
+.insight-item:hover {
+  transform: translateY(-0.2vw);
+  box-shadow: 0 0.5vw 1.5vw rgba(255, 215, 0, 0.2);
+}
+
+.insight-icon {
+  font-size: 2.5vw;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3));
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-label {
+  color: var(--akc-black);
+  font-size: 1.2vw;
+  font-weight: 600;
+  margin-bottom: 0.3vw;
+}
+
+.insight-value {
+  color: var(--akc-gold);
+  font-size: 1.4vw;
+  font-weight: bold;
+}
+
+/* Detailed View */
+.breed-detailed {
+  animation: slideIn 0.5s ease-in-out;
+}
+
+.breed-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  margin-bottom: 2vw;
+  padding-bottom: 1vw;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.back-button {
+  background: var(--akc-gold);
+  color: var(--akc-black);
+  border: none;
+  padding: 0.6vw 1.2vw;
+  border-radius: 0.5vw;
+  font-size: 1.2vw;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #E6C200;
+  transform: translateX(-0.2vw);
+}
+
+.breed-detail-header h3 {
+  color: var(--akc-black);
+  font-size: 2.4vw;
+  font-weight: bold;
+  margin: 0;
+  flex: 1;
+}
+
+.breed-rank-badge {
+  background: var(--akc-blue);
+  color: white;
+  padding: 0.5vw 1vw;
+  border-radius: 0.5vw;
+  font-size: 1.2vw;
+  font-weight: bold;
+}
+
+/* Metrics Grid */
+.breed-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1vw;
+  margin-bottom: 2vw;
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 0.8vw;
+  padding: 1.2vw;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-0.2vw);
+  box-shadow: 0 0.5vw 1.5vw rgba(255, 215, 0, 0.2);
+}
+
+.metric-value {
+  color: var(--akc-gold);
+  font-size: 2.8vw;
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: 0.5vw;
+}
+
+.metric-label {
+  color: var(--akc-black);
+  font-size: 1.2vw;
+  font-weight: 500;
+}
+
+/* Top Performer Card */
+.top-performer-card {
+  background: linear-gradient(135deg, var(--akc-gold) 0%, #E6C200 100%);
+  border-radius: 1vw;
+  padding: 1.5vw;
+  margin-bottom: 2vw;
+  box-shadow: 0 0.5vw 2vw rgba(255, 215, 0, 0.3);
+}
+
+.top-performer-card h4 {
+  color: var(--akc-black);
+  font-size: 1.6vw;
+  font-weight: bold;
+  margin: 0 0 1vw 0;
+}
+
+.performer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4vw;
+}
+
+.performer-name {
+  color: var(--akc-black);
+  font-size: 2vw;
+  font-weight: bold;
+}
+
+.performer-handler,
+.performer-score {
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 1.4vw;
+  font-weight: 500;
+}
+
+/* Score Distribution */
+.score-distribution h4 {
+  color: var(--akc-gold);
+  font-size: 1.6vw;
+  font-weight: bold;
+  margin: 0 0 1vw 0;
+}
+
+.distribution-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vw;
+}
+
+.distribution-bar {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0.6vw;
+  padding: 0.8vw;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-label {
+  min-width: 8vw;
+  font-size: 1.2vw;
+  font-weight: 500;
+  color: var(--akc-black);
+}
+
+.bar-fill {
+  height: 1.5vw;
+  border-radius: 0.75vw;
+  transition: width 0.8s ease-in-out;
+  position: relative;
+  min-width: 0.5vw;
+}
+
+.distribution-bar.excellent .bar-fill { background: #34C759; }
+.distribution-bar.good .bar-fill { background: #007AFF; }
+.distribution-bar.average .bar-fill { background: #FF9500; }
+.distribution-bar.needs-work .bar-fill { background: #FF3B30; }
+
+.bar-value {
+  color: var(--akc-black);
+  font-size: 1.2vw;
+  font-weight: bold;
+  min-width: 2vw;
+  text-align: right;
+}
+
+/* Loading State */
+.breed-statistics.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 4vw;
+  height: 4vw;
+  border: 0.3vw solid rgba(255, 215, 0, 0.2);
+  border-top: 0.3vw solid var(--akc-gold);
+  border-radius: 50%;
+  margin: 0 auto 1vw;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner p {
+  color: var(--akc-gold);
+  font-size: 1.4vw;
+}
+
+/* No Breed Selected */
+.no-breed-selected {
+  text-align: center;
+  padding: 4vw 2vw;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 1.4vw;
+}
+
+/* Error State */
+.error-message {
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 0.6vw;
+  padding: 1vw;
+  color: #FF4444;
+  font-size: 1.2vw;
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  margin-top: 1vw;
+}
+
+.error-icon {
+  font-size: 1.6vw;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(1vw); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(1vw); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(5deg); }
+  50% { transform: scale(1) rotate(0deg); }
+  75% { transform: scale(1.1) rotate(-5deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .breed-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .breed-rank-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.8vw;
+  }
+  
+  .breed-performance {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .distribution-bar {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .bar-label {
+    min-width: auto;
+    margin-bottom: 0.5vw;
+  }
+}

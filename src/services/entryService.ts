@@ -27,9 +27,10 @@ export async function getClassEntries(
   try {
     
     // First, get the class details to know what element, level, section to filter by
+    // CRITICAL: Also get the actual classid field for real-time subscriptions
     const { data: classData, error: classError } = await supabase
       .from('tbl_class_queue')
-      .select('element, level, section, trial_date, trial_number, areas')
+      .select('element, level, section, trial_date, trial_number, areas, classid')
       .eq('id', classId)
       .single();
     
@@ -51,6 +52,7 @@ export async function getClassEntries(
       .eq('trial_number', classData.trial_number)
       .order('armband', { ascending: true });
     
+    
 
     if (viewError) {
       console.error('Error fetching class entries from view:', viewError);
@@ -64,11 +66,12 @@ export async function getClassEntries(
     // Get entry IDs to query check-in status from the base table
     const entryIds = viewData.map(row => row.id);
     
-    // Query the base table for check-in status data
+    // Query the base table for check-in status data and exhibitor_order
     const { data: checkinData, error: checkinError } = await supabase
       .from('tbl_entry_queue')
-      .select('id, checkin_status, in_ring')
+      .select('id, checkin_status, in_ring, exhibitor_order')
       .in('id', entryIds);
+    
     
 
     if (checkinError) {
@@ -97,13 +100,14 @@ export async function getClassEntries(
           checkedIn: item.checkin_status > 0, // Derive checked_in from status code
           checkinStatus: convertedStatus,
           inRing: item.in_ring || false
+          // Remove exhibitorOrder from here - using view data directly
         });
       });
     }
 
 
     // Map database fields to Entry interface, combining view data with check-in status
-    return viewData.map(row => {
+    const mappedEntries = viewData.map(row => {
       const checkinInfo = checkinMap.get(row.id) || { checkedIn: false, checkinStatus: 'none', inRing: false };
       
       return {
@@ -130,9 +134,14 @@ export async function getClassEntries(
         timeLimit: row.time_limit,
         timeLimit2: row.time_limit2,
         timeLimit3: row.time_limit3,
-        areas: classData.areas
+        areas: classData.areas,
+        exhibitorOrder: row.exhibitor_order, // Use exhibitor_order directly from view
+        actualClassId: classData.classid // Add the actual classid for real-time subscriptions
       };
     });
+    
+    
+    return mappedEntries;
   } catch (error) {
     console.error('Error in getClassEntries:', error);
     throw error;
@@ -206,13 +215,16 @@ export async function submitScore(
     mph?: number;
     score?: number;
     deductions?: number;
+    // Nationals-specific fields
+    correctCount?: number;
+    incorrectCount?: number;
   }
 ): Promise<boolean> {
   try {
     const updateData: any = {
       is_scored: true,
       result_text: scoreData.resultText,
-      in_ring: false
+      in_ring: false // Only set false when dog is completely finished scoring
     };
 
     // Add optional fields if provided - using correct database field names
@@ -287,15 +299,32 @@ export async function markInRing(
   entryId: number,
   inRing: boolean = true
 ): Promise<boolean> {
+  console.log(`🔄 markInRing called: entryId=${entryId}, inRing=${inRing}`);
+  
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('tbl_entry_queue')
       .update({ in_ring: inRing })
-      .eq('id', entryId);
+      .eq('id', entryId)
+      .select('id, armband, in_ring, classid_fk'); // Add select to see what was actually updated
 
     if (error) {
-      console.error('Error marking entry in ring:', error);
+      console.error('❌ markInRing database error:', error);
       throw error;
+    }
+
+    console.log('✅ markInRing database update successful:', data);
+    console.log('🔍 Updated records count:', data?.length || 0);
+    
+    if (data && data.length > 0) {
+      console.log('📊 Updated entry details:', {
+        entryId: data[0].id,
+        armband: data[0].armband,
+        inRing: data[0].in_ring,
+        classId: data[0].classid_fk
+      });
+    } else {
+      console.warn('⚠️ No records were updated - entry might not exist');
     }
 
     return true;
@@ -360,30 +389,352 @@ export async function getClassInfo(
  * Subscribe to real-time entry updates
  */
 export function subscribeToEntryUpdates(
-  classId: number,
+  actualClassId: number,
   licenseKey: string,
   onUpdate: (payload: any) => void
 ) {
+  console.log('🔌 Creating subscription for classid_fk:', actualClassId);
+  console.log('🔍 Using correct column name: classid_fk (not class_id)');
+  console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
+  
   const subscription = supabase
-    .channel(`entries:${classId}`)
+    .channel(`entries:${actualClassId}`) 
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
         table: 'tbl_entry_queue',
-        filter: `class_id=eq.${classId}`
+        filter: `classid_fk=eq.${actualClassId}` // Fixed: using correct column name and actual classid
       },
       (payload) => {
+        console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
+        console.log('🔄 Event type:', payload.eventType);
+        console.log('🔄 Table:', payload.table);
+        console.log('🔄 Schema:', payload.schema);
+        console.log('🔄 Timestamp:', new Date().toISOString());
+        console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
+        
+        if (payload.new) {
+          console.log('📈 NEW record data:', JSON.stringify(payload.new, null, 2));
+        }
+        if (payload.old) {
+          console.log('📉 OLD record data:', JSON.stringify(payload.old, null, 2));
+        }
+        
+        // Log specific field changes for in_ring updates
+        if (payload.new && payload.old) {
+          console.log('📊 FIELD CHANGES DETECTED:');
+          const oldData = payload.old as any;
+          const newData = payload.new as any;
+          console.log('  🎯 in_ring changed:', oldData.in_ring, '->', newData.in_ring);
+          console.log('  🆔 entry_id:', newData.id);
+          console.log('  🏷️ armband:', newData.armband);
+          console.log('  📂 classid_fk:', newData.classid_fk);
+          
+          // Check if this is specifically an in_ring change
+          if (oldData.in_ring !== newData.in_ring) {
+            console.log('🎯 THIS IS AN IN_RING STATUS CHANGE!');
+            console.log(`  Dog #${newData.armband} (ID: ${newData.id}) is now ${newData.in_ring ? 'IN RING' : 'NOT IN RING'}`);
+          }
+        }
+        
+        console.log('✅ About to call onUpdate callback...');
         onUpdate(payload);
+        console.log('✅ onUpdate callback completed');
+        console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      console.log('📡 Subscription status:', status);
+      if (err) {
+        console.error('📡 Subscription error:', err);
+      }
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Successfully subscribed to real-time updates for classid_fk', actualClassId);
+        console.log('🎯 Subscription will only receive updates for entries in this class');
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error('❌ Channel error - subscription failed');
+      } else if (status === 'TIMED_OUT') {
+        console.error('⏰ Subscription timed out');
+      } else {
+        console.log('📡 Subscription status update:', status);
+      }
+    });
 
   // Return unsubscribe function
   return () => {
+    console.log('🔌 Unsubscribing from real-time updates for classid_fk', actualClassId);
     subscription.unsubscribe();
   };
+}
+
+/**
+ * Test function to manually update in_ring status for debugging subscriptions
+ * This function can be called from browser console: window.debugMarkInRing(entryId, true/false)
+ */
+export async function debugMarkInRing(entryId: number, inRing: boolean = true): Promise<void> {
+  console.log(`🧪 Debug: Manually updating entry ${entryId} in_ring to:`, inRing);
+  
+  try {
+    const { data, error } = await supabase
+      .from('tbl_entry_queue')
+      .update({ in_ring: inRing })
+      .eq('id', entryId)
+      .select('id, armband, in_ring, classid_fk');
+
+    if (error) {
+      console.error('🧪 Debug update error:', error);
+      throw error;
+    }
+
+    console.log('🧪 Debug update successful:', data);
+    console.log('🧪 Updated entry details:', {
+      entryId: data[0]?.id,
+      armband: data[0]?.armband,
+      inRing: data[0]?.in_ring,
+      classId: data[0]?.classid_fk
+    });
+    console.log('🧪 Now watch for real-time subscription payload in other tabs...');
+    console.log('🧪 Real-time filter should match classid_fk:', data[0]?.classid_fk);
+    
+    return;
+  } catch (error) {
+    console.error('🧪 Debug function failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Test Supabase connection and real-time setup
+ */
+export async function testSupabaseConnection(): Promise<void> {
+  console.log('🧪 Testing Supabase connection and real-time setup...');
+  
+  try {
+    // Test 1: Basic connection
+    const { data, error: connectionError } = await supabase
+      .from('tbl_entry_queue')
+      .select('count', { count: 'exact', head: true });
+      
+    if (connectionError) {
+      console.error('❌ Basic connection failed:', connectionError);
+      return;
+    }
+    
+    console.log('✅ Basic connection successful, total entries:', data);
+    
+    // Test 2: Real-time setup
+    console.log('🧪 Testing real-time subscription setup...');
+    
+    const testChannel = supabase
+      .channel('connection_test')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'tbl_entry_queue' },
+        (payload) => {
+          console.log('🧪 Test subscription received payload:', payload);
+        }
+      )
+      .subscribe((status) => {
+        console.log('🧪 Test subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time subscription test successful!');
+          setTimeout(() => {
+            console.log('🧪 Cleaning up test subscription...');
+            testChannel.unsubscribe();
+          }, 2000);
+        }
+      });
+      
+  } catch (error) {
+    console.error('❌ Supabase connection test failed:', error);
+  }
+}
+
+/**
+ * Test real-time events by making a harmless database change
+ */
+export async function testRealTimeEvents(classId: number): Promise<void> {
+  console.log('🧪 Testing real-time events for class:', classId);
+  
+  try {
+    // Get a random entry from the class to test with
+    const { data: entries, error } = await supabase
+      .from('tbl_entry_queue')
+      .select('id, armband, in_ring, classid_fk')
+      .eq('classid_fk', classId)
+      .limit(1);
+
+    if (error || !entries || entries.length === 0) {
+      console.error('❌ No entries found for class', classId);
+      return;
+    }
+
+    const testEntry = entries[0];
+    console.log('🧪 Using test entry:', testEntry);
+    
+    // Toggle the in_ring status and toggle it back
+    console.log('🧪 Step 1: Setting in_ring to TRUE...');
+    await debugMarkInRing(testEntry.id, true);
+    
+    setTimeout(async () => {
+      console.log('🧪 Step 2: Setting in_ring to FALSE...');
+      await debugMarkInRing(testEntry.id, false);
+    }, 2000);
+    
+    console.log('🧪 Real-time test initiated. Watch for subscription payloads in other tabs!');
+    
+  } catch (error) {
+    console.error('❌ Real-time test failed:', error);
+  }
+}
+
+/**
+ * Test unfiltered real-time subscription to see if the issue is with our filter
+ */
+export async function testUnfilteredRealTime(): Promise<void> {
+  console.log('🧪 Testing UNFILTERED real-time subscription...');
+  
+  const testSub = supabase
+    .channel('unfiltered_test')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'tbl_entry_queue' },
+      (payload) => {
+        console.log('🚨🚨🚨 UNFILTERED REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
+        console.log('📦 Payload:', JSON.stringify(payload, null, 2));
+      }
+    )
+    .subscribe((status) => {
+      console.log('📡 Unfiltered subscription status:', status);
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Unfiltered subscription active. Now try updating any entry...');
+      }
+    });
+  
+  // Return unsubscribe function
+  (window as any).unsubscribeUnfiltered = () => {
+    console.log('🔌 Unsubscribing from unfiltered test...');
+    testSub.unsubscribe();
+  };
+  
+  console.log('🧪 Unfiltered subscription created. Use window.unsubscribeUnfiltered() to stop.');
+}
+
+/**
+ * Debug function to monitor database changes and find what's setting in_ring to false
+ */
+export async function debugMonitorEntry(entryId: number): Promise<void> {
+  console.log(`🥰 MONITORING ENTRY ${entryId} FOR DATABASE CHANGES...`);
+  
+  // First, get current state
+  const { data: currentState, error } = await supabase
+    .from('tbl_entry_queue')
+    .select('id, armband, in_ring, is_scored, result_text')
+    .eq('id', entryId)
+    .single();
+    
+  if (error) {
+    console.error('❌ Failed to get current state:', error);
+    return;
+  }
+  
+  console.log('🔍 CURRENT STATE:', currentState);
+  
+  // Set up real-time monitoring for JUST this entry
+  const monitor = supabase
+    .channel(`monitor_entry_${entryId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'tbl_entry_queue',
+        filter: `id=eq.${entryId}`
+      },
+      (payload) => {
+        console.log('🚨🚨🚨 ENTRY DATABASE CHANGE DETECTED 🚨🚨🚨');
+        console.log('Entry ID:', entryId);
+        console.log('Event type:', payload.eventType);
+        console.log('Timestamp:', new Date().toISOString());
+        
+        const oldData = payload.old as any;
+        const newData = payload.new as any;
+        
+        if (oldData && newData) {
+          console.log('🔄 FIELD CHANGES:');
+          Object.keys(newData).forEach(key => {
+            if (oldData[key] !== newData[key]) {
+              console.log(`  ${key}: ${oldData[key]} -> ${newData[key]}`);
+              
+              if (key === 'in_ring' && newData[key] === false) {
+                console.log('🚨🚨 FOUND THE CULPRIT! in_ring was set to FALSE 🚨🚨');
+                console.log('Stack trace:');
+                console.trace('in_ring set to false');
+              }
+            }
+          });
+        }
+        
+        console.log('Full payload:', JSON.stringify(payload, null, 2));
+        console.log('🚨🚨🚨 END DATABASE CHANGE 🚨🚨🚨');
+      }
+    )
+    .subscribe((status) => {
+      console.log(`📍 Monitor status for entry ${entryId}:`, status);
+      if (status === 'SUBSCRIBED') {
+        console.log(`✅ Now monitoring entry ${entryId} for database changes`);
+        console.log('To stop monitoring, call window.stopMonitoring()');
+      }
+    });
+    
+  // Store unsubscribe function globally
+  (window as any).stopMonitoring = () => {
+    console.log(`🔌 Stopping monitor for entry ${entryId}`);
+    monitor.unsubscribe();
+  };
+}
+
+/**
+ * STOPWATCH ISSUE DEBUGGING - Track exactly when in_ring gets set to false
+ */
+export function debugStopwatchIssue(entryId: number): void {
+  console.log(`🚨 DEBUGGING STOPWATCH ISSUE FOR ENTRY ${entryId} 🚨`);
+  console.log('📋 SETUP INSTRUCTIONS:');
+  console.log('1. Open your entry list page (Tab 2)');
+  console.log('2. Open browser console (F12) in Tab 2');
+  console.log('3. Run this function in Tab 2 console');
+  console.log('4. Go to Tab 1 and start the stopwatch');
+  console.log('5. Watch Tab 2 console for the exact moment in_ring changes');
+  console.log('');
+  
+  // Monitor this specific entry
+  debugMonitorEntry(entryId);
+  
+  console.log('🎯 SPECIFIC THINGS TO WATCH FOR:');
+  console.log('- submitScore() calls (sets in_ring to false)');
+  console.log('- updateEntryCheckinStatus() calls (sets in_ring to false)');
+  console.log('- resetEntryScore() calls (sets in_ring to false)');
+  console.log('- Any other database updates to this entry');
+  console.log('');
+  console.log('✅ Monitoring is now active. Start your stopwatch in the other tab!');
+}
+
+// Make debugging functions globally available
+if (typeof window !== 'undefined') {
+  (window as any).debugMarkInRing = debugMarkInRing;
+  (window as any).testSupabaseConnection = testSupabaseConnection;
+  (window as any).testRealTimeEvents = testRealTimeEvents;
+  (window as any).testUnfilteredRealTime = testUnfilteredRealTime;
+  (window as any).debugMonitorEntry = debugMonitorEntry;
+  (window as any).debugStopwatchIssue = debugStopwatchIssue;
+  console.log('🧪 Debug functions available:');
+  console.log('  - window.debugMarkInRing(entryId, true/false)');
+  console.log('  - window.testSupabaseConnection()');
+  console.log('  - window.testRealTimeEvents(classId)');
+  console.log('  - window.testUnfilteredRealTime()');
+  console.log('  - window.debugMonitorEntry(entryId) // Monitor specific entry for changes');
+  console.log('  - window.debugStopwatchIssue(entryId) // 🚨 NEW: Debug stopwatch issue');
+  console.log('  - window.stopMonitoring() // Stop monitoring');
 }
 
 /**
@@ -549,6 +900,42 @@ export async function getEntriesByArmband(
     }));
   } catch (error) {
     console.error('Error in getEntriesByArmband:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update exhibitor order for multiple entries (for drag and drop reordering)
+ * This updates the database so all users see the new order
+ */
+export async function updateExhibitorOrder(
+  reorderedEntries: Entry[]
+): Promise<boolean> {
+  try {
+    // Update each entry with its new position (1-based indexing)
+    const updates = reorderedEntries.map(async (entry, index) => {
+      const newExhibitorOrder = index + 1;
+      
+      const { error } = await supabase
+        .from('tbl_entry_queue')
+        .update({ exhibitor_order: newExhibitorOrder })
+        .eq('id', entry.id);
+
+      if (error) {
+        console.error(`Failed to update entry ${entry.id}:`, error);
+        throw error;
+      }
+      
+      return { id: entry.id, newOrder: newExhibitorOrder };
+    });
+
+    // Execute all updates
+    await Promise.all(updates);
+    
+    console.log(`✅ Successfully updated exhibitor_order for ${reorderedEntries.length} entries`);
+    return true;
+  } catch (error) {
+    console.error('Error in updateExhibitorOrder:', error);
     throw error;
   }
 }

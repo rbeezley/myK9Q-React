@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-export type QualifyingResult = 'Q' | 'NQ' | 'EX' | 'DQ' | 'E' | 'ABS' | 'WD' | null;
+export type QualifyingResult = 'Q' | 'NQ' | 'EX' | 'DQ' | 'E' | 'ABS' | 'WD' | 'Qualified' | 'Excused' | 'Withdrawn' | 'Eliminated' | 'Absent' | null;
 export type CompetitionType = 
   | 'UKC_OBEDIENCE'
   | 'UKC_RALLY' 
@@ -24,6 +24,10 @@ interface Score {
   mph?: number; // For Fast CAT speed
   score?: number; // For Rally scoring
   deductions?: number; // For Rally deductions
+  // Nationals-specific fields
+  correctCount?: number;
+  incorrectCount?: number;
+  finishCallErrors?: number;
   scoredAt: string;
   syncStatus: 'pending' | 'synced' | 'error';
 }

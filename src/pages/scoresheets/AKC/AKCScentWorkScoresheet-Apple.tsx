@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore } from '../../../services/entryService';
+import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import '../../../styles/apple-design-system.css';
 
@@ -133,6 +133,17 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       setCurrentAreaIndex(0);
     }
   }, [currentEntry]);
+
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, []); // Fixed: removed currentEntry?.id dependency
 
   const loadClassEntries = async () => {
     try {

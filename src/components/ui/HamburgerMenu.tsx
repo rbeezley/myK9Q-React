@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, Home as HomeIcon, MessageSquare, Calendar, Settings } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, MessageSquare, Calendar, Settings, Shield, Monitor } from 'lucide-react';
 import './HamburgerMenu.css';
 
 interface HamburgerMenuProps {
@@ -11,7 +11,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'calendar' | 'settings' | 'entries';
+  currentPage?: 'home' | 'announcements' | 'calendar' | 'settings' | 'entries' | 'admin' | 'tv';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -127,7 +127,30 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <Settings className="menu-icon" />
                 <span>Settings</span>
               </button>
-              
+
+              {/* Admin Section - Only show for admin users */}
+              {role === 'admin' && (
+                <>
+                  <div className="menu-divider"></div>
+                  <button
+                    className={`menu-item ${currentPage === 'tv' ? 'active' : ''}`}
+                    onClick={() => handleMenuItemClick(() => navigate(`/tv/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
+                  >
+                    <Monitor className="menu-icon" />
+                    <span>TV Dashboard</span>
+                  </button>
+
+                  <button
+                    className={`menu-item ${currentPage === 'admin' ? 'active' : ''}`}
+                    onClick={() => handleMenuItemClick(() => navigate(`/admin/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
+                  >
+                    <Shield className="menu-icon" />
+                    <span>Competition Admin</span>
+                  </button>
+                </>
+              )}
+
+              <div className="menu-divider"></div>
               {/* Theme Toggle */}
               <button
                 className="menu-item"

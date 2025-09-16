@@ -18,6 +18,9 @@ export interface QueuedScore {
     mph?: number;
     score?: number;
     deductions?: number;
+    // Nationals-specific fields
+    correctCount?: number;
+    incorrectCount?: number;
   };
   timestamp: string;
   retryCount: number;

@@ -26,11 +26,16 @@ interface ArmbandBadgeProps {
   className?: string;
 }
 
-export const ArmbandBadge: React.FC<ArmbandBadgeProps> = ({ number, className = '' }) => (
-  <div className={`armband-badge ${className}`}>
-    #{number}
-  </div>
-);
+export const ArmbandBadge: React.FC<ArmbandBadgeProps> = ({ number, className = '' }) => {
+  const numberStr = String(number);
+  const isLong = numberStr.length >= 4;
+  
+  return (
+    <div className={`armband-badge ${isLong ? 'long-number' : ''} ${className}`}>
+      {number}
+    </div>
+  );
+};
 
 interface StatusIndicatorProps {
   status: 'scored' | 'pending';
