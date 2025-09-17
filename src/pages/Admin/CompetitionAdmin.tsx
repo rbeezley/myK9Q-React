@@ -528,7 +528,7 @@ export const CompetitionAdmin: React.FC = () => {
   }
 
   return (
-    <div className="competition-admin">
+    <div className="competition-admin app-container">
       {/* Header with hamburger menu */}
       <div className="admin-header">
         <div className="header-content">

@@ -29,6 +29,19 @@ export interface EntryInfo {
   checkin_status?: number;
 }
 
+export interface ShowInfo {
+  showname: string;
+  clubname: string;
+  startdate: string;
+  enddate: string;
+  org: string;
+  showtype: string;
+  sitename: string | null;
+  siteaddress: string | null;
+  sitecity: string | null;
+  sitestate: string | null;
+}
+
 export interface TVDataState {
   classes: ClassInfo[];
   entries: EntryInfo[];
@@ -36,6 +49,7 @@ export interface TVDataState {
   currentClass: ClassInfo | null;
   currentEntry: EntryInfo | null;
   nextEntries: EntryInfo[];
+  showInfo: ShowInfo | null;
   isConnected: boolean;
   lastUpdated: Date | null;
   error: string | null;
@@ -63,6 +77,7 @@ export const useTVData = ({
     currentClass: null,
     currentEntry: null,
     nextEntries: [],
+    showInfo: null,
     isConnected: false,
     lastUpdated: null,
     error: null,
@@ -199,6 +214,22 @@ export const useTVData = ({
       const currentTrial = trialsData[0];
       if (isDebugMode) console.log('📺 Current trial:', currentTrial);
 
+      // Fetch show information
+      const { data: showData, error: showError } = await supabase
+        .from('tbl_show_queue')
+        .select('showname, clubname, startdate, enddate, org, showtype, sitename, siteaddress, sitecity, sitestate')
+        .eq('mobile_app_lic_key', licenseKey)
+        .order('id', { ascending: false })
+        .limit(1);
+
+      if (showError) {
+        console.error('❌ Show query error:', showError);
+        // Don't throw - show info is optional
+      }
+
+      const showInfo: ShowInfo | null = showData && showData.length > 0 ? showData[0] : null;
+      if (isDebugMode) console.log('📺 Show info:', showInfo);
+
       // Use the Flutter view for better data consistency
       console.log('🔍 FORCE DEBUG: Trying view_entry_class_join_distinct...');
       const { data: viewData, error: viewError } = await supabase
@@ -251,6 +282,7 @@ export const useTVData = ({
           classes: transformedClasses,
           entries: transformedEntries,
           ...processedData,
+          showInfo,
           isConnected: true,
           lastUpdated: new Date(),
         }));
@@ -282,6 +314,7 @@ export const useTVData = ({
           classes: transformedClasses,
           entries: transformedEntries,
           ...processedData,
+          showInfo,
           isConnected: true,
           lastUpdated: new Date(),
         }));

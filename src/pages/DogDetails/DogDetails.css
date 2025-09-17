@@ -820,40 +820,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Responsive design */
-@media (max-width: 640px) {
-  .dog-info-card {
-    padding: 1rem;
-  }
-  
-  .armband-display {
-    width: 64px;
-    height: 64px;
-    min-width: 64px;
-    font-size: 1.5rem;
-  }
-  
-  .dog-details h2 {
-    font-size: 1.5rem;
-  }
-  
-  .breed {
-    font-size: 1rem;
-  }
-  
-  .handler {
-    font-size: 0.875rem;
-  }
-  
-  .class-card {
-    padding: 1rem;
-  }
-  
-  .status-button {
-    min-width: 100px;
-    font-size: 0.8125rem;
-  }
-}
+/* Mobile-specific optimizations - using unified breakpoints */
 
 
 /* Error State */
@@ -950,41 +917,75 @@
   }
 }
 
-/* Mobile-specific optimizations */
-@media (max-width: 768px) {
+/* Mobile-specific optimizations - using unified breakpoints */
+@media (max-width: 640px) {
+  .dog-info-card {
+    padding: 1rem;
+  }
+
+  .armband-display {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    font-size: 1.5rem;
+  }
+
+  .dog-details h2 {
+    font-size: 1.5rem;
+  }
+
+  .breed {
+    font-size: 1rem;
+  }
+
+  .handler {
+    font-size: 0.875rem;
+  }
+
+  .class-card {
+    padding: 1rem;
+  }
+
+  .status-button {
+    min-width: 100px;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 1024px) {
   /* Optimize for thumb zones - put most common actions in easy reach */
   .class-card {
     padding: 1.25rem; /* More padding for easier touch */
   }
-  
+
   .status-button {
     min-width: 130px; /* Wider buttons for easier tapping */
     height: 52px; /* Taller for better touch targets */
   }
-  
+
   /* Improve text contrast for outdoor use */
   .class-name {
     font-weight: 700; /* Bolder text */
     font-size: 1.1rem; /* Larger text */
   }
-  
+
   .dog-details h2 {
     font-size: 1.75rem; /* Larger dog name */
     font-weight: 800;
   }
-  
+
   /* Better spacing for fat finger syndrome */
   .popup-option {
     margin-bottom: 4px; /* Space between options */
   }
-  
+
   .popup-option:last-child {
     margin-bottom: 0;
   }
 }
 
 /* Battery optimization for outdoor use */
-@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+@media (max-width: 1024px) and (prefers-reduced-motion: no-preference) {
   /* Reduce animations on mobile to save battery */
   .dog-info-card:hover,
   .class-card:hover {

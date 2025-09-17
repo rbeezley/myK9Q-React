@@ -18,6 +18,7 @@ import { JudgeSpotlight } from './components/JudgeSpotlight';
 import { ChampionshipChase as _ChampionshipChase } from './components/ChampionshipChase';
 import { ChampionshipChaseEnhanced } from './components/ChampionshipChase-Enhanced';
 import { StateParticipation } from './components/StateParticipation';
+import { DailyResults } from './components/DailyResults';
 import { RotationDots } from './components/RotationDots';
 import { useTVData } from './hooks/useTVData';
 import { rotationScheduler, ROTATION_CONFIGS } from './utils/rotationScheduler';
@@ -28,13 +29,14 @@ import './components/ChampionshipChase.css';
 import './components/StateParticipation.css';
 import './components/SmartRotation.css';
 import './components/RotationDots.css';
+import './components/DailyResults.css';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface TVDashboardProps {
   // Future: May add props for customization
 }
 
-type ContentPanel = 'highlights' | 'judges' | 'breeds' | 'championship' | 'states';
+type ContentPanel = 'highlights' | 'judges' | 'breeds' | 'championship' | 'states' | 'daily';
 
 export const TVDashboard: React.FC<TVDashboardProps> = () => {
   const { licenseKey } = useParams<{ licenseKey: string }>();
@@ -53,6 +55,7 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
   // Content panels configuration
   const contentPanels = [
     { id: 'highlights', label: 'Today\'s Competition', component: 'YesterdayHighlights' },
+    { id: 'daily', label: 'Daily Results', component: 'DailyResults' },
     { id: 'judges', label: 'Judge Spotlight', component: 'JudgeSpotlight' },
     { id: 'championship', label: 'Championship Chase', component: 'ChampionshipChase' },
     { id: 'states', label: 'State Participation', component: 'StateParticipation' }
@@ -87,10 +90,11 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
     currentClass,
     currentEntry,
     nextEntries,
+    showInfo,
     isConnected,
     lastUpdated,
     error,
-  } = useTVData({ 
+  } = useTVData({
     licenseKey: licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604',
     enablePolling: true,
     pollingInterval: 30000
@@ -125,6 +129,7 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
       if (state.currentItem) {
         const componentMap: Record<string, ContentPanel> = {
           'YesterdayHighlights': 'highlights',
+          'DailyResults': 'daily',
           'JudgeSpotlight': 'judges',
           'BreedStatistics': 'breeds',
           'ChampionshipChase': 'championship',
@@ -207,18 +212,17 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
 
   return (
     <ErrorBoundary>
-      <div className="tv-dashboard animate-fade-in-blur">
-      <ConnectionStatus 
-        isConnected={isConnected}
-        lastUpdated={lastUpdated}
-        error={error}
-      />
-      
+      <div className="tv-dashboard animate-fade-in-blur app-container-wide">
+
       <div className="glass-header animate-slide-in-top">
-        <TVHeader 
+        <TVHeader
           currentTime={currentTime}
           formatTime={formatTime}
           formatDate={formatDate}
+          showInfo={showInfo}
+          isConnected={isConnected}
+          lastUpdated={lastUpdated}
+          error={error}
         />
       </div>
 
@@ -253,8 +257,13 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
                 allowLiveScores={false}
               />
             )}
+            {currentPanel === 'daily' && (
+              <DailyResults
+                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+              />
+            )}
             {currentPanel === 'judges' && (
-              <JudgeSpotlight 
+              <JudgeSpotlight
                 licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
                 rotationInterval={30000}
               />

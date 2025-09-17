@@ -153,13 +153,17 @@ html, body {
   margin-top: 0.5vh;
 }
 
-/* Header Right - Time/Date */
+/* Header Right - Connection Status and Time/Date */
 .tv-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5vh;
   text-align: right;
 }
 
 .current-time {
-  font-size: 2.2vw;
+  font-size: 1.8vw;
   font-weight: 600;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -885,18 +889,6 @@ html, body {
   }
 }
 
-/* Debug helper - temporary red border to see panel boundaries */
-@media (max-width: 2560px) {
-  .current-status-panel {
-    border: 2px solid red !important;
-    background: rgba(255, 0, 0, 0.1) !important;
-  }
-  
-  .yesterday-highlights {
-    border: 2px solid blue !important;
-    background: rgba(0, 0, 255, 0.1) !important;
-  }
-}
 
 /* Height-based adjustments for ultrawide monitors */
 @media (max-height: 900px) {
@@ -948,15 +940,11 @@ html, body {
 
 /* Connection Status Indicator */
 .connection-status {
-  position: fixed;
-  top: 1vh;
-  left: 1vw;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(15px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   padding: 0.4vh 0.8vw;
-  z-index: 1000;
   display: flex;
   align-items: center;
   gap: 0.4vw;

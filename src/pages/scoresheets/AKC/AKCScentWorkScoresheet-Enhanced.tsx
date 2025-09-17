@@ -13,10 +13,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
 import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import { supabase } from '../../../lib/supabase';
 import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
+import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
+import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
+import { HamburgerMenu } from '../../../components/ui';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
+import './AKCScentWorkScoresheet-Nationals.css';
+import './AKCScentWorkScoresheet-Flutter.css';
+import './AKCScentWorkScoresheet-JudgeDialog.css';
 
 import { QualifyingResult } from '../../../stores/scoringStore';
 
@@ -27,8 +34,8 @@ interface AreaScore {
   correct: boolean;
 }
 
-// Nationals-specific qualifying results
-type NationalsResult = 'Qualified' | 'Excused' | 'Withdrawn' | 'Eliminated';
+// Nationals-specific qualifying results (simplified for Nationals)
+type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
 type _RegularResult = QualifyingResult;
 
 export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
@@ -56,10 +63,11 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     getPendingEntries
   } = useEntryStore();
 
-  // Detect if this is Nationals mode (moved after currentEntry is available)
+  // Detect if this is Nationals mode
   const isNationalsMode = currentEntry?.competitionType === 'AKC_SCENT_WORK_NATIONAL' ||
                          currentEntry?.className?.toLowerCase().includes('national') ||
-                         showContext?.showType?.toLowerCase().includes('national');
+                         showContext?.showType?.toLowerCase().includes('national') ||
+                         showContext?.licenseKey === 'myK9Q1-d8609f3b-d3fd43aa-6323a604'; // AKC Nationals license
 
   const { addToQueue, isOnline } = useOfflineQueueStore();
 
@@ -73,10 +81,13 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const [areas, setAreas] = useState<AreaScore[]>([]);
   const [qualifying, setQualifying] = useState<QualifyingResult | NationalsResult | ''>('');
   const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
+  const [withdrawnReason, setWithdrawnReason] = useState<string>('In Season');
   const [totalTime, setTotalTime] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [faultCount, setFaultCount] = useState(0);
+  const [trialDate, setTrialDate] = useState<string>('');
+  const [trialNumber, setTrialNumber] = useState<string>('');
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -101,11 +112,55 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     stopwatchIntervalRef.current = stopwatchInterval;
   }, [stopwatchInterval]);
 
+  // Cleanup effect to remove dog from ring when component unmounts
+  useEffect(() => {
+    return () => {
+      const entry = currentEntryRef.current;
+      if (entry?.id) {
+        // Use markInRing to remove dog from ring on cleanup
+        markInRing(entry.id, false).then(() => {
+          console.log(`✅ Cleanup: Removed dog ${entry.armband} from ring on unmount`);
+        }).catch((error) => {
+          console.error('❌ Cleanup: Failed to remove dog from ring:', error);
+        });
+      }
+
+      // Also cleanup any running stopwatch
+      const interval = stopwatchIntervalRef.current;
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, []); // Empty dependency array ensures this only runs on unmount
+
   // Initialize areas based on element and level (existing logic)
   const initializeAreas = (element: string, level: string): AreaScore[] => {
     const elementLower = element?.toLowerCase() || '';
     const levelLower = level?.toLowerCase() || '';
 
+    // For nationals mode, everything except Handler Discrimination has single area
+    if (isNationalsMode) {
+      if (elementLower === 'handler discrimination' || elementLower === 'handlerdiscrimination') {
+        // Handler Discrimination in nationals still follows regular rules
+        if (levelLower === 'master' || levelLower === 'masters') {
+          return [
+            { areaName: 'Handler Discrimination Area 1', time: '', found: false, correct: false },
+            { areaName: 'Handler Discrimination Area 2', time: '', found: false, correct: false }
+          ];
+        } else {
+          return [
+            { areaName: 'Handler Discrimination', time: '', found: false, correct: false }
+          ];
+        }
+      } else {
+        // All other elements in nationals have single area regardless of level
+        return [
+          { areaName: element || 'Search Area', time: '', found: false, correct: false }
+        ];
+      }
+    }
+
+    // Regular show logic (non-nationals)
     if (elementLower === 'interior') {
       if (levelLower === 'excellent') {
         return [
@@ -135,6 +190,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         ];
       }
     } else {
+      // Container, Exterior, Buried - single area for all levels in regular shows
       return [
         { areaName: element || 'Search Area', time: '', found: false, correct: false }
       ];
@@ -174,12 +230,11 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   // Get qualifying options based on mode
   const getQualifyingOptions = () => {
     if (isNationalsMode) {
-      // Nationals: No NQ, mainly Qualified/Excused
+      // Nationals: Only Qualified/Absent/Excused
       return [
         { value: 'Qualified', label: 'Qualified' },
-        { value: 'Excused', label: 'Excused' },
-        { value: 'Withdrawn', label: 'Withdrawn' },
-        { value: 'Eliminated', label: 'Eliminated' }
+        { value: 'Absent', label: 'Absent' },
+        { value: 'Excused', label: 'Excused' }
       ];
     } else {
       // Regular shows
@@ -207,6 +262,16 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       const finalResultText = finalQualifying;
       const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
 
+      // Get the appropriate reason based on the result type
+      const getFinalReason = () => {
+        if (finalQualifying === 'Q' || finalQualifying === 'Qualified') return undefined;
+        if (finalQualifying === 'WD' || finalQualifying === 'W' || finalQualifying === 'Withdrawn') {
+          return withdrawnReason;
+        }
+        return nonQualifyingReason;
+      };
+      const finalReason = getFinalReason();
+
       // Prepare area results
       const areaResults: Record<string, string> = {};
       areas.forEach(area => {
@@ -219,7 +284,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         time: finalTotalTime,
         qualifying: finalQualifying,
         areas: areaResults,
-        nonQualifyingReason: finalQualifying !== 'Q' && finalQualifying !== 'Qualified' ? nonQualifyingReason : undefined,
+        nonQualifyingReason: finalReason,
         // Nationals-specific fields
         correctCount: alertsCorrect,
         incorrectCount: alertsIncorrect,
@@ -236,7 +301,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         await submitScore(currentEntry.id, {
           resultText: finalResultText,
           searchTime: finalTotalTime,
-          nonQualifyingReason: finalQualifying !== 'Qualified' && finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
+          nonQualifyingReason: finalReason,
           correctCount: alertsCorrect,
           incorrectCount: alertsIncorrect,
           faultCount: faultCount
@@ -250,7 +315,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           scoreData: {
             resultText: finalResultText,
             searchTime: finalTotalTime,
-            nonQualifyingReason: finalQualifying !== 'Qualified' && finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
+            nonQualifyingReason: finalReason,
             areas: areaResults,
             correctCount: alertsCorrect,
             incorrectCount: alertsIncorrect,
@@ -277,7 +342,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             finish_call_errors: finishCallErrors,
             time_seconds: timeInSeconds,
             excused: isExcused || finalQualifying === 'Excused',
-            notes: nonQualifyingReason
+            notes: finalReason
           });
 
           console.log('✅ Nationals score submitted to TV dashboard');
@@ -287,16 +352,16 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         }
       }
 
-      // Move to next entry or finish
-      const pendingEntries = getPendingEntries();
-      if (pendingEntries.length > 0) {
-        setCurrentEntry(pendingEntries[0]);
-        moveToNextEntry();
-        resetForm(pendingEntries[0]);
-      } else {
-        endScoringSession();
-        navigate(-1);
+      // Navigate back to entry list (dogs rarely come in order) and remove from ring
+      if (currentEntry?.id) {
+        try {
+          await markInRing(currentEntry.id, false);
+          console.log(`✅ Removed dog ${currentEntry.armband} from ring after score submission`);
+        } catch (error) {
+          console.error('❌ Failed to remove dog from ring:', error);
+        }
       }
+      navigate(-1);
 
     } catch (error) {
       console.error('Error submitting score:', error);
@@ -331,6 +396,40 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     // This should be determined by your trial/class data
     // For now, return 1 as default
     return 1;
+  };
+
+  // Helper function to remove dog from ring and navigate
+  const handleNavigateWithRingCleanup = async () => {
+    if (currentEntry?.id) {
+      try {
+        await markInRing(currentEntry.id, false);
+        console.log(`✅ Removed dog ${currentEntry.armband} from ring before navigation`);
+      } catch (error) {
+        console.error('❌ Failed to remove dog from ring:', error);
+        // Continue with navigation even if ring cleanup fails
+      }
+    }
+    navigate(-1);
+  };
+
+  const getMaxTimeForArea = (areaIndex: number, entry?: any): string => {
+    const targetEntry = entry || currentEntry;
+    if (!targetEntry) {
+      // For sample/test mode, use default times
+      return "3:00";
+    }
+
+    // Map area index to the appropriate timeLimit field
+    switch (areaIndex) {
+      case 0:
+        return targetEntry.timeLimit || '02:00';
+      case 1:
+        return targetEntry.timeLimit2 || '02:00';
+      case 2:
+        return targetEntry.timeLimit3 || '02:00';
+      default:
+        return '02:00';
+    }
   };
 
   const resetForm = (entry?: any) => {
@@ -385,9 +484,41 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     setIsStopwatchRunning(true);
     const startTime = Date.now() - stopwatchTime;
     const interval = setInterval(() => {
-      setStopwatchTime(Date.now() - startTime);
+      const currentTime = Date.now() - startTime;
+      setStopwatchTime(currentTime);
+
+      // Auto-stop when time expires
+      const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+      if (maxTimeStr) {
+        const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+        const maxTimeMs = (minutes * 60 + seconds) * 1000;
+
+        if (currentTime >= maxTimeMs) {
+          // Time expired - auto stop
+          setIsStopwatchRunning(false);
+          clearInterval(interval);
+          setStopwatchInterval(null);
+
+          // Set the exact max time as the final time
+          setStopwatchTime(maxTimeMs);
+
+          // Auto-fill the area time field with max time
+          const formattedMaxTime = formatStopwatchTime(maxTimeMs);
+          if (currentAreaIndex < areas.length) {
+            handleAreaUpdate(currentAreaIndex, 'time', formattedMaxTime);
+          }
+        }
+      }
     }, 10);
     setStopwatchInterval(interval);
+  };
+
+  const pauseStopwatch = () => {
+    setIsStopwatchRunning(false);
+    if (stopwatchInterval) {
+      clearInterval(stopwatchInterval);
+      setStopwatchInterval(null);
+    }
   };
 
   const stopStopwatch = () => {
@@ -416,6 +547,48 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     setIsStopwatchRunning(false);
   };
 
+  // 30-second warning functionality (excluded for Master level)
+  const shouldShow30SecondWarning = (): boolean => {
+    if (!isStopwatchRunning) return false;
+
+    // No warnings for Master level
+    const level = currentEntry?.level?.toLowerCase() || '';
+    if (level === 'master' || level === 'masters') return false;
+
+    // Get max time for current area being timed
+    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    if (!maxTimeStr) return false;
+
+    // Parse max time string (format: "3:00") to milliseconds
+    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+
+    // Show warning if less than 30 seconds remaining
+    const remainingMs = maxTimeMs - stopwatchTime;
+    return remainingMs > 0 && remainingMs <= 30000; // 30 seconds
+  };
+
+  const isTimeExpired = (): boolean => {
+    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    if (!maxTimeStr) return false;
+
+    // Parse max time string (format: "3:00") to milliseconds
+    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+
+    // Time is expired if current time equals or exceeds max time
+    return stopwatchTime > 0 && stopwatchTime >= maxTimeMs;
+  };
+
+  const getTimerWarningMessage = (): string | null => {
+    if (isTimeExpired()) {
+      return "Time Expired";
+    } else if (shouldShow30SecondWarning()) {
+      return "30 Second Warning";
+    }
+    return null;
+  };
+
   const handleAreaUpdate = (index: number, field: keyof AreaScore, value: any) => {
     setAreas(prev => prev.map((area, i) =>
       i === index ? { ...area, [field]: value } : area
@@ -433,6 +606,18 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     if (!classId || !showContext?.licenseKey) return;
 
     try {
+      // First get class information including trial date
+      const { data: classInfo, error: classError } = await supabase
+        .from('tbl_class_queue')
+        .select('trial_date, trial_number')
+        .eq('id', parseInt(classId))
+        .single();
+
+      if (classInfo && !classError) {
+        setTrialDate(classInfo.trial_date || '');
+        setTrialNumber(classInfo.trial_number || '');
+      }
+
       const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);
       setEntries(entries);
       setCurrentClassEntries(parseInt(classId));
@@ -470,9 +655,15 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   // Show loading or error state
   if (!currentEntry) {
     return (
-      <div className="mobile-scoresheet error-state">
+      <div className="mobile-scoresheet error-state app-container-narrow">
         <header className="mobile-header">
-          <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+          <HamburgerMenu
+            backNavigation={{
+              label: "Back to Entry List",
+              action: handleNavigateWithRingCleanup
+            }}
+            currentPage="scoresheet"
+          />
           <h1>AKC Scent Work</h1>
         </header>
         <div className="error-message">
@@ -484,10 +675,17 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="mobile-scoresheet" data-theme={darkMode ? 'dark' : 'light'}>
+    <div className="flutter-scoresheet-container app-container-narrow" data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="flutter-scoresheet">
       {/* Header */}
       <header className="mobile-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <HamburgerMenu
+          backNavigation={{
+            label: "Back to Entry List",
+            action: handleNavigateWithRingCleanup
+          }}
+          currentPage="scoresheet"
+        />
         <h1>
           {isNationalsMode ? '🏆 AKC Nationals' : 'AKC Scent Work'}
         </h1>
@@ -496,247 +694,257 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         </button>
       </header>
 
-      {/* Dog & Trial Info */}
-      <div className="dog-info-compact">
-        <div className="armband">#{currentEntry.armband}</div>
-        <div className="dog-details">
+      {/* Trial Info Header - Matching Flutter */}
+      <div className="flutter-trial-header">
+        <div className="trial-date">{trialDate}</div>
+        <div className="trial-class">{trialNumber} {currentEntry.element} {currentEntry.level}</div>
+      </div>
+
+      {/* Dog Info Card - Matching Flutter */}
+      <div className="flutter-dog-card">
+        <div className="dog-armband">#{currentEntry.armband}</div>
+        <div className="dog-info">
           <div className="dog-name">{currentEntry.callName}</div>
-          <div className="dog-breed">{currentEntry.breed}</div>
-          <div className="dog-handler">Handler: {currentEntry.handler}</div>
-        </div>
-        <div className="trial-details">
-          <div className="class-info">{currentEntry.element} {currentEntry.level}</div>
-          <div className="class-info">{currentEntry.section !== '-' ? `Section ${currentEntry.section}` : ''}</div>
-          {isNationalsMode && <div className="class-info nationals-badge">🏆 NATIONALS</div>}
+          <div className="dog-details">{currentEntry.breed}</div>
+          <div className="person-number">Handler: {currentEntry.handler}</div>
         </div>
       </div>
 
-      {/* Nationals Point Counter */}
-      {isNationalsMode && (
-        <div className="nationals-section">
-          <NationalsPointCounter
-            alertsCorrect={alertsCorrect}
-            alertsIncorrect={alertsIncorrect}
-            faults={faultCount}
-            finishCallErrors={finishCallErrors}
-            excused={isExcused}
-          />
 
-          {/* Nationals Scoring Controls */}
-          <div className="nationals-controls">
-            <div className="control-group">
-              <label>Correct Alerts</label>
-              <div className="counter-controls">
-                <button onClick={() => setAlertsCorrect(Math.max(0, alertsCorrect - 1))}>-</button>
-                <span className="counter-value">{alertsCorrect}</span>
-                <button onClick={() => setAlertsCorrect(alertsCorrect + 1)}>+</button>
-              </div>
-            </div>
+      {/* Flutter-style Timer Section */}
+      <div className="flutter-timer-card">
+        <div className="timer-display-large">
+          {formatStopwatchTime(stopwatchTime)}
+        </div>
+        <div className="timer-controls-flutter">
+          <button
+            className={`timer-btn-start ${isStopwatchRunning ? 'stop' : 'start'}`}
+            onClick={isStopwatchRunning ? stopStopwatch : startStopwatch}
+          >
+            {isStopwatchRunning ? 'Stop' : 'Start'}
+          </button>
+          <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+        </div>
+      </div>
 
-            <div className="control-group">
-              <label>Incorrect Alerts</label>
-              <div className="counter-controls">
-                <button onClick={() => setAlertsIncorrect(Math.max(0, alertsIncorrect - 1))}>-</button>
-                <span className="counter-value">{alertsIncorrect}</span>
-                <button onClick={() => setAlertsIncorrect(alertsIncorrect + 1)}>+</button>
-              </div>
-            </div>
-
-            <div className="control-group">
-              <label>Faults</label>
-              <div className="counter-controls">
-                <button onClick={() => setFaultCount(Math.max(0, faultCount - 1))}>-</button>
-                <span className="counter-value">{faultCount}</span>
-                <button onClick={() => setFaultCount(faultCount + 1)}>+</button>
-              </div>
-            </div>
-
-            <div className="control-group">
-              <label>Finish Errors</label>
-              <div className="counter-controls">
-                <button onClick={() => setFinishCallErrors(Math.max(0, finishCallErrors - 1))}>-</button>
-                <span className="counter-value">{finishCallErrors}</span>
-                <button onClick={() => setFinishCallErrors(finishCallErrors + 1)}>+</button>
-              </div>
-            </div>
-
-            <div className="control-group">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={isExcused}
-                  onChange={(e) => setIsExcused(e.target.checked)}
-                />
-                Dog Excused
-              </label>
-            </div>
-          </div>
+      {/* Timer Warning Message */}
+      {getTimerWarningMessage() && (
+        <div className={`timer-warning ${getTimerWarningMessage() === 'Time Expired' ? 'expired' : 'warning'}`}>
+          {getTimerWarningMessage()}
         </div>
       )}
 
-      {/* Timer Section (existing) */}
-      <div className="timer-section">
-        <div className="timer-display">
-          <div className="timer-time">
-            {formatStopwatchTime(stopwatchTime)}
-          </div>
-          <div className="timer-controls">
-            <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-            <button
-              className={`timer-btn-main ${isStopwatchRunning ? 'stop' : 'start'}`}
-              onClick={isStopwatchRunning ? stopStopwatch : startStopwatch}
-            >
-              {isStopwatchRunning ? '⏸ Stop' : '▶ Start'}
-            </button>
+      {/* Multi-Area Time Inputs - Show all areas based on element/level */}
+      {areas.map((area, index) => (
+        <div key={index} className="flutter-time-card">
+          <div className="time-input-flutter">
+            <div className={`area-badge ${area.time ? 'completed' : 'pending'}`}>
+              {areas.length > 1 ? `Area ${index + 1}` : area.areaName}
+            </div>
+            <input
+              type="text"
+              value={area.time || ''}
+              onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
+              placeholder="MM:SS.HH"
+              className="flutter-time-input"
+            />
+            <div className="max-time-badge">
+              {getMaxTimeForArea ? getMaxTimeForArea(index) : '02:00'}
+            </div>
           </div>
         </div>
+      ))}
+
+      {/* Results Section - Choice Chips for All Shows */}
+      <div className="results-section">
+        <ResultChoiceChips
+          selectedResult={
+            isNationalsMode ? (
+              qualifying as 'Qualified' | 'Absent' | 'Excused' | null
+            ) : (
+              // Map regular show results to choice chip format
+              qualifying === 'Q' ? 'Qualified' :
+              qualifying === 'ABS' ? 'Absent' :
+              qualifying === 'EX' ? 'Excused' :
+              null
+            )
+          }
+          onResultChange={(result) => {
+            if (isNationalsMode) {
+              setQualifying(result);
+            } else {
+              // Map choice chip results back to regular show format
+              if (result === 'Qualified') {
+                setQualifying('Q');
+              } else if (result === 'Absent') {
+                setQualifying('ABS');
+                setNonQualifyingReason('Absent');
+              } else if (result === 'Excused') {
+                setQualifying('EX');
+                setNonQualifyingReason('Dog Eliminated in Area');
+              }
+            }
+          }}
+          showNQ={!isNationalsMode}
+          showWD={!isNationalsMode}
+          showEX={true}
+          onNQClick={() => {
+            setQualifying('NQ');
+            setNonQualifyingReason('Incorrect Call');
+          }}
+          onWDClick={() => {
+            setQualifying('WD');
+            setWithdrawnReason('In Season');
+          }}
+          onEXClick={() => {
+            setQualifying('EX');
+            setNonQualifyingReason('Dog Eliminated in Area');
+          }}
+          // Additional props for enhanced functionality
+          selectedResultInternal={qualifying}
+          faultCount={faultCount}
+          onFaultCountChange={setFaultCount}
+          nqReason={nonQualifyingReason}
+          onNQReasonChange={setNonQualifyingReason}
+          excusedReason={nonQualifyingReason}
+          onExcusedReasonChange={setNonQualifyingReason}
+          withdrawnReason={withdrawnReason}
+          onWithdrawnReasonChange={setWithdrawnReason}
+        />
+
+
       </div>
 
-      {/* Areas Section (existing with modifications for Nationals) */}
-      <div className="areas-section">
-        {areas.map((area, index) => (
-          <div key={index} className={`area-card ${index === currentAreaIndex ? 'active' : ''}`}>
-            <div className="area-header">
-              <h3>{area.areaName}</h3>
+      {/* Mobile Nationals Counters - Below timer and results */}
+      {isNationalsMode && (
+        <NationalsCounterSimple
+          alertsCorrect={alertsCorrect}
+          alertsIncorrect={alertsIncorrect}
+          faults={faultCount}
+          finishCallErrors={finishCallErrors}
+          onAlertsCorrectChange={setAlertsCorrect}
+          onAlertsIncorrectChange={setAlertsIncorrect}
+          onFaultsChange={setFaultCount}
+          onFinishCallErrorsChange={setFinishCallErrors}
+        />
+      )}
+
+      {/* Flutter-style Action Buttons */}
+      <div className="flutter-actions">
+        <button className="flutter-btn-cancel" onClick={handleNavigateWithRingCleanup}>
+          Cancel
+        </button>
+        <button
+          className="flutter-btn-save"
+          onClick={() => setShowConfirmation(true)}
+          disabled={isSubmitting || !qualifying}
+        >
+          {isSubmitting ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+
+      {/* Judge Confirmation Dialog */}
+      {showConfirmation && (
+        <div className="judge-confirmation-overlay">
+          <div className="judge-confirmation-dialog">
+            <div className="dialog-header">
+              <h2>Score Confirmation</h2>
+              <div className="trial-info">
+                <span className="trial-date">{trialDate}</span>
+                <span className="trial-class">{trialNumber} {currentEntry.element} {currentEntry.level}</span>
+              </div>
+            </div>
+
+            <div className="dog-summary">
+              <div className="armband-large">#{currentEntry.armband}</div>
+              <div className="dog-info-summary">
+                <div className="dog-name-large">{currentEntry.callName}</div>
+                <div className="dog-breed">{currentEntry.breed}</div>
+                <div className="handler-name">Handler: {currentEntry.handler}</div>
+              </div>
+            </div>
+
+            <div className="score-details">
+              <div className="score-row">
+                <span className="score-label">Result:</span>
+                <span className={`score-value result-${qualifying?.toLowerCase()}`}>
+                  {qualifying === 'Q' ? 'Qualified' :
+                   qualifying === 'NQ' ? 'NQ' :
+                   qualifying === 'A' || qualifying === 'ABS' || qualifying === 'Absent' ? 'Absent' :
+                   qualifying === 'E' || qualifying === 'EX' || qualifying === 'Excused' ? 'Excused' :
+                   qualifying === 'W' || qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
+                </span>
+              </div>
+              <div className="score-row">
+                <span className="score-label">Time:</span>
+                <span className="score-value">{areas[0]?.time || totalTime || calculateTotalTime()}</span>
+              </div>
+
+              {!isNationalsMode && faultCount > 0 && (
+                <div className="score-row">
+                  <span className="score-label">Faults:</span>
+                  <span className="score-value negative">{faultCount}</span>
+                </div>
+              )}
+
               {isNationalsMode && (
-                <div className="area-status">
-                  {area.correct && <span className="status-correct">✓ CORRECT</span>}
-                  {area.found && !area.correct && <span className="status-incorrect">✗ INCORRECT</span>}
-                  {!area.found && <span className="status-not-found">NOT FOUND</span>}
+                <>
+                  <div className="nationals-breakdown">
+                    <h3>Nationals Scoring</h3>
+                    <div className="score-grid">
+                      <div className="score-item">
+                        <span className="item-label">Correct Calls</span>
+                        <span className="item-value positive">{alertsCorrect}</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="item-label">Incorrect Calls</span>
+                        <span className="item-value negative">{alertsIncorrect}</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="item-label">Faults</span>
+                        <span className="item-value negative">{faultCount}</span>
+                      </div>
+                      <div className="score-item">
+                        <span className="item-label">Finish Errors</span>
+                        <span className="item-value negative">{finishCallErrors}</span>
+                      </div>
+                    </div>
+                    <div className="total-points">
+                      <span className="total-label">Total Points:</span>
+                      <span className="total-value">{calculateNationalsPoints()}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {qualifying !== 'Q' && qualifying !== 'Qualified' && (
+                <div className="score-row">
+                  <span className="score-label">Reason:</span>
+                  <span className="score-value">
+                    {qualifying === 'WD' || qualifying === 'W' || qualifying === 'Withdrawn'
+                      ? withdrawnReason
+                      : nonQualifyingReason}
+                  </span>
                 </div>
               )}
             </div>
 
-            <div className="area-inputs">
-              <div className="time-input-group">
-                <label>Time</label>
-                <input
-                  type="text"
-                  value={area.time}
-                  onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
-                  placeholder="0:00.00"
-                />
-              </div>
-
-              {!isNationalsMode && (
-                <>
-                  <div className="checkbox-group">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={area.found}
-                        onChange={(e) => handleAreaUpdate(index, 'found', e.target.checked)}
-                      />
-                      Found
-                    </label>
-                  </div>
-
-                  <div className="checkbox-group">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={area.correct}
-                        onChange={(e) => handleAreaUpdate(index, 'correct', e.target.checked)}
-                        disabled={!area.found}
-                      />
-                      Correct
-                    </label>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Results Section */}
-      <div className="results-section">
-        <div className="qualifying-section">
-          <label>Result</label>
-          <select
-            value={qualifying || ''}
-            onChange={(e) => setQualifying(e.target.value as any)}
-          >
-            <option value="">Select Result</option>
-            {getQualifyingOptions().map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {(qualifying === 'NQ' || qualifying === 'Excused' || qualifying === 'Withdrawn' || qualifying === 'Eliminated') && (
-          <div className="reason-section">
-            <label>Reason (optional)</label>
-            <input
-              type="text"
-              value={nonQualifyingReason}
-              onChange={(e) => setNonQualifyingReason(e.target.value)}
-              placeholder="Enter reason..."
-            />
-          </div>
-        )}
-
-        <div className="total-time-section">
-          <label>Total Time</label>
-          <input
-            type="text"
-            value={totalTime}
-            onChange={(e) => setTotalTime(e.target.value)}
-            placeholder="Auto-calculated"
-          />
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <div className="submit-section">
-        <button
-          className="submit-btn"
-          onClick={() => setShowConfirmation(true)}
-          disabled={isSubmitting || !qualifying}
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Score'}
-        </button>
-      </div>
-
-      {/* Confirmation Modal */}
-      {showConfirmation && (
-        <div className="confirmation-modal">
-          <div className="modal-content">
-            <h3>Confirm Score</h3>
-
-            {isNationalsMode && (
-              <div className="nationals-summary">
-                <CompactPointCounter
-                  alertsCorrect={alertsCorrect}
-                  alertsIncorrect={alertsIncorrect}
-                  faults={faultCount}
-                  finishCallErrors={finishCallErrors}
-                  excused={isExcused}
-                />
-              </div>
-            )}
-
-            <div className="score-summary">
-              <p><strong>Dog:</strong> {currentEntry.callName} (#{currentEntry.armband})</p>
-              <p><strong>Result:</strong> {qualifying}</p>
-              <p><strong>Time:</strong> {totalTime || calculateTotalTime()}</p>
-              {isNationalsMode && (
-                <p><strong>Points:</strong> {calculateNationalsPoints()}</p>
-              )}
-              {nonQualifyingReason && <p><strong>Reason:</strong> {nonQualifyingReason}</p>}
-            </div>
-
-            <div className="modal-buttons">
-              <button onClick={() => setShowConfirmation(false)}>Cancel</button>
-              <button onClick={handleEnhancedSubmit} disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Confirm'}
+            <div className="dialog-actions">
+              <button className="dialog-btn cancel" onClick={() => setShowConfirmation(false)}>
+                Cancel
+              </button>
+              <button
+                className="dialog-btn confirm"
+                onClick={handleEnhancedSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Submitting...' : 'Confirm & Submit'}
               </button>
             </div>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

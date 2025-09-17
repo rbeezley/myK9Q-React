@@ -1,0 +1,283 @@
+/* Result Choice Chips Styles - Flutter Style */
+
+.result-choice-chips-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: none;
+}
+
+/* Shared container styles for consistency */
+.result-choice-chips,
+.fault-counter-section,
+.reason-selection {
+  display: flex;
+  padding: 16px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  max-width: none;
+}
+
+.result-choice-chips {
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.choice-chip {
+  padding: 12px 24px;
+  border-radius: 24px;
+  border: 2px solid transparent;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(60, 60, 60, 0.8);
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 100px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.choice-chip:hover {
+  transform: translateY(-1px);
+  background: rgba(80, 80, 80, 0.9);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.choice-chip:active {
+  transform: scale(0.98);
+}
+
+/* Success - Qualified */
+.choice-chip.success.selected {
+  background: #22C55E;
+  color: white;
+  border-color: #16A34A;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.choice-chip.success:hover:not(.selected) {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #22C55E;
+}
+
+/* Warning - Absent */
+.choice-chip.warning.selected {
+  background: #F59E0B;
+  color: white;
+  border-color: #D97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.choice-chip.warning:hover:not(.selected) {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+}
+
+/* Danger - Excused */
+.choice-chip.danger.selected {
+  background: #EF4444;
+  color: white;
+  border-color: #DC2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.choice-chip.danger:hover:not(.selected) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .result-choice-chips {
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .choice-chip {
+    padding: 10px 20px;
+    font-size: 14px;
+    min-width: 80px;
+  }
+}
+
+/* Light theme support */
+
+[data-theme="light"] .choice-chip {
+  background: rgba(248, 250, 252, 0.9);
+  color: #374151;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .choice-chip:hover:not(.selected) {
+  background: rgba(255, 255, 255, 1);
+  color: #111827;
+}
+
+[data-theme="light"] .choice-chip.success.selected {
+  background: #22C55E;
+  color: white;
+  border-color: #16A34A;
+}
+
+[data-theme="light"] .choice-chip.warning.selected {
+  background: #F59E0B;
+  color: white;
+  border-color: #D97706;
+}
+
+[data-theme="light"] .choice-chip.danger.selected {
+  background: #EF4444;
+  color: white;
+  border-color: #DC2626;
+}
+
+/* Fault Counter Section */
+.fault-counter-section {
+  flex-direction: column;
+  text-align: center;
+}
+
+.fault-counter-section h3 {
+  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fault-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.fault-btn-counter {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(60, 60, 60, 0.8);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fault-btn-counter:hover:not(:disabled) {
+  background: rgba(80, 80, 80, 0.9);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.fault-btn-counter:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fault-count-display {
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Reason Selection Section */
+.reason-selection {
+  flex-direction: column;
+}
+
+.reason-selection h3 {
+  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.reason-choice-chips {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Small reason chips */
+.choice-chip.small {
+  padding: 8px 16px;
+  font-size: 14px;
+  min-width: auto;
+  border-radius: 20px;
+}
+
+.choice-chip.primary,
+.choice-chip.secondary {
+  background: rgba(107, 114, 128, 0.2);
+  border-color: rgba(107, 114, 128, 0.4);
+  color: #6B7280;
+}
+
+.choice-chip.primary.selected,
+.choice-chip.secondary.selected {
+  background: #6B7280;
+  color: white;
+  border-color: #4B5563;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+/* Light theme for all containers */
+[data-theme="light"] .result-choice-chips,
+[data-theme="light"] .fault-counter-section,
+[data-theme="light"] .reason-selection {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .fault-counter-section h3,
+[data-theme="light"] .reason-selection h3 {
+  color: #374151;
+}
+
+[data-theme="light"] .fault-btn-counter {
+  background: rgba(248, 250, 252, 0.9);
+  color: #374151;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .fault-btn-counter:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  color: #111827;
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .fault-count-display {
+  color: #111827;
+}
+
+[data-theme="light"] .choice-chip.primary,
+[data-theme="light"] .choice-chip.secondary {
+  background: rgba(107, 114, 128, 0.1);
+  border-color: rgba(107, 114, 128, 0.3);
+  color: #4B5563;
+}
+
+[data-theme="light"] .choice-chip.primary.selected,
+[data-theme="light"] .choice-chip.secondary.selected {
+  background: #6B7280;
+  color: white;
+  border-color: #4B5563;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}

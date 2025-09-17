@@ -1,0 +1,175 @@
+/* Simple Nationals Counter Styles - Flutter Style */
+
+.nationals-counter-simple {
+  padding: 16px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.counters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.counter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.counter-group.positive {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.counter-group.negative {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.counter-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.counter-btn:active {
+  transform: scale(0.95);
+}
+
+.counter-btn.decrement {
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+}
+
+.counter-btn.decrement:hover:not(:disabled) {
+  background: rgba(107, 114, 128, 1);
+}
+
+.counter-btn.decrement:disabled {
+  background: rgba(107, 114, 128, 0.3);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.counter-group.positive .counter-btn.increment {
+  background: #22C55E;
+  color: white;
+}
+
+.counter-group.positive .counter-btn.increment:hover {
+  background: #16A34A;
+}
+
+.counter-group.negative .counter-btn.increment {
+  background: #EF4444;
+  color: white;
+}
+
+.counter-group.negative .counter-btn.increment:hover {
+  background: #DC2626;
+}
+
+.counter-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  min-width: 60px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.counter-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .counters-grid {
+    gap: 12px;
+  }
+
+  .counter-group {
+    padding: 12px;
+  }
+
+  .counter-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .counter-value {
+    font-size: 28px;
+    min-width: 50px;
+    padding: 6px 12px;
+  }
+
+  .counter-label {
+    font-size: 12px;
+  }
+}
+
+/* Light theme support */
+[data-theme="light"] .nationals-counter-simple {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .counter-group {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .counter-value {
+  color: #111827;
+  background: rgba(248, 250, 252, 0.8);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .counter-label {
+  color: #374151;
+}
+
+[data-theme="light"] .counter-btn.decrement {
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+}
+
+[data-theme="light"] .counter-btn.decrement:hover:not(:disabled) {
+  background: rgba(107, 114, 128, 1);
+}
+
+[data-theme="light"] .counter-btn.decrement:disabled {
+  background: rgba(107, 114, 128, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+}

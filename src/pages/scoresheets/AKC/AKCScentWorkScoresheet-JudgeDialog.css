@@ -1,0 +1,356 @@
+/* Judge Confirmation Dialog - Optimized for Judge Paper Recording */
+
+.judge-confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.judge-confirmation-dialog {
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dialog Header */
+.dialog-header {
+  text-align: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 16px;
+}
+
+.dialog-header h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.trial-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trial-date {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.trial-class {
+  font-size: 16px;
+  font-weight: 600;
+  color: #10B981;
+}
+
+/* Dog Summary */
+.dog-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.armband-large {
+  font-size: 36px;
+  font-weight: bold;
+  color: #10B981;
+  min-width: 80px;
+  text-align: center;
+}
+
+.dog-info-summary {
+  flex: 1;
+}
+
+.dog-name-large {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.dog-breed {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2px;
+}
+
+.handler-name {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Score Details */
+.score-details {
+  margin-bottom: 24px;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.score-row:last-child {
+  border-bottom: none;
+}
+
+.score-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.score-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+}
+
+.score-value.result-qualified {
+  color: #22C55E;
+}
+
+.score-value.result-absent {
+  color: #F59E0B;
+}
+
+.score-value.result-excused {
+  color: #EF4444;
+}
+
+/* Nationals Breakdown */
+.nationals-breakdown {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nationals-breakdown h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: rgba(40, 40, 40, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.item-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.item-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.item-value.positive {
+  color: #22C55E;
+}
+
+.item-value.negative {
+  color: #EF4444;
+}
+
+.total-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 2px solid #10B981;
+  border-radius: 8px;
+}
+
+.total-label {
+  font-size: 18px;
+  font-weight: bold;
+  color: #10B981;
+}
+
+.total-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #10B981;
+}
+
+/* Dialog Actions */
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.dialog-btn {
+  flex: 1;
+  height: 56px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dialog-btn.cancel {
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+}
+
+.dialog-btn.cancel:hover {
+  background: rgba(107, 114, 128, 1);
+  transform: scale(1.02);
+}
+
+.dialog-btn.confirm {
+  background: #10B981;
+  color: white;
+}
+
+.dialog-btn.confirm:hover {
+  background: #059669;
+  transform: scale(1.02);
+}
+
+.dialog-btn.confirm:disabled {
+  background: rgba(16, 185, 129, 0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .judge-confirmation-overlay {
+    padding: 16px;
+  }
+
+  .judge-confirmation-dialog {
+    padding: 24px;
+  }
+
+  .dog-summary {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .score-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog-actions {
+    flex-direction: column;
+  }
+}
+
+/* Light Theme Support */
+[data-theme="light"] .judge-confirmation-dialog {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #111827;
+}
+
+[data-theme="light"] .dialog-header h2 {
+  color: #111827;
+}
+
+[data-theme="light"] .trial-class {
+  color: #059669;
+}
+
+[data-theme="light"] .dog-summary,
+[data-theme="light"] .nationals-breakdown {
+  background: rgba(248, 250, 252, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .dog-name-large {
+  color: #111827;
+}
+
+[data-theme="light"] .dog-breed,
+[data-theme="light"] .handler-name {
+  color: #4b5563;
+}
+
+[data-theme="light"] .score-label {
+  color: #374151;
+}
+
+[data-theme="light"] .score-value {
+  color: #111827;
+}
+
+[data-theme="light"] .score-row {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .nationals-breakdown h3 {
+  color: #111827;
+}
+
+[data-theme="light"] .score-item {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .item-label {
+  color: #6b7280;
+}
+
+[data-theme="light"] .total-points {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #059669;
+}
+
+[data-theme="light"] .total-label {
+  color: #059669;
+}
+
+[data-theme="light"] .total-value {
+  color: #059669;
+}

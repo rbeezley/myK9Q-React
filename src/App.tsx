@@ -6,6 +6,9 @@ import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
+// Import unified container system
+import './styles/containers.css';
+
 // Eager load critical components
 import { Login } from './pages/Login/Login';
 import { DatabaseTest } from './components/DatabaseTest';
@@ -17,6 +20,7 @@ const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(mo
 const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
 const TVDashboard = React.lazy(() => import('./pages/TVDashboard/TVDashboard').then(module => ({ default: module.TVDashboard })));
 const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));
+const StatusPopupDemo = React.lazy(() => import('./demo/StatusPopupDemo'));
 
 // Lazy load scoresheets (grouped by organization for better chunking)
 const UKCObedienceScoresheet = React.lazy(() => 
@@ -29,9 +33,9 @@ const UKCRallyScoresheet = React.lazy(() =>
     default: module.UKCRallyScoresheet 
   }))
 );
-const AKCScentWorkScoresheet = React.lazy(() => 
-  import('./pages/scoresheets/AKC/AKCScentWorkScoresheet').then(module => ({ 
-    default: module.AKCScentWorkScoresheet 
+const AKCScentWorkScoresheet = React.lazy(() =>
+  import('./pages/scoresheets/AKC/AKCScentWorkScoresheet-Enhanced').then(module => ({
+    default: module.AKCScentWorkScoresheetEnhanced
   }))
 );
 const AKCFastCatScoresheet = React.lazy(() => 
@@ -168,6 +172,14 @@ function App() {
             } 
           />
           <Route path="/debug" element={<DatabaseTest />} />
+          <Route
+            path="/demo/status-popup"
+            element={
+              <Suspense fallback={<PageLoader message="Loading demo..." />}>
+                <StatusPopupDemo />
+              </Suspense>
+            }
+          />
           <Route
             path="/tv/:licenseKey"
             element={

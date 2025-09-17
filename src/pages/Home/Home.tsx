@@ -288,7 +288,7 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="home-container">
+    <div className="home-container app-container">
       {/* Enhanced Header with Glass Morphism */}
       <header className="home-header">
         <HamburgerMenu currentPage="home" />

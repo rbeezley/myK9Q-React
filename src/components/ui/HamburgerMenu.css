@@ -39,21 +39,26 @@
 .menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
   z-index: 999999;
   animation: fadeIn 0.2s ease-out;
+}
+
+/* Light mode overlay - less prominent */
+[data-theme="light"] .menu-overlay {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .hamburger-menu {
   position: fixed;
   top: 0;
-  left: 0;
+  /* left position will be set via inline styles */
   width: 280px;
   height: 100vh;
   background: var(--card);
   border-right: 1px solid var(--border);
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
-  animation: slideInFromLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* animation: slideInFromLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); */
   display: flex;
   flex-direction: column;
   z-index: 1000000;

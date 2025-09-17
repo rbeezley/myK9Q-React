@@ -1,14 +1,35 @@
 /**
- * Enhanced Yesterday Highlights Component
+ * Enhanced Competition Highlights Component
  *
- * Replaces mock data with real AKC Nationals scoring data.
- * Shows actual statistics from completed scoring sessions.
+ * Trial-based organization supporting both National and Regular shows.
+ * Includes High in Trial calculations for regular shows.
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNationalsScoring, useElementProgress } from '../../../hooks/useNationalsScoring';
 import { supabase } from '../../../lib/supabase';
 import './YesterdayHighlights.css';
+
+interface Trial {
+  trial_date: string;
+  trial_number: string;
+  trial_type?: string;
+}
+
+interface ShowInfo {
+  showtype: string;
+  showname: string;
+}
+
+interface HighInTrialWinner {
+  armband: string;
+  call_name: string;
+  breed: string;
+  handler: string;
+  level: string;
+  total_faults: number;
+  total_time: number;
+  elements_completed: string[];
+}
 
 interface TopPerformer {
   id: number;
@@ -21,7 +42,8 @@ interface TopPerformer {
   perfect_scores: number;
   fastest_search: string;
   element_name: string;
-  day: number;
+  trial_date: string;
+  trial_number: string;
 }
 
 interface BreedStats {
@@ -32,7 +54,7 @@ interface BreedStats {
   perfect_count: number;
 }
 
-interface DayStats {
+interface TrialStats {
   total_dogs: number;
   completed_dogs: number;
   perfect_scores: number;
@@ -51,53 +73,188 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
   licenseKey,
   allowLiveScores = false
 }) => {
+  const [trials, setTrials] = useState<Trial[]>([]);
+  const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null);
+  const [showInfo, setShowInfo] = useState<ShowInfo | null>(null);
   const [topPerformers, setTopPerformers] = useState<TopPerformer[]>([]);
-  const [stats, setStats] = useState<DayStats | null>(null);
+  const [stats, setStats] = useState<TrialStats | null>(null);
+  const [highInTrialWinners, setHighInTrialWinners] = useState<HighInTrialWinner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState<1 | 2 | 3>(1);
-  const [dayCompletionStatus, setDayCompletionStatus] = useState<Record<number, boolean>>({});
-  const [currentCompetitionDay, setCurrentCompetitionDay] = useState<number>(1);
   const [autoRotate, setAutoRotate] = useState<boolean>(true);
   const [lastUserInteraction, setLastUserInteraction] = useState<number>(Date.now());
 
-  // Use our Nationals scoring hooks
-  const { leaderboard: _leaderboard, isLoading: scoresLoading, error: scoresError } = useNationalsScoring({
-    licenseKey,
-    enableRealtime: true
-  });
+  // Fetch available trials from database
+  const fetchAvailableTrials = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tbl_trial_queue')
+        .select('trial_date, trial_number, trial_type')
+        .eq('mobile_app_lic_key', licenseKey)
+        .order('trial_date', { ascending: true });
 
-  const { elementProgress: _elementProgress, isLoading: progressLoading } = useElementProgress(licenseKey);
+      if (error) throw error;
 
-  // Fetch detailed day statistics
-  const fetchDayStatistics = async (day: number) => {
+      const trialsData = data?.map(trial => ({
+        trial_date: trial.trial_date,
+        trial_number: trial.trial_number,
+        trial_type: trial.trial_type
+      })) || [];
+
+      setTrials(trialsData);
+
+      // Set first available trial as selected
+      if (trialsData.length > 0 && !selectedTrial) {
+        setSelectedTrial(trialsData[0]);
+      }
+    } catch (err) {
+      console.error('Error fetching available trials:', err);
+      setTrials([]);
+    }
+  };
+
+  // Fetch show information to determine if High in Trial should be shown
+  const fetchShowInfo = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tbl_show_queue')
+        .select('showtype, showname')
+        .eq('mobile_app_lic_key', licenseKey)
+        .single();
+
+      if (error) throw error;
+      setShowInfo(data);
+    } catch (err) {
+      console.error('Error fetching show info:', err);
+      setShowInfo({ showtype: 'Regular', showname: 'Unknown Show' });
+    }
+  };
+
+  // Calculate High in Trial winners for regular shows
+  const calculateHighInTrial = async (trial: Trial): Promise<HighInTrialWinner[]> => {
+    if (!showInfo || showInfo.showtype !== 'Regular') {
+      return [];
+    }
+
+    try {
+      // Get all elements and levels offered in this trial
+      const { data: elementsData, error: elementsError } = await supabase
+        .from('tbl_class_queue')
+        .select('element, level')
+        .eq('mobile_app_lic_key', licenseKey)
+        .eq('trial_date', trial.trial_date)
+        .eq('trial_number', trial.trial_number)
+        .neq('element', 'HD'); // Exclude Handler Discrimination
+
+      if (elementsError) throw elementsError;
+
+      // Group by level
+      const levelElements = new Map<string, string[]>();
+      elementsData?.forEach(item => {
+        if (!levelElements.has(item.level)) {
+          levelElements.set(item.level, []);
+        }
+        levelElements.get(item.level)!.push(item.element);
+      });
+
+      const winners: HighInTrialWinner[] = [];
+
+      // Calculate HIT for each level that has multiple elements
+      for (const [level, elements] of levelElements.entries()) {
+        if (elements.length < 2) continue; // Need multiple elements for HIT
+
+        // Get qualifying dogs for this level
+        const { data: qualifyingDogs, error: dogsError } = await supabase
+          .from('tbl_entry_queue')
+          .select('armband, call_name, breed, handler, element, fault_count, search_time')
+          .eq('mobile_app_lic_key', licenseKey)
+          .eq('trial_date', trial.trial_date)
+          .eq('trial_number', trial.trial_number)
+          .eq('level', level)
+          .eq('result_text', 'Q')
+          .in('element', elements);
+
+        if (dogsError) throw dogsError;
+
+        // Group by armband and check if they qualified in ALL elements
+        const dogStats = new Map<string, {
+          armband: string;
+          call_name: string;
+          breed: string;
+          handler: string;
+          total_faults: number;
+          total_time: number;
+          elements_completed: string[];
+        }>();
+
+        qualifyingDogs?.forEach(dog => {
+          const key = dog.armband.toString();
+          if (!dogStats.has(key)) {
+            dogStats.set(key, {
+              armband: dog.armband.toString(),
+              call_name: dog.call_name,
+              breed: dog.breed,
+              handler: dog.handler,
+              total_faults: 0,
+              total_time: 0,
+              elements_completed: []
+            });
+          }
+
+          const stats = dogStats.get(key)!;
+          stats.total_faults += dog.fault_count || 0;
+          stats.total_time += parseFloat(dog.search_time || '0');
+          stats.elements_completed.push(dog.element);
+        });
+
+        // Filter dogs who completed ALL offered elements
+        const eligibleDogs = Array.from(dogStats.values())
+          .filter(dog => dog.elements_completed.length === elements.length);
+
+        if (eligibleDogs.length > 0) {
+          // Sort by faults (ascending), then by time (ascending)
+          eligibleDogs.sort((a, b) => {
+            if (a.total_faults !== b.total_faults) {
+              return a.total_faults - b.total_faults;
+            }
+            return a.total_time - b.total_time;
+          });
+
+          // Winner is the first dog
+          const winner = eligibleDogs[0];
+          winners.push({
+            ...winner,
+            level
+          });
+        }
+      }
+
+      return winners;
+    } catch (err) {
+      console.error('Error calculating High in Trial:', err);
+      return [];
+    }
+  };
+
+  // Fetch detailed trial statistics
+  const fetchTrialStatistics = async (trial: Trial) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get completed scores for the selected day
-      const { data: dayScores, error: scoresError } = await supabase
-        .from('nationals_scores')
-        .select(`
-          entry_id,
-          armband,
-          element_type,
-          points,
-          time_seconds,
-          alerts_correct,
-          alerts_incorrect,
-          faults,
-          finish_call_errors,
-          excused
-        `)
+      // Get entry data for the selected trial
+      const { data: trialEntries, error: entriesError } = await supabase
+        .from('tbl_entry_queue')
+        .select('*')
         .eq('mobile_app_lic_key', licenseKey)
-        .eq('day', day)
-        .not('points', 'is', null);
+        .eq('trial_date', trial.trial_date)
+        .eq('trial_number', trial.trial_number)
+        .eq('is_scored', true);
 
-      if (scoresError) throw scoresError;
+      if (entriesError) throw entriesError;
 
-      if (!dayScores || dayScores.length === 0) {
-        // No data for this day yet
+      if (!trialEntries || trialEntries.length === 0) {
+        // No data for this trial yet
         setStats({
           total_dogs: 0,
           completed_dogs: 0,
@@ -111,95 +268,84 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
         return;
       }
 
-      // Get dog details for scoring data
-      const entryIds = [...new Set(dayScores.map(score => score.entry_id))];
-      const { data: entryDetails, error: entriesError } = await supabase
-        .from('view_nationals_leaderboard')
-        .select('*')
-        .in('entry_id', entryIds)
-        .eq('mobile_app_lic_key', licenseKey);
-
-      if (entriesError) throw entriesError;
-
       // Process statistics
-      const processedStats = processDayStatistics(dayScores, entryDetails || []);
+      const processedStats = processTrialStatistics(trialEntries);
       setStats(processedStats);
 
       // Process top performers
-      const processedPerformers = processTopPerformers(dayScores, entryDetails || [], day);
+      const processedPerformers = processTopPerformers(trialEntries, trial);
+      setTopPerformers(processedPerformers);
+
+      // Calculate High in Trial winners if applicable
+      const hitWinners = await calculateHighInTrial(trial);
+      setHighInTrialWinners(hitWinners);
       setTopPerformers(processedPerformers);
 
     } catch (error) {
-      console.error('❌ Error fetching day statistics:', error);
-      setError('Unable to load day statistics');
+      console.error('❌ Error fetching trial statistics:', error);
+      setError('Unable to load trial statistics');
     } finally {
       setLoading(false);
     }
   };
 
-  // Process day statistics from scoring data
-  const processDayStatistics = (scores: any[], entries: any[]): DayStats => {
-    const entryMap = new Map(entries.map(entry => [entry.entry_id, entry]));
-
-    // Group scores by entry
-    const scoresByEntry = new Map<number, any[]>();
-    scores.forEach(score => {
-      if (!scoresByEntry.has(score.entry_id)) {
-        scoresByEntry.set(score.entry_id, []);
+  // Process trial statistics from entry data
+  const processTrialStatistics = (entries: any[]): TrialStats => {
+    // Group entries by armband to get unique dogs
+    const dogMap = new Map<string, any[]>();
+    entries.forEach(entry => {
+      const key = entry.armband.toString();
+      if (!dogMap.has(key)) {
+        dogMap.set(key, []);
       }
-      scoresByEntry.get(score.entry_id)!.push(score);
+      dogMap.get(key)!.push(entry);
     });
 
     // Calculate statistics
-    const totalDogs = entryMap.size;
-    const completedDogs = scoresByEntry.size;
-    let totalScore = 0;
+    const totalDogs = dogMap.size;
+    const completedDogs = dogMap.size;
     let perfectScores = 0;
     let fastestTime = Number.MAX_SAFE_INTEGER;
     let fastestDog = 'No times recorded';
 
     // Breed statistics
-    const breedStats = new Map<string, { count: number; scores: number[]; perfectCount: number }>();
+    const breedStats = new Map<string, { count: number; perfectCount: number }>();
 
-    scoresByEntry.forEach((entryScores, entryId) => {
-      const entry = entryMap.get(entryId);
-      if (!entry) return;
+    dogMap.forEach((dogEntries) => {
+      if (dogEntries.length === 0) return;
 
-      const breed = entry.breed || 'Mixed Breed';
+      const firstEntry = dogEntries[0];
+      const breed = firstEntry.breed || 'Mixed Breed';
 
       // Initialize breed stats
       if (!breedStats.has(breed)) {
-        breedStats.set(breed, { count: 0, scores: [], perfectCount: 0 });
+        breedStats.set(breed, { count: 0, perfectCount: 0 });
       }
 
       const breedStat = breedStats.get(breed)!;
       breedStat.count++;
 
-      // Calculate entry total for this day
-      const entryTotal = entryScores.reduce((sum, score) => sum + (score.points || 0), 0);
-      const entryTime = entryScores.reduce((sum, score) => sum + (score.time_seconds || 0), 0);
+      // Calculate total time for this dog across all elements
+      const totalTime = dogEntries.reduce((sum, entry) => {
+        const time = parseFloat(entry.search_time || '0');
+        return sum + time;
+      }, 0);
 
-      totalScore += entryTotal;
-      breedStat.scores.push(entryTotal);
-
-      // Check for perfect scores (no incorrect alerts, no faults, no finish errors)
-      const isPerfect = entryScores.every(score =>
-        score.alerts_incorrect === 0 &&
-        score.faults === 0 &&
-        score.finish_call_errors === 0 &&
-        score.alerts_correct > 0 &&
-        !score.excused
+      // Check for perfect scores (all qualifying runs with no faults)
+      const isPerfect = dogEntries.every(entry =>
+        entry.result_text === 'Q' &&
+        (entry.fault_count || 0) === 0
       );
 
-      if (isPerfect) {
+      if (isPerfect && dogEntries.length > 1) { // Only count if multiple elements
         perfectScores++;
         breedStat.perfectCount++;
       }
 
       // Track fastest time
-      if (entryTime > 0 && entryTime < fastestTime) {
-        fastestTime = entryTime;
-        fastestDog = entry.call_name || 'Unknown';
+      if (totalTime > 0 && totalTime < fastestTime) {
+        fastestTime = totalTime;
+        fastestDog = firstEntry.call_name || 'Unknown';
       }
     });
 
@@ -208,226 +354,136 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
       .map(([breed, stats]) => ({
         breed,
         count: stats.count,
-        average_score: stats.scores.length > 0 ?
-          Math.round(stats.scores.reduce((sum, score) => sum + score, 0) / stats.scores.length) : 0,
-        top_score: stats.scores.length > 0 ? Math.max(...stats.scores) : 0,
+        average_score: 0, // Not applicable for scent work
+        top_score: 0, // Not applicable for scent work
         perfect_count: stats.perfectCount
       }))
-      .sort((a, b) => b.average_score - a.average_score)
+      .sort((a, b) => b.perfect_count - a.perfect_count || b.count - a.count)
       .slice(0, 5);
 
     return {
       total_dogs: totalDogs,
       completed_dogs: completedDogs,
       perfect_scores: perfectScores,
-      average_score: completedDogs > 0 ? Math.round(totalScore / completedDogs) : 0,
+      average_score: 0, // Not applicable for scent work scoring
       fastest_search: formatTime(fastestTime === Number.MAX_SAFE_INTEGER ? 0 : fastestTime),
       fastest_dog: fastestDog,
       top_breeds: topBreeds
     };
   };
 
-  // Process top performers for the day
-  const processTopPerformers = (scores: any[], entries: any[], day: number): TopPerformer[] => {
-    const entryMap = new Map(entries.map(entry => [entry.entry_id, entry]));
+  // Process top performers for the trial
+  const processTopPerformers = (entries: any[], trial: Trial): TopPerformer[] => {
+    // Group by armband and element to get best performance per dog per element
+    const performanceMap = new Map<string, TopPerformer>();
 
-    // Group scores by entry and element
-    const performanceMap = new Map<string, any>();
+    entries.forEach(entry => {
+      const key = `${entry.armband}-${entry.element}`;
+      const isQualifying = entry.result_text === 'Q';
+      const faultCount = entry.fault_count || 0;
+      const searchTime = parseFloat(entry.search_time || '0');
 
-    scores.forEach(score => {
-      const key = `${score.entry_id}-${score.element_type}`;
-      const entry = entryMap.get(score.entry_id);
-
-      if (entry) {
+      // Only include qualifying runs with good times
+      if (isQualifying && searchTime > 0) {
         performanceMap.set(key, {
-          id: score.entry_id,
-          armband: score.armband,
+          id: entry.id,
+          armband: entry.armband.toString(),
           call_name: entry.call_name || 'Unknown',
           breed: entry.breed || 'Mixed Breed',
-          handler: entry.handler_name || 'Unknown',
+          handler: entry.handler || 'Unknown',
           handler_location: entry.handler_location || '',
-          total_score: score.points || 0,
-          perfect_scores: (score.alerts_incorrect === 0 && score.faults === 0 &&
-                          score.finish_call_errors === 0 && score.alerts_correct > 0 &&
-                          !score.excused) ? 1 : 0,
-          fastest_search: formatTime(score.time_seconds || 0),
-          element_name: getElementDisplayName(score.element_type),
-          day: day
+          total_score: faultCount === 0 ? 100 : Math.max(0, 100 - (faultCount * 10)), // Simple scoring
+          perfect_scores: faultCount === 0 ? 1 : 0,
+          fastest_search: formatTime(searchTime),
+          element_name: getElementDisplayName(entry.element),
+          trial_date: trial.trial_date,
+          trial_number: trial.trial_number
         });
       }
     });
 
-    // Sort by total score and return top 10
+    // Sort by perfect scores first, then by time (fastest)
     return Array.from(performanceMap.values())
-      .sort((a, b) => b.total_score - a.total_score)
+      .sort((a, b) => {
+        if (a.perfect_scores !== b.perfect_scores) {
+          return b.perfect_scores - a.perfect_scores; // Perfect scores first
+        }
+        // Then by fastest time
+        const timeA = parseFloat(a.fastest_search.replace(':', '.').replace('0.', '0'));
+        const timeB = parseFloat(b.fastest_search.replace(':', '.').replace('0.', '0'));
+        return timeA - timeB;
+      })
       .slice(0, 10);
   };
 
-  // Helper functions
-  const formatTime = (seconds: number): string => {
-    if (seconds === 0) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Helper functions (formatTime defined below)
 
   const getElementDisplayName = (element: string): string => {
-    switch (element) {
+    switch (element?.toUpperCase()) {
       case 'CONTAINER': return 'Container';
       case 'BURIED': return 'Buried';
       case 'INTERIOR': return 'Interior';
       case 'EXTERIOR': return 'Exterior';
-      case 'HD_CHALLENGE': return 'Handler Discrimination';
-      default: return element;
+      case 'HD': return 'Handler Discrimination';
+      default: return element || 'Unknown';
     }
   };
 
-  const formatPoints = (points: number): string => {
-    return points >= 0 ? `+${points}` : `${points}`;
+  const formatTrialDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
   };
 
-  // Check competition day completion status and auto-select day for TV display
-  const checkDayCompletionStatus = async () => {
+  const formatFaults = (faults: number): string => {
+    return faults === 0 ? 'Perfect' : `${faults} fault${faults !== 1 ? 's' : ''}`;
+  };
+
+  const formatTime = (seconds: number): string => {
+    if (seconds === 0) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Check trial completion status and auto-select trial for TV display
+  const checkTrialCompletionStatus = async () => {
     try {
-      // Get current competition day (based on schedule or manual setting)
-      const currentDay = getCurrentCompetitionDay();
-      setCurrentCompetitionDay(currentDay);
-
-      // Check if each day is completed (all dogs finished their runs)
-      const { data: completionData, error: _error } = await supabase
-        .from('tbl_class_queue')
-        .select('trial_date, element, release_mode, class_completed, auto_release_results, results_released')
-        .eq('mobile_app_lic_key', licenseKey);
-
-      if (completionData && completionData.length > 0) {
-        // Check per-class results release status (new system)
-        const statusMap: Record<number, boolean> = {};
-        const isNationals = licenseKey === 'myK9Q1-d8609f3b-d3fd43aa-6323a604';
-
-        [1, 2, 3].forEach(day => {
-          // Check if any class for this day has results available
-          const dayClasses = completionData.filter((_cls: any) => {
-            // For now, all classes are considered for each day
-            // This could be improved by mapping trial_date to day numbers
-            return true;
-          });
-
-          if (dayClasses.length === 0) {
-            statusMap[day] = false;
-            return;
-          }
-
-          // Check if the new enum field exists (after migration)
-          const hasEnumField = Object.prototype.hasOwnProperty.call(dayClasses[0], 'release_mode');
-
-          if (hasEnumField) {
-            // Use new enum-based logic
-            const hasReleasedResults = dayClasses.some(cls => {
-              switch (cls.release_mode) {
-                case 'immediate':
-                  return true; // Always show for immediate mode
-                case 'auto':
-                  return cls.class_completed; // Auto-release: show when complete
-                case 'released':
-                  return true; // Manually released
-                case 'hidden':
-                default:
-                  return false; // Hidden
-              }
-            });
-            statusMap[day] = hasReleasedResults;
-          } else if (Object.prototype.hasOwnProperty.call(dayClasses[0], 'auto_release_results')) {
-            // Fallback to legacy boolean fields
-            const hasReleasedResults = dayClasses.some(cls => {
-              if (cls.auto_release_results) {
-                return cls.class_completed; // Auto-release: show when complete
-              } else {
-                return cls.results_released === true; // Manual: show when explicitly released
-              }
-            });
-            statusMap[day] = hasReleasedResults;
-          } else {
-            // Fallback for current database structure
-            if (isNationals) {
-              statusMap[day] = false; // Default to embargo for Nationals
-            } else {
-              statusMap[day] = true; // Allow results for regular shows
-            }
-          }
-        });
-
-        setDayCompletionStatus(statusMap);
-
-        // Auto-select day for TV display
-        // Show the most recent completed day, or current day if in progress
-        let dayToShow = 1;
-        if (statusMap[3] === true) dayToShow = 3;
-        else if (statusMap[2] === true) dayToShow = 2;
-        else if (statusMap[1] === true) dayToShow = 1;
-        else dayToShow = currentDay; // Show current day even if not completed (will show embargo)
-
-        setSelectedDay(dayToShow as 1 | 2 | 3);
-      } else {
-        // No completion data exists yet, show current day
-        setSelectedDay(currentDay as 1 | 2 | 3);
-        setDayCompletionStatus({});
-      }
-
-      // Make sure loading stops after checking status
-      if (!shouldShowScores(selectedDay)) {
-        setLoading(false);
-      }
+      // For now, just show all trials as available
+      // In the future, this could implement embargo logic per trial
+      setLoading(false);
     } catch (error) {
-      console.error('Error checking day completion:', error);
-      // On error, stop loading and assume embargo
+      console.error('Error checking trial completion:', error);
       setLoading(false);
     }
   };
 
-  // Helper to get current competition day
-  const getCurrentCompetitionDay = (): number => {
-    // This could be set manually by event organizers or calculated
-    // For now, determine by date (Feb 13=Day 1, Feb 14=Day 2, Feb 15=Day 3)
-    const today = new Date();
-    const eventStart = new Date('2025-02-13');
-    const daysSinceStart = Math.floor((today.getTime() - eventStart.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (daysSinceStart < 0) return 1; // Before event
-    if (daysSinceStart > 2) return 3; // After event
-    return daysSinceStart + 1;
+  // Handle trial selection
+  const handleTrialSelection = (trial: Trial) => {
+    setSelectedTrial(trial);
+    setLastUserInteraction(Date.now());
+    setAutoRotate(false);
+    setTimeout(() => setAutoRotate(true), 120000); // Re-enable after 2 minutes
   };
 
-  // Determine if scores should be shown for selected day
-  const shouldShowScores = (day: number): boolean => {
-    if (allowLiveScores) return true; // Override for testing
-
-    // For testing/development: if it's not the actual competition dates, show empty state
-    const today = new Date();
-    const eventStart = new Date('2025-02-13');
-    const eventEnd = new Date('2025-02-15');
-
-    if (today < eventStart || today > eventEnd) {
-      // Outside competition dates - show clean empty state
-      return false;
-    }
-
-    // Show scores only if:
-    // 1. Day is completed, OR
-    // 2. Day is before current competition day
-    return dayCompletionStatus[day] === true || day < currentCompetitionDay;
+  // Determine if scores should be shown for selected trial
+  const shouldShowScores = (): boolean => {
+    return allowLiveScores || selectedTrial !== null;
   };
 
-  // Auto-rotation through completed days for TV display
+  // Auto-rotation through available trials for TV display
   useEffect(() => {
-    if (!autoRotate) return;
-
-    const getCompletedDays = (): number[] => {
-      return [1, 2, 3].filter(day => shouldShowScores(day));
-    };
-
-    const completedDays = getCompletedDays();
-
-    if (completedDays.length <= 1) return; // No need to rotate if only 0-1 days
+    if (!autoRotate || trials.length <= 1) return;
 
     const rotationInterval = setInterval(() => {
       // Only auto-rotate if user hasn't interacted recently (last 30 seconds)
@@ -435,62 +491,64 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
       const userInactivityThreshold = 30000; // 30 seconds
 
       if (timeSinceInteraction > userInactivityThreshold) {
-        setSelectedDay(prev => {
-          const currentIndex = completedDays.indexOf(prev);
-          const nextIndex = (currentIndex + 1) % completedDays.length;
-          return completedDays[nextIndex] as 1 | 2 | 3;
+        setSelectedTrial(prev => {
+          if (!prev) return trials[0];
+          const currentIndex = trials.findIndex(t =>
+            t.trial_date === prev.trial_date && t.trial_number === prev.trial_number
+          );
+          const nextIndex = (currentIndex + 1) % trials.length;
+          return trials[nextIndex];
         });
       }
-    }, 10000); // Rotate every 10 seconds
+    }, 15000); // Rotate every 15 seconds
 
     return () => clearInterval(rotationInterval);
-  }, [dayCompletionStatus, autoRotate, lastUserInteraction]);
+  }, [trials, autoRotate, lastUserInteraction]);
 
-  // Handle user clicking day buttons
-  const handleDaySelection = (day: 1 | 2 | 3) => {
-    setSelectedDay(day);
-    setLastUserInteraction(Date.now());
-    // Temporarily disable auto-rotation for 2 minutes after user interaction
-    setAutoRotate(false);
-    setTimeout(() => setAutoRotate(true), 120000); // Re-enable after 2 minutes
-  };
 
-  // Fetch data when day changes or completion status updates
+  // Fetch data when component mounts
   useEffect(() => {
-    checkDayCompletionStatus();
+    const initializeData = async () => {
+      await fetchShowInfo();
+      await fetchAvailableTrials();
+      await checkTrialCompletionStatus();
+    };
+    initializeData();
   }, [licenseKey]);
 
+  // Fetch trial data when selected trial changes
   useEffect(() => {
-    if (shouldShowScores(selectedDay)) {
-      fetchDayStatistics(selectedDay);
+    if (selectedTrial && shouldShowScores()) {
+      fetchTrialStatistics(selectedTrial);
     } else {
-      // Clear stats for embargoed day and stop loading
+      // Clear stats and stop loading
       setStats(null);
       setTopPerformers([]);
+      setHighInTrialWinners([]);
       setLoading(false);
     }
-  }, [selectedDay, licenseKey, dayCompletionStatus]);
+  }, [selectedTrial, licenseKey]);
 
   // Loading state
-  if (loading || scoresLoading || progressLoading) {
+  if (loading) {
     return (
       <div className="yesterday-highlights loading">
         <div className="loading-content">
           <div className="loading-spinner"></div>
-          <div className="loading-text">Loading day statistics...</div>
+          <div className="loading-text">Loading trial statistics...</div>
         </div>
       </div>
     );
   }
 
   // Error state
-  if (error || scoresError) {
+  if (error) {
     return (
       <div className="yesterday-highlights error">
         <div className="error-content">
           <div className="error-icon">⚠️</div>
           <div className="error-text">Unable to load statistics</div>
-          <div className="error-detail">{error || scoresError}</div>
+          <div className="error-detail">{error}</div>
         </div>
       </div>
     );
@@ -505,26 +563,75 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
             <div className="title-icon">🏆</div>
             <div className="title-text">
               <h1>Competition Highlights</h1>
-              <div className="subtitle">AKC Scent Work Master National 2025</div>
+              <div className="subtitle">{showInfo?.showname || 'Competition Results'}</div>
             </div>
           </div>
-          <div className="day-selector-modern">
-            {[1, 2, 3].map(day => (
+          <div className="trial-selector-modern">
+            {trials.map(trial => (
               <button
-                key={day}
-                className={`day-tab ${selectedDay === day ? 'active' : ''}`}
-                onClick={() => handleDaySelection(day as 1 | 2 | 3)}
+                key={`${trial.trial_date}-${trial.trial_number}`}
+                className={`trial-tab ${
+                  selectedTrial?.trial_date === trial.trial_date &&
+                  selectedTrial?.trial_number === trial.trial_number
+                    ? 'active' : ''
+                }`}
+                onClick={() => handleTrialSelection(trial)}
               >
-                <span className="day-number">{day}</span>
-                <span className="day-label">Day {day}</span>
+                <span className="trial-number">{trial.trial_number}</span>
+                <span className="trial-date">{formatTrialDate(trial.trial_date)}</span>
               </button>
             ))}
           </div>
         </div>
       </div>
 
+      {/* High in Trial Section - Regular Shows Only */}
+      {shouldShowScores() && showInfo?.showtype === 'Regular' && highInTrialWinners.length > 0 && (
+        <div className="highlights-content-modern">
+          <div className="high-in-trial-section">
+            <div className="section-header">
+              <h3>🏆 High in Trial Awards</h3>
+              <div className="section-subtitle">
+                {selectedTrial ? `${selectedTrial.trial_number} - ${formatTrialDate(selectedTrial.trial_date)}` : ''}
+              </div>
+            </div>
+            <div className="hit-winners-grid">
+              {highInTrialWinners.map((winner) => (
+                <div key={`${winner.armband}-${winner.level}`} className="hit-winner-card">
+                  <div className="hit-level-badge">{winner.level} HIT</div>
+                  <div className="hit-winner-info">
+                    <div className="hit-primary">
+                      <span className="hit-name">{winner.call_name}</span>
+                      <span className="hit-armband">#{winner.armband}</span>
+                    </div>
+                    <div className="hit-secondary">
+                      <span className="hit-breed">{winner.breed}</span>
+                      <span className="hit-handler">{winner.handler}</span>
+                    </div>
+                  </div>
+                  <div className="hit-performance">
+                    <div className="hit-stat">
+                      <span className="hit-stat-label">Faults</span>
+                      <span className="hit-stat-value">{formatFaults(winner.total_faults)}</span>
+                    </div>
+                    <div className="hit-stat">
+                      <span className="hit-stat-label">Time</span>
+                      <span className="hit-stat-value">{formatTime(winner.total_time)}</span>
+                    </div>
+                  </div>
+                  <div className="hit-elements">
+                    <span className="elements-label">Elements:</span>
+                    <span className="elements-list">{winner.elements_completed.join(', ')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modern Statistics Cards Grid - Only When Scores Released */}
-      {shouldShowScores(selectedDay) && stats && (
+      {shouldShowScores() && stats && (
         <div className="highlights-content-modern">
           <div className="stats-cards-grid">
             <div className="modern-stat-card dogs-scored">
@@ -534,7 +641,7 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
               </div>
               <div className="stat-main-value">{stats.completed_dogs}</div>
               <div className="stat-card-label">Dogs Scored</div>
-              <div className="stat-card-detail">of {stats.total_dogs} total entries</div>
+              <div className="stat-card-detail">in {selectedTrial ? selectedTrial.trial_number : 'this trial'}</div>
               <div className="stat-progress-bar">
                 <div
                   className="stat-progress-fill"
@@ -550,37 +657,35 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
               </div>
               <div className="stat-main-value">{stats.perfect_scores}</div>
               <div className="stat-card-label">Perfect Runs</div>
-              <div className="stat-card-detail">No faults or errors</div>
+              <div className="stat-card-detail">No faults across elements</div>
               <div className="achievement-indicator">
                 {stats.perfect_scores > 0 ? '🏅 Excellence' : '🎯 Ready to achieve'}
               </div>
             </div>
 
-            <div className="modern-stat-card average-score">
-              <div className="stat-card-header">
-                <div className="stat-icon-large">📈</div>
-                <div className="score-indicator">{formatPoints(stats.average_score)}</div>
+            {stats.completed_dogs >= 5 && stats.fastest_search !== '0:00' ? (
+              <div className="modern-stat-card fastest-time">
+                <div className="stat-card-header">
+                  <div className="stat-icon-large">⚡</div>
+                  <div className="time-badge">FASTEST</div>
+                </div>
+                <div className="stat-main-value time-value">{stats.fastest_search}</div>
+                <div className="stat-card-label">Fastest Search</div>
+                <div className="stat-card-detail">{stats.fastest_dog}</div>
+                <div className="speed-indicator">🚀 Lightning fast</div>
               </div>
-              <div className="stat-main-value">{Math.abs(stats.average_score)}</div>
-              <div className="stat-card-label">Average Score</div>
-              <div className="stat-card-detail">All elements combined</div>
-              <div className="score-breakdown">
-                <span className="breakdown-item">Per dog average</span>
+            ) : (
+              <div className="modern-stat-card progress-card">
+                <div className="stat-card-header">
+                  <div className="stat-icon-large">📊</div>
+                  <div className="progress-badge">PROGRESS</div>
+                </div>
+                <div className="stat-main-value">{Math.round((stats.completed_dogs / stats.total_dogs) * 100)}%</div>
+                <div className="stat-card-label">Competition Progress</div>
+                <div className="stat-card-detail">{stats.completed_dogs} of {stats.total_dogs} scored</div>
+                <div className="progress-indicator">📈 In progress</div>
               </div>
-            </div>
-
-            <div className="modern-stat-card fastest-time">
-              <div className="stat-card-header">
-                <div className="stat-icon-large">⚡</div>
-                <div className="time-badge">FASTEST</div>
-              </div>
-              <div className="stat-main-value time-value">{stats.fastest_search}</div>
-              <div className="stat-card-label">Fastest Search</div>
-              <div className="stat-card-detail">{stats.fastest_dog}</div>
-              <div className="speed-indicator">
-                {stats.fastest_search !== '0:00' ? '🚀 Lightning fast' : '⏱️ Awaiting times'}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -589,8 +694,10 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
       {topPerformers.length > 0 && (
         <div className="top-performers">
           <div className="section-header">
-            <h3>🌟 Top Performances - Day {selectedDay}</h3>
-            <div className="section-subtitle">Highest scoring runs by element</div>
+            <h3>🌟 Top Performances</h3>
+            <div className="section-subtitle">
+              {selectedTrial ? `${selectedTrial.trial_number} - ${formatTrialDate(selectedTrial.trial_date)}` : 'Best qualifying runs by element'}
+            </div>
           </div>
           <div className="performers-grid">
             {topPerformers.map((performer, index) => (
@@ -608,10 +715,6 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
                   <div className="performer-handler">{performer.handler}</div>
                 </div>
                 <div className="performer-stats">
-                  <div className="performer-score">
-                    <span className="score-label">Score</span>
-                    <span className="score-value">{formatPoints(performer.total_score)}</span>
-                  </div>
                   <div className="performer-time">
                     <span className="time-label">Time</span>
                     <span className="time-value">{performer.fastest_search}</span>
@@ -631,7 +734,9 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
         <div className="breed-stats">
           <div className="section-header">
             <h3>🐕 Top Performing Breeds</h3>
-            <div className="section-subtitle">Day {selectedDay} breed averages</div>
+            <div className="section-subtitle">
+              {selectedTrial ? `${selectedTrial.trial_number} breed performance` : 'Breed performance'}
+            </div>
           </div>
           <div className="breeds-grid">
             {stats.top_breeds.map((breed, index) => (
@@ -643,14 +748,6 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
                 </div>
                 <div className="breed-stats-detail">
                   <div className="breed-stat">
-                    <span className="stat-label">Avg</span>
-                    <span className="stat-value">{formatPoints(breed.average_score)}</span>
-                  </div>
-                  <div className="breed-stat">
-                    <span className="stat-label">Top</span>
-                    <span className="stat-value">{formatPoints(breed.top_score)}</span>
-                  </div>
-                  <div className="breed-stat">
                     <span className="stat-label">Perfect</span>
                     <span className="stat-value">{breed.perfect_count}</span>
                   </div>
@@ -661,25 +758,46 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
         </div>
       )}
 
-      {/* Competition Integrity Protection */}
-      {!shouldShowScores(selectedDay) && (
+      {/* Empty State */}
+      {trials.length === 0 && (
         <div className="highlights-content-modern">
-          <div className="embargo-state">
-            <div className="embargo-icon">🔒</div>
-            <div className="embargo-title">Competition in Progress</div>
-            <div className="embargo-message">
-              Results for Day {selectedDay} will be released after all dogs have competed
+          <div className="empty-state">
+            <div className="empty-icon">📋</div>
+            <div className="empty-title">No Trials Available</div>
+            <div className="empty-message">
+              Trial data will appear here when trials are uploaded to the system.
             </div>
           </div>
         </div>
       )}
 
-      {/* Empty State - No Content When Day Completed But No Data */}
-      {shouldShowScores(selectedDay) && (!stats || stats.completed_dogs === 0) && (
+      {/* No Trial Selected State */}
+      {trials.length > 0 && !selectedTrial && (
         <div className="highlights-content-modern">
-          {/* Completely empty - just the clean header above */}
+          <div className="empty-state">
+            <div className="empty-icon">📋</div>
+            <div className="empty-title">Select a Trial</div>
+            <div className="empty-message">
+              Choose a trial above to view competition highlights and statistics.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Data State */}
+      {shouldShowScores() && selectedTrial && (!stats || stats.completed_dogs === 0) && (
+        <div className="highlights-content-modern">
+          <div className="empty-state">
+            <div className="empty-icon">⏳</div>
+            <div className="empty-title">No Results Yet</div>
+            <div className="empty-message">
+              Results for {selectedTrial.trial_number} will appear as dogs compete.
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 };
+
+export default YesterdayHighlightsEnhanced;

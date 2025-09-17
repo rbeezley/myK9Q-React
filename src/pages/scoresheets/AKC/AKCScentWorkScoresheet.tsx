@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
 import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
+import './AKCScentWorkScoresheet-Flutter.css';
+import './AKCScentWorkScoresheet-JudgeDialog.css';
 
 import { QualifyingResult } from '../../../stores/scoringStore';
+
+type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
 
 interface AreaScore {
   areaName: string;
@@ -636,7 +640,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     
     return (
-      <div className="mobile-scoresheet" data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="mobile-scoresheet app-container-narrow" data-theme={darkMode ? 'dark' : 'light'}>
         {/* Development Sample Mode Banner */}
         <div style={{
           backgroundColor: '#ff6b35',
@@ -934,7 +938,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     // In production, show proper error state
     return (
-      <div className="mobile-scoresheet" data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="mobile-scoresheet app-container-narrow" data-theme={darkMode ? 'dark' : 'light'}>
         <header className="mobile-header">
           <button className="back-btn" onClick={() => navigate(-1)}>←</button>
           <h1>Entry Not Found</h1>
@@ -1061,53 +1065,44 @@ export const AKCScentWorkScoresheet: React.FC = () => {
         })}
       </div>
       
-      {/* Result Buttons */}
-      <div className="result-section">
-        <div className="result-row">
-          <button
-            className={`result-btn ${qualifying === 'Q' ? 'active' : ''}`}
-            onClick={() => setQualifying('Q')}
-          >
-            Qualified (Q)
-          </button>
-          <button
-            className={`result-btn ${qualifying === 'NQ' ? 'active' : ''}`}
-            onClick={() => {
-              setQualifying('NQ');
-              setNonQualifyingReason('Incorrect Call');
-            }}
-          >
-            NQ
-          </button>
-          <button
-            className={`result-btn ${qualifying === 'ABS' ? 'active' : ''}`}
-            onClick={() => setQualifying('ABS')}
-          >
-            Absent (ABS)
-          </button>
-          <button
-            className={`result-btn ${qualifying === 'EX' ? 'active' : ''}`}
-            onClick={() => {
-              setQualifying('EX');
-              setNonQualifyingReason('Dog Eliminated');
-            }}
-          >
-            EX
-          </button>
-          <button
-            className={`result-btn ${qualifying === 'WD' ? 'active' : ''}`}
-            onClick={() => {
-              setQualifying('WD');
-              setNonQualifyingReason('In Season');
-            }}
-          >
-            WD
-          </button>
-        </div>
-      </div>
+      {/* Result Choice Chips */}
+      <ResultChoiceChips
+        selectedResult={
+          qualifying === 'Q' ? 'Qualified' :
+          qualifying === 'ABS' ? 'Absent' :
+          qualifying === 'EX' ? 'Excused' :
+          undefined
+        }
+        onResultChange={(result: NationalsResult) => {
+          if (result === 'Qualified') {
+            setQualifying('Q');
+          } else if (result === 'Absent') {
+            setQualifying('ABS');
+            setNonQualifyingReason('Absent');
+          } else if (result === 'Excused') {
+            setQualifying('EX');
+            setNonQualifyingReason('Excused');
+          }
+        }}
+        showNQ={true}
+        showWD={true}
+        showEX={true}
+        onNQClick={() => {
+          setQualifying('NQ');
+          setNonQualifyingReason('Incorrect Call');
+        }}
+        onWDClick={() => {
+          setQualifying('WD');
+          setNonQualifyingReason('In Season');
+        }}
+        onEXClick={() => {
+          setQualifying('EX');
+          setNonQualifyingReason('Dog Eliminated');
+        }}
+      />
       
       {/* Faults Count Section - Only show for Qualified */}
-      {qualifying === 'Qualified' && (
+      {qualifying === 'Q' && (
         <div className="faults-section">
           <h3>Faults Count</h3>
           <div className="fault-counter">
@@ -1239,60 +1234,64 @@ export const AKCScentWorkScoresheet: React.FC = () => {
         </button>
       </div>
       
-      {/* Status Bar */}
-      <div className="status-bar">
-        <div className="status-left">
-          <span className="status-online">{isOnline ? 'Online' : 'Offline'}</span>
-        </div>
-        <div className="status-center">
-          <span>Total: {calculateTotalTime()}</span>
-        </div>
-        <div className="status-right">
-        </div>
-      </div>
       
-      {/* Confirmation Dialog */}
+      {/* Judge Confirmation Dialog */}
       {showConfirmation && (
-        <div className="confirmation-overlay">
-          <div className="confirmation-dialog">
-            <div className={`confirmation-header ${qualifying?.toLowerCase() || ''}`}>
-              {(() => {
-                const result = qualifying?.toLowerCase() || '';
-                if (result === 'qualified') return 'QUALIFIED';
-                if (result === 'nq') return 'NON-QUALIFYING';
-                if (result === 'absent') return 'ABSENT';
-                if (result === 'excused') return 'EXCUSED';
-                if (result === 'withdrawn') return 'WITHDRAWN';
-                return qualifying?.toUpperCase() || '';
-              })()}
-            </div>
-            <div className="confirmation-details">
-              <div className="confirmation-dog-info">
-                <p><strong>{currentEntry.callName}</strong></p>
-                <p><span className="label">#</span><span className="value">{currentEntry.armband}</span></p>
+        <div className="judge-confirmation-overlay">
+          <div className="judge-confirmation-dialog">
+            <div className="dialog-header">
+              <h2>Score Confirmation</h2>
+              <div className="trial-info">
+                <span className="trial-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span className="trial-class">Trial 1 {currentEntry.element} {currentEntry.level}</span>
               </div>
-              
-              <div className="confirmation-result">
-                <p><span className="label">Time:</span> <span className="value">{totalTime}</span></p>
-                <p><span className="label">Faults:</span> <span className="value">{faultCount}</span></p>
+            </div>
+
+            <div className="dog-summary">
+              <div className="armband-large">#{currentEntry.armband}</div>
+              <div className="dog-info-summary">
+                <div className="dog-name-large">{currentEntry.callName}</div>
+                <div className="dog-breed">{currentEntry.breed}</div>
+                <div className="handler-name">Handler: {currentEntry.handler}</div>
+              </div>
+            </div>
+
+            <div className="score-details">
+              <div className="score-row">
+                <span className="score-label">Result</span>
+                <span className={`score-value result-${qualifying?.toLowerCase() || ''}`}>
+                  {qualifying === 'Q' ? 'Qualified' :
+                   qualifying === 'NQ' ? 'Non-Qualifying' :
+                   qualifying === 'ABS' ? 'Absent' :
+                   qualifying === 'EX' ? 'Excused' :
+                   qualifying === 'WD' ? 'Withdrawn' : qualifying}
+                </span>
               </div>
 
-              {areas.filter(a => a.found).map((area, index) => (
-                <div key={index} className="area-result">
-                  <strong>{area.areaName}:</strong> {area.time} 
-                  {area.correct ? ' ✓' : ' ✗'}
+              <div className="score-row">
+                <span className="score-label">Time</span>
+                <span className="score-value">{calculateTotalTime() || '0:00.00'}</span>
+              </div>
+
+              {qualifying === 'Q' && (
+                <div className="score-row">
+                  <span className="score-label">Faults</span>
+                  <span className="score-value">{faultCount}</span>
                 </div>
-              ))}
+              )}
+
               {nonQualifyingReason && (
-                <div className="nq-reason">
-                  <strong>Reason:</strong> {nonQualifyingReason}
+                <div className="score-row">
+                  <span className="score-label">Reason</span>
+                  <span className="score-value">{nonQualifyingReason}</span>
                 </div>
               )}
             </div>
-            <div className="confirmation-buttons">
-              <button onClick={() => setShowConfirmation(false)}>Cancel</button>
-              <button onClick={confirmSubmit} className="confirm-button">
-                Confirm
+
+            <div className="dialog-actions">
+              <button className="dialog-btn cancel" onClick={() => setShowConfirmation(false)}>Cancel</button>
+              <button className="dialog-btn confirm" onClick={confirmSubmit} disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Confirm Score'}
               </button>
             </div>
           </div>

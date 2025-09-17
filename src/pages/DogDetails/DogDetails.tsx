@@ -328,7 +328,7 @@ export const DogDetails: React.FC = () => {
   }
 
   return (
-    <div className="dog-details-container">
+    <div className="dog-details-container app-container">
       
       {/* Header with outdoor-ready contrast */}
       <header className="dog-header">

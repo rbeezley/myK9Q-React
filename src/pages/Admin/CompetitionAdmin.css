@@ -98,8 +98,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .header-info {
@@ -168,8 +166,6 @@
 
 /* Main content */
 .admin-content {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -476,6 +472,11 @@
 
 /* Desktop: 3 columns */
 @media (min-width: 1025px) {
+  /* Adjust hamburger menu position to align with container edge */
+  .hamburger-menu {
+    left: calc((100vw - 1200px) / 2);
+  }
+
   .classes-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

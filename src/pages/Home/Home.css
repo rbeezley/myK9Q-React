@@ -27,6 +27,15 @@
   --success: #34C759;
   --warning: #FF9500;
   --error: #FF3B30;
+
+  /* Standardized Class Status Colors */
+  --status-none: #6b7280;
+  --status-setup: #f59e0b;
+  --status-briefing: #8b5cf6;
+  --status-break: #06b6d4;
+  --status-start-time: #10b981;
+  --status-in-progress: #3b82f6;
+  --status-completed: #059669;
   
   /* High contrast status colors */
   --success-contrast: #047857;
@@ -48,23 +57,32 @@
   --primary-foreground: #ffffff;
   --secondary: #262626;
   --secondary-foreground: #ffffff;
-  
+
   /* Enhanced text contrast for outdoor visibility */
   --text-primary: #ffffff;
   --text-secondary: #ffffff;
   --text-tertiary: #ffffff;
-  
+
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
   --warning-contrast: #f59e0b;
   --error-contrast: #ef4444;
+
+  /* Dark mode status colors - enhanced brightness */
+  --status-none: #9ca3af;
+  --status-setup: #fbbf24;
+  --status-briefing: #a78bfa;
+  --status-break: #22d3ee;
+  --status-start-time: #34d399;
+  --status-in-progress: #60a5fa;
+  --status-completed: #10b981;
 }
 
 .home-container {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif);
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   /* No bottom padding needed - using hamburger menu instead of bottom nav */
 }
@@ -102,7 +120,7 @@
 .header-center h1 {
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 650;
+  font-weight: 590;
   color: var(--foreground);
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -177,7 +195,7 @@
 .show-info h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 650;
   color: var(--foreground);
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -201,7 +219,7 @@
 .trials-section h3 {
   margin: 0 0 1rem 0;
   font-size: 1.125rem;
-  font-weight: 650;
+  font-weight: 590;
   color: var(--foreground);
   letter-spacing: -0.02em;
   line-height: 1.3;
@@ -361,7 +379,7 @@
 .trial-info h3 {
   margin: 0 0 0.5rem 0; /* Added bottom margin for better spacing */
   font-size: 1.125rem; /* Slightly larger like entry cards */
-  font-weight: 600;
+  font-weight: 590;
   color: var(--foreground);
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -508,7 +526,7 @@
 
 .entry-list-title {
   font-size: 1.125rem;
-  font-weight: 650;
+  font-weight: 590;
   color: var(--foreground);
   margin: 0;
   letter-spacing: -0.02em;
@@ -553,7 +571,7 @@
 .no-favorites h3 {
   margin: 0 0 0.5rem 0;
   font-size: 1.125rem;
-  font-weight: 650;
+  font-weight: 590;
   color: var(--foreground);
   line-height: 1.3;
 }
@@ -652,7 +670,7 @@
 .entry-name {
   margin: 0 0 0.25rem 0;
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 590;
   color: var(--foreground);
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -750,28 +768,9 @@
   animation: fadeIn 0.2s ease-out;
 }
 
-.hamburger-menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 280px;
-  height: 100vh;
-  background: var(--card);
-  border-right: 1px solid var(--border);
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
-  animation: slideInFromLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  display: flex;
-  flex-direction: column;
-}
+/* .hamburger-menu styles moved to HamburgerMenu.css for consistency */
 
-@keyframes slideInFromLeft {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
+/* slideInFromLeft animation moved to HamburgerMenu.css */
 
 .menu-header {
   display: flex;
@@ -998,28 +997,18 @@
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
-  .home-container {
-    max-width: 768px;
-    margin: 0 auto;
-  }
-  
+@media (min-width: 640px) {
   .entry-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  
+
   .tab-text {
     display: inline;
   }
 }
 
-@media (min-width: 1025px) {
-  .home-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
+@media (min-width: 1024px) {
   .entry-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;

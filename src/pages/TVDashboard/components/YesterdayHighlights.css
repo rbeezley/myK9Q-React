@@ -1,3 +1,224 @@
+/* Competition Highlights Component Styles */
+
+/* Trial Selector Styles */
+.trial-selector-modern {
+  display: flex;
+  gap: 1vw;
+  flex-wrap: wrap;
+}
+
+.trial-tab {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+  border-radius: 12px;
+  padding: 1vh 1.5vw;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.trial-tab:hover {
+  background: rgba(0, 122, 255, 0.2);
+  border-color: rgba(0, 122, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.trial-tab.active {
+  background: linear-gradient(135deg, var(--akc-blue) 0%, #0099FF 100%);
+  border-color: var(--akc-blue);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.trial-number {
+  font-size: 1.2vw;
+  font-weight: 700;
+  margin-bottom: 0.2vh;
+}
+
+.trial-date {
+  font-size: 0.9vw;
+  opacity: 0.8;
+}
+
+/* High in Trial Styles */
+.high-in-trial-section {
+  margin-bottom: 3vh;
+}
+
+.hit-winners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2vh;
+  margin-top: 2vh;
+}
+
+.hit-winner-card {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5vh 1.5vw;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.hit-winner-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.hit-level-badge {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  background: linear-gradient(135deg, var(--akc-gold) 0%, #FFA500 100%);
+  color: #000;
+  padding: 0.3vh 0.8vw;
+  border-radius: 12px;
+  font-size: 0.8vw;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.hit-winner-info {
+  margin-bottom: 1vh;
+}
+
+.hit-primary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5vh;
+}
+
+.hit-name {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hit-armband {
+  font-size: 1.1vw;
+  font-weight: 600;
+  color: var(--akc-blue);
+  background: rgba(0, 122, 255, 0.1);
+  padding: 0.2vh 0.5vw;
+  border-radius: 6px;
+}
+
+.hit-secondary {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1vw;
+  color: var(--text-secondary);
+}
+
+.hit-breed {
+  font-weight: 600;
+}
+
+.hit-handler {
+  font-style: italic;
+}
+
+.hit-performance {
+  display: flex;
+  gap: 2vw;
+  margin-bottom: 1vh;
+  padding: 1vh 0;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.hit-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hit-stat-label {
+  font-size: 0.8vw;
+  color: var(--text-secondary);
+  margin-bottom: 0.2vh;
+}
+
+.hit-stat-value {
+  font-size: 1.2vw;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hit-elements {
+  font-size: 0.9vw;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.elements-label {
+  font-weight: 600;
+  margin-right: 0.5vw;
+}
+
+.elements-list {
+  color: var(--akc-blue);
+  font-weight: 500;
+}
+
+/* Progress Card Styles */
+.progress-card {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.1) 0%, rgba(88, 196, 221, 0.1) 100%) !important;
+  border-color: rgba(0, 122, 255, 0.3) !important;
+}
+
+.progress-badge {
+  background: linear-gradient(135deg, var(--akc-blue) 0%, #58C4DD 100%);
+  color: white;
+  padding: 0.3vh 0.8vw;
+  border-radius: 12px;
+  font-size: 0.7vw;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.progress-indicator {
+  color: var(--akc-blue);
+  font-weight: 600;
+  font-size: 0.9vw;
+}
+
+/* Empty State Styles */
+.empty-state {
+  text-align: center;
+  padding: 4vh 2vw;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 4vw;
+  margin-bottom: 1vh;
+  opacity: 0.7;
+}
+
+.empty-title {
+  font-size: 1.8vw;
+  color: var(--text-primary);
+  margin-bottom: 1vh;
+  font-weight: 600;
+}
+
+.empty-message {
+  font-size: 1.2vw;
+  opacity: 0.8;
+  line-height: 1.4;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
 /* Yesterday Highlights Component Styles */
 .yesterday-highlights {
   background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, rgba(255, 215, 0, 0.03) 100%);

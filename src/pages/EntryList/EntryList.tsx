@@ -736,7 +736,7 @@ export const EntryList: React.FC = () => {
   };
 
   return (
-    <div className="entry-list-container">
+    <div className="entry-list-container app-container-wide">
       <header className="entry-list-header">
         <HamburgerMenu
           backNavigation={{

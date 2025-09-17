@@ -100,19 +100,17 @@
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Desktop - constrained page width */
-@media (min-width: 1400px) {
+/* Desktop responsive improvements */
+@media (min-width: 1024px) {
   .entry-list-container {
-    max-width: 1400px;
-    margin: 0 auto;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
   }
-  
+
   .status-tabs {
     max-width: 600px;
     margin: 1rem auto;
   }
-  
+
   .mobile-search-container {
     max-width: 600px;
     margin: 1rem auto 0 auto;
