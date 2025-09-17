@@ -71,6 +71,7 @@ export const ClassList: React.FC = () => {
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
+  const [statusPopupPosition, setStatusPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
   const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map());
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
@@ -167,6 +168,7 @@ export const ClassList: React.FC = () => {
       }
       if (!target.closest('.status-popup') && !target.closest('.status-badge')) {
         setActiveStatusPopup(null);
+        setStatusPopupPosition(null);
       }
     };
 
@@ -646,11 +648,8 @@ export const ClassList: React.FC = () => {
   };
 
   const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
-    console.log('🎯 Updating class status:', { classId, status });
-    
     // Convert string status to database numeric value
     const dbStatusValue = statusToDbMapping[status];
-    console.log('📊 Database value:', dbStatusValue);
     
     // Update local state
     setClasses(prev => prev.map(c => 
@@ -666,16 +665,12 @@ export const ClassList: React.FC = () => {
         .select();
 
       if (error) {
-        console.error('❌ Error updating class status:', error);
+        console.error('Error updating class status:', error);
         // Revert on error
         loadClassList();
-      } else {
-        console.log('✅ Class status updated successfully:', data);
-        // Refresh to ensure UI is in sync
-        await loadClassList();
       }
     } catch (error) {
-      console.error('💥 Exception:', error);
+      console.error('Exception updating class status:', error);
       loadClassList();
     }
   };
@@ -844,10 +839,11 @@ export const ClassList: React.FC = () => {
           preview += inRingDog ? ` • Next: ${nextArmband}` : `Next: ${nextArmband}`;
         }
         
+        const remaining = classEntry.entry_count - classEntry.completed_count;
         if (preview) {
-          preview += `\n${classEntry.completed_count} of ${classEntry.entry_count} remaining`;
+          preview += `\n${remaining} of ${classEntry.entry_count} remaining`;
         } else {
-          preview = `${classEntry.completed_count} of ${classEntry.entry_count} remaining`;
+          preview = `${remaining} of ${classEntry.entry_count} remaining`;
         }
         
         return preview;
@@ -953,7 +949,7 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className="class-list-container">
+    <div className="class-list-container app-container">
       {/* Enhanced Header with Glass Morphism */}
       <header className="class-list-header">
         <HamburgerMenu 
@@ -1034,13 +1030,9 @@ export const ClassList: React.FC = () => {
           const hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
           const isInProgress = classEntry.class_status === 'in_progress';
           return (
-            <div 
+            <div
               key={classEntry.id}
-              className={`class-card ${
-                hasPendingEntries || isInProgress
-                  ? 'pending' 
-                  : ''
-              }`}
+              className={`class-card status-${classEntry.class_status.replace('_', '-')}`}
               onClick={(e) => {
                 console.log('🔵 Class card clicked', e.target, e.currentTarget);
                 handleViewEntries(classEntry);
@@ -1049,13 +1041,69 @@ export const ClassList: React.FC = () => {
               <div className="class-content">
                 <div className="class-header">
                   <div className="class-details">
-                    <h3 className="class-name">{classEntry.class_name}</h3>
+                    <div className="class-title-row">
+                      <h3 className="class-name">{classEntry.class_name}</h3>
+                      {/* Status Badge with class details */}
+                      <div className="status-container" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 5 }}>
+                        {hasPermission('canManageClasses') ? (
+                          <button
+                            className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
+                            style={{ position: 'relative', zIndex: 10, pointerEvents: 'auto' }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.nativeEvent.stopImmediatePropagation();
+                              const target = e.currentTarget;
+                              const rect = target.getBoundingClientRect();
+                              const isDesktop = window.innerWidth >= 768;
+
+                              if (activeStatusPopup === classEntry.id) {
+                                setActiveStatusPopup(null);
+                                setStatusPopupPosition(null);
+                              } else {
+                                setActiveStatusPopup(classEntry.id);
+
+                                if (isDesktop) {
+                                  // Position dropdown below and to the right of the badge
+                                  const dropdownWidth = 240; // matches CSS width
+                                  const viewportWidth = window.innerWidth;
+                                  const spaceOnRight = viewportWidth - rect.right;
+
+                                  let left = rect.left + window.scrollX;
+
+                                  // Adjust if dropdown would go off-screen
+                                  if (spaceOnRight < dropdownWidth) {
+                                    left = rect.right + window.scrollX - dropdownWidth;
+                                  }
+
+                                  const position = {
+                                    top: rect.bottom + window.scrollY + 8,
+                                    left: left
+                                  };
+                                  setStatusPopupPosition(position);
+                                } else {
+                                  setStatusPopupPosition(null);
+                                }
+                              }
+                              return false;
+                            }}
+                          >
+                            {getStatusLabel(classEntry.class_status, classEntry)}
+                          </button>
+                        ) : (
+                          <div className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
+                            {getStatusLabel(classEntry.class_status, classEntry)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <p className="class-judge">Judge: {classEntry.judge_name}</p>
-                    <p className="class-progress">
-                      {classEntry.completed_count} of {classEntry.entry_count} entries scored
-                    </p>
                   </div>
-                  
+
                   <div className="class-actions">
                     <button
                       type="button"
@@ -1080,26 +1128,7 @@ export const ClassList: React.FC = () => {
                     >
                       <Heart className="favorite-icon" />
                     </button>
-                    
-                    {/* Status Badge in Header */}
-                    <div className="status-container">
-                      {hasPermission('canManageClasses') ? (
-                        <button
-                          className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveStatusPopup(activeStatusPopup === classEntry.id ? null : classEntry.id);
-                          }}
-                        >
-                          {getStatusLabel(classEntry.class_status, classEntry)}
-                        </button>
-                      ) : (
-                        <div className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
-                          {getStatusLabel(classEntry.class_status, classEntry)}
-                        </div>
-                      )}
-                    </div>
-                    
+
                     {/* 3-Dot Menu in Header */}
                     <button
                       className="menu-button"
@@ -1143,14 +1172,37 @@ export const ClassList: React.FC = () => {
       {/* Status Selection - Responsive Bottom Sheet */}
       {activeStatusPopup !== null && (
         <>
-          <div className="bottom-sheet-backdrop" onClick={() => setActiveStatusPopup(null)} />
-          <div className="status-popup">
+          {/* Show backdrop only on mobile (when statusPopupPosition is null) */}
+          {!statusPopupPosition && (
+            <div className="bottom-sheet-backdrop" onClick={() => {
+              setActiveStatusPopup(null);
+              setStatusPopupPosition(null);
+            }} />
+          )}
+          <div
+            className="status-popup"
+            style={(() => {
+              const style = statusPopupPosition ? {
+                top: statusPopupPosition.top,
+                left: statusPopupPosition.left,
+                position: 'absolute',
+                zIndex: 1000,
+                bottom: 'auto',
+                right: 'auto',
+                transform: 'none'
+              } : {};
+              return style;
+            })()}
+          >
             <div className="status-popup-content">
               <div className="mobile-sheet-header">
                 <h3>Class Status</h3>
                 <button 
                   className="close-sheet-btn"
-                  onClick={() => setActiveStatusPopup(null)}
+                  onClick={() => {
+                    setActiveStatusPopup(null);
+                    setStatusPopupPosition(null);
+                  }}
                 >
                   ✕
                 </button>
@@ -1171,10 +1223,11 @@ export const ClassList: React.FC = () => {
                     e.stopPropagation();
                     handleClassStatusChange(activeStatusPopup, status as any);
                     setActiveStatusPopup(null);
+                    setStatusPopupPosition(null);
                   }}
                 >
                   <span className="popup-icon">
-                    <IconComponent size={18} />
+                    <IconComponent size={statusPopupPosition ? 16 : 18} />
                   </span>
                   <span className="popup-label">{label}</span>
                 </button>

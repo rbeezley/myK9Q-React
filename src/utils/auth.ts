@@ -155,7 +155,7 @@ export function getPermissionsForRole(role: UserRole): UserPermissions {
         canChangeRunOrder: true,
         canCheckInDogs: true,
         canScore: true,
-        canManageClasses: false
+        canManageClasses: true
       };
     case 'steward':
       return {
