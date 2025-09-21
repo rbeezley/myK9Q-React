@@ -1,272 +1,249 @@
-# Claude Code Configuration - SPARC Development Environment
+# CLAUDE.md
 
-## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**ABSOLUTE RULES**:
-1. ALL operations MUST be concurrent/parallel in a single message
-2. **NEVER save working files, text/mds and tests to the root folder**
-3. ALWAYS organize files in appropriate subdirectories
+# myK9Q - Professional Dog Show Scoring Application
 
-### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+A production-ready Progressive Web App for professional dog show ring scoring and management with real-time collaboration across judges, stewards, and exhibitors.
 
-**MANDATORY PATTERNS:**
-- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
-- **Task tool**: ALWAYS spawn ALL agents in ONE message with full instructions
-- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
-- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
-- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
+## Essential Commands
 
-### 📁 File Organization Rules
-
-**NEVER save to root folder. Use these directories:**
-- `/src` - Source code files
-- `/tests` - Test files
-- `/docs` - Documentation and markdown files
-- `/config` - Configuration files
-- `/scripts` - Utility scripts
-- `/examples` - Example code
-
-## Project Overview
-
-This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
-
-## SPARC Commands
-
-### Core Commands
-- `npx claude-flow sparc modes` - List available modes
-- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
-- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
-- `npx claude-flow sparc info <mode>` - Get mode details
-
-### Batchtools Commands
-- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
-- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
-- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
-
-### Build Commands
-- `npm run build` - Build project
-- `npm run test` - Run tests
-- `npm run lint` - Linting
-- `npm run typecheck` - Type checking
-
-## SPARC Workflow Phases
-
-1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
-2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
-3. **Architecture** - System design (`sparc run architect`)
-4. **Refinement** - TDD implementation (`sparc tdd`)
-5. **Completion** - Integration (`sparc run integration`)
-
-## Code Style & Best Practices
-
-- **Modular Design**: Files under 500 lines
-- **Environment Safety**: Never hardcode secrets
-- **Test-First**: Write tests before implementation
-- **Clean Architecture**: Separate concerns
-- **Documentation**: Keep updated
-
-## 🚀 Available Agents (54 Total)
-
-### Core Development
-`coder`, `reviewer`, `tester`, `planner`, `researcher`
-
-### Swarm Coordination
-`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
-
-### Consensus & Distributed
-`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
-
-### Performance & Optimization
-`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
-
-### GitHub & Repository
-`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
-
-### SPARC Methodology
-`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
-
-### Specialized Development
-`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
-
-### Testing & Validation
-`tdd-london-swarm`, `production-validator`
-
-### Migration & Planning
-`migration-planner`, `swarm-init`
-
-## 🎯 Claude Code vs MCP Tools
-
-### Claude Code Handles ALL:
-- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
-- Code generation and programming
-- Bash commands and system operations
-- Implementation work
-- Project navigation and analysis
-- TodoWrite and task management
-- Git operations
-- Package management
-- Testing and debugging
-
-### MCP Tools ONLY:
-- Coordination and planning
-- Memory management
-- Neural features
-- Performance tracking
-- Swarm orchestration
-- GitHub integration
-
-**KEY**: MCP coordinates, Claude Code executes.
-
-## 🚀 Quick Setup
-
+### Development
 ```bash
-# Add Claude Flow MCP server
-claude mcp add claude-flow npx claude-flow@alpha mcp start
+# Start development server
+npm run dev
+
+# Type checking (ALWAYS run before committing)
+npm run typecheck
+
+# Linting
+npm run lint
+
+# Production build
+npm run build
+
+# Environment setup (for new developers)
+npm run setup
+
+# Testing
+npm test
+npm run test:coverage
 ```
 
-## MCP Tool Categories
-
-### Coordination
-`swarm_init`, `agent_spawn`, `task_orchestrate`
-
-### Monitoring
-`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
-
-### Memory & Neural
-`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
-
-### GitHub Integration
-`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
-
-### System
-`benchmark_run`, `features_detect`, `swarm_monitor`
-
-## 📋 Agent Coordination Protocol
-
-### Every Agent MUST:
-
-**1️⃣ BEFORE Work:**
+### Testing Specific Commands
 ```bash
-npx claude-flow@alpha hooks pre-task --description "[task]"
-npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run single test file
+npm test -- entry.test.ts
+
+# Run tests in watch mode
+npm test -- --watch
 ```
 
-**2️⃣ DURING Work:**
-```bash
-npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
-npx claude-flow@alpha hooks notify --message "[what was done]"
+## Critical Architecture Concepts
+
+### Authentication & Passcode System
+**CORE CONCEPT**: Passcodes are generated from license keys, not stored in database.
+
+- License key format: `myK9Q1-d8609f3b-d3fd43aa-6323a604`
+- Passcode generation: Role prefix + 4 digits from license key segments
+- Roles: `admin` (a), `judge` (j), `steward` (s), `exhibitor` (e)
+- Example: License key above generates `ad860`, `j9f3b`, `sd3fd`, `e6323`
+
+**Key Files:**
+- `src/utils/auth.ts`: Passcode parsing and generation logic
+- `src/contexts/AuthContext.tsx`: Authentication state management
+- `src/hooks/usePermission.ts`: Permission checking utilities
+
+### Database Architecture (Supabase)
+**CRITICAL**: Legacy table structure with specific naming conventions.
+
+**Primary Tables:**
+- `tbl_show_queue`: Show/trial information (license key = tenant isolation)
+- `tbl_class_queue`: Class definitions with timing and configuration
+- `tbl_entry_queue`: Dog entries, scores, and check-in status
+- `view_entry_class_join_distinct`: Optimized read view for entry lists
+
+**Key Database Concepts:**
+- `mobile_app_lic_key`: Multi-tenant data isolation field
+- `classid` vs `id`: Real-time subscriptions use `classid` field, not primary key `id`
+- Check-in status: Integer codes (0=none, 1=checked-in, 2=conflict, 3=pulled, 4=at-gate)
+- Self check-in control: `self_checkin` boolean field in `tbl_class_queue`
+
+### Real-Time Data Flow
+**PATTERN**: Zustand stores + Supabase real-time subscriptions + Service layer
+
+```typescript
+// Service layer handles all database operations
+entryService.ts -> Supabase queries/mutations
+                -> Real-time subscriptions
+                -> Optimistic updates
+
+// Stores manage client state
+entryStore.ts    -> Entry data and filters
+scoringStore.ts  -> Active scoring sessions
+timerStore.ts    -> Multi-timer management
+offlineQueueStore.ts -> Offline sync queue
 ```
 
-**3️⃣ AFTER Work:**
-```bash
-npx claude-flow@alpha hooks post-task --task-id "[task]"
-npx claude-flow@alpha hooks session-end --export-metrics true
+### Organization-Specific Scoresheets
+**DYNAMIC ROUTING**: Scoresheets selected by organization + element + level
+
+**Path Logic:**
+1. Parse URL for `orgType/element/level` (e.g., `akc/scent-work/excellent`)
+2. Map to specific scoresheet component
+3. Load organization-specific scoring rules and validation
+
+**Scoresheet Hierarchy:**
+```
+src/pages/scoresheets/
+├── AKC/
+│   ├── AKCScentWorkScoresheet.tsx    # Multi-area timing
+│   ├── AKCScentWorkScoresheet-Enhanced.tsx # Nationals version
+│   └── AKCFastCatScoresheet.tsx      # Speed-based scoring
+├── UKC/
+│   ├── UKCObedienceScoresheet.tsx    # Traditional scoring
+│   └── UKCRallyScoresheet.tsx        # Point deduction system
+└── ASCA/
+    └── ASCAScentDetectionScoresheet.tsx
 ```
 
-## 🎯 Concurrent Execution Examples
+### Permission System
+**ROLE-BASED ACCESS**: Granular permissions per user role
 
-### ✅ CORRECT (Single Message):
-```javascript
-[BatchTool]:
-  // Initialize swarm
-  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
-  mcp__claude-flow__agent_spawn { type: "researcher" }
-  mcp__claude-flow__agent_spawn { type: "coder" }
-  mcp__claude-flow__agent_spawn { type: "tester" }
-  
-  // Spawn agents with Task tool
-  Task("Research agent: Analyze requirements...")
-  Task("Coder agent: Implement features...")
-  Task("Tester agent: Create test suite...")
-  
-  // Batch todos
-  TodoWrite { todos: [
-    {id: "1", content: "Research", status: "in_progress", priority: "high"},
-    {id: "2", content: "Design", status: "pending", priority: "high"},
-    {id: "3", content: "Implement", status: "pending", priority: "high"},
-    {id: "4", content: "Test", status: "pending", priority: "medium"},
-    {id: "5", content: "Document", status: "pending", priority: "low"}
-  ]}
-  
-  // File operations
-  Bash "mkdir -p app/{src,tests,docs}"
-  Write "app/src/index.js"
-  Write "app/tests/index.test.js"
-  Write "app/docs/README.md"
+```typescript
+interface UserPermissions {
+  canViewPasscodes: boolean;      // Admin only
+  canAccessScoresheet: boolean;   // Admin, Judge
+  canChangeRunOrder: boolean;     // Admin, Judge, Steward
+  canCheckInDogs: boolean;        // All roles (with self check-in logic)
+  canScore: boolean;              // Admin, Judge
+  canManageClasses: boolean;      // Admin, Judge
+}
 ```
 
-### ❌ WRONG (Multiple Messages):
-```javascript
-Message 1: mcp__claude-flow__swarm_init
-Message 2: Task("agent 1")
-Message 3: TodoWrite { todos: [single todo] }
-Message 4: Write "file.js"
-// This breaks parallel coordination!
+**Self Check-in Logic:**
+- Controlled by `self_checkin` field in `tbl_class_queue`
+- When disabled, exhibitors cannot change check-in status
+- Admins/judges/stewards retain full control
+- Custom modal alerts replace browser alerts
+
+### PWA & Offline Architecture
+**OFFLINE-FIRST**: Critical for remote competition venues
+
+**Strategy:**
+1. Service worker caches essential assets
+2. Supabase data cached with NetworkFirst strategy
+3. Failed mutations queued in `offlineQueueStore`
+4. Real-time sync when connectivity returns
+5. Optimistic UI updates for immediate feedback
+
+## Environment Configuration
+
+**REQUIRED**: Supabase credentials in `.env.local`
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## Performance Benefits
+**Setup Methods:**
+1. Automated: `npm run setup` (recommended)
+2. Manual: Copy `.env.local.example` and edit
 
-- **84.8% SWE-Bench solve rate**
-- **32.3% token reduction**
-- **2.8-4.4x speed improvement**
-- **27+ neural models**
+## Testing Architecture
 
-## Hooks Integration
+**Current Test Coverage:**
+- `src/utils/auth.test.ts`: Authentication utilities
+- `src/services/entryService.test.ts`: Entry service functions
+- `src/stores/entryStore.test.ts`: Store state management
 
-### Pre-Operation
-- Auto-assign agents by file type
-- Validate commands for safety
-- Prepare resources automatically
-- Optimize topology by complexity
-- Cache searches
+**Testing Patterns:**
+- Vitest for unit tests
+- React Testing Library for component tests
+- Mock Supabase client for service tests
 
-### Post-Operation
-- Auto-format code
-- Train neural patterns
-- Update memory
-- Analyze performance
-- Track token usage
+## Development Guidelines
 
-### Session Management
-- Generate summaries
-- Persist state
-- Track metrics
-- Restore context
-- Export workflows
+### File Organization Rules
+- Use appropriate subdirectories: `/src`, `/tests`, `/docs`, `/config`
+- Modular design: Keep files under 500 lines
+- Follow existing naming conventions
 
-## Advanced Features (v2.0.0)
+### Database Changes
+- Test with real data: Use license key `myK9Q1-a260f472-e0d76a33-4b6c264c`
+- Always verify `self_checkin` field behavior
+- Use actual `classid` values for real-time subscriptions
+- Check permission logic with different user roles
 
-- 🚀 Automatic Topology Selection
-- ⚡ Parallel Execution (2.8-4.4x speed)
-- 🧠 Neural Training
-- 📊 Bottleneck Analysis
-- 🤖 Smart Auto-Spawning
-- 🛡️ Self-Healing Workflows
-- 💾 Cross-Session Memory
-- 🔗 GitHub Integration
+### Performance Considerations
+- Memoize expensive calculations in scoresheets
+- Use optimistic updates for immediate UI feedback
+- Implement proper cleanup for real-time subscriptions
+- Monitor bundle size (current: 431.21 kB, 121.61 kB gzipped)
 
-## Integration Tips
+### Scoring System Patterns
+- Multi-timer support for complex scenarios (AKC Scent Work)
+- Qualification logic per organization rules
+- Haptic feedback for mobile judging experience
+- Real-time score updates across all connected devices
 
-1. Start with basic swarm init
-2. Scale agents gradually
-3. Use memory for context
-4. Monitor progress regularly
-5. Train patterns from success
-6. Enable hooks automation
-7. Use GitHub tools first
+## Key Integration Points
 
-## Support
+### Supabase Real-time
+```typescript
+// Subscribe to entry updates for a specific class
+supabase
+  .channel('entry_updates')
+  .on('postgres_changes',
+    { event: '*', schema: 'public', table: 'tbl_entry_queue', filter: `classid_fk=eq.${classId}` },
+    handleEntryUpdate
+  )
+  .subscribe()
+```
 
-- Documentation: https://github.com/ruvnet/claude-flow
-- Issues: https://github.com/ruvnet/claude-flow/issues
+### Authentication Flow
+```typescript
+// Login with passcode and show context
+const { role, showContext, permissions } = useAuth();
+const { hasPermission } = usePermission();
 
----
+// Check permissions before actions
+if (hasPermission('canAccessScoresheet')) {
+  // Show scoresheet access
+}
+```
 
-Remember: **Claude Flow coordinates, Claude Code creates!**
+### Nationals vs Regular Show Detection
+```typescript
+// Show type detection for enhanced features
+const isNationals = showContext?.showType?.toLowerCase().includes('national') ||
+                   showContext?.competition_type?.toLowerCase().includes('national');
+```
 
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
-Never save working files, text/mds and tests to the root folder.
+## Common Debugging
+
+### Authentication Issues
+- Verify license key format and database presence
+- Check passcode generation logic in browser console
+- Confirm RLS policies in Supabase
+
+### Real-time Issues
+- Verify subscription uses `classid_fk` not `class_id`
+- Check network connectivity and Supabase status
+- Monitor subscription status in browser console
+
+### Permission Issues
+- Test with different user roles (exhibitor vs admin)
+- Verify `self_checkin` field values in database
+- Check role assignment from passcode parsing
+
+## Development Notes
+
+- Follow existing code patterns and architectural decisions
+- Test thoroughly with different user roles before deploying changes
+- Always verify real-time subscriptions work correctly after database changes
