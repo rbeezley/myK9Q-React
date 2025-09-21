@@ -310,9 +310,28 @@
   gap: 1rem;
 }
 
+.checkin-actions {
+  display: flex;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.database-actions {
+  display: flex;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
 .release-btn,
 .auto-btn,
-.embargo-btn {
+.embargo-btn,
+.sync-btn,
+.enable-checkin-btn,
+.disable-checkin-btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.5rem;
@@ -361,10 +380,51 @@
   background-color: var(--error-contrast);
 }
 
+.sync-btn {
+  background-color: var(--brand-purple);
+  color: white;
+  flex: 1;
+  justify-content: center;
+}
+
+.sync-btn:hover:not(:disabled) {
+  background-color: #4c3d9f;
+}
+
+.sync-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.enable-checkin-btn {
+  background-color: #10b981;
+  color: white;
+  flex: 1;
+  justify-content: center;
+}
+
+.enable-checkin-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.disable-checkin-btn {
+  background-color: #f59e0b;
+  color: white;
+  flex: 1;
+  justify-content: center;
+}
+
+.disable-checkin-btn:hover:not(:disabled) {
+  background-color: #d97706;
+}
+
 .release-btn:disabled,
 .auto-btn:disabled,
 .immediate-btn:disabled,
-.embargo-btn:disabled {
+.embargo-btn:disabled,
+.sync-btn:disabled,
+.enable-checkin-btn:disabled,
+.disable-checkin-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -444,6 +504,18 @@
   background-color: rgba(239, 68, 68, 0.1);
   color: var(--embargo-color);
   border: 1px solid var(--embargo-color);
+}
+
+.status-badge.checkin-enabled {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid #10b981;
+}
+
+.status-badge.checkin-disabled {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
 }
 
 .status-icon {
@@ -552,6 +624,13 @@
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
+}
+
+.status-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-end;
 }
 
 .class-content {
@@ -741,8 +820,161 @@
 
   .release-btn,
   .auto-btn,
-  .embargo-btn {
+  .embargo-btn,
+  .sync-btn,
+  .enable-checkin-btn,
+  .disable-checkin-btn {
     flex: 1;
     justify-content: center;
   }
+
+  .checkin-actions,
+  .database-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+}
+
+/* Sync Progress Dialog */
+.sync-progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.sync-progress-dialog {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.sync-progress-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.sync-progress-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--brand-purple);
+}
+
+.sync-progress-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.sync-progress-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sync-step-info {
+  text-align: center;
+}
+
+.sync-step-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.sync-step-message {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.sync-progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background-color: var(--muted);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.sync-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 0.25rem;
+}
+
+.sync-progress-fill.running {
+  background: linear-gradient(90deg, var(--brand-purple), var(--brand-blue));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.sync-progress-fill.completed {
+  background-color: var(--success);
+}
+
+.sync-progress-fill.error {
+  background-color: var(--error);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.sync-progress-text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sync-spinner,
+.sync-success,
+.sync-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+.sync-spinner {
+  background-color: rgba(88, 86, 214, 0.1);
+  color: var(--brand-purple);
+}
+
+.sync-success {
+  background-color: rgba(52, 199, 89, 0.1);
+  color: var(--success);
+}
+
+.sync-error {
+  background-color: rgba(255, 59, 48, 0.1);
+  color: var(--error);
+}
+
+.sync-spinner .spinning {
+  animation: spin 1s linear infinite;
+}
+
+.success-icon,
+.error-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }

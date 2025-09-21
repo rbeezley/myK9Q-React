@@ -34,7 +34,7 @@ type TabType = 'pending' | 'completed';
 export const EntryList: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
-  const { showContext } = useAuth();
+  const { showContext, role } = useAuth();
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   
@@ -51,6 +51,7 @@ export const EntryList: React.FC = () => {
     trialNumber?: string;
     judgeName?: string;
     actualClassId?: number; // The real classid for real-time subscriptions
+    selfCheckin?: boolean; // Controls if exhibitors can check themselves in
   } | null>(null);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,6 +59,7 @@ export const EntryList: React.FC = () => {
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
+  const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'manual'>('run');
   const [isDragMode, setIsDragMode] = useState(false);
@@ -262,14 +264,27 @@ export const EntryList: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    
+
+    // Check if exhibitor can check themselves in
+    const canCheckIn = hasPermission('canCheckInDogs');
+    const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
+    const userRole = role;
+
+    console.log('🔐 Permission check:', { canCheckIn, isSelfCheckinEnabled, userRole, isExhibitor: userRole === 'exhibitor' });
+
+    // If user is an exhibitor and self check-in is disabled, prevent action
+    if (userRole === 'exhibitor' && !isSelfCheckinEnabled) {
+      setSelfCheckinDisabledDialog(true);
+      return;
+    }
+
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPopupPosition({
       top: rect.bottom + 5,
       left: rect.left
     });
     setActiveStatusPopup(entryId);
-    
+
     return false;
   };
 
@@ -302,10 +317,10 @@ export const EntryList: React.FC = () => {
       if (classEntries.length > 0) {
         const firstEntry = classEntries[0];
         
-        // Fetch additional class data including trial info and judge
+        // Fetch additional class data including trial info, judge, and self check-in setting
         const { data: classData, error: classError } = await supabase
           .from('tbl_class_queue')
-          .select('trial_date, trial_number, judge_name')
+          .select('trial_date, trial_number, judge_name, self_checkin')
           .eq('id', parseInt(classId))
           .single();
           
@@ -355,7 +370,8 @@ export const EntryList: React.FC = () => {
           trialDate: classData?.trial_date || '',
           trialNumber: classData?.trial_number || '',
           judgeName: judgeName || 'No Judge Assigned',
-          actualClassId: firstEntry.actualClassId // Store the actual classid for real-time subscriptions
+          actualClassId: firstEntry.actualClassId, // Store the actual classid for real-time subscriptions
+          selfCheckin: classData?.self_checkin ?? true // Default to true if not set
         };
         
         console.log('🔍 Setting class info:', classInfoData);
@@ -658,13 +674,31 @@ export const EntryList: React.FC = () => {
           <ArmbandBadge number={entry.armband} />
           
           {!entry.isScored && (
-            <div 
+            <div
               className={`checkin-status mobile-touch-target ${
-                entry.inRing ? 'in-ring' : 
+                entry.inRing ? 'in-ring' :
                 (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
+              } ${
+                (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true)) ? 'disabled' : ''
               }`}
-              onClick={(e) => handleStatusClick(e, entry.id)}
-              title="Tap to change status"
+              onClick={(e) => {
+                // Only allow click if user has permission OR self check-in is enabled
+                const canCheckIn = hasPermission('canCheckInDogs');
+                const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
+
+                if (canCheckIn || isSelfCheckinEnabled) {
+                  handleStatusClick(e, entry.id);
+                } else {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelfCheckinDisabledDialog(true);
+                }
+              }}
+              title={
+                (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true))
+                  ? "Self check-in disabled - check in at central table"
+                  : "Tap to change status"
+              }
               {...hapticFeedback}
             >
               {(() => {
@@ -701,8 +735,8 @@ export const EntryList: React.FC = () => {
                 <h3 className="dog-name-mobile">{entry.callName}</h3>
               </div>
               <div className="mobile-details">
-                <p className="handler-mobile">{entry.handler}</p>
                 <p className="breed-mobile">{entry.breed}</p>
+                <p className="handler-mobile">{entry.handler}</p>
                 <div className="mobile-footer">
                   {entry.isScored && entry.searchTime && (
                     <div className="time-mobile">
@@ -997,6 +1031,31 @@ export const EntryList: React.FC = () => {
                 {...hapticFeedback}
               >
                 Reset Score
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Self Check-in Disabled Dialog */}
+      {selfCheckinDisabledDialog && (
+        <div className="reset-dialog-overlay">
+          <div className="reset-dialog">
+            <h3>🚫 Self Check-in Disabled</h3>
+            <p>
+              Self check-in has been disabled for this class by the administrator.
+            </p>
+            <p className="reset-dialog-warning">
+              Please check in at the central table or contact the ring steward for assistance.
+            </p>
+            <div className="reset-dialog-buttons">
+              <button
+                className="reset-dialog-confirm"
+                onClick={() => setSelfCheckinDisabledDialog(false)}
+                {...hapticFeedback}
+                style={{ width: '100%' }}
+              >
+                OK
               </button>
             </div>
           </div>

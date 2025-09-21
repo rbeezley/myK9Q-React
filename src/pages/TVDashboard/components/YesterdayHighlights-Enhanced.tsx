@@ -729,34 +729,6 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
         </div>
       )}
 
-      {/* Breed Statistics */}
-      {stats && stats.top_breeds.length > 0 && (
-        <div className="breed-stats">
-          <div className="section-header">
-            <h3>🐕 Top Performing Breeds</h3>
-            <div className="section-subtitle">
-              {selectedTrial ? `${selectedTrial.trial_number} breed performance` : 'Breed performance'}
-            </div>
-          </div>
-          <div className="breeds-grid">
-            {stats.top_breeds.map((breed, index) => (
-              <div key={breed.breed} className="breed-card">
-                <div className="breed-rank">#{index + 1}</div>
-                <div className="breed-info">
-                  <div className="breed-name">{breed.breed}</div>
-                  <div className="breed-count">{breed.count} dogs</div>
-                </div>
-                <div className="breed-stats-detail">
-                  <div className="breed-stat">
-                    <span className="stat-label">Perfect</span>
-                    <span className="stat-value">{breed.perfect_count}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Empty State */}
       {trials.length === 0 && (

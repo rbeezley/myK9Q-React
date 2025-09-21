@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { debounce, globalPerformanceMonitor, globalMemoryTracker } from '../utils/performanceOptimizer';
 
 export interface ClassInfo {
   id: number;
@@ -11,6 +12,13 @@ export interface ClassInfo {
   current_entry_id?: number;
   start_time?: string;
   end_time?: string;
+  entry_total_count?: number;
+  entry_completed_count?: number;
+  entry_pending_count?: number;
+  level?: string;
+  trial_date?: string;
+  trial_number?: string;
+  class_order?: number;
 }
 
 export interface EntryInfo {
@@ -26,7 +34,12 @@ export interface EntryInfo {
   placement?: number;
   search_time?: string;
   element?: string;
+  level?: string;
+  trial_date?: string;
+  trial_number?: string;
+  sort_order?: string;
   checkin_status?: number;
+  section?: string; // Preserve section for placement calculations
 }
 
 export interface ShowInfo {
@@ -53,6 +66,7 @@ export interface TVDataState {
   isConnected: boolean;
   lastUpdated: Date | null;
   error: string | null;
+  entriesByClass?: { [key: string]: EntryInfo[] }; // Grouped entries for section-aware processing
 }
 
 interface UseTVDataOptions {
@@ -81,45 +95,94 @@ export const useTVData = ({
     isConnected: false,
     lastUpdated: null,
     error: null,
+    entriesByClass: {},
   });
 
   const [channels, setChannels] = useState<RealtimeChannel[]>([]);
+  const isLoadingRef = useRef(false);
+  const debouncedFetchRef = useRef<() => void>();
 
-  // Data transformation utilities
+  // Data transformation utilities with section merging for Novice classes
   const transformClassData = useCallback((rawClasses: any[]): ClassInfo[] => {
-    if (isDebugMode) console.log('📺 Transforming classes data:', rawClasses);
-    return rawClasses.map(cls => {
-      const status = cls.class_status === 5 || cls.class_status === 'in_progress' || cls.in_progress === 1 ? 'in-progress' : 
-                    cls.class_status === 6 || cls.class_status === 'completed' || cls.class_completed === true ? 'completed' : 
-                    cls.entry_completed_count === cls.entry_total_count && cls.entry_total_count > 0 ? 'completed' :
+    if (isDebugMode) console.log('📺 Transforming classes data with section merging:', rawClasses);
+
+    // Group classes by key attributes, merging Novice A/B sections
+    const classGroups = rawClasses.reduce((groups: { [key: string]: any[] }, cls) => {
+      const level = cls.level || cls.class_level || 'Unknown';
+      const element = cls.element || cls.element_type || cls.classtype || 'Unknown';
+      const trialDate = cls.trial_date || '';
+      const trialNumber = cls.trial_number || '';
+
+      // For Novice level, ignore section in grouping key
+      const isNovice = level.toLowerCase().includes('novice');
+      const groupKey = isNovice
+        ? `${trialDate}-${trialNumber}-${element}-${level}`
+        : `${trialDate}-${trialNumber}-${element}-${level}-${cls.section || ''}`;
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(cls);
+
+      return groups;
+    }, {});
+
+    return Object.values(classGroups).map((groupClasses, index) => {
+      // Merge data from all classes in the group (e.g., Novice A + B)
+      const mergedCounts = groupClasses.reduce((totals, cls) => ({
+        entry_total_count: totals.entry_total_count + (cls.entry_total_count || 0),
+        entry_completed_count: totals.entry_completed_count + (cls.entry_completed_count || 0),
+        entry_pending_count: totals.entry_pending_count + (cls.entry_pending_count || 0),
+      }), { entry_total_count: 0, entry_completed_count: 0, entry_pending_count: 0 });
+
+      const firstClass = groupClasses[0];
+      const level = firstClass.level || firstClass.class_level || 'Unknown';
+      const isNovice = level.toLowerCase().includes('novice');
+
+      // Determine merged status based on combined counts and individual statuses
+      const hasInProgress = groupClasses.some(cls =>
+        (cls.class_status === 5 || cls.class_status === 'in_progress' || cls.in_progress === 1)
+      );
+      const allCompleted = groupClasses.every(cls =>
+        cls.class_status === 6 || cls.class_status === 'completed' || cls.class_completed === true
+      );
+      const entriesCompleted = mergedCounts.entry_completed_count === mergedCounts.entry_total_count && mergedCounts.entry_total_count > 0;
+
+      const status = (hasInProgress && mergedCounts.entry_pending_count > 0) ? 'in-progress' :
+                    (allCompleted || entriesCompleted) ? 'completed' :
                     'scheduled';
-      
+
       if (isDebugMode) {
-        console.log(`📺 Class "${cls.element || cls.class_name || cls.classname}":`, {
-          class_status: cls.class_status,
-          in_progress: cls.in_progress,
-          class_completed: cls.class_completed,
-          entry_completed_count: cls.entry_completed_count,
-          entry_total_count: cls.entry_total_count,
+        console.log(`📺 ${isNovice ? 'Merged Novice' : 'Regular'} Class "${firstClass.element}":`, {
+          sectionsCount: groupClasses.length,
+          sections: groupClasses.map(c => c.section).filter(Boolean),
+          mergedCounts,
           calculated_status: status
         });
       }
-      
+
       return {
-        id: cls.id,
-        class_name: cls.element || cls.class_name || cls.classname || 'Unknown Class',
-        element_type: cls.element || cls.element_type || cls.classtype || 'Unknown',
-        judge_name: cls.judge_name || cls.judge || 'TBD',
+        id: firstClass.id || index,
+        class_name: `${firstClass.element || firstClass.class_name || firstClass.classname || 'Unknown Class'}${isNovice && groupClasses.length > 1 ? ' (Combined A & B)' : ''}`,
+        element_type: firstClass.element || firstClass.element_type || firstClass.classtype || 'Unknown',
+        judge_name: firstClass.judge_name || firstClass.judge || 'TBD',
         status,
-        current_entry_id: cls.current_entry_id,
-        start_time: cls.start_time,
-        end_time: cls.end_time,
+        current_entry_id: firstClass.current_entry_id,
+        start_time: firstClass.start_time,
+        end_time: firstClass.end_time,
+        entry_total_count: mergedCounts.entry_total_count,
+        entry_completed_count: mergedCounts.entry_completed_count,
+        entry_pending_count: mergedCounts.entry_pending_count,
+        level,
+        trial_date: firstClass.trial_date || '',
+        trial_number: firstClass.trial_number || '',
+        class_order: firstClass.class_order || 0,
       };
     });
   }, []);
 
   const transformEntryData = useCallback((rawEntries: any[]): EntryInfo[] => {
-    if (isDebugMode) console.log('📺 Transforming entries data sample:', rawEntries.slice(0, 3));
+    if (isDebugMode) console.log('📺 Transforming entries data with section preservation:', rawEntries.slice(0, 3));
     return rawEntries.map(entry => ({
       id: entry.id,
       armband: String(entry.armband || entry.armband_number || 'N/A'),
@@ -132,8 +195,13 @@ export const useTVData = ({
       score: entry.score,
       placement: entry.placement,
       search_time: entry.search_time,
-      element: entry.element, // Add element field
-      checkin_status: entry.checkin_status, // Add checkin_status field
+      element: entry.element,
+      level: entry.level,
+      trial_date: entry.trial_date,
+      trial_number: entry.trial_number,
+      sort_order: entry.sort_order,
+      checkin_status: entry.checkin_status,
+      section: entry.section // Preserve section for placement calculations
     }));
   }, []);
 
@@ -154,25 +222,75 @@ export const useTVData = ({
     }));
   }, []);
 
+  // Helper function to create class matching key for entries
+  const getClassMatchKey = useCallback((entry: EntryInfo) => {
+    const level = entry.level || 'Unknown';
+    const element = entry.element || 'Unknown';
+    const trialDate = entry.trial_date || '';
+    const trialNumber = entry.trial_number || '';
+
+    // For Novice level, ignore section in matching key to group A & B together
+    const isNovice = level.toLowerCase().includes('novice');
+    return isNovice
+      ? `${trialDate}-${trialNumber}-${element}-${level}`
+      : `${trialDate}-${trialNumber}-${element}-${level}-${entry.section || ''}`;
+  }, []);
+
   // Find current in-progress classes (can be multiple in a real dog show)
-  const processData = useCallback((classes: ClassInfo[], _entries: EntryInfo[]) => {
+  const processData = useCallback((classes: ClassInfo[], entries: EntryInfo[]) => {
     if (isDebugMode) {
-      console.log('📺 Processing data - All classes:', classes.map(cls => ({
+      console.log('📺 Processing data with section merging - All classes:', classes.map(cls => ({
         name: cls.class_name,
         status: cls.status,
-        id: cls.id
+        id: cls.id,
+        level: cls.level
       })));
     }
-    
-    const inProgressClasses = classes.filter(cls => cls.status === 'in-progress');
-    
+
+    const inProgressClasses = classes
+      .filter(cls => cls.status === 'in-progress')
+      .sort((a, b) => {
+        // First sort by trial_date
+        if (a.trial_date !== b.trial_date) {
+          return (a.trial_date || '').localeCompare(b.trial_date || '');
+        }
+        // Then sort by trial_number
+        if (a.trial_number !== b.trial_number) {
+          return (a.trial_number || '').localeCompare(b.trial_number || '');
+        }
+        // Finally sort by class_order
+        return (a.class_order || 0) - (b.class_order || 0);
+      });
+
     if (isDebugMode) {
-      console.log('📺 In-progress classes found:', inProgressClasses.length, 
+      console.log('📺 In-progress classes found:', inProgressClasses.length,
         inProgressClasses.map(cls => ({
           name: cls.class_name,
           element: cls.element_type,
+          level: cls.level,
           status: cls.status
         })));
+    }
+
+    // Group entries by their merged class keys for proper association
+    const entriesByClass = entries.reduce((groups: { [key: string]: EntryInfo[] }, entry) => {
+      const classKey = getClassMatchKey(entry);
+      if (!groups[classKey]) {
+        groups[classKey] = [];
+      }
+      groups[classKey].push(entry);
+      return groups;
+    }, {});
+
+    if (isDebugMode) {
+      console.log('📺 Entries grouped by class keys:', Object.keys(entriesByClass).length, 'groups');
+      Object.entries(entriesByClass).forEach(([key, entryList]) => {
+        const noviceEntries = entryList.filter(e => e.level?.toLowerCase().includes('novice'));
+        if (noviceEntries.length > 0) {
+          const sections = [...new Set(noviceEntries.map(e => e.section).filter(Boolean))];
+          console.log(`📺 Novice class "${key}": ${entryList.length} entries, sections: [${sections.join(', ')}]`);
+        }
+      });
     }
 
     return {
@@ -180,13 +298,25 @@ export const useTVData = ({
       currentClass: inProgressClasses[0] || null, // Fallback for compatibility
       currentEntry: null, // Will be handled by rotation logic
       nextEntries: [], // Will be handled by rotation logic
+      entriesByClass, // Expose grouped entries for components to use
     };
-  }, []);
+  }, [getClassMatchKey]);
 
-  // Fetch initial data
+  // Fetch initial data with performance monitoring
   const fetchData = useCallback(async () => {
+    console.log('🚨 FETCHDATA CALLED at', new Date().toISOString());
+    // Prevent overlapping requests
+    if (isLoadingRef.current) {
+      console.log('🔄 Skipping fetch - already loading');
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setData(prev => ({ ...prev, error: null }));
+
+      // Performance monitoring
+      const startTime = performance.now();
       
       if (isDebugMode) console.log('📺 Fetching TV Dashboard data for license:', licenseKey);
 
@@ -240,17 +370,19 @@ export const useTVData = ({
 
       // TEMPORARY: Force fallback to test direct table queries
       console.log('🔍 FORCE DEBUG: Forcing fallback to test table queries...');
-      const forceViewError = true;
+      const forceViewError = true; // Re-enabled - view has issues
       
       if (viewError || forceViewError) {
         console.error('❌ View query error:', viewError);
         console.log('🔍 FORCE DEBUG: View failed, using fallback to individual tables...');
-        // Fallback to individual table queries
+        // Fallback to individual table queries with section-aware grouping
         const { data: classesData, error: classesError } = await supabase
           .from('tbl_class_queue')
           .select('*')
           .eq('mobile_app_lic_key', licenseKey)
-          .order('created_at', { ascending: true });
+          .order('trial_date', { ascending: true })
+          .order('trial_number', { ascending: true })
+          .order('class_order', { ascending: true });
 
         if (classesError) {
           console.error('❌ Class query error:', classesError);
@@ -277,15 +409,28 @@ export const useTVData = ({
         const transformedEntries = transformEntryData(entriesData || []);
         const processedData = processData(transformedClasses, transformedEntries);
 
-        setData(prev => ({
-          ...prev,
-          classes: transformedClasses,
-          entries: transformedEntries,
-          ...processedData,
-          showInfo,
-          isConnected: true,
-          lastUpdated: new Date(),
-        }));
+        setData(prev => {
+          // Check if data actually changed before updating lastUpdated
+          const dataChanged =
+            JSON.stringify(prev.classes) !== JSON.stringify(transformedClasses) ||
+            JSON.stringify(prev.entries) !== JSON.stringify(transformedEntries);
+
+          if (isDebugMode && !dataChanged) {
+            console.log('📺 Data fetch completed but no changes detected - keeping original timestamp');
+          }
+
+          return {
+            ...prev,
+            classes: transformedClasses,
+            entries: transformedEntries,
+            ...processedData,
+            showInfo,
+            // Only update lastUpdated if data actually changed
+            lastUpdated: dataChanged ? new Date() : prev.lastUpdated,
+            // Set connected on first successful fetch only if not already connected
+            isConnected: prev.isConnected || true,
+          };
+        });
       } else {
         console.log('🔍 FORCE DEBUG: View data found:', viewData?.length || 0, 'First item:', viewData?.[0]);
         
@@ -309,18 +454,42 @@ export const useTVData = ({
         const transformedEntries = transformViewEntryData(viewData || []);
         const processedData = processData(transformedClasses, transformedEntries);
 
-        setData(prev => ({
-          ...prev,
-          classes: transformedClasses,
-          entries: transformedEntries,
-          ...processedData,
-          showInfo,
-          isConnected: true,
-          lastUpdated: new Date(),
-        }));
+        setData(prev => {
+          // Check if data actually changed before updating lastUpdated
+          const dataChanged =
+            JSON.stringify(prev.classes) !== JSON.stringify(transformedClasses) ||
+            JSON.stringify(prev.entries) !== JSON.stringify(transformedEntries);
+
+          if (isDebugMode && !dataChanged) {
+            console.log('📺 View data fetch completed but no changes detected - keeping original timestamp');
+          }
+
+          return {
+            ...prev,
+            classes: transformedClasses,
+            entries: transformedEntries,
+            ...processedData,
+            showInfo,
+            // Only update lastUpdated if data actually changed
+            lastUpdated: dataChanged ? new Date() : prev.lastUpdated,
+            // Set connected on first successful fetch only if not already connected
+            isConnected: prev.isConnected || true,
+          };
+        });
       }
 
       if (isDebugMode) console.log('✅ TV Dashboard data loaded successfully');
+
+      // Log performance
+      const duration = performance.now() - startTime;
+      globalPerformanceMonitor.measure('fetchTVData', () => duration);
+
+      // Check memory pressure and optimize if needed - BUT DON'T TRUNCATE CRITICAL ENTRY DATA
+      if (globalMemoryTracker.isMemoryPressure()) {
+        console.warn('Memory pressure detected, but preserving entry data for TV dashboard accuracy');
+        // Instead of truncating entries (which breaks waiting lists),
+        // we could optimize other data structures if needed in the future
+      }
 
     } catch (error) {
       console.error('❌ TV Dashboard data error:', error instanceof Error ? error.message : error);
@@ -329,8 +498,18 @@ export const useTVData = ({
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         isConnected: false,
       }));
+    } finally {
+      // Always reset loading flag
+      isLoadingRef.current = false;
+      console.log('🔄 Fetch completed, loading flag reset');
     }
   }, [licenseKey, transformClassData, transformEntryData, processData]);
+
+  // Debounced fetch for performance - using ref for stability
+  // REDUCED DEBOUNCE for real-time testing
+  useEffect(() => {
+    debouncedFetchRef.current = debounce(fetchData, 100); // Reduced from 1000ms to 100ms
+  }, [fetchData]);
 
   // Set up real-time subscriptions
   const setupSubscriptions = useCallback(() => {
@@ -360,7 +539,7 @@ export const useTVData = ({
         },
         (payload) => {
           if (isDebugMode) console.log('📡 Trial queue change:', payload.eventType);
-          fetchData();
+          debouncedFetchRef.current?.();
         }
       )
       .subscribe((status) => {
@@ -378,10 +557,12 @@ export const useTVData = ({
           event: '*',
           schema: 'public',
           table: 'tbl_class_queue',
+          filter: `mobile_app_lic_key=eq.${licenseKey}`,
         },
         (payload) => {
-          if (isDebugMode) console.log('📡 Class queue change:', payload.eventType);
-          fetchData();
+          console.log('📡 Class queue change detected:', payload.eventType, payload);
+          if (isDebugMode) console.log('📡 Class payload details:', payload);
+          debouncedFetchRef.current?.();
         }
       )
       .subscribe((status) => {
@@ -390,7 +571,8 @@ export const useTVData = ({
 
     newChannels.push(classChannel);
 
-    // Subscribe to entry queue changes
+    // Subscribe to entry queue changes (with license key filter for better performance)
+    console.log('🔧 SETTING UP ENTRY WEBSOCKET SUBSCRIPTION for license:', licenseKey);
     const entryChannel = supabase
       .channel(`tv-entries-${licenseKey}`)
       .on(
@@ -399,65 +581,94 @@ export const useTVData = ({
           event: '*',
           schema: 'public',
           table: 'tbl_entry_queue',
+          filter: `mobile_app_lic_key=eq.${licenseKey}`,
         },
         (payload) => {
-          if (isDebugMode) console.log('📡 Entry queue change:', payload.eventType);
+          console.log('🚨 ENTRY QUEUE CHANGE DETECTED:', payload.eventType, payload);
+          console.log('🚨 Entry payload NEW data:', payload.new);
+          console.log('🚨 Entry payload OLD data:', payload.old);
+          console.log('🚨 Triggering IMMEDIATE fetch...');
+          if (payload.new && typeof payload.new === 'object' && 'in_ring' in payload.new) {
+            console.log('🚨 DOG IN_RING STATUS CHANGE:', {
+              armband: (payload.new as any).armband,
+              dog_name: (payload.new as any).call_name,
+              in_ring: (payload.new as any).in_ring,
+              is_scored: (payload.new as any).is_scored
+            });
+          }
+
+          // IMMEDIATE fetch for real-time testing
+          console.log('🚨 Calling fetchData immediately...');
           fetchData();
+
+          // Also call debounced version as backup
+          debouncedFetchRef.current?.();
         }
       )
       .subscribe((status) => {
-        if (isDebugMode) console.log('🔌 Entry channel status:', status);
+        console.log('🔌 ENTRY CHANNEL SUBSCRIPTION STATUS:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Entry channel successfully subscribed!');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Entry channel subscription error!');
+        } else if (status === 'TIMED_OUT') {
+          console.error('⏰ Entry channel subscription timed out!');
+        } else if (status === 'CLOSED') {
+          console.warn('🔒 Entry channel subscription closed!');
+        }
       });
 
     newChannels.push(entryChannel);
 
     setChannels(newChannels);
 
-    // Monitor connection status with debouncing
-    let statusTimeout: NodeJS.Timeout;
+    // Improved connection monitoring - connection vs data freshness
     const connectionStatus = () => {
-      clearTimeout(statusTimeout);
-      statusTimeout = setTimeout(() => {
-        const isConnected = newChannels.every(channel => 
-          channel.state === 'joined'
-        );
-        
-        setData(prev => {
-          if (prev.isConnected !== isConnected) {
-            if (isDebugMode) console.log('🔗 Connection status changed:', isConnected ? 'Connected' : 'Disconnected');
-            return { ...prev, isConnected };
-          }
-          return prev;
-        });
-      }, 1000);
+      setData(prev => {
+        // Consider connected if we've successfully fetched data at least once
+        // Only show "Connecting..." if we've never gotten data or having actual connection issues
+        const hasEverConnected = prev.lastUpdated !== null;
+        const shouldBeConnected = hasEverConnected; // Stay "Live" once we've connected successfully
+
+        if (isDebugMode && prev.isConnected !== shouldBeConnected) {
+          console.log('🔗 Connection status update:', {
+            hasEverConnected,
+            lastUpdated: prev.lastUpdated,
+            ageMinutes: prev.lastUpdated ? Math.floor((Date.now() - prev.lastUpdated.getTime()) / 60000) : 'never',
+            newState: shouldBeConnected ? 'Live (monitoring)' : 'Connecting'
+          });
+        }
+
+        return { ...prev, isConnected: shouldBeConnected };
+      });
     };
 
-    // Check connection status less frequently to reduce spam
-    const statusInterval = setInterval(connectionStatus, 10000);
+    // Check connection status much less frequently
+    const statusInterval = setInterval(connectionStatus, 30000); // Every 30 seconds
 
     return () => {
-      clearTimeout(statusTimeout);
       clearInterval(statusInterval);
       newChannels.forEach(channel => {
         supabase.removeChannel(channel);
       });
     };
-  }, [licenseKey, fetchData]);
+  }, [licenseKey]); // Only depend on licenseKey to prevent subscription resets
 
   // Set up polling fallback - only when realtime fails
   useEffect(() => {
     if (!enablePolling) return;
 
     const pollingInterval_id = setInterval(() => {
-      // Only poll if not connected via realtime
+      // Only poll if not connected via realtime and no recent data
       setData(prev => {
-        if (!prev.isConnected) {
+        const hasStaleData = !prev.lastUpdated || (Date.now() - prev.lastUpdated.getTime()) > 180000; // 3 minutes
+        if (!prev.isConnected || hasStaleData) {
           fetchData();
         }
         return prev;
       });
     }, pollingInterval);
-    
+
     return () => {
       clearInterval(pollingInterval_id);
     };
@@ -490,5 +701,8 @@ export const useTVData = ({
   return {
     ...data,
     refetch: fetchData,
+    // Performance metrics
+    getPerformanceMetrics: () => globalPerformanceMonitor.getAllMetrics(),
+    getMemoryUsage: () => globalMemoryTracker.getCurrentUsage(),
   };
 };

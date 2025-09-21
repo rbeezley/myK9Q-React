@@ -43,6 +43,18 @@ export const Login: React.FC = () => {
     if (error) {
       setError('');
     }
+
+    // Auto-submit when all 5 digits are entered
+    if (value && index === 4) {
+      // Check if all fields are filled
+      const isComplete = newPasscode.every(digit => digit !== '');
+      if (isComplete) {
+        // Add a small delay for better UX
+        setTimeout(() => {
+          handleSubmitWithPasscode(newPasscode);
+        }, 150);
+      }
+    }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -81,9 +93,16 @@ export const Login: React.FC = () => {
     inputRefs.current[lastFilledIndex]?.focus();
   };
 
-  const handleSubmit = async () => {
-    const fullPasscode = passcode.join('');
-    
+  const handleReset = () => {
+    hapticFeedback.impact('light');
+    setPasscode(['', '', '', '', '']);
+    setError('');
+    inputRefs.current[0]?.focus();
+  };
+
+  const handleSubmitWithPasscode = async (passcodeArray: string[]) => {
+    const fullPasscode = passcodeArray.join('');
+
     if (fullPasscode.length !== 5) {
       hapticFeedback.impact('heavy');
       setError('Please enter all 5 characters');
@@ -97,7 +116,7 @@ export const Login: React.FC = () => {
     try {
       // Authenticate passcode against Supabase database
       const showData = await authenticatePasscode(fullPasscode);
-      
+
       if (!showData) {
         throw new Error('Invalid passcode');
       }
@@ -117,6 +136,10 @@ export const Login: React.FC = () => {
     }
   };
 
+  const handleSubmit = async () => {
+    await handleSubmitWithPasscode(passcode);
+  };
+
   return (
     <div className="login-container">
       {/* Purple gradient background matching Flutter */}
@@ -125,14 +148,12 @@ export const Login: React.FC = () => {
       <div className="login-content">
         {/* Logo and Branding */}
         <div className="logo-container">
-          <div className="logo-circle">
-            <svg className="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="48" fill="none" stroke="white" strokeWidth="2" />
-              <text x="50" y="65" textAnchor="middle" fontSize="40" fill="white">Q</text>
-              {/* Simple dog silhouette */}
-              <path d="M 30 45 Q 35 35, 45 40 L 45 55 L 35 55 L 35 50 Q 30 50, 30 45" 
-                    fill="white" opacity="0.9" transform="scale(0.8) translate(15, 10)" />
-            </svg>
+          <div className="logo-image">
+            <img
+              src="/myK9Q-logo-white.png"
+              alt="myK9Q Logo"
+              className="logo-img"
+            />
           </div>
           
           <h1 className="app-title">myK9Q</h1>
@@ -144,26 +165,55 @@ export const Login: React.FC = () => {
         <div className="passcode-section">
           <p className="instruction">Enter Pass Code provided by Host Club</p>
           
-          <div className="passcode-inputs">
-            {passcode.map((digit, index) => (
-              <div key={index} className="input-wrapper">
-                <input
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleInputChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={index === 0 ? handlePaste : undefined}
-                  className={`passcode-input ${error ? 'error' : ''}`}
-                  disabled={isLoading}
-                  inputMode="text"
-                  autoComplete="off"
-                  aria-label={`Passcode digit ${index + 1}`}
-                />
-                <div className="input-dot" />
-              </div>
-            ))}
+          <div className="passcode-input-container">
+            <div className="passcode-inputs">
+              {passcode.map((digit, index) => (
+                <div key={index} className="input-wrapper">
+                  <input
+                    ref={(el) => (inputRefs.current[index] = el)}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleInputChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
+                    className={`passcode-input ${error ? 'error' : ''}`}
+                    disabled={isLoading}
+                    inputMode="text"
+                    autoComplete="off"
+                    aria-label={`Passcode digit ${index + 1}`}
+                  />
+                  <div className="input-dot" />
+                </div>
+              ))}
+            </div>
+
+            {/* Reset Button */}
+            {passcode.some(digit => digit !== '') && (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="reset-button"
+                disabled={isLoading}
+                aria-label="Clear passcode"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Error Message */}

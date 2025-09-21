@@ -66,23 +66,52 @@
   box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
 }
 
-/* Enhanced armband badge for better outdoor visibility */
+.badge-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+}
+
+.badge-outline {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+/* Enhanced armband badge for better outdoor visibility - Square design */
 .armband-badge {
   background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
   color: white;
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  min-height: 56px;
+  border-radius: 1rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  min-width: 3.5rem;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 1.125rem;
-  /* Removed glow effect for cleaner appearance */
   border: 2px solid rgba(255, 255, 255, 0.2);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Support for longer armband numbers */
+.armband-badge.long-number {
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 640px) {
+  .armband-badge.long-number {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .armband-badge.long-number {
+    font-size: 0.875rem;
+  }
 }
 
 /* Enhanced status indicators for high visibility */
@@ -117,27 +146,30 @@
   font-size: 0.875rem;
 }
 
-/* Enhanced responsive adjustments */
+/* Enhanced responsive adjustments - Square design */
 @media (max-width: 640px) {
   .armband-badge {
-    width: 60px;
-    height: 60px;
-    font-size: 1.25rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 1rem;
+    border-radius: 0.875rem;
   }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
   .armband-badge {
-    width: 58px;
-    height: 58px;
-    font-size: 1.125rem;
+    width: 3.25rem;
+    height: 3.25rem;
+    font-size: 1.0625rem;
+    border-radius: 0.9375rem;
   }
 }
 
 @media (min-width: 1025px) {
   .armband-badge {
-    width: 56px;
-    height: 56px;
+    width: 3.5rem;
+    height: 3.5rem;
     font-size: 1.125rem;
+    border-radius: 1rem;
   }
 }

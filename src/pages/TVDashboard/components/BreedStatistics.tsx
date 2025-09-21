@@ -42,8 +42,8 @@ export const BreedStatistics: React.FC<BreedStatisticsProps> = ({
   showTopCount = 8 
 }) => {
   const [breedPerformance, setBreedPerformance] = useState<BreedPerformance[]>([]);
-  const [selectedBreed, setSelectedBreed] = useState<BreedPerformance | null>(null);
-  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
+  const [_selectedBreed, _setSelectedBreed] = useState<BreedPerformance | null>(null);
+  const [_viewMode, _setViewMode] = useState<'overview' | 'detailed'>('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -279,7 +279,7 @@ export const BreedStatistics: React.FC<BreedStatisticsProps> = ({
     setBreedPerformance(breedStats);
   };
 
-  const getPerformanceColor = (score: number): string => {
+  const _getPerformanceColor = (score: number): string => {
     if (score >= 95) return '#34C759'; // Green
     if (score >= 85) return '#007AFF'; // Blue
     if (score >= 75) return '#FF9500'; // Orange
@@ -318,210 +318,63 @@ export const BreedStatistics: React.FC<BreedStatisticsProps> = ({
     <div className="breed-statistics">
       <div className="breed-header">
         <h2>
-          <span className="breed-icon">🐕</span>
-          Breed Intelligence
+          <span className="breed-icon">🏆</span>
+          Top Performing Breeds
         </h2>
-        <div className="view-toggle">
-          <button 
-            className={viewMode === 'overview' ? 'active' : ''}
-            onClick={() => setViewMode('overview')}
-          >
-            Overview
-          </button>
-          <button 
-            className={viewMode === 'detailed' ? 'active' : ''}
-            onClick={() => setViewMode('detailed')}
-          >
-            Details
-          </button>
-        </div>
       </div>
 
-      {viewMode === 'overview' ? (
-        <div className="breed-overview">
-          <div className="breed-rankings">
-            {breedPerformance.map((breed, index) => (
-              <div 
-                key={breed.breed}
-                className="breed-rank-item"
-                onClick={() => {
-                  setSelectedBreed(breed);
-                  setViewMode('detailed');
-                }}
-              >
-                <div className="rank-position">
-                  <span className="rank-number">#{breed.rank}</span>
-                  {index < 3 && <span className="rank-medal">{['🥇', '🥈', '🥉'][index]}</span>}
-                </div>
-                
-                <div className="breed-info">
-                  <div className="breed-name">{breed.breed}</div>
-                  <div className="breed-stats-summary">
-                    {breed.total_dogs} dogs • Avg: {breed.average_score.toFixed(1)}
-                  </div>
-                </div>
-                
-                <div className="breed-performance">
-                  <div 
-                    className="performance-bar"
-                    style={{ 
-                      width: `${(breed.average_score / 100) * 100}%`,
-                      backgroundColor: getPerformanceColor(breed.average_score)
-                    }}
-                  />
-                  <div className="performance-score">
-                    {breed.average_score.toFixed(1)}
-                  </div>
-                </div>
+      <div className="breed-overview">
+        <div className="breed-rankings">
+          {breedPerformance.slice(0, 4).map((breed, index) => (
+            <div
+              key={breed.breed}
+              className="breed-rank-item"
+            >
+              <div className="rank-position">
+                <span className="rank-number">{breed.rank}</span>
+                {index < 3 && <span className="rank-medal">{['🥇', '🥈', '🥉'][index]}</span>}
               </div>
-            ))}
-          </div>
 
-          <div className="breed-insights">
-            <h3>📊 Key Insights</h3>
-            <div className="insights-grid">
-              <div className="insight-item">
-                <div className="insight-icon">🏆</div>
-                <div className="insight-content">
-                  <div className="insight-label">Top Performer</div>
-                  <div className="insight-value">
-                    {breedPerformance[0]?.breed} - {breedPerformance[0]?.average_score.toFixed(1)} avg
-                  </div>
+              <div className="breed-info">
+                <div className="breed-name">{breed.breed}</div>
+                <div className="breed-stats-summary">
+                  {breed.total_dogs} entries • {breed.average_score.toFixed(1)} avg
                 </div>
               </div>
-              
-              <div className="insight-item">
-                <div className="insight-icon">⚡</div>
-                <div className="insight-content">
-                  <div className="insight-label">Fastest Breed</div>
-                  <div className="insight-value">
-                    Border Collie - 0:47 avg
-                  </div>
+
+              <div className="breed-performance">
+                <div className="performance-score">
+                  {breed.average_score.toFixed(1)}%
                 </div>
               </div>
-              
-              <div className="insight-item">
-                <div className="insight-icon">🎯</div>
-                <div className="insight-content">
-                  <div className="insight-label">Most Consistent</div>
-                  <div className="insight-value">
-                    German Shepherd - 92% completion
-                  </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="breed-insights">
+          <div className="insights-grid">
+            <div className="insight-item">
+              <div className="insight-icon">🎯</div>
+              <div className="insight-content">
+                <div className="insight-label">Leader</div>
+                <div className="insight-value">
+                  {breedPerformance[0]?.breed}
                 </div>
               </div>
-              
-              <div className="insight-item">
-                <div className="insight-icon">📈</div>
-                <div className="insight-content">
-                  <div className="insight-label">Rising Star</div>
-                  <div className="insight-value">
-                    Dutch Shepherd - Strong showing
-                  </div>
+            </div>
+
+            <div className="insight-item">
+              <div className="insight-icon">⚡</div>
+              <div className="insight-content">
+                <div className="insight-label">Perfect Scores</div>
+                <div className="insight-value">
+                  {breedPerformance.reduce((sum, breed) => sum + breed.perfect_scores, 0)}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="breed-detailed">
-          {selectedBreed ? (
-            <div className="breed-detail-view">
-              <div className="breed-detail-header">
-                <button 
-                  className="back-button"
-                  onClick={() => setViewMode('overview')}
-                >
-                  ← Back
-                </button>
-                <h3>{selectedBreed.breed} Performance</h3>
-                <div className="breed-rank-badge">
-                  #{selectedBreed.rank} Overall
-                </div>
-              </div>
-
-              <div className="breed-metrics-grid">
-                <div className="metric-card">
-                  <div className="metric-value">{selectedBreed.total_dogs}</div>
-                  <div className="metric-label">Total Dogs</div>
-                </div>
-                
-                <div className="metric-card">
-                  <div className="metric-value">{selectedBreed.average_score.toFixed(1)}</div>
-                  <div className="metric-label">Average Score</div>
-                </div>
-                
-                <div className="metric-card">
-                  <div className="metric-value">{selectedBreed.perfect_scores}</div>
-                  <div className="metric-label">Perfect Scores</div>
-                </div>
-                
-                <div className="metric-card">
-                  <div className="metric-value">{selectedBreed.completion_rate.toFixed(1)}%</div>
-                  <div className="metric-label">Completion Rate</div>
-                </div>
-              </div>
-
-              {selectedBreed.top_performer && (
-                <div className="top-performer-card">
-                  <h4>🌟 Top Performer</h4>
-                  <div className="performer-details">
-                    <div className="performer-name">
-                      #{selectedBreed.top_performer.armband} "{selectedBreed.top_performer.call_name}"
-                    </div>
-                    <div className="performer-handler">
-                      Handler: {selectedBreed.top_performer.handler}
-                    </div>
-                    <div className="performer-score">
-                      Score: {selectedBreed.top_performer.score}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="score-distribution">
-                <h4>📊 Score Distribution</h4>
-                <div className="distribution-chart">
-                  <div className="distribution-bar excellent">
-                    <div className="bar-label">Excellent (95+)</div>
-                    <div className="bar-fill" style={{ 
-                      width: `${(selectedBreed.score_distribution.excellent / selectedBreed.total_dogs) * 100}%` 
-                    }}/>
-                    <div className="bar-value">{selectedBreed.score_distribution.excellent}</div>
-                  </div>
-                  
-                  <div className="distribution-bar good">
-                    <div className="bar-label">Good (85-94)</div>
-                    <div className="bar-fill" style={{ 
-                      width: `${(selectedBreed.score_distribution.good / selectedBreed.total_dogs) * 100}%` 
-                    }}/>
-                    <div className="bar-value">{selectedBreed.score_distribution.good}</div>
-                  </div>
-                  
-                  <div className="distribution-bar average">
-                    <div className="bar-label">Average (75-84)</div>
-                    <div className="bar-fill" style={{ 
-                      width: `${(selectedBreed.score_distribution.average / selectedBreed.total_dogs) * 100}%` 
-                    }}/>
-                    <div className="bar-value">{selectedBreed.score_distribution.average}</div>
-                  </div>
-                  
-                  <div className="distribution-bar needs-work">
-                    <div className="bar-label">Needs Work (&lt;75)</div>
-                    <div className="bar-fill" style={{ 
-                      width: `${(selectedBreed.score_distribution.needs_work / selectedBreed.total_dogs) * 100}%` 
-                    }}/>
-                    <div className="bar-value">{selectedBreed.score_distribution.needs_work}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="no-breed-selected">
-              <p>Select a breed from the overview to see detailed statistics.</p>
-            </div>
-          )}
-        </div>
-      )}
+      </div>
 
       {error && (
         <div className="error-message">

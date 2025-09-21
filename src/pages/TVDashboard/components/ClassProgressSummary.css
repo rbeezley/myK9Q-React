@@ -1,0 +1,295 @@
+/* Modern Class Progress Summary Styles */
+/* Following Apple-inspired design system with sophisticated gradients and animations */
+
+/* Remove old styles - everything is now handled by Tailwind classes in the component */
+
+/* Custom animations for enhanced user experience */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes slide-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Progress bar shimmer animation */
+.progress-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+  pointer-events: none;
+}
+
+/* Card entrance animations */
+.class-progress-card {
+  animation: slide-in-up 0.6s ease-out;
+}
+
+.class-progress-card:nth-child(1) { animation-delay: 0ms; }
+.class-progress-card:nth-child(2) { animation-delay: 100ms; }
+.class-progress-card:nth-child(3) { animation-delay: 200ms; }
+.class-progress-card:nth-child(4) { animation-delay: 300ms; }
+.class-progress-card:nth-child(5) { animation-delay: 400ms; }
+.class-progress-card:nth-child(6) { animation-delay: 500ms; }
+
+/* Enhanced badge animations */
+.status-badge {
+  animation: bounce-in 0.5s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Sophisticated glow effects */
+.glow-primary {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.15),
+    0 0 40px rgba(59, 130, 246, 0.1),
+    0 0 80px rgba(59, 130, 246, 0.05);
+}
+
+.glow-success {
+  box-shadow:
+    0 0 20px rgba(34, 197, 94, 0.15),
+    0 0 40px rgba(34, 197, 94, 0.1),
+    0 0 80px rgba(34, 197, 94, 0.05);
+}
+
+.glow-warning {
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.15),
+    0 0 40px rgba(245, 158, 11, 0.1),
+    0 0 80px rgba(245, 158, 11, 0.05);
+}
+
+/* Backdrop blur enhancements for better visual depth */
+.enhanced-backdrop {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Smooth scrolling for the cards container */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.smooth-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Custom scrollbar for webkit browsers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive design improvements */
+@media (max-width: 1280px) {
+  .class-progress-card {
+    animation-delay: 0ms !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Optimize animations for mobile */
+  .class-progress-card {
+    animation: slide-in-up 0.4s ease-out;
+  }
+
+  /* Reduce glow effects on mobile for performance */
+  .glow-primary,
+  .glow-success,
+  .glow-warning {
+    box-shadow:
+      0 0 10px rgba(59, 130, 246, 0.1),
+      0 0 20px rgba(59, 130, 246, 0.05);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .class-progress-card {
+    border-width: 2px;
+    border-color: white;
+  }
+
+  .progress-shimmer::before {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.8) 50%,
+      transparent 100%
+    );
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .class-progress-card,
+  .status-badge,
+  .progress-shimmer::before {
+    animation: none;
+  }
+
+  .class-progress-card:hover {
+    transform: none;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode specific enhancements */
+@media (prefers-color-scheme: dark) {
+  .enhanced-backdrop {
+    backdrop-filter: blur(20px) saturate(180%) brightness(0.8);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(0.8);
+  }
+}
+
+/* Print styles */
+@media print {
+  .class-progress-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+
+  .glow-primary,
+  .glow-success,
+  .glow-warning {
+    box-shadow: none;
+  }
+}
+
+/* Focus management for accessibility */
+.class-progress-card:focus-within {
+  outline: 2px solid rgba(59, 130, 246, 0.8);
+  outline-offset: 2px;
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+/* Enhanced hover states for better interactivity */
+.interactive-element {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-element:hover {
+  transform: translateY(-1px);
+}
+
+/* Loading skeleton animation */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0px,
+    rgba(255, 255, 255, 0.2) 40px,
+    rgba(255, 255, 255, 0.1) 80px
+  );
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  .enhanced-backdrop {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+}

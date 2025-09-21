@@ -14,16 +14,17 @@ import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../s
 import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
-import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
+// import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
-import { HamburgerMenu } from '../../../components/ui';
+import { HamburgerMenu, ArmbandBadge } from '../../../components/ui';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
 import './AKCScentWorkScoresheet-Flutter.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
+import '../../../styles/containers.css';
 
 import { QualifyingResult } from '../../../stores/scoringStore';
 
@@ -48,9 +49,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     isScoring,
     startScoringSession,
     submitScore: addScoreToSession,
-    moveToNextEntry,
+    moveToNextEntry: _moveToNextEntry,
     moveToPreviousEntry, // eslint-disable-line @typescript-eslint/no-unused-vars
-    endScoringSession
+    endScoringSession: _endScoringSession
   } = useScoringStore();
 
   const {
@@ -60,7 +61,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     setCurrentClassEntries,
     setCurrentEntry,
     markAsScored,
-    getPendingEntries
+    getPendingEntries: _getPendingEntries
   } = useEntryStore();
 
   // Detect if this is Nationals mode
@@ -228,7 +229,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }, [alertsCorrect, alertsIncorrect, isNationalsMode]);
 
   // Get qualifying options based on mode
-  const getQualifyingOptions = () => {
+  const _getQualifyingOptions = () => {
     if (isNationalsMode) {
       // Nationals: Only Qualified/Absent/Excused
       return [
@@ -265,7 +266,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       // Get the appropriate reason based on the result type
       const getFinalReason = () => {
         if (finalQualifying === 'Q' || finalQualifying === 'Qualified') return undefined;
-        if (finalQualifying === 'WD' || finalQualifying === 'W' || finalQualifying === 'Withdrawn') {
+        if (finalQualifying === 'WD' || finalQualifying === 'Withdrawn') {
           return withdrawnReason;
         }
         return nonQualifyingReason;
@@ -432,7 +433,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   };
 
-  const resetForm = (entry?: any) => {
+  const _resetForm = (entry?: any) => {
     const nextEntryAreas = initializeAreas(entry?.element || '', entry?.level || '');
     setAreas(nextEntryAreas);
     setQualifying('');
@@ -513,7 +514,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     setStopwatchInterval(interval);
   };
 
-  const pauseStopwatch = () => {
+  const _pauseStopwatch = () => {
     setIsStopwatchRunning(false);
     if (stopwatchInterval) {
       clearInterval(stopwatchInterval);
@@ -655,14 +656,14 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   // Show loading or error state
   if (!currentEntry) {
     return (
-      <div className="mobile-scoresheet error-state app-container-narrow">
+      <div className="mobile-scoresheet error-state app-container">
         <header className="mobile-header">
           <HamburgerMenu
             backNavigation={{
               label: "Back to Entry List",
               action: handleNavigateWithRingCleanup
             }}
-            currentPage="scoresheet"
+            currentPage="entries"
           />
           <h1>AKC Scent Work</h1>
         </header>
@@ -675,7 +676,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="flutter-scoresheet-container app-container-narrow" data-theme={darkMode ? 'dark' : 'light'}>
+    <div className="flutter-scoresheet-container app-container" data-theme={darkMode ? 'dark' : 'light'}>
       <div className="flutter-scoresheet">
       {/* Header */}
       <header className="mobile-header">
@@ -684,7 +685,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             label: "Back to Entry List",
             action: handleNavigateWithRingCleanup
           }}
-          currentPage="scoresheet"
+          currentPage="entries"
         />
         <h1>
           {isNationalsMode ? '🏆 AKC Nationals' : 'AKC Scent Work'}
@@ -702,7 +703,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
       {/* Dog Info Card - Matching Flutter */}
       <div className="flutter-dog-card">
-        <div className="dog-armband">#{currentEntry.armband}</div>
+        <div className="dog-armband">
+          <ArmbandBadge number={currentEntry.armband} />
+        </div>
         <div className="dog-info">
           <div className="dog-name">{currentEntry.callName}</div>
           <div className="dog-details">{currentEntry.breed}</div>
@@ -801,7 +804,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             setNonQualifyingReason('Dog Eliminated in Area');
           }}
           // Additional props for enhanced functionality
-          selectedResultInternal={qualifying}
+          selectedResultInternal={qualifying || ''}
           faultCount={faultCount}
           onFaultCountChange={setFaultCount}
           nqReason={nonQualifyingReason}
@@ -856,7 +859,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             </div>
 
             <div className="dog-summary">
-              <div className="armband-large">#{currentEntry.armband}</div>
+              <div className="armband-large">
+                <ArmbandBadge number={currentEntry.armband} />
+              </div>
               <div className="dog-info-summary">
                 <div className="dog-name-large">{currentEntry.callName}</div>
                 <div className="dog-breed">{currentEntry.breed}</div>
@@ -870,9 +875,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                 <span className={`score-value result-${qualifying?.toLowerCase()}`}>
                   {qualifying === 'Q' ? 'Qualified' :
                    qualifying === 'NQ' ? 'NQ' :
-                   qualifying === 'A' || qualifying === 'ABS' || qualifying === 'Absent' ? 'Absent' :
+                   qualifying === 'ABS' || qualifying === 'Absent' ? 'Absent' :
                    qualifying === 'E' || qualifying === 'EX' || qualifying === 'Excused' ? 'Excused' :
-                   qualifying === 'W' || qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
+                   qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
                 </span>
               </div>
               <div className="score-row">
@@ -921,7 +926,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                 <div className="score-row">
                   <span className="score-label">Reason:</span>
                   <span className="score-value">
-                    {qualifying === 'WD' || qualifying === 'W' || qualifying === 'Withdrawn'
+                    {qualifying === 'WD' || qualifying === 'Withdrawn'
                       ? withdrawnReason
                       : nonQualifyingReason}
                   </span>

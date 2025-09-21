@@ -8,7 +8,7 @@ import React from 'react';
 import './ResultChoiceChips.css';
 
 type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
-type AllResults = NationalsResult | 'NQ' | 'Withdrawn';
+// type AllResults = NationalsResult | 'NQ' | 'Withdrawn';
 
 interface ResultChoiceChipsProps {
   selectedResult: NationalsResult | null;
@@ -19,6 +19,8 @@ interface ResultChoiceChipsProps {
   onNQClick?: () => void;
   onWDClick?: () => void;
   onEXClick?: () => void;
+  _showEX?: boolean;
+  _onEXClick?: () => void;
   // Additional props for enhanced functionality
   selectedResultInternal?: string; // Internal result value (Q, NQ, ABS, etc.)
   faultCount?: number;
@@ -36,10 +38,10 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
   onResultChange,
   showNQ = false,
   showWD = false,
-  showEX = true,
+  _showEX = true,
   onNQClick,
   onWDClick,
-  onEXClick,
+  _onEXClick,
   selectedResultInternal,
   faultCount = 0,
   onFaultCountChange,
@@ -197,7 +199,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
       )}
 
       {/* Withdrawn Reason Selection - show when Withdrawn is selected */}
-      {(selectedResult === 'Withdrawn' || selectedResultInternal === 'WD' || selectedResultInternal === 'W') && onWithdrawnReasonChange && (
+      {(selectedResultInternal === 'WD' || selectedResultInternal === 'Withdrawn') && onWithdrawnReasonChange && (
         <div className="reason-selection">
           <h3>Withdrawn Reason</h3>
           <div className="reason-choice-chips">

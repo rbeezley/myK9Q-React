@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { Button, HamburgerMenu } from '../../components/ui';
+import { Button, HamburgerMenu, ArmbandBadge } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { 
   ArrowLeft, 
@@ -353,7 +353,7 @@ export const DogDetails: React.FC = () => {
         <div className="dog-info-content">
           {/* Extra Prominent Armband for Outdoor Visibility */}
           <div className="armband-display">
-            {dogInfo.armband}
+            <ArmbandBadge number={dogInfo.armband} />
           </div>
           
           {/* Dog Information */}

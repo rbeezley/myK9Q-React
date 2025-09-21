@@ -11,7 +11,8 @@ import { supabase } from '../../lib/supabase';
 import { HamburgerMenu } from '../../components/ui';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SuccessDialog } from './SuccessDialog';
-import { RefreshCw, Settings, CheckCircle, XCircle, Clock, User, Zap } from 'lucide-react';
+import { DatabaseSyncService, SyncProgress } from '../../api/syncService';
+import { RefreshCw, Settings, CheckCircle, XCircle, Clock, User, Zap, Database, Loader, UserCheck, UserX } from 'lucide-react';
 import './CompetitionAdmin.css';
 
 // Release mode enum type
@@ -30,6 +31,7 @@ interface ClassInfo {
   results_released_at: string | null;
   results_released_by: string | null;
   class_completed_at: string | null;
+  self_checkin: boolean;
   // Legacy fields (deprecated)
   auto_release_results?: boolean;
   results_released?: boolean;
@@ -43,13 +45,18 @@ export const CompetitionAdmin: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<Set<number>>(new Set());
 
+  // Sync states
+  const [syncInProgress, setSyncInProgress] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
+  const [showSyncDialog, setShowSyncDialog] = useState(false);
+
   // Dialog states
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
     message: string;
     type: 'success' | 'warning' | 'danger';
-    action: 'release' | 'embargo' | 'auto' | 'immediate' | null;
+    action: 'release' | 'embargo' | 'auto' | 'immediate' | 'sync' | 'enable_checkin' | 'disable_checkin' | null;
     details: string[];
   }>({
     isOpen: false,
@@ -93,6 +100,7 @@ export const CompetitionAdmin: React.FC = () => {
           results_released_at,
           results_released_by,
           class_completed_at,
+          self_checkin,
           auto_release_results,
           results_released
         `)
@@ -471,6 +479,25 @@ export const CompetitionAdmin: React.FC = () => {
     }
   };
 
+  // Get self check-in badge for class
+  const getSelfCheckinBadge = (classInfo: ClassInfo) => {
+    if (classInfo.self_checkin) {
+      return (
+        <span className="status-badge checkin-enabled">
+          <UserCheck className="status-icon" />
+          SELF CHECK-IN
+        </span>
+      );
+    } else {
+      return (
+        <span className="status-badge checkin-disabled">
+          <UserX className="status-icon" />
+          TABLE CHECK-IN
+        </span>
+      );
+    }
+  };
+
   // Format date/time
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return 'Not set';
@@ -489,6 +516,12 @@ export const CompetitionAdmin: React.FC = () => {
       setAutoRelease();
     } else if (confirmDialog.action === 'immediate') {
       setImmediateRelease();
+    } else if (confirmDialog.action === 'sync') {
+      executeSync();
+    } else if (confirmDialog.action === 'enable_checkin') {
+      enableSelfCheckin();
+    } else if (confirmDialog.action === 'disable_checkin') {
+      disableSelfCheckin();
     }
   };
 
@@ -500,6 +533,277 @@ export const CompetitionAdmin: React.FC = () => {
   // Close success dialog
   const closeSuccessDialog = () => {
     setSuccessDialog(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // Show sync confirmation dialog
+  const showSyncConfirmation = () => {
+    if (!adminName.trim()) {
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Administrator Name Required',
+        message: 'Please enter your name for the audit trail before proceeding with database sync.',
+        details: []
+      });
+      return;
+    }
+
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Database Sync',
+      message: 'Are you sure you want to sync legacy data to normalized tables? This will update the database structure and may take a few moments.',
+      type: 'warning',
+      action: 'sync',
+      details: [
+        'Syncs shows from tbl_show_queue to dog_shows',
+        'Syncs trials from tbl_trial_queue to trial_events',
+        'Syncs classes from tbl_class_queue to competition_classes',
+        'Syncs entries from tbl_entry_queue to class_entries',
+        'Creates entry results from scoring data'
+      ]
+    });
+  };
+
+  // Execute database sync
+  const executeSync = async () => {
+    try {
+      setSyncInProgress(true);
+      setShowSyncDialog(true);
+      setSyncProgress({
+        step: 'Starting sync',
+        completed: 0,
+        total: 1,
+        status: 'running',
+        message: 'Initializing database sync...'
+      });
+
+      const result = await DatabaseSyncService.executeLegacyToNormalizedSync(
+        licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604',
+        (progress) => {
+          setSyncProgress(progress);
+        }
+      );
+
+      if (result.success) {
+        setSyncProgress({
+          step: 'Sync completed',
+          completed: 1,
+          total: 1,
+          status: 'completed',
+          message: result.message
+        });
+
+        // Refresh classes after sync
+        setTimeout(() => {
+          fetchClasses();
+          setShowSyncDialog(false);
+          setSyncInProgress(false);
+
+          setSuccessDialog({
+            isOpen: true,
+            title: 'Database Sync Completed!',
+            message: result.message,
+            details: [
+              `Shows: ${result.details.shows.synced}/${result.details.shows.total}`,
+              `Trials: ${result.details.trials.synced}/${result.details.trials.total}`,
+              `Classes: ${result.details.classes.synced}/${result.details.classes.total}`,
+              `Entries: ${result.details.entries.synced}/${result.details.entries.total}`,
+              `Results: ${result.details.results.synced}/${result.details.results.total}`
+            ]
+          });
+        }, 2000);
+
+      } else {
+        setSyncProgress({
+          step: 'Sync failed',
+          completed: 0,
+          total: 1,
+          status: 'error',
+          message: result.error || 'Sync failed'
+        });
+
+        setTimeout(() => {
+          setShowSyncDialog(false);
+          setSyncInProgress(false);
+
+          setSuccessDialog({
+            isOpen: true,
+            title: 'Database Sync Failed',
+            message: result.error || 'An unknown error occurred during sync.',
+            details: []
+          });
+        }, 2000);
+      }
+
+    } catch (error) {
+      console.error('Sync error:', error);
+      setSyncProgress({
+        step: 'Sync failed',
+        completed: 0,
+        total: 1,
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+
+      setTimeout(() => {
+        setShowSyncDialog(false);
+        setSyncInProgress(false);
+
+        setSuccessDialog({
+          isOpen: true,
+          title: 'Database Sync Error',
+          message: 'An error occurred during the database sync operation.',
+          details: []
+        });
+      }, 2000);
+    }
+  };
+
+  // Show confirmation dialog for enabling self check-in
+  const showEnableCheckinConfirmation = () => {
+    if (selectedClasses.size === 0) {
+      setSuccessDialog({
+        isOpen: true,
+        title: 'No Classes Selected',
+        message: 'Please select at least one class to enable self check-in for.',
+        details: []
+      });
+      return;
+    }
+
+    if (!adminName.trim()) {
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Administrator Name Required',
+        message: 'Please enter your name for the audit trail before proceeding.',
+        details: []
+      });
+      return;
+    }
+
+    const selectedClassDetails = classes
+      .filter(cls => selectedClasses.has(cls.id))
+      .map(cls => `${cls.element} (${cls.level} • ${cls.section})`);
+
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Enable Self Check-In',
+      message: `Are you sure you want to enable self check-in for ${selectedClasses.size} class(es)? Exhibitors will be able to check themselves in using the app.`,
+      type: 'success',
+      action: 'enable_checkin',
+      details: selectedClassDetails
+    });
+  };
+
+  // Enable self check-in for selected classes
+  const enableSelfCheckin = async () => {
+    try {
+      const selectedClassDetails = classes
+        .filter(cls => selectedClasses.has(cls.id))
+        .map(cls => `${cls.element} (${cls.level} • ${cls.section})`);
+
+      const updates = Array.from(selectedClasses).map(classId =>
+        supabase
+          .from('tbl_class_queue')
+          .update({
+            self_checkin: true
+          })
+          .eq('id', classId)
+      );
+
+      await Promise.all(updates);
+
+      setSelectedClasses(new Set());
+      await fetchClasses();
+
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Self Check-In Enabled!',
+        message: `Self check-in has been enabled for ${selectedClassDetails.length} class(es). Exhibitors can now check themselves in using the app.`,
+        details: selectedClassDetails
+      });
+    } catch (err) {
+      console.error('Error enabling self check-in:', err);
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to enable self check-in. Please try again.',
+        details: []
+      });
+    }
+  };
+
+  // Show confirmation dialog for disabling self check-in
+  const showDisableCheckinConfirmation = () => {
+    if (selectedClasses.size === 0) {
+      setSuccessDialog({
+        isOpen: true,
+        title: 'No Classes Selected',
+        message: 'Please select at least one class to disable self check-in for.',
+        details: []
+      });
+      return;
+    }
+
+    if (!adminName.trim()) {
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Administrator Name Required',
+        message: 'Please enter your name for the audit trail before proceeding.',
+        details: []
+      });
+      return;
+    }
+
+    const selectedClassDetails = classes
+      .filter(cls => selectedClasses.has(cls.id))
+      .map(cls => `${cls.element} (${cls.level} • ${cls.section})`);
+
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Disable Self Check-In',
+      message: `Are you sure you want to disable self check-in for ${selectedClasses.size} class(es)? Exhibitors will need to check in at the secretary table.`,
+      type: 'warning',
+      action: 'disable_checkin',
+      details: selectedClassDetails
+    });
+  };
+
+  // Disable self check-in for selected classes
+  const disableSelfCheckin = async () => {
+    try {
+      const selectedClassDetails = classes
+        .filter(cls => selectedClasses.has(cls.id))
+        .map(cls => `${cls.element} (${cls.level} • ${cls.section})`);
+
+      const updates = Array.from(selectedClasses).map(classId =>
+        supabase
+          .from('tbl_class_queue')
+          .update({
+            self_checkin: false
+          })
+          .eq('id', classId)
+      );
+
+      await Promise.all(updates);
+
+      setSelectedClasses(new Set());
+      await fetchClasses();
+
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Self Check-In Disabled!',
+        message: `Self check-in has been disabled for ${selectedClassDetails.length} class(es). Exhibitors must check in at the secretary table.`,
+        details: selectedClassDetails
+      });
+    } catch (err) {
+      console.error('Error disabling self check-in:', err);
+      setSuccessDialog({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to disable self check-in. Please try again.',
+        details: []
+      });
+    }
   };
 
   if (loading) {
@@ -629,6 +933,34 @@ export const CompetitionAdmin: React.FC = () => {
               🔴 Hide Results for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
             </button>
           </div>
+
+          <div className="checkin-actions">
+            <button
+              onClick={showEnableCheckinConfirmation}
+              className="enable-checkin-btn"
+              disabled={selectedClasses.size === 0 || !adminName.trim()}
+            >
+              ✅ Enable Self Check-In for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+            </button>
+            <button
+              onClick={showDisableCheckinConfirmation}
+              className="disable-checkin-btn"
+              disabled={selectedClasses.size === 0 || !adminName.trim()}
+            >
+              ❌ Disable Self Check-In for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+            </button>
+          </div>
+
+          <div className="database-actions">
+            <button
+              onClick={showSyncConfirmation}
+              className="sync-btn"
+              disabled={!adminName.trim() || syncInProgress}
+            >
+              <Database className="sync-icon" />
+              {syncInProgress ? 'Syncing Database...' : 'Sync Legacy to Normalized Tables'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -648,6 +980,12 @@ export const CompetitionAdmin: React.FC = () => {
             </span>
             <span className="legend-item">
               <span className="status-badge embargoed">HIDDEN</span> = Results hidden
+            </span>
+            <span className="legend-item">
+              <span className="status-badge checkin-enabled">SELF CHECK-IN</span> = Exhibitors can self check-in
+            </span>
+            <span className="legend-item">
+              <span className="status-badge checkin-disabled">TABLE CHECK-IN</span> = Check-in at secretary table
             </span>
           </div>
         </div>
@@ -676,7 +1014,10 @@ export const CompetitionAdmin: React.FC = () => {
                     </div>
                   </div>
                   <div className="class-actions">
-                    {getStatusBadge(classInfo)}
+                    <div className="status-badges">
+                      {getStatusBadge(classInfo)}
+                      {getSelfCheckinBadge(classInfo)}
+                    </div>
                   </div>
                 </div>
 
@@ -739,6 +1080,9 @@ export const CompetitionAdmin: React.FC = () => {
           confirmDialog.action === 'release' ? 'Release Results' :
           confirmDialog.action === 'auto' ? 'Set Auto Release' :
           confirmDialog.action === 'immediate' ? 'Set Immediate Release' :
+          confirmDialog.action === 'sync' ? 'Execute Database Sync' :
+          confirmDialog.action === 'enable_checkin' ? 'Enable Self Check-In' :
+          confirmDialog.action === 'disable_checkin' ? 'Disable Self Check-In' :
           'Hide Results'
         }
         onConfirm={handleConfirmAction}
@@ -754,6 +1098,57 @@ export const CompetitionAdmin: React.FC = () => {
         onClose={closeSuccessDialog}
         details={successDialog.details}
       />
+
+      {/* Sync Progress Dialog */}
+      {showSyncDialog && syncProgress && (
+        <div className="sync-progress-overlay">
+          <div className="sync-progress-dialog">
+            <div className="sync-progress-header">
+              <Database className="sync-progress-icon" />
+              <h3>Database Synchronization</h3>
+            </div>
+
+            <div className="sync-progress-content">
+              <div className="sync-step-info">
+                <div className="sync-step-title">{syncProgress.step}</div>
+                <div className="sync-step-message">{syncProgress.message}</div>
+              </div>
+
+              <div className="sync-progress-bar">
+                <div
+                  className={`sync-progress-fill ${syncProgress.status}`}
+                  style={{ width: `${(syncProgress.completed / syncProgress.total) * 100}%` }}
+                ></div>
+              </div>
+
+              <div className="sync-progress-text">
+                {syncProgress.completed} of {syncProgress.total} steps completed
+              </div>
+
+              {syncProgress.status === 'running' && (
+                <div className="sync-spinner">
+                  <Loader className="spinning" />
+                  <span>Processing...</span>
+                </div>
+              )}
+
+              {syncProgress.status === 'completed' && (
+                <div className="sync-success">
+                  <CheckCircle className="success-icon" />
+                  <span>Sync completed successfully!</span>
+                </div>
+              )}
+
+              {syncProgress.status === 'error' && (
+                <div className="sync-error">
+                  <XCircle className="error-icon" />
+                  <span>Sync failed</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

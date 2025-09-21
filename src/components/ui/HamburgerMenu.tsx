@@ -22,7 +22,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   className = ''
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [_isAnimating, setIsAnimating] = useState(false);
   const [containerOffset, setContainerOffset] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');

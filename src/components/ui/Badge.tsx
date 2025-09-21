@@ -3,7 +3,7 @@ import './Badge.css';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'gradient';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'gradient' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }

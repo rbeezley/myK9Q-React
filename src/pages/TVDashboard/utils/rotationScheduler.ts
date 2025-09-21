@@ -1,7 +1,10 @@
 /**
  * Smart Information Rotation Scheduler for TV Dashboard
  * Manages priority-based content rotation with intelligent scheduling
+ * Enhanced with AI-driven rotation patterns and user engagement analytics
  */
+
+import { globalPerformanceMonitor, debounce } from './performanceOptimizer';
 
 export interface RotationItem {
   id: string;
@@ -13,9 +16,16 @@ export interface RotationItem {
     dayOfEvent?: number; // 1, 2, or 3
     dataAvailable?: boolean;
     minDataAge?: number; // seconds
+    requiredDataFreshness?: number; // seconds - how fresh data should be
+    audienceEngagement?: 'high' | 'medium' | 'low'; // engagement level needed
   };
   lastShown?: Date;
   showCount?: number;
+  // Enhanced analytics
+  viewDuration?: number[]; // track actual view durations
+  skipCount?: number; // how often manually skipped
+  engagementScore?: number; // calculated engagement metric
+  adaptiveDuration?: number; // AI-adjusted duration
 }
 
 export interface RotationState {
@@ -24,12 +34,23 @@ export interface RotationState {
   history: RotationItem[];
   isActive: boolean;
   startTime: Date;
+  // Enhanced state
+  analytics: {
+    totalRotations: number;
+    averageViewDuration: number;
+    mostPopularContent: string;
+    engagementTrends: Array<{ timestamp: Date; score: number }>;
+  };
+  adaptiveMode: boolean; // whether AI adjustments are enabled
+  pausedUntil?: Date; // temporary pause capability
 }
 
 class RotationScheduler {
   private state: RotationState;
   private rotationTimer: NodeJS.Timeout | null = null;
   private callbacks: Set<(state: RotationState) => void> = new Set();
+  private engagementTracker: Map<string, number[]> = new Map();
+  private debouncedAnalytics = debounce(this.updateAnalytics.bind(this), 5000);
 
   constructor() {
     this.state = {
@@ -37,7 +58,14 @@ class RotationScheduler {
       queue: [],
       history: [],
       isActive: false,
-      startTime: new Date()
+      startTime: new Date(),
+      analytics: {
+        totalRotations: 0,
+        averageViewDuration: 0,
+        mostPopularContent: '',
+        engagementTrends: []
+      },
+      adaptiveMode: true
     };
   }
 
@@ -48,11 +76,21 @@ class RotationScheduler {
     this.state.queue = items.map(item => ({
       ...item,
       lastShown: undefined,
-      showCount: 0
+      showCount: 0,
+      viewDuration: [],
+      skipCount: 0,
+      engagementScore: 0.5, // neutral starting score
+      adaptiveDuration: item.duration // start with base duration
     }));
-    
+
     this.state.startTime = new Date();
+    this.state.analytics.totalRotations = 0;
     this.updateQueue();
+
+    // Initialize engagement tracking
+    this.state.queue.forEach(item => {
+      this.engagementTracker.set(item.id, []);
+    });
   }
 
   /**
@@ -100,14 +138,70 @@ class RotationScheduler {
   }
 
   /**
-   * Force rotation to next item
+   * Record manual skip for analytics
+   */
+  recordSkip(itemId: string): void {
+    const item = this.state.queue.find(item => item.id === itemId);
+    if (item) {
+      item.skipCount = (item.skipCount || 0) + 1;
+      // Reduce engagement score and adaptive duration
+      if (this.state.adaptiveMode) {
+        item.engagementScore = Math.max(0, (item.engagementScore || 0.5) - 0.1);
+        item.adaptiveDuration = Math.max(15, (item.adaptiveDuration || item.duration) * 0.9);
+      }
+    }
+  }
+
+  /**
+   * Pause rotation temporarily
+   */
+  pauseFor(seconds: number): void {
+    this.state.pausedUntil = new Date(Date.now() + seconds * 1000);
+  }
+
+  /**
+   * Toggle adaptive mode
+   */
+  setAdaptiveMode(enabled: boolean): void {
+    this.state.adaptiveMode = enabled;
+    if (enabled) {
+      this.optimizeRotationSchedule();
+    }
+  }
+
+  /**
+   * Get engagement analytics
+   */
+  getAnalytics() {
+    return {
+      ...this.state.analytics,
+      itemPerformance: this.state.queue.map(item => ({
+        id: item.id,
+        component: item.component,
+        engagementScore: item.engagementScore || 0,
+        averageViewTime: this.calculateAverageViewTime(item),
+        skipRate: this.calculateSkipRate(item),
+        showCount: item.showCount || 0
+      }))
+    };
+  }
+
+  /**
+   * Force rotation to next item with enhanced analytics
    */
   rotateToNext(): void {
+    // Check if paused
+    if (this.state.pausedUntil && new Date() < this.state.pausedUntil) {
+      this.scheduleNext(1000); // Check again in 1 second
+      return;
+    }
+
     const nextItem = this.getNextItem();
-    
+
     if (nextItem) {
-      // Update history
+      // Record view completion for previous item
       if (this.state.currentItem) {
+        this.recordViewCompletion(this.state.currentItem);
         this.state.history.unshift(this.state.currentItem);
         // Keep only last 10 items in history
         this.state.history = this.state.history.slice(0, 10);
@@ -117,12 +211,25 @@ class RotationScheduler {
       this.state.currentItem = nextItem;
       nextItem.lastShown = new Date();
       nextItem.showCount = (nextItem.showCount || 0) + 1;
+      this.state.analytics.totalRotations++;
+
+      // Performance monitoring
+      globalPerformanceMonitor.measure('contentRotation', () => {
+        return performance.now();
+      });
+
+      // Use adaptive duration if enabled
+      const duration = this.state.adaptiveMode && nextItem.adaptiveDuration
+        ? nextItem.adaptiveDuration
+        : nextItem.duration;
 
       // Schedule next rotation
       if (this.state.isActive) {
-        this.scheduleNext(nextItem.duration * 1000);
+        this.scheduleNext(duration * 1000);
       }
 
+      // Update analytics asynchronously
+      this.debouncedAnalytics();
       this.notifySubscribers();
     }
   }
@@ -238,10 +345,119 @@ class RotationScheduler {
       callback(this.getState());
     });
   }
+
+  /**
+   * Record view completion analytics
+   */
+  private recordViewCompletion(item: RotationItem): void {
+    if (!item.lastShown) return;
+
+    const viewDuration = (Date.now() - item.lastShown.getTime()) / 1000;
+
+    if (!item.viewDuration) item.viewDuration = [];
+    item.viewDuration.push(viewDuration);
+
+    // Keep only last 20 view durations
+    if (item.viewDuration.length > 20) {
+      item.viewDuration = item.viewDuration.slice(-20);
+    }
+
+    // Update engagement score based on completion rate
+    const expectedDuration = item.adaptiveDuration || item.duration;
+    const completionRate = Math.min(1, viewDuration / expectedDuration);
+
+    if (this.state.adaptiveMode) {
+      // Smooth engagement score adjustment
+      const currentScore = item.engagementScore || 0.5;
+      item.engagementScore = currentScore * 0.8 + completionRate * 0.2;
+
+      // Adjust adaptive duration based on engagement
+      if (item.engagementScore > 0.7) {
+        item.adaptiveDuration = Math.min(item.duration * 1.5, (item.adaptiveDuration || item.duration) * 1.1);
+      } else if (item.engagementScore < 0.3) {
+        item.adaptiveDuration = Math.max(item.duration * 0.5, (item.adaptiveDuration || item.duration) * 0.9);
+      }
+    }
+  }
+
+  /**
+   * Update global analytics
+   */
+  private updateAnalytics(): void {
+    const allViewDurations = this.state.queue.flatMap(item => item.viewDuration || []);
+
+    this.state.analytics.averageViewDuration = allViewDurations.length > 0
+      ? allViewDurations.reduce((sum, duration) => sum + duration, 0) / allViewDurations.length
+      : 0;
+
+    // Find most popular content
+    const popularity = this.state.queue.map(item => ({
+      id: item.id,
+      score: (item.engagementScore || 0) * (item.showCount || 0)
+    }));
+
+    popularity.sort((a, b) => b.score - a.score);
+    this.state.analytics.mostPopularContent = popularity[0]?.id || '';
+
+    // Add engagement trend point
+    const averageEngagement = this.state.queue.reduce((sum, item) =>
+      sum + (item.engagementScore || 0), 0) / this.state.queue.length;
+
+    this.state.analytics.engagementTrends.push({
+      timestamp: new Date(),
+      score: averageEngagement
+    });
+
+    // Keep only last 100 trend points
+    if (this.state.analytics.engagementTrends.length > 100) {
+      this.state.analytics.engagementTrends = this.state.analytics.engagementTrends.slice(-100);
+    }
+  }
+
+  /**
+   * Calculate average view time for an item
+   */
+  private calculateAverageViewTime(item: RotationItem): number {
+    if (!item.viewDuration || item.viewDuration.length === 0) return 0;
+    return item.viewDuration.reduce((sum, duration) => sum + duration, 0) / item.viewDuration.length;
+  }
+
+  /**
+   * Calculate skip rate for an item
+   */
+  private calculateSkipRate(item: RotationItem): number {
+    const totalShows = (item.showCount || 0) + (item.skipCount || 0);
+    return totalShows > 0 ? (item.skipCount || 0) / totalShows : 0;
+  }
+
+  /**
+   * Optimize rotation schedule based on analytics
+   */
+  private optimizeRotationSchedule(): void {
+    if (!this.state.adaptiveMode) return;
+
+    // Adjust priorities based on engagement scores
+    this.state.queue.forEach(item => {
+      const baseScore = item.engagementScore || 0.5;
+      const skipPenalty = Math.min(0.3, (item.skipCount || 0) * 0.05);
+      const adjustedScore = Math.max(0.1, baseScore - skipPenalty);
+
+      // Dynamically adjust priority (keep within reasonable bounds)
+      const basePriority = item.priority;
+      item.priority = Math.max(10, Math.min(200, basePriority * adjustedScore));
+    });
+
+    this.updateQueue();
+  }
 }
 
 // Singleton instance
 export const rotationScheduler = new RotationScheduler();
+
+// Auto-optimize every 5 minutes
+setInterval(() => {
+  rotationScheduler.setAdaptiveMode(true);
+}, 5 * 60 * 1000);
 
 /**
  * Predefined rotation configurations for different event phases

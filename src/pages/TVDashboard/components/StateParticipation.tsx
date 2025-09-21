@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabase';
 import './StateParticipation.css';
 
 interface StateData {
@@ -10,9 +11,10 @@ interface StateData {
   topPerformer: {
     name: string;
     breed: string;
-    score: number;
+    score: number; // For nationals: points, for regular: time in seconds
   };
   region: 'northeast' | 'southeast' | 'midwest' | 'southwest' | 'west';
+  isNationalShow?: boolean;
 }
 
 interface RegionSummary {
@@ -37,81 +39,162 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
   const [viewMode, setViewMode] = useState<'map' | 'leaderboard' | 'regions'>('map');
   const [loading, setLoading] = useState(true);
 
+  // State name mapping
+  const stateNames: Record<string, string> = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
+  };
+
+  // Reverse mapping: full name to code
+  const stateNameToCode: Record<string, string> = Object.entries(stateNames).reduce((acc, [code, name]) => {
+    acc[name] = code;
+    acc[name.toLowerCase()] = code; // Also add lowercase version
+    return acc;
+  }, {} as Record<string, string>);
+
+  // Region mapping
+  const getRegion = (state: string): 'northeast' | 'southeast' | 'midwest' | 'southwest' | 'west' => {
+    const regionMap: Record<string, 'northeast' | 'southeast' | 'midwest' | 'southwest' | 'west'> = {
+      // Northeast
+      'CT': 'northeast', 'ME': 'northeast', 'MA': 'northeast', 'NH': 'northeast', 'NJ': 'northeast',
+      'NY': 'northeast', 'PA': 'northeast', 'RI': 'northeast', 'VT': 'northeast', 'MD': 'northeast', 'DE': 'northeast',
+      // Southeast
+      'FL': 'southeast', 'GA': 'southeast', 'NC': 'southeast', 'SC': 'southeast', 'VA': 'southeast',
+      'WV': 'southeast', 'AL': 'southeast', 'KY': 'southeast', 'MS': 'southeast', 'TN': 'southeast', 'AR': 'southeast', 'LA': 'southeast',
+      // Midwest
+      'IL': 'midwest', 'IN': 'midwest', 'MI': 'midwest', 'OH': 'midwest', 'WI': 'midwest',
+      'IA': 'midwest', 'KS': 'midwest', 'MN': 'midwest', 'MO': 'midwest', 'NE': 'midwest', 'ND': 'midwest', 'SD': 'midwest',
+      // Southwest
+      'AZ': 'southwest', 'NM': 'southwest', 'TX': 'southwest', 'OK': 'southwest',
+      // West
+      'CA': 'west', 'NV': 'west', 'UT': 'west', 'CO': 'west', 'WY': 'west',
+      'ID': 'west', 'MT': 'west', 'WA': 'west', 'OR': 'west', 'AK': 'west', 'HI': 'west'
+    };
+    return regionMap[state] || 'midwest';
+  };
+
   useEffect(() => {
-    // Generate demo state participation data
-    const generateStateData = (): StateData[] => {
-      const stateInfo = [
-        { state: 'TX', name: 'Texas', region: 'southwest' as const },
-        { state: 'CA', name: 'California', region: 'west' as const },
-        { state: 'FL', name: 'Florida', region: 'southeast' as const },
-        { state: 'NY', name: 'New York', region: 'northeast' as const },
-        { state: 'OH', name: 'Ohio', region: 'midwest' as const },
-        { state: 'IL', name: 'Illinois', region: 'midwest' as const },
-        { state: 'PA', name: 'Pennsylvania', region: 'northeast' as const },
-        { state: 'MI', name: 'Michigan', region: 'midwest' as const },
-        { state: 'NC', name: 'North Carolina', region: 'southeast' as const },
-        { state: 'GA', name: 'Georgia', region: 'southeast' as const },
-        { state: 'WA', name: 'Washington', region: 'west' as const },
-        { state: 'OR', name: 'Oregon', region: 'west' as const },
-        { state: 'CO', name: 'Colorado', region: 'west' as const },
-        { state: 'AZ', name: 'Arizona', region: 'southwest' as const },
-        { state: 'NM', name: 'New Mexico', region: 'southwest' as const },
-        { state: 'VA', name: 'Virginia', region: 'southeast' as const },
-        { state: 'MD', name: 'Maryland', region: 'northeast' as const },
-        { state: 'MN', name: 'Minnesota', region: 'midwest' as const },
-        { state: 'WI', name: 'Wisconsin', region: 'midwest' as const },
-        { state: 'IN', name: 'Indiana', region: 'midwest' as const }
-      ];
+    const fetchStateData = async () => {
+      try {
+        setLoading(true);
 
-      const breeds = ['Border Collie', 'German Shepherd', 'Golden Retriever', 'Labrador Retriever', 'Belgian Malinois'];
-      const names = ['Max', 'Bella', 'Charlie', 'Luna', 'Cooper', 'Lucy', 'Rocky', 'Daisy', 'Tucker', 'Molly'];
+        // Fetch real data from tbl_entry_queue (simplified for national shows)
+        const { data: entryData, error } = await supabase
+          .from('tbl_entry_queue')
+          .select('handler_state, call_name, breed, score, is_scored, handler, placement')
+          .eq('mobile_app_lic_key', licenseKey)
+          .not('handler_state', 'is', null);
 
-      return stateInfo.map(info => {
-        const participantCount = Math.floor(Math.random() * 15) + 3; // 3-17 participants
-        const qualifiedCount = Math.floor(participantCount * (Math.random() * 0.4 + 0.4)); // 40-80% qualification rate
-        const averageScore = Math.floor(Math.random() * 30) + 85; // 85-115 average
+        if (error) {
+          console.error('Error fetching state data:', error);
+          setLoading(false);
+          return;
+        }
 
-        return {
-          state: info.state,
-          stateName: info.name,
-          participantCount,
-          qualifiedCount,
-          averageScore,
-          topPerformer: {
-            name: names[Math.floor(Math.random() * names.length)],
-            breed: breeds[Math.floor(Math.random() * breeds.length)],
-            score: averageScore + Math.floor(Math.random() * 20) + 5 // Above average
-          },
-          region: info.region
-        };
-      }).sort((a, b) => b.participantCount - a.participantCount);
+        console.log('📍 State data fetched:', entryData?.length, 'entries with state info');
+        console.log('📍 Sample entries with scores:', entryData?.filter(e => e.score && e.score !== '' && e.score !== '0').slice(0, 3));
+
+        // Group by state and calculate statistics
+        const stateMap = new Map<string, any[]>();
+
+        entryData?.forEach(entry => {
+          let state = entry.handler_state?.trim();
+          if (state) {
+            // Convert full state name to code if needed
+            if (state.length > 2) {
+              state = stateNameToCode[state] || stateNameToCode[state.toLowerCase()];
+            } else {
+              state = state.toUpperCase();
+            }
+
+            if (state && state.length === 2) {
+              if (!stateMap.has(state)) {
+                stateMap.set(state, []);
+              }
+              stateMap.get(state)?.push(entry);
+            }
+          }
+        });
+
+        // Convert to StateData format (NATIONAL SHOW logic only)
+        const processedData: StateData[] = Array.from(stateMap.entries()).map(([state, entries]) => {
+          const participantCount = entries.length;
+          // Count qualified based on placement (1-4 are qualified)
+          const qualifiedCount = entries.filter(e => e.placement && e.placement >= 1 && e.placement <= 4).length;
+          const scores = entries.filter(e => e.score && e.score !== '' && e.score !== '0').map(e => parseFloat(e.score));
+          const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+
+          // Find top performer for this state (highest score wins)
+          const topEntry = entries
+            .filter(e => e.score && e.score !== '' && e.score !== '0')
+            .sort((a, b) => parseFloat(b.score || '0') - parseFloat(a.score || '0'))[0];
+
+          return {
+            state,
+            stateName: stateNames[state] || state,
+            participantCount,
+            qualifiedCount,
+            averageScore,
+            topPerformer: topEntry ? {
+              name: topEntry.call_name || 'Unknown',
+              breed: topEntry.breed || 'Mixed',
+              score: parseFloat(topEntry.score || '0')
+            } : {
+              name: 'TBD',
+              breed: 'TBD',
+              score: 0
+            },
+            region: getRegion(state),
+            isNationalShow: true // Always national show for now
+          };
+        }).sort((a, b) => b.participantCount - a.participantCount);
+
+        setStateData(processedData);
+
+        // Calculate region summaries
+        const regions: Array<'northeast' | 'southeast' | 'midwest' | 'southwest' | 'west'> = ['northeast', 'southeast', 'midwest', 'southwest', 'west'];
+        const summaries = regions.map(region => {
+          const regionStates = processedData.filter(state => state.region === region);
+          const totalParticipants = regionStates.reduce((sum, state) => sum + state.participantCount, 0);
+          const avgScores = regionStates.filter(s => s.averageScore > 0);
+          const averageScore = avgScores.length > 0
+            ? Math.round(avgScores.reduce((sum, state) => sum + state.averageScore, 0) / avgScores.length)
+            : 0;
+          const topState = regionStates.reduce((top, state) =>
+            !top || state.participantCount > top.participantCount ? state : top,
+            null as StateData | null
+          );
+
+          return {
+            region: region.charAt(0).toUpperCase() + region.slice(1),
+            totalParticipants,
+            averageScore,
+            topState: topState?.stateName || 'N/A'
+          };
+        }).sort((a, b) => b.totalParticipants - a.totalParticipants);
+
+        setRegionSummaries(summaries);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error in fetchStateData:', err);
+        setLoading(false);
+      }
     };
 
-    const data = generateStateData();
-    setStateData(data);
+    fetchStateData();
 
-    // Calculate region summaries
-    const regions = ['northeast', 'southeast', 'midwest', 'southwest', 'west'];
-    const summaries = regions.map(region => {
-      const regionStates = data.filter(state => state.region === region);
-      const totalParticipants = regionStates.reduce((sum, state) => sum + state.participantCount, 0);
-      const averageScore = Math.round(
-        regionStates.reduce((sum, state) => sum + state.averageScore, 0) / regionStates.length
-      );
-      const topState = regionStates.reduce((top, state) => 
-        state.participantCount > top.participantCount ? state : top
-      );
+    // Refresh data every 60 seconds
+    const interval = setInterval(fetchStateData, 60000);
 
-      return {
-        region: region.charAt(0).toUpperCase() + region.slice(1),
-        totalParticipants,
-        averageScore,
-        topState: topState.stateName
-      };
-    }).sort((a, b) => b.totalParticipants - a.totalParticipants);
-
-    setRegionSummaries(summaries);
-    setLoading(false);
+    return () => clearInterval(interval);
   }, [licenseKey]);
 
   // Cycle through view modes every 25 seconds
@@ -157,19 +240,18 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
     <div className="state-participation">
       <div className="participation-header">
         <div className="participation-title">
-          <h2>🗺️ GEOGRAPHIC PARTICIPATION</h2>
-          <div className="participation-subtitle">Handlers from Across America</div>
+          <h2>🗺️ DOGS ACROSS AMERICA</h2>
         </div>
         <div className="participation-stats">
-          <div className="stat-item">
+          <div className="stat-item stat-states">
             <div className="stat-value">{stateData.length}</div>
             <div className="stat-label">States</div>
           </div>
-          <div className="stat-item">
+          <div className="stat-item stat-handlers">
             <div className="stat-value">{stateData.reduce((sum, state) => sum + state.participantCount, 0)}</div>
-            <div className="stat-label">Handlers</div>
+            <div className="stat-label">Dogs</div>
           </div>
-          <div className="stat-item">
+          <div className="stat-item stat-qualified">
             <div className="stat-value">{stateData.reduce((sum, state) => sum + state.qualifiedCount, 0)}</div>
             <div className="stat-label">Qualified</div>
           </div>
@@ -187,32 +269,14 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
             <div className="map-container">
               {/* Simplified US Map Representation */}
               <div className="us-map">
-                <div className="map-legend">
-                  <div className="legend-title">Participation Level</div>
-                  <div className="legend-items">
-                    <div className="legend-item">
-                      <div className="legend-color high"></div>
-                      <span>High (12+)</span>
-                    </div>
-                    <div className="legend-item">
-                      <div className="legend-color medium"></div>
-                      <span>Medium (7-11)</span>
-                    </div>
-                    <div className="legend-item">
-                      <div className="legend-color low"></div>
-                      <span>Low (3-6)</span>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="state-markers">
                   {stateData.map((state) => (
                     <div
                       key={state.state}
                       className={`state-marker ${getParticipationLevel(state.participantCount)}`}
-                      style={{ 
+                      style={{
                         '--region-color': getRegionColor(state.region),
-                        '--participation-size': `${Math.max(0.8, state.participantCount / 20)}vw`
+                        '--participation-size': `${Math.max(2.5, state.participantCount / 10)}vw`
                       } as React.CSSProperties}
                       onClick={() => setSelectedState(state)}
                       title={`${state.stateName}: ${state.participantCount} handlers`}
@@ -268,90 +332,107 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
         {viewMode === 'leaderboard' && (
           <div className="leaderboard-view">
             <div className="view-header">
-              <h3>State Participation Rankings</h3>
-              <div className="view-indicator">By Handler Count</div>
+              <h3>Top 5 States</h3>
+              <div className="view-indicator">By Participation</div>
             </div>
-            
-            <div className="state-leaderboard">
-              {stateData.map((state, index) => (
-                <div 
+
+            <div className="state-leaderboard-horizontal">
+              {stateData.slice(0, 5).map((state, index) => (
+                <div
                   key={state.state}
-                  className="state-row"
+                  className={`state-card-horizontal rank-${index + 1}`}
                   style={{ '--region-color': getRegionColor(state.region) } as React.CSSProperties}
                 >
-                  <div className="state-rank">#{index + 1}</div>
-                  <div className="state-info">
-                    <div className="state-primary">
-                      <span className="state-name">{state.stateName}</span>
-                      <span className="state-code">({state.state})</span>
+                  <div className="rank-header">
+                    <div className="rank-position">#{index + 1}</div>
+                    {index === 0 && <div className="rank-icon">🥇</div>}
+                    {index === 1 && <div className="rank-icon">🥈</div>}
+                    {index === 2 && <div className="rank-icon">🥉</div>}
+                  </div>
+
+                  <div className="state-info-compact">
+                    <div className="state-name-short">{state.state}</div>
+                    <div className="state-full-name">{state.stateName}</div>
+                  </div>
+
+                  <div className="state-metrics-compact">
+                    <div className="metric-primary">
+                      <span className="metric-value-large">{state.participantCount}</span>
+                      <span className="metric-label-small">DOGS</span>
                     </div>
-                    <div className="state-region" style={{ color: getRegionColor(state.region) }}>
-                      {state.region.charAt(0).toUpperCase() + state.region.slice(1)}
+                    <div className="metrics-secondary">
+                      <div className="metric-small">
+                        <span>{state.qualifiedCount}</span>
+                        <span>Q</span>
+                      </div>
+                      <div className="metric-small">
+                        <span>{state.averageScore}</span>
+                        <span>AVG</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="state-metrics">
-                    <div className="metric-item">
-                      <div className="metric-value">{state.participantCount}</div>
-                      <div className="metric-label">Handlers</div>
+
+                  {state.topPerformer.name !== 'TBD' && state.topPerformer.score > 0 && (
+                    <div className="top-performer-compact">
+                      <div className="performer-name-short">{state.topPerformer.name.split(' ')[0]}</div>
+                      <div className="performer-score-compact">{state.topPerformer.score} pts</div>
                     </div>
-                    <div className="metric-item">
-                      <div className="metric-value">{state.qualifiedCount}</div>
-                      <div className="metric-label">Qualified</div>
-                    </div>
-                    <div className="metric-item">
-                      <div className="metric-value">{state.averageScore}</div>
-                      <div className="metric-label">Avg Score</div>
-                    </div>
-                  </div>
-                  <div className="state-performer">
-                    <div className="performer-name">{state.topPerformer.name}</div>
-                    <div className="performer-details">
-                      <span>{state.topPerformer.breed}</span>
-                      <span>{state.topPerformer.score} pts</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
+
+            {stateData.length > 5 && (
+              <div className="additional-states-count">
+                <span>+{stateData.length - 5} more states</span>
+              </div>
+            )}
           </div>
         )}
 
         {viewMode === 'regions' && (
           <div className="regions-view">
             <div className="view-header">
-              <h3>Regional Analysis</h3>
-              <div className="view-indicator">By Geographic Region</div>
+              <h3>Regional Leaders</h3>
+              <div className="view-indicator">Top 3 Regions</div>
             </div>
-            
-            <div className="regions-grid">
-              {regionSummaries.map((region) => (
-                <div 
+
+            <div className="regions-showcase">
+              {regionSummaries.slice(0, 3).map((region, index) => (
+                <div
                   key={region.region}
-                  className="region-card"
+                  className={`region-showcase-card rank-${index + 1}`}
                   style={{ '--region-color': getRegionColor(region.region.toLowerCase()) } as React.CSSProperties}
                 >
-                  <div className="region-header">
-                    <h4>{region.region}</h4>
-                    <div className="region-badge">{region.totalParticipants} handlers</div>
+                  <div className="region-rank">
+                    {index === 0 && '🥇'}
+                    {index === 1 && '🥈'}
+                    {index === 2 && '🥉'}
                   </div>
-                  <div className="region-stats">
-                    <div className="region-stat">
-                      <span className="stat-label">Top State:</span>
-                      <span className="stat-value">{region.topState}</span>
+                  <div className="region-name-large">{region.region}</div>
+                  <div className="region-participants">
+                    <div className="participant-count">{region.totalParticipants}</div>
+                    <div className="participant-label">Total Dogs</div>
+                  </div>
+                  <div className="region-highlights">
+                    <div className="highlight-item">
+                      <span className="highlight-label">Leading State</span>
+                      <span className="highlight-value">{region.topState}</span>
                     </div>
-                    <div className="region-stat">
-                      <span className="stat-label">Avg Score:</span>
-                      <span className="stat-value">{region.averageScore}</span>
+                    <div className="highlight-item">
+                      <span className="highlight-label">Average Score</span>
+                      <span className="highlight-value">{region.averageScore}</span>
                     </div>
                   </div>
-                  <div className="region-states">
+                  <div className="region-top-states">
                     {stateData
                       .filter(state => state.region === region.region.toLowerCase())
-                      .slice(0, 5)
-                      .map(state => (
-                        <div key={state.state} className="region-state">
-                          <span className="region-state-name">{state.state}</span>
-                          <span className="region-state-count">{state.participantCount}</span>
+                      .slice(0, 3)
+                      .map((state, idx) => (
+                        <div key={state.state} className="top-state-item">
+                          <span className="state-position">{idx + 1}.</span>
+                          <span className="state-abbr">{state.state}</span>
+                          <span className="state-count">{state.participantCount}</span>
                         </div>
                       ))
                     }
@@ -360,22 +441,17 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
               ))}
             </div>
 
-            <div className="regions-comparison">
-              <div className="comparison-title">Regional Comparison</div>
-              <div className="comparison-chart">
+            <div className="regions-summary-bar">
+              <div className="summary-title">All Regions</div>
+              <div className="summary-items">
                 {regionSummaries.map((region) => (
-                  <div key={region.region} className="comparison-bar">
-                    <div className="bar-label">{region.region}</div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill"
-                        style={{ 
-                          width: `${(region.totalParticipants / Math.max(...regionSummaries.map(r => r.totalParticipants))) * 100}%`,
-                          backgroundColor: getRegionColor(region.region.toLowerCase())
-                        }}
-                      />
-                      <div className="bar-value">{region.totalParticipants}</div>
-                    </div>
+                  <div
+                    key={region.region}
+                    className="summary-item"
+                    style={{ '--region-color': getRegionColor(region.region.toLowerCase()) } as React.CSSProperties}
+                  >
+                    <span className="summary-region">{region.region}</span>
+                    <span className="summary-count">{region.totalParticipants}</span>
                   </div>
                 ))}
               </div>

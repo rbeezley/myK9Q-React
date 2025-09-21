@@ -24,6 +24,15 @@ import {
   Coffee
 } from 'lucide-react';
 import './ClassList.css';
+import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
+import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
+
+// Helper function to convert seconds to MM:SS format
+const formatSecondsToMMSS = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
 
 interface ClassEntry {
   id: number;
@@ -37,6 +46,12 @@ interface ClassEntry {
   completed_count: number;
   class_status: 'none' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
   is_favorite: boolean;
+  time_limit?: string;
+  time_limit2?: string;
+  time_limit3?: string;
+  start_time?: string;
+  briefing_time?: string;
+  break_until?: string;
   dogs: {
     id: number;
     armband: number;
@@ -62,7 +77,7 @@ export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
   const { showContext, role: _role, logout: _logout } = useAuth();
-  const { hasPermission } = usePermission();
+  const { hasPermission, isAdmin, isJudge, isSteward, isExhibitor } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
@@ -78,7 +93,33 @@ export const ClassList: React.FC = () => {
     console.log('🔄 Initializing favoriteClasses state');
     return new Set();
   });
+  const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
+  const [selectedClassForRequirements, setSelectedClassForRequirements] = useState<ClassEntry | null>(null);
+  const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
+  const [selectedClassForMaxTime, setSelectedClassForMaxTime] = useState<ClassEntry | null>(null);
+  const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
+
+  // Time input states for status dialog
+  const [statusTimeInputs, setStatusTimeInputs] = useState({
+    start_time: '',
+    briefing_time: '',
+    break_until: ''
+  });
+
+  // Initialize time inputs with default values
+  const initializeTimeInputs = () => {
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const breakEnd = new Date(now.getTime() + 15 * 60000);
+    const breakUntilTime = breakEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    setStatusTimeInputs({
+      start_time: currentTime,
+      briefing_time: currentTime,
+      break_until: breakUntilTime
+    });
+  };
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -227,12 +268,13 @@ export const ClassList: React.FC = () => {
 
       // Debug: log trial data to see available fields
 
-      // Load classes for this trial
+      // Load classes for this trial using legacy tables
       const { data: classData, error: classError } = await supabase
         .from('tbl_class_queue')
         .select('*')
         .eq('mobile_app_lic_key', showContext?.licenseKey)
-        .eq('trialid_fk', parseInt(trialId!));
+        .eq('trialid_fk', parseInt(trialId!))
+        .order('class_order');
 
       if (classError) {
         console.error('Error loading classes:', classError);
@@ -334,6 +376,9 @@ export const ClassList: React.FC = () => {
             completed_count: completedCount,
             class_status: dbToStatusMapping[cls.class_status] || 'none',
             is_favorite: currentFavorites.has(cls.id),
+            time_limit: cls.time_limit || '',
+            time_limit2: cls.time_limit2 || '',
+            time_limit3: cls.time_limit3 || '',
             dogs: dogs
           };
         });
@@ -424,10 +469,39 @@ export const ClassList: React.FC = () => {
     return result;
   };
 
+  // Helper function to check if max times are set for a class
+  const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
+    const { time_limit, time_limit2, time_limit3 } = classEntry;
+
+    // Check if any time limit is set and not '00:00'
+    const hasTime1 = Boolean(time_limit && time_limit !== '00:00');
+    const hasTime2 = Boolean(time_limit2 && time_limit2 !== '00:00');
+    const hasTime3 = Boolean(time_limit3 && time_limit3 !== '00:00');
+
+    return hasTime1 || hasTime2 || hasTime3;
+  };
+
+  // Helper function to check if user role should see max time warning
+  const shouldShowMaxTimeWarning = (): boolean => {
+    return isAdmin() || isJudge() || isSteward();
+  };
+
   const handleViewEntries = (classEntry: ClassEntry) => {
     hapticFeedback.impact('medium');
+
+    // Check if max time warning should be shown
+    if (shouldShowMaxTimeWarning() && !isMaxTimeSet(classEntry)) {
+      // Show MaxTimeDialog with warning instead of separate warning dialog
+      setSelectedClassForMaxTime(classEntry);
+      setMaxTimeDialogOpen(true);
+      setShowMaxTimeWarning(true);
+      return;
+    }
+
+    // Proceed with navigation
     navigate(`/class/${classEntry.id}/entries`);
   };
+
 
   // Function to set a dog's in-ring status
   const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
@@ -647,20 +721,83 @@ export const ClassList: React.FC = () => {
     6: 'completed'
   };
 
-  const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
+  // Helper function to get time input from user
+  const getTimeInput = (statusType: string): string | null => {
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    let promptMessage = '';
+    let defaultValue = currentTime;
+
+    switch (statusType) {
+      case 'start_time':
+        promptMessage = 'Enter the start time for this class (HH:MM):';
+        break;
+      case 'briefing':
+        promptMessage = 'Enter the briefing time for this class (HH:MM):';
+        break;
+      case 'break':
+        // For break, default to 15 minutes from now
+        const breakEnd = new Date(now.getTime() + 15 * 60000);
+        defaultValue = breakEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        promptMessage = 'Enter when the break ends (HH:MM):';
+        break;
+    }
+
+    const timeInput = prompt(promptMessage, defaultValue);
+
+    // Validate time format (HH:MM)
+    if (timeInput && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeInput)) {
+      return timeInput;
+    } else if (timeInput !== null) {
+      alert('Invalid time format. Please use HH:MM format.');
+      return null;
+    }
+
+    return timeInput; // null if cancelled
+  };
+
+  // New function for handling status changes with inline time inputs
+  const handleClassStatusChangeWithTime = async (classId: number, status: ClassEntry['class_status'], timeValue: string) => {
+    console.log('🕐 Status change with time:', { classId, status, timeValue });
+
     // Convert string status to database numeric value
     const dbStatusValue = statusToDbMapping[status];
-    
-    // Update local state
-    setClasses(prev => prev.map(c => 
-      c.id === classId ? { ...c, class_status: status } : c
-    ));
+
+    // Update local state with both status and time
+    setClasses(prev => prev.map(c => {
+      if (c.id === classId) {
+        const updatedClass = { ...c, class_status: status };
+
+        // Store the time in the appropriate field based on status
+        switch (status) {
+          case 'briefing':
+            updatedClass.briefing_time = timeValue;
+            break;
+          case 'break':
+            updatedClass.break_until = timeValue;
+            break;
+          case 'start_time':
+            updatedClass.start_time = timeValue;
+            break;
+        }
+
+        return updatedClass;
+      }
+      return c;
+    }));
 
     // Update database
     try {
+      const updateData: any = { class_status: dbStatusValue };
+
+      // Note: The legacy tbl_class_queue table doesn't have specific time columns
+      // for briefing_time, break_until, or start_time
+      // These would need to be added to the database schema or stored elsewhere
+
       const { data, error } = await supabase
         .from('tbl_class_queue')
-        .update({ class_status: dbStatusValue })
+        .update(updateData)
         .eq('id', classId)
         .select();
 
@@ -668,6 +805,41 @@ export const ClassList: React.FC = () => {
         console.error('Error updating class status:', error);
         // Revert on error
         loadClassList();
+      }
+    } catch (error) {
+      console.error('Exception updating class status:', error);
+      loadClassList();
+    }
+  };
+
+  // Simplified function for statuses without time input
+  const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
+    // Convert string status to database numeric value
+    const dbStatusValue = statusToDbMapping[status];
+
+    console.log('Updating class status:', { classId, status, dbStatusValue });
+
+    // Update local state
+    setClasses(prev => prev.map(c =>
+      c.id === classId ? { ...c, class_status: status } : c
+    ));
+
+    // Update database
+    try {
+      const updateData: any = { class_status: dbStatusValue };
+
+      const { data, error } = await supabase
+        .from('tbl_class_queue')
+        .update(updateData)
+        .eq('id', classId)
+        .select();
+
+      if (error) {
+        console.error('Error updating class status:', error);
+        // Revert on error
+        loadClassList();
+      } else {
+        console.log('Status update successful:', data);
       }
     } catch (error) {
       console.error('Exception updating class status:', error);
@@ -732,23 +904,80 @@ export const ClassList: React.FC = () => {
     }
   };
 
+  // Helper function to format status with time in a structured way
+  const getFormattedStatus = (classEntry: ClassEntry) => {
+    const status = classEntry.class_status;
+    const result = (() => {
+      switch (status) {
+        case 'briefing':
+          return {
+            label: 'Briefing',
+            time: classEntry.briefing_time
+          };
+        case 'break':
+          return {
+            label: 'Break Until',
+            time: classEntry.break_until
+          };
+        case 'start_time':
+          return {
+            label: 'Start Time',
+            time: classEntry.start_time
+          };
+        case 'setup':
+          return { label: 'Setup', time: null };
+        case 'in_progress':
+          return { label: 'In Progress', time: null };
+        case 'completed':
+          return { label: 'Completed', time: null };
+        default:
+          return { label: 'None', time: null };
+      }
+    })();
+
+    console.log('📊 getFormattedStatus:', {
+      classId: classEntry.id,
+      status,
+      briefing_time: classEntry.briefing_time,
+      break_until: classEntry.break_until,
+      start_time: classEntry.start_time,
+      result
+    });
+
+    return result;
+  };
+
   const getStatusLabel = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     switch (status) {
       case 'setup': return 'Setup';
-      case 'briefing': return 'Briefing';
-      case 'break': return 'Break';
-      case 'start_time': return 'Start Time';
+      case 'briefing': {
+        if (classEntry?.briefing_time) {
+          return `Briefing ${classEntry.briefing_time}`;
+        }
+        return 'Briefing';
+      }
+      case 'break': {
+        if (classEntry?.break_until) {
+          return `Break Until ${classEntry.break_until}`;
+        }
+        return 'Break Until';
+      }
+      case 'start_time': {
+        if (classEntry?.start_time) {
+          return `Start ${classEntry.start_time}`;
+        }
+        return 'Start Time';
+      }
       case 'in_progress': return 'In Progress';
       case 'completed': return 'Completed';
-      default: 
+      default:
         // Show intelligent status when class_status is 'none'
         if (classEntry) {
           const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
           const hasDogsInRing = classEntry.dogs.some(dog => dog.in_ring);
-          
+
           if (isCompleted) return 'Completed';
-          if (hasDogsInRing) return 'In Ring';
-          if (classEntry.completed_count > 0) return 'In Progress';
+          if (hasDogsInRing || classEntry.completed_count > 0) return 'In Progress';
           return 'Ready';
         }
         return 'Ready';
@@ -1027,8 +1256,8 @@ export const ClassList: React.FC = () => {
       {/* Enhanced Classes List Section */}
       <div className="class-list">
         {filteredClasses.map((classEntry) => {
-          const hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
-          const isInProgress = classEntry.class_status === 'in_progress';
+          const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
+          const _isInProgress = classEntry.class_status === 'in_progress';
           return (
             <div
               key={classEntry.id}
@@ -1043,63 +1272,6 @@ export const ClassList: React.FC = () => {
                   <div className="class-details">
                     <div className="class-title-row">
                       <h3 className="class-name">{classEntry.class_name}</h3>
-                      {/* Status Badge with class details */}
-                      <div className="status-container" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 5 }}>
-                        {hasPermission('canManageClasses') ? (
-                          <button
-                            className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
-                            style={{ position: 'relative', zIndex: 10, pointerEvents: 'auto' }}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              e.nativeEvent.stopImmediatePropagation();
-                              const target = e.currentTarget;
-                              const rect = target.getBoundingClientRect();
-                              const isDesktop = window.innerWidth >= 768;
-
-                              if (activeStatusPopup === classEntry.id) {
-                                setActiveStatusPopup(null);
-                                setStatusPopupPosition(null);
-                              } else {
-                                setActiveStatusPopup(classEntry.id);
-
-                                if (isDesktop) {
-                                  // Position dropdown below and to the right of the badge
-                                  const dropdownWidth = 240; // matches CSS width
-                                  const viewportWidth = window.innerWidth;
-                                  const spaceOnRight = viewportWidth - rect.right;
-
-                                  let left = rect.left + window.scrollX;
-
-                                  // Adjust if dropdown would go off-screen
-                                  if (spaceOnRight < dropdownWidth) {
-                                    left = rect.right + window.scrollX - dropdownWidth;
-                                  }
-
-                                  const position = {
-                                    top: rect.bottom + window.scrollY + 8,
-                                    left: left
-                                  };
-                                  setStatusPopupPosition(position);
-                                } else {
-                                  setStatusPopupPosition(null);
-                                }
-                              }
-                              return false;
-                            }}
-                          >
-                            {getStatusLabel(classEntry.class_status, classEntry)}
-                          </button>
-                        ) : (
-                          <div className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
-                            {getStatusLabel(classEntry.class_status, classEntry)}
-                          </div>
-                        )}
-                      </div>
                     </div>
                     <p className="class-judge">Judge: {classEntry.judge_name}</p>
                   </div>
@@ -1163,6 +1335,110 @@ export const ClassList: React.FC = () => {
                   )}
                 </div>
 
+                {/* Status and Time Display - Bottom Left */}
+                <div className="class-status-footer">
+                  <div className="status-container" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 5 }}>
+                    {hasPermission('canManageClasses') ? (
+                      <button
+                        className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
+                        style={{ position: 'relative', zIndex: 10, pointerEvents: 'auto' }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                          const target = e.currentTarget;
+                          const rect = target.getBoundingClientRect();
+                          const isDesktop = window.innerWidth >= 768;
+
+                          if (activeStatusPopup === classEntry.id) {
+                            setActiveStatusPopup(null);
+                            setStatusPopupPosition(null);
+                          } else {
+                            setActiveStatusPopup(classEntry.id);
+                            initializeTimeInputs(); // Initialize default times when popup opens
+
+                            if (isDesktop) {
+                              // Smart positioning: above or below based on available space
+                              const dropdownWidth = 240; // matches CSS width
+                              const dropdownHeight = 400; // approximate popup height
+                              const viewportWidth = window.innerWidth;
+                              const viewportHeight = window.innerHeight;
+                              const spaceOnRight = viewportWidth - rect.right;
+                              const spaceAbove = rect.top;
+                              const spaceBelow = viewportHeight - rect.bottom;
+
+                              let left = rect.left + window.scrollX;
+
+                              // Adjust horizontal position if dropdown would go off-screen
+                              if (spaceOnRight < dropdownWidth) {
+                                left = rect.right + window.scrollX - dropdownWidth;
+                              }
+
+                              // Smart vertical positioning
+                              let top: number;
+                              if (spaceAbove >= dropdownHeight + 8) {
+                                // Position above if there's enough space
+                                top = rect.top + window.scrollY - dropdownHeight - 8;
+                              } else if (spaceBelow >= dropdownHeight + 8) {
+                                // Position below if there's enough space
+                                top = rect.bottom + window.scrollY + 8;
+                              } else {
+                                // Not enough space above or below, choose the side with more space
+                                if (spaceAbove > spaceBelow) {
+                                  // Position above, but adjust to fit viewport
+                                  top = Math.max(8, rect.top + window.scrollY - dropdownHeight - 8);
+                                } else {
+                                  // Position below, but adjust to fit viewport
+                                  top = rect.bottom + window.scrollY + 8;
+                                }
+                              }
+
+                              const position = {
+                                top: top,
+                                left: left
+                              };
+                              setStatusPopupPosition(position);
+                            } else {
+                              setStatusPopupPosition(null);
+                            }
+                          }
+                          return false;
+                        }}
+                      >
+                        {(() => {
+                          const formattedStatus = getFormattedStatus(classEntry);
+                          return (
+                            <div className="status-badge-content">
+                              <span className="status-text">{formattedStatus.label}</span>
+                              {formattedStatus.time && (
+                                <span className="status-time">{formattedStatus.time}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </button>
+                    ) : (
+                      <div className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
+                        {(() => {
+                          const formattedStatus = getFormattedStatus(classEntry);
+                          return (
+                            <div className="status-badge-content">
+                              <span className="status-text">{formattedStatus.label}</span>
+                              {formattedStatus.time && (
+                                <span className="status-time">{formattedStatus.time}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
             </div>
           );
@@ -1185,7 +1461,7 @@ export const ClassList: React.FC = () => {
               const style = statusPopupPosition ? {
                 top: statusPopupPosition.top,
                 left: statusPopupPosition.left,
-                position: 'absolute',
+                position: 'absolute' as const,
                 zIndex: 1000,
                 bottom: 'auto',
                 right: 'auto',
@@ -1195,42 +1471,79 @@ export const ClassList: React.FC = () => {
             })()}
           >
             <div className="status-popup-content">
-              <div className="mobile-sheet-header">
-                <h3>Class Status</h3>
-                <button 
-                  className="close-sheet-btn"
-                  onClick={() => {
-                    setActiveStatusPopup(null);
-                    setStatusPopupPosition(null);
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
+              {/* Desktop header - minimal close button */}
+              {statusPopupPosition && (
+                <div className="desktop-popup-header">
+                  <button
+                    className="desktop-close-btn"
+                    onClick={() => {
+                      setActiveStatusPopup(null);
+                      setStatusPopupPosition(null);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              {/* Mobile header - full sheet header */}
+              {!statusPopupPosition && (
+                <div className="mobile-sheet-header">
+                  <h3>Class Status</h3>
+                  <button
+                    className="close-sheet-btn"
+                    onClick={() => {
+                      setActiveStatusPopup(null);
+                      setStatusPopupPosition(null);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               {[
-                { status: 'none', label: 'None', icon: Circle },
-                { status: 'setup', label: 'Setup', icon: Settings },
-                { status: 'briefing', label: 'Briefing', icon: FileText },
-                { status: 'break', label: 'Break', icon: Coffee },
-                { status: 'start_time', label: 'Start Time', icon: Clock },
-                { status: 'in_progress', label: 'In Progress', icon: Play },
-                { status: 'completed', label: 'Completed', icon: CheckCircle }
-              ].map(({ status, label, icon: IconComponent }) => (
-                <button
-                  key={status}
-                  className={`status-option status-${status}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleClassStatusChange(activeStatusPopup, status as any);
-                    setActiveStatusPopup(null);
-                    setStatusPopupPosition(null);
-                  }}
-                >
-                  <span className="popup-icon">
-                    <IconComponent size={statusPopupPosition ? 16 : 18} />
-                  </span>
-                  <span className="popup-label">{label}</span>
-                </button>
+                { status: 'none', label: 'None', icon: Circle, hasTimeInput: false },
+                { status: 'setup', label: 'Setup', icon: Settings, hasTimeInput: false },
+                { status: 'briefing', label: 'Briefing', icon: FileText, hasTimeInput: true, timeKey: 'briefing_time' },
+                { status: 'break', label: 'Break Until', icon: Coffee, hasTimeInput: true, timeKey: 'break_until' },
+                { status: 'start_time', label: 'Start Time', icon: Clock, hasTimeInput: true, timeKey: 'start_time' },
+                { status: 'in_progress', label: 'In Progress', icon: Play, hasTimeInput: false },
+                { status: 'completed', label: 'Completed', icon: CheckCircle, hasTimeInput: false }
+              ].map(({ status, label, icon: IconComponent, hasTimeInput, timeKey }) => (
+                <div key={status} className={`status-option-container status-${status}`}>
+                  <button
+                    className={`status-option status-${status}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (hasTimeInput && timeKey) {
+                        const timeValue = statusTimeInputs[timeKey as keyof typeof statusTimeInputs];
+                        handleClassStatusChangeWithTime(activeStatusPopup, status as any, timeValue);
+                      } else {
+                        handleClassStatusChange(activeStatusPopup, status as any);
+                      }
+                      setActiveStatusPopup(null);
+                      setStatusPopupPosition(null);
+                    }}
+                  >
+                    <span className="popup-icon">
+                      <IconComponent size={statusPopupPosition ? 16 : 18} />
+                    </span>
+                    <span className="popup-label">{label}</span>
+                  </button>
+                  {hasTimeInput && timeKey && (
+                    <input
+                      type="time"
+                      className="status-time-input"
+                      value={statusTimeInputs[timeKey as keyof typeof statusTimeInputs]}
+                      onChange={(e) => {
+                        setStatusTimeInputs(prev => ({
+                          ...prev,
+                          [timeKey]: e.target.value
+                        }));
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -1248,13 +1561,34 @@ export const ClassList: React.FC = () => {
                   className="menu-option"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Navigate to class requirements
-                    console.log('Navigate to class requirements for class', activePopup);
+                    // Find the class data for the requirements dialog
+                    const classData = classes.find(c => c.id === activePopup);
+                    if (classData) {
+                      setSelectedClassForRequirements(classData);
+                      setRequirementsDialogOpen(true);
+                    }
                     setActivePopup(null);
                   }}
                 >
                   <span className="menu-icon">📋</span>
                   <span className="menu-label">Requirements</span>
+                </button>
+                <button
+                  className="menu-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Find the class data for the max time dialog
+                    const classData = classes.find(c => c.id === activePopup);
+                    if (classData) {
+                      setSelectedClassForMaxTime(classData);
+                      setMaxTimeDialogOpen(true);
+                      setShowMaxTimeWarning(false); // No warning for manual access
+                    }
+                    setActivePopup(null);
+                  }}
+                >
+                  <span className="menu-icon">🕐</span>
+                  <span className="menu-label">Set Max Time</span>
                 </button>
                 <button
                   className="menu-option"
@@ -1285,6 +1619,51 @@ export const ClassList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Class Requirements Dialog */}
+      <ClassRequirementsDialog
+        isOpen={requirementsDialogOpen}
+        onClose={() => {
+          setRequirementsDialogOpen(false);
+          setSelectedClassForRequirements(null);
+        }}
+        onSetMaxTime={() => {
+          // Close requirements dialog and open max time dialog with same class
+          setRequirementsDialogOpen(false);
+          setSelectedClassForMaxTime(selectedClassForRequirements);
+          setMaxTimeDialogOpen(true);
+          setShowMaxTimeWarning(false); // No warning for manual access
+        }}
+        classData={selectedClassForRequirements || {
+          id: 0,
+          element: '',
+          level: '',
+          class_name: '',
+          entry_count: 0
+        }}
+      />
+
+      {/* Max Time Dialog */}
+      <MaxTimeDialog
+        isOpen={maxTimeDialogOpen}
+        showWarning={showMaxTimeWarning}
+        onClose={() => {
+          setMaxTimeDialogOpen(false);
+          setSelectedClassForMaxTime(null);
+          setShowMaxTimeWarning(false);
+        }}
+        classData={selectedClassForMaxTime || {
+          id: 0,
+          element: '',
+          level: '',
+          class_name: ''
+        }}
+        onTimeUpdate={() => {
+          // Refresh class data after time update
+          loadClassList();
+        }}
+      />
+
 
     </div>
   );

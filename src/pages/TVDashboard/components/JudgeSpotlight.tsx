@@ -26,9 +26,9 @@ interface JudgeSpotlightProps {
 
 const isDebugMode = import.meta.env.VITE_TV_DEBUG === 'true';
 
-export const JudgeSpotlight: React.FC<JudgeSpotlightProps> = ({ 
-  licenseKey, 
-  rotationInterval = 30000 
+export const JudgeSpotlight: React.FC<JudgeSpotlightProps> = ({
+  licenseKey,
+  rotationInterval = 7000
 }) => {
   const [judges, setJudges] = useState<JudgeProfile[]>([]);
   const [currentJudgeIndex, setCurrentJudgeIndex] = useState(0);
@@ -320,9 +320,6 @@ export const JudgeSpotlight: React.FC<JudgeSpotlightProps> = ({
                 className={`indicator-dot ${index === currentJudgeIndex ? 'active' : ''}`}
               />
             ))}
-          </div>
-          <div className="next-rotation">
-            Next judge in {Math.floor(rotationInterval / 1000)}s
           </div>
         </div>
       )}

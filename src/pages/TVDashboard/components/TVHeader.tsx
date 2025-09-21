@@ -16,8 +16,8 @@ export const TVHeader: React.FC<TVHeaderProps> = ({ currentTime, formatTime, for
   return (
     <header className="tv-header">
       <div className="tv-header-left">
-        {showInfo?.showtype === 'Master National' && <div className="inaugural-badge">INAUGURAL</div>}
-        <h1 className="event-title">{showInfo?.showname || 'AKC Scent Work Master National'}</h1>
+        {showInfo?.showtype === 'Master National' && <div className="inaugural-badge inaugural-badge-enhanced">INAUGURAL</div>}
+        <h1 className="event-title event-title-enhanced">{showInfo?.showname || 'AKC Scent Work Master National'}</h1>
         {showInfo?.startdate && <div className="event-year">{new Date(showInfo.startdate).getFullYear()}</div>}
       </div>
 

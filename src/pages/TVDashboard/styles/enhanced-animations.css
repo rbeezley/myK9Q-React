@@ -1,0 +1,361 @@
+/* Enhanced TV Dashboard Animations */
+
+/* Advanced Keyframe Animations */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 122, 255, 0.8);
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes data-flow {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 100% 50%;
+    opacity: 0.7;
+  }
+}
+
+@keyframes champion-sparkle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.8;
+  }
+  25% {
+    transform: rotate(90deg) scale(1.1);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+    opacity: 0.9;
+  }
+  75% {
+    transform: rotate(270deg) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes progress-wave {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes ticker-enhanced {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-150%); }
+}
+
+@keyframes status-indicator-active {
+  0%, 100% {
+    background: var(--status-active);
+    box-shadow: 0 0 15px rgba(52, 199, 89, 0.6);
+  }
+  50% {
+    background: #4ADF7A;
+    box-shadow: 0 0 25px rgba(52, 199, 89, 0.9);
+  }
+}
+
+/* Enhanced Panel Transitions */
+.content-panel {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-panel.transitioning {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  filter: blur(2px);
+}
+
+.content-panel:not(.transitioning) {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+/* Enhanced Glass Morphism */
+.glass-panel-enhanced {
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: progress-wave 3s infinite;
+  pointer-events: none;
+}
+
+/* Enhanced Armband Animation */
+.armband-enhanced {
+  background: linear-gradient(135deg, var(--akc-blue), #0056D6);
+  animation: breathe 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.armband-enhanced::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: champion-sparkle 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Enhanced Current Dog Display */
+.current-dog-enhanced {
+  background: linear-gradient(135deg,
+    rgba(52, 199, 89, 0.15) 0%,
+    rgba(52, 199, 89, 0.05) 100%);
+  border: 2px solid var(--status-active);
+  animation: pulse-glow 2s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.current-dog-enhanced::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--status-active),
+    transparent
+  );
+  animation: data-flow 2s ease-in-out infinite;
+}
+
+/* Enhanced Queue Items */
+.queue-dog-enhanced {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.queue-dog-enhanced:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.3);
+}
+
+.queue-dog-enhanced.next-immediate {
+  border-left-color: var(--status-active);
+}
+
+/* Enhanced Progress Bars */
+.progress-fill-enhanced {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-wave 2s infinite;
+}
+
+/* Enhanced Ticker */
+.tv-ticker-enhanced {
+  background: linear-gradient(90deg,
+    var(--akc-black) 0%,
+    #1a1a2e 50%,
+    var(--akc-black) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.tv-ticker-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    var(--akc-blue),
+    var(--akc-gold),
+    var(--akc-blue)
+  );
+  animation: data-flow 3s ease-in-out infinite;
+}
+
+.ticker-content-enhanced {
+  animation: ticker-enhanced 45s linear infinite;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 215, 0, 0.1) 50%,
+    transparent
+  );
+  background-size: 200% 100%;
+  animation-name: ticker-enhanced, data-flow;
+  animation-duration: 45s, 4s;
+  animation-iteration-count: infinite, infinite;
+  animation-timing-function: linear, ease-in-out;
+}
+
+/* Enhanced Status Indicators */
+.status-dot-enhanced {
+  animation: status-indicator-active 2s ease-in-out infinite;
+  position: relative;
+}
+
+.status-dot-enhanced::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle,
+    rgba(52, 199, 89, 0.3) 0%,
+    transparent 70%
+  );
+  animation: pulse-glow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Enhanced Header Elements */
+.event-title-enhanced {
+  background: linear-gradient(45deg,
+    var(--text-primary),
+    var(--akc-blue),
+    var(--akc-gold)
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: data-flow 6s ease-in-out infinite;
+}
+
+.inaugural-badge-enhanced {
+  animation: champion-sparkle 4s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.inaugural-badge-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-wave 2s infinite;
+}
+
+/* Enhanced Content Rotation Indicators */
+.rotation-dots-enhanced .progress-dot {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rotation-dots-enhanced .progress-dot.active {
+  animation: pulse-glow 2s ease-in-out infinite;
+  transform: scale(1.2);
+}
+
+.rotation-dots-enhanced .progress-dot:hover {
+  animation: float 1s ease-in-out infinite;
+}
+
+/* Performance Optimizations */
+.tv-dashboard-enhanced {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.tv-dashboard-enhanced * {
+  will-change: transform, opacity;
+}
+
+/* Reduce animations on lower-end devices */
+@media (prefers-reduced-motion: reduce) {
+  .tv-dashboard-enhanced *,
+  .tv-dashboard-enhanced *::before,
+  .tv-dashboard-enhanced *::after {
+    animation-duration: 0.01s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01s !important;
+  }
+}
+
+/* Enhanced responsive scaling */
+@media (max-width: 1600px) {
+  .armband-enhanced,
+  .queue-dog-enhanced {
+    animation-duration: 4s;
+  }
+}
+
+@media (min-width: 2400px) {
+  .current-dog-enhanced,
+  .glass-panel-enhanced {
+    animation-duration: 2s;
+  }
+}

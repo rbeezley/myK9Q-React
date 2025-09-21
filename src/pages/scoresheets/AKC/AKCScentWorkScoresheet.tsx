@@ -8,6 +8,7 @@ import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
 import './AKCScentWorkScoresheet-Flutter.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
+import '../../../styles/containers.css';
 
 import { QualifyingResult } from '../../../stores/scoringStore';
 
@@ -640,7 +641,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     
     return (
-      <div className="mobile-scoresheet app-container-narrow" data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="mobile-scoresheet app-container" data-theme={darkMode ? 'dark' : 'light'}>
         {/* Development Sample Mode Banner */}
         <div style={{
           backgroundColor: '#ff6b35',
@@ -938,7 +939,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     // In production, show proper error state
     return (
-      <div className="mobile-scoresheet app-container-narrow" data-theme={darkMode ? 'dark' : 'light'}>
+      <div className="mobile-scoresheet app-container" data-theme={darkMode ? 'dark' : 'light'}>
         <header className="mobile-header">
           <button className="back-btn" onClick={() => navigate(-1)}>←</button>
           <h1>Entry Not Found</h1>
@@ -1071,7 +1072,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
           qualifying === 'Q' ? 'Qualified' :
           qualifying === 'ABS' ? 'Absent' :
           qualifying === 'EX' ? 'Excused' :
-          undefined
+          null
         }
         onResultChange={(result: NationalsResult) => {
           if (result === 'Qualified') {

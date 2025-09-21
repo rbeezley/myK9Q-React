@@ -35,6 +35,14 @@ html, body {
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
+/* Responsive Typography for TV Displays */
+.tv-dashboard h1 { font-size: 3.2vh; }
+.tv-dashboard h2 { font-size: 2.6vh; }
+.tv-dashboard h3 { font-size: 2.2vh; }
+.tv-dashboard h4 { font-size: 1.9vh; }
+.tv-dashboard p, .tv-dashboard span, .tv-dashboard div { font-size: 1.6vh; }
+.tv-dashboard small { font-size: 1.3vh; }
+
 /* Root container - Full screen TV display */
 .tv-dashboard {
   width: 100vw;
@@ -44,6 +52,7 @@ html, body {
   background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
   color: var(--text-primary);
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.8vh; /* Base font size scales with viewport height */
   overflow-x: hidden !important;
   overflow-y: visible !important;
   display: flex;
@@ -69,7 +78,7 @@ html, body {
 
 /* Header Section - 15% of screen height */
 .tv-header {
-  height: 15vh;
+  height: 12vh;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -202,7 +211,7 @@ html, body {
   box-sizing: border-box;
 }
 
-/* Panel Base Styles */
+/* Panel Base Styles - Fixed 85vh for TV consistency (100vh - 12vh header - 3vh footer) */
 .current-status-panel,
 .content-panel {
   background: var(--bg-glass);
@@ -212,13 +221,36 @@ html, body {
   padding: 2vh 1.2vw;
   box-shadow: 0 8px 40px var(--shadow-color);
   position: relative;
-  overflow: visible !important;
-  height: auto !important;
-  min-height: auto !important;
-  max-height: none !important;
+  overflow: hidden !important;
+  height: 85vh !important;
+  min-height: 85vh !important;
+  max-height: 85vh !important;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Force fixed panel heights at all screen sizes - REDUCED for big screen TV visibility */
+@media screen {
+  .current-status-panel,
+  .content-panel {
+    height: 75vh !important;
+    min-height: 75vh !important;
+    max-height: 75vh !important;
+  }
+}
+
+/* Override any responsive rules */
+@media (max-width: 2560px) {
+  .current-status-panel,
+  .content-panel {
+    height: 75vh !important;
+    min-height: 75vh !important;
+    max-height: 75vh !important;
+    overflow: hidden !important;
+  }
 }
 
 .current-status-panel::before,
@@ -234,7 +266,6 @@ html, body {
 }
 
 /* Panel Headers */
-.current-status-panel h2,
 .highlights-panel h2 {
   font-size: 2vw;
   font-weight: 700;
@@ -245,36 +276,183 @@ html, body {
 
 /* Current Status Panel */
 .element-info {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border-radius: 16px;
+  padding: 1.5vh 1.5vw;
+  margin-bottom: 1vh;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
   text-align: center;
-  margin-bottom: 3vh;
 }
 
 .element-name {
-  font-size: 3vw;
+  font-size: 2.5vw;
   font-weight: 800;
   color: var(--status-active);
   text-shadow: 0 2px 10px rgba(52, 199, 89, 0.3);
+  margin-bottom: 1vh;
 }
 
 .judge-name {
-  font-size: 1.4vw;
+  font-size: 1.3vw;
+  color: var(--text-primary);
+  margin-top: 0.5vh;
+  font-weight: 500;
+}
+
+.class-time {
+  font-size: 1.1vw;
   color: var(--text-secondary);
-  margin-top: 1vh;
+  margin-top: 0.5vh;
+}
+
+/* Compact Header Design - All info on one line */
+.compact-header {
+  padding: 0.8vh 1.5vw !important;
+  margin-bottom: 0.8vh !important;
+}
+
+.class-info-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5vw;
+  font-size: 1.1vw;
+  color: var(--text-primary);
+}
+
+.class-info-line .trial-date,
+.class-info-line .trial-number {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.class-info-line .element-level {
+  color: var(--status-active);
+  font-weight: 700;
+  font-size: 1.3vw;
+  text-shadow: 0 1px 5px rgba(52, 199, 89, 0.3);
+}
+
+.class-info-line .judge-name {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.class-info-line .class-time {
+  color: var(--text-secondary);
+  font-size: 1vw;
+}
+
+/* Legacy trial info - hide when using compact header */
+.compact-header .trial-info {
+  display: none;
+}
+
+/* Hide redundant elements when using compact header */
+.compact-header .element-name,
+.compact-header .judge-name:not(.class-info-line .judge-name) {
+  display: none;
+}
+
+/* Trial Info - Positioned at top (legacy) */
+.current-status-panel .trial-info {
+  display: flex;
+  justify-content: center;
+  gap: 1vw;
+  margin-bottom: 1.5vh;
+  padding-bottom: 1vh;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0.8;
+}
+
+.current-status-panel .trial-date,
+.current-status-panel .trial-number {
+  font-size: 1vw !important;
+  color: var(--text-secondary);
+  font-weight: 500 !important;
+  opacity: 1 !important;
+  margin-bottom: 0 !important;
+}
+
+.current-status-panel .trial-number {
+  padding-left: 1vw;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Progress Bar Styles */
+.class-progress {
+  margin-top: 2vh;
+  padding-top: 1.5vh;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8vh;
+  font-size: 1.1vw;
+}
+
+.progress-label span {
+  color: var(--text-secondary);
+}
+
+.progress-count {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 1.2vh;
+  background: var(--bg-secondary);
+  border-radius: 50px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--status-active), var(--akc-gold));
+  border-radius: 50px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(52, 199, 89, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .current-dog {
   background: rgba(52, 199, 89, 0.1);
   border: 2px solid var(--status-active);
   border-radius: 16px;
-  padding: 2vh 1.5vw;
-  margin-bottom: 3vh;
+  padding: 1.5vh 1.5vw;
+  margin-bottom: 1.5vh;
 }
 
 .dog-header {
   font-size: 1.2vw;
   color: var(--text-secondary);
   text-align: center;
-  margin-bottom: 1vh;
+  margin-bottom: 0.5vh;
 }
 
 .dog-info {
@@ -284,19 +462,19 @@ html, body {
 }
 
 .armband {
-  font-size: 2.8vw;
+  font-size: 2.2vw;
   font-weight: 800;
   color: var(--text-primary);
   background: var(--akc-blue);
   border-radius: 50%;
-  width: 8vw;
-  height: 8vw;
+  width: 6vw;
+  height: 6vw;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4);
   flex-shrink: 0;
-  padding: 0.5vw;
+  padding: 0.3vw;
   text-align: center;
   line-height: 1;
   overflow: hidden;
@@ -332,7 +510,7 @@ html, body {
 .next-header {
   font-size: 1.4vw;
   color: var(--text-secondary);
-  margin-bottom: 1.5vh;
+  margin-bottom: 0.8vh;
 }
 
 .dog-queue {
@@ -597,7 +775,7 @@ html, body {
 
 /* Ticker Section - 5% of screen height */
 .tv-ticker {
-  height: 5vh;
+  height: 3vh;
   background: linear-gradient(90deg, var(--akc-black) 0%, #1a1a2e 100%);
   border-top: 2px solid var(--akc-gold);
   display: flex;
@@ -669,14 +847,7 @@ html, body {
     align-items: start;
   }
   
-  .current-status-panel,
-  .content-panel,
-  .yesterday-highlights {
-    overflow: visible;
-    height: auto;
-    min-height: auto;
-    max-height: none;
-  }
+  /* REMOVED: Panel height overrides to maintain fixed 85vh */
   
   /* Reduce panel padding for smaller screens */
   .dashboard-panels {
@@ -691,7 +862,6 @@ html, body {
   }
   
   /* Scale down fonts for readability on smaller screens */
-  .current-status-panel h2,
   .yesterday-highlights h2 {
     font-size: 2.2vw;
   }
@@ -741,14 +911,7 @@ html, body {
     align-items: start;
   }
   
-  .current-status-panel,
-  .content-panel,
-  .yesterday-highlights {
-    overflow: visible;
-    height: auto;
-    min-height: auto;
-    max-height: none;
-  }
+  /* REMOVED: Panel height overrides to maintain fixed 85vh */
   
   /* Optimize for standard desktop viewing distance */
   .dashboard-panels {
@@ -757,7 +920,6 @@ html, body {
   }
   
   /* Slightly smaller than TV sizing */
-  .current-status-panel h2,
   .yesterday-highlights h2 {
     font-size: 2.4vw;
   }
@@ -801,14 +963,7 @@ html, body {
     align-items: start;
   }
   
-  .current-status-panel,
-  .content-panel,
-  .yesterday-highlights {
-    overflow: visible;
-    height: auto;
-    min-height: auto;
-    max-height: none;
-  }
+  /* REMOVED: Panel height overrides to maintain fixed 85vh */
   
   /* Standard sizing - close to original design */
   .dashboard-panels {
@@ -830,7 +985,6 @@ html, body {
   }
   
   /* Ensure text is readable from TV viewing distance */
-  .current-status-panel h2,
   .yesterday-highlights h2 {
     font-size: 3.2vw;
   }
@@ -859,7 +1013,7 @@ html, body {
     display: flex !important;
     flex-direction: column !important;
   }
-  
+
   .tv-main {
     flex: none !important;
     height: auto !important;
@@ -868,7 +1022,7 @@ html, body {
     display: flex !important;
     flex-direction: column !important;
   }
-  
+
   .tv-content-grid {
     height: auto !important;
     min-height: auto !important;
@@ -877,16 +1031,8 @@ html, body {
     display: grid !important;
     grid-template-rows: auto !important;
   }
-  
-  .current-status-panel,
-  .content-panel,
-  .yesterday-highlights {
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    position: relative !important;
-  }
+
+  /* REMOVED: Panel height overrides to maintain fixed 85vh */
 }
 
 
@@ -1031,40 +1177,113 @@ html, body {
 .queue-dog {
   display: flex;
   align-items: center;
-  gap: 1vw;
-  font-size: 1.3vw;
-  color: var(--text-primary);
-  background: var(--bg-accent);
-  padding: 1vh 1.5vw;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  border-left: 4px solid var(--status-scheduled);
+  gap: 1.2vw;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  padding: 1.2vh 1vw;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  margin-bottom: 0.8vh;
+}
+
+.queue-dog:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  transform: translateX(2px);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .queue-dog.next-immediate {
-  background: rgba(52, 199, 89, 0.1);
-  border-left-color: var(--status-active);
-  animation: next-dog-highlight 2s ease-in-out infinite alternate;
+  background: linear-gradient(135deg, rgba(52, 199, 89, 0.15), rgba(52, 199, 89, 0.05));
+  border-color: rgba(52, 199, 89, 0.25);
+  box-shadow: 0 3px 10px rgba(52, 199, 89, 0.2);
 }
 
 @keyframes next-dog-highlight {
-  0% { box-shadow: 0 0 0 rgba(52, 199, 89, 0.3); }
-  100% { box-shadow: 0 0 20px rgba(52, 199, 89, 0.5); }
+  0% { box-shadow: 0 0 0 rgba(52, 199, 89, 0.2); }
+  100% { box-shadow: 0 0 8px rgba(52, 199, 89, 0.3); }
 }
 
-.queue-position {
-  background: var(--akc-blue);
+/* Armband Badge for Queue */
+.queue-armband-badge {
+  position: relative;
+  background: linear-gradient(135deg, var(--akc-blue) 0%, #005dc7 100%);
   color: white;
-  width: 2.5vw;
-  height: 2.5vw;
-  border-radius: 50%;
+  border-radius: 12px;
+  width: 3.5vw;
+  height: 3.5vw;
+  min-width: 3.5vw;
+  min-height: 3.5vw;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1vw;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
   flex-shrink: 0;
+}
+
+.queue-position {
+  position: absolute;
+  top: -0.4vh;
+  right: -0.4vw;
+  background: var(--status-active);
+  color: white;
+  width: 1.2vw;
+  height: 1.2vw;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7vw;
+  font-weight: 700;
+  border: 1px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.armband-number {
+  font-size: 1.1vw;
+  line-height: 1;
+}
+
+/* In-Ring Badge - Special styling for dog currently in search */
+.in-ring-badge {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 12px rgba(255, 107, 53, 0.4) !important;
+  animation: in-ring-pulse 2s ease-in-out infinite alternate;
+}
+
+.in-ring-badge .queue-position {
+  background: #ff4444 !important;
+  color: white !important;
+  font-size: 0.8vw !important;
+}
+
+.in-ring-badge .armband-number {
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+@keyframes in-ring-pulse {
+  0% {
+    box-shadow: 0 2px 12px rgba(255, 107, 53, 0.4);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.6);
+    transform: scale(1.02);
+  }
+}
+
+/* Current dog styling adjustments for consistent card design */
+.current-dog.in-ring {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 140, 66, 0.05)) !important;
+  border: 1px solid rgba(255, 107, 53, 0.2) !important;
+}
+
+.current-dog.in-ring .dog-header {
+  color: #ff6b35 !important;
+  font-weight: 600 !important;
 }
 
 .queue-info {
@@ -1072,6 +1291,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.3vh;
+  justify-content: center;
 }
 
 .queue-armband {
@@ -1081,16 +1301,29 @@ html, body {
 
 .queue-name {
   font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.3vw;
+  line-height: 1.3;
 }
 
 .queue-breed {
   font-size: 1.1vw;
   color: var(--text-secondary);
+  line-height: 1.2;
 }
 
 .queue-handler {
-  text-align: right;
-  font-size: 1.1vw;
+  font-size: 1vw;
+  color: var(--text-tertiary);
+  line-height: 1.2;
+  margin-top: 0.2vh;
+  white-space: normal;
+  overflow: visible;
+}
+
+.handler-name {
+  white-space: normal;
+  overflow: visible;
   color: var(--text-secondary);
   max-width: 25%;
   overflow: hidden;
@@ -1299,4 +1532,21 @@ html, body {
 
 .element-info {
   animation: rotate-in 0.6s ease-out;
+}
+
+/* Status Content Container - Uses full panel height */
+.status-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+  padding: 1vh 0;
+}
+
+/* Adjust element-info to be more compact */
+.current-status-panel .element-info {
+  flex-shrink: 0;
+  margin-bottom: 1vh;
 }

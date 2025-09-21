@@ -1,0 +1,396 @@
+/* Interactive Elements Styles */
+
+.interactive-elements {
+  position: fixed;
+  bottom: 2vh;
+  left: 2vw;
+  z-index: 1100;
+  pointer-events: none;
+}
+
+.interactive-elements * {
+  pointer-events: auto;
+}
+
+/* Control Toggle Button */
+.controls-toggle {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 25px;
+  padding: 0.8vh 1.2vw;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4vw;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.7vw;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 0.5vh;
+  opacity: 0.8;
+}
+
+.controls-toggle:hover {
+  background: rgba(0, 122, 255, 0.15);
+  border-color: var(--akc-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+  opacity: 1;
+}
+
+.controls-toggle.active {
+  background: var(--akc-blue);
+  border-color: var(--akc-blue);
+  box-shadow: 0 6px 25px rgba(0, 122, 255, 0.5);
+}
+
+.settings-icon,
+.toggle-icon {
+  width: 1vw;
+  height: 1vw;
+  flex-shrink: 0;
+}
+
+.settings-icon {
+  animation: gentle-spin 8s linear infinite;
+}
+
+.controls-toggle.active .settings-icon {
+  animation: faster-spin 2s linear infinite;
+}
+
+/* Controls Panel */
+.controls-panel {
+  background: linear-gradient(135deg,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(30, 41, 59, 0.92) 100%);
+  backdrop-filter: blur(15px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1.5vh 1.2vw;
+  min-width: 16vw;
+  max-width: 18vw;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+  transform: translateY(15px) scale(0.96);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 0.5vh;
+}
+
+.controls-panel.visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5vh;
+  padding-bottom: 1vh;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controls-title {
+  font-size: 0.8vw;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.controls-hint {
+  font-size: 0.6vw;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Controls Grid */
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8vh 0.8vw;
+  margin-bottom: 1.5vh;
+}
+
+.control-button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 1.2vh 0.8vw;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--akc-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+}
+
+.control-button.active {
+  background: linear-gradient(135deg,
+    rgba(0, 122, 255, 0.2) 0%,
+    rgba(255, 215, 0, 0.1) 100%);
+  border-color: var(--akc-blue);
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.4);
+}
+
+.control-button.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--akc-blue), var(--akc-gold));
+}
+
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.control-icon {
+  width: 1.2vw;
+  height: 1.2vw;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
+}
+
+.control-button:hover .control-icon {
+  color: var(--akc-blue);
+  transform: scale(1.1);
+}
+
+.control-button.active .control-icon {
+  color: var(--akc-blue);
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+.control-label {
+  font-size: 0.6vw;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.control-shortcut {
+  position: absolute;
+  top: 0.3vh;
+  right: 0.3vw;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--akc-gold);
+  font-size: 0.5vw;
+  font-weight: 600;
+  padding: 0.1vh 0.3vw;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Shortcuts Help */
+.shortcuts-help {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  padding: 0.8vh 0.8vw;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.help-title {
+  font-size: 0.65vw;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.8vh;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2vh 0.8vw;
+  align-items: center;
+}
+
+.shortcut-key {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding: 0.2vh 0.4vw;
+  font-family: 'Courier New', monospace;
+  font-size: 0.5vw;
+  font-weight: 600;
+  color: var(--akc-gold);
+  text-align: center;
+  min-width: 1.5vw;
+}
+
+.shortcut-action {
+  font-size: 0.55vw;
+  color: var(--text-tertiary);
+}
+
+/* Background Overlay */
+.controls-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(2px);
+  z-index: -1;
+  opacity: 0;
+  animation: overlay-fade-in 0.3s ease-out forwards;
+}
+
+/* Animations */
+@keyframes gentle-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes faster-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes overlay-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 1600px) {
+  .interactive-elements {
+    bottom: 3vh;
+    left: 3vw;
+  }
+
+  .controls-panel {
+    min-width: 20vw;
+    max-width: 22vw;
+  }
+
+  .control-icon {
+    width: 1.4vw;
+    height: 1.4vw;
+  }
+
+  .controls-title {
+    font-size: 0.9vw;
+  }
+
+  .control-label {
+    font-size: 0.7vw;
+  }
+}
+
+@media (max-width: 1200px) {
+  .interactive-elements {
+    position: fixed;
+    bottom: 1vh;
+    left: 1vw;
+    right: auto;
+  }
+
+  .controls-panel {
+    min-width: 70vw;
+    max-width: 75vw;
+    position: fixed;
+    bottom: 8vh;
+    left: 1vw;
+    margin-bottom: 0;
+  }
+
+  .controls-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1vh;
+  }
+
+  .control-button {
+    padding: 1.5vh 0.8vw;
+  }
+
+  .shortcuts-help {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .controls-toggle {
+    padding: 1.5vh 2vw;
+    font-size: 1vw;
+  }
+
+  .settings-icon,
+  .toggle-icon {
+    width: 1.5vw;
+    height: 1.5vw;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .controls-panel {
+    background: rgba(0, 0, 0, 0.98);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .control-button {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .control-button.active {
+    background: rgba(0, 122, 255, 0.3);
+    border-color: var(--akc-blue);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .controls-toggle,
+  .control-button,
+  .controls-panel {
+    transition: none;
+  }
+
+  .settings-icon,
+  .control-icon {
+    animation: none;
+  }
+
+  .controls-panel {
+    transform: none;
+  }
+
+  .controls-panel.visible {
+    transform: none;
+  }
+}

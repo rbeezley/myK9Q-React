@@ -5,7 +5,8 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Heart, User, Hash, Users, Award, Clock as _Clock, CheckCircle, Dog } from 'lucide-react';
+import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, CheckCircle, Dog } from 'lucide-react';
+import { ArmbandBadge } from '../../components/ui';
 import './Home.css';
 
 interface EntryData {
@@ -158,26 +159,28 @@ export const Home: React.FC = () => {
             .from('tbl_class_queue')
             .select('*', { count: 'exact', head: true })
             .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.id);
+            .eq('trialid_fk', trial.trialid);
 
           // Get completed class counts (assuming classes with all entries scored)
           const { count: completedClasses } = await supabase
             .from('tbl_class_queue')
             .select('*', { count: 'exact', head: true })
             .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.id)
+            .eq('trialid_fk', trial.trialid)
             .eq('is_completed', true);
 
-          // Get entry counts
+          // Get entry counts for this trial
           const { count: totalEntries } = await supabase
             .from('tbl_entry_queue')
             .select('*', { count: 'exact', head: true })
-            .eq('mobile_app_lic_key', showContext?.licenseKey);
+            .eq('mobile_app_lic_key', showContext?.licenseKey)
+            .eq('trialid_fk', trial.trialid);
 
           const { count: completedEntries } = await supabase
             .from('tbl_entry_queue')
             .select('*', { count: 'exact', head: true })
             .eq('mobile_app_lic_key', showContext?.licenseKey)
+            .eq('trialid_fk', trial.trialid)
             .eq('is_scored', true);
 
           return {
@@ -294,7 +297,7 @@ export const Home: React.FC = () => {
         <HamburgerMenu currentPage="home" />
         
         <div className="header-center">
-          <h1>Dashboard</h1>
+          <h1>Home</h1>
         </div>
         
         <button
@@ -314,11 +317,27 @@ export const Home: React.FC = () => {
         <h3>Active Trials</h3>
         <div className="trials-scroll">
           {trials.map((trial, index) => {
-            const hasActiveClasses = trial.classes_total > trial.classes_completed;
+            const _hasActiveClasses = trial.classes_total > trial.classes_completed;
+
+            // Determine trial status based on entry scoring (consistent with class statuses)
+            const getTrialStatus = () => {
+              if (trial.entries_completed === trial.entries_total && trial.entries_total > 0) {
+                return 'completed'; // All entries scored
+              } else if (trial.entries_completed > 0) {
+                return 'active'; // Some entries scored = in-progress
+              } else if (trial.entries_total > 0) {
+                return 'upcoming'; // No entries scored yet but entries exist
+              } else {
+                return 'upcoming'; // No entries exist
+              }
+            };
+
+            const trialStatus = getTrialStatus();
+
             return (
-              <div 
+              <div
                 key={trial.id}
-                className={`trial-card ${hasActiveClasses ? 'active' : ''}`}
+                className={`trial-card ${trialStatus}`}
                 onClick={() => {
                   hapticFeedback.impact('medium');
                   console.log('Navigating to trial:', trial.id, 'trialid:', trial.trialid);
@@ -326,29 +345,28 @@ export const Home: React.FC = () => {
                 }}
               >
                 <div className="trial-content">
-                  <div className="trial-details">
-                    {/* Trial Name and Number */}
-                    <div className="trial-title">
-                      <span className="trial-name-number">
-                        {trial.trial_name} 
-                        <Award className="trial-icon" size={14} />
-                        Trial {index + 1}
-                      </span>
+                  {/* Enhanced Header with Status Badge */}
+                  <div className="trial-header">
+                    <div className="trial-date-info">
+                      <p className="trial-date">{formatTrialDate(trial.trial_date)}</p>
+                      <p className="trial-type">Trial {index + 1}</p>
                     </div>
-                    
-                    {/* Date and Type */}
-                    <p className="trial-date-line">{formatTrialDate(trial.trial_date)}</p>
-                    
-                    {/* Progress - Each on separate row */}
-                    <div className="trial-progress">
-                      <div className="progress-row">
-                        <CheckCircle className="progress-icon" size={12} />
-                        <span>Classes judged: {trial.classes_completed} of {trial.classes_total}</span>
-                      </div>
-                      <div className="progress-row">
-                        <Dog className="progress-icon" size={12} />
-                        <span>Dogs scored: {trial.entries_completed} of {trial.entries_total}</span>
-                      </div>
+                    <div className={`trial-status ${trialStatus}`}>
+                      {trialStatus === 'completed' && 'Complete'}
+                      {trialStatus === 'active' && 'In Progress'}
+                      {trialStatus === 'upcoming' && 'Upcoming'}
+                    </div>
+                  </div>
+
+                  {/* Enhanced Progress Section */}
+                  <div className="trial-progress">
+                    <div className="progress-row">
+                      <CheckCircle className={`progress-circle ${trialStatus}`} size={16} />
+                      <span className="progress-text">Classes: {trial.classes_completed} of {trial.classes_total}</span>
+                    </div>
+                    <div className="progress-row">
+                      <Dog className={`progress-circle ${trialStatus}`} size={16} />
+                      <span className="progress-text">Entries: {trial.entries_completed} of {trial.entries_total}</span>
                     </div>
                   </div>
                 </div>
@@ -430,9 +448,7 @@ export const Home: React.FC = () => {
                     <div className="entry-content">
                       {/* Prominent Armband */}
                       <div className="entry-armband">
-                        <div className="armband-badge">
-                          {entry.armband}
-                        </div>
+                        <ArmbandBadge number={entry.armband} />
                       </div>
                       
                       {/* Dog Details */}

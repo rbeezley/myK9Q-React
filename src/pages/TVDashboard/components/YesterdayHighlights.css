@@ -1550,6 +1550,429 @@
   animation-delay: 0.3s;
 }
 
+/* ========== BREED STATISTICS & TOP PERFORMERS ========== */
+
+.breed-stats,
+.top-performers {
+  margin-top: 2vw;
+}
+
+.section-header {
+  margin-bottom: 1.5vw;
+  text-align: center;
+}
+
+.section-header h3 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.8vw;
+  font-weight: 600;
+  margin: 0 0 0.5vw 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5vw;
+}
+
+.section-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1vw;
+  font-weight: 400;
+}
+
+.breeds-grid,
+.performers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18vw, 1fr));
+  gap: 1vw;
+}
+
+.breed-card,
+.performer-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1vw;
+  padding: 1.5vw;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.breed-card:hover,
+.performer-card:hover {
+  transform: translateY(-0.3vw);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1vw 2vw rgba(0, 0, 0, 0.2);
+}
+
+.breed-rank,
+.performer-rank {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-size: 1.2vw;
+  font-weight: 700;
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0.3vw 0.8vw rgba(255, 215, 0, 0.4);
+}
+
+.breed-info,
+.performer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.breed-name,
+.performer-primary {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.3vw;
+  font-weight: 600;
+  margin-bottom: 0.3vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.performer-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+}
+
+.performer-name {
+  font-weight: 600;
+}
+
+.performer-armband {
+  color: #FFD700;
+  font-weight: 700;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 0.2vw 0.5vw;
+  border-radius: 0.3vw;
+  font-size: 0.9vw;
+}
+
+.breed-count,
+.performer-secondary {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1vw;
+  margin-bottom: 0.5vw;
+}
+
+.performer-secondary {
+  display: flex;
+  gap: 1vw;
+}
+
+.performer-breed,
+.performer-element {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9vw;
+}
+
+.performer-handler {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9vw;
+  font-style: italic;
+}
+
+.breed-stats-detail,
+.performer-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vw;
+  align-items: flex-end;
+}
+
+.breed-stat,
+.performer-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-label,
+.time-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8vw;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2vw;
+}
+
+.stat-value,
+.time-value {
+  color: #FFD700;
+  font-size: 1.4vw;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.perfect-badge {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  padding: 0.3vw 0.6vw;
+  border-radius: 1vw;
+  font-size: 0.8vw;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.3vw;
+  box-shadow: 0 0.2vw 0.5vw rgba(255, 215, 0, 0.3);
+}
+
+/* ========== TRIAL SELECTOR ========== */
+
+.trial-selector-modern {
+  display: flex;
+  gap: 0.5vw;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5vw;
+  border-radius: 1vw;
+  backdrop-filter: blur(10px);
+}
+
+.trial-tab {
+  background: transparent;
+  border: none;
+  padding: 0.8vw 1.2vw;
+  border-radius: 0.6vw;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2vw;
+  min-width: 5vw;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.trial-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-0.1vw);
+}
+
+.trial-tab.active {
+  background: linear-gradient(135deg, #007AFF, #5856D6);
+  box-shadow: 0 0.5vw 1.5vw rgba(0, 122, 255, 0.4);
+  transform: translateY(-0.2vw);
+  color: white;
+}
+
+.trial-number {
+  font-size: 1.4vw;
+  font-weight: 700;
+}
+
+.trial-date {
+  font-size: 0.9vw;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* ========== HIGH IN TRIAL SECTION ========== */
+
+.high-in-trial-section {
+  margin-bottom: 2.5vw;
+}
+
+.hit-winners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22vw, 1fr));
+  gap: 1.5vw;
+}
+
+.hit-winner-card {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 1.2vw;
+  padding: 2vw;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.hit-winner-card:hover {
+  transform: translateY(-0.5vw) scale(1.02);
+  box-shadow: 0 1.5vw 3vw rgba(255, 215, 0, 0.3);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.hit-level-badge {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-size: 1.1vw;
+  font-weight: 700;
+  padding: 0.5vw 1vw;
+  border-radius: 2vw;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1vw;
+  display: inline-block;
+  box-shadow: 0 0.3vw 0.8vw rgba(255, 215, 0, 0.4);
+}
+
+.hit-winner-info {
+  margin-bottom: 1.5vw;
+}
+
+.hit-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.8vw;
+  margin-bottom: 0.5vw;
+}
+
+.hit-name {
+  color: white;
+  font-size: 1.6vw;
+  font-weight: 700;
+}
+
+.hit-armband {
+  color: #FFD700;
+  font-size: 1.2vw;
+  font-weight: 700;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 0.3vw 0.6vw;
+  border-radius: 0.4vw;
+}
+
+.hit-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vw;
+}
+
+.hit-breed,
+.hit-handler {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1vw;
+}
+
+.hit-performance {
+  display: flex;
+  gap: 1.5vw;
+  margin-bottom: 1vw;
+}
+
+.hit-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hit-stat-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9vw;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3vw;
+}
+
+.hit-stat-value {
+  color: #FFD700;
+  font-size: 1.5vw;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.hit-elements {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.8vw;
+  border-radius: 0.6vw;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.elements-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9vw;
+  font-weight: 500;
+  margin-right: 0.5vw;
+}
+
+.elements-list {
+  color: white;
+  font-size: 1vw;
+  font-weight: 600;
+}
+
+/* ========== EMPTY STATES ========== */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4vw;
+  height: 15vw;
+  min-height: 10vw;
+}
+
+.empty-icon {
+  font-size: 4vw;
+  margin-bottom: 1.5vw;
+  opacity: 0.6;
+}
+
+.empty-title {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.8vw;
+  font-weight: 600;
+  margin-bottom: 0.8vw;
+}
+
+.empty-message {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2vw;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* ========== PROGRESS CARD ========== */
+
+.progress-card {
+  border-left: 4px solid #007AFF !important;
+}
+
+.progress-badge {
+  background: linear-gradient(135deg, #007AFF, #5856D6);
+  color: white;
+  padding: 0.4vw 0.8vw;
+  border-radius: 1vw;
+  font-size: 0.9vw;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.progress-indicator {
+  background: rgba(0, 122, 255, 0.1);
+  padding: 0.6vw 1vw;
+  border-radius: 2vw;
+  border: 1px solid rgba(0, 122, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  font-size: 1vw;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
 /* ========== RESPONSIVE GRID ========== */
 
 @media (max-width: 1200px) {
@@ -1564,5 +1987,14 @@
 
   .stat-main-value {
     font-size: 2.8vw;
+  }
+
+  .breeds-grid,
+  .performers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hit-winners-grid {
+    grid-template-columns: 1fr;
   }
 }

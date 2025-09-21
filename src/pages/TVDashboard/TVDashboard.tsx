@@ -3,18 +3,18 @@ import { useParams } from 'react-router-dom';
 import './TVDashboard.css';
 import './styles/glassmorphism.css';
 import './styles/animations.css';
+import './styles/enhanced-animations.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { DashboardSkeleton, LoadingSpinner as _LoadingSpinner } from './components/LoadingStates';
 import { TVHeader } from './components/TVHeader';
 import { TVTicker } from './components/TVTicker';
 import { ElementProgress as _ElementProgress } from './components/ElementProgress';
-import { ElementProgressEnhanced } from './components/ElementProgress-Enhanced';
-import { ConnectionStatus } from './components/ConnectionStatus';
+// import { ConnectionStatus } from './components/ConnectionStatus';
 import { CurrentStatus } from './components/CurrentStatus';
 import { YesterdayHighlights as _YesterdayHighlights } from './components/YesterdayHighlights';
 import { YesterdayHighlightsEnhanced } from './components/YesterdayHighlights-Enhanced';
 import { JudgeSpotlight } from './components/JudgeSpotlight';
-// import { BreedStatistics } from './components/BreedStatistics'; // Temporarily disabled due to syntax error
+import { BreedStatistics } from './components/BreedStatistics';
 import { ChampionshipChase as _ChampionshipChase } from './components/ChampionshipChase';
 import { ChampionshipChaseEnhanced } from './components/ChampionshipChase-Enhanced';
 import { StateParticipation } from './components/StateParticipation';
@@ -24,7 +24,7 @@ import { useTVData } from './hooks/useTVData';
 import { rotationScheduler, ROTATION_CONFIGS } from './utils/rotationScheduler';
 import './components/YesterdayHighlights.css';
 import './components/JudgeSpotlight.css';
-// import './components/BreedStatistics.css'; // Temporarily disabled due to syntax error
+import './components/BreedStatistics.css';
 import './components/ChampionshipChase.css';
 import './components/StateParticipation.css';
 import './components/SmartRotation.css';
@@ -81,6 +81,7 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
       rotationScheduler.stop();
     }
   };
+
   
   // Get real-time TV dashboard data
   const {
@@ -94,6 +95,7 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
     isConnected,
     lastUpdated,
     error,
+    refetch: _refetch
   } = useTVData({
     licenseKey: licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604',
     enablePolling: true,
@@ -212,7 +214,7 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
 
   return (
     <ErrorBoundary>
-      <div className="tv-dashboard animate-fade-in-blur app-container-wide">
+      <div className="tv-dashboard tv-dashboard-enhanced animate-fade-in-blur app-container-wide">
 
       <div className="glass-header animate-slide-in-top">
         <TVHeader
@@ -229,20 +231,21 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
       {/* Main Content Area */}
       <main className="tv-main">
         <div className="tv-content-grid">
-          <div className="glass-panel animate-slide-in-left">
-            <CurrentStatus 
+          <div className="glass-panel glass-panel-enhanced animate-slide-in-left">
+            <CurrentStatus
               currentClass={currentClass}
               currentEntry={currentEntry}
               nextEntries={nextEntries}
               classes={classes}
               inProgressClasses={inProgressClasses}
               entries={entries}
+              showInfo={showInfo}
             />
           </div>
 
 
           {/* Dynamic Content Panel with Smart Rotation */}
-          <section className={`content-panel glass-panel animate-slide-in-right ${isTransitioning ? 'transitioning animate-panel-fade-out' : 'animate-panel-fade-in'}`}>
+          <section className={`content-panel glass-panel glass-panel-enhanced animate-slide-in-right ${isTransitioning ? 'transitioning animate-panel-fade-out' : 'animate-panel-fade-in'}`}>
             {/* Content Rotation Dots */}
             <RotationDots
               items={contentPanels}
@@ -268,12 +271,12 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
                 rotationInterval={30000}
               />
             )}
-            {/* currentPanel === 'breeds' && (
-              <BreedStatistics 
+            {currentPanel === 'breeds' && (
+              <BreedStatistics
                 licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
                 showTopCount={8}
               />
-            ) */}
+            )}
             {currentPanel === 'championship' && (
               <ChampionshipChaseEnhanced
                 licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
@@ -291,15 +294,9 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
         </div>
       </main>
 
-      <div className="glass-card animate-slide-in-bottom">
-        <ElementProgressEnhanced
-          licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-          layout="grid"
-          allowLiveScores={false}
-        />
-      </div>
 
       <TVTicker />
+
       </div>
     </ErrorBoundary>
   );

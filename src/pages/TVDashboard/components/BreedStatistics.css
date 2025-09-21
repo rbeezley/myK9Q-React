@@ -1,45 +1,46 @@
-/* Breed Statistics Component Styles */
+/* Breed Statistics Component Styles - TV Dashboard Optimized */
 .breed-statistics {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, rgba(0, 122, 255, 0.03) 100%);
-  border: 1px solid rgba(255, 215, 0, 0.15);
-  border-radius: 1.2vw;
-  padding: 2vw;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   height: 100%;
-  overflow-y: auto;
-  animation: fadeIn 0.8s ease-in-out;
+  overflow: hidden;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  max-height: 35vh;
+  position: relative;
 }
 
 /* Header */
 .breed-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 1.5vw;
-  padding-bottom: 1vw;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  margin-bottom: 1.5vh;
+  padding-bottom: 1vh;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .breed-header h2 {
-  color: var(--akc-gold);
-  font-size: 2.8vw;
-  font-weight: bold;
+  color: var(--text-primary);
+  font-size: 1.4vw;
+  font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.8vw;
+  gap: 0.5vw;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .breed-icon {
-  font-size: 3.2vw;
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+  font-size: 1.4vw;
 }
 
 .view-toggle {
-  display: flex;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 0.6vw;
-  overflow: hidden;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  display: none;
 }
 
 .view-toggle button {
@@ -63,60 +64,65 @@
   background: rgba(255, 215, 0, 0.1);
 }
 
-/* Overview Mode */
+/* Overview Mode - Simplified for TV */
 .breed-overview {
   display: flex;
   flex-direction: column;
-  gap: 2vw;
+  gap: 1vh;
+  flex: 1;
+  overflow: hidden;
 }
 
 .breed-rankings {
   display: flex;
   flex-direction: column;
-  gap: 0.8vw;
+  gap: 0.6vh;
+  flex: 1;
+  overflow: hidden;
+  max-height: 20vh;
 }
 
 .breed-rank-item {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: 0.8vw;
-  padding: 1vw 1.2vw;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--akc-gold);
+  border-radius: 6px;
+  padding: 0.6vh 0.8vw;
   display: flex;
   align-items: center;
-  gap: 1.2vw;
-  cursor: pointer;
+  gap: 0.8vw;
   transition: all 0.3s ease;
+  min-height: 3vh;
 }
 
 .breed-rank-item:hover {
-  background: rgba(255, 215, 0, 0.05);
-  transform: translateX(0.3vw);
-  box-shadow: 0 0.5vw 1.5vw rgba(255, 215, 0, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
 }
 
 .rank-position {
   display: flex;
   align-items: center;
   gap: 0.5vw;
-  min-width: 4vw;
+  min-width: 3vw;
 }
 
 .rank-number {
   background: var(--akc-gold);
   color: var(--akc-black);
-  font-size: 1.4vw;
-  font-weight: bold;
-  width: 2.5vw;
-  height: 2.5vw;
+  font-size: 0.7vw;
+  font-weight: 700;
+  width: 1.4vw;
+  height: 1.4vw;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 1.4vw;
 }
 
 .rank-medal {
-  font-size: 2vw;
-  animation: sparkle 3s infinite;
+  font-size: 1vw;
 }
 
 .breed-info {
@@ -125,64 +131,80 @@
 }
 
 .breed-name {
-  color: var(--akc-black);
-  font-size: 1.8vw;
-  font-weight: bold;
-  margin-bottom: 0.3vw;
+  color: var(--text-primary);
+  font-size: 1vw;
+  font-weight: 600;
+  margin-bottom: 0.1vh;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12vw;
 }
 
 .breed-stats-summary {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 1.2vw;
+  color: var(--text-secondary);
+  font-size: 0.7vw;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .breed-performance {
   display: flex;
   align-items: center;
-  gap: 1vw;
-  min-width: 8vw;
+  min-width: 4vw;
+  justify-content: flex-end;
 }
 
 .performance-bar {
-  height: 0.8vw;
-  border-radius: 0.4vw;
+  height: 0.5vh;
+  border-radius: 0.25vh;
   transition: width 0.8s ease-in-out;
   position: relative;
-  min-width: 6vw;
-  background: rgba(0, 0, 0, 0.1);
+  width: 4vw;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .performance-score {
-  color: var(--akc-black);
-  font-size: 1.4vw;
-  font-weight: bold;
+  color: var(--akc-gold);
+  font-size: 0.9vw;
+  font-weight: 600;
   min-width: 3vw;
   text-align: right;
+  white-space: nowrap;
 }
 
-/* Insights */
+/* Insights - Simplified */
+.breed-insights {
+  margin-top: 1vh;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  padding: 0.8vh;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-height: 8vh;
+  overflow: hidden;
+}
+
 .breed-insights h3 {
-  color: var(--akc-gold);
-  font-size: 2.2vw;
-  font-weight: bold;
-  margin-bottom: 1vw;
+  display: none;
 }
 
 .insights-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 1vw;
+  justify-content: center;
 }
 
 .insight-item {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: 0.8vw;
-  padding: 1vw;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  padding: 0.5vh 0.8vw;
   display: flex;
   align-items: center;
-  gap: 1vw;
-  transition: all 0.3s ease;
+  gap: 0.4vw;
+  min-width: 0;
 }
 
 .insight-item:hover {
@@ -191,8 +213,8 @@
 }
 
 .insight-icon {
-  font-size: 2.5vw;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3));
+  font-size: 0.9vw;
+  flex-shrink: 0;
 }
 
 .insight-content {
@@ -200,16 +222,23 @@
 }
 
 .insight-label {
-  color: var(--akc-black);
-  font-size: 1.2vw;
-  font-weight: 600;
-  margin-bottom: 0.3vw;
+  color: var(--text-tertiary);
+  font-size: 0.6vw;
+  font-weight: 500;
+  margin-bottom: 0.1vh;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .insight-value {
-  color: var(--akc-gold);
-  font-size: 1.4vw;
-  font-weight: bold;
+  color: var(--text-primary);
+  font-size: 0.7vw;
+  font-weight: 600;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 8vw;
 }
 
 /* Detailed View */
