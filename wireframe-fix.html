@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myK9Q Layout Fix Wireframes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        .version {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .version h3 {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        .label {
+            background: #ff4444;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .label.fixed {
+            background: #22c55e;
+        }
+
+        /* Home Page Styles */
+        .home-mockup {
+            background: #2a2d35;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 600px;
+        }
+        .home-header {
+            background: rgba(42, 45, 53, 0.9);
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+        }
+        .header-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .section-title {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .count-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        /* Dog Cards Grid */
+        .dog-grid-broken {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dog-grid-fixed {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        .dog-card {
+            background: #1a1d23;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-height: 80px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .dog-card:hover {
+            background: #22252d;
+            border-color: #007AFF;
+        }
+        .armband {
+            background: #007AFF;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .heart-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+        }
+        .heart-btn:hover {
+            background: rgba(255,255,255,0.15);
+            color: #ff4444;
+        }
+        .heart-btn.favorited {
+            color: #ff4444;
+        }
+        .dog-info {
+            flex: 1;
+            min-width: 0;
+            padding-right: 48px; /* Space for heart button */
+        }
+        .dog-name {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .dog-breed {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        .dog-handler {
+            color: #666;
+            font-size: 13px;
+        }
+
+        /* Entry List Page Styles */
+        .entry-mockup {
+            background: #2a2d35;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 600px;
+        }
+        .class-header {
+            background: rgba(42, 45, 53, 0.9);
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            margin-bottom: 15px;
+        }
+        .class-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .class-details {
+            display: flex;
+            gap: 15px;
+            color: #999;
+            font-size: 13px;
+        }
+        .entry-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            padding: 4px;
+            border-radius: 8px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: #999;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tab.active {
+            background: #007AFF;
+            color: white;
+        }
+
+        /* Entry Cards */
+        .entry-grid-broken {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .entry-grid-fixed {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 12px;
+        }
+        .entry-card-broken {
+            background: #1a1d23;
+            border-left: 4px solid #fbbf24;
+            border-top: 1px solid #fbbf24;
+            border-right: 1px solid #fbbf24;
+            border-bottom: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .entry-card-fixed {
+            background: #1a1d23;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .entry-card-fixed.conflict {
+            border-left: 3px solid #fbbf24;
+        }
+        .entry-card-fixed.checked-in {
+            border-left: 3px solid #22c55e;
+        }
+        .status-badge {
+            background: #fbbf24;
+            color: #000;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-badge.checked-in {
+            background: #22c55e;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            .dog-grid-fixed {
+                grid-template-columns: 1fr;
+            }
+            .entry-grid-fixed {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .notes {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+        .notes h3 {
+            color: #0284c7;
+            margin-bottom: 10px;
+        }
+        .notes ul {
+            color: #0c4a6e;
+            padding-left: 20px;
+        }
+        .notes li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐕 myK9Q Layout Fix Wireframes</h1>
+
+        <h2>Home Page - Dogs Entered Section</h2>
+        <div class="comparison">
+            <div class="version">
+                <h3><span class="label">CURRENT (BROKEN)</span></h3>
+                <div class="home-mockup">
+                    <div class="home-header">
+                        <div>☰</div>
+                        <div class="header-title">Home</div>
+                        <div>↻</div>
+                    </div>
+                    <div class="section-title">
+                        Dogs Entered
+                        <span class="count-badge">200</span>
+                    </div>
+                    <div class="dog-grid-broken">
+                        <div class="dog-card">
+                            <div class="armband">100</div>
+                            <div class="heart-btn">♡</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 1</div>
+                                <div class="dog-breed">Golden Retriever</div>
+                                <div class="dog-handler">Person 1</div>
+                            </div>
+                        </div>
+                        <div class="dog-card">
+                            <div class="armband">101</div>
+                            <div class="heart-btn">♡</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 2</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 2</div>
+                            </div>
+                        </div>
+                        <!-- Cards stack vertically, not using available space -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="version">
+                <h3><span class="label fixed">FIXED</span></h3>
+                <div class="home-mockup">
+                    <div class="home-header">
+                        <div>☰</div>
+                        <div class="header-title">Home</div>
+                        <div>↻</div>
+                    </div>
+                    <div class="section-title">
+                        Dogs Entered
+                        <span class="count-badge">200</span>
+                    </div>
+                    <div class="dog-grid-fixed">
+                        <div class="dog-card">
+                            <div class="armband">100</div>
+                            <div class="heart-btn">♡</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 1</div>
+                                <div class="dog-breed">Golden Retriever</div>
+                                <div class="dog-handler">Person 1</div>
+                            </div>
+                        </div>
+                        <div class="dog-card">
+                            <div class="armband">101</div>
+                            <div class="heart-btn">♡</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 2</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 2</div>
+                            </div>
+                        </div>
+                        <div class="dog-card">
+                            <div class="armband">102</div>
+                            <div class="heart-btn">♡</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 3</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 3</div>
+                            </div>
+                        </div>
+                        <div class="dog-card">
+                            <div class="armband">103</div>
+                            <div class="heart-btn favorited">♥</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 4</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 4</div>
+                            </div>
+                        </div>
+                        <div class="dog-card">
+                            <div class="armband">104</div>
+                            <div class="heart-btn">♡</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 5</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 5</div>
+                            </div>
+                        </div>
+                        <div class="dog-card">
+                            <div class="armband">105</div>
+                            <div class="heart-btn favorited">♥</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 6</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 6</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>Entry List Page - Class Entries</h2>
+        <div class="comparison">
+            <div class="version">
+                <h3><span class="label">CURRENT (BROKEN)</span></h3>
+                <div class="entry-mockup">
+                    <div class="class-header">
+                        <div class="class-title">Container Master</div>
+                        <div class="class-details">
+                            <span>📅 10/11/2025</span>
+                            <span>🎯 1</span>
+                            <span>👤 Silva Saltzinger</span>
+                            <span>0/200 Scored</span>
+                        </div>
+                    </div>
+                    <div class="entry-tabs">
+                        <button class="tab active">⏱ Pending (200)</button>
+                        <button class="tab">✓ Completed (0)</button>
+                    </div>
+                    <div class="entry-grid-broken">
+                        <div class="entry-card-broken">
+                            <div class="armband">186</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 87</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 87</div>
+                            </div>
+                            <div class="status-badge">CONFLICT</div>
+                        </div>
+                        <div class="entry-card-broken" style="border-color: #22c55e;">
+                            <div class="armband">156</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 57</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 57</div>
+                            </div>
+                            <div class="status-badge checked-in">CHECKED-IN</div>
+                        </div>
+                        <!-- Inconsistent border colors throughout -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="version">
+                <h3><span class="label fixed">FIXED</span></h3>
+                <div class="entry-mockup">
+                    <div class="class-header">
+                        <div class="class-title">Container Master</div>
+                        <div class="class-details">
+                            <span>📅 10/11/2025</span>
+                            <span>🎯 1</span>
+                            <span>👤 Silva Saltzinger</span>
+                            <span>0/200 Scored</span>
+                        </div>
+                    </div>
+                    <div class="entry-tabs">
+                        <button class="tab active">⏱ Pending (200)</button>
+                        <button class="tab">✓ Completed (0)</button>
+                    </div>
+                    <div class="entry-grid-fixed">
+                        <div class="entry-card-fixed conflict">
+                            <div class="armband">186</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 87</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 87</div>
+                            </div>
+                            <div class="status-badge">CONFLICT</div>
+                        </div>
+                        <div class="entry-card-fixed checked-in">
+                            <div class="armband">156</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 57</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 57</div>
+                            </div>
+                            <div class="status-badge checked-in">CHECKED-IN</div>
+                        </div>
+                        <div class="entry-card-fixed conflict">
+                            <div class="armband">168</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 69</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 69</div>
+                            </div>
+                            <div class="status-badge">CONFLICT</div>
+                        </div>
+                        <div class="entry-card-fixed checked-in">
+                            <div class="armband">173</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 74</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 74</div>
+                            </div>
+                            <div class="status-badge checked-in">CHECKED-IN</div>
+                        </div>
+                        <div class="entry-card-fixed conflict">
+                            <div class="armband">192</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 93</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 93</div>
+                            </div>
+                            <div class="status-badge">CONFLICT</div>
+                        </div>
+                        <div class="entry-card-fixed checked-in">
+                            <div class="armband">178</div>
+                            <div class="dog-info">
+                                <div class="dog-name">Dog 79</div>
+                                <div class="dog-breed">Dutch Shepherd</div>
+                                <div class="dog-handler">Person 79</div>
+                            </div>
+                            <div class="status-badge checked-in">CHECKED-IN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <h3>📋 Key Improvements</h3>
+            <ul>
+                <li><strong>Home Page:</strong> Responsive grid layout using CSS Grid with auto-fill</li>
+                <li>Cards automatically flow to fill available width (1-4 columns based on screen size)</li>
+                <li>Consistent card heights with proper spacing</li>
+                <li><strong>Entry List Page:</strong> Clean border styling with left accent for status</li>
+                <li>Status indicated by subtle left border color (3px) instead of full border</li>
+                <li>Responsive grid maintains readability on all screen sizes</li>
+                <li>Both pages adapt seamlessly from mobile to desktop viewports</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

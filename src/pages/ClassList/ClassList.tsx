@@ -26,9 +26,10 @@ import {
 import './ClassList.css';
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
+import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 
 // Helper function to convert seconds to MM:SS format
-const formatSecondsToMMSS = (seconds: number): string => {
+const _formatSecondsToMMSS = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -77,7 +78,7 @@ export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
   const { showContext, role: _role, logout: _logout } = useAuth();
-  const { hasPermission, isAdmin, isJudge, isSteward, isExhibitor } = usePermission();
+  const { hasPermission, isAdmin, isJudge, isSteward } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
@@ -85,8 +86,8 @@ export const ClassList: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
   const [activePopup, setActivePopup] = useState<number | null>(null);
-  const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
-  const [statusPopupPosition, setStatusPopupPosition] = useState<{ top: number; left: number } | null>(null);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
   const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
   const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map());
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
@@ -101,25 +102,6 @@ export const ClassList: React.FC = () => {
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
 
   // Time input states for status dialog
-  const [statusTimeInputs, setStatusTimeInputs] = useState({
-    start_time: '',
-    briefing_time: '',
-    break_until: ''
-  });
-
-  // Initialize time inputs with default values
-  const initializeTimeInputs = () => {
-    const now = new Date();
-    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-    const breakEnd = new Date(now.getTime() + 15 * 60000);
-    const breakUntilTime = breakEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-
-    setStatusTimeInputs({
-      start_time: currentTime,
-      briefing_time: currentTime,
-      break_until: breakUntilTime
-    });
-  };
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -207,20 +189,16 @@ export const ClassList: React.FC = () => {
       if (!target.closest('.class-popup') && !target.closest('.class-menu-button')) {
         setActivePopup(null);
       }
-      if (!target.closest('.status-popup') && !target.closest('.status-badge')) {
-        setActiveStatusPopup(null);
-        setStatusPopupPosition(null);
-      }
     };
 
-    if (activePopup !== null || activeStatusPopup !== null) {
+    if (activePopup !== null) {
       setTimeout(() => {
         document.addEventListener('click', handleClickOutside);
       }, 0);
-      
+
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [activePopup, activeStatusPopup]);
+  }, [activePopup]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -230,8 +208,11 @@ export const ClassList: React.FC = () => {
   };
 
   const loadClassList = useCallback(async () => {
+    console.log('🔄 Starting loadClassList function');
+    console.log('🔍 Show context:', showContext);
+    console.log('🔍 Trial ID:', trialId);
     setIsLoading(true);
-    
+
     // Load favorites first to ensure they're available when processing classes
     let currentFavorites = new Set<number>();
     try {
@@ -253,12 +234,12 @@ export const ClassList: React.FC = () => {
     }
     
     try {
-      // Load trial info
+      // Load trial info using normalized table (legacy table structure doesn't match)
       const { data: trialData, error: trialError } = await supabase
-        .from('tbl_trial_queue')
+        .from('trials')
         .select('*')
-        .eq('mobile_app_lic_key', showContext?.licenseKey)
-        .eq('trialid', parseInt(trialId!))
+        .eq('show_id', showContext?.showId)
+        .eq('id', parseInt(trialId!))
         .single();
 
       if (trialError) {
@@ -267,13 +248,13 @@ export const ClassList: React.FC = () => {
       }
 
       // Debug: log trial data to see available fields
+      console.log('🔍 Trial data loaded:', trialData);
 
-      // Load classes for this trial using legacy tables
+      // Load classes for this trial using normalized tables
       const { data: classData, error: classError } = await supabase
-        .from('tbl_class_queue')
+        .from('classes')
         .select('*')
-        .eq('mobile_app_lic_key', showContext?.licenseKey)
-        .eq('trialid_fk', parseInt(trialId!))
+        .eq('trial_id', parseInt(trialId!))
         .order('class_order');
 
       if (classError) {
@@ -282,6 +263,8 @@ export const ClassList: React.FC = () => {
       }
 
       // Debug: log class data to see what's loaded
+      console.log('🔍 Class data loaded:', classData);
+      console.log('🔍 Class data count:', classData?.length || 0);
 
       if (trialData && classData) {
         // Set trial info
@@ -295,16 +278,24 @@ export const ClassList: React.FC = () => {
         });
 
 
-        // Load ALL entries for this trial using natural keys (not foreign keys)
+        // Load ALL entries for this trial using normalized tables
         const { data: allTrialEntries, error: trialEntriesError } = await supabase
-          .from('view_entry_class_join_distinct')
-          .select('*')
-          .eq('mobile_app_lic_key', showContext?.licenseKey)
-          .eq('trial_date', trialData.trial_date)
-          .eq('trial_number', trialData.trial_number)
-          .order('in_ring', { ascending: false })
-          .order('checkin_status', { ascending: false })
-          .order('armband', { ascending: true });
+          .from('entries')
+          .select(`
+            *,
+            classes!inner (
+              element,
+              level,
+              section,
+              trial_id
+            ),
+            results (
+              is_in_ring,
+              is_scored
+            )
+          `)
+          .eq('classes.trial_id', parseInt(trialId!))
+          .order('armband_number', { ascending: true });
           // Custom sorting will be applied after data retrieval
 
         if (trialEntriesError) {
@@ -314,24 +305,22 @@ export const ClassList: React.FC = () => {
 
         // Process classes with entry data
         const processedClasses = classData.map((cls: any) => {
-          // Filter entries for this specific class using natural keys
-          const entryData = (allTrialEntries || []).filter(entry => 
-            entry.element === cls.element && 
-            entry.level === cls.level && 
-            entry.section === cls.section
+          // Filter entries for this specific class using class_id
+          const entryData = (allTrialEntries || []).filter(entry =>
+            entry.class_id === cls.id
           );
           
 
           // Process dog entries with custom status priority sorting
           const dogs = (entryData || []).map(entry => ({
             id: entry.id,
-            armband: entry.armband,
-            call_name: entry.call_name,
-            breed: entry.breed,
-            handler: entry.handler,
-            in_ring: entry.in_ring || false,
-            checkin_status: entry.checkin_status || 0,
-            is_scored: entry.is_scored || false
+            armband: entry.armband_number,
+            call_name: entry.dog_call_name,
+            breed: entry.dog_breed,
+            handler: entry.handler_name,
+            in_ring: entry.results?.[0]?.is_in_ring || false,
+            checkin_status: entry.check_in_status || 0,
+            is_scored: entry.results?.[0]?.is_scored || false
           })).sort((a, b) => {
             // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
             const getStatusPriority = (dog: typeof a) => {
@@ -360,8 +349,9 @@ export const ClassList: React.FC = () => {
           const entryCount = dogs.length;
           const completedCount = dogs.filter(dog => dog.is_scored).length;
 
-          // Construct class name from element, level, and section
-          const className = `${cls.element} ${cls.level} ${cls.section}`.trim();
+          // Construct class name from element, level, and section (hide section if it's a dash)
+          const sectionPart = cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
+          const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
           
           return {
             id: cls.id,
@@ -374,11 +364,15 @@ export const ClassList: React.FC = () => {
             judge_name: cls.judge_name || 'TBA',
             entry_count: entryCount,
             completed_count: completedCount,
-            class_status: dbToStatusMapping[cls.class_status] || 'none',
+            class_status: cls.class_status || 'none',
             is_favorite: currentFavorites.has(cls.id),
             time_limit: cls.time_limit || '',
             time_limit2: cls.time_limit2 || '',
             time_limit3: cls.time_limit3 || '',
+            // Parse time values from class_status_comment based on current status
+            briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
+            break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
+            start_time: cls.class_status === 'start_time' ? cls.class_status_comment : undefined,
             dogs: dogs
           };
         });
@@ -434,12 +428,26 @@ export const ClassList: React.FC = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'tbl_entry_queue',
-          filter: `mobile_app_lic_key=eq.${showContext.licenseKey}`
+          table: 'classes'
         },
-        (_payload) => {
-          // Reload class list when entries change (in-ring status, scoring, etc.)
-          loadClassList();
+        (payload) => {
+          console.log('🔄 Real-time: Class update received');
+          console.log('🔄 Real-time payload:', payload);
+          console.log('🔄 Real-time timestamp:', new Date().toISOString());
+
+          // For class updates, update local state directly instead of full reload
+          if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
+            console.log('🔄 Real-time: Updating class locally:', payload.new.id);
+            setClasses(prev => prev.map(c =>
+              c.id === payload.new.id
+                ? { ...c, class_status: payload.new.class_status || 'none' }
+                : c
+            ));
+          } else {
+            // For other changes (INSERT, DELETE), do full reload
+            console.log('🔄 Real-time: Full reload needed for:', payload.eventType);
+            loadClassList();
+          }
         }
       )
       .subscribe();
@@ -482,8 +490,9 @@ export const ClassList: React.FC = () => {
   };
 
   // Helper function to check if user role should see max time warning
-  const shouldShowMaxTimeWarning = (): boolean => {
-    return isAdmin() || isJudge() || isSteward();
+  const shouldShowMaxTimeWarning = () => {
+    // For now, disable max time warnings to allow navigation
+    return false;
   };
 
   const handleViewEntries = (classEntry: ClassEntry) => {
@@ -507,10 +516,9 @@ export const ClassList: React.FC = () => {
   const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
     try {
       const { error } = await supabase
-        .from('tbl_entry_queue')
-        .update({ in_ring: inRing })
-        .eq('id', dogId)
-        .eq('mobile_app_lic_key', showContext?.licenseKey);
+        .from('results')
+        .update({ is_in_ring: inRing })
+        .eq('entry_id', dogId);
 
       if (error) {
         console.error('Error updating dog ring status:', error);
@@ -699,30 +707,10 @@ export const ClassList: React.FC = () => {
     }
   };
 
-  // Map string status to database numeric values
-  const statusToDbMapping: Record<ClassEntry['class_status'], number> = {
-    'none': 0,
-    'setup': 1,
-    'briefing': 2,
-    'break': 3,
-    'start_time': 4,
-    'in_progress': 5,
-    'completed': 6
-  };
-
-  // Map database numeric values back to string status
-  const dbToStatusMapping: Record<number, ClassEntry['class_status']> = {
-    0: 'none',
-    1: 'setup',
-    2: 'briefing',
-    3: 'break',
-    4: 'start_time',
-    5: 'in_progress',
-    6: 'completed'
-  };
+  // No longer need integer mapping - using text directly!
 
   // Helper function to get time input from user
-  const getTimeInput = (statusType: string): string | null => {
+  const _getTimeInput = (statusType: string): string | null => {
     const now = new Date();
     const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
@@ -738,9 +726,11 @@ export const ClassList: React.FC = () => {
         break;
       case 'break':
         // For break, default to 15 minutes from now
+        {
         const breakEnd = new Date(now.getTime() + 15 * 60000);
         defaultValue = breakEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         promptMessage = 'Enter when the break ends (HH:MM):';
+        }
         break;
     }
 
@@ -761,24 +751,29 @@ export const ClassList: React.FC = () => {
   const handleClassStatusChangeWithTime = async (classId: number, status: ClassEntry['class_status'], timeValue: string) => {
     console.log('🕐 Status change with time:', { classId, status, timeValue });
 
-    // Convert string status to database numeric value
-    const dbStatusValue = statusToDbMapping[status];
+    // Use text status directly
+    let updateData: any = {
+      class_status: status
+    };
 
     // Update local state with both status and time
     setClasses(prev => prev.map(c => {
       if (c.id === classId) {
         const updatedClass = { ...c, class_status: status };
 
-        // Store the time in the appropriate field based on status
+        // Store the time in class_status_comment field
         switch (status) {
           case 'briefing':
             updatedClass.briefing_time = timeValue;
+            updateData.class_status_comment = timeValue;
             break;
           case 'break':
             updatedClass.break_until = timeValue;
+            updateData.class_status_comment = timeValue;
             break;
           case 'start_time':
             updatedClass.start_time = timeValue;
+            updateData.class_status_comment = timeValue;
             break;
         }
 
@@ -789,22 +784,23 @@ export const ClassList: React.FC = () => {
 
     // Update database
     try {
-      const updateData: any = { class_status: dbStatusValue };
 
-      // Note: The legacy tbl_class_queue table doesn't have specific time columns
+      // Note: The normalized classes table should support time columns
       // for briefing_time, break_until, or start_time
-      // These would need to be added to the database schema or stored elsewhere
 
-      const { data, error } = await supabase
-        .from('tbl_class_queue')
+      const { error } = await supabase
+        .from('classes')
         .update(updateData)
-        .eq('id', classId)
-        .select();
+        .eq('id', classId);
 
       if (error) {
-        console.error('Error updating class status:', error);
+        console.error('❌ Error updating class status with time:', error);
+        console.error('❌ Update data:', updateData);
+        console.error('❌ Class ID:', classId);
         // Revert on error
         loadClassList();
+      } else {
+        console.log('✅ Successfully updated class status with time');
       }
     } catch (error) {
       console.error('Exception updating class status:', error);
@@ -814,35 +810,41 @@ export const ClassList: React.FC = () => {
 
   // Simplified function for statuses without time input
   const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
-    // Convert string status to database numeric value
-    const dbStatusValue = statusToDbMapping[status];
+    console.log('🔄 ClassList: Updating class status:', { classId, status });
 
-    console.log('Updating class status:', { classId, status, dbStatusValue });
+    // Use text status directly
+    const updateData = {
+      class_status: status
+    };
 
-    // Update local state
-    setClasses(prev => prev.map(c =>
-      c.id === classId ? { ...c, class_status: status } : c
-    ));
+    console.log('✅ Using text status directly:', { status });
 
-    // Update database
+    console.log('🔄 ClassList: Update data:', updateData);
+
+    // Update database (local state will be updated via real-time subscription)
     try {
-      const updateData: any = { class_status: dbStatusValue };
-
       const { data, error } = await supabase
-        .from('tbl_class_queue')
+        .from('classes')
         .update(updateData)
-        .eq('id', classId)
-        .select();
+        .eq('id', classId);
 
       if (error) {
-        console.error('Error updating class status:', error);
+        console.error('❌ Error updating class status:', error);
+        console.error('❌ Update data:', updateData);
+        console.error('❌ Class ID:', classId);
+        console.error('❌ Full error object:', JSON.stringify(error, null, 2));
         // Revert on error
         loadClassList();
       } else {
-        console.log('Status update successful:', data);
+        console.log('✅ Successfully updated class status');
+        console.log('✅ Class ID:', classId);
+        console.log('✅ New status:', status);
+        console.log('✅ DB status value:', status);
+        console.log('✅ Update data:', updateData);
+        console.log('✅ Response data:', data);
       }
     } catch (error) {
-      console.error('Exception updating class status:', error);
+      console.error('💥 Exception updating class status:', error);
       loadClassList();
     }
   };
@@ -947,7 +949,7 @@ export const ClassList: React.FC = () => {
     return result;
   };
 
-  const getStatusLabel = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
+  const _getStatusLabel = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     switch (status) {
       case 'setup': return 'Setup';
       case 'briefing': {
@@ -1028,17 +1030,34 @@ export const ClassList: React.FC = () => {
     return counts;
   };
 
-  // Smart contextual preview helper functions
+  // Smart contextual preview helper functions - MANUAL STATUS WINS
   const getClassDisplayStatus = (classEntry: ClassEntry): 'not-started' | 'in-progress' | 'completed' => {
-    // A class is completed when all dogs are scored (regardless of class_status)
-    const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
-    if (isCompleted) {
+    // PRIORITY 1: Manual class_status always wins (for run order only usage)
+    if (classEntry.class_status === 'completed') {
       return 'completed';
     }
-    // A class is in progress if it has dogs in the ring or officially marked as in-progress
-    if (classEntry.class_status === 'in_progress' || classEntry.dogs.some(dog => dog.in_ring)) {
-      return 'in-progress';  
+    if (classEntry.class_status === 'in_progress') {
+      return 'in-progress';
     }
+
+    // PRIORITY 2: Only use automatic detection if class_status is 'none' or other basic statuses
+    if (classEntry.class_status === 'none' ||
+        classEntry.class_status === 'setup' ||
+        classEntry.class_status === 'briefing' ||
+        classEntry.class_status === 'break' ||
+        classEntry.class_status === 'start_time') {
+
+      // A class is completed when all dogs are scored
+      const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
+      if (isCompleted) {
+        return 'completed';
+      }
+      // A class is in progress if it has dogs in the ring or some scored
+      if (classEntry.dogs.some(dog => dog.in_ring) || classEntry.completed_count > 0) {
+        return 'in-progress';
+      }
+    }
+
     return 'not-started';
   };
 
@@ -1134,14 +1153,15 @@ export const ClassList: React.FC = () => {
   };
 
   const filteredClasses = classes.filter(classEntry => {
-    // Determine if class is truly completed (all dogs scored)
-    const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
-    
+    // Use the same logic as getClassDisplayStatus to respect manual status
+    const displayStatus = getClassDisplayStatus(classEntry);
+    const isCompleted = displayStatus === 'completed';
+
     // Combined filter logic
     if (combinedFilter === 'pending' && isCompleted) return false;
     if (combinedFilter === 'completed' && !isCompleted) return false;
     if (combinedFilter === 'favorites' && !classEntry.is_favorite) return false;
-    
+
     return true;
   });
 
@@ -1269,79 +1289,15 @@ export const ClassList: React.FC = () => {
             >
               <div className="class-content">
                 <div className="class-header">
-                  <div className="class-details">
-                    <div className="class-title-row">
-                      <h3 className="class-name">{classEntry.class_name}</h3>
-                    </div>
-                    <p className="class-judge">Judge: {classEntry.judge_name}</p>
-                  </div>
+                  {/* Row 1: Class Title + Status Badge */}
+                  <div className="class-header-row class-title-row">
+                    <h3 className="class-name">{classEntry.class_name}</h3>
 
-                  <div className="class-actions">
-                    <button
-                      type="button"
-                      className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
-                      onClick={(e) => {
-                        console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.nativeEvent.stopImmediatePropagation();
-                        toggleFavorite(classEntry.id);
-                        return false;
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onTouchStart={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      style={{ zIndex: 15 }} // Inline style to ensure it's on top
-                    >
-                      <Heart className="favorite-icon" />
-                    </button>
-
-                    {/* 3-Dot Menu in Header */}
-                    <button
-                      className="menu-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
-                      }}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Smart Contextual Preview */}
-                <div className="class-preview-section">
-                  {classEntry.dogs.length > 0 ? (
-                    <div className="contextual-preview">
-                      {getContextualPreview(classEntry).split('\n').map((line, index) => (
-                        <p key={index} className={`preview-line ${index === 0 ? 'preview-primary' : 'preview-secondary'}`}>
-                          {line}
-                        </p>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-entries">
-                      <Users className="no-entries-icon" />
-                      <p>No entries yet</p>
-                      <p className="no-entries-subtitle">
-                        Dogs will appear when registered
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Status and Time Display - Bottom Left */}
-                <div className="class-status-footer">
-                  <div className="status-container" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 5 }}>
+                    {/* Status Badge - Row 1 Right Side */}
                     {hasPermission('canManageClasses') ? (
-                      <button
-                        className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
-                        style={{ position: 'relative', zIndex: 10, pointerEvents: 'auto' }}
+                      <div
+                        className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
+                        style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -1350,63 +1306,9 @@ export const ClassList: React.FC = () => {
                           e.preventDefault();
                           e.stopPropagation();
                           e.nativeEvent.stopImmediatePropagation();
-                          const target = e.currentTarget;
-                          const rect = target.getBoundingClientRect();
-                          const isDesktop = window.innerWidth >= 768;
 
-                          if (activeStatusPopup === classEntry.id) {
-                            setActiveStatusPopup(null);
-                            setStatusPopupPosition(null);
-                          } else {
-                            setActiveStatusPopup(classEntry.id);
-                            initializeTimeInputs(); // Initialize default times when popup opens
-
-                            if (isDesktop) {
-                              // Smart positioning: above or below based on available space
-                              const dropdownWidth = 240; // matches CSS width
-                              const dropdownHeight = 400; // approximate popup height
-                              const viewportWidth = window.innerWidth;
-                              const viewportHeight = window.innerHeight;
-                              const spaceOnRight = viewportWidth - rect.right;
-                              const spaceAbove = rect.top;
-                              const spaceBelow = viewportHeight - rect.bottom;
-
-                              let left = rect.left + window.scrollX;
-
-                              // Adjust horizontal position if dropdown would go off-screen
-                              if (spaceOnRight < dropdownWidth) {
-                                left = rect.right + window.scrollX - dropdownWidth;
-                              }
-
-                              // Smart vertical positioning
-                              let top: number;
-                              if (spaceAbove >= dropdownHeight + 8) {
-                                // Position above if there's enough space
-                                top = rect.top + window.scrollY - dropdownHeight - 8;
-                              } else if (spaceBelow >= dropdownHeight + 8) {
-                                // Position below if there's enough space
-                                top = rect.bottom + window.scrollY + 8;
-                              } else {
-                                // Not enough space above or below, choose the side with more space
-                                if (spaceAbove > spaceBelow) {
-                                  // Position above, but adjust to fit viewport
-                                  top = Math.max(8, rect.top + window.scrollY - dropdownHeight - 8);
-                                } else {
-                                  // Position below, but adjust to fit viewport
-                                  top = rect.bottom + window.scrollY + 8;
-                                }
-                              }
-
-                              const position = {
-                                top: top,
-                                left: left
-                              };
-                              setStatusPopupPosition(position);
-                            } else {
-                              setStatusPopupPosition(null);
-                            }
-                          }
-                          return false;
+                          setSelectedClassForStatus(classEntry);
+                          setStatusDialogOpen(true);
                         }}
                       >
                         {(() => {
@@ -1420,9 +1322,9 @@ export const ClassList: React.FC = () => {
                             </div>
                           );
                         })()}
-                      </button>
+                      </div>
                     ) : (
-                      <div className={`status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
+                      <div className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)}`}>
                         {(() => {
                           const formattedStatus = getFormattedStatus(classEntry);
                           return (
@@ -1437,6 +1339,69 @@ export const ClassList: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Row 2: Judge + Favorite Button + Menu Button */}
+                  <div className="class-header-row class-actions-row">
+                    <p className="class-judge">Judge: {classEntry.judge_name}</p>
+
+                    <div className="class-actions">
+                      <button
+                        type="button"
+                        className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
+                        onClick={(e) => {
+                          console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                          toggleFavorite(classEntry.id);
+                          return false;
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onTouchStart={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        style={{ zIndex: 15 }} // Inline style to ensure it's on top
+                      >
+                        <Heart className="favorite-icon" />
+                      </button>
+
+                      {/* 3-Dot Menu in Row 2 */}
+                      <button
+                        className="menu-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
+                        }}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Condensed Preview - Single Line for Better Space Utilization */}
+                <div className="class-preview-section">
+                  {classEntry.dogs.length > 0 ? (
+                    <div className="contextual-preview-condensed">
+                      {(() => {
+                        const preview = getContextualPreview(classEntry);
+                        // Condense multiline preview to single line
+                        return preview.replace(/\n/g, ' • ');
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="no-entries">
+                      <Users className="no-entries-icon" />
+                      <p>No entries yet</p>
+                      <p className="no-entries-subtitle">
+                        Dogs will appear when registered
+                      </p>
+                    </div>
+                  )}
                 </div>
 
               </div>
@@ -1445,110 +1410,6 @@ export const ClassList: React.FC = () => {
         })}
       </div>
 
-      {/* Status Selection - Responsive Bottom Sheet */}
-      {activeStatusPopup !== null && (
-        <>
-          {/* Show backdrop only on mobile (when statusPopupPosition is null) */}
-          {!statusPopupPosition && (
-            <div className="bottom-sheet-backdrop" onClick={() => {
-              setActiveStatusPopup(null);
-              setStatusPopupPosition(null);
-            }} />
-          )}
-          <div
-            className="status-popup"
-            style={(() => {
-              const style = statusPopupPosition ? {
-                top: statusPopupPosition.top,
-                left: statusPopupPosition.left,
-                position: 'absolute' as const,
-                zIndex: 1000,
-                bottom: 'auto',
-                right: 'auto',
-                transform: 'none'
-              } : {};
-              return style;
-            })()}
-          >
-            <div className="status-popup-content">
-              {/* Desktop header - minimal close button */}
-              {statusPopupPosition && (
-                <div className="desktop-popup-header">
-                  <button
-                    className="desktop-close-btn"
-                    onClick={() => {
-                      setActiveStatusPopup(null);
-                      setStatusPopupPosition(null);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              {/* Mobile header - full sheet header */}
-              {!statusPopupPosition && (
-                <div className="mobile-sheet-header">
-                  <h3>Class Status</h3>
-                  <button
-                    className="close-sheet-btn"
-                    onClick={() => {
-                      setActiveStatusPopup(null);
-                      setStatusPopupPosition(null);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              {[
-                { status: 'none', label: 'None', icon: Circle, hasTimeInput: false },
-                { status: 'setup', label: 'Setup', icon: Settings, hasTimeInput: false },
-                { status: 'briefing', label: 'Briefing', icon: FileText, hasTimeInput: true, timeKey: 'briefing_time' },
-                { status: 'break', label: 'Break Until', icon: Coffee, hasTimeInput: true, timeKey: 'break_until' },
-                { status: 'start_time', label: 'Start Time', icon: Clock, hasTimeInput: true, timeKey: 'start_time' },
-                { status: 'in_progress', label: 'In Progress', icon: Play, hasTimeInput: false },
-                { status: 'completed', label: 'Completed', icon: CheckCircle, hasTimeInput: false }
-              ].map(({ status, label, icon: IconComponent, hasTimeInput, timeKey }) => (
-                <div key={status} className={`status-option-container status-${status}`}>
-                  <button
-                    className={`status-option status-${status}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (hasTimeInput && timeKey) {
-                        const timeValue = statusTimeInputs[timeKey as keyof typeof statusTimeInputs];
-                        handleClassStatusChangeWithTime(activeStatusPopup, status as any, timeValue);
-                      } else {
-                        handleClassStatusChange(activeStatusPopup, status as any);
-                      }
-                      setActiveStatusPopup(null);
-                      setStatusPopupPosition(null);
-                    }}
-                  >
-                    <span className="popup-icon">
-                      <IconComponent size={statusPopupPosition ? 16 : 18} />
-                    </span>
-                    <span className="popup-label">{label}</span>
-                  </button>
-                  {hasTimeInput && timeKey && (
-                    <input
-                      type="time"
-                      className="status-time-input"
-                      value={statusTimeInputs[timeKey as keyof typeof statusTimeInputs]}
-                      onChange={(e) => {
-                        setStatusTimeInputs(prev => ({
-                          ...prev,
-                          [timeKey]: e.target.value
-                        }));
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Navigation Menu Popup */}
       {activePopup !== null && (
@@ -1664,6 +1525,32 @@ export const ClassList: React.FC = () => {
         }}
       />
 
+      {/* Class Status Dialog */}
+      <ClassStatusDialog
+        isOpen={statusDialogOpen}
+        onClose={() => {
+          setStatusDialogOpen(false);
+          setSelectedClassForStatus(null);
+        }}
+        onStatusChange={(status: string, timeValue?: string) => {
+          if (selectedClassForStatus) {
+            if (timeValue) {
+              handleClassStatusChangeWithTime(selectedClassForStatus.id, status as any, timeValue);
+            } else {
+              handleClassStatusChange(selectedClassForStatus.id, status as any);
+            }
+          }
+        }}
+        classData={selectedClassForStatus || {
+          id: 0,
+          element: '',
+          level: '',
+          class_name: '',
+          class_status: '',
+          entry_count: 0
+        }}
+        currentStatus={selectedClassForStatus?.class_status || ''}
+      />
 
     </div>
   );

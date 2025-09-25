@@ -86,11 +86,11 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
       try {
         setLoading(true);
 
-        // Fetch real data from tbl_entry_queue (simplified for national shows)
+        // Fetch real data from normalized view with handler state information
         const { data: entryData, error } = await supabase
-          .from('tbl_entry_queue')
-          .select('handler_state, call_name, breed, score, is_scored, handler, placement')
-          .eq('mobile_app_lic_key', licenseKey)
+          .from('view_entry_class_join_normalized')
+          .select('handler, call_name, breed, is_scored, placement, handler_state, handler_location')
+          .eq('license_key', licenseKey)
           .not('handler_state', 'is', null);
 
         if (error) {
@@ -100,11 +100,12 @@ export const StateParticipation: React.FC<StateParticipationProps> = ({
         }
 
         console.log('📍 State data fetched:', entryData?.length, 'entries with state info');
-        console.log('📍 Sample entries with scores:', entryData?.filter(e => e.score && e.score !== '' && e.score !== '0').slice(0, 3));
+        console.log('📍 Sample entries:', entryData?.slice(0, 3));
 
         // Group by state and calculate statistics
         const stateMap = new Map<string, any[]>();
 
+        // Process real handler state data from normalized view
         entryData?.forEach(entry => {
           let state = entry.handler_state?.trim();
           if (state) {

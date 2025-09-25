@@ -87,10 +87,20 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
   // Fetch available trials from database
   const fetchAvailableTrials = async () => {
     try {
+      // First get the show by license key
+      const { data: showData, error: showError } = await supabase
+        .from('shows')
+        .select('id')
+        .eq('license_key', licenseKey)
+        .single();
+
+      if (showError) throw showError;
+
+      // Then get trials for this show
       const { data, error } = await supabase
-        .from('tbl_trial_queue')
+        .from('trials')
         .select('trial_date, trial_number, trial_type')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('show_id', showData.id)
         .order('trial_date', { ascending: true });
 
       if (error) throw error;
@@ -117,13 +127,16 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
   const fetchShowInfo = async () => {
     try {
       const { data, error } = await supabase
-        .from('tbl_show_queue')
-        .select('showtype, showname')
-        .eq('mobile_app_lic_key', licenseKey)
+        .from('shows')
+        .select('competition_type, show_name')
+        .eq('license_key', licenseKey)
         .single();
 
       if (error) throw error;
-      setShowInfo(data);
+      setShowInfo({
+        showtype: data.competition_type || 'Regular',
+        showname: data.show_name || 'Unknown Show'
+      });
     } catch (err) {
       console.error('Error fetching show info:', err);
       setShowInfo({ showtype: 'Regular', showname: 'Unknown Show' });
@@ -137,11 +150,11 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
     }
 
     try {
-      // Get all elements and levels offered in this trial
+      // Get all elements and levels offered in this trial using normalized view
       const { data: elementsData, error: elementsError } = await supabase
-        .from('tbl_class_queue')
+        .from('view_entry_class_join_normalized')
         .select('element, level')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
         .eq('trial_date', trial.trial_date)
         .eq('trial_number', trial.trial_number)
         .neq('element', 'HD'); // Exclude Handler Discrimination
@@ -163,11 +176,11 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
       for (const [level, elements] of levelElements.entries()) {
         if (elements.length < 2) continue; // Need multiple elements for HIT
 
-        // Get qualifying dogs for this level
+        // Get qualifying dogs for this level using normalized view
         const { data: qualifyingDogs, error: dogsError } = await supabase
-          .from('tbl_entry_queue')
+          .from('view_entry_class_join_normalized')
           .select('armband, call_name, breed, handler, element, fault_count, search_time')
-          .eq('mobile_app_lic_key', licenseKey)
+          .eq('license_key', licenseKey)
           .eq('trial_date', trial.trial_date)
           .eq('trial_number', trial.trial_number)
           .eq('level', level)
@@ -242,11 +255,11 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
       setLoading(true);
       setError(null);
 
-      // Get entry data for the selected trial
+      // Get entry data for the selected trial using normalized view
       const { data: trialEntries, error: entriesError } = await supabase
-        .from('tbl_entry_queue')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
         .eq('trial_date', trial.trial_date)
         .eq('trial_number', trial.trial_number)
         .eq('is_scored', true);

@@ -322,11 +322,23 @@ export const useTVData = ({
 
       console.log('🔍 FORCE DEBUG: Starting fetchData for licenseKey:', licenseKey);
       
-      // First, get trials for this license key
-      const { data: trialsData, error: trialsError } = await supabase
-        .from('tbl_trial_queue')
+      // First, get the show by license key
+      const { data: showData, error: showError } = await supabase
+        .from('shows')
         .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
+        .single();
+
+      if (showError || !showData) {
+        console.error('❌ Show query error:', showError);
+        throw new Error(`No show found for license key: ${licenseKey}`);
+      }
+
+      // Get trials for this show
+      const { data: trialsData, error: trialsError } = await supabase
+        .from('trials')
+        .select('*')
+        .eq('show_id', showData.id)
         .order('trial_date', { ascending: true });
 
       if (trialsError) {
@@ -344,44 +356,41 @@ export const useTVData = ({
       const currentTrial = trialsData[0];
       if (isDebugMode) console.log('📺 Current trial:', currentTrial);
 
-      // Fetch show information
-      const { data: showData, error: showError } = await supabase
-        .from('tbl_show_queue')
-        .select('showname, clubname, startdate, enddate, org, showtype, sitename, siteaddress, sitecity, sitestate')
-        .eq('mobile_app_lic_key', licenseKey)
-        .order('id', { ascending: false })
-        .limit(1);
-
-      if (showError) {
-        console.error('❌ Show query error:', showError);
-        // Don't throw - show info is optional
-      }
-
-      const showInfo: ShowInfo | null = showData && showData.length > 0 ? showData[0] : null;
+      // Map show data to expected interface format
+      const showInfo: ShowInfo | null = showData ? {
+        showname: showData.show_name,
+        clubname: showData.club_name,
+        startdate: showData.show_date,
+        enddate: showData.show_date, // Using same date for end date
+        org: showData.org || '',
+        showtype: showData.competition_type || 'Regular',
+        sitename: null,
+        siteaddress: null,
+        sitecity: null,
+        sitestate: null
+      } : null;
       if (isDebugMode) console.log('📺 Show info:', showInfo);
 
-      // Use the Flutter view for better data consistency
-      console.log('🔍 FORCE DEBUG: Trying view_entry_class_join_distinct...');
+      // Use normalized view for data consistency
+      console.log('🔍 DEBUG: Trying view_entry_class_join_normalized...');
       const { data: viewData, error: viewError } = await supabase
-        .from('view_entry_class_join_distinct')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
         .order('armband', { ascending: true });
 
-      // TEMPORARY: Force fallback to test direct table queries
-      console.log('🔍 FORCE DEBUG: Forcing fallback to test table queries...');
-      const forceViewError = true; // Re-enabled - view has issues
-      
-      if (viewError || forceViewError) {
+      if (viewError) {
         console.error('❌ View query error:', viewError);
-        console.log('🔍 FORCE DEBUG: View failed, using fallback to individual tables...');
-        // Fallback to individual table queries with section-aware grouping
+        console.log('🔍 DEBUG: View failed, using fallback to individual normalized tables...');
+
+        // Get all trial IDs for this show
+        const trialIds = trialsData?.map(trial => trial.id) || [];
+
+        // Fallback to individual table queries with normalized structure
         const { data: classesData, error: classesError } = await supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .select('*')
-          .eq('mobile_app_lic_key', licenseKey)
-          .order('trial_date', { ascending: true })
-          .order('trial_number', { ascending: true })
+          .in('trial_id', trialIds)
           .order('class_order', { ascending: true });
 
         if (classesError) {
@@ -389,14 +398,17 @@ export const useTVData = ({
           throw classesError;
         }
 
-        console.log('🔍 FORCE DEBUG: Classes found (fallback):', classesData?.length || 0, 'First class:', classesData?.[0]);
+        console.log('🔍 DEBUG: Classes found (fallback):', classesData?.length || 0, 'First class:', classesData?.[0]);
+
+        // Get all class IDs
+        const classIds = classesData?.map(cls => cls.id) || [];
 
         // Fetch entries for all classes
         const { data: entriesData, error: entriesError } = await supabase
-          .from('tbl_entry_queue')
+          .from('entries')
           .select('*')
-          .eq('mobile_app_lic_key', licenseKey)
-          .order('armband', { ascending: true });
+          .in('class_id', classIds)
+          .order('armband_number', { ascending: true });
 
         if (entriesError) {
           console.error('❌ Entry query error:', entriesError);
@@ -432,19 +444,27 @@ export const useTVData = ({
           };
         });
       } else {
-        console.log('🔍 FORCE DEBUG: View data found:', viewData?.length || 0, 'First item:', viewData?.[0]);
-        
-        // Extract unique classes from view data
+        console.log('🔍 DEBUG: Normalized view data found:', viewData?.length || 0, 'First item:', viewData?.[0]);
+
+        // Extract unique classes from normalized view data
         const uniqueClasses = viewData?.reduce((acc: any[], item: any) => {
-          const existing = acc.find(cls => cls.class_name === item.class_name);
+          const classKey = `${item.element}-${item.level}-${item.section}`;
+          const existing = acc.find(cls => cls.class_key === classKey);
           if (!existing) {
             acc.push({
               id: acc.length + 1,
-              class_name: item.class_name,
-              class_type: item.class_type,
-              element_type: item.class_type,
-              judge_name: 'TBD',
-              status: 'scheduled'
+              class_key: classKey,
+              class_name: `${item.element} ${item.level} ${item.section}`.trim(),
+              class_type: item.trial_type || 'Regular',
+              element_type: item.element,
+              element: item.element,
+              level: item.level,
+              section: item.section,
+              judge_name: item.judge_name || 'TBD',
+              status: item.is_completed ? 'completed' : (item.class_status === 5 ? 'in-progress' : 'scheduled'),
+              trial_date: item.trial_date,
+              trial_number: item.trial_number,
+              class_order: item.class_order
             });
           }
           return acc;
@@ -526,7 +546,7 @@ export const useTVData = ({
     const newChannels: RealtimeChannel[] = [];
     console.log('📺 TV Dashboard: Setting up realtime subscriptions...');
 
-    // Subscribe to trial queue changes (in case trial data changes)
+    // Subscribe to trial changes - we'll filter in the callback since we can't easily filter by show relationship
     const trialChannel = supabase
       .channel(`tv-trials-${licenseKey}`)
       .on(
@@ -534,8 +554,7 @@ export const useTVData = ({
         {
           event: '*',
           schema: 'public',
-          table: 'tbl_trial_queue',
-          filter: `mobile_app_lic_key=eq.${licenseKey}`,
+          table: 'trials',
         },
         (payload) => {
           if (isDebugMode) console.log('📡 Trial queue change:', payload.eventType);
@@ -548,7 +567,7 @@ export const useTVData = ({
 
     newChannels.push(trialChannel);
 
-    // Subscribe to class queue changes (for all trials with this license key)
+    // Subscribe to class changes - we'll filter in the callback
     const classChannel = supabase
       .channel(`tv-classes-${licenseKey}`)
       .on(
@@ -556,8 +575,7 @@ export const useTVData = ({
         {
           event: '*',
           schema: 'public',
-          table: 'tbl_class_queue',
-          filter: `mobile_app_lic_key=eq.${licenseKey}`,
+          table: 'classes',
         },
         (payload) => {
           console.log('📡 Class queue change detected:', payload.eventType, payload);
@@ -571,7 +589,7 @@ export const useTVData = ({
 
     newChannels.push(classChannel);
 
-    // Subscribe to entry queue changes (with license key filter for better performance)
+    // Subscribe to entry changes - we'll filter in the callback
     console.log('🔧 SETTING UP ENTRY WEBSOCKET SUBSCRIPTION for license:', licenseKey);
     const entryChannel = supabase
       .channel(`tv-entries-${licenseKey}`)
@@ -580,8 +598,7 @@ export const useTVData = ({
         {
           event: '*',
           schema: 'public',
-          table: 'tbl_entry_queue',
-          filter: `mobile_app_lic_key=eq.${licenseKey}`,
+          table: 'entries',
         },
         (payload) => {
           console.log('🚨 ENTRY QUEUE CHANGE DETECTED:', payload.eventType, payload);

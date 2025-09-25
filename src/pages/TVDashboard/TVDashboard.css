@@ -766,7 +766,8 @@ html, body {
   100% { left: 100%; }
 }
 
-.checkin-status {
+/* Scope this to TV Dashboard only to prevent conflicts with EntryList */
+.tv-dashboard .checkin-status {
   text-align: center;
   font-size: 1.4vw;
   color: var(--text-primary);

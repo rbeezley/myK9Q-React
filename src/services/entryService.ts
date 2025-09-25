@@ -26,31 +26,42 @@ export async function getClassEntries(
 ): Promise<Entry[]> {
   try {
     
-    // First, get the class details to know what element, level, section to filter by
-    // CRITICAL: Also get the actual classid field for real-time subscriptions
+    // Get class data to determine element, level, section for filtering
     const { data: classData, error: classError } = await supabase
-      .from('tbl_class_queue')
-      .select('element, level, section, trial_date, trial_number, areas, classid')
+      .from('classes')
+      .select('element, level, section, area_count')
       .eq('id', classId)
       .single();
-    
+
     if (classError || !classData) {
       console.error('Error fetching class data:', classError);
       throw new Error('Could not find class');
     }
-    
-    
-    // Query the view for main entry data
+
+    // Query the normalized entries table directly
     const { data: viewData, error: viewError } = await supabase
-      .from('view_entry_class_join_distinct')
-      .select('*')
-      .eq('mobile_app_lic_key', licenseKey)
-      .eq('element', classData.element)
-      .eq('level', classData.level)
-      .eq('section', classData.section)
-      .eq('trial_date', classData.trial_date)
-      .eq('trial_number', classData.trial_number)
-      .order('armband', { ascending: true });
+      .from('entries')
+      .select(`
+        *,
+        classes!inner (
+          element,
+          level,
+          section,
+          trials!inner (
+            trial_date,
+            trial_number,
+            shows!inner (
+              license_key
+            )
+          )
+        ),
+        results (
+          *
+        )
+      `)
+      .eq('class_id', classId)
+      .eq('classes.trials.shows.license_key', licenseKey)
+      .order('armband_number', { ascending: true });
     
     
 
@@ -63,80 +74,50 @@ export async function getClassEntries(
       return [];
     }
 
-    // Get entry IDs to query check-in status from the base table
-    const entryIds = viewData.map(row => row.id);
-    
-    // Query the base table for check-in status data and exhibitor_order
-    const { data: checkinData, error: checkinError } = await supabase
-      .from('tbl_entry_queue')
-      .select('id, checkin_status, in_ring, exhibitor_order')
-      .in('id', entryIds);
-    
-    
-
-    if (checkinError) {
-      console.error('Error fetching check-in status:', checkinError);
-      // Don't throw here, continue with default values
-    }
-
     // Helper function to convert database integer codes back to string status
     const convertStatusCodeToString = (statusCode: number | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
       switch (statusCode) {
         case 0: return 'none';
         case 1: return 'checked-in';
-        case 2: return 'conflict';
-        case 3: return 'pulled';
-        case 4: return 'at-gate';
+        case 2: return 'at-gate';
+        case 3: return 'conflict'; // Could also be 'pulled' - DB constraint limits us
         default: return 'none';
       }
     };
 
-    // Create a map of check-in data for quick lookup
-    const checkinMap = new Map();
-    if (checkinData) {
-      checkinData.forEach(item => {
-        const convertedStatus = convertStatusCodeToString(item.checkin_status);
-        checkinMap.set(item.id, {
-          checkedIn: item.checkin_status > 0, // Derive checked_in from status code
-          checkinStatus: convertedStatus,
-          inRing: item.in_ring || false
-          // Remove exhibitorOrder from here - using view data directly
-        });
-      });
-    }
-
-
-    // Map database fields to Entry interface, combining view data with check-in status
+    // Map database fields to Entry interface using normalized table structure
     const mappedEntries = viewData.map(row => {
-      const checkinInfo = checkinMap.get(row.id) || { checkedIn: false, checkinStatus: 'none', inRing: false };
-      
+      const result = row.results?.[0]; // Get first result if any
+
       return {
         id: row.id,
-        armband: row.armband,
-        callName: row.call_name,
-        breed: row.breed,
-        handler: row.handler,
-        jumpHeight: row.jump_height,
-        preferredTime: row.preferred_time,
-        isScored: row.is_scored || false,
-        inRing: checkinInfo.inRing,
-        resultText: row.result_text,
-        searchTime: row.search_time,
-        faultCount: row.fault_count,
-        placement: row.placement,
-        classId: classId, // Use the passed classId since view doesn't have it
-        className: `${row.element} ${row.level} ${row.section}`, // Construct class name
-        section: row.section,
-        element: row.element,
-        level: row.level,
-        checkedIn: checkinInfo.checkedIn,
-        checkinStatus: checkinInfo.checkinStatus,
-        timeLimit: row.time_limit,
-        timeLimit2: row.time_limit2,
-        timeLimit3: row.time_limit3,
-        areas: classData.areas,
-        exhibitorOrder: row.exhibitor_order, // Use exhibitor_order directly from view
-        actualClassId: classData.classid // Add the actual classid for real-time subscriptions
+        armband: row.armband_number,
+        callName: row.dog_call_name,
+        breed: row.dog_breed,
+        handler: row.handler_name,
+        jumpHeight: '', // Not in normalized schema yet
+        preferredTime: '', // Not in normalized schema yet
+        isScored: result?.is_scored || false,
+        inRing: result?.is_in_ring || false,
+        resultText: result?.result_status || 'pending',
+        searchTime: result?.search_time_seconds?.toString() || '0.00',
+        faultCount: result?.total_faults || 0,
+        placement: result?.final_placement || 0,
+        classId: classId,
+        className: `${row.classes.element} ${row.classes.level} ${row.classes.section}`,
+        section: row.classes.section,
+        element: row.classes.element,
+        level: row.classes.level,
+        checkedIn: row.check_in_status > 0,
+        checkinStatus: convertStatusCodeToString(row.check_in_status),
+        timeLimit: '', // Will need to get from class data
+        timeLimit2: '', // Will need to get from class data
+        timeLimit3: '', // Will need to get from class data
+        areas: classData.area_count,
+        exhibitorOrder: row.exhibitor_order,
+        actualClassId: classId,
+        trialDate: row.classes.trials.trial_date,
+        trialNumber: row.classes.trials.trial_number.toString()
       };
     });
     
@@ -157,11 +138,28 @@ export async function getTrialEntries(
 ): Promise<Entry[]> {
   try {
     const { data, error } = await supabase
-      .from('view_entry_class_join_distinct')
-      .select('*')
-      .eq('mobile_app_lic_key', licenseKey)
-      .eq('trial_id', trialId)
-      .order('class_name', { ascending: true })
+      .from('entries')
+      .select(`
+        *,
+        classes!inner (
+          element,
+          level,
+          section,
+          trials!inner (
+            trial_date,
+            trial_number,
+            shows!inner (
+              license_key
+            )
+          )
+        ),
+        results (
+          *
+        )
+      `)
+      .eq('classes.trials.shows.license_key', licenseKey)
+      .eq('classes.trials.id', trialId)
+      .order('classes.element', { ascending: true })
       .order('armband', { ascending: true });
 
     if (error) {
@@ -243,7 +241,7 @@ export async function submitScore(
 
 
     const { error } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .update(updateData)
       .eq('id', entryId)
       .select();
@@ -303,7 +301,7 @@ export async function markInRing(
   
   try {
     const { data, error } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .update({ in_ring: inRing })
       .eq('id', entryId)
       .select('id, armband, in_ring, classid_fk'); // Add select to see what was actually updated
@@ -344,10 +342,10 @@ export async function getClassInfo(
   try {
     // Get class details
     const { data: classData, error: classError } = await supabase
-      .from('tbl_class_queue')
+      .from('classes')
       .select('*')
       .eq('id', classId)
-      .eq('mobile_app_lic_key', licenseKey)
+      .eq('license_key', licenseKey)
       .single();
 
     if (classError || !classData) {
@@ -357,10 +355,10 @@ export async function getClassInfo(
 
     // Get entry counts
     const { data: entries, error: entriesError } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .select('id, is_scored')
       .eq('class_id', classId)
-      .eq('mobile_app_lic_key', licenseKey);
+      .eq('license_key', licenseKey);
 
     if (entriesError) {
       console.error('Error fetching entry counts:', entriesError);
@@ -404,7 +402,7 @@ export function subscribeToEntryUpdates(
       {
         event: '*',
         schema: 'public',
-        table: 'tbl_entry_queue',
+        table: 'entries',
         filter: `classid_fk=eq.${actualClassId}` // Fixed: using correct column name and actual classid
       },
       (payload) => {
@@ -478,7 +476,7 @@ export async function debugMarkInRing(entryId: number, inRing: boolean = true): 
   
   try {
     const { data, error } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .update({ in_ring: inRing })
       .eq('id', entryId)
       .select('id, armband, in_ring, classid_fk');
@@ -514,7 +512,7 @@ export async function testSupabaseConnection(): Promise<void> {
   try {
     // Test 1: Basic connection
     const { data, error: connectionError } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .select('count', { count: 'exact', head: true });
       
     if (connectionError) {
@@ -530,7 +528,7 @@ export async function testSupabaseConnection(): Promise<void> {
     const testChannel = supabase
       .channel('connection_test')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'tbl_entry_queue' },
+        { event: '*', schema: 'public', table: 'entries' },
         (payload) => {
           console.log('🧪 Test subscription received payload:', payload);
         }
@@ -560,7 +558,7 @@ export async function testRealTimeEvents(classId: number): Promise<void> {
   try {
     // Get a random entry from the class to test with
     const { data: entries, error } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .select('id, armband, in_ring, classid_fk')
       .eq('classid_fk', classId)
       .limit(1);
@@ -598,7 +596,7 @@ export async function testUnfilteredRealTime(): Promise<void> {
   const testSub = supabase
     .channel('unfiltered_test')
     .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'tbl_entry_queue' },
+      { event: '*', schema: 'public', table: 'entries' },
       (payload) => {
         console.log('🚨🚨🚨 UNFILTERED REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
         console.log('📦 Payload:', JSON.stringify(payload, null, 2));
@@ -628,7 +626,7 @@ export async function debugMonitorEntry(entryId: number): Promise<void> {
   
   // First, get current state
   const { data: currentState, error } = await supabase
-    .from('tbl_entry_queue')
+    .from('entries')
     .select('id, armband, in_ring, is_scored, result_text')
     .eq('id', entryId)
     .single();
@@ -648,7 +646,7 @@ export async function debugMonitorEntry(entryId: number): Promise<void> {
       {
         event: '*',
         schema: 'public',
-        table: 'tbl_entry_queue',
+        table: 'entries',
         filter: `id=eq.${entryId}`
       },
       (payload) => {
@@ -745,7 +743,7 @@ export async function updateEntryCheckinStatus(
   checkinStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate'
 ): Promise<boolean> {
   try {
-    // Convert string status to integer code matching database schema
+    // Convert string status to integer code matching database schema (0-3 only)
     let statusCode = 0;
     switch (checkinStatus) {
       case 'none':
@@ -754,25 +752,22 @@ export async function updateEntryCheckinStatus(
       case 'checked-in':
         statusCode = 1;
         break;
-      case 'conflict':
+      case 'at-gate':
         statusCode = 2;
         break;
+      case 'conflict':
       case 'pulled':
-        statusCode = 3;
-        break;
-      case 'at-gate':
-        statusCode = 4;
+        statusCode = 3; // Both map to same code due to DB constraint
         break;
     }
 
     const updateData: any = {
-      checkin_status: statusCode,   // Use correct database field name
-      in_ring: false  // Clear in-ring status when manually changing checkin status
+      check_in_status: statusCode   // Use correct database field name
     };
     
 
     const { error } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .update(updateData)
       .eq('id', entryId)
       .select();
@@ -787,8 +782,8 @@ export async function updateEntryCheckinStatus(
     
     // Verify the update by reading it back
     await supabase
-      .from('tbl_entry_queue')
-      .select('id, checkin_status, in_ring')
+      .from('entries')
+      .select('id, check_in_status')
       .eq('id', entryId)
       .single();
     
@@ -829,7 +824,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
 
 
     const { error } = await supabase
-      .from('tbl_entry_queue')
+      .from('entries')
       .update(updateData)
       .eq('id', entryId)
       .select();
@@ -863,11 +858,28 @@ export async function getEntriesByArmband(
 ): Promise<Entry[]> {
   try {
     const { data, error } = await supabase
-      .from('view_entry_class_join_distinct')
-      .select('*')
-      .eq('mobile_app_lic_key', licenseKey)
+      .from('entries')
+      .select(`
+        *,
+        classes!inner (
+          element,
+          level,
+          section,
+          trials!inner (
+            trial_date,
+            trial_number,
+            shows!inner (
+              license_key
+            )
+          )
+        ),
+        results (
+          *
+        )
+      `)
+      .eq('classes.trials.shows.license_key', licenseKey)
       .eq('armband', armband)
-      .order('class_name', { ascending: true });
+      .order('classes.element', { ascending: true });
 
     if (error) {
       console.error('Error fetching entries by armband:', error);
@@ -917,7 +929,7 @@ export async function updateExhibitorOrder(
       const newExhibitorOrder = index + 1;
       
       const { error } = await supabase
-        .from('tbl_entry_queue')
+        .from('entries')
         .update({ exhibitor_order: newExhibitorOrder })
         .eq('id', entry.id);
 

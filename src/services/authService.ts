@@ -22,7 +22,7 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
   try {
     // Step 1: Get all shows to check passcode against each mobile_app_lic_key
     const { data: shows, error: showError } = await supabase
-      .from('tbl_show_queue')
+      .from('shows')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -37,13 +37,13 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
 
     // Step 2: Check passcode against each show's license key
     let matchedShow: ShowQueue | null = null;
-    
+
     for (const show of shows) {
       const validationResult = validatePasscodeAgainstLicenseKey(
-        passcode, 
-        show.mobile_app_lic_key
+        passcode,
+        show.license_key
       );
-      
+
       if (validationResult) {
         matchedShow = show;
         break;
@@ -56,31 +56,42 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
 
     // Step 3: Get trials for this show
     const { data: trials, error: trialsError } = await supabase
-      .from('tbl_trial_queue')
+      .from('trials')
       .select('*')
-      .eq('mobile_app_lic_key', matchedShow.mobile_app_lic_key)
+      .eq('show_id', matchedShow.id)
       .order('trial_date', { ascending: true });
 
     if (trialsError) {
       console.error('Error fetching trials:', trialsError);
     }
 
-    // Step 4: Get classes for this show
-    const { data: classes, error: classesError } = await supabase
-      .from('tbl_class_queue')
-      .select('*')
-      .eq('mobile_app_lic_key', matchedShow.mobile_app_lic_key)
-      .order('class_name', { ascending: true });
+    // Step 4: Get classes for this show (assuming classes relate to trials)
+    // First get all trial IDs for this show
+    const trialIds = trials?.map(trial => trial.id) || [];
+
+    let classes = null;
+    let classesError = null;
+
+    if (trialIds.length > 0) {
+      const classesResult = await supabase
+        .from('classes')
+        .select('*')
+        .in('trial_id', trialIds)
+        .order('class_order', { ascending: true });
+
+      classes = classesResult.data;
+      classesError = classesResult.error;
+    }
 
     if (classesError) {
       console.error('Error fetching classes:', classesError);
     }
 
-    // Step 5: Get org and competition_type from view_unique_mobile_app_lic_key
+    // Step 5: Get org and competition_type from view_unique_license_key
     const { data: licenseData, error: licenseError } = await supabase
-      .from('view_unique_mobile_app_lic_key')
+      .from('view_unique_license_key')
       .select('org, competition_type')
-      .eq('mobile_app_lic_key', matchedShow.mobile_app_lic_key)
+      .eq('license_key', matchedShow.license_key)
       .single();
 
     if (licenseError) {
@@ -95,7 +106,7 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
       showName: matchedShow.show_name,
       clubName: matchedShow.club_name,
       showDate: matchedShow.show_date,
-      licenseKey: matchedShow.mobile_app_lic_key,
+      licenseKey: matchedShow.license_key,
       org: licenseData?.org || '', // Get org from license data view
       competition_type: licenseData?.competition_type || 'Regular',
       trials: trials || [],
@@ -116,9 +127,9 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
 export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData | null> {
   try {
     const { data: show, error: showError } = await supabase
-      .from('tbl_show_queue')
+      .from('shows')
       .select('*')
-      .eq('mobile_app_lic_key', licenseKey)
+      .eq('license_key', licenseKey)
       .single();
 
     if (showError || !show) {
@@ -126,26 +137,42 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       return null;
     }
 
-    // Get trials and classes
-    const [trialsResult, classesResult] = await Promise.all([
-      supabase
-        .from('tbl_trial_queue')
-        .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
-        .order('trial_date', { ascending: true }),
-      
-      supabase
-        .from('tbl_class_queue')
-        .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
-        .order('class_name', { ascending: true })
-    ]);
+    // Get trials for this show
+    const { data: trials, error: trialsError } = await supabase
+      .from('trials')
+      .select('*')
+      .eq('show_id', show.id)
+      .order('trial_date', { ascending: true });
 
-    // Get org and competition_type from view_unique_mobile_app_lic_key
+    if (trialsError) {
+      console.error('Error fetching trials:', trialsError);
+    }
+
+    // Get classes for all trials in this show
+    let classes = null;
+    let classesError = null;
+
+    if (trials && trials.length > 0) {
+      const trialIds = trials.map(trial => trial.id);
+      const classesResult = await supabase
+        .from('classes')
+        .select('*')
+        .in('trial_id', trialIds)
+        .order('class_order', { ascending: true });
+
+      classes = classesResult.data;
+      classesError = classesResult.error;
+
+      if (classesError) {
+        console.error('Error fetching classes:', classesError);
+      }
+    }
+
+    // Get org and competition_type from view_unique_license_key
     const { data: licenseData, error: licenseError } = await supabase
-      .from('view_unique_mobile_app_lic_key')
+      .from('view_unique_license_key')
       .select('org, competition_type')
-      .eq('mobile_app_lic_key', licenseKey)
+      .eq('license_key', licenseKey)
       .single();
 
     if (licenseError) {
@@ -157,11 +184,11 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       showName: show.show_name,
       clubName: show.club_name,
       showDate: show.show_date,
-      licenseKey: show.mobile_app_lic_key,
+      licenseKey: show.license_key,
       org: show.org || licenseData?.org || '', // Try show table first, then view
       competition_type: show.competition_type || licenseData?.competition_type || 'Regular',
-      trials: trialsResult.data || [],
-      classes: classesResult.data || []
+      trials: trials || [],
+      classes: classes || []
     };
 
   } catch (error) {
@@ -177,7 +204,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
     const { data: _data, error } = await supabase
-      .from('tbl_show_queue')
+      .from('shows')
       .select('count')
       .limit(1);
 

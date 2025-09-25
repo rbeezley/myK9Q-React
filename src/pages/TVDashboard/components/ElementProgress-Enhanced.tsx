@@ -52,11 +52,11 @@ export const ElementProgressEnhanced: React.FC<ElementProgressEnhancedProps> = (
       setProgressLoading(true);
       setProgressError(null);
 
-      // Use the same view as the working CurrentStatus panel
+      // Use the normalized view for element progress data
       const { data: viewData, error: viewError } = await supabase
-        .from('view_entry_class_join_distinct')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
         .order('element', { ascending: true });
 
       if (viewError) throw viewError;

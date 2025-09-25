@@ -609,14 +609,19 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     try {
       // First get class information including trial date
       const { data: classInfo, error: classError } = await supabase
-        .from('tbl_class_queue')
-        .select('trial_date, trial_number')
+        .from('classes')
+        .select(`
+          trials!inner (
+            trial_date,
+            trial_number
+          )
+        `)
         .eq('id', parseInt(classId))
         .single();
 
       if (classInfo && !classError) {
-        setTrialDate(classInfo.trial_date || '');
-        setTrialNumber(classInfo.trial_number || '');
+        setTrialDate(classInfo.trials?.trial_date || '');
+        setTrialNumber(classInfo.trials?.trial_number || '');
       }
 
       const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);

@@ -60,9 +60,9 @@ export const YesterdayHighlights: React.FC<YesterdayHighlightsProps> = ({ licens
       // For the demo, we'll use completed entries from the current trial
       // In production, you'd filter by yesterday's date
       const { data: entriesData, error: entriesError } = await supabase
-        .from('view_entry_class_join_distinct')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
         .eq('is_scored', true)
         .not('search_time', 'is', null)
         .order('search_time', { ascending: true })
@@ -96,11 +96,11 @@ export const YesterdayHighlights: React.FC<YesterdayHighlightsProps> = ({ licens
     try {
       if (isDebugMode) console.log('📊 Generating Day 1 preview data...');
 
-      // Get all entries for breed and geographic statistics
+      // Get all entries for breed and geographic statistics using normalized view
       const { data: entriesData, error: entriesError } = await supabase
-        .from('tbl_entry_queue')
-        .select('breed, handler_location, armband')
-        .eq('mobile_app_lic_key', licenseKey);
+        .from('view_entry_class_join_normalized')
+        .select('breed, armband, handler_location')
+        .eq('license_key', licenseKey);
 
       if (entriesError) {
         console.error('❌ Preview data error:', entriesError);
@@ -137,7 +137,7 @@ export const YesterdayHighlights: React.FC<YesterdayHighlightsProps> = ({ licens
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
-      // Calculate geographic diversity
+      // Calculate geographic diversity from handler_location
       const states = new Set(
         (entriesData || [])
           .map(entry => entry.handler_location)

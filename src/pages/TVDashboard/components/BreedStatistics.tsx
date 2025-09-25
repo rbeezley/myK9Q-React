@@ -56,9 +56,9 @@ export const BreedStatistics: React.FC<BreedStatisticsProps> = ({
 
       // Fetch all completed entries for breed analysis
       const { data: entriesData, error: entriesError } = await supabase
-        .from('view_entry_class_join_distinct')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', licenseKey)
+        .eq('license_key', licenseKey)
         .eq('is_scored', true)
         .not('breed', 'is', null)
         .not('breed', 'eq', '')

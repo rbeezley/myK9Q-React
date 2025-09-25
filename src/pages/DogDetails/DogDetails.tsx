@@ -4,12 +4,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { Button, HamburgerMenu, ArmbandBadge } from '../../components/ui';
+import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { 
-  ArrowLeft, 
-  RefreshCw, 
-  Trophy, 
-  Clock, 
+import {
+  ArrowLeft,
+  RefreshCw,
+  Trophy,
+  Clock,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -28,7 +29,7 @@ interface ClassEntry {
   result_text: string | null;
   is_scored: boolean;
   checked_in: boolean;
-  check_in_status?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate';
+  check_in_status?: CheckinStatus;
   position?: number;
   // Additional fields that might contain element/level/section info
   element?: string;
@@ -85,9 +86,9 @@ export const DogDetails: React.FC = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('view_entry_class_join_distinct')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', showContext?.licenseKey)
+        .eq('license_key', showContext?.licenseKey)
         .eq('armband', parseInt(armband!));
 
       if (error) {
@@ -161,7 +162,7 @@ export const DogDetails: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (classId: number, status: ClassEntry['check_in_status']) => {
+  const handleStatusChange = async (classId: number, status: CheckinStatus) => {
     try {
       hapticFeedback.impact('medium');
       
@@ -201,7 +202,7 @@ export const DogDetails: React.FC = () => {
 
       
       const { error } = await supabase
-        .from('tbl_entry_queue')
+        .from('entries')
         .update(updateData)
         .eq('id', classId);
 
@@ -396,19 +397,15 @@ export const DogDetails: React.FC = () => {
                 <div className="class-info">
                   <div className="class-meta">
                     <h4 className="class-name">
-                      {entry.class_name}
-                    </h4>
-                    <p className="class-type">
                       {[
-                        entry.class_type,
                         entry.element,
                         entry.level,
                         entry.section && entry.section !== '-' ? entry.section : null
                       ].filter(Boolean).join(' • ')}
-                    </p>
+                    </h4>
                     <p className="class-date">
-                      {entry.trial_date} • {entry.trial_name} 
-                      {entry.trial_number && ` • ${entry.trial_number}`}
+                      {entry.trial_date} • {entry.trial_name}
+                      {entry.trial_number && ` • Trial ${entry.trial_number}`}
                     </p>
                   </div>
                   
@@ -449,77 +446,25 @@ export const DogDetails: React.FC = () => {
         })}
       </div>
 
-      {/* Status Management Popup */}
-      {activePopup !== null && (
-        <div className="status-popup-overlay" onClick={() => {
+      {/* Status Management Dialog */}
+      <CheckinStatusDialog
+        isOpen={activePopup !== null}
+        onClose={() => {
           setActivePopup(null);
           setPopupPosition(null);
-        }}>
-          <div className="status-popup">
-            <div className="popup-header">
-              <h3 className="popup-title">Check-in Status</h3>
-            </div>
-            <div className="popup-options">
-              <button
-                className="popup-option none"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStatusChange(activePopup, 'none');
-                }}
-              >
-                <span className="popup-icon">⚪</span>
-                Not Checked In
-              </button>
-                  
-              <button
-                className="popup-option checked-in"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStatusChange(activePopup, 'checked-in');
-                }}
-              >
-                <CheckCircle className="popup-icon" />
-                Check-in
-              </button>
-                  
-              <button
-                className="popup-option conflict"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStatusChange(activePopup, 'conflict');
-                }}
-              >
-                <AlertTriangle className="popup-icon" />
-                Conflict
-              </button>
-                  
-              <button
-                className="popup-option pulled"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStatusChange(activePopup, 'pulled');
-                }}
-              >
-                <XCircle className="popup-icon" />
-                Pulled
-              </button>
-              
-              {hasPermission('canAccessScoresheet') && (
-                <button
-                  className="popup-option at-gate"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleStatusChange(activePopup, 'at-gate');
-                  }}
-                >
-                  <CircleDot className="popup-icon" />
-                  At Gate
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        }}
+        onStatusChange={(status) => {
+          if (activePopup !== null) {
+            handleStatusChange(activePopup, status);
+          }
+        }}
+        dogInfo={{
+          armband: dogInfo?.armband || 0,
+          callName: dogInfo?.call_name || '',
+          handler: dogInfo?.handler || ''
+        }}
+        showDescriptions={true}
+      />
 
     </div>
   );

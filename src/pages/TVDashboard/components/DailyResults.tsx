@@ -26,14 +26,36 @@ export const DailyResults: React.FC<DailyResultsProps> = ({ licenseKey }) => {
   const fetchTrialData = async () => {
     try {
       setLoading(true);
+
+      // First get the show by license key
+      const { data: showData, error: showError } = await supabase
+        .from('shows')
+        .select('id')
+        .eq('license_key', licenseKey)
+        .single();
+
+      if (showError) throw showError;
+
+      // Then get trials for this show
       const { data, error } = await supabase
-        .from('tbl_trial_queue')
-        .select('trial_date, trial_number, class_total_count, entry_total_count, class_completed_count, entry_completed_count')
-        .eq('mobile_app_lic_key', licenseKey)
+        .from('trials')
+        .select('trial_date, trial_number, total_class_count, total_entry_count, completed_class_count, completed_entry_count')
+        .eq('show_id', showData.id)
         .order('trial_date', { ascending: true });
 
       if (error) throw error;
-      setTrials(data || []);
+
+      // Map the field names to match the interface
+      const mappedData = data?.map(trial => ({
+        trial_date: trial.trial_date,
+        trial_number: trial.trial_number,
+        class_total_count: trial.total_class_count,
+        entry_total_count: trial.total_entry_count,
+        class_completed_count: trial.completed_class_count,
+        entry_completed_count: trial.completed_entry_count
+      })) || [];
+
+      setTrials(mappedData);
       setError(null);
     } catch (err) {
       console.error('Error fetching trial data:', err);

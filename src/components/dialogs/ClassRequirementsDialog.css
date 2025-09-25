@@ -217,12 +217,12 @@
 .no-data-state h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #374151;
+  color: #111827;
   margin: 0;
 }
 
 .no-data-state p {
-  color: #6b7280;
+  color: #4b5563;
   margin: 0;
   max-width: 300px;
 }
@@ -325,7 +325,11 @@
   }
 
   .dialog-title {
-    color: #f9fafb;
+    color: #f9fafb !important;
+  }
+
+  .title-icon {
+    color: #6366f1 !important;
   }
 
   .close-button {
@@ -372,10 +376,14 @@
   }
 
   .no-data-state h3 {
-    color: #f3f4f6;
+    color: #f3f4f6 !important;
   }
 
   .no-data-state p {
-    color: #9ca3af;
+    color: #d1d5db !important;
+  }
+
+  .no-data-icon {
+    color: #9ca3af !important;
   }
 }

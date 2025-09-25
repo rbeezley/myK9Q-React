@@ -75,7 +75,7 @@
 ## 📐 PostgreSQL Naming Conventions (Industry Standard)
 
 ### **Tables**: `snake_case`, plural nouns
-- ✅ `dog_shows`, `trial_events`, `class_entries`
+- ✅ `shows`, `trials`, `entries`
 - ❌ `DogShows`, `trialEvents`, `tbl_show`
 
 ### **Columns**: `snake_case`, descriptive names
@@ -99,9 +99,9 @@
 - ❌ `createdate`, `lastupdate`, `timestamp`
 
 #### Core Tables (Standard Naming)
-- [ ] **dog_shows** table
+- [ ] **shows** table
   ```sql
-  dog_shows (
+  shows (
     id BIGSERIAL PRIMARY KEY,
     license_key VARCHAR NOT NULL UNIQUE,
     show_name TEXT NOT NULL,
@@ -115,11 +115,11 @@
   )
   ```
 
-- [ ] **trial_events** table
+- [ ] **trials** table
   ```sql
-  trial_events (
+  trials (
     id BIGSERIAL PRIMARY KEY,
-    dog_show_id BIGINT REFERENCES dog_shows(id) ON DELETE CASCADE,
+    dog_show_id BIGINT REFERENCES shows(id) ON DELETE CASCADE,
     trial_name TEXT,
     trial_date DATE NOT NULL,
     trial_number INTEGER NOT NULL,
@@ -130,11 +130,11 @@
   )
   ```
 
-- [ ] **competition_classes** table
+- [ ] **classes** table
   ```sql
-  competition_classes (
+  classes (
     id BIGSERIAL PRIMARY KEY,
-    trial_event_id BIGINT REFERENCES trial_events(id) ON DELETE CASCADE,
+    trial_event_id BIGINT REFERENCES trials(id) ON DELETE CASCADE,
     element TEXT NOT NULL,
     level TEXT NOT NULL,
     section TEXT DEFAULT '',
@@ -154,11 +154,11 @@
   )
   ```
 
-- [ ] **class_entries** table
+- [ ] **entries** table
   ```sql
-  class_entries (
+  entries (
     id BIGSERIAL PRIMARY KEY,
-    competition_class_id BIGINT REFERENCES competition_classes(id) ON DELETE CASCADE,
+    competition_class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,
     armband_number INTEGER NOT NULL,
     handler_name TEXT NOT NULL,
     dog_call_name TEXT NOT NULL,
@@ -174,11 +174,11 @@
   )
   ```
 
-- [ ] **entry_results** table
+- [ ] **results** table
   ```sql
-  entry_results (
+  results (
     id BIGSERIAL PRIMARY KEY,
-    class_entry_id BIGINT REFERENCES class_entries(id) ON DELETE CASCADE,
+    class_entry_id BIGINT REFERENCES entries(id) ON DELETE CASCADE,
 
     -- Status fields
     is_in_ring BOOLEAN DEFAULT FALSE,
@@ -233,11 +233,11 @@
 
 ### **🎯 Phase 2 Results - Normalized Schema Created**
 ✅ **6 Normalized Tables Created**:
-1. `dog_shows` - Central show information with proper licensing
-2. `trial_events` - Individual trials within shows
-3. `competition_classes` - Classes within trials (element + level)
-4. `class_entries` - Dog/handler entries in classes
-5. `entry_results` - Scoring and results data (separated for normalization)
+1. `shows` - Central show information with proper licensing
+2. `trials` - Individual trials within shows
+3. `classes` - Classes within trials (element + level)
+4. `entries` - Dog/handler entries in classes
+5. `results` - Scoring and results data (separated for normalization)
 6. `access_sync_logs` - Audit trail for Access database synchronization
 
 ✅ **PostgreSQL Best Practices Applied**:
@@ -277,7 +277,7 @@
 
 ### Migration Scripts ✅
 - [x] **26 Migration Scripts Applied** (001-026)
-- [x] Create normalized schema: `dog_shows`, `trial_events`, `competition_classes`, `class_entries`, `entry_results`, `access_sync_logs`
+- [x] Create normalized schema: `shows`, `trials`, `classes`, `entries`, `results`, `access_sync_logs`
 - [x] Add indexes, constraints, and RLS policies
 - [x] Create bidirectional sync functions and triggers
 - [x] Fix constraint violations (result_status, class_status, area_count)
@@ -287,10 +287,10 @@
 
 #### ✅ Forward Sync (Access Upload → Normalized Tables)
 ```sql
--- Triggers: tbl_show_queue → dog_shows
--- Triggers: tbl_trial_queue → trial_events
--- Triggers: tbl_class_queue → competition_classes
--- Triggers: tbl_entry_queue → class_entries + entry_results
+-- Triggers: tbl_show_queue → shows
+-- Triggers: tbl_trial_queue → trials
+-- Triggers: tbl_class_queue → classes
+-- Triggers: tbl_entry_queue → entries + results
 ```
 
 **Status**: **🟢 FULLY WORKING**
@@ -302,8 +302,8 @@
 #### ✅ Reverse Sync (React Scoring → Access Download)
 ```sql
 -- Function: sync_normalized_to_legacy()
--- Triggers: entry_results → tbl_entry_queue
--- Triggers: class_entries → tbl_entry_queue
+-- Triggers: results → tbl_entry_queue
+-- Triggers: entries → tbl_entry_queue
 -- Maps: judge_notes → note, scoring status → handler_state
 ```
 

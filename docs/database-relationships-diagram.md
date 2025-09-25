@@ -4,13 +4,13 @@
 
 ```mermaid
 erDiagram
-    dog_shows ||--o{ trial_events : "contains"
-    trial_events ||--o{ competition_classes : "has"
-    competition_classes ||--o{ class_entries : "includes"
-    class_entries ||--o{ entry_results : "produces"
-    dog_shows ||--o{ access_sync_logs : "tracks"
+    shows ||--o{ trials : "contains"
+    trials ||--o{ classes : "has"
+    classes ||--o{ entries : "includes"
+    entries ||--o{ results : "produces"
+    shows ||--o{ access_sync_logs : "tracks"
 
-    dog_shows {
+    shows {
         text license_key PK "Trial identifier"
         text show_name "Show name"
         date start_date "Start date"
@@ -22,9 +22,9 @@ erDiagram
         timestamp updated_at "Last modified"
     }
 
-    trial_events {
+    trials {
         uuid id PK "Unique identifier"
-        text license_key FK "Links to dog_shows"
+        text license_key FK "Links to shows"
         integer trial_number "Trial sequence (1,2,3...)"
         date trial_date "Date of trial"
         text judge_name "Assigned judge"
@@ -33,9 +33,9 @@ erDiagram
         timestamp updated_at "Last modified"
     }
 
-    competition_classes {
+    classes {
         uuid id PK "Unique identifier"
-        uuid trial_event_id FK "Links to trial_events"
+        uuid trial_id FK "Links to trials"
         text element "Search element (Interior, Exterior, etc.)"
         text level "Skill level (Novice, Advanced, etc.)"
         text section "Class section (A, B, etc.)"
@@ -45,9 +45,9 @@ erDiagram
         timestamp updated_at "Last modified"
     }
 
-    class_entries {
+    entries {
         uuid id PK "Unique identifier"
-        uuid competition_class_id FK "Links to competition_classes"
+        uuid class_id FK "Links to classes"
         text license_key "Trial identifier"
         integer entry_id "Entry number"
         text dog_name "Dog's name"
@@ -60,9 +60,9 @@ erDiagram
         timestamp updated_at "Last modified"
     }
 
-    entry_results {
+    results {
         uuid id PK "Unique identifier"
-        uuid class_entry_id FK "Links to class_entries"
+        uuid entry_id FK "Links to entries"
         decimal search_time "Time in seconds"
         integer score "Points earned"
         text placement "Final placement"
@@ -74,7 +74,7 @@ erDiagram
 
     access_sync_logs {
         uuid id PK "Unique identifier"
-        text license_key FK "Links to dog_shows"
+        text license_key FK "Links to shows"
         text table_name "Synced table"
         text operation "Sync operation"
         integer records_affected "Count of records"
@@ -86,24 +86,24 @@ erDiagram
 
 ## Table Relationships Explained
 
-### 1. **dog_shows** (Root Entity)
+### 1. **shows** (Root Entity)
 - **Primary Key**: `license_key` (text)
 - **Purpose**: Main container for each dog show event
 - **Relationships**:
   - One show can have multiple trial events
   - Tracks sync operations via access_sync_logs
 
-### 2. **trial_events** (Event Container)
+### 2. **trials** (Event Container)
 - **Primary Key**: `id` (uuid)
-- **Foreign Key**: `license_key` → dog_shows
+- **Foreign Key**: `license_key` → shows
 - **Purpose**: Individual trial sessions within a show
 - **Relationships**:
   - Each trial belongs to one show
   - Each trial can have multiple competition classes
 
-### 3. **competition_classes** (Class Definition)
+### 3. **classes** (Class Definition)
 - **Primary Key**: `id` (uuid)
-- **Foreign Key**: `trial_event_id` → trial_events
+- **Foreign Key**: `trial_event_id` → trials
 - **Purpose**: Specific competition categories (element + level + section)
 - **Key Feature**: **Section Merging Logic**
   - Novice A & B sections are merged in UI for unified scoring
@@ -112,9 +112,9 @@ erDiagram
   - Each class belongs to one trial event
   - Each class can have multiple entries
 
-### 4. **class_entries** (Participant Records)
+### 4. **entries** (Participant Records)
 - **Primary Key**: `id` (uuid)
-- **Foreign Key**: `competition_class_id` → competition_classes
+- **Foreign Key**: `competition_class_id` → classes
 - **Purpose**: Individual dog/handler combinations in each class
 - **Key Fields**:
   - `section`: Preserved for placement calculations (A/B)
@@ -123,9 +123,9 @@ erDiagram
   - Each entry belongs to one competition class
   - Each entry can have multiple results (retries/re-runs)
 
-### 5. **entry_results** (Scoring Data)
+### 5. **results** (Scoring Data)
 - **Primary Key**: `id` (uuid)
-- **Foreign Key**: `class_entry_id` → class_entries
+- **Foreign Key**: `class_entry_id` → entries
 - **Purpose**: Actual performance results and scores
 - **Key Fields**:
   - `search_time`: Performance time in seconds
@@ -137,7 +137,7 @@ erDiagram
 
 ### 6. **access_sync_logs** (Audit Trail)
 - **Primary Key**: `id` (uuid)
-- **Foreign Key**: `license_key` → dog_shows
+- **Foreign Key**: `license_key` → shows
 - **Purpose**: Track synchronization between Access and Supabase
 - **Relationships**:
   - Links to shows for audit purposes
@@ -155,13 +155,13 @@ tbl_entry_queue: All entries in single table
 
 ### Normalized Structure (Relational)
 ```
-dog_shows
-└── trial_events
-    └── competition_classes
+shows
+└── trials
+    └── classes
         ├── Novice A class (section = 'A')
         ├── Novice B class (section = 'B')
-        └── class_entries (preserves original section)
-            └── entry_results (placement within section)
+        └── entries (preserves original section)
+            └── results (placement within section)
 ```
 
 ### UI Merging Logic

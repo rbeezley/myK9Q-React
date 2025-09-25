@@ -567,20 +567,33 @@
 
 .class-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.25rem;
   margin-bottom: 0.5rem;
   /* Ensure header elements stay in their positions */
   flex-shrink: 0;
   width: 100%;
-  gap: 0.5rem;
-  /* Allow wrapping on very small screens */
-  flex-wrap: wrap;
+}
+
+/* Two-row header layout */
+.class-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+
+.class-actions-row {
+  /* Second row: Judge + Actions */
+  align-items: center;
 }
 
 @media (min-width: 640px) {
-  .class-header {
-    flex-wrap: nowrap; /* Prevent wrapping on larger screens */
+  .class-header-row {
+    /* Maintain consistent row layout on larger screens */
+    gap: 1rem;
   }
 }
 
@@ -639,6 +652,9 @@
   pointer-events: auto; /* Ensure child buttons are clickable */
   z-index: 5; /* Raise above other content */
   position: relative;
+  /* Status badge first, then heart, then menu */
+  align-items: flex-start;
+  order: 2; /* Place actions after class details */
 }
 
 
@@ -729,12 +745,25 @@
 }
 
 .contextual-preview {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem; /* Reduced padding for more compact design */
   background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, rgba(0, 122, 255, 0.01) 100%);
   border: 1px solid rgba(0, 122, 255, 0.08);
-  border-radius: 0.75rem;
-  font-size: 0.8125rem;
-  line-height: 1.4;
+  border-radius: 0.5rem; /* Smaller border radius */
+  font-size: 0.75rem; /* Slightly smaller text */
+  line-height: 1.3;
+}
+
+/* Condensed single-line preview for better space utilization */
+.contextual-preview-condensed {
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, rgba(0, 122, 255, 0.01) 100%);
+  border: 1px solid rgba(0, 122, 255, 0.08);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
 }
 
 [data-theme="dark"] .contextual-preview {
@@ -1577,61 +1606,63 @@
   .class-list-header {
     padding: 0.5rem 0.75rem;
   }
-  
+
   .header-center h1 {
     font-size: 1rem;
   }
-  
+
   .trial-info-section {
     padding: 0.5rem 0.75rem;
   }
-  
+
   .trial-info-card {
     padding: 0.625rem 0.75rem;
   }
-  
+
   .status-tabs,
   .dog-status-filter {
     margin: 0 0.75rem 0.75rem;
   }
-  
+
   .class-list {
     padding: 0 0.75rem 1rem;
   }
-  
+
   .class-card {
     margin-bottom: 0.625rem;
   }
-  
+
   .class-content {
     padding: 0.625rem;
   }
-  
+
   .hamburger-menu {
     width: 240px;
   }
-  
+
   /* Compact class header on extra small screens */
   .class-header {
     gap: 0.375rem;
   }
-  
+
   .class-actions {
     gap: 0.25rem;
   }
-  
-  /* Smaller status badge on tiny screens */
-  .status-badge {
-    padding: 0.125rem 0.375rem;
-    font-size: 0.5625rem;
+
+  /* Smaller status badge on tiny screens - override specific class styling */
+  .class-header .status-badge.class-status-badge.mobile-touch-target {
+    padding: 0.125rem 0.375rem !important;
+    font-size: 0.5625rem !important;
+    min-height: 20px !important;
+    max-height: 20px !important;
   }
-  
+
   .menu-button {
     min-width: 24px;
     min-height: 24px;
     padding: 0.25rem;
   }
-  
+
   .favorite-button {
     min-width: 28px;
     min-height: 28px;
@@ -1707,16 +1738,16 @@
 
 @media (min-width: 640px) {
   /* Tablets */
-  
+
   .trial-info-section {
     padding: 1rem 0;
   }
-  
+
   .status-tabs,
   .dog-status-filter {
     margin: 0 0 1rem;
   }
-  
+
   .class-list {
     padding: 0 0 2rem;
     display: grid;
@@ -1726,6 +1757,14 @@
 
   .class-card {
     margin-bottom: 0;
+  }
+
+  /* Ensure status badge maintains consistent sizing on tablets */
+  .class-header .status-badge.class-status-badge.mobile-touch-target {
+    font-size: 0.6875rem !important;
+    padding: 0.25rem 0.5rem !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
   }
   
   /* 5-column grid for tablets - REDUCED to 4 columns to prevent card overflow */
@@ -1749,12 +1788,12 @@
   .trial-info-section {
     padding: 1.25rem 0;
   }
-  
+
   .status-tabs,
   .dog-status-filter {
     margin: 0 0 1.5rem;
   }
-  
+
   .class-list {
     padding: 0 0 2rem;
     display: grid;
@@ -1765,6 +1804,21 @@
   .class-card {
     margin-bottom: 0;
   }
+
+  /* Desktop status badge - slightly more compact but still comfortable */
+  .class-header .status-badge.class-status-badge.mobile-touch-target {
+    font-size: 0.625rem !important;
+    padding: 0.25rem 0.5rem !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+  }
+
+  /* Desktop hover enhancement */
+  .class-header .status-badge.class-status-badge.mobile-touch-target:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+}
   
   /* 5-column grid for desktop - REDUCED to prevent card overflow */
   .dog-list {
@@ -2318,14 +2372,101 @@
 /* Status Footer Layout - Bottom Left Corner */
 /* ========================================== */
 
+/* Status moved to header - footer no longer needed for status */
 .class-status-footer {
+  display: none !important; /* Hide footer since status moved to header */
+}
+
+/* Remove any remaining footer spacing to reclaim vertical space */
+.class-actions-bar {
+  display: none !important; /* Remove footer actions bar */
+}
+
+/* Ensure no footer padding/margin affects card height */
+.class-card .class-content {
+  padding-bottom: 0.75rem; /* Consistent bottom padding */
+}
+
+/* Class status badge styling to match Entry List pattern exactly */
+.class-header .status-badge.class-status-badge.mobile-touch-target {
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.375rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Hover effect matching Entry List */
+.class-header .status-badge.class-status-badge.mobile-touch-target:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Active/click effect */
+.class-header .status-badge.class-status-badge.mobile-touch-target:active {
+  transform: scale(0.98) !important;
+  transition: transform 0.1s ease-out !important;
+}
+
+/* Remove the old generic styling */
+.class-header .status-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  min-height: 28px;
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  padding: 12px 16px;
-  margin-top: 8px;
-  border-top: 1px solid var(--border);
-  background: var(--card);
+  justify-content: center;
+  margin-left: auto;
+  margin-right: 0;
+  /* Remove order: -1 to allow natural flex order (status badge on right) */
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Status badge colors in header */
+.class-header .status-badge.not-started {
+  background: var(--status-not-checked-in);
+  color: white;
+}
+
+.class-header .status-badge.in-progress {
+  background: var(--status-in-ring);
+  color: white;
+}
+
+.class-header .status-badge.completed {
+  background: var(--status-done);
+  color: white;
+}
+
+.class-header .status-badge.paused {
+  background: var(--status-conflict);
+  color: white;
+}
+
+.class-header .status-badge.cancelled {
+  background: var(--status-pulled);
+  color: white;
 }
 
 .class-status-footer .status-container {

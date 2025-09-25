@@ -42,7 +42,7 @@ export const DatabaseTest: React.FC = () => {
 
       // Fetch sample show data
       const { data: shows, error: showError } = await supabase
-        .from('tbl_show_queue')
+        .from('shows')
         .select('*')
         .limit(5);
 
@@ -57,7 +57,7 @@ export const DatabaseTest: React.FC = () => {
       // Generate sample passcodes from the first show
       if (shows && shows.length > 0) {
         const firstShow = shows[0];
-        const passcodes = generatePasscodesFromLicenseKey(firstShow.mobile_app_lic_key);
+        const passcodes = generatePasscodesFromLicenseKey(firstShow.license_key);
         if (passcodes) {
           setSamplePasscodes([
             `Admin: ${passcodes.admin}`,
@@ -92,7 +92,7 @@ export const DatabaseTest: React.FC = () => {
       {connectionStatus === 'connected' && (
         <div>
           <p style={{ color: 'green' }}>✅ Database connected successfully!</p>
-          <p>Found {showData.length} show(s) in tbl_show_queue</p>
+          <p>Found {showData.length} show(s) in shows table</p>
           
           {showData.length > 0 && (
             <div style={{ marginTop: '1rem' }}>
@@ -108,7 +108,7 @@ export const DatabaseTest: React.FC = () => {
                   <div><strong>Show:</strong> {show.show_name}</div>
                   <div><strong>Club:</strong> {show.club_name}</div>
                   <div><strong>Date:</strong> {show.show_date}</div>
-                  <div><strong>License:</strong> {show.mobile_app_lic_key}</div>
+                  <div><strong>License:</strong> {show.license_key}</div>
                 </div>
               ))}
             </div>
@@ -147,7 +147,7 @@ export const DatabaseTest: React.FC = () => {
             }}>
               <strong>No Show Data Found</strong>
               <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-                The database connection is working, but there are no shows in the tbl_show_queue table. 
+                The database connection is working, but there are no shows in the shows table. 
                 You need to add some test data to be able to login.
               </p>
             </div>

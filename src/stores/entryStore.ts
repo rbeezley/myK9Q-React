@@ -27,8 +27,10 @@ export interface Entry {
   timeLimit3?: string;
   areas?: number;
   exhibitorOrder?: number;
-  actualClassId?: number; // The real classid from tbl_class_queue.classid field for real-time subscriptions
+  actualClassId?: number; // The real class ID for real-time subscriptions
   competitionType?: string; // Competition type for nationals detection
+  trialDate?: string; // Trial date from view
+  trialNumber?: string | number; // Trial number from view
 }
 
 interface EntryFilters {

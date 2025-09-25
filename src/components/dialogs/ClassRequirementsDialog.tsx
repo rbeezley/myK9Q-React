@@ -20,32 +20,21 @@ interface ClassRequirementsDialogProps {
   };
 }
 
-interface AKCRequirements {
-  akc_class_requirements_id: number;
+interface ClassRequirements {
+  id: number;
+  organization: string;
   element: string;
   level: string;
   hides: string;
   distractions: string;
   height: string;
-  required_calls: string;
   area_count: number;
   time_limit_text: string;
-  containers: string;
   area_size: string;
-}
-
-interface UKCRequirements {
-  ukc_class_requirements_id: number;
-  element: string;
-  level: string;
-  items: string;
-  hides: string;
-  distractions: string;
-  time_limit_text: string;
-  height: string;
-  area_count: number;
-  final_response: string;
-  area_size: string;
+  // Organization-specific fields
+  required_calls?: string;    // AKC
+  final_response?: string;    // UKC
+  containers_items?: string;  // Unified: AKC containers / UKC items
 }
 
 export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = ({
@@ -55,7 +44,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
   classData
 }) => {
   const { showContext } = useAuth();
-  const [requirements, setRequirements] = useState<AKCRequirements | UKCRequirements | null>(null);
+  const [requirements, setRequirements] = useState<ClassRequirements | null>(null);
   const [loading, setLoading] = useState(false);
   const [organization, setOrganization] = useState<'AKC' | 'UKC' | null>(null);
 
@@ -78,9 +67,9 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
       // First, get the organization from the show data
       const { data: showData, error: showError } = await supabase
-        .from('tbl_show_queue')
-        .select('org')
-        .eq('mobile_app_lic_key', showContext.licenseKey)
+        .from('shows')
+        .select('organization')
+        .eq('license_key', showContext.licenseKey)
         .single();
 
       if (showError || !showData) {
@@ -88,7 +77,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
         return;
       }
 
-      const org = showData.org;
+      const org = showData.organization;
       console.log('📋 Organization:', org);
       const isAKC = org.includes('AKC');
       const isUKC = org.includes('UKC');
@@ -96,32 +85,21 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
       setOrganization(isAKC ? 'AKC' : isUKC ? 'UKC' : null);
 
-      // Query the appropriate requirements table
+      // Query the unified requirements table
+      const orgType = isAKC ? 'AKC' : isUKC ? 'UKC' : null;
       let requirementsData = null;
 
-      if (isAKC) {
-        console.log('🔎 Querying AKC requirements with:', { element: classData.element, level: classData.level });
+      if (orgType) {
+        console.log('🔎 Querying requirements with:', { organization: orgType, element: classData.element, level: classData.level });
         const { data, error } = await supabase
-          .from('tbl_akc_class_requirements')
+          .from('class_requirements')
           .select('*')
+          .eq('organization', orgType)
           .eq('element', classData.element)
           .eq('level', classData.level)
           .single();
 
-        console.log('📊 AKC Query Result:', { data, error });
-        if (!error && data) {
-          requirementsData = data;
-        }
-      } else if (isUKC) {
-        console.log('🔎 Querying UKC requirements with:', { element: classData.element, level: classData.level });
-        const { data, error } = await supabase
-          .from('tbl_ukc_class_requirements')
-          .select('*')
-          .eq('element', classData.element)
-          .eq('level', classData.level)
-          .single();
-
-        console.log('📊 UKC Query Result:', { data, error });
+        console.log('📊 Query Result:', { data, error });
         if (!error && data) {
           requirementsData = data;
         }
@@ -142,7 +120,15 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
     const area2Time = classData.time_limit2;
     const area3Time = classData.time_limit3;
 
-    const setTimes = [area1Time, area2Time, area3Time].filter(time => time && time !== '00:00');
+    const setTimes = [area1Time, area2Time, area3Time].filter(time => {
+      if (!time || typeof time !== 'string') return false;
+      const trimmed = time.trim();
+      return trimmed !== '' &&
+             trimmed !== '00:00' &&
+             trimmed !== '00:00:00' &&
+             trimmed !== ':' &&
+             !trimmed.startsWith("'00:00'");
+    });
 
     if (setTimes.length > 0) {
       // Show judge-set times
@@ -154,7 +140,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
     }
 
     // Fall back to requirements text
-    if (requirements && 'time_limit_text' in requirements) {
+    if (requirements && requirements.time_limit_text) {
       return `${requirements.time_limit_text} (range allowed)`;
     }
 
@@ -243,12 +229,12 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                   </div>
                   <div className="requirement-content">
                     <label>
-                      {'required_calls' in requirements ? 'Required Calls' : 'Final Response'}
+                      {requirements.organization === 'AKC' ? 'Required Calls' : 'Final Response'}
                     </label>
                     <div className="requirement-value">
-                      {'required_calls' in requirements
-                        ? requirements.required_calls
-                        : (requirements as UKCRequirements).final_response}
+                      {requirements.organization === 'AKC'
+                        ? requirements.required_calls || '-'
+                        : requirements.final_response || '-'}
                     </div>
                   </div>
                 </div>
@@ -277,9 +263,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                     <div className="requirement-content">
                       <label>Arrangement</label>
                       <div className="requirement-value">
-                        {'containers' in requirements
-                          ? requirements.containers || '-'
-                          : (requirements as UKCRequirements).items || '-'}
+                        {requirements.containers_items || '-'}
                       </div>
                     </div>
                   </div>

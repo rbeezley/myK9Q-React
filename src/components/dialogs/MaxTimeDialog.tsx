@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Clock, Save, AlertCircle, Plus, Minus, CheckCircle } from 'lucide-react';
+import { X, Clock, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import './MaxTimeDialog.css';
@@ -86,9 +86,9 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
       // Get organization type
       const { data: showData, error: showError } = await supabase
-        .from('tbl_show_queue')
+        .from('shows')
         .select('org')
-        .eq('mobile_app_lic_key', showContext.licenseKey)
+        .eq('license_key', showContext.licenseKey)
         .single();
 
       if (showError || !showData) {
@@ -99,24 +99,16 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
       const isAKC = showData.org.includes('AKC');
       const isUKC = showData.org.includes('UKC');
 
-      // Query the appropriate requirements table for time range
+      // Query the unified requirements table for time range
       let requirementsData = null;
 
-      if (isAKC) {
-        const { data, error } = await supabase
-          .from('tbl_akc_class_requirements')
-          .select('*')
-          .eq('element', classData.element)
-          .eq('level', classData.level)
-          .single();
+      const org = isAKC ? 'AKC' : isUKC ? 'UKC' : null;
 
-        if (!error && data) {
-          requirementsData = data;
-        }
-      } else if (isUKC) {
+      if (org) {
         const { data, error } = await supabase
-          .from('tbl_ukc_class_requirements')
+          .from('class_requirements')
           .select('*')
+          .eq('org', org)
           .eq('element', classData.element)
           .eq('level', classData.level)
           .single();
@@ -235,7 +227,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
     }
   };
 
-  const validateTime = (timeStr: string, areaIndex: number): string => {
+  const validateTime = (timeStr: string, _areaIndex: number): string => {
     if (!timeRange || !timeStr) return '';
 
     const timeMinutes = convertToMinutes(timeStr);
@@ -447,7 +439,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
       };
 
       const { error } = await supabase
-        .from('tbl_class_queue')
+        .from('classes')
         .update(updateData)
         .eq('id', classData.id);
 

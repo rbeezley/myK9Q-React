@@ -11,8 +11,7 @@ import { supabase } from '../../lib/supabase';
 import { HamburgerMenu } from '../../components/ui';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SuccessDialog } from './SuccessDialog';
-import { DatabaseSyncService, SyncProgress } from '../../api/syncService';
-import { RefreshCw, Settings, CheckCircle, XCircle, Clock, User, Zap, Database, Loader, UserCheck, UserX } from 'lucide-react';
+import { RefreshCw, Settings, CheckCircle, XCircle, Clock, User, Zap, Loader, UserCheck, UserX } from 'lucide-react';
 import './CompetitionAdmin.css';
 
 // Release mode enum type
@@ -45,10 +44,6 @@ export const CompetitionAdmin: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<Set<number>>(new Set());
 
-  // Sync states
-  const [syncInProgress, setSyncInProgress] = useState(false);
-  const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
-  const [showSyncDialog, setShowSyncDialog] = useState(false);
 
   // Dialog states
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -56,7 +51,7 @@ export const CompetitionAdmin: React.FC = () => {
     title: string;
     message: string;
     type: 'success' | 'warning' | 'danger';
-    action: 'release' | 'embargo' | 'auto' | 'immediate' | 'sync' | 'enable_checkin' | 'disable_checkin' | null;
+    action: 'release' | 'embargo' | 'auto' | 'immediate' | 'enable_checkin' | 'disable_checkin' | null;
     details: string[];
   }>({
     isOpen: false,
@@ -86,26 +81,29 @@ export const CompetitionAdmin: React.FC = () => {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('tbl_class_queue')
+        .from('classes')
         .select(`
           id,
           element,
           level,
           section,
           judge_name,
-          trial_date,
-          trial_number,
-          release_mode,
-          class_completed,
-          results_released_at,
-          results_released_by,
-          class_completed_at,
-          self_checkin,
-          auto_release_results,
-          results_released
+          class_order,
+          self_checkin_enabled,
+          is_completed,
+          trials!inner (
+            id,
+            trial_name,
+            trial_date,
+            shows!inner (
+              id,
+              show_name,
+              license_key
+            )
+          )
         `)
-        .eq('mobile_app_lic_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
-        .order('trial_date', { ascending: true })
+        .eq('trials.shows.license_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
+        .order('trials.trial_date', { ascending: true })
         .order('element', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -168,9 +166,9 @@ export const CompetitionAdmin: React.FC = () => {
 
       const updates = Array.from(selectedClasses).map(classId =>
         supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .update({
-            release_mode: 'released',
+            // release_mode: 'released', // This field may not exist in normalized schema
             results_released_by: adminName.trim()
           })
           .eq('id', classId)
@@ -243,9 +241,9 @@ export const CompetitionAdmin: React.FC = () => {
 
       const updates = Array.from(selectedClasses).map(classId =>
         supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .update({
-            release_mode: 'auto',
+            // release_mode: 'auto', // This field may not exist in normalized schema
             results_released_by: adminName.trim()
           })
           .eq('id', classId)
@@ -318,9 +316,9 @@ export const CompetitionAdmin: React.FC = () => {
 
       const updates = Array.from(selectedClasses).map(classId =>
         supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .update({
-            release_mode: 'immediate',
+            // release_mode: 'immediate', // This field may not exist in normalized schema
             results_released_by: adminName.trim()
           })
           .eq('id', classId)
@@ -393,9 +391,9 @@ export const CompetitionAdmin: React.FC = () => {
 
       const updates = Array.from(selectedClasses).map(classId =>
         supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .update({
-            release_mode: 'hidden',
+            // release_mode: 'hidden', // This field may not exist in normalized schema
             results_released_by: adminName.trim()
           })
           .eq('id', classId)
@@ -516,8 +514,6 @@ export const CompetitionAdmin: React.FC = () => {
       setAutoRelease();
     } else if (confirmDialog.action === 'immediate') {
       setImmediateRelease();
-    } else if (confirmDialog.action === 'sync') {
-      executeSync();
     } else if (confirmDialog.action === 'enable_checkin') {
       enableSelfCheckin();
     } else if (confirmDialog.action === 'disable_checkin') {
@@ -535,128 +531,6 @@ export const CompetitionAdmin: React.FC = () => {
     setSuccessDialog(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Show sync confirmation dialog
-  const showSyncConfirmation = () => {
-    if (!adminName.trim()) {
-      setSuccessDialog({
-        isOpen: true,
-        title: 'Administrator Name Required',
-        message: 'Please enter your name for the audit trail before proceeding with database sync.',
-        details: []
-      });
-      return;
-    }
-
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Database Sync',
-      message: 'Are you sure you want to sync legacy data to normalized tables? This will update the database structure and may take a few moments.',
-      type: 'warning',
-      action: 'sync',
-      details: [
-        'Syncs shows from tbl_show_queue to dog_shows',
-        'Syncs trials from tbl_trial_queue to trial_events',
-        'Syncs classes from tbl_class_queue to competition_classes',
-        'Syncs entries from tbl_entry_queue to class_entries',
-        'Creates entry results from scoring data'
-      ]
-    });
-  };
-
-  // Execute database sync
-  const executeSync = async () => {
-    try {
-      setSyncInProgress(true);
-      setShowSyncDialog(true);
-      setSyncProgress({
-        step: 'Starting sync',
-        completed: 0,
-        total: 1,
-        status: 'running',
-        message: 'Initializing database sync...'
-      });
-
-      const result = await DatabaseSyncService.executeLegacyToNormalizedSync(
-        licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604',
-        (progress) => {
-          setSyncProgress(progress);
-        }
-      );
-
-      if (result.success) {
-        setSyncProgress({
-          step: 'Sync completed',
-          completed: 1,
-          total: 1,
-          status: 'completed',
-          message: result.message
-        });
-
-        // Refresh classes after sync
-        setTimeout(() => {
-          fetchClasses();
-          setShowSyncDialog(false);
-          setSyncInProgress(false);
-
-          setSuccessDialog({
-            isOpen: true,
-            title: 'Database Sync Completed!',
-            message: result.message,
-            details: [
-              `Shows: ${result.details.shows.synced}/${result.details.shows.total}`,
-              `Trials: ${result.details.trials.synced}/${result.details.trials.total}`,
-              `Classes: ${result.details.classes.synced}/${result.details.classes.total}`,
-              `Entries: ${result.details.entries.synced}/${result.details.entries.total}`,
-              `Results: ${result.details.results.synced}/${result.details.results.total}`
-            ]
-          });
-        }, 2000);
-
-      } else {
-        setSyncProgress({
-          step: 'Sync failed',
-          completed: 0,
-          total: 1,
-          status: 'error',
-          message: result.error || 'Sync failed'
-        });
-
-        setTimeout(() => {
-          setShowSyncDialog(false);
-          setSyncInProgress(false);
-
-          setSuccessDialog({
-            isOpen: true,
-            title: 'Database Sync Failed',
-            message: result.error || 'An unknown error occurred during sync.',
-            details: []
-          });
-        }, 2000);
-      }
-
-    } catch (error) {
-      console.error('Sync error:', error);
-      setSyncProgress({
-        step: 'Sync failed',
-        completed: 0,
-        total: 1,
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      });
-
-      setTimeout(() => {
-        setShowSyncDialog(false);
-        setSyncInProgress(false);
-
-        setSuccessDialog({
-          isOpen: true,
-          title: 'Database Sync Error',
-          message: 'An error occurred during the database sync operation.',
-          details: []
-        });
-      }, 2000);
-    }
-  };
 
   // Show confirmation dialog for enabling self check-in
   const showEnableCheckinConfirmation = () => {
@@ -703,9 +577,9 @@ export const CompetitionAdmin: React.FC = () => {
 
       const updates = Array.from(selectedClasses).map(classId =>
         supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .update({
-            self_checkin: true
+            self_checkin_enabled: true
           })
           .eq('id', classId)
       );
@@ -777,9 +651,9 @@ export const CompetitionAdmin: React.FC = () => {
 
       const updates = Array.from(selectedClasses).map(classId =>
         supabase
-          .from('tbl_class_queue')
+          .from('classes')
           .update({
-            self_checkin: false
+            self_checkin_enabled: false
           })
           .eq('id', classId)
       );
@@ -951,16 +825,6 @@ export const CompetitionAdmin: React.FC = () => {
             </button>
           </div>
 
-          <div className="database-actions">
-            <button
-              onClick={showSyncConfirmation}
-              className="sync-btn"
-              disabled={!adminName.trim() || syncInProgress}
-            >
-              <Database className="sync-icon" />
-              {syncInProgress ? 'Syncing Database...' : 'Sync Legacy to Normalized Tables'}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1080,7 +944,6 @@ export const CompetitionAdmin: React.FC = () => {
           confirmDialog.action === 'release' ? 'Release Results' :
           confirmDialog.action === 'auto' ? 'Set Auto Release' :
           confirmDialog.action === 'immediate' ? 'Set Immediate Release' :
-          confirmDialog.action === 'sync' ? 'Execute Database Sync' :
           confirmDialog.action === 'enable_checkin' ? 'Enable Self Check-In' :
           confirmDialog.action === 'disable_checkin' ? 'Disable Self Check-In' :
           'Hide Results'
@@ -1099,56 +962,6 @@ export const CompetitionAdmin: React.FC = () => {
         details={successDialog.details}
       />
 
-      {/* Sync Progress Dialog */}
-      {showSyncDialog && syncProgress && (
-        <div className="sync-progress-overlay">
-          <div className="sync-progress-dialog">
-            <div className="sync-progress-header">
-              <Database className="sync-progress-icon" />
-              <h3>Database Synchronization</h3>
-            </div>
-
-            <div className="sync-progress-content">
-              <div className="sync-step-info">
-                <div className="sync-step-title">{syncProgress.step}</div>
-                <div className="sync-step-message">{syncProgress.message}</div>
-              </div>
-
-              <div className="sync-progress-bar">
-                <div
-                  className={`sync-progress-fill ${syncProgress.status}`}
-                  style={{ width: `${(syncProgress.completed / syncProgress.total) * 100}%` }}
-                ></div>
-              </div>
-
-              <div className="sync-progress-text">
-                {syncProgress.completed} of {syncProgress.total} steps completed
-              </div>
-
-              {syncProgress.status === 'running' && (
-                <div className="sync-spinner">
-                  <Loader className="spinning" />
-                  <span>Processing...</span>
-                </div>
-              )}
-
-              {syncProgress.status === 'completed' && (
-                <div className="sync-success">
-                  <CheckCircle className="success-icon" />
-                  <span>Sync completed successfully!</span>
-                </div>
-              )}
-
-              {syncProgress.status === 'error' && (
-                <div className="sync-error">
-                  <XCircle className="error-icon" />
-                  <span>Sync failed</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
