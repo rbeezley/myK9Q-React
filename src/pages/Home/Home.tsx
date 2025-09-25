@@ -22,9 +22,10 @@ interface EntryData {
 
 interface TrialData {
   id: number;
-  trialid: number;
+  show_id: number;
   trial_name: string;
   trial_date: string;
+  trial_number: number;
   trial_type: string;
   classes_completed: number;
   classes_total: number;
@@ -130,21 +131,30 @@ export const Home: React.FC = () => {
   const loadDashboardData = async () => {
     _setIsLoading(true);
     try {
+      console.log('🔍 Show context:', showContext);
+      console.log('🔍 Show ID:', showContext?.showId);
+      console.log('🔍 License key:', showContext?.licenseKey);
+
       // Load trials with progress
       const { data: trialsData, error: trialsError } = await supabase
-        .from('tbl_trial_queue')
+        .from('trials')
         .select('*')
-        .eq('mobile_app_lic_key', showContext?.licenseKey);
+        .eq('show_id', showContext?.showId);
 
       if (trialsError) {
-        console.error('Error loading trials:', trialsError);
+        console.error('❌ Error loading trials:', trialsError);
+        console.error('❌ Show ID used:', showContext?.showId);
+        console.error('❌ License key:', showContext?.licenseKey);
+      } else {
+        console.log('✅ Trials data loaded:', trialsData);
+        console.log('✅ Number of trials found:', trialsData?.length || 0);
       }
 
-      // Load entries from the view
+      // Load entries from the normalized view
       const { data: entriesData, error: entriesError } = await supabase
-        .from('view_entry_class_join_distinct')
+        .from('view_entry_class_join_normalized')
         .select('*')
-        .eq('mobile_app_lic_key', showContext?.licenseKey)
+        .eq('license_key', showContext?.licenseKey)
         .order('armband', { ascending: true });
 
       if (entriesError) {
@@ -156,39 +166,62 @@ export const Home: React.FC = () => {
         const processedTrials = await Promise.all(trialsData.map(async (trial) => {
           // Get class counts for this trial
           const { count: totalClasses } = await supabase
-            .from('tbl_class_queue')
+            .from('classes')
             .select('*', { count: 'exact', head: true })
-            .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.trialid);
+            .eq('trial_id', trial.id);
 
           // Get completed class counts (assuming classes with all entries scored)
           const { count: completedClasses } = await supabase
-            .from('tbl_class_queue')
+            .from('classes')
             .select('*', { count: 'exact', head: true })
-            .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.trialid)
+            .eq('trial_id', trial.id)
             .eq('is_completed', true);
 
-          // Get entry counts for this trial
-          const { count: totalEntries } = await supabase
-            .from('tbl_entry_queue')
-            .select('*', { count: 'exact', head: true })
-            .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.trialid);
+          // Get entry counts for this trial (via classes)
+          const { data: trialClasses } = await supabase
+            .from('classes')
+            .select('id')
+            .eq('trial_id', trial.id);
 
-          const { count: completedEntries } = await supabase
-            .from('tbl_entry_queue')
-            .select('*', { count: 'exact', head: true })
-            .eq('mobile_app_lic_key', showContext?.licenseKey)
-            .eq('trialid_fk', trial.trialid)
-            .eq('is_scored', true);
+          const classIds = trialClasses?.map(c => c.id) || [];
+
+          let totalEntries = 0;
+          let completedEntries = 0;
+
+          if (classIds.length > 0) {
+            const { count: totalEntriesCount } = await supabase
+              .from('entries')
+              .select('*', { count: 'exact', head: true })
+              .in('class_id', classIds);
+
+            // For completed entries, we need to check the results table
+            const { data: entriesWithResults } = await supabase
+              .from('entries')
+              .select('id')
+              .in('class_id', classIds);
+
+            const entryIds = entriesWithResults?.map(e => e.id) || [];
+
+            let completedEntriesCount = 0;
+            if (entryIds.length > 0) {
+              const { count } = await supabase
+                .from('results')
+                .select('*', { count: 'exact', head: true })
+                .in('entry_id', entryIds)
+                .eq('is_scored', true);
+              completedEntriesCount = count || 0;
+            }
+
+            totalEntries = totalEntriesCount || 0;
+            completedEntries = completedEntriesCount;
+          }
 
           return {
             ...trial,
             classes_completed: completedClasses || 0,
             classes_total: totalClasses || 0,
-            entries_completed: completedEntries || 0,
-            entries_total: totalEntries || 0
+            entries_completed: completedEntries,
+            entries_total: totalEntries
           };
         }));
         setTrials(processedTrials);
@@ -340,8 +373,8 @@ export const Home: React.FC = () => {
                 className={`trial-card ${trialStatus}`}
                 onClick={() => {
                   hapticFeedback.impact('medium');
-                  console.log('Navigating to trial:', trial.id, 'trialid:', trial.trialid);
-                  navigate(`/trial/${trial.trialid}/classes`);
+                  console.log('Navigating to trial:', trial.id, 'id:', trial.id);
+                  navigate(`/trial/${trial.id}/classes`);
                 }}
               >
                 <div className="trial-content">
@@ -456,9 +489,6 @@ export const Home: React.FC = () => {
                         <h4 className="entry-name">{entry.call_name}</h4>
                         <p className="entry-breed">{entry.breed}</p>
                         <p className="entry-handler">{entry.handler}</p>
-                        {entry.class_name && (
-                          <p className="entry-class">{entry.class_name}</p>
-                        )}
                       </div>
                       
                       {/* Actions */}

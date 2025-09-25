@@ -5,7 +5,9 @@ import { usePermission } from '../../hooks/usePermission';
 import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, resetEntryScore, updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { Entry } from '../../stores/entryStore';
 import { Card, CardContent, ArmbandBadge, HamburgerMenu } from '../../components/ui';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User } from 'lucide-react';
+import { DogCard } from '../../components/DogCard';
+import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, Circle, Check, AlertTriangle, XCircle, Star } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -25,7 +27,6 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { supabase } from '../../lib/supabase';
 import './EntryList.css';
 
@@ -36,7 +37,6 @@ export const EntryList: React.FC = () => {
   const navigate = useNavigate();
   const { showContext, role } = useAuth();
   const { hasPermission } = usePermission();
-  const hapticFeedback = useHapticFeedback();
   
   const [entries, setEntries] = useState<Entry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -222,30 +222,30 @@ export const EntryList: React.FC = () => {
 
 
   const handleStatusChange = async (entryId: number, status: NonNullable<Entry['checkinStatus']>) => {
+    console.log('🔄 EntryList: handleStatusChange called with:', { entryId, status });
     // Store original state for potential rollback
     const originalEntries = entries;
-    
+
     try {
-      
+      // Close the popup first to prevent multiple clicks
+      setActiveStatusPopup(null);
+      setPopupPosition(null);
+
       // Update local state immediately for better UX
       setEntries(prev => {
-        const newEntries = prev.map(entry => 
-          entry.id === entryId 
-            ? { 
-                ...entry, 
+        const newEntries = prev.map(entry =>
+          entry.id === entryId
+            ? {
+                ...entry,
                 checkedIn: status !== 'none',
                 checkinStatus: status,
                 inRing: false, // Clear in-ring status when manually changing status
-              } 
+              }
             : entry
         );
         return newEntries;
       });
-      
-      // Close the popup
-      setActiveStatusPopup(null);
-      setPopupPosition(null);
-      
+
       // Make API call to update database - always update, including 'none' status
       await updateEntryCheckinStatus(entryId, status);
       
@@ -317,24 +317,24 @@ export const EntryList: React.FC = () => {
       if (classEntries.length > 0) {
         const firstEntry = classEntries[0];
         
-        // Fetch additional class data including trial info, judge, and self check-in setting
+        // Fetch additional class data (judge and self check-in setting)
         const { data: classData, error: classError } = await supabase
-          .from('tbl_class_queue')
-          .select('trial_date, trial_number, judge_name, self_checkin')
+          .from('classes')
+          .select('judge_name, self_checkin_enabled')
           .eq('id', parseInt(classId))
           .single();
-          
+
         console.log('🔍 Class data fetched:', classData);
         console.log('🔍 Class error:', classError);
         
         // SCHEMA DISCOVERY: Get a complete sample record to see all available fields
         try {
           const { data: sampleClass, error: sampleError } = await supabase
-            .from('tbl_class_queue')
+            .from('classes')
             .select('*')
             .limit(1)
             .single();
-          console.log('🔍 COMPLETE tbl_class_queue record with ALL fields:');
+          console.log('🔍 COMPLETE classes record with ALL fields:');
           console.log('🔍 STRUCTURE:', Object.keys(sampleClass || {}).sort());
           console.log('🔍 SAMPLE DATA:', sampleClass);
           console.log('🔍 Sample error:', sampleError);
@@ -367,11 +367,11 @@ export const EntryList: React.FC = () => {
           element: firstEntry.element || '',
           level: firstEntry.level || '',
           section: firstEntry.section || '',
-          trialDate: classData?.trial_date || '',
-          trialNumber: classData?.trial_number || '',
+          trialDate: firstEntry.trialDate || '',
+          trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
           judgeName: judgeName || 'No Judge Assigned',
           actualClassId: firstEntry.actualClassId, // Store the actual classid for real-time subscriptions
-          selfCheckin: classData?.self_checkin ?? true // Default to true if not set
+          selfCheckin: classData?.self_checkin_enabled ?? true // Default to true if not set
         };
         
         console.log('🔍 Setting class info:', classInfoData);
@@ -650,121 +650,106 @@ export const EntryList: React.FC = () => {
             <GripVertical size={20} />
           </div>
         )}
-        <Card 
-          key={entry.id} 
-          variant={entry.isScored ? 'scored' : 'unscored'}
+        <DogCard
+          key={entry.id}
+          armband={entry.armband}
+          callName={entry.callName}
+          breed={entry.breed}
+          handler={entry.handler}
           onClick={() => {
             if (isDragMode) return; // Disable navigation in drag mode
             if (hasPermission('canScore')) handleEntryClick(entry); // Entry click handler
           }}
-          className={`entry-card mobile-optimized ${
-            !entry.isScored ? 'unscored' : 'scored'
-          } ${
-            !entry.isScored && !entry.checkinStatus ? 'checkin-none' : ''
-          } ${
-            !entry.isScored && !entry.checkinStatus ? 'pending-entry' : ''
-          } ${
-            !entry.isScored ? `checkin-${(entry.checkinStatus || 'none').replace(' ', '-')}` : ''
-          } ${
-            entry.inRing ? 'in-ring' : ''
-          } ${
+          className={`${
             hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
           }`}
-        >
-          <ArmbandBadge number={entry.armband} />
-          
-          {!entry.isScored && (
-            <div
-              className={`checkin-status mobile-touch-target ${
-                entry.inRing ? 'in-ring' :
-                (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
-              } ${
-                (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true)) ? 'disabled' : ''
-              }`}
-              onClick={(e) => {
-                // Only allow click if user has permission OR self check-in is enabled
-                const canCheckIn = hasPermission('canCheckInDogs');
-                const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
+          statusBorder={
+            entry.isScored ?
+              (entry.placement === 1 ? 'placement-1' :
+               entry.placement === 2 ? 'placement-2' :
+               entry.placement === 3 ? 'placement-3' : 'scored') :
+            entry.inRing ? 'none' : // In-ring will be shown in status badge
+            (entry.checkinStatus === 'checked-in' ? 'checked-in' :
+             entry.checkinStatus === 'conflict' ? 'conflict' :
+             entry.checkinStatus === 'pulled' ? 'pulled' :
+             entry.checkinStatus === 'at-gate' ? 'at-gate' : 'none')
+          }
+          resultBadges={
+            entry.isScored && entry.searchTime ? (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                {entry.resultText && (
+                  <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
+                    {(() => {
+                      const result = entry.resultText.toLowerCase();
+                      if (result === 'q' || result === 'qualified') return 'Q';
+                      if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                      if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                      if (result === 'ex' || result === 'excused') return 'EX';
+                      if (result === 'wd' || result === 'withdrawn') return 'WD';
+                      return entry.resultText;
+                    })()}
+                  </span>
+                )}
+                <span className="time-badge">{entry.searchTime}</span>
+                {entry.placement && (
+                  <span className="placement-badge">{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
+                )}
+              </div>
+            ) : undefined
+          }
+          actionButton={
+            !entry.isScored ? (
+              <div
+                className={`status-badge ${
+                  entry.inRing ? 'in-ring' :
+                  (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
+                } ${
+                  (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true)) ? 'disabled' : ''
+                }`}
+                onClick={(e) => {
+                  const canCheckIn = hasPermission('canCheckInDogs');
+                  const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
 
-                if (canCheckIn || isSelfCheckinEnabled) {
-                  handleStatusClick(e, entry.id);
-                } else {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSelfCheckinDisabledDialog(true);
+                  if (canCheckIn || isSelfCheckinEnabled) {
+                    handleStatusClick(e, entry.id);
+                  } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelfCheckinDisabledDialog(true);
+                  }
+                }}
+                title={
+                  (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true))
+                    ? "Self check-in disabled"
+                    : "Tap to change status"
                 }
-              }}
-              title={
-                (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true))
-                  ? "Self check-in disabled - check in at central table"
-                  : "Tap to change status"
-              }
-              {...hapticFeedback}
-            >
-              {(() => {
-                if (entry.inRing) {
-                  return <><span className="status-icon">▶</span> In Ring</>;
-                }
-                const status = entry.checkinStatus || 'none';
-                switch(status) {
-                  case 'none': return <><span className="status-icon">●</span> Not Checked-in</>;
-                  case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
-                  case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
-                  case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
-                  case 'at-gate': return <><span className="status-icon">★</span> At Gate</>;
-                  default: return status;
-                }
-              })()}
-            </div>
-          )}
-          
-          {entry.isScored && (
-            <button
-              className="reset-menu-button"
-              onClick={(e) => handleResetMenuClick(e, entry.id)}
-              title="Reset score"
-              {...hapticFeedback}
-            >
-              ⋯
-            </button>
-          )}
-          
-          <CardContent className="entry-content mobile-content">
-            <div className="entry-info-mobile">
-              <div className="mobile-header">
-                <h3 className="dog-name-mobile">{entry.callName}</h3>
+              >
+                {(() => {
+                  if (entry.inRing) {
+                    return <><span className="status-icon">▶</span> In Ring</>;
+                  }
+                  const status = entry.checkinStatus || 'none';
+                  switch(status) {
+                    case 'none': return <><span className="status-icon">●</span> Not Checked-in</>;
+                    case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
+                    case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
+                    case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
+                    case 'at-gate': return <><span className="status-icon">★</span> At Gate</>;
+                    default: return status;
+                  }
+                })()}
               </div>
-              <div className="mobile-details">
-                <p className="breed-mobile">{entry.breed}</p>
-                <p className="handler-mobile">{entry.handler}</p>
-                <div className="mobile-footer">
-                  {entry.isScored && entry.searchTime && (
-                    <div className="time-mobile">
-                      <span className="time-badge-mobile">{entry.searchTime}</span>
-                    </div>
-                  )}
-                  {entry.isScored && entry.resultText && (
-                    <div className="result-mobile-corner">
-                      <span className={`result-badge-mobile ${entry.resultText.toLowerCase()}`}>
-                        {(() => {
-                          const result = entry.resultText.toLowerCase();
-                          if (result === 'q' || result === 'qualified') return 'Qualified';
-                          if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                          if (result === 'abs' || result === 'absent' || result === 'e') return 'Absent';
-                          if (result === 'ex' || result === 'excused') return 'Excused';
-                          if (result === 'wd' || result === 'withdrawn') return 'Withdrawn';
-                          if (result === 'none') return 'Pending';
-                          // Return as-is if already in proper format
-                          return entry.resultText;
-                        })()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            ) : (
+              <button
+                className="reset-button"
+                onClick={(e) => handleResetMenuClick(e, entry.id)}
+                title="Reset score"
+              >
+                ⋯
+              </button>
+            )
+          }
+        />
       </div>
     );
   };
@@ -815,7 +800,6 @@ export const EntryList: React.FC = () => {
             <button 
               className="clear-search-btn"
               onClick={() => setSearchTerm('')}
-              {...hapticFeedback}
             >
               <X size={16} />
             </button>
@@ -830,7 +814,6 @@ export const EntryList: React.FC = () => {
               setSortOrder('run');
               setIsDragMode(false); // Exit drag mode when switching sorts
             }}
-            {...hapticFeedback}
           >
             <ArrowUpDown size={16} />
             Run Order
@@ -841,7 +824,6 @@ export const EntryList: React.FC = () => {
               setSortOrder('armband');
               setIsDragMode(false); // Exit drag mode when switching sorts
             }}
-            {...hapticFeedback}
           >
             <ArrowUpDown size={16} />
             Armband
@@ -858,7 +840,6 @@ export const EntryList: React.FC = () => {
                 setIsDragMode(!isDragMode);
               }}
               disabled={isUpdatingOrder}
-              {...hapticFeedback}
             >
               <GripVertical size={16} />
               {isUpdatingOrder ? 'Saving...' : (isDragMode ? 'Done' : 'Reorder')}
@@ -877,7 +858,6 @@ export const EntryList: React.FC = () => {
         <button 
           className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
-          {...hapticFeedback}
         >
           <Clock className="status-icon" size={16} />
           Pending ({pendingEntries.length})
@@ -885,7 +865,6 @@ export const EntryList: React.FC = () => {
         <button 
           className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
-          {...hapticFeedback}
         >
           <CheckCircle className="status-icon" size={16} />
           Completed ({completedEntries.length})
@@ -918,67 +897,34 @@ export const EntryList: React.FC = () => {
         )}
       </div>
 
-      {/* Mobile Status Change Bottom Sheet */}
-      {activeStatusPopup !== null && (
-        <>
-          <div className="bottom-sheet-backdrop" onClick={() => {
-            setActiveStatusPopup(null);
-            setPopupPosition(null);
-          }} />
-          <div className="status-popup">
-            <div className="status-popup-content">
-            <div className="mobile-sheet-header">
-              <h3>Change Status</h3>
-              <button 
-                className="close-sheet-btn"
-                onClick={() => {
-                  setActiveStatusPopup(null);
-                  setPopupPosition(null);
-                }}
-                {...hapticFeedback}
-              >
-                ✕
-              </button>
-            </div>
-            <button 
-              className="status-option status-none"
-              onClick={() => handleStatusChange(activeStatusPopup, 'none')}
-              {...hapticFeedback}
-            >
-              <span className="popup-icon">●</span> Not Checked-in
-            </button>
-            <button 
-              className="status-option status-checked-in"
-              onClick={() => handleStatusChange(activeStatusPopup, 'checked-in')}
-              {...hapticFeedback}
-            >
-              <span className="popup-icon">✓</span> Checked-in
-            </button>
-            <button 
-              className="status-option status-conflict"
-              onClick={() => handleStatusChange(activeStatusPopup, 'conflict')}
-              {...hapticFeedback}
-            >
-              <span className="popup-icon">!</span> Conflict
-            </button>
-            <button 
-              className="status-option status-pulled"
-              onClick={() => handleStatusChange(activeStatusPopup, 'pulled')}
-              {...hapticFeedback}
-            >
-              <span className="popup-icon">✕</span> Pulled
-            </button>
-            <button 
-              className="status-option status-at-gate"
-              onClick={() => handleStatusChange(activeStatusPopup, 'at-gate')}
-              {...hapticFeedback}
-            >
-              <span className="popup-icon">★</span> At Gate
-            </button>
-            </div>
-          </div>
-        </>
-      )}
+      {/* Check-in Status Dialog */}
+      <CheckinStatusDialog
+        isOpen={activeStatusPopup !== null}
+        onClose={() => {
+          setActiveStatusPopup(null);
+          setPopupPosition(null);
+        }}
+        onStatusChange={(status) => {
+          if (activeStatusPopup !== null) {
+            handleStatusChange(activeStatusPopup, status);
+          }
+        }}
+        dogInfo={{
+          armband: (() => {
+            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            return currentEntry?.armband || 0;
+          })(),
+          callName: (() => {
+            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            return currentEntry?.callName || '';
+          })(),
+          handler: (() => {
+            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            return currentEntry?.handler || '';
+          })()
+        }}
+        showDescriptions={true}
+      />
 
       {/* Reset Menu Popup */}
       {activeResetMenu !== null && resetMenuPosition && (
@@ -998,7 +944,6 @@ export const EntryList: React.FC = () => {
                 const entry = entries.find(e => e.id === activeResetMenu);
                 if (entry) handleResetScore(entry);
               }}
-              {...hapticFeedback}
             >
               🔄 Reset Score
             </button>
@@ -1021,15 +966,13 @@ export const EntryList: React.FC = () => {
               <button 
                 className="reset-dialog-cancel"
                 onClick={cancelResetScore}
-                {...hapticFeedback}
-              >
+                >
                 Cancel
               </button>
               <button 
                 className="reset-dialog-confirm"
                 onClick={confirmResetScore}
-                {...hapticFeedback}
-              >
+                >
                 Reset Score
               </button>
             </div>
@@ -1052,8 +995,7 @@ export const EntryList: React.FC = () => {
               <button
                 className="reset-dialog-confirm"
                 onClick={() => setSelfCheckinDisabledDialog(false)}
-                {...hapticFeedback}
-                style={{ width: '100%' }}
+                  style={{ width: '100%' }}
               >
                 OK
               </button>

@@ -600,17 +600,17 @@
 }
 
 /* Mobile-first entry cards optimized for outdoor use */
-.entry-card.mobile-optimized {
+.entry-card {
   position: relative;
   overflow: hidden;
   background: var(--card);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  padding: 1rem;
+  padding: 0.75rem;
   color: var(--card-foreground);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  min-height: 4.5rem;
+  min-height: 80px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -654,17 +654,17 @@
   border-color: rgba(0, 122, 255, 0.2);
 }
 
-/* Check-in status left border - matches badge colors */
+/* Check-in status left border - subtle accent */
 .entry-card.checkin-none {
-  border-left: 4px solid var(--status-not-checked-in);
+  border-left: 3px solid var(--status-not-checked-in);
 }
 
 .entry-card.checkin-checked-in {
-  border-left: 4px solid var(--status-checked-in);
+  border-left: 3px solid var(--status-checked-in);
 }
 
 .entry-card.checkin-at-gate {
-  border-left: 4px solid var(--status-at-gate);
+  border-left: 3px solid var(--status-at-gate);
 }
 
 .entry-card.checkin-in-ring,
@@ -708,23 +708,39 @@
 }
 
 .entry-card.checkin-conflict {
-  border-left: 4px solid var(--status-conflict);
+  border-left: 3px solid var(--status-conflict);
 }
 
 .entry-card.checkin-pulled {
-  border-left: 4px solid var(--status-pulled);
+  border-left: 3px solid var(--status-pulled);
 }
 
 .entry-card.scored {
-  border-left: 4px solid var(--status-done);
+  border-left: 3px solid var(--status-done);
 }
 
-/* Use standard ArmbandBadge component styling - positioned for mobile-first layout */
+/* Placement indicators for scored entries */
+.entry-card.placement-1 {
+  border-left: 3px solid #ffd700; /* Gold */
+}
+
+.entry-card.placement-2 {
+  border-left: 3px solid #c0c0c0; /* Silver */
+}
+
+.entry-card.placement-3 {
+  border-left: 3px solid #cd7f32; /* Bronze */
+}
+
+/* Armband badge - override ALL absolute positioning */
+.armband-section .armband-badge,
+.entry-card .armband-badge,
 .entry-card.mobile-optimized .armband-badge {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 3;
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  margin: 0 !important;
+  transform: none !important;
 }
 
 /* Let ArmbandBadge component handle long numbers */
@@ -771,15 +787,32 @@
   font-size: 0.875rem;
 }
 
-/* Mobile-first layout for outdoor readability */
-.entry-content.mobile-content {
-  margin-top: 0.5rem;
-  margin-bottom: 0;
-  margin-left: 5rem;
-  margin-right: 4rem;
-  padding: 0;
-  line-height: 1.4;
-  text-align: left !important;
+/* Entry layout - flexbox container */
+.entry-layout {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Armband section - flex item */
+.armband-section {
+  flex-shrink: 0 !important;
+  position: static !important;
+}
+
+/* Entry info section - flex grows */
+.entry-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 120px !important; /* Space for status badge */
+}
+
+/* Entry content wrapper */
+.entry-content {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Multi-column layouts - remove right margin since status moves below */
@@ -805,25 +838,25 @@
   align-items: flex-start !important; /* Force left alignment of flex items */
 }
 
-.dog-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0;                      /* No gap between name and breed */
-  text-align: left !important; /* Force left alignment */
-  align-items: flex-start !important; /* Force left alignment of flex items */
-  width: 100%;                 /* Take full width to prevent centering */
+.dog-info,
+.entry-info .dog-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  text-align: left !important;
+  align-items: flex-start !important;
+  width: 100% !important;
 }
 
+.dog-name,
 .dog-name-mobile {
-  margin: 0;
-  font-size: 1.5rem;           /* Larger for mobile */
-  font-weight: 650;            /* Reduced thickness for better readability */
+  margin: 0 !important;
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
   color: var(--text-primary) !important;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);  /* Subtle shadow for contrast */
+  line-height: 1.3 !important;
   text-align: left !important;
-  word-break: break-word;      /* Handle long names better */
+  word-break: break-word;
 }
 
 /* Light mode override to ensure visibility */
@@ -836,15 +869,14 @@
   color: #ffffff !important;
 }
 
+.breed,
 .breed-mobile {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-tertiary) !important;
-  line-height: 1.3;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  line-height: 1.3 !important;
   text-align: left !important;
-  opacity: 0.8;
 }
 
 /* Mobile-optimized layout containers */
@@ -957,15 +989,14 @@
   text-align: left;            /* Left align handler info */
 }
 
+.handler,
 .handler-mobile {
-  margin: 0;
-  font-size: 1rem;             /* Larger for mobile readability */
-  font-weight: 600;
-  color: var(--text-secondary) !important;
-  line-height: 1.4;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin: 0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: var(--text-tertiary) !important;
+  line-height: 1.3 !important;
   text-align: left !important;
-  margin-bottom: 0.25rem;
 }
 
 /* Light mode override to ensure visibility */
@@ -1063,34 +1094,23 @@
   color: var(--text-primary);
 }
 
-/* Check-in status indicator for pending entries */
-.checkin-status.mobile-touch-target {
-  position: static;
-  margin-top: 0.75rem;
-  margin-left: auto;
-  margin-right: 0;
-  width: fit-content;
+/* Status section - absolutely positioned upper right */
+.status-section {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 10 !important;
+}
+
+/* Status badge styling */
+.status-badge {
   padding: 0.375rem 0.75rem;
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0.015em;
-  line-height: 1.1;
-  z-index: 1000;
-  pointer-events: all;
-  position: relative; /* Create new stacking context */
-  isolation: isolate; /* Ensure it creates its own layer */
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  min-height: 36px;
-  min-width: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Multi-column layouts - move status below content with better touch targets */
@@ -1849,14 +1869,18 @@
   }
   
   .entry-card {
-    padding: 0.375rem;         /* Extremely compact padding */
-    min-height: 2.5rem;        /* Extremely compact height - 40px */
+    padding: 0.75rem;
+    min-height: 80px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
-  
+
   .entry-content {
-    margin-left: 3rem;         /* Room for 36px badge + spacing */
-    margin-top: 0.125rem;      /* Extremely minimal top margin */
-    margin-bottom: 0;          /* No bottom margin */
+    flex: 1;
+    min-width: 0;
+    padding-right: 100px; /* Space for status badge */
+    margin: 0;
   }
   
   .continue-scoring-button {
@@ -1876,8 +1900,8 @@
   }
   
   .armband-badge {
-    top: 0.375rem;
-    left: 0.375rem;
+    position: static !important;
+    flex-shrink: 0;
   }
   
   .result-inline {
@@ -1900,19 +1924,23 @@
   }
   
   .entry-card {
-    min-height: 3rem;          /* Extremely compact - 48px */
-    padding: 0.5rem;
+    min-height: 90px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
-  
+
   .entry-content {
-    margin-left: 3.25rem;      /* Room for compact badge */
-    margin-top: 0.25rem;
-    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+    padding-right: 120px;
+    margin: 0;
   }
-  
+
   .armband-badge {
-    top: 0.5rem;
-    left: 0.5rem;
+    position: static !important;
+    flex-shrink: 0;
   }
   
   .dog-name {
@@ -1938,19 +1966,23 @@
   }
   
   .entry-card {
-    min-height: 3.5rem;        /* Extremely compact desktop height - 56px */
-    padding: 0.75rem;
+    min-height: 100px;
+    padding: 0.875rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
   }
-  
+
   .entry-content {
-    margin-left: 3.5rem;       /* Room for desktop badge */
-    margin-top: 0.25rem;
-    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+    padding-right: 140px;
+    margin: 0;
   }
-  
+
   .armband-badge {
-    top: 0.625rem;
-    left: 0.625rem;
+    position: static !important;
+    flex-shrink: 0;
   }
   
   .dog-name {
@@ -2015,8 +2047,59 @@
 
 /* Smooth transitions for theme switching */
 * {
-  transition: 
+  transition:
     background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     border-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* CRITICAL LAYOUT FIXES - Must be at end to override all other styles */
+.entry-card.mobile-optimized .entry-layout {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+.entry-card.mobile-optimized .armband-section {
+  flex-shrink: 0 !important;
+  position: static !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+.entry-card.mobile-optimized .armband-badge {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+}
+
+.entry-card.mobile-optimized .entry-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 100px !important;
+  text-align: left !important;
+}
+
+.entry-card.mobile-optimized .status-section {
+  position: absolute !important;
+  top: 0.75rem !important;
+  right: 0.75rem !important;
+  z-index: 10 !important;
+}
+
+.entry-card.mobile-optimized .dog-info {
+  text-align: left !important;
+  align-items: flex-start !important;
+}
+
+.entry-card.mobile-optimized .dog-name,
+.entry-card.mobile-optimized .breed,
+.entry-card.mobile-optimized .handler {
+  text-align: left !important;
+  display: block !important;
+  width: 100% !important;
 }
