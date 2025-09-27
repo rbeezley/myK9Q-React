@@ -7,7 +7,7 @@ import { Entry } from '../../stores/entryStore';
 import { Card, CardContent, ArmbandBadge, HamburgerMenu } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, Circle, Check, AlertTriangle, XCircle, Star } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, Circle, Check, AlertTriangle, XCircle, Star, ChevronDown, ChevronUp, BarChart3, Trophy, Award, Medal, CheckSquare, Activity } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -66,6 +66,7 @@ export const EntryList: React.FC = () => {
   const [manualOrder, setManualOrder] = useState<Entry[]>([]);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   // Removed showSearch state - using persistent search instead
 
   // Helper function to convert database status codes to strings
@@ -923,26 +924,46 @@ export const EntryList: React.FC = () => {
             )}
           </h1>
           <div className="class-subtitle">
-            <div className="trial-info">
-              {classInfo?.trialDate && classInfo.trialDate !== '' && (
-                <span className="trial-detail">
-                  <Calendar size={14} /> {new Date(classInfo.trialDate).toLocaleDateString()}
-                </span>
-              )}
-              {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
-                <span className="trial-detail"><Target size={14} /> {classInfo.trialNumber}</span>
-              )}
-              {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
-                <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
-              )}
+            <div className="trial-info-row">
+              <div className="trial-details-group">
+                {classInfo?.trialDate && classInfo.trialDate !== '' && (
+                  <span className="trial-detail">
+                    <Calendar size={14} /> {new Date(classInfo.trialDate).toLocaleDateString()}
+                  </span>
+                )}
+                {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
+                  <span className="trial-detail"><Target size={14} /> Trial {classInfo.trialNumber}</span>
+                )}
+                {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
+                  <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
+                )}
+              </div>
+              <span className="trial-detail progress">
+                <Trophy size={14} /> {scoredCount}/{totalCount} Scored
+              </span>
             </div>
-            <span className="progress">{scoredCount}/{totalCount} Scored</span>
           </div>
         </div>
+        <button
+          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
+          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
+          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
+          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
+        >
+          <Search size={20} />
+        </button>
       </header>
 
-      {/* Search and Sort Controls */}
-      <div className="search-sort-container">
+      {/* Search Toggle Icon in Header */}
+      {searchTerm && (
+        <div className="search-results-header">
+          <div className="search-results-summary">
+            {filteredEntries.length} of {entries.length} entries
+          </div>
+        </div>
+      )}
+
+      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
         <div className="search-input-wrapper">
           <Search className="search-icon" size={18} />
           <input
@@ -953,7 +974,7 @@ export const EntryList: React.FC = () => {
             className="search-input-full"
           />
           {searchTerm && (
-            <button 
+            <button
               className="clear-search-btn"
               onClick={() => setSearchTerm('')}
             >
@@ -961,7 +982,7 @@ export const EntryList: React.FC = () => {
             </button>
           )}
         </div>
-        
+
         <div className="sort-controls">
           <span className="sort-label">Sort:</span>
           <button
@@ -1002,8 +1023,8 @@ export const EntryList: React.FC = () => {
             </button>
           )}
         </div>
-        
-        {searchTerm && (
+
+        {searchTerm && !isSearchCollapsed && (
           <div className="search-results-count">
             {filteredEntries.length} of {entries.length}
           </div>

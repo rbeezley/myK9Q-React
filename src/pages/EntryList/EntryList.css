@@ -173,6 +173,24 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* Dark mode collapsible controls */
+[data-theme="dark"] .search-toggle-icon {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] .search-toggle-icon:hover {
+  background: var(--secondary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .search-results-summary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
 
 .class-info {
   display: flex;
@@ -200,10 +218,19 @@
   gap: 1rem;
 }
 
-.trial-info {
+.trial-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 1rem;
+}
+
+.trial-details-group {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .trial-detail {
@@ -216,16 +243,26 @@
   white-space: nowrap;
 }
 
-/* Mobile responsive trial info */
+/* Mobile responsive trial info - keep all items on one row but allow wrapping */
 @media (max-width: 640px) {
-  .trial-info {
+  .trial-info-row {
+    gap: 0.5rem;
     flex-direction: column;
-    gap: 0.125rem;
+    align-items: flex-start;
   }
-  
+
+  .trial-details-group {
+    gap: 0.5rem;
+    width: 100%;
+  }
+
   .trial-detail {
-    font-size: 0.75rem;
-    padding: 0.125rem 0.375rem;
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .progress {
+    margin-top: 0.25rem;
   }
 }
 
@@ -295,11 +332,90 @@
   }
 }
 
-/* Full-width search and sort container */
+/* Search toggle icon in header */
+.search-toggle-icon {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  color: var(--secondary-foreground);
+  flex-shrink: 0;
+}
+
+.search-toggle-icon:hover {
+  background: var(--muted);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-toggle-icon:active {
+  transform: scale(0.95);
+}
+
+.search-toggle-icon.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+/* Search results header */
+.search-results-header {
+  padding: 0.5rem 1.5rem;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+
+.search-results-summary {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  background: var(--card);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+/* Collapsible search and sort container */
 .search-sort-container {
-  padding: 1rem 1.5rem;
   background: var(--card);
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.search-sort-container.collapsed {
+  max-height: 0;
+  padding: 0 1.5rem;
+  border-bottom: none;
+}
+
+.search-sort-container.expanded {
+  max-height: 300px; /* Adjust based on content */
+  padding: 1rem 1.5rem;
+}
+
+.search-sort-container > * {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.search-sort-container.collapsed > * {
+  opacity: 0;
+}
+
+.search-sort-container.expanded > * {
+  opacity: 1;
+}
+
+/* Content wrapper for smooth transitions */
+.search-sort-container.expanded {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -454,35 +570,45 @@
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
-  .search-sort-container {
-    padding: 0.75rem 1rem;
+  .search-toggle-icon {
+    width: 40px;
+    height: 40px;
   }
-  
+
+  .search-results-header {
+    padding: 0.375rem 1rem;
+  }
+
+  .search-sort-container.expanded {
+    padding: 0.75rem 1rem;
+    max-height: 350px; /* More space on mobile */
+  }
+
   .search-input-full {
     padding: 0.75rem 0.875rem 0.75rem 2.5rem;
     font-size: 0.9rem;
     min-height: 48px;
   }
-  
+
   .search-icon {
     left: 0.875rem;
   }
-  
+
   .clear-search-btn {
     right: 0.875rem;
     width: 24px;
     height: 24px;
   }
-  
+
   .sort-btn {
     padding: 0.375rem 0.625rem;
     font-size: 0.8rem;
   }
-  
+
   .entries-grid.drag-mode {
     padding-left: 35px;
   }
-  
+
   .drag-handle {
     left: -30px;
     padding: 0.375rem;
