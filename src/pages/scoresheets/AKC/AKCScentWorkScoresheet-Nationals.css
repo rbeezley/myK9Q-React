@@ -47,11 +47,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  background: white;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  padding: 8px;
+  gap: 16px;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
 .counter-controls button {
@@ -83,15 +83,16 @@
 }
 
 .counter-value {
-  font-size: 24px;
-  font-weight: 900;
-  color: #007bff;
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
   min-width: 40px;
   text-align: center;
-  background: #e3f2fd;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 2px solid #bbdefb;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Excused Checkbox */
@@ -201,7 +202,11 @@
   .counter-value {
     font-size: 20px;
     min-width: 36px;
-    padding: 6px 10px;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
   .control-group label {
@@ -229,14 +234,19 @@
 }
 
 [data-theme="dark"] .nationals-controls .counter-controls {
-  background: #34495e;
-  border-color: #4a6741;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
 [data-theme="dark"] .counter-value {
-  background: #1e3a5f;
-  border-color: #2980b9;
-  color: #3498db;
+  background: transparent !important;
+  border: none !important;
+  color: white !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 [data-theme="dark"] .control-group label {
@@ -264,13 +274,21 @@
 /* Animation for Point Updates */
 .counter-value {
   transition: all 0.3s ease;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .counter-value.updated {
-  background: #fff3cd;
-  border-color: #ffc107;
-  color: #856404;
+  background: transparent !important;
+  border: none !important;
+  color: #ffc107 !important;
   transform: scale(1.1);
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 /* Accessibility Improvements */
@@ -307,8 +325,11 @@
 
   .counter-value {
     display: inline;
-    border: 1px solid #000;
-    padding: 2px 4px;
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 }
 
@@ -332,6 +353,10 @@
   .counter-value {
     font-size: 22px;
     min-width: 38px;
-    padding: 7px 11px;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 }

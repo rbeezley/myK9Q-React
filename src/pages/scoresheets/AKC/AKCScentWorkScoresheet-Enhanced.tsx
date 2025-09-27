@@ -25,6 +25,7 @@ import './AKCScentWorkScoresheet-Nationals.css';
 import './AKCScentWorkScoresheet-Flutter.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
 import '../../../styles/containers.css';
+import '../../../components/wireframes/NationalsWireframe.css';
 
 import { QualifyingResult } from '../../../stores/scoringStore';
 
@@ -305,7 +306,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           nonQualifyingReason: finalReason,
           correctCount: alertsCorrect,
           incorrectCount: alertsIncorrect,
-          faultCount: faultCount
+          faultCount: faultCount,
+          finishCallErrors: finishCallErrors,
+          points: calculateNationalsPoints()
         });
       } else {
         addToQueue({
@@ -320,7 +323,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             areas: areaResults,
             correctCount: alertsCorrect,
             incorrectCount: alertsIncorrect,
-            faultCount: faultCount
+            faultCount: faultCount,
+            finishCallErrors: finishCallErrors,
+            points: calculateNationalsPoints()
           }
         });
       }
@@ -620,8 +625,17 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         .single();
 
       if (classInfo && !classError) {
-        setTrialDate(classInfo.trials?.trial_date || '');
-        setTrialNumber(classInfo.trials?.trial_number || '');
+        const trial = Array.isArray(classInfo.trials) ? classInfo.trials[0] : classInfo.trials;
+        // Format date as mm/dd/yyyy
+        const rawDate = trial?.trial_date || '';
+        if (rawDate) {
+          const date = new Date(rawDate);
+          const formatted = (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+                           date.getDate().toString().padStart(2, '0') + '/' +
+                           date.getFullYear();
+          setTrialDate(formatted);
+        }
+        setTrialNumber(trial?.trial_number?.toString() || '1');
       }
 
       const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);
@@ -658,10 +672,53 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   };
 
-  // Show loading or error state
+  // Show demo mode when no real data is available
   if (!currentEntry) {
+    // Create sample entry for demo
+    const sampleEntry = {
+      id: parseInt(entryId || '1'),
+      armband: 173,
+      callName: "Dog 74",
+      breed: "Dutch Shepherd",
+      handler: "Person 74",
+      element: "Container",
+      level: "Master",
+      section: "A",
+      className: "Container Master",
+      timeLimit: "02:00",
+      timeLimit2: "",
+      timeLimit3: "",
+      areas: 1
+    };
+
+    // Initialize sample areas if not already set
+    if (areas.length === 0) {
+      const sampleAreas = initializeAreas(sampleEntry.element, sampleEntry.level);
+      setAreas(sampleAreas);
+    }
+
+    // Demo mode UI - same as main component but with sample data
+    const allAreasScored = qualifying !== 'Q' || areas.every(area => area.time && area.time !== '');
+    const isResultSelected = qualifying !== '';
+    const isNQReasonRequired = (qualifying === 'NQ' || qualifying === 'EX' || qualifying === 'WD') && nonQualifyingReason === '';
+
     return (
-      <div className="mobile-scoresheet error-state app-container">
+      <div className="flutter-scoresheet-container app-container" data-theme="dark">
+        <div className="flutter-scoresheet">
+        {/* Demo Mode Banner */}
+        <div style={{
+          backgroundColor: '#ff6b35',
+          color: 'white',
+          padding: '8px',
+          textAlign: 'center',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          marginBottom: '8px'
+        }}>
+          🚧 DEMO MODE - Sample Data 🚧
+        </div>
+
+        {/* Header */}
         <header className="mobile-header">
           <HamburgerMenu
             backNavigation={{
@@ -670,18 +727,158 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             }}
             currentPage="entries"
           />
-          <h1>AKC Scent Work</h1>
+          <h1>AKC Nationals</h1>
+          <button className="theme-btn" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? '☀️' : '🌙'}
+          </button>
         </header>
-        <div className="error-message">
-          <h2>No Entry Found</h2>
-          <p>Please return to the class list and try again.</p>
+
+        {/* Trial Info - Compact */}
+        <div className="flutter-trial-info">
+          <span>{trialDate || '10/11/2025'}</span>
+          <span className="separator">•</span>
+          <span>Trial {trialNumber || '1'}</span>
+          <span className="separator">•</span>
+          <span>{sampleEntry.element} {sampleEntry.level}</span>
+        </div>
+
+        {/* Dog Info Card - Production Styling */}
+        <div className="flutter-dog-info-card">
+          <div className="flutter-armband">
+            {sampleEntry.armband}
+          </div>
+          <div className="flutter-dog-details">
+            <div className="flutter-dog-name">{sampleEntry.callName}</div>
+            <div className="flutter-dog-breed">{sampleEntry.breed}</div>
+            <div className="flutter-dog-handler">Handler: {sampleEntry.handler}</div>
+          </div>
+        </div>
+
+        {/* Timer Section */}
+        <div className="timer-section">
+          <div className="timer-display">
+            <div className="timer-time">
+              {formatStopwatchTime(stopwatchTime)}
+            </div>
+            {getTimerWarningMessage() && (
+              <div className="timer-warning">{getTimerWarningMessage()}</div>
+            )}
+
+            <div className="timer-controls">
+              <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
+              <button
+                className={`timer-btn-main ${isStopwatchRunning ? 'stop' : 'start'}`}
+                onClick={isStopwatchRunning ? stopStopwatch : startStopwatch}
+              >
+                {isStopwatchRunning ? '⏸' : '▶'}
+                {isStopwatchRunning ? ' Stop' : ' Start'}
+              </button>
+              {isStopwatchRunning && (
+                <button className="timer-btn-secondary" onClick={pauseStopwatch} title="Pause without moving to next area">⏸️</button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Time Input */}
+        <div className="time-inputs">
+          {areas.map((area, index) => (
+            <div key={area.areaName} className="time-input-group">
+              {areas.length > 1 && (
+                <div className={`area-badge ${area.time ? 'completed' : 'pending'}`}>
+                  Area {index + 1}
+                </div>
+              )}
+              <input
+                type="tel"
+                inputMode="numeric"
+                placeholder="MM:SS.HH"
+                value={area.time}
+                onChange={(e) => handleTimeInputChange(index, e.target.value)}
+                onFocus={(e) => e.target.select()}
+                className={`time-input ${areas.length > 1 ? 'multi-area' : 'single-area'}`}
+              />
+              <span className="max-time">Max: {getMaxTimeForArea(index, sampleEntry)}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Result Buttons */}
+        <ResultChoiceChips
+          selectedResult={
+            qualifying === 'Qualified' ? 'Qualified' :
+            qualifying === 'Absent' ? 'Absent' :
+            qualifying === 'Excused' ? 'Excused' :
+            null
+          }
+          onResultChange={(result) => {
+            if (result === 'Qualified') {
+              setQualifying('Qualified');
+            } else if (result === 'Absent') {
+              setQualifying('Absent');
+              setNonQualifyingReason('Absent');
+            } else if (result === 'Excused') {
+              setQualifying('Excused');
+              setNonQualifyingReason('Excused');
+            }
+          }}
+          showNQ={true}
+          showWD={true}
+          showEX={true}
+          onNQClick={() => {
+            setQualifying('NQ');
+            setNonQualifyingReason('Incorrect Call');
+          }}
+          onWDClick={() => {
+            setQualifying('WD');
+            setNonQualifyingReason('In Season');
+          }}
+          onEXClick={() => {
+            setQualifying('EX');
+            setNonQualifyingReason('Dog Eliminated');
+          }}
+          isNationalsMode={isNationalsMode}
+        />
+
+        {/* Nationals Counters */}
+        {isNationalsMode && (
+          <NationalsCounterSimple
+            correctCalls={alertsCorrect}
+            onCorrectCallsChange={setAlertsCorrect}
+            incorrectCalls={alertsIncorrect}
+            onIncorrectCallsChange={setAlertsIncorrect}
+            noFinishCalls={finishCallErrors}
+            onNoFinishCallsChange={setFinishCallErrors}
+            fringeCalls={0}
+            onFringeCallsChange={() => {}}
+          />
+        )}
+
+        {/* Action Buttons */}
+        <div className="action-buttons-section">
+          <button
+            className="cancel-btn"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </button>
+          <button
+            className="save-btn"
+            onClick={() => {
+              alert('Demo mode - Score would be saved!');
+            }}
+            disabled={!allAreasScored || !isResultSelected || isNQReasonRequired}
+          >
+            Save Score
+          </button>
+        </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flutter-scoresheet-container app-container" data-theme={darkMode ? 'dark' : 'light'}>
+    <div className="flutter-scoresheet-container app-container" data-theme="dark">
       <div className="flutter-scoresheet">
       {/* Header */}
       <header className="mobile-header">
@@ -700,21 +897,24 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         </button>
       </header>
 
-      {/* Trial Info Header - Matching Flutter */}
-      <div className="flutter-trial-header">
-        <div className="trial-date">{trialDate}</div>
-        <div className="trial-class">{trialNumber} {currentEntry.element} {currentEntry.level}</div>
+      {/* Trial Info Header - Compact one line */}
+      <div className="flutter-trial-header-compact">
+        <span className="trial-info-item">{trialDate}</span>
+        <span className="trial-separator">•</span>
+        <span className="trial-info-item">Trial {trialNumber}</span>
+        <span className="trial-separator">•</span>
+        <span className="trial-info-item">{currentEntry.element} {currentEntry.level}</span>
       </div>
 
-      {/* Dog Info Card - Matching Flutter */}
-      <div className="flutter-dog-card">
-        <div className="dog-armband">
-          <ArmbandBadge number={currentEntry.armband} />
+      {/* Dog Info Card - Production Styling */}
+      <div className="flutter-dog-info-card">
+        <div className="flutter-armband">
+          {currentEntry.armband}
         </div>
-        <div className="dog-info">
-          <div className="dog-name">{currentEntry.callName}</div>
-          <div className="dog-details">{currentEntry.breed}</div>
-          <div className="person-number">Handler: {currentEntry.handler}</div>
+        <div className="flutter-dog-details">
+          <div className="flutter-dog-name">{currentEntry.callName}</div>
+          <div className="flutter-dog-breed">{currentEntry.breed}</div>
+          <div className="flutter-dog-handler">Handler: {currentEntry.handler}</div>
         </div>
       </div>
 
@@ -742,22 +942,25 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         </div>
       )}
 
-      {/* Multi-Area Time Inputs - Show all areas based on element/level */}
+      {/* Time Input - Conditional Badge Based on Area Count */}
       {areas.map((area, index) => (
         <div key={index} className="flutter-time-card">
           <div className="time-input-flutter">
-            <div className={`area-badge ${area.time ? 'completed' : 'pending'}`}>
-              {areas.length > 1 ? `Area ${index + 1}` : area.areaName}
-            </div>
+            {/* Only show badge for multi-area elements/levels */}
+            {areas.length > 1 && (
+              <div className={`area-badge ${area.time ? 'completed' : 'pending'}`}>
+                Area {index + 1}
+              </div>
+            )}
             <input
               type="text"
               value={area.time || ''}
               onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
               placeholder="MM:SS.HH"
-              className="flutter-time-input"
+              className={`flutter-time-input ${areas.length === 1 ? 'single-area' : ''}`}
             />
-            <div className="max-time-badge">
-              {getMaxTimeForArea ? getMaxTimeForArea(index) : '02:00'}
+            <div className="max-time-display">
+              Max: {getMaxTimeForArea ? getMaxTimeForArea(index) : '02:00'}
             </div>
           </div>
         </div>
@@ -818,6 +1021,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           onExcusedReasonChange={setNonQualifyingReason}
           withdrawnReason={withdrawnReason}
           onWithdrawnReasonChange={setWithdrawnReason}
+          isNationalsMode={isNationalsMode}
         />
 
 
@@ -858,8 +1062,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             <div className="dialog-header">
               <h2>Score Confirmation</h2>
               <div className="trial-info">
-                <span className="trial-date">{trialDate}</span>
-                <span className="trial-class">{trialNumber} {currentEntry.element} {currentEntry.level}</span>
+                <span className="trial-date">{trialDate} • Trial {trialNumber} • {currentEntry.element} {currentEntry.level}</span>
               </div>
             </div>
 
@@ -915,7 +1118,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                         <span className="item-value negative">{faultCount}</span>
                       </div>
                       <div className="score-item">
-                        <span className="item-label">Finish Errors</span>
+                        <span className="item-label">No Finish Calls</span>
                         <span className="item-value negative">{finishCallErrors}</span>
                       </div>
                     </div>
@@ -958,3 +1161,5 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     </div>
   );
 };
+
+export default AKCScentWorkScoresheetEnhanced;

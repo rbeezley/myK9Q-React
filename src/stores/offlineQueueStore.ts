@@ -21,6 +21,7 @@ export interface QueuedScore {
     // Nationals-specific fields
     correctCount?: number;
     incorrectCount?: number;
+    finishCallErrors?: number;
   };
   timestamp: string;
   retryCount: number;

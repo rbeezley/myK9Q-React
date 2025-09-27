@@ -31,6 +31,7 @@ interface ResultChoiceChipsProps {
   onExcusedReasonChange?: (reason: string) => void;
   withdrawnReason?: string;
   onWithdrawnReasonChange?: (reason: string) => void;
+  isNationalsMode?: boolean; // Hide faults counter in nationals mode
 }
 
 export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
@@ -50,7 +51,8 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
   excusedReason = 'Dog Eliminated in Area',
   onExcusedReasonChange,
   withdrawnReason = 'In Season',
-  onWithdrawnReasonChange
+  onWithdrawnReasonChange,
+  isNationalsMode = false
 }) => {
   // NQ Reason options
   const nqReasons = [
@@ -135,8 +137,8 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
         )}
       </div>
 
-      {/* Fault Counter - show when Qualified is selected */}
-      {(selectedResult === 'Qualified' || selectedResultInternal === 'Q') && onFaultCountChange && (
+      {/* Fault Counter - show when Qualified is selected (but not in nationals mode) */}
+      {(selectedResult === 'Qualified' || selectedResultInternal === 'Q') && onFaultCountChange && !isNationalsMode && (
         <div className="fault-counter-section">
           <h3>Faults Count</h3>
           <div className="fault-counter">

@@ -5,7 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, CheckCircle, Dog } from 'lucide-react';
+import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2 } from 'lucide-react';
 import { ArmbandBadge } from '../../components/ui';
 import './Home.css';
 
@@ -394,11 +394,11 @@ export const Home: React.FC = () => {
                   {/* Enhanced Progress Section */}
                   <div className="trial-progress">
                     <div className="progress-row">
-                      <CheckCircle className={`progress-circle ${trialStatus}`} size={16} />
+                      <Calendar className={`progress-circle ${trialStatus}`} size={14} />
                       <span className="progress-text">Classes: {trial.classes_completed} of {trial.classes_total}</span>
                     </div>
                     <div className="progress-row">
-                      <Dog className={`progress-circle ${trialStatus}`} size={16} />
+                      <Users2 className={`progress-circle ${trialStatus}`} size={14} />
                       <span className="progress-text">Entries: {trial.entries_completed} of {trial.entries_total}</span>
                     </div>
                   </div>

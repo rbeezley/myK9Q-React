@@ -31,6 +31,11 @@ export interface Entry {
   competitionType?: string; // Competition type for nationals detection
   trialDate?: string; // Trial date from view
   trialNumber?: string | number; // Trial number from view
+  // Nationals-specific scoring fields
+  correctFinds?: number;
+  incorrectFinds?: number;
+  noFinishCount?: number;
+  totalPoints?: number;
 }
 
 interface EntryFilters {

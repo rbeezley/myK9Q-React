@@ -282,10 +282,10 @@ export class NationalsScoring {
   async getLeaderboard(limit?: number): Promise<{ data: LeaderboardEntry[]; error: any }> {
     try {
       let query = supabase
-        .from('view_nationals_leaderboard')
+        .from('nationals_rankings')
         .select('*')
-        .eq('mobile_app_lic_key', this.licenseKey)
-        .order('rank', { ascending: true, nullsFirst: false });
+        .eq('license_key', this.licenseKey)
+        .order('final_rank', { ascending: true, nullsFirst: false });
 
       if (limit) {
         query = query.limit(limit);
@@ -311,10 +311,10 @@ export class NationalsScoring {
   async getQualifiers(): Promise<{ data: LeaderboardEntry[]; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('view_nationals_qualifiers')
+        .from('nationals_rankings')
         .select('*')
-        .eq('mobile_app_lic_key', this.licenseKey)
-        .order('rank', { ascending: true });
+        .eq('license_key', this.licenseKey)
+        .order('final_rank', { ascending: true });
 
       if (error) {
         console.error('Error fetching qualifiers:', error);
@@ -359,10 +359,10 @@ export class NationalsScoring {
   async getElementProgress(): Promise<{ data: any[]; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('view_element_progress')
+        .from('nationals_scores')
         .select('*')
-        .order('day', { ascending: true })
-        .order('element_type', { ascending: true });
+        .order('day_number', { ascending: true })
+        .order('element', { ascending: true });
 
       if (error) {
         console.error('Error fetching element progress:', error);

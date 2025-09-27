@@ -3,6 +3,29 @@ import { Entry } from '../stores/entryStore';
 import { QueuedScore } from '../stores/offlineQueueStore';
 
 /**
+ * Convert time string (MM:SS.ss or SS.ss) to decimal seconds
+ */
+function convertTimeToSeconds(timeString: string): number {
+  if (!timeString || timeString.trim() === '') return 0;
+
+  // Handle different time formats
+  if (timeString.includes(':')) {
+    // Format: MM:SS.ss or M:SS.ss
+    const parts = timeString.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseFloat(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+  } else {
+    // Format: SS.ss (just seconds)
+    return parseFloat(timeString) || 0;
+  }
+
+  return 0;
+}
+
+/**
  * Service for managing entries and scores
  */
 
@@ -38,7 +61,7 @@ export async function getClassEntries(
       throw new Error('Could not find class');
     }
 
-    // Query the normalized entries table directly
+    // Query entries and results separately, then join in JavaScript
     const { data: viewData, error: viewError } = await supabase
       .from('entries')
       .select(`
@@ -54,16 +77,11 @@ export async function getClassEntries(
               license_key
             )
           )
-        ),
-        results (
-          *
         )
       `)
       .eq('class_id', classId)
       .eq('classes.trials.shows.license_key', licenseKey)
       .order('armband_number', { ascending: true });
-    
-    
 
     if (viewError) {
       console.error('Error fetching class entries from view:', viewError);
@@ -73,6 +91,44 @@ export async function getClassEntries(
     if (!viewData || viewData.length === 0) {
       return [];
     }
+
+    // Get all results for entries in this class
+    const entryIds = viewData.map(entry => entry.id);
+    const { data: resultsData, error: resultsError } = await supabase
+      .from('results')
+      .select(`
+        entry_id,
+        is_scored,
+        is_in_ring,
+        result_status,
+        search_time_seconds,
+        total_faults,
+        final_placement,
+        total_correct_finds,
+        total_incorrect_finds,
+        no_finish_count,
+        points_earned
+      `)
+      .in('entry_id', entryIds);
+
+    if (resultsError) {
+      console.error('Error fetching results:', resultsError);
+    }
+
+    // Create a map of entry_id -> result for quick lookup
+    const resultsMap = new Map();
+    if (resultsData) {
+      resultsData.forEach(result => {
+        resultsMap.set(result.entry_id, result);
+      });
+    }
+
+    // Debug: Show results map for entries 6714 and 6715
+    console.log('🐛 RESULTS MAP DEBUG:', {
+      entry6714: resultsMap.get(6714),
+      entry6715: resultsMap.get(6715),
+      totalResults: resultsData?.length || 0
+    });
 
     // Helper function to convert database integer codes back to string status
     const convertStatusCodeToString = (statusCode: number | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
@@ -87,7 +143,17 @@ export async function getClassEntries(
 
     // Map database fields to Entry interface using normalized table structure
     const mappedEntries = viewData.map(row => {
-      const result = row.results?.[0]; // Get first result if any
+      const result = resultsMap.get(row.id); // Get result from our results map
+
+      // Debug logging for specific entries
+      if (row.id === 6714 || row.id === 6715) {
+        console.log(`🐛 MAPPING ENTRY ${row.id} (${row.armband_number}):`, {
+          result: result,
+          resultIsScored: result?.is_scored,
+          finalIsScored: result?.is_scored || false
+        });
+        // Debug mapping completed
+      }
 
       return {
         id: row.id,
@@ -103,6 +169,10 @@ export async function getClassEntries(
         searchTime: result?.search_time_seconds?.toString() || '0.00',
         faultCount: result?.total_faults || 0,
         placement: result?.final_placement || 0,
+        correctFinds: result?.total_correct_finds || 0,
+        incorrectFinds: result?.total_incorrect_finds || 0,
+        noFinishCount: result?.no_finish_count || 0,
+        totalPoints: result?.points_earned || 0,
         classId: classId,
         className: `${row.classes.element} ${row.classes.level} ${row.classes.section}`,
         section: row.classes.section,
@@ -186,7 +256,7 @@ export async function getTrialEntries(
       faultCount: row.fault_count,
       placement: row.placement,
       classId: row.class_id,
-      className: row.class_name,
+      className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
       section: row.section,
       element: row.element,
       level: row.level
@@ -216,50 +286,82 @@ export async function submitScore(
     // Nationals-specific fields
     correctCount?: number;
     incorrectCount?: number;
+    finishCallErrors?: number;
   }
 ): Promise<boolean> {
   try {
-    const updateData: any = {
+    // Map the result text to the valid enum values
+    let resultStatus = 'pending';
+    if (scoreData.resultText === 'Qualified') {
+      resultStatus = 'qualified';
+    } else if (scoreData.resultText === 'Not Qualified') {
+      resultStatus = 'nq';
+    } else if (scoreData.resultText === 'Absent') {
+      resultStatus = 'absent';
+    } else if (scoreData.resultText === 'Excused') {
+      resultStatus = 'excused';
+    }
+
+    // First, insert the score into the results table
+    const resultData: any = {
+      entry_id: entryId,
+      result_status: resultStatus,
+      search_time_seconds: scoreData.searchTime ? convertTimeToSeconds(scoreData.searchTime) : 0,
       is_scored: true,
-      result_text: scoreData.resultText,
-      in_ring: false // Only set false when dog is completely finished scoring
+      is_in_ring: false, // Mark as no longer in ring when score is submitted
+      scoring_completed_at: new Date().toISOString()
     };
 
-    // Add optional fields if provided - using correct database field names
-    if (scoreData.searchTime !== undefined) {
-      updateData.search_time = scoreData.searchTime;
-    }
+    // Add optional fields if they exist
     if (scoreData.faultCount !== undefined) {
-      updateData.fault_count = scoreData.faultCount;
-    }
-    if (scoreData.score !== undefined) {
-      updateData.score = scoreData.score?.toString() || '0'; // score is text field in DB
+      resultData.total_faults = scoreData.faultCount;
     }
     if (scoreData.nonQualifyingReason) {
-      updateData.reason = scoreData.nonQualifyingReason;
+      resultData.disqualification_reason = scoreData.nonQualifyingReason;
+    }
+    if (scoreData.points !== undefined) {
+      resultData.points_earned = scoreData.points;
+    }
+    if (scoreData.score !== undefined) {
+      resultData.total_score = parseFloat(scoreData.score.toString());
+    }
+    if (scoreData.correctCount !== undefined) {
+      resultData.total_correct_finds = scoreData.correctCount;
+    }
+    if (scoreData.incorrectCount !== undefined) {
+      resultData.total_incorrect_finds = scoreData.incorrectCount;
+    }
+    if (scoreData.finishCallErrors !== undefined) {
+      resultData.no_finish_count = scoreData.finishCallErrors;
     }
 
+    console.log('📝 Upserting result:', resultData);
 
-    const { error } = await supabase
-      .from('entries')
-      .update(updateData)
-      .eq('id', entryId)
-      .select();
-
-    if (error) {
-      console.error('❌ Database error:', {
-        error,
-        errorMessage: error.message,
-        errorCode: error.code,
-        errorDetails: error.details,
-        errorHint: error.hint,
-        entryId,
-        updateData
+    // Use upsert to update existing or insert new
+    const { error: resultError } = await supabase
+      .from('results')
+      .upsert(resultData, {
+        onConflict: 'entry_id',
+        ignoreDuplicates: false
       });
-      throw error;
+
+    if (resultError) {
+      console.error('❌ Results table error:', {
+        error: resultError,
+        errorMessage: resultError.message,
+        errorCode: resultError.code,
+        errorDetails: resultError.details,
+        errorHint: resultError.hint,
+        entryId,
+        resultData
+      });
+      throw resultError;
     }
 
+    // Entry scoring status is tracked in the results table via is_scored and is_in_ring columns
+    // No need to update the entries table as it doesn't have these columns
 
+    console.log('✅ Score submitted successfully');
     return true;
   } catch (error) {
     console.error('Error in submitScore:', error);
@@ -298,13 +400,48 @@ export async function markInRing(
   inRing: boolean = true
 ): Promise<boolean> {
   console.log(`🔄 markInRing called: entryId=${entryId}, inRing=${inRing}`);
-  
+
   try {
-    const { data, error } = await supabase
-      .from('entries')
-      .update({ in_ring: inRing })
-      .eq('id', entryId)
-      .select('id, armband, in_ring, classid_fk'); // Add select to see what was actually updated
+    // First check if a result record exists for this entry
+    const { data: existingResult, error: checkError } = await supabase
+      .from('results')
+      .select('id, entry_id')
+      .eq('entry_id', entryId)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('❌ Error checking existing result:', checkError);
+      throw checkError;
+    }
+
+    let data;
+    let error;
+
+    if (existingResult) {
+      // Update existing result record
+      const updateResult = await supabase
+        .from('results')
+        .update({ is_in_ring: inRing })
+        .eq('entry_id', entryId)
+        .select('id, entry_id, is_in_ring');
+
+      data = updateResult.data;
+      error = updateResult.error;
+    } else {
+      // Create new result record with just the in_ring status
+      const insertResult = await supabase
+        .from('results')
+        .insert({
+          entry_id: entryId,
+          is_in_ring: inRing,
+          is_scored: false,
+          result_status: 'pending'
+        })
+        .select('id, entry_id, is_in_ring');
+
+      data = insertResult.data;
+      error = insertResult.error;
+    }
 
     if (error) {
       console.error('❌ markInRing database error:', error);
@@ -313,13 +450,12 @@ export async function markInRing(
 
     console.log('✅ markInRing database update successful:', data);
     console.log('🔍 Updated records count:', data?.length || 0);
-    
+
     if (data && data.length > 0) {
-      console.log('📊 Updated entry details:', {
-        entryId: data[0].id,
-        armband: data[0].armband,
-        inRing: data[0].in_ring,
-        classId: data[0].classid_fk
+      console.log('📊 Updated result details:', {
+        resultId: data[0].id,
+        entryId: data[0].entry_id,
+        inRing: data[0].is_in_ring
       });
     } else {
       console.warn('⚠️ No records were updated - entry might not exist');
@@ -343,9 +479,16 @@ export async function getClassInfo(
     // Get class details
     const { data: classData, error: classError } = await supabase
       .from('classes')
-      .select('*')
+      .select(`
+        *,
+        trials!inner (
+          shows!inner (
+            license_key
+          )
+        )
+      `)
       .eq('id', classId)
-      .eq('license_key', licenseKey)
+      .eq('trials.shows.license_key', licenseKey)
       .single();
 
     if (classError || !classData) {
@@ -369,10 +512,10 @@ export async function getClassInfo(
 
     return {
       id: classData.id,
-      className: classData.class_name,
-      classType: classData.class_type,
+      className: `${classData.element} ${classData.level}` + (classData.section ? ` ${classData.section}` : ''),
+      classType: classData.class_status,
       trialId: classData.trial_id,
-      judgeId: classData.judge_id,
+      judgeId: classData.judge_name,
       totalEntries,
       scoredEntries,
       isCompleted: totalEntries > 0 && totalEntries === scoredEntries
@@ -472,14 +615,38 @@ export function subscribeToEntryUpdates(
  * This function can be called from browser console: window.debugMarkInRing(entryId, true/false)
  */
 export async function debugMarkInRing(entryId: number, inRing: boolean = true): Promise<void> {
-  console.log(`🧪 Debug: Manually updating entry ${entryId} in_ring to:`, inRing);
-  
+  console.log(`🧪 Debug: Manually updating entry ${entryId} is_in_ring to:`, inRing);
+
   try {
-    const { data, error } = await supabase
-      .from('entries')
-      .update({ in_ring: inRing })
-      .eq('id', entryId)
-      .select('id, armband, in_ring, classid_fk');
+    // Use the same logic as the main markInRing function
+    const { data: existingResult } = await supabase
+      .from('results')
+      .select('id')
+      .eq('entry_id', entryId)
+      .single();
+
+    let data, error;
+    if (existingResult) {
+      const result = await supabase
+        .from('results')
+        .update({ is_in_ring: inRing })
+        .eq('entry_id', entryId)
+        .select('id, entry_id, is_in_ring');
+      data = result.data;
+      error = result.error;
+    } else {
+      const result = await supabase
+        .from('results')
+        .insert({
+          entry_id: entryId,
+          is_in_ring: inRing,
+          is_scored: false,
+          result_status: 'pending'
+        })
+        .select('id, entry_id, is_in_ring');
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('🧪 Debug update error:', error);
@@ -487,14 +654,12 @@ export async function debugMarkInRing(entryId: number, inRing: boolean = true): 
     }
 
     console.log('🧪 Debug update successful:', data);
-    console.log('🧪 Updated entry details:', {
-      entryId: data[0]?.id,
-      armband: data[0]?.armband,
-      inRing: data[0]?.in_ring,
-      classId: data[0]?.classid_fk
+    console.log('🧪 Updated result details:', {
+      resultId: data?.[0]?.id,
+      entryId: data?.[0]?.entry_id,
+      inRing: data?.[0]?.is_in_ring
     });
     console.log('🧪 Now watch for real-time subscription payload in other tabs...');
-    console.log('🧪 Real-time filter should match classid_fk:', data[0]?.classid_fk);
     
     return;
   } catch (error) {
@@ -800,34 +965,11 @@ export async function updateEntryCheckinStatus(
  */
 export async function resetEntryScore(entryId: number): Promise<boolean> {
   try {
-    // Reset to default values based on actual table schema
-    const updateData: any = {
-      is_scored: false,
-      result_text: 'None',           // Default from schema
-      search_time: '00:00.00',       // Default from schema  
-      fault_count: 0,                // Default from schema
-      placement: 0,                  // Default from schema (bigint)
-      in_ring: false,
-      reason: 'None',                // Default from schema
-      score: '0'                     // Default from schema (text field, not score_points)
-    };
-
-    // Reset area times to defaults
-    updateData.areatime1 = '00:00.00';
-    updateData.areatime2 = '00:00.00'; 
-    updateData.areatime3 = '00:00.00';
-    
-    // Reset count fields to defaults
-    updateData.correct_count = 0;
-    updateData.incorrect_count = 0;
-    updateData.no_finish = 0;
-
-
+    // Delete the result record to reset the score (scoring data lives in results table)
     const { error } = await supabase
-      .from('entries')
-      .update(updateData)
-      .eq('id', entryId)
-      .select();
+      .from('results')
+      .delete()
+      .eq('entry_id', entryId);
 
     if (error) {
       console.error('❌ Database error resetting score:', {
@@ -836,12 +978,12 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
         errorCode: error.code,
         errorDetails: error.details,
         errorHint: error.hint,
-        entryId,
-        updateData
+        entryId
       });
       throw new Error(`Database reset failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
+    console.log('✅ Score reset successfully - deleted result record for entry', entryId);
     return true;
   } catch (error) {
     console.error('Error in resetEntryScore:', error);
@@ -905,7 +1047,7 @@ export async function getEntriesByArmband(
       faultCount: row.fault_count,
       placement: row.placement,
       classId: row.class_id,
-      className: row.class_name,
+      className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
       section: row.section,
       element: row.element,
       level: row.level

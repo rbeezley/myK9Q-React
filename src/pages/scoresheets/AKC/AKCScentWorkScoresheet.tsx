@@ -486,9 +486,13 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     
     // Use the user's selected qualification directly
     const finalQualifying = qualifying || 'NQ';
-    
-    // Result is already in full word format
-    const finalResultText = finalQualifying;
+
+    // Convert to full word format for database
+    const finalResultText = finalQualifying === 'Q' ? 'Qualified' :
+                           finalQualifying === 'NQ' ? 'Not Qualified' :
+                           finalQualifying === 'ABS' ? 'Absent' :
+                           finalQualifying === 'EX' ? 'Excused' :
+                           finalQualifying;
     const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
     
     // Prepare area results

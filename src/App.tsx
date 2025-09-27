@@ -35,9 +35,7 @@ const UKCRallyScoresheet = React.lazy(() =>
   }))
 );
 const AKCScentWorkScoresheet = React.lazy(() =>
-  import('./pages/scoresheets/AKC/AKCScentWorkScoresheet-Enhanced').then(module => ({
-    default: module.AKCScentWorkScoresheetEnhanced
-  }))
+  import('./pages/scoresheets/AKC/AKCScentWorkScoresheet-Enhanced')
 );
 const AKCFastCatScoresheet = React.lazy(() => 
   import('./pages/scoresheets/AKC/AKCFastCatScoresheet').then(module => ({ 
@@ -49,9 +47,14 @@ const ASCAScentDetectionScoresheet = React.lazy(() =>
     default: module.ASCAScentDetectionScoresheet 
   }))
 );
-const TestScoresheet = React.lazy(() => 
-  import('./components/TestScoresheet').then(module => ({ 
-    default: module.TestScoresheet 
+const TestScoresheet = React.lazy(() =>
+  import('./components/TestScoresheet').then(module => ({
+    default: module.TestScoresheet
+  }))
+);
+const NationalsWireframe = React.lazy(() =>
+  import('./components/wireframes/NationalsWireframe').then(module => ({
+    default: module.NationalsWireframe
   }))
 );
 
@@ -146,15 +149,23 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/test/scoresheet" 
+          <Route
+            path="/test/scoresheet"
             element={
               <ScoresheetErrorBoundary>
                 <Suspense fallback={<ScoresheetLoader />}>
                   <TestScoresheet />
                 </Suspense>
               </ScoresheetErrorBoundary>
-            } 
+            }
+          />
+          <Route
+            path="/wireframe/nationals"
+            element={
+              <Suspense fallback={<PageLoader message="Loading wireframe..." />}>
+                <NationalsWireframe />
+              </Suspense>
+            }
           />
           <Route 
             path="/scoresheet/akc-fastcat/:classId/:entryId" 

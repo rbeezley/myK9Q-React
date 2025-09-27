@@ -1,0 +1,472 @@
+/* Nationals Scoresheet Wireframe Styles */
+
+.wireframe-container {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #1a1a1a;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border-radius: 12px;
+  border: 2px solid #333;
+}
+
+.wireframe-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #333;
+}
+
+.wireframe-header h2 {
+  margin: 0 0 8px 0;
+  color: #60a5fa;
+}
+
+.wireframe-header p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.wireframe-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px dashed #555;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+.wireframe-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fbbf24;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Trial Info Wireframe */
+.wireframe-trial-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Dog Info Wireframe - NO BACKGROUND */
+.wireframe-dog-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  /* NO background - this is the key! */
+  background: transparent;
+  border: 2px dashed #ef4444;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.wireframe-armband {
+  width: 60px;
+  height: 60px;
+  background: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.wireframe-dog-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.wireframe-dog-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+  /* This should align with TOP of armband */
+}
+
+.wireframe-dog-breed {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.wireframe-dog-handler {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* Timer Section */
+.wireframe-timer {
+  text-align: center;
+  padding: 20px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 12px;
+}
+
+.wireframe-time {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wireframe-timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.wireframe-btn-reset, .wireframe-btn-start {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wireframe-btn-reset {
+  background: #6b7280;
+  color: white;
+}
+
+.wireframe-btn-start {
+  background: #10b981;
+  color: white;
+}
+
+/* Time Input */
+.wireframe-time-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 8px;
+}
+
+.wireframe-element-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 60px;
+  max-width: 80px;
+}
+
+.wireframe-time-field {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  text-align: center;
+  min-width: 0;
+  width: 120px; /* Fixed width for multi-area */
+}
+
+.wireframe-time-field.single-area {
+  flex: 1;
+  width: auto;
+  margin-left: 0;
+}
+
+.wireframe-max-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* Result Buttons */
+.wireframe-result-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wireframe-result-btn {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+/* Nationals Counters - Show DARK backgrounds */
+.wireframe-counters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wireframe-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px dashed;
+  /* ALL should have DARK backgrounds */
+  background: rgba(20, 20, 25, 0.95);
+  box-sizing: border-box;
+  min-width: 0; /* Allow shrinking */
+}
+
+.wireframe-counter.positive {
+  border-color: #10b981;
+}
+
+.wireframe-counter.negative {
+  border-color: #ef4444;
+}
+
+.wireframe-counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wireframe-counter-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 18px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  flex-shrink: 0;
+}
+
+.wireframe-counter-btn.decrement {
+  background: #6b7280;
+}
+
+.wireframe-counter-btn.increment.positive {
+  background: #10b981;
+}
+
+.wireframe-counter-btn.increment.negative {
+  background: #ef4444;
+}
+
+.wireframe-counter-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  min-width: 32px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-sizing: border-box;
+}
+
+.wireframe-counter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+
+/* Action Buttons */
+.wireframe-action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.wireframe-cancel-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.wireframe-save-btn {
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+/* Notes */
+.wireframe-note {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #f87171;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.wireframe-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #333;
+}
+
+.wireframe-footer p {
+  margin: 0 0 12px 0;
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.wireframe-footer ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.wireframe-footer li {
+  margin-bottom: 4px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .wireframe-container {
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .wireframe-section {
+    padding: 12px;
+  }
+
+  .wireframe-counters {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .wireframe-counter {
+    padding: 10px;
+  }
+
+  .wireframe-action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .wireframe-cancel-btn,
+  .wireframe-save-btn {
+    width: 100%;
+    padding: 14px 24px;
+  }
+
+  .wireframe-time-input {
+    gap: 8px;
+  }
+
+  .wireframe-element-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+    min-width: 50px;
+    max-width: 60px;
+  }
+
+  .wireframe-time-field {
+    width: 100px;
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+
+  .wireframe-time-field.single-area {
+    width: auto;
+    flex: 1;
+  }
+
+  .wireframe-max-time {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .wireframe-counter-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .wireframe-counter-value {
+    font-size: 18px;
+    min-width: 28px;
+    padding: 3px 6px;
+  }
+
+  .wireframe-time-input {
+    gap: 6px;
+  }
+
+  .wireframe-element-btn {
+    padding: 4px 6px;
+    font-size: 10px;
+    min-width: 40px;
+    max-width: 50px;
+  }
+
+  .wireframe-time-field {
+    width: 80px;
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+
+  .wireframe-max-time {
+    font-size: 10px;
+  }
+}

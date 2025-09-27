@@ -86,7 +86,7 @@ export const NationalsCounterSimple: React.FC<NationalsCounterSimpleProps> = ({
           value={finishCallErrors}
           onIncrement={() => onFinishCallErrorsChange(finishCallErrors + 1)}
           onDecrement={() => onFinishCallErrorsChange(Math.max(0, finishCallErrors - 1))}
-          label="Incorrect Finish"
+          label="No Finish Calls"
           type="negative"
         />
       </div>

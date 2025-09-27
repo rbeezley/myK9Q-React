@@ -108,7 +108,7 @@ export const CompetitionAdmin: React.FC = () => {
 
       if (fetchError) throw fetchError;
 
-      setClasses(data || []);
+      setClasses((data as any) || []);
     } catch (err) {
       console.error('Error fetching classes:', err);
       setError('Failed to load class information');

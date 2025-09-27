@@ -87,10 +87,10 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
       console.error('Error fetching classes:', classesError);
     }
 
-    // Step 5: Get org and competition_type from view_unique_license_key
+    // Step 5: Get org and competition_type from shows table
     const { data: licenseData, error: licenseError } = await supabase
-      .from('view_unique_license_key')
-      .select('org, competition_type')
+      .from('shows')
+      .select('organization, show_type')
       .eq('license_key', matchedShow.license_key)
       .single();
 
@@ -105,10 +105,10 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
       showId: matchedShow.id.toString(),
       showName: matchedShow.show_name,
       clubName: matchedShow.club_name,
-      showDate: matchedShow.show_date,
+      showDate: (matchedShow as any).start_date,
       licenseKey: matchedShow.license_key,
-      org: licenseData?.org || '', // Get org from license data view
-      competition_type: licenseData?.competition_type || 'Regular',
+      org: licenseData?.organization || '', // Get org from shows table
+      competition_type: licenseData?.show_type || 'Regular',
       trials: trials || [],
       classes: classes || []
     };
@@ -168,10 +168,10 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       }
     }
 
-    // Get org and competition_type from view_unique_license_key
+    // Get org and competition_type from shows table
     const { data: licenseData, error: licenseError } = await supabase
-      .from('view_unique_license_key')
-      .select('org, competition_type')
+      .from('shows')
+      .select('organization, show_type')
       .eq('license_key', licenseKey)
       .single();
 
@@ -183,10 +183,10 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       showId: show.id.toString(),
       showName: show.show_name,
       clubName: show.club_name,
-      showDate: show.show_date,
+      showDate: (show as any).start_date,
       licenseKey: show.license_key,
-      org: show.org || licenseData?.org || '', // Try show table first, then view
-      competition_type: show.competition_type || licenseData?.competition_type || 'Regular',
+      org: show.organization || licenseData?.organization || '', // Try show table first, then fallback
+      competition_type: show.show_type || licenseData?.show_type || 'Regular',
       trials: trials || [],
       classes: classes || []
     };
