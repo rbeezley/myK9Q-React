@@ -211,27 +211,31 @@
   fill: currentColor;
 }
 
-/* Status badge for EntryList page */
+/* Status badge for EntryList page - CRITICAL: Match EntryList.css constraints exactly */
 .dog-card-action .status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  white-space: normal; /* Allow text wrapping */
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.125rem;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  position: relative;
-  text-align: center;
-  /* Minimum touch target for mobile */
-  min-height: 28px;
-  max-width: 80px; /* Constrain width to force wrapping */
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.625rem !important; /* Match EntryList.css */
+  font-weight: 500 !important;
+  white-space: nowrap !important; /* Match EntryList.css - prevent wrapping */
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.125rem !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.025em !important;
+  position: relative !important;
+  text-align: center !important;
+  /* CRITICAL: Match EntryList.css constraints exactly */
+  max-width: 85px !important; /* Match EntryList.css */
+  max-height: 32px !important; /* Match EntryList.css */
+  min-height: 28px !important; /* Preserve touch target */
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
 }
 
 /* Invisible touch area for better mobile tapping */

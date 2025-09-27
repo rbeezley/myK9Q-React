@@ -65,6 +65,7 @@ export const EntryList: React.FC = () => {
   const [isDragMode, setIsDragMode] = useState(false);
   const [manualOrder, setManualOrder] = useState<Entry[]>([]);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   // Removed showSearch state - using persistent search instead
 
   // Helper function to convert database status codes to strings
@@ -141,10 +142,10 @@ export const EntryList: React.FC = () => {
   // Subscribe to real-time entry updates
   useEffect(() => {
     if (!classId || !showContext?.licenseKey || !classInfo?.actualClassId) return;
-    
+
     console.log('🔌 Setting up real-time subscription for ACTUAL classId:', classInfo.actualClassId, '(URL classId was:', classId, ')');
-    
-    const unsubscribe = subscribeToEntryUpdates(
+
+    const unsubscribeEntries = subscribeToEntryUpdates(
       classInfo.actualClassId, // Use the ACTUAL classid (275) instead of URL parameter (340)
       showContext.licenseKey,
       (payload) => {
@@ -152,10 +153,10 @@ export const EntryList: React.FC = () => {
         console.log('🔄 Event type:', payload.eventType);
         console.log('🔄 Old data:', payload.old);
         console.log('🔄 New data:', payload.new);
-        
+
         const newData = payload.new as any;
         const oldData = payload.old as any;
-        
+
         // Check if this is an in_ring status change
         if (newData?.in_ring !== oldData?.in_ring) {
           console.log('📍 In-ring status changed:', {
@@ -165,24 +166,26 @@ export const EntryList: React.FC = () => {
             armband: newData?.armband
           });
         }
-        
+
         // Instead of reloading all entries, update only the specific entry that changed
         if (newData?.id) {
           console.log('🎯 Updating specific entry ID:', newData.id, 'without full page reload');
-          
+
           setEntries(prev => prev.map(entry => {
             if (entry.id === newData.id) {
               const updatedEntry = {
                 ...entry,
                 inRing: newData.in_ring || false,
-                isScored: newData.is_scored || false,
+                // Note: isScored comes from results table, not entries table
+                // So we only update it if it's actually present in the payload
+                isScored: newData.is_scored !== undefined ? newData.is_scored : entry.isScored,
                 resultText: newData.result_text || entry.resultText,
                 searchTime: newData.search_time || entry.searchTime,
                 faultCount: newData.fault_count || entry.faultCount,
                 placement: newData.placement || entry.placement,
                 checkinStatus: convertStatusCodeToString(newData.checkin_status) || entry.checkinStatus
               };
-              
+
               console.log('✅ Updated entry:', {
                 id: updatedEntry.id,
                 armband: updatedEntry.armband,
@@ -190,7 +193,7 @@ export const EntryList: React.FC = () => {
                 inRing: updatedEntry.inRing,
                 isScored: updatedEntry.isScored
               });
-              
+
               return updatedEntry;
             }
             return entry;
@@ -198,8 +201,57 @@ export const EntryList: React.FC = () => {
         }
       }
     );
-    
-    return unsubscribe;
+
+    // Also subscribe to results table changes for scoring updates
+    const unsubscribeResults = supabase
+      .channel(`results:${classInfo.actualClassId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'results'
+        },
+        (payload) => {
+          console.log('🎯 Results table update received:', payload);
+          const newData = payload.new as any;
+
+          if (newData?.entry_id) {
+            console.log('📊 Updating entry scoring status for entry_id:', newData.entry_id);
+
+            setEntries(prev => prev.map(entry => {
+              if (entry.id === newData.entry_id) {
+                const updatedEntry = {
+                  ...entry,
+                  isScored: newData.is_scored || false,
+                  inRing: newData.is_in_ring || false,
+                  resultText: newData.result_status || entry.resultText,
+                  searchTime: newData.search_time_seconds?.toString() || entry.searchTime,
+                  faultCount: newData.total_faults || entry.faultCount,
+                  placement: newData.final_placement || entry.placement
+                };
+
+                console.log('✅ Updated entry from results:', {
+                  id: updatedEntry.id,
+                  armband: updatedEntry.armband,
+                  callName: updatedEntry.callName,
+                  isScored: updatedEntry.isScored,
+                  resultText: updatedEntry.resultText
+                });
+
+                return updatedEntry;
+              }
+              return entry;
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      unsubscribeEntries();
+      unsubscribeResults.unsubscribe();
+    };
   }, [classId, showContext?.licenseKey, classInfo?.actualClassId]);
 
   // Close popups when clicking outside
@@ -220,6 +272,14 @@ export const EntryList: React.FC = () => {
     }
   }, [activeStatusPopup, activeResetMenu]);
 
+  // Set loaded state after initial render to enable transitions
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 250); // Increased delay to ensure CSS is fully loaded and applied
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleStatusChange = async (entryId: number, status: NonNullable<Entry['checkinStatus']>) => {
     console.log('🔄 EntryList: handleStatusChange called with:', { entryId, status });
@@ -310,6 +370,26 @@ export const EntryList: React.FC = () => {
       } else {
         console.log('📍 No entries currently in ring');
       }
+
+      // Debug: Show scoring status for all entries
+      const scoredEntries = classEntries.filter(entry => entry.isScored);
+      console.log('🐛 SCORED ENTRIES DEBUG:', {
+        totalEntries: classEntries.length,
+        scoredCount: scoredEntries.length,
+        scoredEntries: scoredEntries.map(e => ({
+          id: e.id,
+          armband: e.armband,
+          callName: e.callName,
+          isScored: e.isScored,
+          resultText: e.resultText
+        })),
+        allEntriesScoring: classEntries.map(e => ({
+          id: e.id,
+          armband: e.armband,
+          callName: e.callName,
+          isScored: e.isScored
+        }))
+      });
       
       setEntries(classEntries);
       
@@ -623,6 +703,19 @@ export const EntryList: React.FC = () => {
   
   const pendingEntries = filteredEntries.filter(e => !e.isScored);
   const completedEntries = filteredEntries.filter(e => e.isScored);
+
+  // Debug logging for tab filtering
+  console.log('🐛 TAB FILTERING DEBUG:', {
+    totalEntries: filteredEntries.length,
+    pendingCount: pendingEntries.length,
+    completedCount: completedEntries.length,
+    entries: filteredEntries.map(e => ({
+      id: e.id,
+      armband: e.armband,
+      callName: e.callName,
+      isScored: e.isScored
+    }))
+  });
   
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
 
@@ -675,32 +768,88 @@ export const EntryList: React.FC = () => {
              entry.checkinStatus === 'at-gate' ? 'at-gate' : 'none')
           }
           resultBadges={
-            entry.isScored && entry.searchTime ? (
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-                {entry.resultText && (
-                  <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
-                    {(() => {
-                      const result = entry.resultText.toLowerCase();
-                      if (result === 'q' || result === 'qualified') return 'Q';
-                      if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                      if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                      if (result === 'ex' || result === 'excused') return 'EX';
-                      if (result === 'wd' || result === 'withdrawn') return 'WD';
-                      return entry.resultText;
-                    })()}
-                  </span>
-                )}
-                <span className="time-badge">{entry.searchTime}</span>
-                {entry.placement && (
-                  <span className="placement-badge">{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
-                )}
-              </div>
+            entry.isScored ? (
+              // Check if this is a nationals show (Master level with detailed scoring)
+              entry.level === 'Master' && (entry.correctFinds !== undefined || entry.totalPoints !== undefined) ? (
+                <div className="nationals-scoresheet-grid">
+                  {/* Row 1: Result and Time */}
+                  <div className="nationals-result-row">
+                    <span className="nationals-label">Result:</span>
+                    <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
+                      {(() => {
+                        const result = (entry.resultText || '').toLowerCase();
+                        if (result === 'q' || result === 'qualified') return 'Qualified';
+                        if (result === 'nq' || result === 'non-qualifying') return 'Non-Qualifying';
+                        if (result === 'abs' || result === 'absent' || result === 'e') return 'Absent';
+                        if (result === 'ex' || result === 'excused') return 'Excused';
+                        if (result === 'wd' || result === 'withdrawn') return 'Withdrawn';
+                        return entry.resultText || 'N/A';
+                      })()}
+                    </span>
+                  </div>
+                  <div className="nationals-result-row">
+                    <span className="nationals-label">Search Time:</span>
+                    <span className="nationals-value">{entry.searchTime || '0.00'}s</span>
+                  </div>
+
+                  {/* Row 2: Correct and Incorrect Calls */}
+                  <div className="nationals-result-row">
+                    <span className="nationals-label nationals-correct">Correct Calls:</span>
+                    <span className="nationals-value">{entry.correctFinds || 0}</span>
+                  </div>
+                  <div className="nationals-result-row">
+                    <span className="nationals-label nationals-incorrect">Incorrect Calls:</span>
+                    <span className="nationals-value">{entry.incorrectFinds || 0}</span>
+                  </div>
+
+                  {/* Row 3: Faults and No Finish Calls */}
+                  <div className="nationals-result-row">
+                    <span className="nationals-label nationals-faults">Faults:</span>
+                    <span className="nationals-value">{entry.faultCount || 0}</span>
+                  </div>
+                  <div className="nationals-result-row">
+                    <span className="nationals-label nationals-no-finish">No Finish Calls:</span>
+                    <span className="nationals-value">{entry.noFinishCount || 0}</span>
+                  </div>
+
+                  {/* Row 4: Total Points (spans both columns) */}
+                  <div className="nationals-total-points">
+                    <span className="nationals-total-label">Total Points:</span>
+                    <span className={`nationals-total-value ${(entry.totalPoints || 0) >= 0 ? 'positive' : 'negative'}`}>
+                      {(entry.totalPoints || 0) >= 0 ? '+' : ''}{entry.totalPoints || 0}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                // Regular (non-nationals) scoring display
+                entry.searchTime ? (
+                  <div className="regular-result-badges">
+                    {entry.resultText && (
+                      <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
+                        {(() => {
+                          const result = entry.resultText.toLowerCase();
+                          if (result === 'q' || result === 'qualified') return 'Q';
+                          if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                          if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                          if (result === 'ex' || result === 'excused') return 'EX';
+                          if (result === 'wd' || result === 'withdrawn') return 'WD';
+                          return entry.resultText;
+                        })()}
+                      </span>
+                    )}
+                    <span className="time-badge">{entry.searchTime}</span>
+                    {entry.placement && (
+                      <span className="placement-badge">{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
+                    )}
+                  </div>
+                ) : undefined
+              )
             ) : undefined
           }
           actionButton={
             !entry.isScored ? (
               <div
-                className={`status-badge ${
+                className={`status-badge checkin-status ${
                   entry.inRing ? 'in-ring' :
                   (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
                 } ${
@@ -730,7 +879,7 @@ export const EntryList: React.FC = () => {
                   }
                   const status = entry.checkinStatus || 'none';
                   switch(status) {
-                    case 'none': return <><span className="status-icon">●</span> Not Checked-in</>;
+                    case 'none': return <><span className="status-icon">●</span> No Status</>;
                     case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
                     case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
                     case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
@@ -755,7 +904,7 @@ export const EntryList: React.FC = () => {
   };
 
   return (
-    <div className="entry-list-container app-container-wide">
+    <div className={`entry-list-container app-container-wide${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
       <header className="entry-list-header">
         <HamburgerMenu
           backNavigation={{
@@ -765,7 +914,14 @@ export const EntryList: React.FC = () => {
           currentPage="entries"
         />
         <div className="class-info">
-          <h1>{classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h1>
+          <h1>
+            {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+            {classInfo?.section && classInfo.section !== '-' && classInfo.section !== '' && (
+              <span className="class-section">
+                - {classInfo.section}
+              </span>
+            )}
+          </h1>
           <div className="class-subtitle">
             <div className="trial-info">
               {classInfo?.trialDate && classInfo.trialDate !== '' && (
@@ -993,9 +1149,8 @@ export const EntryList: React.FC = () => {
             </p>
             <div className="reset-dialog-buttons">
               <button
-                className="reset-dialog-confirm"
+                className="reset-dialog-confirm self-checkin-ok-button"
                 onClick={() => setSelfCheckinDisabledDialog(false)}
-                  style={{ width: '100%' }}
               >
                 OK
               </button>
