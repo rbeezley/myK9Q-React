@@ -69,14 +69,34 @@ export const EntryList: React.FC = () => {
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   // Removed showSearch state - using persistent search instead
 
-  // Helper function to convert database status codes to strings
-  const convertStatusCodeToString = (statusCode: number | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
-    switch (statusCode) {
-      case 0: return 'none';
-      case 1: return 'checked-in';
-      case 2: return 'conflict';
-      case 3: return 'pulled';
-      case 4: return 'at-gate';
+  // Format date with abbreviated month (matches ClassList)
+  const formatTrialDate = (dateStr: string) => {
+    // Parse date components manually to avoid timezone issues
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const dayNumber = date.getDate();
+    const yearNumber = date.getFullYear();
+
+    return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
+  };
+
+  // Helper function to validate and normalize text-based status
+  const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
+    if (!statusText) return 'none';
+
+    const status = statusText.toLowerCase().trim();
+    switch (status) {
+      case 'none': return 'none';
+      case 'checked-in': return 'checked-in';
+      case 'at-gate': return 'at-gate';
+      case 'conflict': return 'conflict';
+      case 'pulled': return 'pulled';
       default: return 'none';
     }
   };
@@ -142,9 +162,17 @@ export const EntryList: React.FC = () => {
 
   // Subscribe to real-time entry updates
   useEffect(() => {
-    if (!classId || !showContext?.licenseKey || !classInfo?.actualClassId) return;
+    if (!classId || !showContext?.licenseKey || !classInfo?.actualClassId) {
+      console.log('⚠️ Not setting up real-time subscription yet:', {
+        classId: !!classId,
+        licenseKey: !!showContext?.licenseKey,
+        actualClassId: !!classInfo?.actualClassId
+      });
+      return;
+    }
 
     console.log('🔌 Setting up real-time subscription for ACTUAL classId:', classInfo.actualClassId, '(URL classId was:', classId, ')');
+    console.log('🔑 License key:', showContext.licenseKey);
 
     const unsubscribeEntries = subscribeToEntryUpdates(
       classInfo.actualClassId, // Use the ACTUAL classid (275) instead of URL parameter (340)
@@ -168,6 +196,17 @@ export const EntryList: React.FC = () => {
           });
         }
 
+        // Check if this is a check-in status change (text field)
+        if (newData?.check_in_status_text !== oldData?.check_in_status_text) {
+          console.log('🏁 Check-in status changed:', {
+            entryId: newData?.id,
+            oldCheckIn: oldData?.check_in_status_text,
+            newCheckIn: newData?.check_in_status_text,
+            armband: newData?.armband,
+            statusText: normalizeStatusText(newData?.check_in_status_text)
+          });
+        }
+
         // Instead of reloading all entries, update only the specific entry that changed
         if (newData?.id) {
           console.log('🎯 Updating specific entry ID:', newData.id, 'without full page reload');
@@ -184,7 +223,7 @@ export const EntryList: React.FC = () => {
                 searchTime: newData.search_time || entry.searchTime,
                 faultCount: newData.fault_count || entry.faultCount,
                 placement: newData.placement || entry.placement,
-                checkinStatus: convertStatusCodeToString(newData.checkin_status) || entry.checkinStatus
+                checkinStatus: normalizeStatusText(newData.check_in_status_text) || entry.checkinStatus
               };
 
               console.log('✅ Updated entry:', {
@@ -756,7 +795,7 @@ export const EntryList: React.FC = () => {
           }}
           className={`${
             hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
-          }`}
+          } ${entry.inRing ? 'in-ring' : ''}`}
           statusBorder={
             entry.isScored ?
               (entry.placement === 1 ? 'placement-1' :
@@ -928,7 +967,7 @@ export const EntryList: React.FC = () => {
               <div className="trial-details-group">
                 {classInfo?.trialDate && classInfo.trialDate !== '' && (
                   <span className="trial-detail">
-                    <Calendar size={14} /> {new Date(classInfo.trialDate).toLocaleDateString()}
+                    <Calendar size={14} /> {formatTrialDate(classInfo.trialDate)}
                   </span>
                 )}
                 {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
@@ -944,17 +983,25 @@ export const EntryList: React.FC = () => {
             </div>
           </div>
         </div>
+      </header>
+
+      {/* Search and Sort Header */}
+      <div className="search-controls-header">
         <button
           className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
           onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
           aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
           title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
         >
-          <Search size={20} />
+          <ChevronDown className="h-4 w-4" />
         </button>
-      </header>
 
-      {/* Search Toggle Icon in Header */}
+        <span className="search-controls-label">
+          {searchTerm ? `Found ${filteredEntries.length} of ${entries.length} entries` : 'Search & Sort'}
+        </span>
+      </div>
+
+      {/* Search Results Summary */}
       {searchTerm && (
         <div className="search-results-header">
           <div className="search-results-summary">

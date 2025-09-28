@@ -107,3 +107,6 @@ hive-mind-prompt-*.txt
 # Test results and reports (generated files)
 test-results/
 playwright-report/
+
+# Screenshots (temporary files for debugging/documentation)
+screenshots/

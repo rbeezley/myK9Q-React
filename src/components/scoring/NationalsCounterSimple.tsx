@@ -17,6 +17,7 @@ interface CounterProps {
 
 const Counter: React.FC<CounterProps> = ({ value, onIncrement, onDecrement, label, type }) => (
   <div className={`counter-group ${type}`}>
+    <div className="counter-label">{label}</div>
     <div className="counter-controls">
       <button
         className="counter-btn decrement"
@@ -33,7 +34,6 @@ const Counter: React.FC<CounterProps> = ({ value, onIncrement, onDecrement, labe
         {type === 'positive' ? '+' : '+'}
       </button>
     </div>
-    <div className="counter-label">{label}</div>
   </div>
 );
 

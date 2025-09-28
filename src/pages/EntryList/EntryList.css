@@ -28,26 +28,26 @@
   --warning: #FF9500;
   --error: #FF3B30;
   
-  /* High contrast status colors */
-  --success-contrast: #047857;
-  --warning-contrast: #c2410c;
-  --error-contrast: #dc2626;
+  /* High contrast status colors using design tokens */
+  --success-contrast: var(--token-success-contrast, #047857);
+  --warning-contrast: var(--token-warning-contrast, #c2410c);
+  --error-contrast: var(--token-error-contrast, #dc2626);
   
-  /* Comprehensive status colors - 7 distinct states per specification */
-  --status-not-checked-in: #6b7280;    /* Grey - not checked-in (pending) */
-  --status-not-checked-in-bg: #f3f4f6; /* Light grey background */
-  --status-checked-in: #065f46;        /* Very Dark Green - checked-in (ready) */
-  --status-checked-in-bg: #d1fae5;     /* Light green background */
-  --status-at-gate: #14b8a6;           /* Teal - at gate */
-  --status-at-gate-bg: #ccfbf1;        /* Light teal background */
-  --status-in-ring: #2563eb;           /* Vibrant Blue - in ring (active) */
-  --status-in-ring-bg: #dbeafe;        /* Light blue background */
-  --status-conflict: #f59e0b;          /* Yellow - conflict */
-  --status-conflict-bg: #fef3c7;       /* Light yellow background */
-  --status-pulled: #ef4444;            /* Red - pulled */
-  --status-pulled-bg: #fecaca;         /* Light red background */
-  --status-done: #10b981;              /* Green - done/scored */
-  --status-done-bg: #d1fae5;           /* Light green background */
+  /* Comprehensive status colors - now using design tokens with fallbacks */
+  --status-not-checked-in: var(--token-status-none, #6b7280);
+  --status-not-checked-in-bg: var(--token-status-none-bg, #f3f4f6);
+  --status-checked-in: var(--token-status-checked-in, #065f46);
+  --status-checked-in-bg: var(--token-status-checked-in-bg, #d1fae5);
+  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate-bg: var(--token-status-at-gate-bg, #ccfbf1);
+  --status-in-ring: var(--token-status-in-ring, #f97316);
+  --status-in-ring-bg: var(--token-status-in-ring-bg, #fed7aa);
+  --status-conflict: var(--token-status-conflict, #f59e0b);
+  --status-conflict-bg: var(--token-status-conflict-bg, #fef3c7);
+  --status-pulled: var(--token-status-pulled, #ef4444);
+  --status-pulled-bg: var(--token-status-pulled-bg, #fecaca);
+  --status-done: var(--token-status-done, #10b981);
+  --status-done-bg: var(--token-status-done-bg, #d1fae5);
 
   /* Disabled state colors */
   --disabled-text: #9ca3af;
@@ -75,26 +75,26 @@
   --text-secondary: #ffffff;   /* Consistent with other pages */
   --text-tertiary: #ffffff;    /* Consistent with other pages */
   
-  /* High contrast status colors for dark mode */
-  --success-contrast: #10b981;
-  --warning-contrast: #f59e0b;
-  --error-contrast: #ef4444;
+  /* High contrast status colors for dark mode using design tokens */
+  --success-contrast: var(--token-success-contrast, #10b981);
+  --warning-contrast: var(--token-warning-contrast, #f59e0b);
+  --error-contrast: var(--token-error-contrast, #ef4444);
   
-  /* Comprehensive status colors - dark mode */
-  --status-not-checked-in: #9ca3af;    /* Light grey - not checked-in */
-  --status-not-checked-in-bg: #374151; /* Dark grey background */
-  --status-checked-in: #047857;        /* Dark Green - checked-in (ready) */
-  --status-checked-in-bg: #064e3b;     /* Dark green background */
-  --status-at-gate: #14b8a6;           /* Teal - at gate */
-  --status-at-gate-bg: #134e4a;        /* Dark teal background */
-  --status-in-ring: #60a5fa;           /* Vibrant Blue - in ring */
-  --status-in-ring-bg: #1e3a8a;        /* Dark blue background */
-  --status-conflict: #fbbf24;          /* Brighter yellow - conflict */
-  --status-conflict-bg: #92400e;       /* Dark yellow background */
-  --status-pulled: #f87171;            /* Brighter red - pulled */
-  --status-pulled-bg: #991b1b;         /* Dark red background */
-  --status-done: #34d399;              /* Brighter green - done/scored */
-  --status-done-bg: #064e3b;           /* Dark green background */
+  /* Comprehensive status colors - dark mode using design tokens */
+  --status-not-checked-in: var(--token-status-none, #9ca3af);
+  --status-not-checked-in-bg: var(--token-status-none-bg, #374151);
+  --status-checked-in: var(--token-status-checked-in, #047857);
+  --status-checked-in-bg: var(--token-status-checked-in-bg, #064e3b);
+  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate-bg: var(--token-status-at-gate-bg, #134e4a);
+  --status-in-ring: var(--token-status-in-ring, #fb923c);
+  --status-in-ring-bg: var(--token-status-in-ring-bg, #9a3412);
+  --status-conflict: var(--token-status-conflict, #fbbf24);
+  --status-conflict-bg: var(--token-status-conflict-bg, #92400e);
+  --status-pulled: var(--token-status-pulled, #f87171);
+  --status-pulled-bg: var(--token-status-pulled-bg, #991b1b);
+  --status-done: var(--token-status-done, #34d399);
+  --status-done-bg: var(--token-status-done-bg, #064e3b);
 }
 
 .entry-list-container {
@@ -243,6 +243,69 @@
   white-space: nowrap;
 }
 
+.trial-detail svg {
+  color: var(--muted-foreground) !important;
+  stroke: var(--muted-foreground) !important;
+  fill: none !important;
+}
+
+.trial-detail svg * {
+  stroke: var(--muted-foreground) !important;
+  color: var(--muted-foreground) !important;
+}
+
+/* Very narrow screens (280px - industry minimum) */
+@media (max-width: 374px) {
+  .trial-info-row {
+    gap: 0.375rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trial-details-group {
+    gap: 0.375rem;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .trial-detail {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .search-input-wrapper {
+    min-width: 120px;
+  }
+
+  .search-toggle-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* iPhone SE and similar (375px standard) */
+@media (min-width: 375px) and (max-width: 640px) {
+  .trial-info-row {
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trial-details-group {
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .trial-detail {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .progress {
+    margin-top: 0.25rem;
+  }
+}
+
 /* Mobile responsive trial info - keep all items on one row but allow wrapping */
 @media (max-width: 640px) {
   .trial-info-row {
@@ -319,7 +382,7 @@
 .search-input-wrapper {
   position: relative;
   flex: 1;
-  min-width: 200px;
+  min-width: 100px; /* Reduced for ultra-narrow windows */
   display: flex;
   align-items: center;
 }
@@ -568,8 +631,78 @@
   cursor: grabbing;
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
+/* Ultra-narrow screens optimization (280px-480px) */
+@media (max-width: 480px) {
+  .search-sort-container.expanded {
+    padding: 0.25rem;
+    max-height: 200px;
+  }
+
+  .search-input-full {
+    padding: 0.375rem 0.5rem 0.375rem 1.5rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .search-icon {
+    left: 0.375rem;
+  }
+
+  .clear-search-btn {
+    right: 0.375rem;
+    width: 18px;
+    height: 18px;
+  }
+
+  .sort-btn {
+    padding: 0.1875rem 0.375rem;
+    font-size: 0.625rem;
+  }
+
+  .sort-label {
+    font-size: 0.6875rem;
+  }
+
+  .search-input-wrapper {
+    min-width: 80px;
+  }
+}
+
+/* Very narrow screens optimization (375px and below) */
+@media (max-width: 374px) {
+  .search-sort-container.expanded {
+    padding: 0.5rem;
+    max-height: 280px;
+  }
+
+  .search-input-full {
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+  }
+
+  .search-icon {
+    left: 0.5rem;
+  }
+
+  .clear-search-btn {
+    right: 0.5rem;
+    width: 20px;
+    height: 20px;
+  }
+
+  .sort-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .sort-label {
+    font-size: 0.75rem;
+  }
+}
+
+/* iPhone SE and similar responsive adjustments */
+@media (min-width: 375px) and (max-width: 640px) {
   .search-toggle-icon {
     width: 40px;
     height: 40px;
@@ -581,7 +714,7 @@
 
   .search-sort-container.expanded {
     padding: 0.75rem 1rem;
-    max-height: 350px; /* More space on mobile */
+    max-height: 350px;
   }
 
   .search-input-full {
@@ -604,7 +737,10 @@
     padding: 0.375rem 0.625rem;
     font-size: 0.8rem;
   }
+}
 
+/* General mobile responsive adjustments */
+@media (max-width: 640px) {
   .entries-grid.drag-mode {
     padding-left: 35px;
   }
@@ -615,14 +751,7 @@
   }
 }
 
-/* Moved to search-sort-container section above */
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1rem;
-  color: var(--text-secondary);
-  transition: all 0.2s;
-}
+/* Clean up orphaned CSS - removed duplicate styles */
 
 .clear-search-btn:hover {
   background: var(--border);
@@ -782,6 +911,27 @@
   border-color: rgba(0, 122, 255, 0.2);
 }
 
+/* Fix hover animation for in-ring entry cards */
+.entry-card.clickable.in-ring:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+/* Override the blue overlay for in-ring cards on hover */
+.dog-card.in-ring:hover::before {
+  opacity: 0 !important;
+}
+
+/* Prevent background color changes on hover for in-ring cards */
+.dog-card.in-ring:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .dog-card.in-ring:hover {
+  background: rgba(26, 29, 35, 0.8) !important;
+}
+
 /* Check-in status left border - subtle accent */
 .entry-card.checkin-none {
   border-left: 3px solid var(--status-not-checked-in);
@@ -795,26 +945,24 @@
   border-left: 3px solid var(--status-at-gate);
 }
 
-.entry-card.checkin-in-ring,
-.entry-card.in-ring {
-  border: 3px solid var(--status-in-ring);
+.dog-card.in-ring {
+  border-left: 4px solid var(--status-in-ring);
   position: relative;
-  animation: slow-flash 3s infinite ease-in-out;
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
-@keyframes slow-flash {
-  0%, 100% {
-    border-color: var(--status-in-ring);
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3);
-  }
-  50% {
-    border-color: #1d4ed8;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-  }
+/* Allow normal hover animation for in-ring dogs */
+.dog-card.in-ring:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15);
+  border-color: rgba(249, 115, 22, 0.4);
 }
+
 
 /* Add prominent "IN RING" indicator */
-.entry-card.in-ring::before {
+.dog-card.in-ring::before {
   content: "IN RING";
   position: absolute;
   top: -8px;
@@ -827,7 +975,6 @@
   border-radius: 4px;
   z-index: 10;
   letter-spacing: 0.5px;
-  animation: slow-flash 3s infinite ease-in-out;
 }
 
 @keyframes pulse {
@@ -869,6 +1016,22 @@
   left: auto !important;
   margin: 0 !important;
   transform: none !important;
+}
+
+/* Pulsing armband animation for in-ring dogs */
+.dog-card.in-ring .armband-badge {
+  animation: armband-pulse 2s infinite ease-in-out;
+}
+
+@keyframes armband-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.1);
+  }
 }
 
 /* Let ArmbandBadge component handle long numbers */
@@ -1452,21 +1615,21 @@
   overflow-y: auto;
 }
 
-/* Tablet - constrained width bottom sheet */
+/* Tablet - responsive width bottom sheet */
 @media (min-width: 768px) {
   .status-popup-content {
-    min-width: 420px;
-    max-width: 420px;
+    min-width: min(380px, 90vw);
+    max-width: min(420px, 90vw);
     border-radius: 1rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 }
 
-/* Desktop - compact modal */
+/* Desktop - responsive modal */
 @media (min-width: 1024px) {
   .status-popup-content {
-    min-width: 380px;
-    max-width: 380px;
+    min-width: min(350px, 80vw);
+    max-width: min(380px, 80vw);
     border-radius: 1rem;
   }
 }
@@ -1726,7 +1889,7 @@
   border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 2rem;
-  max-width: 400px;
+  max-width: min(400px, 90vw);
   width: calc(100% - 2rem);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
@@ -1735,7 +1898,7 @@
 @media (min-width: 1024px) {
   .reset-dialog {
     padding: 1.5rem;
-    max-width: 350px;
+    max-width: min(350px, 80vw);
   }
 }
 
@@ -1968,7 +2131,186 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Ultra-compact mobile-first responsive design */
+/* Ultra-narrow design for 4-window monitoring (280px-480px) */
+@media (max-width: 480px) {
+  .entry-list-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .class-info h1 {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+
+  .class-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .trial-detail {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.1rem;
+  }
+
+  .search-toggle-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .status-tabs {
+    margin: 0 0.5rem;
+    padding: 0.125rem;
+  }
+
+  .status-tab {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  .entry-list-content {
+    padding: 0.5rem;
+  }
+
+  .entries-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .entry-card {
+    padding: 0.5rem;
+    min-height: 70px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .entry-content {
+    flex: 1;
+    min-width: 0;
+    padding-right: 80px;
+    margin: 0;
+  }
+
+  .dog-name {
+    font-size: 0.95rem;
+  }
+
+  .breed {
+    font-size: 0.75rem;
+  }
+
+  .handler {
+    font-size: 0.7rem;
+  }
+
+  .armband-badge {
+    position: static !important;
+    flex-shrink: 0;
+    transform: scale(0.8);
+  }
+
+  .result-inline {
+    flex-wrap: wrap;
+    gap: 0.125rem;
+  }
+
+  .result-badge,
+  .time-badge {
+    font-size: 0.6rem;
+    padding: 0.125rem 0.375rem;
+  }
+
+  .status-badge,
+  .checkin-status {
+    max-width: 70px !important;
+    max-height: 28px !important;
+    font-size: 0.55rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+}
+
+/* Small mobile optimization (481px-639px) */
+@media (min-width: 481px) and (max-width: 639px) {
+  .entry-list-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .class-info {
+    margin: 0;
+    flex: 1;
+  }
+
+  .menu-button {
+    flex-shrink: 0;
+  }
+
+  .status-tabs {
+    margin: 0 0.75rem;
+  }
+
+  .entry-list-content {
+    padding: 0.75rem;
+  }
+
+  .entries-grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .entry-card {
+    padding: 0.625rem;
+    min-height: 75px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  .entry-content {
+    flex: 1;
+    min-width: 0;
+    padding-right: 90px;
+    margin: 0;
+  }
+
+  .continue-scoring-button {
+    width: 100%;
+  }
+
+  .dog-name {
+    font-size: 1.0625rem;
+  }
+
+  .breed {
+    font-size: 0.8125rem;
+  }
+
+  .handler {
+    font-size: 0.75rem;
+  }
+
+  .armband-badge {
+    position: static !important;
+    flex-shrink: 0;
+  }
+
+  .result-inline {
+    flex-wrap: wrap;
+    gap: 0.1875rem;
+  }
+
+  .result-badge,
+  .time-badge {
+    font-size: 0.625rem;
+    padding: 0.15625rem 0.4375rem;
+  }
+}
+
+/* Standard mobile (640px and below) */
 @media (max-width: 640px) {
   .entry-list-header {
     flex-direction: row;
@@ -1981,24 +2323,24 @@
     margin: 0;
     flex: 1;
   }
-  
+
   .menu-button {
     flex-shrink: 0;
   }
-  
+
   .status-tabs {
     margin: 0 1rem;
   }
-  
+
   .entry-list-content {
     padding: 1rem;
   }
-  
+
   .entries-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;              /* Even more compact gap */
   }
-  
+
   .entry-card {
     padding: 0.75rem;
     min-height: 80px;
@@ -2013,33 +2355,33 @@
     padding-right: 100px; /* Space for status badge */
     margin: 0;
   }
-  
+
   .continue-scoring-button {
     width: 100%;
   }
-  
+
   .dog-name {
     font-size: 1.1875rem;      /* Slightly smaller for compactness */
   }
-  
+
   .breed {
     font-size: 0.875rem;       /* More compact */
   }
-  
+
   .handler {
     font-size: 0.8125rem;      /* More compact */
   }
-  
+
   .armband-badge {
     position: static !important;
     flex-shrink: 0;
   }
-  
+
   .result-inline {
     flex-wrap: wrap;
     gap: 0.25rem;              /* Tighter gap */
   }
-  
+
   .result-badge,
   .time-badge {
     font-size: 0.6875rem;
@@ -2136,6 +2478,13 @@
 
 [data-theme="dark"] .entry-card.clickable:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Fix hover animation for in-ring entry cards in dark mode */
+[data-theme="dark"] .entry-card.clickable.in-ring:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.3), 0 8px 16px rgba(0, 0, 0, 0.4);
+  border-color: rgba(249, 115, 22, 0.5);
 }
 
 [data-theme="dark"] .theme-toggle {
@@ -2550,4 +2899,61 @@
   text-align: left !important;
   display: block !important;
   width: 100% !important;
+}
+
+/* ========================================
+   SEARCH CONTROLS HEADER (Updated Pattern)
+   ======================================== */
+
+/* Search controls header */
+.search-controls-header {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  gap: 0.75rem;
+}
+
+.search-toggle-icon {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-toggle-icon:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.search-toggle-icon.active {
+  color: var(--primary);
+  background: var(--muted);
+  transform: rotate(180deg);
+}
+
+.search-controls-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .search-controls-header {
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .search-controls-header {
+    padding: 0.5rem 1rem;
+  }
 }

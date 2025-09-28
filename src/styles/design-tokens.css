@@ -1,0 +1,159 @@
+/* Design Tokens - Single source of truth for colors, spacing, and design values */
+
+:root {
+  /* === STATUS COLORS === */
+  /* Check-in status colors */
+  --token-status-none: #6b7280;
+  --token-status-none-bg: #f3f4f6;
+  --token-status-checked-in: #065f46;
+  --token-status-checked-in-bg: #d1fae5;
+  --token-status-at-gate: #14b8a6;
+  --token-status-at-gate-bg: #ccfbf1;
+  --token-status-in-ring: #f97316;
+  --token-status-in-ring-bg: #fed7aa;
+  --token-status-conflict: #f59e0b;
+  --token-status-conflict-bg: #fef3c7;
+  --token-status-pulled: #ef4444;
+  --token-status-pulled-bg: #fecaca;
+  --token-status-done: #10b981;
+  --token-status-done-bg: #d1fae5;
+
+  /* Placement colors */
+  --token-placement-1: #ffd700; /* Gold */
+  --token-placement-2: #c0c0c0; /* Silver */
+  --token-placement-3: #cd7f32; /* Bronze */
+
+  /* Semantic colors */
+  --token-success: #34C759;
+  --token-warning: #FF9500;
+  --token-error: #FF3B30;
+  --token-success-contrast: #047857;
+  --token-warning-contrast: #c2410c;
+  --token-error-contrast: #dc2626;
+
+  /* Brand colors */
+  --token-brand-blue: #007AFF;
+  --token-brand-purple: #5856D6;
+
+  /* === SPACING === */
+  --token-space-xs: 0.125rem;    /* 2px */
+  --token-space-sm: 0.25rem;     /* 4px */
+  --token-space-md: 0.5rem;      /* 8px */
+  --token-space-lg: 0.75rem;     /* 12px */
+  --token-space-xl: 1rem;        /* 16px */
+  --token-space-2xl: 1.25rem;    /* 20px */
+  --token-space-3xl: 1.5rem;     /* 24px */
+  --token-space-4xl: 2rem;       /* 32px */
+
+  /* === BORDER RADIUS === */
+  --token-radius-sm: 0.375rem;   /* 6px */
+  --token-radius-md: 0.5rem;     /* 8px */
+  --token-radius-lg: 0.75rem;    /* 12px */
+  --token-radius-xl: 1rem;       /* 16px */
+  --token-radius-full: 50%;
+
+  /* === SHADOWS === */
+  --token-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --token-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --token-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --token-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.15);
+
+  /* === HOVER EFFECTS === */
+  --token-hover-lift: translateY(-2px);
+  --token-hover-scale: scale(1.05);
+  --token-hover-scale-sm: scale(1.02);
+  --token-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --token-hover-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+
+  /* === TRANSITIONS === */
+  --token-transition-fast: 0.15s ease;
+  --token-transition-normal: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --token-transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* === TYPOGRAPHY === */
+  --token-font-xs: 0.625rem;     /* 10px */
+  --token-font-sm: 0.75rem;      /* 12px */
+  --token-font-md: 0.875rem;     /* 14px */
+  --token-font-lg: 1rem;         /* 16px */
+  --token-font-xl: 1.125rem;     /* 18px */
+  --token-font-2xl: 1.25rem;     /* 20px */
+  --token-font-3xl: 1.5rem;      /* 24px */
+
+  --token-font-weight-normal: 400;
+  --token-font-weight-medium: 500;
+  --token-font-weight-semibold: 590;
+  --token-font-weight-bold: 600;
+  --token-font-weight-extrabold: 700;
+
+  /* === Z-INDEX === */
+  --token-z-base: 0;
+  --token-z-raised: 10;
+  --token-z-overlay: 100;
+  --token-z-modal: 1000;
+  --token-z-toast: 2000;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  /* Status colors for dark mode */
+  --token-status-none: #9ca3af;
+  --token-status-none-bg: #374151;
+  --token-status-checked-in: #047857;
+  --token-status-checked-in-bg: #064e3b;
+  --token-status-at-gate: #14b8a6;
+  --token-status-at-gate-bg: #134e4a;
+  --token-status-in-ring: #fb923c;
+  --token-status-in-ring-bg: #9a3412;
+  --token-status-conflict: #fbbf24;
+  --token-status-conflict-bg: #92400e;
+  --token-status-pulled: #f87171;
+  --token-status-pulled-bg: #991b1b;
+  --token-status-done: #34d399;
+  --token-status-done-bg: #064e3b;
+
+  /* Semantic colors for dark mode */
+  --token-success-contrast: #10b981;
+  --token-warning-contrast: #f59e0b;
+  --token-error-contrast: #ef4444;
+
+  /* Shadows for dark mode */
+  --token-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --token-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --token-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --token-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --token-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --token-hover-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* === UTILITY CLASSES === */
+/* These can be used for quick prototyping or one-off cases */
+
+.token-hover-lift {
+  transition: var(--token-transition-normal);
+}
+
+.token-hover-lift:hover {
+  transform: var(--token-hover-lift);
+  box-shadow: var(--token-hover-shadow);
+}
+
+.token-hover-scale {
+  transition: var(--token-transition-normal);
+}
+
+.token-hover-scale:hover {
+  transform: var(--token-hover-scale);
+  box-shadow: var(--token-hover-shadow);
+}
+
+/* Status color utilities */
+.token-status-in-ring-hover:hover {
+  transform: var(--token-hover-scale-sm) var(--token-hover-lift);
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+[data-theme="dark"] .token-status-in-ring-hover:hover {
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.3), 0 8px 16px rgba(0, 0, 0, 0.4);
+  border-color: rgba(249, 115, 22, 0.5);
+}

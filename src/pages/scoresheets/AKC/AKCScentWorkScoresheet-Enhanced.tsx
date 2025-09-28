@@ -18,6 +18,8 @@ import { supabase } from '../../../lib/supabase';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import { HamburgerMenu, ArmbandBadge } from '../../../components/ui';
+import { DogCard } from '../../../components/DogCard';
+import { X } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
@@ -94,6 +96,20 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
+
+  // Prevent background scrolling when dialog is open
+  useEffect(() => {
+    if (showConfirmation) {
+      document.body.classList.add('dialog-open');
+    } else {
+      document.body.classList.remove('dialog-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('dialog-open');
+    };
+  }, [showConfirmation]);
 
   // Timer state (existing from original)
   const [stopwatchTime, setStopwatchTime] = useState(0);
@@ -601,6 +617,137 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     ));
   };
 
+  // Add missing handleTimeInputChange function
+  const handleTimeInputChange = (index: number, value: string) => {
+    handleAreaUpdate(index, 'time', value);
+  };
+
+  // Clear time functions
+  const clearTimeInput = (index: number) => {
+    handleAreaUpdate(index, 'time', '');
+  };
+
+  // Smart time parsing function - handles multiple input formats
+  const parseSmartTime = (input: string): string => {
+    if (!input || input.trim() === '') return '';
+
+    const cleaned = input.trim();
+
+    // If already in MM:SS.HH format, validate and return
+    const fullFormatMatch = cleaned.match(/^(\d{1,2}):(\d{2})\.(\d{2})$/);
+    if (fullFormatMatch) {
+      const [, minutes, seconds, hundredths] = fullFormatMatch;
+      const min = parseInt(minutes);
+      const sec = parseInt(seconds);
+      const hun = parseInt(hundredths);
+
+      if (min <= 59 && sec <= 59 && hun <= 99) {
+        return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.${hun.toString().padStart(2, '0')}`;
+      }
+    }
+
+    // Handle MM:SS format (no hundredths)
+    const timeFormatMatch = cleaned.match(/^(\d{1,2}):(\d{2})$/);
+    if (timeFormatMatch) {
+      const [, minutes, seconds] = timeFormatMatch;
+      const min = parseInt(minutes);
+      const sec = parseInt(seconds);
+
+      if (min <= 59 && sec <= 59) {
+        return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.00`;
+      }
+    }
+
+    // Handle decimal format like 123.45
+    const decimalMatch = cleaned.match(/^(\d{1,3})\.(\d{1,2})$/);
+    if (decimalMatch) {
+      const [, wholePart, decimalPart] = decimalMatch;
+      const totalSeconds = parseInt(wholePart);
+      const hundredths = decimalPart.padEnd(2, '0').slice(0, 2);
+
+      if (totalSeconds <= 3599) { // Max 59:59
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths}`;
+      }
+    }
+
+    // Handle pure digit strings
+    const digitsOnly = cleaned.replace(/\D/g, '');
+    if (digitsOnly.length === 0) return '';
+
+    const digits = digitsOnly.slice(0, 6); // Max 6 digits
+
+    if (digits.length === 5) {
+      // 5 digits: MSSYY format (1:23.45)
+      const minutes = digits.slice(0, 1);
+      const seconds = digits.slice(1, 3);
+      const hundredths = digits.slice(3, 5);
+
+      const min = parseInt(minutes);
+      const sec = parseInt(seconds);
+
+      if (min <= 9 && sec <= 59) {
+        return `0${minutes}:${seconds}.${hundredths}`;
+      }
+    } else if (digits.length >= 6) {
+      // 6+ digits: MMSSYY format
+      const minutes = digits.slice(0, 2);
+      const seconds = digits.slice(2, 4);
+      const hundredths = digits.slice(4, 6).padEnd(2, '0');
+
+      const min = parseInt(minutes);
+      const sec = parseInt(seconds);
+
+      if (min <= 59 && sec <= 59) {
+        return `${minutes}:${seconds}.${hundredths}`;
+      }
+    } else if (digits.length === 4) {
+      // 4 digits: SSYY format (under 1 minute)
+      const seconds = digits.slice(0, 2);
+      const hundredths = digits.slice(2, 4);
+
+      const sec = parseInt(seconds);
+      if (sec <= 59) {
+        return `00:${seconds}.${hundredths}`;
+      }
+    } else if (digits.length === 3) {
+      // 3 digits: SYY format (S.YY seconds)
+      const seconds = digits.slice(0, 1);
+      const hundredths = digits.slice(1, 3);
+
+      const sec = parseInt(seconds);
+      if (sec <= 9) {
+        return `00:0${seconds}.${hundredths}`;
+      }
+    } else if (digits.length === 2) {
+      // 2 digits: treat as hundredths of a second (0.YY)
+      const hundredths = digits;
+      return `00:00.${hundredths}`;
+    } else if (digits.length === 1) {
+      // 1 digit: treat as minutes
+      const minutes = parseInt(digits);
+      if (minutes <= 9) {
+        return `0${minutes}:00.00`;
+      }
+    }
+
+    // If no valid format found, return original input for user to continue typing
+    return cleaned;
+  };
+
+  // Enhanced time input handler with smart parsing
+  const handleSmartTimeInput = (index: number, rawInput: string) => {
+    // Always update with raw input first (for real-time typing)
+    handleAreaUpdate(index, 'time', rawInput);
+  };
+
+  // Handle blur (when user finishes typing) - apply smart parsing
+  const handleTimeInputBlur = (index: number, rawInput: string) => {
+    const parsedTime = parseSmartTime(rawInput);
+    handleAreaUpdate(index, 'time', parsedTime);
+  };
+
   // Load entries on mount (existing logic)
   useEffect(() => {
     if (classId && showContext?.licenseKey) {
@@ -774,7 +921,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                 {isStopwatchRunning ? ' Stop' : ' Start'}
               </button>
               {isStopwatchRunning && (
-                <button className="timer-btn-secondary" onClick={pauseStopwatch} title="Pause without moving to next area">⏸️</button>
+                <button className="timer-btn-secondary" onClick={_pauseStopwatch} title="Pause without moving to next area">⏸️</button>
               )}
             </div>
           </div>
@@ -789,15 +936,28 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                   Area {index + 1}
                 </div>
               )}
-              <input
-                type="tel"
-                inputMode="numeric"
-                placeholder="MM:SS.HH"
-                value={area.time}
-                onChange={(e) => handleTimeInputChange(index, e.target.value)}
-                onFocus={(e) => e.target.select()}
-                className={`time-input ${areas.length > 1 ? 'multi-area' : 'single-area'}`}
-              />
+              <div className="time-input-wrapper">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Type: 12345 or 1:23.45"
+                  value={area.time}
+                  onChange={(e) => handleSmartTimeInput(index, e.target.value)}
+                  onBlur={(e) => handleTimeInputBlur(index, e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  className={`time-input ${areas.length > 1 ? 'multi-area' : 'single-area'}`}
+                />
+                {area.time && (
+                  <button
+                    type="button"
+                    className="time-clear-button"
+                    onClick={() => clearTimeInput(index)}
+                    title="Clear time"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
               <span className="max-time">Max: {getMaxTimeForArea(index, sampleEntry)}</span>
             </div>
           ))}
@@ -889,22 +1049,23 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           }}
           currentPage="entries"
         />
-        <h1>
-          {isNationalsMode ? '🏆 AKC Nationals' : 'AKC Scent Work'}
-        </h1>
+        <div className="header-content">
+          <h1>
+            {isNationalsMode ? '🏆 AKC Nationals' : 'AKC Scent Work'}
+          </h1>
+          <div className="header-trial-info">
+            <span>{trialDate}</span>
+            <span className="trial-separator">•</span>
+            <span>Trial {trialNumber}</span>
+            <span className="trial-separator">•</span>
+            <span>{currentEntry.element} {currentEntry.level}</span>
+          </div>
+        </div>
         <button className="theme-btn" onClick={() => setDarkMode(!darkMode)}>
           {darkMode ? '☀️' : '🌙'}
         </button>
       </header>
 
-      {/* Trial Info Header - Compact one line */}
-      <div className="flutter-trial-header-compact">
-        <span className="trial-info-item">{trialDate}</span>
-        <span className="trial-separator">•</span>
-        <span className="trial-info-item">Trial {trialNumber}</span>
-        <span className="trial-separator">•</span>
-        <span className="trial-info-item">{currentEntry.element} {currentEntry.level}</span>
-      </div>
 
       {/* Dog Info Card - Production Styling */}
       <div className="flutter-dog-info-card">
@@ -952,13 +1113,26 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                 Area {index + 1}
               </div>
             )}
-            <input
-              type="text"
-              value={area.time || ''}
-              onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
-              placeholder="MM:SS.HH"
-              className={`flutter-time-input ${areas.length === 1 ? 'single-area' : ''}`}
-            />
+            <div className="flutter-time-input-wrapper">
+              <input
+                type="text"
+                value={area.time || ''}
+                onChange={(e) => handleSmartTimeInput(index, e.target.value)}
+                onBlur={(e) => handleTimeInputBlur(index, e.target.value)}
+                placeholder="Type: 12345 or 1:23.45"
+                className={`flutter-time-input ${areas.length === 1 ? 'single-area' : ''}`}
+              />
+              {area.time && (
+                <button
+                  type="button"
+                  className="flutter-time-clear-button"
+                  onClick={() => clearTimeInput(index)}
+                  title="Clear time"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
             <div className="max-time-display">
               Max: {getMaxTimeForArea ? getMaxTimeForArea(index) : '02:00'}
             </div>
@@ -1061,44 +1235,59 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           <div className="judge-confirmation-dialog">
             <div className="dialog-header">
               <h2>Score Confirmation</h2>
-              <div className="trial-info">
-                <span className="trial-date">{trialDate} • Trial {trialNumber} • {currentEntry.element} {currentEntry.level}</span>
+              <div className="trial-info-line">
+                {trialDate} • Trial {trialNumber} • {currentEntry.element} {currentEntry.level}
               </div>
             </div>
 
-            <div className="dog-summary">
-              <div className="armband-large">
-                <ArmbandBadge number={currentEntry.armband} />
-              </div>
-              <div className="dog-info-summary">
-                <div className="dog-name-large">{currentEntry.callName}</div>
-                <div className="dog-breed">{currentEntry.breed}</div>
-                <div className="handler-name">Handler: {currentEntry.handler}</div>
-              </div>
+            <div className="dialog-dog-card">
+              <DogCard
+                armband={currentEntry.armband}
+                callName={currentEntry.callName}
+                breed={currentEntry.breed}
+                handler={currentEntry.handler}
+                className="confirmation-dog-card"
+              />
             </div>
 
             <div className="score-details">
-              <div className="score-row">
-                <span className="score-label">Result:</span>
-                <span className={`score-value result-${qualifying?.toLowerCase()}`}>
-                  {qualifying === 'Q' ? 'Qualified' :
-                   qualifying === 'NQ' ? 'NQ' :
-                   qualifying === 'ABS' || qualifying === 'Absent' ? 'Absent' :
-                   qualifying === 'E' || qualifying === 'EX' || qualifying === 'Excused' ? 'Excused' :
-                   qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
-                </span>
-              </div>
-              <div className="score-row">
-                <span className="score-label">Time:</span>
-                <span className="score-value">{areas[0]?.time || totalTime || calculateTotalTime()}</span>
-              </div>
-
-              {!isNationalsMode && faultCount > 0 && (
-                <div className="score-row">
-                  <span className="score-label">Faults:</span>
-                  <span className="score-value negative">{faultCount}</span>
+              <div className={`result-time-grid ${isNationalsMode ? 'nationals-mode' : ''}`}>
+                <div className="score-item">
+                  <span className="item-label">Result</span>
+                  <span className={`item-value result-${qualifying?.toLowerCase()}`}>
+                    {qualifying === 'Q' ? 'Qualified' :
+                     qualifying === 'NQ' ? 'NQ' :
+                     qualifying === 'ABS' || qualifying === 'Absent' ? 'Absent' :
+                     qualifying === 'E' || qualifying === 'EX' || qualifying === 'Excused' ? 'Excused' :
+                     qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
+                  </span>
                 </div>
-              )}
+                <div className="score-item time-container">
+                  <span className="item-label">Time</span>
+                  <span className="item-value time-value">{areas[0]?.time || totalTime || calculateTotalTime()}</span>
+                </div>
+
+                {!isNationalsMode && faultCount > 0 && (
+                  <div className="score-item">
+                    <span className="item-label">Faults</span>
+                    <span className="item-value negative">{faultCount}</span>
+                  </div>
+                )}
+
+                {!isNationalsMode && nonQualifyingReason && (qualifying === 'NQ' || qualifying === 'EX') && (
+                  <div className="score-item">
+                    <span className="item-label">{qualifying === 'EX' ? 'Excused' : 'NQ'} Reason</span>
+                    <span className="item-value">{nonQualifyingReason}</span>
+                  </div>
+                )}
+
+                {!isNationalsMode && withdrawnReason && qualifying === 'WD' && (
+                  <div className="score-item">
+                    <span className="item-label">Withdrawn Reason</span>
+                    <span className="item-value">{withdrawnReason}</span>
+                  </div>
+                )}
+              </div>
 
               {isNationalsMode && (
                 <>
@@ -1130,16 +1319,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                 </>
               )}
 
-              {qualifying !== 'Q' && qualifying !== 'Qualified' && (
-                <div className="score-row">
-                  <span className="score-label">Reason:</span>
-                  <span className="score-value">
-                    {qualifying === 'WD' || qualifying === 'Withdrawn'
-                      ? withdrawnReason
-                      : nonQualifyingReason}
-                  </span>
-                </div>
-              )}
             </div>
 
             <div className="dialog-actions">

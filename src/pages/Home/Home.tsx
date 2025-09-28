@@ -5,7 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2 } from 'lucide-react';
+import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2, Target } from 'lucide-react';
 import { ArmbandBadge } from '../../components/ui';
 import './Home.css';
 
@@ -293,14 +293,19 @@ export const Home: React.FC = () => {
 
   const formatTrialDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-      const shortDate = date.toLocaleDateString('en-US', { 
-        month: 'numeric', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-      return `${dayName} ${shortDate}`;
+      // Parse date components manually to avoid timezone issues (matches ClassList/EntryList)
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day); // month is 0-indexed
+
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      const dayName = days[date.getDay()];
+      const monthName = months[date.getMonth()];
+      const dayNumber = date.getDate();
+      const yearNumber = date.getFullYear();
+
+      return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
     } catch {
       return dateString; // Fallback to original if parsing fails
     }
@@ -381,8 +386,12 @@ export const Home: React.FC = () => {
                   {/* Enhanced Header with Status Badge */}
                   <div className="trial-header">
                     <div className="trial-date-info">
-                      <p className="trial-date">{formatTrialDate(trial.trial_date)}</p>
-                      <p className="trial-type">Trial {index + 1}</p>
+                      <p className="trial-date">
+                        <Calendar size={14} /> {formatTrialDate(trial.trial_date)}
+                      </p>
+                      <p className="trial-type">
+                        <Target size={14} /> Trial {index + 1}
+                      </p>
                     </div>
                     <div className={`trial-status ${trialStatus}`}>
                       {trialStatus === 'completed' && 'Complete'}
@@ -394,11 +403,19 @@ export const Home: React.FC = () => {
                   {/* Enhanced Progress Section */}
                   <div className="trial-progress">
                     <div className="progress-row">
-                      <Calendar className={`progress-circle ${trialStatus}`} size={14} />
+                      <Calendar
+                        className={`progress-circle ${trialStatus}`}
+                        size={14}
+                        style={{ color: 'var(--muted-foreground)', stroke: 'var(--muted-foreground)' }}
+                      />
                       <span className="progress-text">Classes: {trial.classes_completed} of {trial.classes_total}</span>
                     </div>
                     <div className="progress-row">
-                      <Users2 className={`progress-circle ${trialStatus}`} size={14} />
+                      <Users2
+                        className={`progress-circle ${trialStatus}`}
+                        size={14}
+                        style={{ color: 'var(--muted-foreground)', stroke: 'var(--muted-foreground)' }}
+                      />
                       <span className="progress-text">Entries: {trial.entries_completed} of {trial.entries_total}</span>
                     </div>
                   </div>

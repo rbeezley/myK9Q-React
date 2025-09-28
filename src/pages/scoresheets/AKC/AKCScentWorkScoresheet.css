@@ -1,5 +1,52 @@
 /* Mobile-First AKC Scent Work Scoresheet - Enhanced UX */
 
+/* Time Input Clear Button Styles */
+.time-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.time-clear-button,
+.flutter-time-clear-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.time-clear-button:hover,
+.flutter-time-clear-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ff4444;
+}
+
+.flutter-time-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Ensure input has right padding for clear button */
+.time-input-wrapper .time-input {
+  padding-right: 32px !important;
+}
+
+.flutter-time-input-wrapper .flutter-time-input {
+  padding-right: 32px !important;
+}
+
 /* Container - Full height, scrollable, optimized for touch */
 .mobile-scoresheet {
   min-height: 100vh;

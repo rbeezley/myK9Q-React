@@ -1,3 +1,6 @@
+/* Import design tokens first - available everywhere */
+@import './styles/design-tokens.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -17,4 +20,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--background, #ffffff);
   color: var(--foreground, #000000);
+}
+
+/* Global CSS Rehydration Prevention */
+h1, h2, h3, h4, h5, h6 {
+  text-transform: none !important;
+  text-align: left !important;
+}
+
+/* Prevent flash of incorrectly styled content during hydration */
+.entry-list-container[data-loaded="false"] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Enable transitions after hydration is complete */
+.entry-list-container[data-loaded="true"] * {
+  transition: inherit;
+  animation: inherit;
 }

@@ -42,15 +42,14 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 12px;
 }
 
 .counter-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
   border: 2px solid transparent;
-  font-size: 24px;
+  font-size: 32px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -122,6 +121,7 @@
   color: rgba(255, 255, 255, 0.8);
   text-align: center;
   line-height: 1.2;
+  margin-bottom: 8px;
 }
 
 /* Responsive adjustments */
@@ -135,10 +135,10 @@
   }
 
   .counter-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
-    border-radius: 22px;
+    width: 58px;
+    height: 58px;
+    font-size: 28px;
+    border-radius: 29px;
   }
 
   .counter-value {
@@ -151,6 +151,7 @@
   .counter-label {
     font-size: 13px;
     font-weight: 700;
+    margin-bottom: 6px;
   }
 
   .counter-controls {

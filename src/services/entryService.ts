@@ -130,13 +130,17 @@ export async function getClassEntries(
       totalResults: resultsData?.length || 0
     });
 
-    // Helper function to convert database integer codes back to string status
-    const convertStatusCodeToString = (statusCode: number | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
-      switch (statusCode) {
-        case 0: return 'none';
-        case 1: return 'checked-in';
-        case 2: return 'at-gate';
-        case 3: return 'conflict'; // Could also be 'pulled' - DB constraint limits us
+    // Helper function to normalize text-based status values
+    const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
+      if (!statusText) return 'none';
+
+      const status = statusText.toLowerCase().trim();
+      switch (status) {
+        case 'none': return 'none';
+        case 'checked-in': return 'checked-in';
+        case 'at-gate': return 'at-gate';
+        case 'conflict': return 'conflict';
+        case 'pulled': return 'pulled';
         default: return 'none';
       }
     };
@@ -174,12 +178,12 @@ export async function getClassEntries(
         noFinishCount: result?.no_finish_count || 0,
         totalPoints: result?.points_earned || 0,
         classId: classId,
-        className: `${row.classes.element} ${row.classes.level} ${row.classes.section}`,
+        className: `${row.classes.element} ${row.classes.level}` + (row.classes.section && row.classes.section !== '-' ? ` ${row.classes.section}` : ''),
         section: row.classes.section,
         element: row.classes.element,
         level: row.classes.level,
-        checkedIn: row.check_in_status > 0,
-        checkinStatus: convertStatusCodeToString(row.check_in_status),
+        checkedIn: row.check_in_status_text !== 'none' && row.check_in_status_text !== null,
+        checkinStatus: normalizeStatusText(row.check_in_status_text),
         timeLimit: '', // Will need to get from class data
         timeLimit2: '', // Will need to get from class data
         timeLimit3: '', // Will need to get from class data
@@ -534,19 +538,19 @@ export function subscribeToEntryUpdates(
   licenseKey: string,
   onUpdate: (payload: any) => void
 ) {
-  console.log('🔌 Creating subscription for classid_fk:', actualClassId);
-  console.log('🔍 Using correct column name: classid_fk (not class_id)');
+  console.log('🔌 Creating subscription for class_id:', actualClassId);
+  console.log('🔍 Using correct column name: class_id (matching the main query)');
   console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
-  
+
   const subscription = supabase
-    .channel(`entries:${actualClassId}`) 
+    .channel(`entries:${actualClassId}`)
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
         table: 'entries',
-        filter: `classid_fk=eq.${actualClassId}` // Fixed: using correct column name and actual classid
+        filter: `class_id=eq.${actualClassId}` // Fixed: using class_id to match the main query
       },
       (payload) => {
         console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
@@ -571,7 +575,7 @@ export function subscribeToEntryUpdates(
           console.log('  🎯 in_ring changed:', oldData.in_ring, '->', newData.in_ring);
           console.log('  🆔 entry_id:', newData.id);
           console.log('  🏷️ armband:', newData.armband);
-          console.log('  📂 classid_fk:', newData.classid_fk);
+          console.log('  📂 class_id:', newData.class_id);
           
           // Check if this is specifically an in_ring change
           if (oldData.in_ring !== newData.in_ring) {
@@ -592,7 +596,7 @@ export function subscribeToEntryUpdates(
         console.error('📡 Subscription error:', err);
       }
       if (status === 'SUBSCRIBED') {
-        console.log('✅ Successfully subscribed to real-time updates for classid_fk', actualClassId);
+        console.log('✅ Successfully subscribed to real-time updates for class_id', actualClassId);
         console.log('🎯 Subscription will only receive updates for entries in this class');
       } else if (status === 'CHANNEL_ERROR') {
         console.error('❌ Channel error - subscription failed');
@@ -605,7 +609,7 @@ export function subscribeToEntryUpdates(
 
   // Return unsubscribe function
   return () => {
-    console.log('🔌 Unsubscribing from real-time updates for classid_fk', actualClassId);
+    console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
     subscription.unsubscribe();
   };
 }
@@ -724,8 +728,8 @@ export async function testRealTimeEvents(classId: number): Promise<void> {
     // Get a random entry from the class to test with
     const { data: entries, error } = await supabase
       .from('entries')
-      .select('id, armband, in_ring, classid_fk')
-      .eq('classid_fk', classId)
+      .select('id, armband, in_ring, class_id')
+      .eq('class_id', classId)
       .limit(1);
 
     if (error || !entries || entries.length === 0) {
@@ -882,6 +886,64 @@ export function debugStopwatchIssue(entryId: number): void {
   console.log('✅ Monitoring is now active. Start your stopwatch in the other tab!');
 }
 
+/**
+ * Debug function to test check-in status updates
+ */
+async function debugTestCheckinUpdate(entryId: number, status: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate') {
+  console.log('🧪 Testing check-in update for entry:', entryId, 'to status:', status);
+
+  try {
+    const result = await updateEntryCheckinStatus(entryId, status);
+    console.log('✅ Check-in status update successful:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Check-in status update failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Simple test to verify Supabase real-time is working
+ */
+async function testSupabaseRealTime() {
+  console.log('🧪 Testing basic Supabase real-time functionality...');
+
+  // Create a simple subscription to the entries table
+  const testSubscription = supabase
+    .channel('test-realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'entries'
+      },
+      (payload) => {
+        console.log('🎉 REAL-TIME EVENT RECEIVED!', payload);
+        console.log('Event:', payload.eventType);
+        console.log('Table:', payload.table);
+        console.log('New data:', payload.new);
+        console.log('Old data:', payload.old);
+      }
+    )
+    .subscribe((status, err) => {
+      console.log('📡 Test subscription status:', status);
+      if (err) {
+        console.error('📡 Test subscription error:', err);
+      }
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Real-time test subscription is active');
+        console.log('Now try changing a check-in status in another tab...');
+      }
+    });
+
+  // Return unsubscribe function
+  return () => {
+    console.log('🧪 Unsubscribing test real-time...');
+    testSubscription.unsubscribe();
+  };
+}
+
 // Make debugging functions globally available
 if (typeof window !== 'undefined') {
   (window as any).debugMarkInRing = debugMarkInRing;
@@ -890,6 +952,8 @@ if (typeof window !== 'undefined') {
   (window as any).testUnfilteredRealTime = testUnfilteredRealTime;
   (window as any).debugMonitorEntry = debugMonitorEntry;
   (window as any).debugStopwatchIssue = debugStopwatchIssue;
+  (window as any).debugTestCheckinUpdate = debugTestCheckinUpdate;
+  (window as any).testSupabaseRealTime = testSupabaseRealTime;
   console.log('🧪 Debug functions available:');
   console.log('  - window.debugMarkInRing(entryId, true/false)');
   console.log('  - window.testSupabaseConnection()');
@@ -897,6 +961,8 @@ if (typeof window !== 'undefined') {
   console.log('  - window.testUnfilteredRealTime()');
   console.log('  - window.debugMonitorEntry(entryId) // Monitor specific entry for changes');
   console.log('  - window.debugStopwatchIssue(entryId) // 🚨 NEW: Debug stopwatch issue');
+  console.log('  - window.debugTestCheckinUpdate(entryId, "checked-in") // Test check-in status updates');
+  console.log('  - window.testSupabaseRealTime() // Test basic real-time functionality');
   console.log('  - window.stopMonitoring() // Stop monitoring');
 }
 
@@ -908,28 +974,12 @@ export async function updateEntryCheckinStatus(
   checkinStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate'
 ): Promise<boolean> {
   try {
-    // Convert string status to integer code matching database schema (0-3 only)
-    let statusCode = 0;
-    switch (checkinStatus) {
-      case 'none':
-        statusCode = 0;
-        break;
-      case 'checked-in':
-        statusCode = 1;
-        break;
-      case 'at-gate':
-        statusCode = 2;
-        break;
-      case 'conflict':
-      case 'pulled':
-        statusCode = 3; // Both map to same code due to DB constraint
-        break;
-    }
-
+    // Use text-based status directly (no more numeric conversion)
     const updateData: any = {
-      check_in_status: statusCode   // Use correct database field name
+      check_in_status_text: checkinStatus   // Use new text-based field
     };
-    
+
+    console.log('🔄 Updating check-in status with text field:', updateData);
 
     const { error } = await supabase
       .from('entries')
@@ -944,15 +994,17 @@ export async function updateEntryCheckinStatus(
       throw new Error(`Database update failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
-    
+    console.log('✅ Check-in status updated successfully using text field');
+
     // Verify the update by reading it back
-    await supabase
+    const { data: verifyData } = await supabase
       .from('entries')
-      .select('id, check_in_status')
+      .select('id, check_in_status_text')
       .eq('id', entryId)
       .single();
-    
-    
+
+    console.log('🔍 Verified updated status:', verifyData);
+
     return true;
   } catch (error) {
     console.error('Error in updateEntryCheckinStatus:', error);

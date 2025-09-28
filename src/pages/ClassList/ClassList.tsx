@@ -5,23 +5,30 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { 
-  ArrowLeft, 
-  RefreshCw, 
-  Heart, 
-  Eye as _Eye, 
-  Play, 
-  MoreVertical, 
-  Clock, 
-  CheckCircle, 
-  Users, 
+import {
+  ArrowLeft,
+  RefreshCw,
+  Heart,
+  Eye as _Eye,
+  Play,
+  MoreVertical,
+  Clock,
+  CheckCircle,
+  Users,
   // ChevronDown,
   // ChevronUp,
   Award as _Award,
   Circle,
   Settings,
   FileText,
-  Coffee
+  Coffee,
+  Search,
+  X,
+  ArrowUpDown,
+  ChevronDown,
+  Calendar,
+  Target,
+  Trophy
 } from 'lucide-react';
 import './ClassList.css';
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
@@ -101,6 +108,11 @@ export const ClassList: React.FC = () => {
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
 
+  // Search and sort states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'class_order' | 'element_level' | 'level_element'>('class_order');
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+
   // Time input states for status dialog
 
   // Load favorites from localStorage on component mount
@@ -164,16 +176,19 @@ export const ClassList: React.FC = () => {
 
   // Format date with abbreviated month and trial number
   const formatTrialDate = (dateStr: string, trialNumber: number) => {
-    const date = new Date(dateStr);
+    // Parse date components manually to avoid timezone issues
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+
     const dayName = days[date.getDay()];
-    const month = months[date.getMonth()];
-    const day = date.getDate();
-    const year = date.getFullYear();
-    
-    return `${dayName}, ${month} ${day}, ${year} - ${trialNumber}`;
+    const monthName = months[date.getMonth()];
+    const dayNumber = date.getDate();
+    const yearNumber = date.getFullYear();
+
+    return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber} • Trial ${trialNumber}`;
   };
 
   useEffect(() => {
@@ -1152,18 +1167,100 @@ export const ClassList: React.FC = () => {
     });
   };
 
-  const filteredClasses = classes.filter(classEntry => {
-    // Use the same logic as getClassDisplayStatus to respect manual status
-    const displayStatus = getClassDisplayStatus(classEntry);
-    const isCompleted = displayStatus === 'completed';
+  // Search and sort functionality
+  const getFilteredAndSortedClasses = () => {
+    let filtered = classes.filter(classEntry => {
+      // Use the same logic as getClassDisplayStatus to respect manual status
+      const displayStatus = getClassDisplayStatus(classEntry);
+      const isCompleted = displayStatus === 'completed';
 
-    // Combined filter logic
-    if (combinedFilter === 'pending' && isCompleted) return false;
-    if (combinedFilter === 'completed' && !isCompleted) return false;
-    if (combinedFilter === 'favorites' && !classEntry.is_favorite) return false;
+      // Combined filter logic (existing)
+      if (combinedFilter === 'pending' && isCompleted) return false;
+      if (combinedFilter === 'completed' && !isCompleted) return false;
+      if (combinedFilter === 'favorites' && !classEntry.is_favorite) return false;
 
-    return true;
-  });
+      // Search filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesClassName = classEntry.class_name.toLowerCase().includes(searchLower);
+        const matchesElement = classEntry.element.toLowerCase().includes(searchLower);
+        const matchesLevel = classEntry.level.toLowerCase().includes(searchLower);
+        const matchesJudge = classEntry.judge_name.toLowerCase().includes(searchLower);
+        const matchesSection = classEntry.section && classEntry.section !== '-'
+          ? classEntry.section.toLowerCase().includes(searchLower)
+          : false;
+
+        if (!matchesClassName && !matchesElement && !matchesLevel && !matchesJudge && !matchesSection) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortOrder) {
+        case 'class_order':
+          // Default: class_order, then element, then level, then section
+          if (a.class_order !== b.class_order) {
+            return a.class_order - b.class_order;
+          }
+          if (a.element !== b.element) {
+            return a.element.localeCompare(b.element);
+          }
+          if (a.level !== b.level) {
+            const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
+            const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            if (aLevelOrder !== bLevelOrder) {
+              return aLevelOrder - bLevelOrder;
+            }
+            return a.level.localeCompare(b.level);
+          }
+          return a.section.localeCompare(b.section);
+
+        case 'element_level':
+          // Sort by element first, then level
+          if (a.element !== b.element) {
+            return a.element.localeCompare(b.element);
+          }
+          if (a.level !== b.level) {
+            const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
+            const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            if (aLevelOrder !== bLevelOrder) {
+              return aLevelOrder - bLevelOrder;
+            }
+            return a.level.localeCompare(b.level);
+          }
+          return a.section.localeCompare(b.section);
+
+        case 'level_element':
+          // Sort by level first, then element
+          if (a.level !== b.level) {
+            const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
+            const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            if (aLevelOrder !== bLevelOrder) {
+              return aLevelOrder - bLevelOrder;
+            }
+            return a.level.localeCompare(b.level);
+          }
+          if (a.element !== b.element) {
+            return a.element.localeCompare(b.element);
+          }
+          return a.section.localeCompare(b.section);
+
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredClasses = getFilteredAndSortedClasses();
 
   if (isLoading) {
     return (
@@ -1199,20 +1296,35 @@ export const ClassList: React.FC = () => {
 
   return (
     <div className="class-list-container app-container">
-      {/* Enhanced Header with Glass Morphism */}
+      {/* Enhanced Header with Trial Info */}
       <header className="class-list-header">
-        <HamburgerMenu 
-          currentPage="entries" 
+        <HamburgerMenu
+          currentPage="entries"
           backNavigation={{
             label: "Back to Home",
             action: () => navigate('/home')
           }}
         />
-        
-        <div className="header-center">
-          <h1>Select Class</h1>
+
+        <div className="trial-info">
+          <h1>{trialInfo.trial_name}</h1>
+          <div className="trial-subtitle">
+            <div className="trial-info-row">
+              <div className="trial-details-group">
+                <span className="trial-detail">
+                  <Calendar size={14} /> {formatTrialDate(trialInfo.trial_date, trialInfo.trial_number).split(' • ')[0]}
+                </span>
+                <span className="trial-detail">
+                  <Target size={14} /> Trial {trialInfo.trial_number}
+                </span>
+              </div>
+              <span className="trial-detail progress">
+                <Trophy size={14} /> {trialInfo.total_classes} Classes
+              </span>
+            </div>
+          </div>
         </div>
-        
+
         <button
           className={`icon-button ${refreshing ? 'rotating' : ''}`}
           onClick={handleRefresh}
@@ -1223,19 +1335,75 @@ export const ClassList: React.FC = () => {
         </button>
       </header>
 
-      {/* Trial Info Card with Glass Morphism */}
-      <div className="trial-info-section">
-        <div className="trial-info-card">
-          <div className="trial-info-content">
-            <div>
-              <h2>{trialInfo.trial_name}</h2>
-              <p className="trial-date">{formatTrialDate(trialInfo.trial_date, trialInfo.trial_number)}</p>
-            </div>
-            <div className="trial-stats">
-              <div className="stat-value">{trialInfo.total_classes}</div>
-              <div className="stat-label">Classes</div>
-            </div>
+      {/* Search and Sort Header */}
+      <div className="search-controls-header">
+        <button
+          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
+          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
+          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
+          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
+        >
+          <ChevronDown className="h-4 w-4" />
+        </button>
+
+        <span className="search-controls-label">
+          {searchTerm ? `Found ${filteredClasses.length} of ${classes.length} classes` : 'Search & Sort'}
+        </span>
+      </div>
+
+      {/* Search Results Summary */}
+      {searchTerm && (
+        <div className="search-results-header">
+          <div className="search-results-summary">
+            {filteredClasses.length} of {classes.length} classes
           </div>
+        </div>
+      )}
+
+      {/* Collapsible Search and Sort Container */}
+      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
+        <div className="search-input-wrapper">
+          <Search className="search-icon" size={18} />
+          <input
+            type="text"
+            placeholder="Search class name, element, level, judge..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input-full"
+          />
+          {searchTerm && (
+            <button
+              className="clear-search-btn"
+              onClick={() => setSearchTerm('')}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="sort-controls">
+          <span className="sort-label">Sort:</span>
+          <button
+            className={`sort-btn ${sortOrder === 'class_order' ? 'active' : ''}`}
+            onClick={() => setSortOrder('class_order')}
+          >
+            <ArrowUpDown size={16} />
+            Class Order
+          </button>
+          <button
+            className={`sort-btn ${sortOrder === 'element_level' ? 'active' : ''}`}
+            onClick={() => setSortOrder('element_level')}
+          >
+            <ArrowUpDown size={16} />
+            Element → Level
+          </button>
+          <button
+            className={`sort-btn ${sortOrder === 'level_element' ? 'active' : ''}`}
+            onClick={() => setSortOrder('level_element')}
+          >
+            <ArrowUpDown size={16} />
+            Level → Element
+          </button>
         </div>
       </div>
 

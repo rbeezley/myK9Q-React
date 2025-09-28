@@ -31,11 +31,33 @@
   z-index: 10;
 }
 
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
 .mobile-header h1 {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
   color: white;
+}
+
+.header-trial-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.header-trial-info .trial-separator {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
 }
 
 .back-btn, .theme-btn {
@@ -242,21 +264,21 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* Timer Card - Full width like other pages */
+/* Timer Card - Compact version */
 .flutter-timer-card {
   background: rgba(40, 40, 40, 0.8);
-  margin: 0 16px 16px 16px;
-  padding: 24px 16px;
+  margin: 0 16px 12px 16px;
+  padding: 16px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
 }
 
 .timer-display-large {
-  font-size: 48px;
+  font-size: 32px;
   font-weight: bold;
   color: white;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -264,18 +286,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .timer-btn-pause, .timer-btn-reset {
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
   border: none;
   background: rgba(124, 58, 237, 0.8);
   color: white;
-  font-size: 24px;
+  font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -284,7 +306,7 @@
 }
 
 .timer-btn-start {
-  min-width: 120px;
+  min-width: 140px;
   height: 56px;
   border-radius: 28px;
   border: none;
@@ -297,7 +319,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .timer-btn-start.stop {
@@ -364,11 +386,11 @@
   50% { opacity: 0.5; }
 }
 
-/* Time Input - Full width like other pages */
+/* Time Input - Compact version */
 .flutter-time-card {
   background: rgba(40, 40, 40, 0.8);
-  margin: 0 16px 16px 16px;
-  padding: 16px;
+  margin: 0 16px 12px 16px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -376,20 +398,20 @@
 .time-input-flutter {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .flutter-time-input {
   background: rgba(60, 60, 60, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 10px 12px;
   color: white;
-  font-size: 16px;
+  font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
   min-width: 0;
-  width: 120px;
+  width: 110px;
   text-align: center;
 }
 
@@ -412,18 +434,18 @@
   white-space: nowrap;
 }
 
-/* Area Badge Styles */
+/* Area Badge Styles - Compact */
 .area-badge {
   background: rgba(16, 185, 129, 0.8);
   color: white;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   transition: all 0.3s ease;
-  min-width: 60px;
-  max-width: 80px;
+  min-width: 55px;
+  max-width: 70px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -460,14 +482,14 @@
   flex-shrink: 0;
 }
 
-/* Result Choice Chips positioned properly */
+/* Result Choice Chips positioned properly - Compact */
 .results-section {
-  margin: 0 16px 16px 16px;
+  margin: 0 16px 12px 16px;
 }
 
-/* Nationals Counter positioned properly */
+/* Nationals Counter positioned properly - Compact */
 .nationals-counter-simple {
-  margin: 0 16px 16px 16px;
+  margin: 0 16px 12px 16px;
 }
 
 /* Action Buttons - Matching Flutter */
@@ -581,6 +603,15 @@
 
   .dog-handler {
     font-size: 12px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .header-trial-info {
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 10px;
   }
 }
 

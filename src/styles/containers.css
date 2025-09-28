@@ -73,6 +73,21 @@
   padding: 0 1rem;
 }
 
+/* Ultra-narrow breakpoint for multi-window monitoring (320px-480px) */
+@media (max-width: 480px) {
+  .app-container-wide {
+    padding: 0 0.5rem;
+    min-width: 280px; /* Absolute minimum for readability */
+  }
+}
+
+/* Small mobile optimization (481px-639px) */
+@media (min-width: 481px) and (max-width: 639px) {
+  .app-container-wide {
+    padding: 0 0.75rem;
+  }
+}
+
 @media (min-width: 640px) {
   .app-container-wide {
     max-width: 768px;
