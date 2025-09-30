@@ -1,6 +1,9 @@
 // Custom Service Worker for Push Notifications
 // This extends the Workbox-generated service worker
 
+// Workbox precache manifest injection point
+self.__WB_MANIFEST;
+
 // Import Workbox if available
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.6.0/workbox-sw.js');
 

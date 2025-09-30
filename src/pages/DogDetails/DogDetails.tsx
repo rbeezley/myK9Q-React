@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   ThumbsUp,
   XCircle,
-  CircleDot,
   Calendar,
   Target,
   User

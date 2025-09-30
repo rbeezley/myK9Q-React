@@ -24,7 +24,7 @@ export const NotificationDebugger: React.FC = () => {
         info.serviceWorkerReady = !!registration;
         info.serviceWorkerActive = !!registration.active;
       } catch (error) {
-        info.serviceWorkerError = error.message;
+        info.serviceWorkerError = error instanceof Error ? error.message : String(error);
       }
     }
 
@@ -67,7 +67,7 @@ export const NotificationDebugger: React.FC = () => {
 
       addTestResult('✅ Basic notification created');
     } catch (error) {
-      addTestResult(`❌ Basic notification error: ${error.message}`);
+      addTestResult(`❌ Basic notification error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -96,7 +96,7 @@ export const NotificationDebugger: React.FC = () => {
         addTestResult('❌ Service worker not active');
       }
     } catch (error) {
-      addTestResult(`❌ Service worker error: ${error.message}`);
+      addTestResult(`❌ Service worker error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -120,11 +120,11 @@ export const NotificationDebugger: React.FC = () => {
         addTestResult('✅ Push subscription created');
         addTestResult(`Endpoint: ${subscription.endpoint.substring(0, 50)}...`);
       } catch (subError) {
-        addTestResult(`⚠️ Push subscription failed: ${subError.message}`);
+        addTestResult(`⚠️ Push subscription failed: ${subError instanceof Error ? subError.message : String(subError)}`);
         addTestResult('(This is expected in development without VAPID keys)');
       }
     } catch (error) {
-      addTestResult(`❌ Push manager error: ${error.message}`);
+      addTestResult(`❌ Push manager error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
