@@ -46,8 +46,9 @@
     padding: 0 2rem;
   }
 
-  /* Ensure home-container follows the unified standard */
-  .home-container.app-container {
+  /* Ensure all containers follow the unified standard */
+  .home-container.app-container,
+  .entry-list-container.app-container {
     max-width: 1200px !important;
   }
 }

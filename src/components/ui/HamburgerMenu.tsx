@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, Home as HomeIcon, MessageSquare, Calendar, Settings, Shield, Monitor } from 'lucide-react';
+import { useAnnouncementStore } from '../../stores/announcementStore';
+import { Menu, X, Home as HomeIcon, Bell, Calendar, Settings, Shield, Monitor } from 'lucide-react';
 import './HamburgerMenu.css';
 
 interface HamburgerMenuProps {
@@ -23,7 +24,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [_isAnimating, setIsAnimating] = useState(false);
-  const [containerOffset, setContainerOffset] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -31,93 +31,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   
   const navigate = useNavigate();
   const { showContext, role, logout } = useAuth();
+  const { unreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
 
-  // Calculate container offset for proper hamburger menu positioning
+
+  // Initialize announcement store with current show context
   useEffect(() => {
-    const calculateOffset = () => {
-      // Only calculate for desktop breakpoints (≥1024px)
-      if (window.innerWidth < 1024) {
-        console.log('🍔 Mobile/tablet width detected, using left: 0');
-        setContainerOffset(0);
-        return;
-      }
-
-      // Add a slight delay to ensure DOM is fully rendered
-      requestAnimationFrame(() => {
-        // Find the container element
-        const container = document.querySelector('.app-container, .app-container-wide, .app-container-narrow');
-
-        if (container) {
-          const containerRect = container.getBoundingClientRect();
-          const offset = containerRect.left;
-          const calculatedOffset = Math.max(0, offset);
-
-          console.log('🍔 Desktop - Container found:', container.className);
-          console.log('🍔 Container tagName:', container.tagName);
-          console.log('🍔 Container left offset:', offset);
-          console.log('🍔 Container rect:', containerRect);
-          console.log('🍔 Container computed style max-width:', window.getComputedStyle(container).maxWidth);
-          console.log('🍔 Final offset:', calculatedOffset);
-          console.log('🍔 Window width:', window.innerWidth);
-          console.log('🍔 Current URL:', window.location.pathname);
-          console.log('🍔 Container element HTML:', container.outerHTML.substring(0, 200));
-
-          setContainerOffset(calculatedOffset);
-        } else {
-          console.log('🍔 No container found, using fallback calculation');
-
-          // Check for different container types and calculate accordingly
-          const containerWide = document.querySelector('.app-container-wide');
-          const containerNarrow = document.querySelector('.app-container-narrow');
-
-          let maxWidth: number;
-          if (containerWide) {
-            // Wide container: 1400px max-width (1440px on very large screens)
-            maxWidth = window.innerWidth >= 1440 ? 1440 : 1400;
-            console.log('🍔 Detected wide container, max-width:', maxWidth);
-          } else if (containerNarrow) {
-            // Narrow container: 800px max-width
-            maxWidth = 800;
-            console.log('🍔 Detected narrow container, max-width:', maxWidth);
-          } else {
-            // Standard container: 1200px max-width (but check actual computed value)
-            const computedMaxWidth = window.getComputedStyle(document.querySelector('.app-container') || document.body).maxWidth;
-            if (computedMaxWidth && computedMaxWidth !== 'none') {
-              maxWidth = parseInt(computedMaxWidth);
-              console.log('🍔 Using computed max-width:', maxWidth);
-            } else {
-              maxWidth = 1200;
-            }
-            console.log('🍔 Detected standard container, max-width:', maxWidth);
-          }
-
-          const padding = 32; // 2rem padding
-          const calculatedOffset = Math.max(0, (window.innerWidth - maxWidth - padding * 2) / 2);
-          console.log('🍔 Fallback offset:', calculatedOffset);
-          console.log('🍔 Window width:', window.innerWidth);
-
-          setContainerOffset(calculatedOffset);
-        }
-      });
-    };
-
-    // Calculate immediately
-    calculateOffset();
-
-    // Recalculate on window resize with debouncing
-    let resizeTimeout: number;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = window.setTimeout(calculateOffset, 100);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(resizeTimeout);
-    };
-  }, [isMenuOpen]); // Re-run when menu state changes
+    if (showContext?.licenseKey && currentLicenseKey !== showContext.licenseKey) {
+      setLicenseKey(showContext.licenseKey, showContext.showName);
+    }
+  }, [showContext, currentLicenseKey, setLicenseKey]);
 
   // Apply theme to document
   useEffect(() => {
@@ -164,34 +86,12 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
       {/* Menu Overlay */}
       {isMenuOpen && (
         <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}>
-          {/* Debug indicator for container offset - only in development */}
-          {process.env.NODE_ENV === 'development' && window.innerWidth >= 1024 && (
-            <div
-              style={{
-                position: 'fixed',
-                top: '10px',
-                right: '10px',
-                background: 'rgba(255, 0, 0, 0.8)',
-                color: 'white',
-                padding: '4px 8px',
-                fontSize: '12px',
-                borderRadius: '4px',
-                zIndex: 1000001,
-                fontFamily: 'monospace',
-                pointerEvents: 'none'
-              }}
-            >
-              Offset: {containerOffset}px
-              <br />
-              Window: {window.innerWidth}px
-            </div>
-          )}
           <nav
             className="hamburger-menu"
             style={{
               position: 'fixed',
               top: 0,
-              left: window.innerWidth >= 1024 && (document.querySelector('.app-container-wide') || document.querySelector('.app-container-narrow')) ? `${containerOffset}px` : 0,
+              left: 0,
               zIndex: 1000000
             }}
             onClick={(e) => e.stopPropagation()}
@@ -240,8 +140,13 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 className={`menu-item ${currentPage === 'announcements' ? 'active' : ''}`}
                 onClick={() => handleMenuItemClick(() => navigate('/announcements'))}
               >
-                <MessageSquare className="menu-icon" />
-                <span>News</span>
+                <div className="menu-icon-container">
+                  <Bell className="menu-icon" />
+                  {unreadCount > 0 && (
+                    <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                  )}
+                </div>
+                <span>Announcements</span>
               </button>
               
               <button

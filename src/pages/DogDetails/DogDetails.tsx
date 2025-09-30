@@ -3,18 +3,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
+import { updateEntryCheckinStatus } from '../../services/entryService';
 import { Button, HamburgerMenu, ArmbandBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { formatTimeForDisplay } from '../../utils/timeUtils';
 import {
   ArrowLeft,
   RefreshCw,
   Trophy,
   Clock,
   AlertTriangle,
-  CheckCircle,
+  ThumbsUp,
   XCircle,
-  CircleDot
+  CircleDot,
+  Calendar,
+  Target,
+  User
 } from 'lucide-react';
 import './DogDetails.css';
 
@@ -36,6 +41,7 @@ interface ClassEntry {
   level?: string;
   section?: string;
   trial_number?: number;
+  judge_name?: string;
 }
 
 interface DogInfo {
@@ -49,11 +55,12 @@ export const DogDetails: React.FC = () => {
   const { armband } = useParams<{ armband: string }>();
   const navigate = useNavigate();
   const { showContext, role: _role } = useAuth();
-  const { hasPermission, isExhibitor: _isExhibitor } = usePermission();
+  const { hasPermission: _hasPermission, isExhibitor: _isExhibitor } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [_popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
 
@@ -62,6 +69,17 @@ export const DogDetails: React.FC = () => {
       loadDogDetails();
     }
   }, [armband, showContext]);
+
+  // Set loaded class after data loads to prevent CSS rehydration issues
+  useEffect(() => {
+    if (!isLoading && classes.length > 0) {
+      // Small delay to ensure DOM is stable
+      const timer = setTimeout(() => {
+        setIsLoaded(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, classes.length]);
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -85,6 +103,7 @@ export const DogDetails: React.FC = () => {
   const loadDogDetails = async () => {
     setIsLoading(true);
     try {
+      // Query the view which now includes check_in_status_text field
       const { data, error } = await supabase
         .from('view_entry_class_join_normalized')
         .select('*')
@@ -106,34 +125,31 @@ export const DogDetails: React.FC = () => {
           handler: firstEntry.handler
         });
 
-        // Debug: log the first entry to see available fields
-        if (data.length > 0) {
-          // Entry data loaded successfully
-        }
-
-        // Process all classes - map integer checkin_status to our types
+        // Process all classes - map check-in status from text field
         setClasses(data.map((entry, index) => {
           let check_in_status: ClassEntry['check_in_status'] = 'none';
-          
-          // Map integer checkin_status codes to our status types
-          switch (entry.checkin_status) {
-            case 1:
+
+          // Use text-based check-in status (matches what updateEntryCheckinStatus writes)
+          const statusText = entry.check_in_status_text || 'none';
+
+          switch (statusText) {
+            case 'checked-in':
               check_in_status = 'checked-in';
               break;
-            case 2:
+            case 'conflict':
               check_in_status = 'conflict';
               break;
-            case 3:
+            case 'pulled':
               check_in_status = 'pulled';
               break;
-            case 4:
+            case 'at-gate':
               check_in_status = 'at-gate';
               break;
-            default: // 0 or null
+            default: // 'none' or null
               check_in_status = 'none';
               break;
           }
-          
+
           return {
             id: entry.id,
             class_name: entry.class_name,
@@ -142,16 +158,17 @@ export const DogDetails: React.FC = () => {
             trial_date: entry.trial_date,
             search_time: entry.search_time,
             fault_count: entry.fault_count,
-            result_text: entry.result_text,
+            result_text: entry.result_status,
             is_scored: entry.is_scored || false,
             checked_in: check_in_status !== 'none',
             check_in_status,
             position: index === 1 ? 2 : undefined, // Mark second entry as "2nd" for demo
-            // Map additional fields if they exist
-            element: entry.element || entry.Element || null,
-            level: entry.level || entry.Level || null,
-            section: entry.section || entry.Section || null,
-            trial_number: entry.trial_number || entry.trialid || null
+            // Map additional fields
+            element: entry.element,
+            level: entry.level,
+            section: entry.section,
+            trial_number: entry.trial_number,
+            judge_name: entry.judge_name
           };
         }));
       }
@@ -182,44 +199,32 @@ export const DogDetails: React.FC = () => {
       setActivePopup(null);
       setPopupPosition(null);
 
-      // Update database - use checkin_status column (not result_text)
-      const updateData: any = {};
-      
-      // Update only checkin_status - use integer codes matching schema
-      // in_ring should only be set when scoresheet is opened
-      if (status === 'none') {
-        updateData.checkin_status = 0; // 0 = none (default)
-      } else if (status === 'checked-in') {
-        updateData.checkin_status = 1; // 1 = checked-in
-      } else if (status === 'conflict') {
-        updateData.checkin_status = 2; // 2 = conflict
-      } else if (status === 'pulled') {
-        updateData.checkin_status = 3; // 3 = pulled
-      } else if (status === 'at-gate') {
-        updateData.checkin_status = 4; // 4 = at-gate
-        // Don't set in_ring = true here - that should only happen when scoresheet opens
-      }
-
-      
-      const { error } = await supabase
-        .from('entries')
-        .update(updateData)
-        .eq('id', classId);
-
-      if (error) {
-        console.error('Database update error:', error);
-        console.error('Update data was:', updateData);
-        console.error('Class ID was:', classId);
-        
-        // Revert local state if database update fails
-        await loadDogDetails();
-      } else {
-        // Database update successful
-      }
+      // Update database using the proper service function
+      await updateEntryCheckinStatus(classId, status);
     } catch (error) {
       console.error('Error:', error);
       // Reload to get correct state
       await loadDogDetails();
+    }
+  };
+
+  const formatTrialDate = (dateString: string) => {
+    try {
+      // Parse date components manually to avoid timezone issues (matches Home page)
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day); // month is 0-indexed
+
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      const dayName = days[date.getDay()];
+      const monthName = months[date.getMonth()];
+      const dayNumber = date.getDate();
+      const yearNumber = date.getFullYear();
+
+      return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
+    } catch {
+      return dateString; // Fallback to original if parsing fails
     }
   };
 
@@ -257,13 +262,14 @@ export const DogDetails: React.FC = () => {
     if (entry.check_in_status === 'conflict') return 'conflict';
     if (entry.check_in_status === 'pulled') return 'pulled';
     if (entry.check_in_status === 'at-gate') return 'at-gate';
-    
+
     if (entry.is_scored) {
-      if (entry.result_text === 'Q' || entry.result_text === 'Qualified') {
+      const resultLower = entry.result_text?.toLowerCase();
+      if (resultLower === 'q' || resultLower === 'qualified') {
         return 'qualified';
-      } else if (entry.result_text === 'NQ' || entry.result_text === 'Not Qualified') {
+      } else if (resultLower === 'nq' || resultLower === 'not qualified') {
         return 'not-qualified';
-      } else if (entry.result_text === 'EX' || entry.result_text === 'Excused') {
+      } else if (resultLower === 'ex' || resultLower === 'excused') {
         return 'excused';
       }
     }
@@ -275,28 +281,30 @@ export const DogDetails: React.FC = () => {
     if (entry.check_in_status === 'conflict') return 'Conflict';
     if (entry.check_in_status === 'pulled') return 'Pulled';
     if (entry.check_in_status === 'at-gate') return 'At Gate';
-    
+
     if (entry.is_scored && entry.result_text) {
-      switch (entry.result_text) {
-        case 'Q':
-        case 'Qualified':
+      const resultLower = entry.result_text.toLowerCase();
+      switch (resultLower) {
+        case 'q':
+        case 'qualified':
           return 'Qualified';
-        case 'NQ':
-        case 'Not Qualified':
-          return 'Failed';
-        case 'EX':
-        case 'Excused':
-          return 'Conflict';
+        case 'nq':
+        case 'not qualified':
+          return 'Not Qualified';
+        case 'ex':
+        case 'excused':
+          return 'Excused';
         default:
-          return entry.result_text;
+          // Capitalize first letter of any other status
+          return entry.result_text.charAt(0).toUpperCase() + entry.result_text.slice(1);
       }
     }
-    
+
     return 'Not Checked In';
   };
 
   const formatTime = (time: string | null) => {
-    return time || '00:00.00';
+    return formatTimeForDisplay(time);
   };
 
   if (isLoading) {
@@ -329,7 +337,7 @@ export const DogDetails: React.FC = () => {
   }
 
   return (
-    <div className="dog-details-container app-container">
+    <div className={`dog-details-container app-container ${isLoaded ? 'loaded' : ''}`}>
       
       {/* Header with outdoor-ready contrast */}
       <header className="dog-header">
@@ -353,10 +361,8 @@ export const DogDetails: React.FC = () => {
       <div className="dog-info-card">
         <div className="dog-info-content">
           {/* Extra Prominent Armband for Outdoor Visibility */}
-          <div className="armband-display">
-            <ArmbandBadge number={dogInfo.armband} />
-          </div>
-          
+          <ArmbandBadge number={dogInfo.armband} className="armband-display" />
+
           {/* Dog Information */}
           <div className="dog-details">
             <h2>{dogInfo.call_name}</h2>
@@ -403,12 +409,26 @@ export const DogDetails: React.FC = () => {
                         entry.section && entry.section !== '-' ? entry.section : null
                       ].filter(Boolean).join(' • ')}
                     </h4>
-                    <p className="class-date">
-                      {entry.trial_date} • {entry.trial_name}
-                      {entry.trial_number && ` • Trial ${entry.trial_number}`}
-                    </p>
+                    <div className="class-meta-details">
+                      <p className="class-date">
+                        <Calendar size={14} />
+                        {formatTrialDate(entry.trial_date)}
+                      </p>
+                      {entry.trial_number && (
+                        <p className="class-trial">
+                          <Target size={14} />
+                          Trial {entry.trial_number}
+                        </p>
+                      )}
+                      {entry.judge_name && (
+                        <p className="class-judge">
+                          <User size={14} />
+                          {entry.judge_name}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  
+
                   {/* Performance Stats - only show if dog has completed the class */}
                   {entry.is_scored && (
                     <div className="class-stats">
@@ -434,10 +454,17 @@ export const DogDetails: React.FC = () => {
                   disabled={isScored}
                   className={`status-button ${statusColor}`}
                 >
-                  {statusColor === 'qualified' && <CheckCircle />}
+                  {/* Check-in status icons */}
+                  {entry.check_in_status === 'checked-in' && <span className="status-icon">✓</span>}
+                  {entry.check_in_status === 'conflict' && <span className="status-icon">!</span>}
+                  {entry.check_in_status === 'pulled' && <span className="status-icon">✕</span>}
+                  {entry.check_in_status === 'at-gate' && <span className="status-icon">★</span>}
+                  {entry.check_in_status === 'none' && !isScored && <span className="status-icon">●</span>}
+
+                  {/* Result status icons */}
+                  {statusColor === 'qualified' && <ThumbsUp />}
                   {statusColor === 'not-qualified' && <XCircle />}
-                  {statusColor === 'at-gate' && <CircleDot />}
-                  {statusColor === 'checked-in' && <CheckCircle />}
+
                   {getStatusLabel(entry)}
                 </button>
               </div>

@@ -22,6 +22,10 @@ export interface QueuedScore {
     correctCount?: number;
     incorrectCount?: number;
     finishCallErrors?: number;
+    // Area time fields for AKC Scent Work
+    areaTimes?: string[];
+    element?: string;
+    level?: string;
   };
   timestamp: string;
   retryCount: number;

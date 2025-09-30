@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2, Target } from 'lucide-react';
 import { ArmbandBadge } from '../../components/ui';
@@ -38,6 +38,7 @@ export const Home: React.FC = () => {
   const { showContext, logout: _logout, role: _role } = useAuth();
   const { hasPermission: _hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
+
   const [activeTab, setActiveTab] = useState<'armband' | 'name' | 'handler' | 'favorites'>('armband');
   const [entries, setEntries] = useState<EntryData[]>([]);
   const [trials, setTrials] = useState<TrialData[]>([]);
@@ -347,6 +348,10 @@ export const Home: React.FC = () => {
           <RefreshCw className="h-5 w-5" />
         </button>
       </header>
+
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
+      <HeaderTicker />
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Show info moved to hamburger menu for maximum screen space */}
 

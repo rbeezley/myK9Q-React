@@ -33,15 +33,32 @@
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
   
-  /* Status colors */
-  --checked-in: #065f46;        /* Very Dark Green for ready (checked-in) dogs */
-  --conflict: #ffa502;
-  --pulled: #ff4757;
-  --at-gate: #14b8a6;
-  --qualified: #7c3aed;         /* Purple for done (qualified) dogs */
+  /* Status colors - matching EntryList design tokens */
+  --status-not-checked-in: var(--token-status-none, #6b7280);
+  --status-not-checked-in-bg: var(--token-status-none-bg, #f3f4f6);
+  --status-checked-in: var(--token-status-checked-in, #065f46);
+  --status-checked-in-bg: var(--token-status-checked-in-bg, #d1fae5);
+  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate-bg: var(--token-status-at-gate-bg, #ccfbf1);
+  --status-in-ring: var(--token-status-in-ring, #f97316);
+  --status-in-ring-bg: var(--token-status-in-ring-bg, #fed7aa);
+  --status-conflict: var(--token-status-conflict, #f59e0b);
+  --status-conflict-bg: var(--token-status-conflict-bg, #fef3c7);
+  --status-pulled: var(--token-status-pulled, #ef4444);
+  --status-pulled-bg: var(--token-status-pulled-bg, #fecaca);
+  --status-done: var(--token-status-done, #10b981);
+  --status-done-bg: var(--token-status-done-bg, #d1fae5);
+
+  /* Legacy status colors for compatibility */
+  --checked-in: var(--status-checked-in);
+  --conflict: var(--status-conflict);
+  --pulled: var(--status-pulled);
+  --at-gate: var(--status-at-gate);
+  --qualified: #f59e0b;
+  --qualified-secondary: #d97706;
   --not-qualified: #FF3B30;
   --excused: #FF9500;
-  --done-purple: #7c3aed;       /* Purple for done (scored) dogs */
+  --done-purple: #7c3aed;
 }
 
 [data-theme="dark"] {
@@ -58,16 +75,32 @@
   --primary-foreground: #ffffff;
   --secondary: #262626;
   --secondary-foreground: #ffffff;
-  
+
   /* Enhanced text contrast for outdoor visibility */
   --text-primary: #ffffff;
   --text-secondary: #ffffff;
   --text-tertiary: #ffffff;
-  
+
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
   --warning-contrast: #f59e0b;
   --error-contrast: #ef4444;
+
+  /* Status colors - dark mode using design tokens */
+  --status-not-checked-in: var(--token-status-none, #9ca3af);
+  --status-not-checked-in-bg: var(--token-status-none-bg, #374151);
+  --status-checked-in: var(--token-status-checked-in, #047857);
+  --status-checked-in-bg: var(--token-status-checked-in-bg, #064e3b);
+  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate-bg: var(--token-status-at-gate-bg, #134e4a);
+  --status-in-ring: var(--token-status-in-ring, #fb923c);
+  --status-in-ring-bg: var(--token-status-in-ring-bg, #9a3412);
+  --status-conflict: var(--token-status-conflict, #fbbf24);
+  --status-conflict-bg: var(--token-status-conflict-bg, #92400e);
+  --status-pulled: var(--token-status-pulled, #f87171);
+  --status-pulled-bg: var(--token-status-pulled-bg, #991b1b);
+  --status-done: var(--token-status-done, #34d399);
+  --status-done-bg: var(--token-status-done-bg, #064e3b);
 }
 
 /* Container and layout */
@@ -108,6 +141,7 @@
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0;
+  margin-left: 1rem; /* Add space between hamburger menu and dog name */
   color: var(--foreground);
   letter-spacing: -0.02em;
 }
@@ -274,7 +308,7 @@
 }
 
 .class-card.qualified::before {
-  background: linear-gradient(180deg, var(--qualified) 0%, var(--success-contrast) 100%);
+  background: linear-gradient(180deg, var(--qualified) 0%, var(--qualified-secondary) 100%);
 }
 
 .class-card.not-qualified::before {
@@ -386,13 +420,30 @@
   text-align: left;
 }
 
-.class-date {
+.class-meta-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.class-date,
+.class-trial,
+.class-judge {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  opacity: 0.8;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  line-height: 1.4;
+}
+
+.class-date svg,
+.class-trial svg,
+.class-judge svg {
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .class-name {
@@ -463,6 +514,74 @@
   height: 16px;
 }
 
+.status-button .status-icon {
+  font-size: 0.75rem !important;
+  width: 12px !important;
+  height: 12px !important;
+  max-width: 12px !important;
+  max-height: 12px !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  margin-right: 0.25rem !important;
+  vertical-align: middle !important;
+}
+
+/* Prevent CSS rehydration issues - stabilize layout before loaded class */
+.dog-details-container:not(.loaded) .status-button {
+  min-width: 120px !important;
+  height: 48px !important;
+  padding: 0 1rem !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 12px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.375rem !important;
+}
+
+.dog-details-container:not(.loaded) .status-button .status-icon {
+  margin-right: 0.25rem !important;
+  width: 12px !important;
+  height: 12px !important;
+  font-size: 0.75rem !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+}
+
+.dog-details-container:not(.loaded) .status-button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.dog-details-container:not(.loaded) .class-card {
+  margin-bottom: 1rem !important;
+  padding: 1.25rem !important;
+}
+
+.dog-details-container:not(.loaded) .class-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  min-height: 48px !important;
+}
+
+.dog-details-container:not(.loaded) .class-info {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* Ensure smooth transition once loaded */
+.dog-details-container.loaded .status-button {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.dog-details-container.loaded .class-card {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
 .status-button:not(:disabled):hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -473,45 +592,67 @@
 }
 
 .status-button:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Status-specific button styles */
+/* Don't apply opacity to scored status badges (qualified, not-qualified, etc.) */
+.status-button.qualified:disabled,
+.status-button.not-qualified:disabled,
+.status-button.excused:disabled {
+  opacity: 1 !important;
+}
+
+/* Status-specific button styles - matching EntryList solid colors */
+.status-button.none,
+.status-button.pending {
+  background: var(--status-not-checked-in, #6b7280) !important;
+  color: white !important;
+  border-color: var(--status-not-checked-in, #6b7280) !important;
+}
+
 .status-button.checked-in {
-  background: linear-gradient(135deg, var(--checked-in) 0%, #1d4ed8 100%);
-  color: white;
-  border-color: var(--checked-in);
-}
-
-.status-button.conflict {
-  background: linear-gradient(135deg, var(--conflict) 0%, var(--warning) 100%);
-  color: white;
-  border-color: var(--conflict);
-}
-
-.status-button.pulled {
-  background: linear-gradient(135deg, var(--pulled) 0%, var(--error) 100%);
-  color: white;
-  border-color: var(--pulled);
+  background: var(--status-checked-in, #065f46) !important;
+  color: white !important;
+  border-color: var(--status-checked-in, #065f46) !important;
 }
 
 .status-button.at-gate {
-  background: linear-gradient(135deg, var(--at-gate) 0%, var(--brand-blue) 100%);
-  color: white;
-  border-color: var(--at-gate);
+  background: var(--status-at-gate, #14b8a6) !important;
+  color: white !important;
+  border-color: var(--status-at-gate, #14b8a6) !important;
+}
+
+.status-button.in-ring {
+  background: var(--status-in-ring, #3b82f6) !important;
+  color: white !important;
+  border-color: var(--status-in-ring, #3b82f6) !important;
+}
+
+.status-button.conflict {
+  background: var(--status-conflict, #f59e0b) !important;
+  color: white !important;
+  border-color: var(--status-conflict, #f59e0b) !important;
+}
+
+.status-button.pulled {
+  background: var(--status-pulled, #ef4444) !important;
+  color: white !important;
+  border-color: var(--status-pulled, #ef4444) !important;
 }
 
 .status-button.qualified {
-  background: linear-gradient(135deg, var(--qualified) 0%, var(--success-contrast) 100%);
-  color: white;
-  border-color: var(--qualified);
+  background: linear-gradient(135deg, var(--qualified) 0%, var(--qualified-secondary) 100%) !important;
+  color: white !important;
+  border-color: var(--qualified) !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4) !important;
+  font-weight: 700 !important;
+  text-transform: capitalize !important;
 }
 
 .status-button.not-qualified {
-  background: linear-gradient(135deg, var(--not-qualified) 0%, var(--error-contrast) 100%);
-  color: white;
-  border-color: var(--not-qualified);
+  background: var(--not-qualified, #FF3B30) !important;
+  color: white !important;
+  border-color: var(--not-qualified, #FF3B30) !important;
 }
 
 /* Status popup modal */

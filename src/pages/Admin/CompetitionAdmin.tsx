@@ -8,10 +8,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SuccessDialog } from './SuccessDialog';
-import { RefreshCw, Settings, CheckCircle, XCircle, Clock, User, Zap, Loader, UserCheck, UserX } from 'lucide-react';
+import { RefreshCw, Settings, CheckCircle, XCircle, Clock, User, Zap, UserCheck, UserX } from 'lucide-react';
 import './CompetitionAdmin.css';
 
 // Release mode enum type
@@ -729,6 +729,10 @@ export const CompetitionAdmin: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
+      <HeaderTicker />
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Main content container */}
       <div className="admin-content">

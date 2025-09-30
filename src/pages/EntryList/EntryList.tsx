@@ -4,10 +4,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, resetEntryScore, updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { Entry } from '../../stores/entryStore';
-import { Card, CardContent, ArmbandBadge, HamburgerMenu } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
-import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, Circle, Check, AlertTriangle, XCircle, Star, ChevronDown, ChevronUp, BarChart3, Trophy, Award, Medal, CheckSquare, Activity } from 'lucide-react';
+import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, ChevronDown, Trophy } from 'lucide-react';
+import { formatTimeForDisplay } from '../../utils/timeUtils';
 import {
   DndContext,
   closestCenter,
@@ -61,7 +62,7 @@ export const EntryList: React.FC = () => {
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'manual'>('run');
+  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'manual'>('run');
   const [isDragMode, setIsDragMode] = useState(false);
   const [manualOrder, setManualOrder] = useState<Entry[]>([]);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
@@ -267,8 +268,8 @@ export const EntryList: React.FC = () => {
                   inRing: newData.is_in_ring || false,
                   resultText: newData.result_status || entry.resultText,
                   searchTime: newData.search_time_seconds?.toString() || entry.searchTime,
-                  faultCount: newData.total_faults || entry.faultCount,
-                  placement: newData.final_placement || entry.placement
+                  faultCount: newData.total_faults ?? entry.faultCount,
+                  placement: newData.final_placement ?? entry.placement
                 };
 
                 console.log('✅ Updated entry from results:', {
@@ -430,7 +431,7 @@ export const EntryList: React.FC = () => {
           isScored: e.isScored
         }))
       });
-      
+
       setEntries(classEntries);
       
       // Get class info from first entry and fetch additional class data
@@ -735,6 +736,17 @@ export const EntryList: React.FC = () => {
         const aOrder = a.exhibitorOrder || a.armband;
         const bOrder = b.exhibitorOrder || b.armband;
         return aOrder - bOrder;
+      } else if (sortOrder === 'placement') {
+        // Sort by placement (1st, 2nd, 3rd, etc.)
+        // Dogs with placements come first, sorted by placement
+        // Dogs without placements come after, sorted by armband
+        const aPlacement = a.placement || 999;
+        const bPlacement = b.placement || 999;
+        if (aPlacement !== bPlacement) {
+          return aPlacement - bPlacement;
+        }
+        // If both have same placement (or both have none), sort by armband
+        return a.armband - b.armband;
       } else {
         // Sort by armband number
         return a.armband - b.armband;
@@ -744,19 +756,6 @@ export const EntryList: React.FC = () => {
   const pendingEntries = filteredEntries.filter(e => !e.isScored);
   const completedEntries = filteredEntries.filter(e => e.isScored);
 
-  // Debug logging for tab filtering
-  console.log('🐛 TAB FILTERING DEBUG:', {
-    totalEntries: filteredEntries.length,
-    pendingCount: pendingEntries.length,
-    completedCount: completedEntries.length,
-    entries: filteredEntries.map(e => ({
-      id: e.id,
-      armband: e.armband,
-      callName: e.callName,
-      isScored: e.isScored
-    }))
-  });
-  
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
 
   // Sortable Entry Card Component
@@ -811,50 +810,51 @@ export const EntryList: React.FC = () => {
             entry.isScored ? (
               // Check if this is a nationals show (Master level with detailed scoring)
               entry.level === 'Master' && (entry.correctFinds !== undefined || entry.totalPoints !== undefined) ? (
-                <div className="nationals-scoresheet-grid">
-                  {/* Row 1: Result and Time */}
-                  <div className="nationals-result-row">
-                    <span className="nationals-label">Result:</span>
+                <div className="nationals-scoresheet-improved">
+                  {/* Header Row: Placement, Time, and Result badges */}
+                  <div className="nationals-header-row">
+                    {entry.placement && (
+                      <span className="placement-badge">
+                        {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                      </span>
+                    )}
+                    <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
                     <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
                       {(() => {
                         const result = (entry.resultText || '').toLowerCase();
-                        if (result === 'q' || result === 'qualified') return 'Qualified';
-                        if (result === 'nq' || result === 'non-qualifying') return 'Non-Qualifying';
-                        if (result === 'abs' || result === 'absent' || result === 'e') return 'Absent';
-                        if (result === 'ex' || result === 'excused') return 'Excused';
-                        if (result === 'wd' || result === 'withdrawn') return 'Withdrawn';
+                        if (result === 'q' || result === 'qualified') return 'Q';
+                        if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                        if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                        if (result === 'ex' || result === 'excused') return 'EX';
+                        if (result === 'wd' || result === 'withdrawn') return 'WD';
                         return entry.resultText || 'N/A';
                       })()}
                     </span>
                   </div>
-                  <div className="nationals-result-row">
-                    <span className="nationals-label">Search Time:</span>
-                    <span className="nationals-value">{entry.searchTime || '0.00'}s</span>
+
+                  {/* Stats Grid: 2x2 for Calls and Faults */}
+                  <div className="nationals-stats-grid">
+                    <div className="nationals-stat-item">
+                      <span className="nationals-stat-label">Correct</span>
+                      <span className="nationals-stat-value">{entry.correctFinds || 0}</span>
+                    </div>
+                    <div className="nationals-stat-item">
+                      <span className="nationals-stat-label">Incorrect</span>
+                      <span className="nationals-stat-value">{entry.incorrectFinds || 0}</span>
+                    </div>
+                    <div className="nationals-stat-item">
+                      <span className="nationals-stat-label">Faults</span>
+                      <span className="nationals-stat-value">{entry.faultCount || 0}</span>
+                    </div>
+                    <div className="nationals-stat-item">
+                      <span className="nationals-stat-label">No Finish</span>
+                      <span className="nationals-stat-value">{entry.noFinishCount || 0}</span>
+                    </div>
                   </div>
 
-                  {/* Row 2: Correct and Incorrect Calls */}
-                  <div className="nationals-result-row">
-                    <span className="nationals-label nationals-correct">Correct Calls:</span>
-                    <span className="nationals-value">{entry.correctFinds || 0}</span>
-                  </div>
-                  <div className="nationals-result-row">
-                    <span className="nationals-label nationals-incorrect">Incorrect Calls:</span>
-                    <span className="nationals-value">{entry.incorrectFinds || 0}</span>
-                  </div>
-
-                  {/* Row 3: Faults and No Finish Calls */}
-                  <div className="nationals-result-row">
-                    <span className="nationals-label nationals-faults">Faults:</span>
-                    <span className="nationals-value">{entry.faultCount || 0}</span>
-                  </div>
-                  <div className="nationals-result-row">
-                    <span className="nationals-label nationals-no-finish">No Finish Calls:</span>
-                    <span className="nationals-value">{entry.noFinishCount || 0}</span>
-                  </div>
-
-                  {/* Row 4: Total Points (spans both columns) */}
-                  <div className="nationals-total-points">
-                    <span className="nationals-total-label">Total Points:</span>
+                  {/* Total Points Row */}
+                  <div className="nationals-total-points-improved">
+                    <span className="nationals-total-label">Total Points</span>
                     <span className={`nationals-total-value ${(entry.totalPoints || 0) >= 0 ? 'positive' : 'negative'}`}>
                       {(entry.totalPoints || 0) >= 0 ? '+' : ''}{entry.totalPoints || 0}
                     </span>
@@ -877,9 +877,11 @@ export const EntryList: React.FC = () => {
                         })()}
                       </span>
                     )}
-                    <span className="time-badge">{entry.searchTime}</span>
+                    <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
                     {entry.placement && (
-                      <span className="placement-badge">{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
+                      <span className="placement-badge">
+                        {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                      </span>
                     )}
                   </div>
                 ) : undefined
@@ -944,7 +946,7 @@ export const EntryList: React.FC = () => {
   };
 
   return (
-    <div className={`entry-list-container app-container-wide${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
+    <div className={`entry-list-container app-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
       <header className="entry-list-header">
         <HamburgerMenu
           backNavigation={{
@@ -984,6 +986,10 @@ export const EntryList: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
+      <HeaderTicker />
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Search and Sort Header */}
       <div className="search-controls-header">
@@ -1051,6 +1057,16 @@ export const EntryList: React.FC = () => {
           >
             <ArrowUpDown size={16} />
             Armband
+          </button>
+          <button
+            className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
+            onClick={() => {
+              setSortOrder('placement');
+              setIsDragMode(false); // Exit drag mode when switching sorts
+            }}
+          >
+            <Trophy size={16} />
+            Placement
           </button>
           {hasPermission('canChangeRunOrder') && (
             <button

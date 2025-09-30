@@ -7,6 +7,7 @@ import './styles/enhanced-animations.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { DashboardSkeleton, LoadingSpinner as _LoadingSpinner } from './components/LoadingStates';
 import { TVHeader } from './components/TVHeader';
+import { HeaderTicker } from '../../components/ui';
 import { TVTicker } from './components/TVTicker';
 import { ElementProgress as _ElementProgress } from './components/ElementProgress';
 // import { ConnectionStatus } from './components/ConnectionStatus';
@@ -214,7 +215,7 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
 
   return (
     <ErrorBoundary>
-      <div className="tv-dashboard tv-dashboard-enhanced animate-fade-in-blur app-container-wide">
+      <div className="tv-dashboard tv-dashboard-enhanced animate-fade-in-blur app-container">
 
       <div className="glass-header animate-slide-in-top">
         <TVHeader
@@ -227,6 +228,10 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
           error={error}
         />
       </div>
+
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
+      <HeaderTicker />
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Main Content Area */}
       <main className="tv-main">

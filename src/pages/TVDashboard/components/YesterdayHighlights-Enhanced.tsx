@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { formatSecondsToTime } from '../../../utils/timeUtils';
 import './YesterdayHighlights.css';
 
 interface Trial {
@@ -379,7 +380,7 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
       completed_dogs: completedDogs,
       perfect_scores: perfectScores,
       average_score: 0, // Not applicable for scent work scoring
-      fastest_search: formatTime(fastestTime === Number.MAX_SAFE_INTEGER ? 0 : fastestTime),
+      fastest_search: formatSecondsToTime(fastestTime === Number.MAX_SAFE_INTEGER ? 0 : fastestTime),
       fastest_dog: fastestDog,
       top_breeds: topBreeds
     };
@@ -407,7 +408,7 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
           handler_location: entry.handler_location || '',
           total_score: faultCount === 0 ? 100 : Math.max(0, 100 - (faultCount * 10)), // Simple scoring
           perfect_scores: faultCount === 0 ? 1 : 0,
-          fastest_search: formatTime(searchTime),
+          fastest_search: formatSecondsToTime(searchTime),
           element_name: getElementDisplayName(entry.element),
           trial_date: trial.trial_date,
           trial_number: trial.trial_number
@@ -462,12 +463,6 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
     return faults === 0 ? 'Perfect' : `${faults} fault${faults !== 1 ? 's' : ''}`;
   };
 
-  const formatTime = (seconds: number): string => {
-    if (seconds === 0) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.round(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Check trial completion status and auto-select trial for TV display
   const checkTrialCompletionStatus = async () => {
@@ -629,7 +624,7 @@ export const YesterdayHighlightsEnhanced: React.FC<YesterdayHighlightsEnhancedPr
                     </div>
                     <div className="hit-stat">
                       <span className="hit-stat-label">Time</span>
-                      <span className="hit-stat-value">{formatTime(winner.total_time)}</span>
+                      <span className="hit-stat-value">{formatSecondsToTime(winner.total_time)}</span>
                     </div>
                   </div>
                   <div className="hit-elements">

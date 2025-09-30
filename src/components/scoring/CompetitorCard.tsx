@@ -1,5 +1,6 @@
 import React from 'react';
 import { Entry } from '../../stores/entryStore';
+import { formatTimeForDisplay } from '../../utils/timeUtils';
 import './CompetitorCard.css';
 
 interface CompetitorCardProps {
@@ -101,7 +102,7 @@ export const CompetitorCard: React.FC<CompetitorCardProps> = ({
             {entry.searchTime && (
               <div className="score-item">
                 <label>Time</label>
-                <p>{entry.searchTime}</p>
+                <p>{formatTimeForDisplay(entry.searchTime || null)}</p>
               </div>
             )}
             

@@ -3,14 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import {
   ArrowLeft,
   RefreshCw,
   Heart,
   Eye as _Eye,
-  Play,
   MoreVertical,
   Clock,
   CheckCircle,
@@ -18,10 +17,6 @@ import {
   // ChevronDown,
   // ChevronUp,
   Award as _Award,
-  Circle,
-  Settings,
-  FileText,
-  Coffee,
   Search,
   X,
   ArrowUpDown,
@@ -85,7 +80,7 @@ export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
   const { showContext, role: _role, logout: _logout } = useAuth();
-  const { hasPermission, isAdmin, isJudge, isSteward } = usePermission();
+  const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
@@ -767,7 +762,7 @@ export const ClassList: React.FC = () => {
     console.log('🕐 Status change with time:', { classId, status, timeValue });
 
     // Use text status directly
-    let updateData: any = {
+    const updateData: any = {
       class_status: status
     };
 
@@ -948,7 +943,7 @@ export const ClassList: React.FC = () => {
         case 'completed':
           return { label: 'Completed', time: null };
         default:
-          return { label: 'None', time: null };
+          return { label: 'no status', time: null };
       }
     })();
 
@@ -1169,7 +1164,7 @@ export const ClassList: React.FC = () => {
 
   // Search and sort functionality
   const getFilteredAndSortedClasses = () => {
-    let filtered = classes.filter(classEntry => {
+    const filtered = classes.filter(classEntry => {
       // Use the same logic as getClassDisplayStatus to respect manual status
       const displayStatus = getClassDisplayStatus(classEntry);
       const isCompleted = displayStatus === 'completed';
@@ -1334,6 +1329,10 @@ export const ClassList: React.FC = () => {
           <RefreshCw className="h-5 w-5" />
         </button>
       </header>
+
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
+      <HeaderTicker />
+      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Search and Sort Header */}
       <div className="search-controls-header">

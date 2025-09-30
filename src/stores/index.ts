@@ -11,6 +11,9 @@ export type { QueuedScore } from './offlineQueueStore';
 export { useTimerStore } from './timerStore';
 export type { TimerArea } from './timerStore';
 
+export { useAnnouncementStore } from './announcementStore';
+export type { Announcement, AnnouncementRead } from './announcementStore';
+
 // Re-export common types for convenience
 export interface ScoreSubmission {
   entryId: number;

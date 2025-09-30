@@ -1203,9 +1203,159 @@
   }
 }
 
+/* ===== ANNOUNCEMENT SUMMARY CARD STYLES - EASILY REMOVABLE SECTION START ===== */
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.announcements-ticker-container {
+  margin: var(--token-space-xl);
+  margin-bottom: 0;
+  overflow: hidden;
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--token-shadow-sm);
+}
+
+.ticker-background {
+  display: flex;
+  align-items: center;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: all var(--token-transition-fast);
+  position: relative;
+}
+
+.ticker-background:hover {
+  background: var(--primary);
+  filter: brightness(1.1);
+  box-shadow: var(--token-shadow-md);
+}
+
+.ticker-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: white;
+  flex-shrink: 0;
+  margin: var(--token-space-lg);
+  z-index: 2;
+}
+
+.ticker-content {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-scroll {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ticker-scroll 30s linear infinite;
+  animation-play-state: running;
+}
+
+.ticker-background:hover .ticker-scroll {
+  animation-play-state: paused;
+}
+
+.ticker-item {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  line-height: 1.4;
+  padding-right: var(--token-space-4xl); /* Much more space after each item */
+}
+
+.ticker-time {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  margin-left: var(--token-space-sm);
+}
+
+.ticker-separator {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 300;
+  padding: 0 var(--token-space-xl); /* More space around the bullet separator */
+}
+
+.ticker-arrow {
+  color: white;
+  flex-shrink: 0;
+  margin: var(--token-space-lg);
+  z-index: 2;
+  transition: transform var(--token-transition-fast);
+}
+
+.ticker-background:hover .ticker-arrow {
+  transform: translateX(2px);
+}
+
+/* Urgent ticker gets special treatment */
+.ticker-background.urgent {
+  background: var(--error);
+  animation: urgent-flash 1s ease-in-out infinite alternate;
+}
+
+@keyframes urgent-flash {
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.15); }
+}
+
+@media (max-width: 640px) {
+  .announcements-ticker-container {
+    margin: var(--token-space-xl);
+    margin-bottom: 0;
+  }
+
+  .ticker-icon {
+    width: 1rem;
+    height: 1rem;
+    margin: var(--token-space-md);
+  }
+
+  .ticker-arrow {
+    margin: var(--token-space-md);
+  }
+
+  .ticker-item {
+    font-size: 0.8125rem;
+  }
+
+  .ticker-time {
+    font-size: 0.75rem;
+  }
+
+  .ticker-content {
+    height: 40px;
+  }
+
+  .ticker-scroll {
+    animation-duration: 25s; /* Slightly faster on mobile */
+  }
+}
+
+/* Pause animation on reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ticker-scroll {
+    animation: none !important;
+    transform: translateX(0) !important;
+  }
+}
+/* ===== ANNOUNCEMENT SUMMARY CARD STYLES - EASILY REMOVABLE SECTION END ===== */
+
 /* Smooth transitions for theme switching */
 * {
-  transition: 
+  transition:
     background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     border-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),

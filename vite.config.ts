@@ -2,8 +2,17 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import fs from 'fs'
 
 export default defineConfig({
+  server: {
+    host: true,
+    // Enable HTTPS for mobile testing (optional)
+    // https: {
+    //   key: fs.readFileSync('path/to/key.pem'),
+    //   cert: fs.readFileSync('path/to/cert.pem'),
+    // }
+  },
   plugins: [
     react(),
     VitePWA({
@@ -45,6 +54,12 @@ export default defineConfig({
             icons: [{ src: '/icon-192x192.png', sizes: '192x192' }]
           }
         ]
+      },
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw-custom.js',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],

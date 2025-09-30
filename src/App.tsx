@@ -18,6 +18,7 @@ const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ defa
 const DogDetails = React.lazy(() => import('./pages/DogDetails/DogDetails').then(module => ({ default: module.DogDetails })));
 const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(module => ({ default: module.ClassList })));
 const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
+const Announcements = React.lazy(() => import('./pages/Announcements/Announcements').then(module => ({ default: module.Announcements })));
 const TVDashboard = React.lazy(() => import('./pages/TVDashboard/TVDashboard').then(module => ({ default: module.TVDashboard })));
 const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));
 const StatusPopupDemo = React.lazy(() => import('./demo/StatusPopupDemo'));
@@ -113,8 +114,18 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/scoresheet/ukc-obedience/:classId/:entryId" 
+          <Route
+            path="/announcements"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading announcements..." />}>
+                  <Announcements />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/scoresheet/ukc-obedience/:classId/:entryId"
             element={
               <ProtectedRoute>
                 <ScoresheetErrorBoundary>

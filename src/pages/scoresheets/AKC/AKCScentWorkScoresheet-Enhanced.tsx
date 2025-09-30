@@ -17,10 +17,11 @@ import { supabase } from '../../../lib/supabase';
 // import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
-import { HamburgerMenu, ArmbandBadge } from '../../../components/ui';
+import { HamburgerMenu } from '../../../components/ui';
 import { DogCard } from '../../../components/DogCard';
 import { X } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
+import { formatSecondsToTime } from '../../../utils/timeUtils';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
@@ -245,6 +246,52 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   }, [alertsCorrect, alertsIncorrect, isNationalsMode]);
 
+  // Automatic penalty for excused dogs
+  useEffect(() => {
+    if (qualifying === 'Excused' || qualifying === 'EX') {
+      setIsExcused(true);
+
+      if (isNationalsMode) {
+        // Nationals: zero points and max search time
+        setAlertsCorrect(0);
+        setAlertsIncorrect(0);
+        setFinishCallErrors(0);
+        setFaultCount(0);
+
+        // Set max search time for all areas
+        const updatedAreas = areas.map((area, index) => ({
+          ...area,
+          time: getMaxTimeForArea(index),
+          found: false,
+          correct: false
+        }));
+        setAreas(updatedAreas);
+
+        // Set total time to sum of all max times
+        const totalMaxTime = updatedAreas.reduce((sum, area) => {
+          const timeInSeconds = convertTimeToSeconds(area.time);
+          return sum + timeInSeconds;
+        }, 0);
+        setTotalTime(formatSecondsToTime(totalMaxTime));
+      } else {
+        // Regular shows: search time should be 00:00.00, all counts zero
+        setAlertsCorrect(0);
+        setAlertsIncorrect(0);
+        setFinishCallErrors(0);
+        setFaultCount(0);
+
+        const updatedAreas = areas.map((area) => ({
+          ...area,
+          time: '00:00.00',
+          found: false,
+          correct: false
+        }));
+        setAreas(updatedAreas);
+        setTotalTime('00:00.00');
+      }
+    }
+  }, [qualifying, areas.length, isNationalsMode]); // Re-run when qualifying changes or areas are initialized
+
   // Get qualifying options based on mode
   const _getQualifyingOptions = () => {
     if (isNationalsMode) {
@@ -324,7 +371,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           incorrectCount: alertsIncorrect,
           faultCount: faultCount,
           finishCallErrors: finishCallErrors,
-          points: calculateNationalsPoints()
+          points: calculateNationalsPoints(),
+          areaTimes: areas.map(area => area.time).filter(time => time && time !== ''),
+          element: currentEntry.element,
+          level: currentEntry.level
         });
       } else {
         addToQueue({
@@ -341,7 +391,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             incorrectCount: alertsIncorrect,
             faultCount: faultCount,
             finishCallErrors: finishCallErrors,
-            points: calculateNationalsPoints()
+            points: calculateNationalsPoints(),
+            areaTimes: areas.map(area => area.time).filter(time => time && time !== ''),
+            element: currentEntry.element,
+            level: currentEntry.level
           }
         });
       }
@@ -618,7 +671,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   };
 
   // Add missing handleTimeInputChange function
-  const handleTimeInputChange = (index: number, value: string) => {
+  const _handleTimeInputChange = (index: number, value: string) => {
     handleAreaUpdate(index, 'time', value);
   };
 
@@ -1003,14 +1056,14 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         {/* Nationals Counters */}
         {isNationalsMode && (
           <NationalsCounterSimple
-            correctCalls={alertsCorrect}
-            onCorrectCallsChange={setAlertsCorrect}
-            incorrectCalls={alertsIncorrect}
-            onIncorrectCallsChange={setAlertsIncorrect}
-            noFinishCalls={finishCallErrors}
-            onNoFinishCallsChange={setFinishCallErrors}
-            fringeCalls={0}
-            onFringeCallsChange={() => {}}
+            alertsCorrect={alertsCorrect}
+            onAlertsCorrectChange={setAlertsCorrect}
+            alertsIncorrect={alertsIncorrect}
+            onAlertsIncorrectChange={setAlertsIncorrect}
+            finishCallErrors={finishCallErrors}
+            onFinishCallErrorsChange={setFinishCallErrors}
+            faults={faultCount}
+            onFaultsChange={setFaultCount}
           />
         )}
 

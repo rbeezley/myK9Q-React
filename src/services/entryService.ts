@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Entry } from '../stores/entryStore';
 import { QueuedScore } from '../stores/offlineQueueStore';
+import { recalculatePlacementsForClass } from './placementService';
 
 /**
  * Convert time string (MM:SS.ss or SS.ss) to decimal seconds
@@ -123,12 +124,6 @@ export async function getClassEntries(
       });
     }
 
-    // Debug: Show results map for entries 6714 and 6715
-    console.log('🐛 RESULTS MAP DEBUG:', {
-      entry6714: resultsMap.get(6714),
-      entry6715: resultsMap.get(6715),
-      totalResults: resultsData?.length || 0
-    });
 
     // Helper function to normalize text-based status values
     const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
@@ -172,7 +167,7 @@ export async function getClassEntries(
         resultText: result?.result_status || 'pending',
         searchTime: result?.search_time_seconds?.toString() || '0.00',
         faultCount: result?.total_faults || 0,
-        placement: result?.final_placement || 0,
+        placement: result?.final_placement ?? undefined,
         correctFinds: result?.total_correct_finds || 0,
         incorrectFinds: result?.total_incorrect_finds || 0,
         noFinishCount: result?.no_finish_count || 0,
@@ -194,8 +189,7 @@ export async function getClassEntries(
         trialNumber: row.classes.trials.trial_number.toString()
       };
     });
-    
-    
+
     return mappedEntries;
   } catch (error) {
     console.error('Error in getClassEntries:', error);
@@ -291,8 +285,13 @@ export async function submitScore(
     correctCount?: number;
     incorrectCount?: number;
     finishCallErrors?: number;
+    // Area time fields for AKC Scent Work
+    areaTimes?: string[];
+    element?: string;
+    level?: string;
   }
 ): Promise<boolean> {
+  console.log('🎯 submitScore CALLED for entry:', entryId, 'with data:', scoreData);
   try {
     // Map the result text to the valid enum values
     let resultStatus = 'pending';
@@ -339,6 +338,44 @@ export async function submitScore(
       resultData.no_finish_count = scoreData.finishCallErrors;
     }
 
+    // Handle AKC Scent Work area times
+    if (scoreData.areaTimes && scoreData.areaTimes.length > 0) {
+      const element = scoreData.element || '';
+      const level = scoreData.level || '';
+
+      // Convert area times to seconds
+      const areaTimeSeconds = scoreData.areaTimes.map(time => convertTimeToSeconds(time));
+
+      // Area 1 is always used
+      if (areaTimeSeconds[0] !== undefined) {
+        resultData.area1_time_seconds = areaTimeSeconds[0];
+      }
+
+      // Area 2 is only for Interior Excellent and Handler Discrimination Master
+      const useArea2 = (element.toLowerCase() === 'interior' && level.toLowerCase() === 'excellent') ||
+                       (element.toLowerCase() === 'handler discrimination' && level.toLowerCase() === 'master');
+
+      if (useArea2 && areaTimeSeconds[1] !== undefined) {
+        resultData.area2_time_seconds = areaTimeSeconds[1];
+      }
+
+      // Area 3 is only for Interior Master
+      const useArea3 = element.toLowerCase() === 'interior' && level.toLowerCase() === 'master';
+
+      if (useArea3 && areaTimeSeconds[2] !== undefined) {
+        resultData.area3_time_seconds = areaTimeSeconds[2];
+      }
+
+      // Calculate total search time as sum of all applicable areas
+      let totalTime = 0;
+      if (resultData.area1_time_seconds) totalTime += resultData.area1_time_seconds;
+      if (resultData.area2_time_seconds) totalTime += resultData.area2_time_seconds;
+      if (resultData.area3_time_seconds) totalTime += resultData.area3_time_seconds;
+
+      // Update the total search time
+      resultData.search_time_seconds = totalTime;
+    }
+
     console.log('📝 Upserting result:', resultData);
 
     // Use upsert to update existing or insert new
@@ -364,6 +401,53 @@ export async function submitScore(
 
     // Entry scoring status is tracked in the results table via is_scored and is_in_ring columns
     // No need to update the entries table as it doesn't have these columns
+
+    // Get the class_id and license_key to recalculate placements
+    const { data: entryData } = await supabase
+      .from('entries')
+      .select(`
+        class_id,
+        classes!inner(
+          trials!inner(
+            shows!inner(
+              license_key
+            )
+          )
+        )
+      `)
+      .eq('id', entryId)
+      .single();
+
+    if (entryData) {
+      const licenseKey = (entryData as any).classes.trials.shows.license_key;
+      console.log('🔄 Starting placement recalculation for entry', entryId, 'in class', entryData.class_id);
+
+      // Determine if this is a Nationals competition
+      // Check show type via license key
+      const { data: showData } = await supabase
+        .from('shows')
+        .select('show_type')
+        .eq('license_key', licenseKey)
+        .single();
+
+      const isNationals = showData?.show_type?.toLowerCase().includes('national') || false;
+      console.log('🏆 Competition type:', isNationals ? 'NATIONALS' : 'REGULAR');
+
+      // Recalculate placements for the entire class
+      try {
+        await recalculatePlacementsForClass(
+          entryData.class_id,
+          licenseKey,
+          isNationals
+        );
+        console.log('✅ Placements recalculated for class', entryData.class_id);
+      } catch (placementError) {
+        // Don't fail the score submission if placement calculation fails
+        console.error('⚠️ Failed to recalculate placements:', placementError);
+      }
+    } else {
+      console.warn('⚠️ Could not fetch entry data for placement calculation');
+    }
 
     console.log('✅ Score submitted successfully');
     return true;

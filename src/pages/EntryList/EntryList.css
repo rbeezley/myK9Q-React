@@ -105,6 +105,16 @@
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* Force consistent container width - override any conflicting styles */
+@media (min-width: 1024px) {
+  .entry-list-container.app-container {
+    max-width: 1200px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 2rem !important;
+  }
+}
+
 /* Desktop responsive improvements */
 @media (min-width: 1024px) {
   .entry-list-container {
@@ -124,14 +134,17 @@
 
 /* Sophisticated header */
 .entry-list-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1.25rem;
-  padding: 1rem 1.5rem;
+  padding: var(--token-space-lg) 0; /* Let app-container handle horizontal padding */
   background: var(--card);
+  backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
-  /* backdrop-filter: blur(20px); */ /* Removed - creates stacking context that blocks hamburger menu */
 }
 
 /* Align hamburger menu to top */
@@ -1358,6 +1371,19 @@
   line-height: 1;
 }
 
+.placement-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  background: var(--warning, #f59e0b);
+  color: white;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* Dark mode high contrast colors - Enhanced for Outdoor */
 [data-theme="dark"] .dog-name {
   color: #ffffff;              /* Pure white for maximum contrast */
@@ -2136,7 +2162,7 @@
   .entry-list-header {
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0.5rem;
+    padding: 0.5rem 0; /* Let app-container handle horizontal padding */
   }
 
   .class-info h1 {
@@ -2237,7 +2263,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 0.75rem;
-    padding: 0.75rem;
+    padding: 0.75rem 0; /* Let app-container handle horizontal padding */
   }
 
   .class-info {
@@ -2316,7 +2342,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 1rem;
-    padding: 1rem;
+    padding: 1rem 0; /* Let app-container handle horizontal padding */
   }
 
   .class-info {
@@ -2432,9 +2458,9 @@
 /* Ultra-compact desktop optimization */
 @media (min-width: 1025px) {
   .entries-grid {
-    grid-template-columns: repeat(4, 1fr); /* Fit more cards per row */
+    grid-template-columns: repeat(3, 1fr); /* Max 3 columns to respect container */
     gap: 1.25rem;
-    max-width: 1600px;         /* Wider to accommodate 4 columns */
+    max-width: 1200px;         /* Match app-container max-width */
     margin: 0 auto;
   }
   
@@ -2742,10 +2768,163 @@
   color: #f87171;
 }
 
+/* Improved Nationals Scoresheet Layout */
+.nationals-scoresheet-improved {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.nationals-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nationals-header-row .result-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  font-weight: 700;
+}
+
+.nationals-header-row .time-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+}
+
+.nationals-header-row .placement-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+}
+
+.nationals-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.nationals-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.375rem 0.5rem;
+  background: var(--muted);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.nationals-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.nationals-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.nationals-total-points-improved {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--muted);
+  border-radius: 0.5rem;
+  border: 2px solid var(--border);
+}
+
+.nationals-total-points-improved .nationals-total-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.nationals-total-points-improved .nationals-total-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.nationals-total-points-improved .nationals-total-value.positive {
+  color: #10b981;
+}
+
+.nationals-total-points-improved .nationals-total-value.negative {
+  color: #f87171;
+}
+
+/* Dark mode adjustments for improved layout */
+[data-theme="dark"] .nationals-stat-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .nationals-total-points-improved {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile responsiveness for nationals cards */
+@media (max-width: 640px) {
+  .nationals-scoresheet-improved {
+    gap: 0.5rem;
+  }
+
+  .nationals-header-row {
+    gap: 0.375rem;
+  }
+
+  .nationals-header-row .result-badge,
+  .nationals-header-row .time-badge,
+  .nationals-header-row .placement-badge {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.5rem;
+  }
+
+  .nationals-stats-grid {
+    gap: 0.375rem;
+  }
+
+  .nationals-stat-item {
+    padding: 0.25rem 0.375rem;
+  }
+
+  .nationals-stat-label {
+    font-size: 0.625rem;
+  }
+
+  .nationals-stat-value {
+    font-size: 0.875rem;
+  }
+
+  .nationals-total-points-improved {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .nationals-total-points-improved .nationals-total-label {
+    font-size: 0.75rem;
+  }
+
+  .nationals-total-points-improved .nationals-total-value {
+    font-size: 1.125rem;
+  }
+}
+
 .regular-result-badges {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.25rem;
+  max-width: 100%;
 }
 
 .class-section {

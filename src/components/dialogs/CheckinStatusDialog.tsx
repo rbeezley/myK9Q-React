@@ -31,7 +31,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
   dogInfo,
   showDescriptions = false
 }) => {
-  const { hasPermission } = usePermission();
+  const { hasPermission: _hasPermission } = usePermission();
 
   if (!isOpen) return null;
 
