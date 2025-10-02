@@ -88,27 +88,38 @@ export const CompetitionAdmin: React.FC = () => {
           level,
           section,
           judge_name,
-          class_order,
           self_checkin_enabled,
-          is_completed,
           trials!inner (
-            id,
-            trial_name,
             trial_date,
+            trial_number,
             shows!inner (
-              id,
-              show_name,
               license_key
             )
           )
         `)
         .eq('trials.shows.license_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
-        .order('trials.trial_date', { ascending: true })
         .order('element', { ascending: true });
 
       if (fetchError) throw fetchError;
 
-      setClasses((data as any) || []);
+      // Flatten the nested structure from Supabase
+      const flattenedClasses = (data || []).map((classData: any) => ({
+        id: classData.id,
+        element: classData.element,
+        level: classData.level,
+        section: classData.section,
+        judge_name: classData.judge_name,
+        trial_date: classData.trials?.trial_date || '',
+        trial_number: classData.trials?.trial_number || '',
+        release_mode: 'hidden' as ReleaseMode, // Default since field may not exist
+        class_completed: classData.is_completed || false,
+        results_released_at: null,
+        results_released_by: null,
+        class_completed_at: null,
+        self_checkin: classData.self_checkin_enabled || false
+      }));
+
+      setClasses(flattenedClasses);
     } catch (err) {
       console.error('Error fetching classes:', err);
       setError('Failed to load class information');
@@ -496,7 +507,28 @@ export const CompetitionAdmin: React.FC = () => {
     }
   };
 
-  // Format date/time
+  // Format date using same format as Home page trial cards
+  const formatTrialDate = (dateString: string) => {
+    try {
+      // Parse date components manually to avoid timezone issues
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day); // month is 0-indexed
+
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      const dayName = days[date.getDay()];
+      const monthName = months[date.getMonth()];
+      const dayNumber = date.getDate();
+      const yearNumber = date.getFullYear();
+
+      return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
+    } catch {
+      return dateString; // Fallback to original if parsing fails
+    }
+  };
+
+  // Format date/time for timestamps
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return 'Not set';
     return new Date(dateStr).toLocaleString();
@@ -877,7 +909,10 @@ export const CompetitionAdmin: React.FC = () => {
                     <div className="class-details">
                       <span className="element-name">{classInfo.element}</span>
                       <div className="class-meta">
-                        {classInfo.level} • {classInfo.section}
+                        {classInfo.section && classInfo.section !== '-'
+                          ? `${classInfo.level} • ${classInfo.section}`
+                          : classInfo.level
+                        }
                       </div>
                     </div>
                   </div>
@@ -896,7 +931,7 @@ export const CompetitionAdmin: React.FC = () => {
                 </div>
                 <div className="info-row">
                   <span className="label">Date:</span>
-                  <span className="value">{classInfo.trial_date}</span>
+                  <span className="value">{formatTrialDate(classInfo.trial_date)}</span>
                 </div>
                 <div className="info-row">
                   <span className="label">Trial:</span>

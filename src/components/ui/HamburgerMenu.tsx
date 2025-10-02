@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Calendar, Settings, Shield, Monitor } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor } from 'lucide-react';
 import './HamburgerMenu.css';
 
 interface HamburgerMenuProps {
@@ -12,7 +12,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'calendar' | 'settings' | 'entries' | 'admin' | 'tv';
+  currentPage?: 'home' | 'announcements' | 'entries' | 'admin' | 'tv';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -88,12 +88,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}>
           <nav
             className="hamburger-menu"
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              zIndex: 1000000
-            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="menu-header">
@@ -147,22 +141,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   )}
                 </div>
                 <span>Announcements</span>
-              </button>
-              
-              <button
-                className={`menu-item ${currentPage === 'calendar' ? 'active' : ''}`}
-                onClick={() => handleMenuItemClick(() => navigate('/calendar'))}
-              >
-                <Calendar className="menu-icon" />
-                <span>Calendar</span>
-              </button>
-              
-              <button
-                className={`menu-item ${currentPage === 'settings' ? 'active' : ''}`}
-                onClick={() => handleMenuItemClick(() => navigate('/settings'))}
-              >
-                <Settings className="menu-icon" />
-                <span>Settings</span>
               </button>
 
               {/* Admin Section - Only show for admin users */}

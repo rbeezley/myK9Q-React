@@ -105,15 +105,7 @@
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Force consistent container width - override any conflicting styles */
-@media (min-width: 1024px) {
-  .entry-list-container.app-container {
-    max-width: 1200px !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: 0 2rem !important;
-  }
-}
+/* Container styling is handled by global .app-container class */
 
 /* Desktop responsive improvements */
 @media (min-width: 1024px) {
@@ -141,10 +133,33 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1.25rem;
-  padding: var(--token-space-lg) 0; /* Let app-container handle horizontal padding */
+  padding-top: var(--token-space-lg);
+  padding-bottom: var(--token-space-lg);
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   background: var(--card);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 640px) {
+  .entry-list-header {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .entry-list-header {
+    margin-left: -2rem;
+    margin-right: -2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 /* Align hamburger menu to top */
@@ -1371,6 +1386,19 @@
   line-height: 1;
 }
 
+.faults-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
 .placement-badge {
   display: inline-flex;
   align-items: center;
@@ -1410,6 +1438,12 @@
 }
 
 [data-theme="dark"] .time-badge {
+  background: var(--muted);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .faults-badge {
   background: var(--muted);
   border-color: var(--border);
   color: var(--text-primary);
@@ -1824,6 +1858,32 @@
 }
 
 /* Reset Menu Button */
+/* Reset button on completed cards */
+.reset-button {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reset-button:hover {
+  background: var(--border);
+  transform: scale(1.05);
+}
+
+.reset-button:active {
+  transform: scale(0.95);
+}
+
 .reset-menu-button {
   position: absolute;
   top: 0.375rem;
@@ -2162,7 +2222,8 @@
   .entry-list-header {
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0.5rem 0; /* Let app-container handle horizontal padding */
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
   }
 
   .class-info h1 {
@@ -2263,7 +2324,8 @@
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 0.75rem;
-    padding: 0.75rem 0; /* Let app-container handle horizontal padding */
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
   }
 
   .class-info {
@@ -2342,7 +2404,8 @@
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 1rem;
-    padding: 1rem 0; /* Let app-container handle horizontal padding */
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 
   .class-info {
@@ -2919,6 +2982,137 @@
   }
 }
 
+/* Regular show scoresheet - 2x2 grid layout with polished styling */
+.regular-scoresheet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.regular-grid-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.5rem 0.75rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+/* Enhanced grid item backgrounds for light mode */
+[data-theme="light"] .regular-grid-item {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.8);
+}
+
+/* Enhanced grid item backgrounds for dark mode */
+[data-theme="dark"] .regular-grid-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Result item - balanced with other items */
+.regular-grid-item.result-item {
+  padding: 0.5rem 0.75rem;
+}
+
+/* Reason badge styling - more prominent than faults but not overwhelming */
+.reason-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  background: linear-gradient(135deg, var(--muted) 0%, var(--muted) 100%);
+  border: 1.5px solid var(--warning);
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  text-align: center;
+  max-width: 100%;
+  word-wrap: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .reason-badge {
+  background: rgba(254, 243, 199, 0.8);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #92400e;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.1);
+}
+
+[data-theme="dark"] .reason-badge {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Subtle faults badge - not prominent but clean */
+.faults-badge-subtle {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .faults-badge-subtle {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .faults-badge-subtle {
+  color: #64748b;
+}
+
+/* N/A badge for empty placement/reason slot */
+.na-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+[data-theme="dark"] .na-badge {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .na-badge {
+  color: #94a3b8;
+}
+
+/* Mobile responsiveness for regular cards */
+@media (max-width: 640px) {
+  .regular-scoresheet-grid {
+    gap: 0.5rem;
+  }
+
+  .regular-grid-item {
+    min-height: 36px;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .reason-badge {
+    font-size: 0.75rem;
+    padding: 0.3125rem 0.625rem;
+  }
+
+  .faults-badge-subtle {
+    font-size: 0.75rem;
+  }
+}
+
+/* Legacy - can be removed later */
 .regular-result-badges {
   display: flex;
   flex-wrap: wrap;
@@ -3135,4 +3329,23 @@
   .search-controls-header {
     padding: 0.5rem 1rem;
   }
+}
+
+/* Result reason display for NQ, Excused, Withdrawn */
+.result-reason {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--muted);
+  border-left: 3px solid var(--warning);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .result-reason {
+  background: rgba(251, 191, 36, 0.1);
+  border-left-color: var(--warning);
+  color: var(--text-primary);
 }

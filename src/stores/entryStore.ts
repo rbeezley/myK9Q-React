@@ -36,6 +36,10 @@ export interface Entry {
   incorrectFinds?: number;
   noFinishCount?: number;
   totalPoints?: number;
+  // Reason fields
+  nqReason?: string;
+  excusedReason?: string;
+  withdrawnReason?: string;
 }
 
 interface EntryFilters {

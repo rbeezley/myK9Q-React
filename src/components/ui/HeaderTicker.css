@@ -26,7 +26,7 @@
   transition: all var(--token-transition-fast);
   position: relative;
   height: 40px;
-  z-index: 10;
+  z-index: 1;
 }
 
 .header-ticker-background:hover {
@@ -57,7 +57,7 @@
 .header-ticker-scroll {
   display: inline-flex;
   white-space: nowrap;
-  animation: header-ticker-scroll 40s linear infinite !important;
+  animation: header-ticker-scroll 20s linear infinite !important;
   animation-play-state: running !important;
 }
 
@@ -143,7 +143,7 @@
   }
 
   .header-ticker-scroll {
-    animation-duration: 50s; /* Slower for mobile readability */
+    animation-duration: 25s; /* Slower for mobile readability */
   }
 }
 

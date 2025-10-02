@@ -155,111 +155,95 @@ export const Login: React.FC = () => {
               className="logo-img"
             />
           </div>
-          
+
           <h1 className="app-title">myK9Q</h1>
-          <p className="version">v2.0.8</p>
           <p className="tagline">Queue and Qualify</p>
         </div>
 
-        {/* Passcode Input Section */}
-        <div className="passcode-section">
-          <p className="instruction">Enter Pass Code provided by Host Club</p>
-          
-          <div className="passcode-input-container">
-            <div className="passcode-inputs">
-              {passcode.map((digit, index) => (
-                <div key={index} className="input-wrapper">
-                  <input
-                    ref={(el) => (inputRefs.current[index] = el)}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleInputChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={index === 0 ? handlePaste : undefined}
-                    className={`passcode-input ${error ? 'error' : ''}`}
-                    disabled={isLoading}
-                    inputMode="text"
-                    autoComplete="off"
-                    aria-label={`Passcode digit ${index + 1}`}
-                  />
-                  <div className="input-dot" />
-                </div>
-              ))}
+        {/* Passcode Input Section - Frosted Glass Card */}
+        <div className="passcode-card">
+          <div className="passcode-section">
+            <p className="instruction">Enter Pass Code provided by Club</p>
+
+            <div className="passcode-input-container">
+              <div className={`passcode-inputs ${passcode.every(d => d !== '') ? 'all-filled' : ''}`}>
+                {passcode.map((digit, index) => (
+                  <div key={index} className="input-wrapper">
+                    <input
+                      ref={(el) => (inputRefs.current[index] = el)}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleInputChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      onPaste={index === 0 ? handlePaste : undefined}
+                      className={`passcode-input ${error ? 'error' : ''} ${digit ? 'filled' : ''}`}
+                      disabled={isLoading}
+                      inputMode="text"
+                      autoComplete="off"
+                      aria-label={`Passcode digit ${index + 1}`}
+                    />
+                    <div className="input-dot" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Reset Button */}
+              {passcode.some(digit => digit !== '') && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="reset-button"
+                  disabled={isLoading}
+                  aria-label="Clear passcode"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
-            {/* Reset Button */}
-            {passcode.some(digit => digit !== '') && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="reset-button"
-                disabled={isLoading}
-                aria-label="Clear passcode"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 6L6 18M6 6L18 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
+            {/* Error Message */}
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+              <div className="loading-message">
+                Validating passcode...
+              </div>
             )}
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="loading-message">
-              Validating passcode...
-            </div>
-          )}
         </div>
 
         {/* Information Section */}
         <div className="info-section">
           <p className="info-text">
-            myK9Q allows exhibitors to check-in, indicate conflicts, view running 
-            order and preliminary results.
+            Real-time check-in, conflict management, and results.
           </p>
           <p className="info-text">
-            Eliminates manual data entry by the trial secretary.
+            Efficient shows. Simplified.
           </p>
           <p className="website-link">
-            Visit www.myk9t.com for more information.
-          </p>
-          <p className="requirements">
-            ** Requires reliable internet connectivity<br />
-            via Cellular data service or Wi-Fi.
+            www.myk9t.com
           </p>
         </div>
-
-        {/* Help Button */}
-        <button 
-          className="help-button"
-          onClick={() => {
-            hapticFeedback.impact('light');
-            window.open('https://www.myk9t.com/help', '_blank');
-          }}
-        >
-          <span className="help-icon">?</span>
-          <span>Help</span>
-        </button>
       </div>
     </div>
   );

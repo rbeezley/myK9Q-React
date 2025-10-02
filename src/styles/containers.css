@@ -17,6 +17,7 @@
 /* Base container - mobile first */
 .app-container {
   width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -42,14 +43,8 @@
   }
 
   .app-container {
-    max-width: 1200px !important; /* Override any page-specific max-widths */
+    max-width: 1200px;
     padding: 0 2rem;
-  }
-
-  /* Ensure all containers follow the unified standard */
-  .home-container.app-container,
-  .entry-list-container.app-container {
-    max-width: 1200px !important;
   }
 }
 
@@ -62,6 +57,7 @@
 
   .app-container {
     max-width: 1280px;
+    padding: 0 2rem;
   }
 }
 

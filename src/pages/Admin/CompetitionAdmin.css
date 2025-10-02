@@ -544,11 +544,6 @@
 
 /* Desktop: 3 columns */
 @media (min-width: 1025px) {
-  /* Adjust hamburger menu position to align with container edge */
-  .hamburger-menu {
-    left: calc((100vw - 1200px) / 2);
-  }
-
   .classes-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

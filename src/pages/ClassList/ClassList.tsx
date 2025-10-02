@@ -48,6 +48,7 @@ interface ClassEntry {
   entry_count: number;
   completed_count: number;
   class_status: 'none' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
+  is_completed?: boolean;
   is_favorite: boolean;
   time_limit?: string;
   time_limit2?: string;
@@ -375,6 +376,7 @@ export const ClassList: React.FC = () => {
             entry_count: entryCount,
             completed_count: completedCount,
             class_status: cls.class_status || 'none',
+            is_completed: cls.is_completed || false,
             is_favorite: currentFavorites.has(cls.id),
             time_limit: cls.time_limit || '',
             time_limit2: cls.time_limit2 || '',
@@ -894,6 +896,13 @@ export const ClassList: React.FC = () => {
   };
 
   const getStatusColor = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
+    // Check is_completed first for consistent coloring
+    if (classEntry) {
+      const displayStatus = getClassDisplayStatus(classEntry);
+      if (displayStatus === 'completed') return 'completed';
+      if (displayStatus === 'in-progress') return 'in-progress';
+    }
+
     switch (status) {
       case 'setup': return 'setup';
       case 'briefing': return 'briefing';
@@ -906,7 +915,7 @@ export const ClassList: React.FC = () => {
         if (classEntry) {
           const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
           const hasDogsInRing = classEntry.dogs.some(dog => dog.in_ring);
-          
+
           if (isCompleted) return 'completed';
           if (hasDogsInRing) return 'in-progress';
           if (classEntry.completed_count > 0) return 'in-progress';
@@ -918,6 +927,14 @@ export const ClassList: React.FC = () => {
 
   // Helper function to format status with time in a structured way
   const getFormattedStatus = (classEntry: ClassEntry) => {
+    // Check is_completed first, then fall back to class_status
+    const displayStatus = getClassDisplayStatus(classEntry);
+
+    // If detected as completed via is_completed or entry counts, show Completed
+    if (displayStatus === 'completed') {
+      return { label: 'Completed', time: null };
+    }
+
     const status = classEntry.class_status;
     const result = (() => {
       switch (status) {
@@ -1042,7 +1059,12 @@ export const ClassList: React.FC = () => {
 
   // Smart contextual preview helper functions - MANUAL STATUS WINS
   const getClassDisplayStatus = (classEntry: ClassEntry): 'not-started' | 'in-progress' | 'completed' => {
-    // PRIORITY 1: Manual class_status always wins (for run order only usage)
+    // PRIORITY 1: Check is_completed field (set automatically when all entries scored)
+    if (classEntry.is_completed === true) {
+      return 'completed';
+    }
+
+    // PRIORITY 2: Manual class_status always wins (for run order only usage)
     if (classEntry.class_status === 'completed') {
       return 'completed';
     }
@@ -1050,7 +1072,7 @@ export const ClassList: React.FC = () => {
       return 'in-progress';
     }
 
-    // PRIORITY 2: Only use automatic detection if class_status is 'none' or other basic statuses
+    // PRIORITY 3: Only use automatic detection if class_status is 'none' or other basic statuses
     if (classEntry.class_status === 'none' ||
         classEntry.class_status === 'setup' ||
         classEntry.class_status === 'briefing' ||
@@ -1079,7 +1101,7 @@ export const ClassList: React.FC = () => {
         return `${classEntry.entry_count} entries • Starts after current class`;
         
       case 'completed':
-        return `Completed • ${classEntry.completed_count} of ${classEntry.entry_count} scored`;
+        return `Completed • ${classEntry.entry_count} ${classEntry.entry_count === 1 ? 'entry' : 'entries'} scored`;
         
       case 'in-progress': {
         const inRingDog = classEntry.dogs.find(dog => dog.in_ring);
@@ -1313,9 +1335,6 @@ export const ClassList: React.FC = () => {
                   <Target size={14} /> Trial {trialInfo.trial_number}
                 </span>
               </div>
-              <span className="trial-detail progress">
-                <Trophy size={14} /> {trialInfo.total_classes} Classes
-              </span>
             </div>
           </div>
         </div>
@@ -1381,7 +1400,6 @@ export const ClassList: React.FC = () => {
         </div>
 
         <div className="sort-controls">
-          <span className="sort-label">Sort:</span>
           <button
             className={`sort-btn ${sortOrder === 'class_order' ? 'active' : ''}`}
             onClick={() => setSortOrder('class_order')}
@@ -1394,14 +1412,14 @@ export const ClassList: React.FC = () => {
             onClick={() => setSortOrder('element_level')}
           >
             <ArrowUpDown size={16} />
-            Element → Level
+            Element
           </button>
           <button
             className={`sort-btn ${sortOrder === 'level_element' ? 'active' : ''}`}
             onClick={() => setSortOrder('level_element')}
           >
             <ArrowUpDown size={16} />
-            Level → Element
+            Level
           </button>
         </div>
       </div>
@@ -1416,7 +1434,9 @@ export const ClassList: React.FC = () => {
           }}
         >
           <Clock className="tab-icon" />
-          <span className="tab-text">Pending</span>
+          <span className="tab-text">
+            Pending ({classes.filter(c => getClassDisplayStatus(c) !== 'completed').length})
+          </span>
         </button>
         <button
           className={`tab-button ${combinedFilter === 'favorites' ? 'active' : ''}`}
@@ -1426,7 +1446,9 @@ export const ClassList: React.FC = () => {
           }}
         >
           <Heart className="tab-icon" />
-          <span className="tab-text">Favorites</span>
+          <span className="tab-text">
+            Favorites ({classes.filter(c => c.is_favorite).length})
+          </span>
         </button>
         <button
           className={`tab-button ${combinedFilter === 'completed' ? 'active' : ''}`}
@@ -1436,7 +1458,9 @@ export const ClassList: React.FC = () => {
           }}
         >
           <CheckCircle className="tab-icon" />
-          <span className="tab-text">Completed</span>
+          <span className="tab-text">
+            Completed ({classes.filter(c => getClassDisplayStatus(c) === 'completed').length})
+          </span>
         </button>
       </div>
 
@@ -1714,7 +1738,10 @@ export const ClassList: React.FC = () => {
           level: '',
           class_name: '',
           class_status: '',
-          entry_count: 0
+          entry_count: 0,
+          briefing_time: undefined,
+          break_until_time: undefined,
+          start_time: undefined
         }}
         currentStatus={selectedClassForStatus?.class_status || ''}
       />

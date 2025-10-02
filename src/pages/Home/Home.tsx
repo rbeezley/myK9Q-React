@@ -5,7 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2, Target } from 'lucide-react';
+import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2, Target, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
 import { ArmbandBadge } from '../../components/ui';
 import './Home.css';
 
@@ -39,7 +39,12 @@ export const Home: React.FC = () => {
   const { hasPermission: _hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
 
-  const [activeTab, setActiveTab] = useState<'armband' | 'name' | 'handler' | 'favorites'>('armband');
+  // Search, sort, and filter state
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
+  const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
+
   const [entries, setEntries] = useState<EntryData[]>([]);
   const [trials, setTrials] = useState<TrialData[]>([]);
   const [_isLoading, _setIsLoading] = useState(true);
@@ -313,12 +318,25 @@ export const Home: React.FC = () => {
   };
 
   const getFilteredEntries = () => {
-    if (activeTab === 'favorites') {
-      return entries.filter(e => e.is_favorite);
+    // First filter by favorites if needed
+    let filtered = entries;
+    if (filterBy === 'favorites') {
+      filtered = entries.filter(e => e.is_favorite);
     }
-    
-    const sorted = [...entries];
-    switch (activeTab) {
+
+    // Then filter by search term
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(entry =>
+        entry.call_name.toLowerCase().includes(search) ||
+        entry.breed.toLowerCase().includes(search) ||
+        entry.handler.toLowerCase().includes(search)
+      );
+    }
+
+    // Finally sort by selected method
+    const sorted = [...filtered];
+    switch (sortBy) {
       case 'name':
         return sorted.sort((a, b) => a.call_name.localeCompare(b.call_name));
       case 'handler':
@@ -357,7 +375,6 @@ export const Home: React.FC = () => {
 
       {/* Enhanced Active Trials Section */}
       <div className="trials-section">
-        <h3>Active Trials</h3>
         <div className="trials-scroll">
           {trials.map((trial, index) => {
             const _hasActiveClasses = trial.classes_total > trial.classes_completed;
@@ -388,40 +405,23 @@ export const Home: React.FC = () => {
                 }}
               >
                 <div className="trial-content">
-                  {/* Enhanced Header with Status Badge */}
-                  <div className="trial-header">
-                    <div className="trial-date-info">
-                      <p className="trial-date">
-                        <Calendar size={14} /> {formatTrialDate(trial.trial_date)}
-                      </p>
-                      <p className="trial-type">
-                        <Target size={14} /> Trial {index + 1}
-                      </p>
-                    </div>
-                    <div className={`trial-status ${trialStatus}`}>
-                      {trialStatus === 'completed' && 'Complete'}
-                      {trialStatus === 'active' && 'In Progress'}
-                      {trialStatus === 'upcoming' && 'Upcoming'}
+                  {/* Trial Date and Number */}
+                  <div className="trial-title">
+                    <div className="trial-name-number">
+                      <Calendar size={14} className="trial-icon" />
+                      {formatTrialDate(trial.trial_date)} • Trial {index + 1}
                     </div>
                   </div>
 
-                  {/* Enhanced Progress Section */}
+                  {/* Progress Section */}
                   <div className="trial-progress">
                     <div className="progress-row">
-                      <Calendar
-                        className={`progress-circle ${trialStatus}`}
-                        size={14}
-                        style={{ color: 'var(--muted-foreground)', stroke: 'var(--muted-foreground)' }}
-                      />
-                      <span className="progress-text">Classes: {trial.classes_completed} of {trial.classes_total}</span>
+                      <Calendar size={14} />
+                      <span>Classes: {trial.classes_completed} of {trial.classes_total}</span>
                     </div>
                     <div className="progress-row">
-                      <Users2
-                        className={`progress-circle ${trialStatus}`}
-                        size={14}
-                        style={{ color: 'var(--muted-foreground)', stroke: 'var(--muted-foreground)' }}
-                      />
-                      <span className="progress-text">Entries: {trial.entries_completed} of {trial.entries_total}</span>
+                      <Users2 size={14} />
+                      <span>Entries: {trial.entries_completed} of {trial.entries_total}</span>
                     </div>
                   </div>
                 </div>
@@ -431,53 +431,91 @@ export const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Entry Tabs with Apple Design */}
-      <div className="entry-tabs">
+      {/* Search Controls Header */}
+      <div className="search-controls-header">
         <button
-          className={`tab-button ${activeTab === 'armband' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setActiveTab('armband');
-          }}
+          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
+          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
+          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
+          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
         >
-          <Hash className="tab-icon" />
-          <span className="tab-text">Armband</span>
+          <ChevronDown className="h-4 w-4" />
         </button>
-        <button
-          className={`tab-button ${activeTab === 'name' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setActiveTab('name');
-          }}
-        >
-          <User className="tab-icon" />
-          <span className="tab-text">Name</span>
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'handler' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setActiveTab('handler');
-          }}
-        >
-          <Users className="tab-icon" />
-          <span className="tab-text">Handler</span>
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'favorites' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setActiveTab('favorites');
-          }}
-        >
-          <Heart className="tab-icon" />
-          <span className="tab-text">Favorites</span>
-        </button>
+
+        <span className="search-controls-label">
+          {searchTerm ? `Found ${getFilteredEntries().length} of ${entries.length} dogs` : 'Search, Sort & Favorites'}
+        </span>
+      </div>
+
+      {/* Search Results Summary */}
+      {searchTerm && (
+        <div className="search-results-header">
+          <div className="search-results-summary">
+            {getFilteredEntries().length} of {entries.length} dogs
+          </div>
+        </div>
+      )}
+
+      {/* Collapsible Search and Sort Container */}
+      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
+        <div className="search-input-wrapper">
+          <Search className="search-icon" size={18} />
+          <input
+            type="text"
+            placeholder="Search dog name, breed, handler..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input-full"
+          />
+          {searchTerm && (
+            <button
+              className="clear-search-btn"
+              onClick={() => setSearchTerm('')}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="sort-controls">
+          <button
+            className={`sort-btn ${sortBy === 'armband' ? 'active' : ''}`}
+            onClick={() => setSortBy('armband')}
+          >
+            <ArrowUpDown size={16} />
+            Armband
+          </button>
+          <button
+            className={`sort-btn ${sortBy === 'name' ? 'active' : ''}`}
+            onClick={() => setSortBy('name')}
+          >
+            <ArrowUpDown size={16} />
+            Dog
+          </button>
+          <button
+            className={`sort-btn ${sortBy === 'handler' ? 'active' : ''}`}
+            onClick={() => setSortBy('handler')}
+          >
+            <ArrowUpDown size={16} />
+            Handler
+          </button>
+          <button
+            className={`sort-btn favorites-btn ${filterBy === 'favorites' ? 'active' : ''}`}
+            onClick={() => {
+              hapticFeedback.impact('light');
+              setFilterBy(filterBy === 'favorites' ? 'all' : 'favorites');
+            }}
+            title="Favorites"
+            aria-label="Favorites"
+          >
+            <Heart size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Enhanced Entry List Section */}
       <div className="entry-list">
-        {activeTab === 'favorites' && getFilteredEntries().length === 0 ? (
+        {filterBy === 'favorites' && getFilteredEntries().length === 0 ? (
           <div className="no-favorites">
             <Heart className="no-favorites-icon" />
             <h3>No Favorites Yet</h3>

@@ -9,7 +9,6 @@ import { CreateAnnouncementModal } from '../../components/announcements/CreateAn
 import { AnnouncementFilters } from '../../components/announcements/AnnouncementFilters';
 import { DeleteConfirmationModal } from '../../components/announcements/DeleteConfirmationModal';
 import { NotificationSettings } from '../../components/announcements/NotificationSettings';
-import { NotificationDebugger } from '../../components/debug/NotificationDebugger';
 import {
   Plus,
   Search,
@@ -20,8 +19,7 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  Settings,
-  Bug
+  Settings
 } from 'lucide-react';
 import './Announcements.css';
 import '../../components/announcements/AnnouncementComponents.css';
@@ -53,7 +51,6 @@ export const Announcements: React.FC = () => {
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
-  const [showDebugger, setShowDebugger] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; announcement: Announcement | null }>({ isOpen: false, announcement: null });
@@ -122,17 +119,6 @@ export const Announcements: React.FC = () => {
         </div>
 
         <div className="header-actions">
-          {/* Debug Button (Development) */}
-          {process.env.NODE_ENV === 'development' && (
-            <button
-              onClick={() => setShowDebugger(!showDebugger)}
-              className={`action-btn debug-btn ${showDebugger ? 'active' : ''}`}
-              title="Debug notifications"
-            >
-              <Bug />
-            </button>
-          )}
-
           {/* Notification Settings */}
           <button
             onClick={() => setShowNotificationSettings(!showNotificationSettings)}
@@ -209,11 +195,6 @@ export const Announcements: React.FC = () => {
             )}
           </div>
         </div>
-      )}
-
-      {/* Debug Panel (Development) */}
-      {showDebugger && (
-        <NotificationDebugger />
       )}
 
       {/* Notification Settings */}

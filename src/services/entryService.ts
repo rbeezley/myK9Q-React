@@ -108,7 +108,8 @@ export async function getClassEntries(
         total_correct_finds,
         total_incorrect_finds,
         no_finish_count,
-        points_earned
+        points_earned,
+        disqualification_reason
       `)
       .in('entry_id', entryIds);
 
@@ -172,6 +173,9 @@ export async function getClassEntries(
         incorrectFinds: result?.total_incorrect_finds || 0,
         noFinishCount: result?.no_finish_count || 0,
         totalPoints: result?.points_earned || 0,
+        nqReason: result?.disqualification_reason || undefined,
+        excusedReason: row.excuse_reason || undefined,
+        withdrawnReason: row.withdrawal_reason || undefined,
         classId: classId,
         className: `${row.classes.element} ${row.classes.level}` + (row.classes.section && row.classes.section !== '-' ? ` ${row.classes.section}` : ''),
         section: row.classes.section,
@@ -295,13 +299,13 @@ export async function submitScore(
   try {
     // Map the result text to the valid enum values
     let resultStatus = 'pending';
-    if (scoreData.resultText === 'Qualified') {
+    if (scoreData.resultText === 'Qualified' || scoreData.resultText === 'Q') {
       resultStatus = 'qualified';
-    } else if (scoreData.resultText === 'Not Qualified') {
+    } else if (scoreData.resultText === 'Not Qualified' || scoreData.resultText === 'NQ') {
       resultStatus = 'nq';
-    } else if (scoreData.resultText === 'Absent') {
+    } else if (scoreData.resultText === 'Absent' || scoreData.resultText === 'ABS') {
       resultStatus = 'absent';
-    } else if (scoreData.resultText === 'Excused') {
+    } else if (scoreData.resultText === 'Excused' || scoreData.resultText === 'EX') {
       resultStatus = 'excused';
     }
 
@@ -377,14 +381,17 @@ export async function submitScore(
     }
 
     console.log('📝 Upserting result:', resultData);
+    console.log('🔍 Result status being saved:', resultData.result_status);
+    console.log('🔍 Entry ID:', entryId);
 
     // Use upsert to update existing or insert new
-    const { error: resultError } = await supabase
+    const { error: resultError, data: upsertedData } = await supabase
       .from('results')
       .upsert(resultData, {
         onConflict: 'entry_id',
         ignoreDuplicates: false
-      });
+      })
+      .select();
 
     if (resultError) {
       console.error('❌ Results table error:', {
@@ -397,6 +404,11 @@ export async function submitScore(
         resultData
       });
       throw resultError;
+    }
+
+    console.log('✅ Result upserted successfully:', upsertedData);
+    if (upsertedData && upsertedData[0]) {
+      console.log('🔍 Saved result_status in database:', upsertedData[0].result_status);
     }
 
     // Entry scoring status is tracked in the results table via is_scored and is_in_ring columns
@@ -445,6 +457,13 @@ export async function submitScore(
         // Don't fail the score submission if placement calculation fails
         console.error('⚠️ Failed to recalculate placements:', placementError);
       }
+
+      // Check if all entries in class are completed
+      try {
+        await checkAndUpdateClassCompletion(entryData.class_id);
+      } catch (completionError) {
+        console.error('⚠️ Failed to check class completion:', completionError);
+      }
     } else {
       console.warn('⚠️ Could not fetch entry data for placement calculation');
     }
@@ -454,6 +473,73 @@ export async function submitScore(
   } catch (error) {
     console.error('Error in submitScore:', error);
     throw error;
+  }
+}
+
+/**
+ * Check if all entries in a class are completed and update class status
+ */
+async function checkAndUpdateClassCompletion(classId: number): Promise<void> {
+  console.log('🔍 Checking class completion status for class', classId);
+
+  // Get all entries for this class
+  const { data: entries, error: entriesError } = await supabase
+    .from('entries')
+    .select('id')
+    .eq('class_id', classId);
+
+  if (entriesError || !entries || entries.length === 0) {
+    console.log('⚠️ No entries found for class', classId);
+    return;
+  }
+
+  const entryIds = entries.map(e => e.id);
+
+  // Check how many entries have results
+  const { data: results, error: resultsError } = await supabase
+    .from('results')
+    .select('entry_id, is_scored')
+    .in('entry_id', entryIds)
+    .eq('is_scored', true);
+
+  if (resultsError) {
+    console.error('Error fetching results:', resultsError);
+    return;
+  }
+
+  const scoredCount = results?.length || 0;
+  const totalCount = entries.length;
+
+  console.log(`📊 Class ${classId}: ${scoredCount}/${totalCount} entries scored`);
+
+  // If all entries are scored, mark class as completed
+  if (scoredCount === totalCount && totalCount > 0) {
+    const { error: updateError } = await supabase
+      .from('classes')
+      .update({
+        is_completed: true,
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', classId);
+
+    if (updateError) {
+      console.error('Error updating class completion:', updateError);
+    } else {
+      console.log('✅ Class', classId, 'marked as completed');
+    }
+  } else if (scoredCount < totalCount) {
+    // If some entries are not scored, ensure class is not marked as completed
+    const { error: updateError } = await supabase
+      .from('classes')
+      .update({
+        is_completed: false,
+        completed_at: null
+      })
+      .eq('id', classId);
+
+    if (updateError) {
+      console.error('Error updating class status:', updateError);
+    }
   }
 }
 
@@ -1101,6 +1187,13 @@ export async function updateEntryCheckinStatus(
  */
 export async function resetEntryScore(entryId: number): Promise<boolean> {
   try {
+    // Get the class_id before deleting the result
+    const { data: entryData } = await supabase
+      .from('entries')
+      .select('class_id')
+      .eq('id', entryId)
+      .single();
+
     // Delete the result record to reset the score (scoring data lives in results table)
     const { error } = await supabase
       .from('results')
@@ -1120,6 +1213,16 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
     }
 
     console.log('✅ Score reset successfully - deleted result record for entry', entryId);
+
+    // Check if class should be marked as incomplete
+    if (entryData?.class_id) {
+      try {
+        await checkAndUpdateClassCompletion(entryData.class_id);
+      } catch (completionError) {
+        console.error('⚠️ Failed to check class completion:', completionError);
+      }
+    }
+
     return true;
   } catch (error) {
     console.error('Error in resetEntryScore:', error);

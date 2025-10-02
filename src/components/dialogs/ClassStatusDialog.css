@@ -244,19 +244,46 @@
   color: #9ca3af;
 }
 
-.time-default-button {
-  padding: 8px 16px;
+/* Quick time adjustment buttons */
+.time-quick-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.time-quick-button {
+  flex: 1;
+  padding: 10px 16px;
   font-size: 14px;
+  font-weight: 600;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
+  border-radius: 8px;
   color: #3b82f6 !important;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.time-default-button:hover {
+.time-quick-button:hover {
   background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.time-quick-button:active {
+  transform: translateY(0);
+}
+
+/* Light mode quick buttons */
+[data-theme="light"] .time-quick-button {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="light"] .time-quick-button:hover {
+  background: rgba(59, 130, 246, 0.15);
   border-color: #3b82f6;
 }
 

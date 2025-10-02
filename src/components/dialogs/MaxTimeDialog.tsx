@@ -87,7 +87,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
       // Get organization type
       const { data: showData, error: showError } = await supabase
         .from('shows')
-        .select('org')
+        .select('organization')
         .eq('license_key', showContext.licenseKey)
         .single();
 
@@ -96,8 +96,8 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         return;
       }
 
-      const isAKC = showData.org.includes('AKC');
-      const isUKC = showData.org.includes('UKC');
+      const isAKC = showData.organization.includes('AKC');
+      const isUKC = showData.organization.includes('UKC');
 
       // Query the unified requirements table for time range
       let requirementsData = null;
@@ -108,7 +108,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         const { data, error } = await supabase
           .from('class_requirements')
           .select('*')
-          .eq('org', org)
+          .eq('organization', org)
           .eq('element', classData.element)
           .eq('level', classData.level)
           .single();

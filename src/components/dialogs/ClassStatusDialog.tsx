@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar } from 'lucide-react';
 import './ClassStatusDialog.css';
 
@@ -13,6 +13,9 @@ interface ClassStatusDialogProps {
     class_name: string;
     class_status: string;
     entry_count: number;
+    briefing_time?: string;
+    break_until_time?: string;
+    start_time?: string;
   };
   currentStatus: string;
 }
@@ -26,6 +29,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [timeValue, setTimeValue] = useState<string>('');
+  const [isFirstEdit, setIsFirstEdit] = useState(true);
 
   const statusOptions = [
     {
@@ -44,7 +48,8 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       color: '#3b82f6',
       needsTime: true,
       timeLabel: 'Briefing time',
-      timePlaceholder: '10:00 AM'
+      timePlaceholder: '10:00 AM',
+      timeField: 'briefing_time'
     },
     {
       id: 'break',
@@ -54,7 +59,8 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       color: '#f59e0b',
       needsTime: true,
       timeLabel: 'Break until',
-      timePlaceholder: '2:30 PM'
+      timePlaceholder: '2:30 PM',
+      timeField: 'break_until_time'
     },
     {
       id: 'start_time',
@@ -64,7 +70,8 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       color: '#06b6d4',
       needsTime: true,
       timeLabel: 'Start time',
-      timePlaceholder: '1:00 PM'
+      timePlaceholder: '1:00 PM',
+      timeField: 'start_time'
     },
     {
       id: 'in_progress',
@@ -84,12 +91,30 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
     }
   ];
 
+  // Initialize time value when status is selected
+  useEffect(() => {
+    if (selectedStatus && isOpen) {
+      const status = statusOptions.find(s => s.id === selectedStatus);
+      if (status?.needsTime && status.timeField) {
+        // Check if there's an existing time for this status
+        const existingTime = classData[status.timeField as keyof typeof classData] as string | undefined;
+        if (existingTime) {
+          setTimeValue(existingTime);
+          setIsFirstEdit(false); // Don't clear if there's an existing time
+        } else {
+          // Set to current time by default
+          setTimeValue(getCurrentTime());
+          setIsFirstEdit(true); // Allow clearing on first keystroke
+        }
+      }
+    }
+  }, [selectedStatus, isOpen]);
+
   const handleStatusSelect = (statusId: string) => {
     console.log('🔄 ClassStatusDialog: handleStatusSelect called with:', statusId);
     const status = statusOptions.find(s => s.id === statusId);
     if (status?.needsTime) {
       setSelectedStatus(statusId);
-      setTimeValue('');
     } else {
       console.log('🔄 ClassStatusDialog: Calling onStatusChange with:', statusId);
       onStatusChange(statusId);
@@ -111,25 +136,147 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
     setTimeValue('');
   };
 
-  const getDefaultTime = (statusId: string) => {
+  const getCurrentTime = (): string => {
     const now = new Date();
-    const timeString = now.toLocaleTimeString('en-US', {
+    return now.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     });
+  };
 
-    if (statusId === 'break') {
-      // Default break to 30 minutes from now
-      const breakTime = new Date(now.getTime() + 30 * 60000);
-      return breakTime.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
+  const addMinutes = (minutes: number) => {
+    // Parse the current time value in the field
+    let baseTime: Date;
+
+    if (timeValue.trim()) {
+      // Try to parse the existing time
+      try {
+        const timeParts = timeValue.match(/(\d+):?(\d+)?\s*(am|pm)?/i);
+        if (timeParts) {
+          let hours = parseInt(timeParts[1]);
+          const mins = parseInt(timeParts[2] || '0');
+          const period = timeParts[3]?.toLowerCase();
+
+          // Convert to 24-hour format
+          if (period === 'pm' && hours !== 12) {
+            hours += 12;
+          } else if (period === 'am' && hours === 12) {
+            hours = 0;
+          }
+
+          baseTime = new Date();
+          baseTime.setHours(hours, mins, 0, 0);
+        } else {
+          // Can't parse, use current time
+          baseTime = new Date();
+        }
+      } catch {
+        baseTime = new Date();
+      }
+    } else {
+      // Empty field, use current time
+      baseTime = new Date();
     }
 
-    return timeString;
+    // Add the specified minutes
+    const futureTime = new Date(baseTime.getTime() + minutes * 60000);
+    const timeString = futureTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    setTimeValue(timeString);
+    setIsFirstEdit(false); // Mark as edited when using quick buttons
+  };
+
+  // Intelligent time formatting similar to MaxTimeDialog
+  const formatTimeInput = (value: string): string => {
+    // Remove all non-alphanumeric characters and spaces for processing
+    const cleaned = value.replace(/[^0-9apmAPM]/g, '').toLowerCase();
+
+    // If empty, return empty
+    if (!cleaned) return '';
+
+    // Extract AM/PM if present
+    const hasAM = cleaned.includes('a');
+    const hasRM = cleaned.includes('p');
+    const period = hasRM ? 'PM' : hasAM ? 'AM' : '';
+
+    // Remove am/pm from the number part
+    const numStr = cleaned.replace(/[ap]/g, '');
+
+    if (!numStr) return '';
+
+    const num = parseInt(numStr);
+    if (isNaN(num)) return '';
+
+    // Smart AM/PM detection based on typical dog show hours
+    const getSmartPeriod = (hour: number): string => {
+      if (hour >= 1 && hour <= 6) return 'AM';  // 1-6 is early morning (AM)
+      if (hour >= 7 && hour <= 11) return 'AM'; // 7-11 is morning (AM)
+      if (hour === 12) return 'PM';             // 12 is noon (PM)
+      return 'PM';                               // Everything else PM
+    };
+
+    // Interpret the numbers based on length
+    if (numStr.length <= 2) {
+      // 1-2 digits: treat as hour
+      let hour = num;
+      const defaultPeriod = period || getSmartPeriod(hour);
+      if (hour > 12) hour = hour % 12 || 12;
+      if (hour === 0) hour = 12;
+      return `${hour}:00 ${defaultPeriod}`;
+    } else if (numStr.length === 3) {
+      // 3 digits: first digit as hour, last two as minutes (e.g., 130 = 1:30)
+      let hour = Math.floor(num / 100);
+      const minutes = num % 100;
+      const defaultPeriod = period || getSmartPeriod(hour);
+      if (hour > 12) hour = hour % 12 || 12;
+      if (hour === 0) hour = 12;
+      if (minutes < 60) {
+        return `${hour}:${minutes.toString().padStart(2, '0')} ${defaultPeriod}`;
+      } else {
+        return `${hour}:00 ${defaultPeriod}`;
+      }
+    } else {
+      // 4+ digits: treat as HHMM format
+      let hour = Math.floor(num / 100);
+      const minutes = num % 100;
+      const defaultPeriod = period || (hour >= 13 ? 'PM' : getSmartPeriod(hour % 12 || 12));
+
+      // Convert 24-hour to 12-hour
+      if (hour > 12) {
+        hour = hour - 12;
+      } else if (hour === 0) {
+        hour = 12;
+      }
+
+      const finalMinutes = minutes < 60 ? minutes : 0;
+      return `${hour}:${finalMinutes.toString().padStart(2, '0')} ${defaultPeriod}`;
+    }
+  };
+
+  const handleTimeChange = (value: string) => {
+    // If this is the first keystroke and we're showing default time, clear it
+    if (isFirstEdit && timeValue && value.length > timeValue.length) {
+      // User is adding characters - clear the default and start fresh
+      const newChar = value.slice(-1);
+      setTimeValue(newChar);
+      setIsFirstEdit(false);
+    } else {
+      // Normal editing
+      setTimeValue(value);
+      setIsFirstEdit(false);
+    }
+  };
+
+  const handleTimeBlur = () => {
+    // Format the time when user finishes typing (loses focus)
+    if (timeValue.trim()) {
+      const formatted = formatTimeInput(timeValue);
+      setTimeValue(formatted);
+    }
   };
 
   if (!isOpen) return null;
@@ -182,24 +329,51 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
                         type="text"
                         className="time-input"
                         value={timeValue}
-                        onChange={(e) => setTimeValue(e.target.value)}
-                        placeholder={status?.timePlaceholder || getDefaultTime(selectedStatus)}
+                        onChange={(e) => handleTimeChange(e.target.value)}
+                        onBlur={handleTimeBlur}
+                        onFocus={(e) => {
+                          // Select all text on focus so user can type to replace
+                          e.target.select();
+                        }}
+                        placeholder={status?.timePlaceholder}
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
+                            handleTimeBlur();
                             handleTimeSubmit();
                           } else if (e.key === 'Escape') {
                             handleCancel();
                           }
                         }}
                       />
-                      <button
-                        type="button"
-                        className="time-default-button"
-                        onClick={() => setTimeValue(getDefaultTime(selectedStatus))}
-                      >
-                        Use Current Time
-                      </button>
+
+                      {/* Quick time adjustment buttons */}
+                      <div className="time-quick-buttons">
+                        <button
+                          type="button"
+                          className="time-quick-button"
+                          onClick={() => addMinutes(5)}
+                          title="Add 5 minutes"
+                        >
+                          +5
+                        </button>
+                        <button
+                          type="button"
+                          className="time-quick-button"
+                          onClick={() => addMinutes(15)}
+                          title="Add 15 minutes"
+                        >
+                          +15
+                        </button>
+                        <button
+                          type="button"
+                          className="time-quick-button"
+                          onClick={() => addMinutes(30)}
+                          title="Add 30 minutes"
+                        >
+                          +30
+                        </button>
+                      </div>
                     </div>
 
                     <div className="time-actions">

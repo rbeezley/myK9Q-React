@@ -52,7 +52,7 @@
 .hamburger-menu {
   position: fixed;
   top: 0;
-  /* left position will be set via inline styles */
+  left: 0;
   width: 280px;
   height: 100vh;
   background: var(--card);
@@ -63,6 +63,8 @@
   flex-direction: column;
   z-index: 1000000;
 }
+
+/* Menu always aligns to left edge of viewport (full-width layout) */
 
 @keyframes slideInFromLeft {
   from {

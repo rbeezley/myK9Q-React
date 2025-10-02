@@ -808,8 +808,8 @@ export const EntryList: React.FC = () => {
           }
           resultBadges={
             entry.isScored ? (
-              // Check if this is a nationals show (Master level with detailed scoring)
-              entry.level === 'Master' && (entry.correctFinds !== undefined || entry.totalPoints !== undefined) ? (
+              // Check if this is a nationals show using show type from context
+              showContext?.competition_type?.toLowerCase().includes('national') ? (
                 <div className="nationals-scoresheet-improved">
                   {/* Header Row: Placement, Time, and Result badges */}
                   <div className="nationals-header-row">
@@ -863,26 +863,66 @@ export const EntryList: React.FC = () => {
               ) : (
                 // Regular (non-nationals) scoring display
                 entry.searchTime ? (
-                  <div className="regular-result-badges">
-                    {entry.resultText && (
-                      <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
-                        {(() => {
-                          const result = entry.resultText.toLowerCase();
-                          if (result === 'q' || result === 'qualified') return 'Q';
-                          if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                          if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                          if (result === 'ex' || result === 'excused') return 'EX';
-                          if (result === 'wd' || result === 'withdrawn') return 'WD';
-                          return entry.resultText;
-                        })()}
-                      </span>
-                    )}
-                    <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
-                    {entry.placement && (
-                      <span className="placement-badge">
-                        {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
-                      </span>
-                    )}
+                  <div className="regular-scoresheet-grid">
+                    {/* Row 1: Result and Placement OR Result and Reason */}
+                    <div className="regular-grid-item result-item">
+                      {entry.resultText && (
+                        <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
+                          {(() => {
+                            const result = entry.resultText.toLowerCase();
+                            if (result === 'q' || result === 'qualified') return 'Q';
+                            if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                            if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                            if (result === 'ex' || result === 'excused') return 'EX';
+                            if (result === 'wd' || result === 'withdrawn') return 'WD';
+                            return entry.resultText;
+                          })()}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="regular-grid-item">
+                      {(() => {
+                        const resultLower = (entry.resultText || '').toLowerCase();
+                        const isNonQualifying = resultLower.includes('nq') || resultLower.includes('non-qualifying') ||
+                                               resultLower.includes('abs') || resultLower.includes('absent') ||
+                                               resultLower.includes('ex') || resultLower.includes('excused') ||
+                                               resultLower.includes('wd') || resultLower.includes('withdrawn');
+
+                        // Show placement only if qualified (placement exists and result is qualified)
+                        if (entry.placement && !isNonQualifying && entry.placement < 100) {
+                          return (
+                            <span className="placement-badge">
+                              {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                            </span>
+                          );
+                        }
+
+                        // Show reason for non-qualifying results
+                        if (isNonQualifying) {
+                          if ((resultLower.includes('nq') || resultLower.includes('non-qualifying')) && entry.nqReason) {
+                            return <span className="reason-badge">{entry.nqReason}</span>;
+                          } else if ((resultLower.includes('ex') || resultLower.includes('excused')) && entry.excusedReason) {
+                            return <span className="reason-badge">{entry.excusedReason}</span>;
+                          } else if ((resultLower.includes('wd') || resultLower.includes('withdrawn')) && entry.withdrawnReason) {
+                            return <span className="reason-badge">{entry.withdrawnReason}</span>;
+                          } else if (resultLower.includes('abs') || resultLower.includes('absent')) {
+                            return <span className="na-badge">Absent</span>;
+                          }
+                        }
+
+                        return <span className="na-badge">N/A</span>;
+                      })()}
+                    </div>
+
+                    {/* Row 2: Time and Faults */}
+                    <div className="regular-grid-item">
+                      <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+                    </div>
+
+                    <div className="regular-grid-item">
+                      <span className="faults-badge-subtle">{entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}</span>
+                    </div>
                   </div>
                 ) : undefined
               )
