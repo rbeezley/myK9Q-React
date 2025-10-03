@@ -161,7 +161,7 @@ export const DogDetails: React.FC = () => {
             is_scored: entry.is_scored || false,
             checked_in: check_in_status !== 'none',
             check_in_status,
-            position: index === 1 ? 2 : undefined, // Mark second entry as "2nd" for demo
+            position: entry.placement || undefined, // Use actual placement from results
             // Map additional fields
             element: entry.element,
             level: entry.level,
