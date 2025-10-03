@@ -14,7 +14,7 @@ interface DogCardProps {
   resultBadges?: React.ReactNode; // For scored entries
 }
 
-export const DogCard: React.FC<DogCardProps> = ({
+export const DogCard = React.memo<DogCardProps>(({
   armband,
   callName,
   breed,
@@ -54,4 +54,12 @@ export const DogCard: React.FC<DogCardProps> = ({
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if key props change
+  return (
+    prevProps.armband === nextProps.armband &&
+    prevProps.callName === nextProps.callName &&
+    prevProps.statusBorder === nextProps.statusBorder &&
+    prevProps.className === nextProps.className
+  );
+});

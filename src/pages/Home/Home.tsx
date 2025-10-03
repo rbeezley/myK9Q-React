@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { logger } from '../../utils/logger';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -57,27 +58,27 @@ export const Home: React.FC = () => {
     const loadDogFavorites = () => {
       try {
         const favoritesKey = `dog_favorites_${showContext?.licenseKey || 'default'}`;
-        console.log('🐕 Loading dog favorites with key:', favoritesKey);
+        logger.log('🐕 Loading dog favorites with key:', favoritesKey);
         const savedFavorites = localStorage.getItem(favoritesKey);
-        console.log('🐕 Raw localStorage value for dog favorites:', savedFavorites);
+        logger.log('🐕 Raw localStorage value for dog favorites:', savedFavorites);
         if (savedFavorites) {
           const favoriteIds = JSON.parse(savedFavorites) as number[];
           // Validate the data is an array of numbers
           if (Array.isArray(favoriteIds) && favoriteIds.every(id => typeof id === 'number')) {
-            console.log('🐕 Setting favoriteDogs from localStorage:', favoriteIds);
+            logger.log('🐕 Setting favoriteDogs from localStorage:', favoriteIds);
             setFavoriteDogs(new Set(favoriteIds));
           } else {
-            console.warn('🐕 Invalid dog favorites data in localStorage, clearing it');
+            logger.warn('🐕 Invalid dog favorites data in localStorage, clearing it');
             localStorage.removeItem(favoritesKey);
             setFavoriteDogs(new Set());
           }
         } else {
-          console.log('🐕 No saved dog favorites found');
+          logger.log('🐕 No saved dog favorites found');
           setFavoriteDogs(new Set());
         }
         setDogFavoritesLoaded(true);
       } catch (error) {
-        console.error('Error loading dog favorites from localStorage:', error);
+        logger.error('Error loading dog favorites from localStorage:', error);
         // Clear corrupted data
         const favoritesKey = `dog_favorites_${showContext?.licenseKey || 'default'}`;
         localStorage.removeItem(favoritesKey);
@@ -97,49 +98,43 @@ export const Home: React.FC = () => {
       try {
         const favoritesKey = `dog_favorites_${showContext?.licenseKey || 'default'}`;
         const favoriteIds = Array.from(favoriteDogs);
-        console.log('🐕 Saving dog favorites to localStorage:', favoritesKey, favoriteIds);
+        logger.log('🐕 Saving dog favorites to localStorage:', favoritesKey, favoriteIds);
         localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
-        console.log('🐕 Saved dog favorites successfully');
+        logger.log('🐕 Saved dog favorites successfully');
       } catch (error) {
-        console.error('Error saving dog favorites to localStorage:', error);
+        logger.error('Error saving dog favorites to localStorage:', error);
       }
     } else {
-      console.log('🐕 Not saving dog favorites - not loaded yet:', { licenseKey: showContext?.licenseKey, dogFavoritesLoaded, size: favoriteDogs.size });
+      logger.log('🐕 Not saving dog favorites - not loaded yet:', { licenseKey: showContext?.licenseKey, dogFavoritesLoaded, size: favoriteDogs.size });
     }
   }, [favoriteDogs, showContext?.licenseKey, dogFavoritesLoaded]);
 
   // Update entries' is_favorite property when favoriteDogs changes
   useEffect(() => {
     if (entries.length > 0 && dogFavoritesLoaded) {
-      console.log('🐕 Updating entries is_favorite based on favoriteDogs:', Array.from(favoriteDogs));
-      console.log('🐕 Current entries armbands:', entries.map(e => e.armband));
+      logger.log('🐕 Updating entries is_favorite based on favoriteDogs:', Array.from(favoriteDogs));
+      logger.log('🐕 Current entries armbands:', entries.map(e => e.armband));
       setEntries(prevEntries => {
         const updatedEntries = prevEntries.map(entry => {
           const shouldBeFavorite = favoriteDogs.has(entry.armband);
-          console.log(`🐕 Entry ${entry.armband} (${entry.call_name}): favorite=${shouldBeFavorite}`);
+          logger.log(`🐕 Entry ${entry.armband} (${entry.call_name}): favorite=${shouldBeFavorite}`);
           return {
             ...entry,
             is_favorite: shouldBeFavorite
           };
         });
-        console.log('🐕 Updated entries with favorites:', updatedEntries.map(e => `${e.armband}:${e.is_favorite}`));
+        logger.log('🐕 Updated entries with favorites:', updatedEntries.map(e => `${e.armband}:${e.is_favorite}`));
         return updatedEntries;
       });
     }
   }, [favoriteDogs, dogFavoritesLoaded]);
 
-  useEffect(() => {
-    if (showContext && dogFavoritesLoaded) {
-      loadDashboardData();
-    }
-  }, [showContext, dogFavoritesLoaded]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     _setIsLoading(true);
     try {
-      console.log('🔍 Show context:', showContext);
-      console.log('🔍 Show ID:', showContext?.showId);
-      console.log('🔍 License key:', showContext?.licenseKey);
+      logger.log('🔍 Show context:', showContext);
+      logger.log('🔍 Show ID:', showContext?.showId);
+      logger.log('🔍 License key:', showContext?.licenseKey);
 
       // Load trials with progress
       const { data: trialsData, error: trialsError } = await supabase
@@ -148,12 +143,12 @@ export const Home: React.FC = () => {
         .eq('show_id', showContext?.showId);
 
       if (trialsError) {
-        console.error('❌ Error loading trials:', trialsError);
-        console.error('❌ Show ID used:', showContext?.showId);
-        console.error('❌ License key:', showContext?.licenseKey);
+        logger.error('❌ Error loading trials:', trialsError);
+        logger.error('❌ Show ID used:', showContext?.showId);
+        logger.error('❌ License key:', showContext?.licenseKey);
       } else {
-        console.log('✅ Trials data loaded:', trialsData);
-        console.log('✅ Number of trials found:', trialsData?.length || 0);
+        logger.log('✅ Trials data loaded:', trialsData);
+        logger.log('✅ Number of trials found:', trialsData?.length || 0);
       }
 
       // Load entries from the normalized view
@@ -164,7 +159,7 @@ export const Home: React.FC = () => {
         .order('armband', { ascending: true });
 
       if (entriesError) {
-        console.error('Error loading entries:', entriesError);
+        logger.error('Error loading entries:', entriesError);
       }
 
       // Process trials with counts
@@ -253,26 +248,32 @@ export const Home: React.FC = () => {
         });
         
         const newEntries = Array.from(uniqueDogs.values());
-        console.log('🐕 Setting new entries with armbands:', newEntries.map(e => e.armband));
-        console.log('🐕 Entries with favorites:', newEntries.map(e => `${e.armband}:${e.is_favorite}`));
+        logger.log('🐕 Setting new entries with armbands:', newEntries.map(e => e.armband));
+        logger.log('🐕 Entries with favorites:', newEntries.map(e => `${e.armband}:${e.is_favorite}`));
         setEntries(newEntries);
       }
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      logger.error('Error loading dashboard data:', error);
     } finally {
       _setIsLoading(false);
     }
-  };
+  }, [showContext?.showId, showContext?.licenseKey]);
 
-  const handleRefresh = async () => {
+  useEffect(() => {
+    if (showContext && dogFavoritesLoaded) {
+      loadDashboardData();
+    }
+  }, [showContext, dogFavoritesLoaded, loadDashboardData]);
+
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     hapticFeedback.impact('medium');
     await loadDashboardData();
     setRefreshing(false);
-  };
+  }, [loadDashboardData, hapticFeedback]);
 
   const toggleFavorite = useCallback((armband: number) => {
-    console.log('🐕 toggleFavorite called for armband:', armband);
+    logger.log('🐕 toggleFavorite called for armband:', armband);
     hapticFeedback.impact('light');
     
     // Update the favoriteDogs set for localStorage persistence
@@ -282,12 +283,12 @@ export const Home: React.FC = () => {
       
       if (wasAlreadyFavorite) {
         newFavorites.delete(armband);
-        console.log('🐕 Removing from dog favorites:', armband);
+        logger.log('🐕 Removing from dog favorites:', armband);
       } else {
         newFavorites.add(armband);
-        console.log('🐕 Adding to dog favorites:', armband);
+        logger.log('🐕 Adding to dog favorites:', armband);
       }
-      console.log('🐕 New dog favorites set:', Array.from(newFavorites));
+      logger.log('🐕 New dog favorites set:', Array.from(newFavorites));
       return newFavorites;
     });
   }, [hapticFeedback]);
@@ -400,7 +401,7 @@ export const Home: React.FC = () => {
                 className={`trial-card ${trialStatus}`}
                 onClick={() => {
                   hapticFeedback.impact('medium');
-                  console.log('Navigating to trial:', trial.id, 'id:', trial.id);
+                  logger.log('Navigating to trial:', trial.id, 'id:', trial.id);
                   navigate(`/trial/${trial.id}/classes`);
                 }}
               >
@@ -557,7 +558,7 @@ export const Home: React.FC = () => {
                           type="button"
                           className={`favorite-button ${entry.is_favorite ? 'favorited' : ''}`}
                           onClick={(e) => {
-                            console.log('🚨 Dog heart button clicked! Armband:', entry.armband, 'Target:', e.target);
+                            logger.log('🚨 Dog heart button clicked! Armband:', entry.armband, 'Target:', e.target);
                             e.preventDefault();
                             e.stopPropagation();
                             e.nativeEvent.stopImmediatePropagation();

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { debounce, globalPerformanceMonitor, globalMemoryTracker } from '../utils/performanceOptimizer';
+import { logger } from '../../../utils/logger';
 
 export interface ClassInfo {
   id: number;
@@ -104,7 +105,7 @@ export const useTVData = ({
 
   // Data transformation utilities with section merging for Novice classes
   const transformClassData = useCallback((rawClasses: any[]): ClassInfo[] => {
-    if (isDebugMode) console.log('📺 Transforming classes data with section merging:', rawClasses);
+    if (isDebugMode) logger.debug('📺 Transforming classes data with section merging:', rawClasses);
 
     // Group classes by key attributes, merging Novice A/B sections
     const classGroups = rawClasses.reduce((groups: { [key: string]: any[] }, cls) => {
@@ -153,7 +154,7 @@ export const useTVData = ({
                     'scheduled';
 
       if (isDebugMode) {
-        console.log(`📺 ${isNovice ? 'Merged Novice' : 'Regular'} Class "${firstClass.element}":`, {
+        logger.log(`📺 ${isNovice ? 'Merged Novice' : 'Regular'} Class "${firstClass.element}":`, {
           sectionsCount: groupClasses.length,
           sections: groupClasses.map(c => c.section).filter(Boolean),
           mergedCounts,
@@ -182,7 +183,7 @@ export const useTVData = ({
   }, []);
 
   const transformEntryData = useCallback((rawEntries: any[]): EntryInfo[] => {
-    if (isDebugMode) console.log('📺 Transforming entries data with section preservation:', rawEntries.slice(0, 3));
+    if (isDebugMode) logger.log('📺 Transforming entries data with section preservation:', rawEntries.slice(0, 3));
     return rawEntries.map(entry => ({
       id: entry.id,
       armband: String(entry.armband || entry.armband_number || 'N/A'),
@@ -206,7 +207,7 @@ export const useTVData = ({
   }, []);
 
   const transformViewEntryData = useCallback((viewEntries: any[]): EntryInfo[] => {
-    if (isDebugMode) console.log('📺 Transforming view entries data sample:', viewEntries.slice(0, 3));
+    if (isDebugMode) logger.log('📺 Transforming view entries data sample:', viewEntries.slice(0, 3));
     return viewEntries.map((entry, _index) => ({
       id: entry.id || _index,
       armband: String(entry.armband || 'N/A'),
@@ -239,7 +240,7 @@ export const useTVData = ({
   // Find current in-progress classes (can be multiple in a real dog show)
   const processData = useCallback((classes: ClassInfo[], entries: EntryInfo[]) => {
     if (isDebugMode) {
-      console.log('📺 Processing data with section merging - All classes:', classes.map(cls => ({
+      logger.log('📺 Processing data with section merging - All classes:', classes.map(cls => ({
         name: cls.class_name,
         status: cls.status,
         id: cls.id,
@@ -263,7 +264,7 @@ export const useTVData = ({
       });
 
     if (isDebugMode) {
-      console.log('📺 In-progress classes found:', inProgressClasses.length,
+      logger.log('📺 In-progress classes found:', inProgressClasses.length,
         inProgressClasses.map(cls => ({
           name: cls.class_name,
           element: cls.element_type,
@@ -283,12 +284,12 @@ export const useTVData = ({
     }, {});
 
     if (isDebugMode) {
-      console.log('📺 Entries grouped by class keys:', Object.keys(entriesByClass).length, 'groups');
+      logger.log('📺 Entries grouped by class keys:', Object.keys(entriesByClass).length, 'groups');
       Object.entries(entriesByClass).forEach(([key, entryList]) => {
         const noviceEntries = entryList.filter(e => e.level?.toLowerCase().includes('novice'));
         if (noviceEntries.length > 0) {
           const sections = [...new Set(noviceEntries.map(e => e.section).filter(Boolean))];
-          console.log(`📺 Novice class "${key}": ${entryList.length} entries, sections: [${sections.join(', ')}]`);
+          logger.log(`📺 Novice class "${key}": ${entryList.length} entries, sections: [${sections.join(', ')}]`);
         }
       });
     }
@@ -304,10 +305,10 @@ export const useTVData = ({
 
   // Fetch initial data with performance monitoring
   const fetchData = useCallback(async () => {
-    console.log('🚨 FETCHDATA CALLED at', new Date().toISOString());
+    logger.log('🚨 FETCHDATA CALLED at', new Date().toISOString());
     // Prevent overlapping requests
     if (isLoadingRef.current) {
-      console.log('🔄 Skipping fetch - already loading');
+      logger.log('🔄 Skipping fetch - already loading');
       return;
     }
 
@@ -318,9 +319,9 @@ export const useTVData = ({
       // Performance monitoring
       const startTime = performance.now();
       
-      if (isDebugMode) console.log('📺 Fetching TV Dashboard data for license:', licenseKey);
+      if (isDebugMode) logger.log('📺 Fetching TV Dashboard data for license:', licenseKey);
 
-      console.log('🔍 FORCE DEBUG: Starting fetchData for licenseKey:', licenseKey);
+      logger.log('🔍 FORCE DEBUG: Starting fetchData for licenseKey:', licenseKey);
       
       // First, get the show by license key
       const { data: showData, error: showError } = await supabase
@@ -330,7 +331,7 @@ export const useTVData = ({
         .single();
 
       if (showError || !showData) {
-        console.error('❌ Show query error:', showError);
+        logger.error('❌ Show query error:', showError);
         throw new Error(`No show found for license key: ${licenseKey}`);
       }
 
@@ -342,11 +343,11 @@ export const useTVData = ({
         .order('trial_date', { ascending: true });
 
       if (trialsError) {
-        console.error('❌ Trial query error:', trialsError);
+        logger.error('❌ Trial query error:', trialsError);
         throw trialsError;
       }
 
-      console.log('🔍 FORCE DEBUG: Trials found:', trialsData?.length || 0, trialsData);
+      logger.log('🔍 FORCE DEBUG: Trials found:', trialsData?.length || 0, trialsData);
 
       if (!trialsData || trialsData.length === 0) {
         throw new Error(`No trials found for license key: ${licenseKey}`);
@@ -354,7 +355,7 @@ export const useTVData = ({
 
       // For now, get the first trial (you might want to add logic to find the "current" trial)
       const currentTrial = trialsData[0];
-      if (isDebugMode) console.log('📺 Current trial:', currentTrial);
+      if (isDebugMode) logger.log('📺 Current trial:', currentTrial);
 
       // Map show data to expected interface format
       const showInfo: ShowInfo | null = showData ? {
@@ -369,10 +370,10 @@ export const useTVData = ({
         sitecity: null,
         sitestate: null
       } : null;
-      if (isDebugMode) console.log('📺 Show info:', showInfo);
+      if (isDebugMode) logger.log('📺 Show info:', showInfo);
 
       // Use normalized view for data consistency
-      console.log('🔍 DEBUG: Trying view_entry_class_join_normalized...');
+      logger.log('🔍 DEBUG: Trying view_entry_class_join_normalized...');
       const { data: viewData, error: viewError } = await supabase
         .from('view_entry_class_join_normalized')
         .select('*')
@@ -380,8 +381,8 @@ export const useTVData = ({
         .order('armband', { ascending: true });
 
       if (viewError) {
-        console.error('❌ View query error:', viewError);
-        console.log('🔍 DEBUG: View failed, using fallback to individual normalized tables...');
+        logger.error('❌ View query error:', viewError);
+        logger.log('🔍 DEBUG: View failed, using fallback to individual normalized tables...');
 
         // Get all trial IDs for this show
         const trialIds = trialsData?.map(trial => trial.id) || [];
@@ -394,11 +395,11 @@ export const useTVData = ({
           .order('class_order', { ascending: true });
 
         if (classesError) {
-          console.error('❌ Class query error:', classesError);
+          logger.error('❌ Class query error:', classesError);
           throw classesError;
         }
 
-        console.log('🔍 DEBUG: Classes found (fallback):', classesData?.length || 0, 'First class:', classesData?.[0]);
+        logger.log('🔍 DEBUG: Classes found (fallback):', classesData?.length || 0, 'First class:', classesData?.[0]);
 
         // Get all class IDs
         const classIds = classesData?.map(cls => cls.id) || [];
@@ -411,11 +412,11 @@ export const useTVData = ({
           .order('armband_number', { ascending: true });
 
         if (entriesError) {
-          console.error('❌ Entry query error:', entriesError);
+          logger.error('❌ Entry query error:', entriesError);
           throw entriesError;
         }
 
-        console.log('🔍 FORCE DEBUG: Entries found (fallback):', entriesData?.length || 0, 'First entry:', entriesData?.[0]);
+        logger.log('🔍 FORCE DEBUG: Entries found (fallback):', entriesData?.length || 0, 'First entry:', entriesData?.[0]);
 
         const transformedClasses = transformClassData(classesData || []);
         const transformedEntries = transformEntryData(entriesData || []);
@@ -428,7 +429,7 @@ export const useTVData = ({
             JSON.stringify(prev.entries) !== JSON.stringify(transformedEntries);
 
           if (isDebugMode && !dataChanged) {
-            console.log('📺 Data fetch completed but no changes detected - keeping original timestamp');
+            logger.log('📺 Data fetch completed but no changes detected - keeping original timestamp');
           }
 
           return {
@@ -444,7 +445,7 @@ export const useTVData = ({
           };
         });
       } else {
-        console.log('🔍 DEBUG: Normalized view data found:', viewData?.length || 0, 'First item:', viewData?.[0]);
+        logger.log('🔍 DEBUG: Normalized view data found:', viewData?.length || 0, 'First item:', viewData?.[0]);
 
         // Extract unique classes from normalized view data
         const uniqueClasses = viewData?.reduce((acc: any[], item: any) => {
@@ -481,7 +482,7 @@ export const useTVData = ({
             JSON.stringify(prev.entries) !== JSON.stringify(transformedEntries);
 
           if (isDebugMode && !dataChanged) {
-            console.log('📺 View data fetch completed but no changes detected - keeping original timestamp');
+            logger.log('📺 View data fetch completed but no changes detected - keeping original timestamp');
           }
 
           return {
@@ -498,7 +499,7 @@ export const useTVData = ({
         });
       }
 
-      if (isDebugMode) console.log('✅ TV Dashboard data loaded successfully');
+      if (isDebugMode) logger.log('✅ TV Dashboard data loaded successfully');
 
       // Log performance
       const duration = performance.now() - startTime;
@@ -506,13 +507,13 @@ export const useTVData = ({
 
       // Check memory pressure and optimize if needed - BUT DON'T TRUNCATE CRITICAL ENTRY DATA
       if (globalMemoryTracker.isMemoryPressure()) {
-        console.warn('Memory pressure detected, but preserving entry data for TV dashboard accuracy');
+        logger.warn('Memory pressure detected, but preserving entry data for TV dashboard accuracy');
         // Instead of truncating entries (which breaks waiting lists),
         // we could optimize other data structures if needed in the future
       }
 
     } catch (error) {
-      console.error('❌ TV Dashboard data error:', error instanceof Error ? error.message : error);
+      logger.error('❌ TV Dashboard data error:', error instanceof Error ? error.message : error);
       setData(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -521,20 +522,20 @@ export const useTVData = ({
     } finally {
       // Always reset loading flag
       isLoadingRef.current = false;
-      console.log('🔄 Fetch completed, loading flag reset');
+      logger.log('🔄 Fetch completed, loading flag reset');
     }
   }, [licenseKey, transformClassData, transformEntryData, processData]);
 
   // Debounced fetch for performance - using ref for stability
-  // REDUCED DEBOUNCE for real-time testing
+  // Optimized debounce for production (500ms balances responsiveness and performance)
   useEffect(() => {
-    debouncedFetchRef.current = debounce(fetchData, 100); // Reduced from 1000ms to 100ms
+    debouncedFetchRef.current = debounce(fetchData, 500);
   }, [fetchData]);
 
-  // Set up real-time subscriptions
-  const setupSubscriptions = useCallback(() => {
+  // Set up real-time subscriptions with smart filtering
+  const setupSubscriptions = useCallback(async () => {
     if (!isRealtimeEnabled) {
-      console.log('📺 TV Dashboard: Realtime disabled, using polling only');
+      logger.log('📺 TV Dashboard: Realtime disabled, using polling only');
       return () => {};
     }
 
@@ -543,10 +544,28 @@ export const useTVData = ({
       supabase.removeChannel(channel);
     });
 
-    const newChannels: RealtimeChannel[] = [];
-    console.log('📺 TV Dashboard: Setting up realtime subscriptions...');
+    // Get show/trial IDs for filtering subscriptions
+    const { data: showData } = await supabase
+      .from('shows')
+      .select('id')
+      .eq('license_key', licenseKey)
+      .single();
 
-    // Subscribe to trial changes - we'll filter in the callback since we can't easily filter by show relationship
+    if (!showData) {
+      logger.warn('📺 No show found for license key, skipping subscriptions');
+      return () => {};
+    }
+
+    const { data: trialsData } = await supabase
+      .from('trials')
+      .select('id')
+      .eq('show_id', showData.id);
+
+    const trialIds = trialsData?.map(t => t.id) || [];
+    const newChannels: RealtimeChannel[] = [];
+    logger.log('📺 TV Dashboard: Setting up filtered realtime subscriptions for', trialIds.length, 'trials');
+
+    // Subscribe to trials with show_id filter
     const trialChannel = supabase
       .channel(`tv-trials-${licenseKey}`)
       .on(
@@ -555,87 +574,88 @@ export const useTVData = ({
           event: '*',
           schema: 'public',
           table: 'trials',
+          filter: `show_id=eq.${showData.id}`,
         },
         (payload) => {
-          if (isDebugMode) console.log('📡 Trial queue change:', payload.eventType);
+          if (isDebugMode) logger.log('📡 Trial change (filtered):', payload.eventType);
           debouncedFetchRef.current?.();
         }
       )
       .subscribe((status) => {
-        if (isDebugMode) console.log('🔌 Trial channel status:', status);
+        if (isDebugMode) logger.log('🔌 Trial channel status:', status);
       });
 
     newChannels.push(trialChannel);
 
-    // Subscribe to class changes - we'll filter in the callback
-    const classChannel = supabase
-      .channel(`tv-classes-${licenseKey}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'classes',
-        },
-        (payload) => {
-          console.log('📡 Class queue change detected:', payload.eventType, payload);
-          if (isDebugMode) console.log('📡 Class payload details:', payload);
-          debouncedFetchRef.current?.();
-        }
-      )
-      .subscribe((status) => {
-        if (isDebugMode) console.log('🔌 Class channel status:', status);
-      });
-
-    newChannels.push(classChannel);
-
-    // Subscribe to entry changes - we'll filter in the callback
-    console.log('🔧 SETTING UP ENTRY WEBSOCKET SUBSCRIPTION for license:', licenseKey);
-    const entryChannel = supabase
-      .channel(`tv-entries-${licenseKey}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'entries',
-        },
-        (payload) => {
-          console.log('🚨 ENTRY QUEUE CHANGE DETECTED:', payload.eventType, payload);
-          console.log('🚨 Entry payload NEW data:', payload.new);
-          console.log('🚨 Entry payload OLD data:', payload.old);
-          console.log('🚨 Triggering IMMEDIATE fetch...');
-          if (payload.new && typeof payload.new === 'object' && 'in_ring' in payload.new) {
-            console.log('🚨 DOG IN_RING STATUS CHANGE:', {
-              armband: (payload.new as any).armband,
-              dog_name: (payload.new as any).call_name,
-              in_ring: (payload.new as any).in_ring,
-              is_scored: (payload.new as any).is_scored
-            });
+    // Subscribe to classes with trial_id filter (if we have trials)
+    if (trialIds.length > 0) {
+      const classChannel = supabase
+        .channel(`tv-classes-${licenseKey}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'classes',
+            filter: `trial_id=in.(${trialIds.join(',')})`,
+          },
+          (payload) => {
+            logger.log('📡 Class change (filtered):', payload.eventType);
+            if (isDebugMode) logger.log('📡 Class payload:', payload);
+            debouncedFetchRef.current?.();
           }
+        )
+        .subscribe((status) => {
+          if (isDebugMode) logger.log('🔌 Class channel status:', status);
+        });
 
-          // IMMEDIATE fetch for real-time testing
-          console.log('🚨 Calling fetchData immediately...');
-          fetchData();
+      newChannels.push(classChannel);
 
-          // Also call debounced version as backup
-          debouncedFetchRef.current?.();
-        }
-      )
-      .subscribe((status) => {
-        console.log('🔌 ENTRY CHANNEL SUBSCRIPTION STATUS:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Entry channel successfully subscribed!');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Entry channel subscription error!');
-        } else if (status === 'TIMED_OUT') {
-          console.error('⏰ Entry channel subscription timed out!');
-        } else if (status === 'CLOSED') {
-          console.warn('🔒 Entry channel subscription closed!');
-        }
-      });
+      // Get all class IDs for entry filtering
+      const { data: classesData } = await supabase
+        .from('classes')
+        .select('id')
+        .in('trial_id', trialIds);
 
-    newChannels.push(entryChannel);
+      const classIds = classesData?.map(c => c.id) || [];
+
+      // Subscribe to entries with class_id filter
+      if (classIds.length > 0) {
+        logger.log('🔧 Setting up entry subscription with', classIds.length, 'class filters');
+        const entryChannel = supabase
+          .channel(`tv-entries-${licenseKey}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'entries',
+              filter: `class_id=in.(${classIds.join(',')})`,
+            },
+            (payload) => {
+              logger.log('📡 Entry change (filtered):', payload.eventType);
+              if (payload.new && typeof payload.new === 'object' && 'in_ring' in payload.new) {
+                logger.log('🔔 Status change:', {
+                  armband: (payload.new as any).armband_number,
+                  in_ring: (payload.new as any).in_ring,
+                  is_scored: (payload.new as any).is_scored
+                });
+              }
+              debouncedFetchRef.current?.();
+            }
+          )
+          .subscribe((status) => {
+            logger.log('🔌 Entry channel status:', status);
+            if (status === 'SUBSCRIBED') {
+              logger.log('✅ Entry channel subscribed with class filters');
+            } else if (status === 'CHANNEL_ERROR') {
+              logger.error('❌ Entry channel error');
+            }
+          });
+
+        newChannels.push(entryChannel);
+      }
+    }
 
     setChannels(newChannels);
 
@@ -648,7 +668,7 @@ export const useTVData = ({
         const shouldBeConnected = hasEverConnected; // Stay "Live" once we've connected successfully
 
         if (isDebugMode && prev.isConnected !== shouldBeConnected) {
-          console.log('🔗 Connection status update:', {
+          logger.log('🔗 Connection status update:', {
             hasEverConnected,
             lastUpdated: prev.lastUpdated,
             ageMinutes: prev.lastUpdated ? Math.floor((Date.now() - prev.lastUpdated.getTime()) / 60000) : 'never',
@@ -694,26 +714,22 @@ export const useTVData = ({
   // Initialize data and subscriptions on mount
   useEffect(() => {
     let mounted = true;
-    
+    let cleanup: (() => void) | undefined;
+
     const init = async () => {
       if (mounted) {
         await fetchData();
-        const cleanup = setupSubscriptions();
-        
-        return () => {
-          mounted = false;
-          cleanup?.();
-        };
+        cleanup = await setupSubscriptions();
       }
     };
-    
-    const cleanup = init();
-    
+
+    init();
+
     return () => {
       mounted = false;
-      cleanup?.then(fn => fn?.());
+      cleanup?.();
     };
-  }, [licenseKey]); // Only depend on licenseKey to prevent loops
+  }, [licenseKey, fetchData, setupSubscriptions]); // Proper dependencies
 
   return {
     ...data,

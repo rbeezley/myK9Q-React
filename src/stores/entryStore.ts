@@ -260,6 +260,7 @@ export const useEntryStore = create<EntryState>()(
       getScoredEntries: () => {
         return get().currentClassEntries.filter(e => e.isScored);
       }
-    })
+    }),
+    { enabled: import.meta.env.DEV } // Only enable devtools in development
   )
 );

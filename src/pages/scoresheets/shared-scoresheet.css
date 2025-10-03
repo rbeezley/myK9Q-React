@@ -1,0 +1,255 @@
+/**
+ * Shared Scoresheet Styles
+ * Common styles used across all scoresheet variants (AKC, UKC, ASCA)
+ * Import this file first in scoresheet-specific CSS files
+ */
+
+/* Common Container Styles */
+.scoresheet-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+}
+
+.scoresheet-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Common Header Styles */
+.scoresheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.scoresheet-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.scoresheet-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Common Button Styles */
+.scoresheet-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.scoresheet-btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.scoresheet-btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.scoresheet-btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.scoresheet-btn-success:hover {
+  background: #059669;
+}
+
+.scoresheet-btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.scoresheet-btn-danger:hover {
+  background: #dc2626;
+}
+
+.scoresheet-btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.scoresheet-btn-secondary:hover {
+  background: #4b5563;
+}
+
+/* Common Form Input Styles */
+.scoresheet-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.scoresheet-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.scoresheet-label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+/* Common Timer Styles */
+.scoresheet-timer {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  padding: 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.scoresheet-timer.running {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.scoresheet-timer.stopped {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Common Result Badge Styles */
+.scoresheet-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.scoresheet-badge-q {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.scoresheet-badge-nq {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.scoresheet-badge-abs {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Common Grid Layouts */
+.scoresheet-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.scoresheet-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .scoresheet-grid-2,
+  .scoresheet-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Common Animation */
+.scoresheet-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Common Section Styles */
+.scoresheet-section {
+  margin-bottom: 1.5rem;
+}
+
+.scoresheet-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+/* Common Alert Styles */
+.scoresheet-alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.scoresheet-alert-info {
+  background: #dbeafe;
+  color: #1e40af;
+  border-left: 4px solid #3b82f6;
+}
+
+.scoresheet-alert-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-left: 4px solid #f59e0b;
+}
+
+.scoresheet-alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border-left: 4px solid #ef4444;
+}
+
+/* Common Loading State */
+.scoresheet-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: #6b7280;
+}
+
+.scoresheet-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -768,21 +768,6 @@ export const CompetitionAdmin: React.FC = () => {
 
       {/* Main content container */}
       <div className="admin-content">
-        {/* Instructions */}
-        <div className="instructions-panel">
-          <h3>📋 How to Use</h3>
-          <ol>
-            <li><strong>Enter your name</strong> in the Administrator field below</li>
-            <li><strong>Select classes</strong> by checking the boxes next to them</li>
-            <li><strong>Click "Release Results"</strong> to make them visible on the TV Dashboard immediately</li>
-            <li><strong>Click "Set Auto Release"</strong> to automatically release results when judging completes</li>
-            <li><strong>Click "Hide Results"</strong> to hide them from the TV Dashboard</li>
-          </ol>
-          <div className="tip">
-            💡 <strong>Tip:</strong> Changes take effect immediately on the TV Dashboard
-          </div>
-        </div>
-
       {/* Admin Controls */}
       <div className="admin-controls">
         <div className="admin-input-group">
@@ -815,49 +800,62 @@ export const CompetitionAdmin: React.FC = () => {
 
           <div className="release-actions">
             <button
-              onClick={showReleaseConfirmation}
-              className="release-btn"
+              onClick={showImmediateReleaseConfirmation}
+              className="release-card-btn immediate-btn"
               disabled={selectedClasses.size === 0 || !adminName.trim()}
             >
-              🟢 Release Results for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+              <div className="btn-icon">⚡</div>
+              <div className="btn-content">
+                <div className="btn-title">Real-time</div>
+                <div className="btn-description">Show as scored</div>
+              </div>
             </button>
             <button
               onClick={showAutoReleaseConfirmation}
-              className="auto-btn"
+              className="release-card-btn auto-btn"
               disabled={selectedClasses.size === 0 || !adminName.trim()}
             >
-              🔄 Set Auto Release for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
-            </button>
-            <button
-              onClick={showImmediateReleaseConfirmation}
-              className="immediate-btn"
-              disabled={selectedClasses.size === 0 || !adminName.trim()}
-            >
-              ⚡ Set Immediate Release for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+              <div className="btn-icon">✓</div>
+              <div className="btn-content">
+                <div className="btn-title">Class Complete</div>
+                <div className="btn-description">Show when done</div>
+              </div>
             </button>
             <button
               onClick={showEmbargoConfirmation}
-              className="embargo-btn"
+              className="release-card-btn embargo-btn"
               disabled={selectedClasses.size === 0 || !adminName.trim()}
             >
-              🔴 Hide Results for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+              <div className="btn-icon">🔒</div>
+              <div className="btn-content">
+                <div className="btn-title">Hide Results</div>
+                <div className="btn-description">Keep private</div>
+              </div>
             </button>
           </div>
 
           <div className="checkin-actions">
             <button
               onClick={showEnableCheckinConfirmation}
-              className="enable-checkin-btn"
+              className="release-card-btn enable-checkin-btn"
               disabled={selectedClasses.size === 0 || !adminName.trim()}
             >
-              ✅ Enable Self Check-In for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+              <div className="btn-icon">✓</div>
+              <div className="btn-content">
+                <div className="btn-title">Enable Check-In</div>
+                <div className="btn-description">Allow self check-in</div>
+              </div>
             </button>
             <button
               onClick={showDisableCheckinConfirmation}
-              className="disable-checkin-btn"
+              className="release-card-btn disable-checkin-btn"
               disabled={selectedClasses.size === 0 || !adminName.trim()}
             >
-              ❌ Disable Self Check-In for {selectedClasses.size} Selected Class{selectedClasses.size !== 1 ? 'es' : ''}
+              <div className="btn-icon">✕</div>
+              <div className="btn-content">
+                <div className="btn-title">Disable Check-In</div>
+                <div className="btn-description">Block self check-in</div>
+              </div>
             </button>
           </div>
 
@@ -868,26 +866,6 @@ export const CompetitionAdmin: React.FC = () => {
       <div className="classes-list">
         <div className="classes-header">
           <h2>Competition Classes ({classes.length})</h2>
-          <div className="legend">
-            <span className="legend-item">
-              <span className="status-badge auto">AUTO</span> = Automatic release
-            </span>
-            <span className="legend-item">
-              <span className="status-badge released">RELEASED</span> = Results visible
-            </span>
-            <span className="legend-item">
-              <span className="status-badge immediate">IMMEDIATE</span> = Real-time results
-            </span>
-            <span className="legend-item">
-              <span className="status-badge embargoed">HIDDEN</span> = Results hidden
-            </span>
-            <span className="legend-item">
-              <span className="status-badge checkin-enabled">SELF CHECK-IN</span> = Exhibitors can self check-in
-            </span>
-            <span className="legend-item">
-              <span className="status-badge checkin-disabled">TABLE CHECK-IN</span> = Check-in at secretary table
-            </span>
-          </div>
         </div>
 
         <div className="classes-grid">

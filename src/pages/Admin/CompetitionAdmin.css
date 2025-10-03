@@ -306,16 +306,19 @@
 }
 
 .release-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
+.release-actions .embargo-btn {
+  grid-column: 1 / -1;
+}
+
 .checkin-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  border-top: 1px solid var(--border);
-  padding-top: 1rem;
-  margin-top: 1rem;
 }
 
 .database-actions {
@@ -326,58 +329,133 @@
   margin-top: 1rem;
 }
 
-.release-btn,
-.auto-btn,
-.embargo-btn,
-.sync-btn,
-.enable-checkin-btn,
-.disable-checkin-btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
+/* Card-style action buttons - vibrant style */
+.release-card-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 2px solid rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.1);
+  text-align: center;
+}
+
+.release-card-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+}
+
+.release-card-btn .btn-icon {
+  font-size: 2rem;
+  line-height: 1;
+  color: #6366f1;
+}
+
+.release-card-btn .btn-content {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.release-btn {
-  background-color: var(--success);
-  color: white;
+.release-card-btn .btn-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.release-btn:hover:not(:disabled) {
-  background-color: var(--success-contrast);
+.release-card-btn .btn-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
 }
 
-.auto-btn {
-  background-color: var(--auto-color);
-  color: white;
-}
-
-.auto-btn:hover:not(:disabled) {
-  background-color: var(--primary);
-}
-
-.embargo-btn {
-  background-color: var(--error);
-  color: white;
-}
-
+/* Individual button colors - vibrant */
 .immediate-btn {
-  background-color: #8b5cf6;
-  color: white;
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
 .immediate-btn:hover:not(:disabled) {
-  background-color: #7c3aed;
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.8);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+}
+
+.immediate-btn .btn-icon {
+  color: #8b5cf6;
+}
+
+.auto-btn {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.auto-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.auto-btn .btn-icon {
+  color: #3b82f6;
+}
+
+.embargo-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
 .embargo-btn:hover:not(:disabled) {
-  background-color: var(--error-contrast);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.8);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.embargo-btn .btn-icon {
+  color: #ef4444;
+}
+
+.enable-checkin-btn {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.enable-checkin-btn:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.8);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.enable-checkin-btn .btn-icon {
+  color: #10b981;
+}
+
+.disable-checkin-btn {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.disable-checkin-btn:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.8);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.disable-checkin-btn .btn-icon {
+  color: #f59e0b;
+}
+
+/* Disabled state for card buttons */
+.release-card-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .sync-btn {
@@ -385,48 +463,30 @@
   color: white;
   flex: 1;
   justify-content: center;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
 }
 
 .sync-btn:hover:not(:disabled) {
   background-color: #4c3d9f;
 }
 
+.sync-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sync-icon {
   width: 1rem;
   height: 1rem;
-}
-
-.enable-checkin-btn {
-  background-color: #10b981;
-  color: white;
-  flex: 1;
-  justify-content: center;
-}
-
-.enable-checkin-btn:hover:not(:disabled) {
-  background-color: #059669;
-}
-
-.disable-checkin-btn {
-  background-color: #f59e0b;
-  color: white;
-  flex: 1;
-  justify-content: center;
-}
-
-.disable-checkin-btn:hover:not(:disabled) {
-  background-color: #d97706;
-}
-
-.release-btn:disabled,
-.auto-btn:disabled,
-.immediate-btn:disabled,
-.embargo-btn:disabled,
-.sync-btn:disabled,
-.enable-checkin-btn:disabled,
-.disable-checkin-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Classes list */
@@ -629,7 +689,7 @@
 }
 
 .class-content {
-  padding: 0.75rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -643,60 +703,58 @@
 }
 
 .class-meta {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   font-weight: 500;
   margin-top: 0.25rem;
 }
 
 .class-title input[type="checkbox"] {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   cursor: pointer;
   accent-color: var(--brand-blue);
-  margin-top: 0.1rem;
+  margin-top: 0.125rem;
   flex-shrink: 0;
 }
 
 .element-name {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.3;
+  line-height: 1.4;
   flex: 1;
   word-break: break-word;
   hyphens: auto;
 }
 
-.class-details {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
 .class-info {
-  margin-bottom: 0.75rem;
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }
 
 .info-row {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.25rem;
-  font-size: 0.875rem;
-}
-
-.info-row:last-child {
-  margin-bottom: 0;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
 }
 
 .label {
   font-weight: 500;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.5px;
 }
 
 .value {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
+  font-size: 0.875rem;
 }
 
 .release-info,
@@ -795,9 +853,25 @@
     align-items: stretch;
   }
 
-  .selection-actions,
-  .release-actions {
+  .selection-actions {
     justify-content: center;
+  }
+
+  /* Mobile button layout - keep 2-column grid */
+  .release-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .release-actions .embargo-btn {
+    grid-column: 1 / -1;
+  }
+
+  .checkin-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
   }
 
   .classes-header {
@@ -809,18 +883,22 @@
     grid-template-columns: 1fr;
   }
 
-  .legend {
-    justify-content: center;
+  /* Card button mobile adjustments */
+  .release-card-btn {
+    padding: 1rem;
+    gap: 0.5rem;
   }
 
-  .release-btn,
-  .auto-btn,
-  .embargo-btn,
-  .sync-btn,
-  .enable-checkin-btn,
-  .disable-checkin-btn {
-    flex: 1;
-    justify-content: center;
+  .release-card-btn .btn-icon {
+    font-size: 1.5rem;
+  }
+
+  .release-card-btn .btn-title {
+    font-size: 0.9375rem;
+  }
+
+  .release-card-btn .btn-description {
+    font-size: 0.8125rem;
   }
 
   .checkin-actions,

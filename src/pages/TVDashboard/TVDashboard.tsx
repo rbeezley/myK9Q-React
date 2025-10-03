@@ -12,14 +12,13 @@ import { TVTicker } from './components/TVTicker';
 import { ElementProgress as _ElementProgress } from './components/ElementProgress';
 // import { ConnectionStatus } from './components/ConnectionStatus';
 import { CurrentStatus } from './components/CurrentStatus';
-import { YesterdayHighlights as _YesterdayHighlights } from './components/YesterdayHighlights';
-import { YesterdayHighlightsEnhanced } from './components/YesterdayHighlights-Enhanced';
-import { JudgeSpotlight } from './components/JudgeSpotlight';
-import { BreedStatistics } from './components/BreedStatistics';
-import { ChampionshipChase as _ChampionshipChase } from './components/ChampionshipChase';
-import { ChampionshipChaseEnhanced } from './components/ChampionshipChase-Enhanced';
-import { StateParticipation } from './components/StateParticipation';
-import { DailyResults } from './components/DailyResults';
+// Lazy load heavy rotation components for better performance
+const YesterdayHighlightsEnhanced = React.lazy(() => import('./components/YesterdayHighlights-Enhanced').then(m => ({ default: m.YesterdayHighlightsEnhanced })));
+const JudgeSpotlight = React.lazy(() => import('./components/JudgeSpotlight').then(m => ({ default: m.JudgeSpotlight })));
+const BreedStatistics = React.lazy(() => import('./components/BreedStatistics').then(m => ({ default: m.BreedStatistics })));
+const ChampionshipChaseEnhanced = React.lazy(() => import('./components/ChampionshipChase-Enhanced').then(m => ({ default: m.ChampionshipChaseEnhanced })));
+const StateParticipation = React.lazy(() => import('./components/StateParticipation').then(m => ({ default: m.StateParticipation })));
+const DailyResults = React.lazy(() => import('./components/DailyResults').then(m => ({ default: m.DailyResults })));
 import { RotationDots } from './components/RotationDots';
 import { useTVData } from './hooks/useTVData';
 import { rotationScheduler, ROTATION_CONFIGS } from './utils/rotationScheduler';
@@ -259,42 +258,44 @@ export const TVDashboard: React.FC<TVDashboardProps> = () => {
               onItemSelect={handleContentPanelSelect}
               onToggleRotation={handleToggleContentRotation}
             />
-            {currentPanel === 'highlights' && (
-              <YesterdayHighlightsEnhanced
-                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-                allowLiveScores={false}
-              />
-            )}
-            {currentPanel === 'daily' && (
-              <DailyResults
-                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-              />
-            )}
-            {currentPanel === 'judges' && (
-              <JudgeSpotlight
-                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-                rotationInterval={30000}
-              />
-            )}
-            {currentPanel === 'breeds' && (
-              <BreedStatistics
-                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-                showTopCount={8}
-              />
-            )}
-            {currentPanel === 'championship' && (
-              <ChampionshipChaseEnhanced
-                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-                showCount={20}
-                allowLiveScores={false}
-              />
-            )}
-            {currentPanel === 'states' && (
-              <StateParticipation 
-                licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
-                showMapView={true}
-              />
-            )}
+            <React.Suspense fallback={<DashboardSkeleton />}>
+              {currentPanel === 'highlights' && (
+                <YesterdayHighlightsEnhanced
+                  licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+                  allowLiveScores={false}
+                />
+              )}
+              {currentPanel === 'daily' && (
+                <DailyResults
+                  licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+                />
+              )}
+              {currentPanel === 'judges' && (
+                <JudgeSpotlight
+                  licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+                  rotationInterval={30000}
+                />
+              )}
+              {currentPanel === 'breeds' && (
+                <BreedStatistics
+                  licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+                  showTopCount={8}
+                />
+              )}
+              {currentPanel === 'championship' && (
+                <ChampionshipChaseEnhanced
+                  licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+                  showCount={20}
+                  allowLiveScores={false}
+                />
+              )}
+              {currentPanel === 'states' && (
+                <StateParticipation
+                  licenseKey={licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}
+                  showMapView={true}
+                />
+              )}
+            </React.Suspense>
           </section>
         </div>
       </main>

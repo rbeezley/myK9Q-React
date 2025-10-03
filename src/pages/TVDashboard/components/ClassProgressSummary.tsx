@@ -11,7 +11,7 @@ interface ClassProgressSummaryProps {
   entries?: any[];
 }
 
-export const ClassProgressSummary: React.FC<ClassProgressSummaryProps> = ({
+export const ClassProgressSummary = React.memo<ClassProgressSummaryProps>(({
   inProgressClasses,
   entries = []
 }) => {
@@ -367,4 +367,10 @@ export const ClassProgressSummary: React.FC<ClassProgressSummaryProps> = ({
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if inProgressClasses length or entries length changes
+  return (
+    prevProps.inProgressClasses.length === nextProps.inProgressClasses.length &&
+    prevProps.entries?.length === nextProps.entries?.length
+  );
+});

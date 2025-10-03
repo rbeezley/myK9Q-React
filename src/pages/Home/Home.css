@@ -129,8 +129,8 @@
 .icon-button {
   background: var(--secondary);
   border: 1px solid var(--border);
-  border-radius: var(--token-radius-lg);
-  padding: var(--token-space-lg);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;

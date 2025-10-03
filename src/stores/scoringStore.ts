@@ -207,6 +207,7 @@ export const useScoringStore = create<ScoringState>()(
           lastScoredEntry: state.lastScoredEntry
         })
       }
-    )
+    ),
+    { enabled: import.meta.env.DEV } // Only enable devtools in development
   )
 );
