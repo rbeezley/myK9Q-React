@@ -6,7 +6,6 @@ import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, res
 import { Entry } from '../../stores/entryStore';
 import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
-import { VirtualList } from '../../components/VirtualList';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, ChevronDown, Trophy } from 'lucide-react';
 import { formatTimeForDisplay } from '../../utils/timeUtils';

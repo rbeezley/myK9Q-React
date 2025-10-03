@@ -12,7 +12,7 @@ interface PerformanceMetric {
   timestamp: number;
 }
 
-interface WebVital {
+interface _WebVital {
   name: 'CLS' | 'FID' | 'LCP' | 'FCP' | 'TTFB';
   value: number;
   rating: 'good' | 'needs-improvement' | 'poor';
@@ -190,9 +190,11 @@ class PerformanceMonitor {
     if (!this.isEnabled) return;
 
     try {
-      const measureName = endMark
-        ? performance.measure(name, startMark, endMark)
-        : performance.measure(name, startMark);
+      if (endMark) {
+        performance.measure(name, startMark, endMark);
+      } else {
+        performance.measure(name, startMark);
+      }
 
       const entries = performance.getEntriesByName(name, 'measure');
       const duration = entries[entries.length - 1]?.duration || 0;
@@ -313,7 +315,7 @@ class PerformanceMonitor {
     this.sendToAnalytics(metric);
   }
 
-  private sendToAnalytics(metric: PerformanceMetric) {
+  private sendToAnalytics(_metric: PerformanceMetric) {
     // TODO: Implement analytics integration (Google Analytics, etc.)
     // Example: gtag('event', 'web_vitals', { metric_name: metric.name, value: metric.value });
   }

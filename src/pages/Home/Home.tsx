@@ -6,7 +6,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Heart, User, Hash, Users, Clock as _Clock, Calendar, Users2, Target, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
+import { RefreshCw, Heart, Clock as _Clock, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
 import { ArmbandBadge } from '../../components/ui';
 import './Home.css';
 

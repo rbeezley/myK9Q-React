@@ -133,7 +133,7 @@ export const CompetitionAdmin: React.FC = () => {
   }, [licenseKey]);
 
   // Show confirmation dialog for releasing results
-  const showReleaseConfirmation = () => {
+  const _showReleaseConfirmation = () => {
     if (selectedClasses.size === 0) {
       setSuccessDialog({
         isOpen: true,

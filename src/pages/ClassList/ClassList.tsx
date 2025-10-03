@@ -22,8 +22,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   Calendar,
-  Target,
-  Trophy
+  Target
 } from 'lucide-react';
 import './ClassList.css';
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
