@@ -110,3 +110,7 @@ playwright-report/
 
 # Screenshots (temporary files for debugging/documentation)
 screenshots/
+
+# Build artifacts and temporary files
+dist.zip
+nul
