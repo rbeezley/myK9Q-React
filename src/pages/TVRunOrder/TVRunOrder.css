@@ -1,0 +1,109 @@
+/* TV Run Order Dashboard - Main Layout */
+
+.tv-runorder-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--background);
+  overflow: hidden;
+}
+
+/* Header bar with menu and ticker */
+.tv-runorder-header-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Hamburger menu container */
+.tv-runorder-menu {
+  flex-shrink: 0;
+  padding-left: 0.5rem;
+}
+
+/* Announcement ticker (takes remaining space) */
+.tv-runorder-ticker {
+  flex: 1;
+  min-width: 0; /* Allow ticker to shrink */
+  /* HeaderTicker handles its own styling */
+}
+
+/* 2x2 grid layout */
+.tv-runorder-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+/* Responsive: Fall back to single column on smaller screens */
+@media (max-width: 1024px) {
+  .tv-runorder-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    overflow-y: auto;
+  }
+}
+
+/* Empty state */
+.tv-runorder-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.tv-runorder-empty h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--foreground);
+}
+
+.tv-runorder-empty p {
+  font-size: 1.5rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Error state */
+.tv-runorder-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.tv-runorder-error h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--destructive);
+}
+
+.tv-runorder-error p {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Pagination indicator (if rotating) */
+.tv-runorder-pagination {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border-top: 1px solid var(--border);
+}

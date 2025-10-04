@@ -9,7 +9,7 @@ export interface ClassInfo {
   class_name: string;
   element_type: string;
   judge_name: string;
-  status: 'scheduled' | 'in-progress' | 'completed';
+  status: 'scheduled' | 'in_progress' | 'completed';
   current_entry_id?: number;
   start_time?: string;
   end_time?: string;
@@ -41,6 +41,7 @@ export interface EntryInfo {
   sort_order?: string;
   checkin_status?: number;
   section?: string; // Preserve section for placement calculations
+  result_status?: string; // qualified, nq, absent, excused, withdrawn
 }
 
 export interface ShowInfo {
@@ -141,15 +142,17 @@ export const useTVData = ({
       const isNovice = level.toLowerCase().includes('novice');
 
       // Determine merged status based on combined counts and individual statuses
+      // Database stores: 'in_progress', 'completed', 'setup', 'none', etc.
       const hasInProgress = groupClasses.some(cls =>
-        (cls.class_status === 5 || cls.class_status === 'in_progress' || cls.in_progress === 1)
+        cls.class_status === 'in_progress'
       );
       const allCompleted = groupClasses.every(cls =>
-        cls.class_status === 6 || cls.class_status === 'completed' || cls.class_completed === true
+        cls.class_status === 'completed' || cls.is_completed === true
       );
       const entriesCompleted = mergedCounts.entry_completed_count === mergedCounts.entry_total_count && mergedCounts.entry_total_count > 0;
 
-      const status = (hasInProgress && mergedCounts.entry_pending_count > 0) ? 'in-progress' :
+      // Priority: class_status takes precedence over calculated status
+      const status = hasInProgress ? 'in_progress' :
                     (allCompleted || entriesCompleted) ? 'completed' :
                     'scheduled';
 
@@ -157,6 +160,9 @@ export const useTVData = ({
         logger.log(`📺 ${isNovice ? 'Merged Novice' : 'Regular'} Class "${firstClass.element}":`, {
           sectionsCount: groupClasses.length,
           sections: groupClasses.map(c => c.section).filter(Boolean),
+          raw_class_status: groupClasses.map(c => c.class_status),
+          hasInProgress,
+          allCompleted,
           mergedCounts,
           calculated_status: status
         });
@@ -164,7 +170,7 @@ export const useTVData = ({
 
       return {
         id: firstClass.id || index,
-        class_name: `${firstClass.element || firstClass.class_name || firstClass.classname || 'Unknown Class'}${isNovice && groupClasses.length > 1 ? ' (Combined A & B)' : ''}`,
+        class_name: `${firstClass.element || firstClass.element_type || firstClass.classtype || 'Unknown'} ${level}${isNovice && groupClasses.length > 1 ? ' (Combined A & B)' : ''}`.trim(),
         element_type: firstClass.element || firstClass.element_type || firstClass.classtype || 'Unknown',
         judge_name: firstClass.judge_name || firstClass.judge || 'TBD',
         status,
@@ -208,18 +214,51 @@ export const useTVData = ({
 
   const transformViewEntryData = useCallback((viewEntries: any[]): EntryInfo[] => {
     if (isDebugMode) logger.log('📺 Transforming view entries data sample:', viewEntries.slice(0, 3));
+
+    // Map text-based check-in status to numeric codes for display
+    const mapCheckinStatusToCode = (status?: string): number => {
+      if (!status) return 0;
+      switch (status.toLowerCase()) {
+        case 'not-checked-in':
+        case 'not checked in':
+        case 'pending':
+          return 0;
+        case 'checked-in':
+        case 'checked in':
+        case 'ready':
+          return 1;
+        case 'conflict':
+          return 2;
+        case 'pulled':
+          return 3;
+        case 'at-gate':
+        case 'at gate':
+          return 4;
+        default:
+          return 0;
+      }
+    };
+
     return viewEntries.map((entry, _index) => ({
       id: entry.id || _index,
       armband: String(entry.armband || 'N/A'),
       dog_name: entry.call_name || 'Unknown Dog',
       breed: entry.breed || 'Mixed Breed',
       handler_name: entry.handler || 'Unknown Handler',
-      handler_location: '', // View doesn't have location
-      class_id: _index, // Use index as class_id for view data
-      status: entry.in_ring === true ? 'in_ring' : entry.is_scored === true ? 'completed' : 'waiting',
+      handler_location: entry.handler_location || '',
+      class_id: entry.class_id || _index,
+      status: entry.is_in_ring === true ? 'in_ring' : entry.is_scored === true ? 'completed' : 'waiting',
       score: entry.score,
       placement: entry.placement,
       search_time: entry.search_time,
+      element: entry.element,
+      level: entry.level,
+      trial_date: entry.trial_date,
+      trial_number: entry.trial_number,
+      sort_order: entry.sort_order,
+      checkin_status: mapCheckinStatusToCode(entry.check_in_status_text),
+      section: entry.section,
+      result_status: entry.result_status,
     }));
   }, []);
 
@@ -232,9 +271,12 @@ export const useTVData = ({
 
     // For Novice level, ignore section in matching key to group A & B together
     const isNovice = level.toLowerCase().includes('novice');
-    return isNovice
+    // Also ignore section if it's just a placeholder like "-"
+    const hasRealSection = entry.section && entry.section !== '-' && entry.section.trim() !== '';
+
+    return (isNovice || !hasRealSection)
       ? `${trialDate}-${trialNumber}-${element}-${level}`
-      : `${trialDate}-${trialNumber}-${element}-${level}-${entry.section || ''}`;
+      : `${trialDate}-${trialNumber}-${element}-${level}-${entry.section}`;
   }, []);
 
   // Find current in-progress classes (can be multiple in a real dog show)
@@ -249,7 +291,7 @@ export const useTVData = ({
     }
 
     const inProgressClasses = classes
-      .filter(cls => cls.status === 'in-progress')
+      .filter(cls => cls.status === 'in_progress')
       .sort((a, b) => {
         // First sort by trial_date
         if (a.trial_date !== b.trial_date) {
@@ -447,11 +489,26 @@ export const useTVData = ({
       } else {
         logger.log('🔍 DEBUG: Normalized view data found:', viewData?.length || 0, 'First item:', viewData?.[0]);
 
+        // The view doesn't have class_status, so we need to get it from the classes table
+        const classIds = viewData ? [...new Set(viewData.map(item => item.class_id))] : [];
+        const { data: classStatusData } = await supabase
+          .from('classes')
+          .select('id, class_status')
+          .in('id', classIds);
+
+        // Create a map of class_id -> class_status
+        const classStatusMap = new Map(
+          classStatusData?.map(cls => [cls.id, cls.class_status]) || []
+        );
+
+        logger.log('🔍 DEBUG: Class status map:', Object.fromEntries(classStatusMap));
+
         // Extract unique classes from normalized view data
         const uniqueClasses = viewData?.reduce((acc: any[], item: any) => {
           const classKey = `${item.element}-${item.level}-${item.section}`;
           const existing = acc.find(cls => cls.class_key === classKey);
           if (!existing) {
+            const classStatus = classStatusMap.get(item.class_id);
             acc.push({
               id: acc.length + 1,
               class_key: classKey,
@@ -462,7 +519,8 @@ export const useTVData = ({
               level: item.level,
               section: item.section,
               judge_name: item.judge_name || 'TBD',
-              status: item.is_completed ? 'completed' : (item.class_status === 5 ? 'in-progress' : 'scheduled'),
+              class_status: classStatus, // Add the actual class_status from classes table
+              status: item.is_completed ? 'completed' : (classStatus === 'in_progress' ? 'in_progress' : 'scheduled'),
               trial_date: item.trial_date,
               trial_number: item.trial_number,
               class_order: item.class_order
@@ -473,6 +531,15 @@ export const useTVData = ({
 
         const transformedClasses = transformClassData(uniqueClasses);
         const transformedEntries = transformViewEntryData(viewData || []);
+
+        // Debug: Log entry statuses
+        const statusCounts = transformedEntries.reduce((acc, entry) => {
+          acc[entry.status] = (acc[entry.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        logger.log('📊 Entry status breakdown:', statusCounts);
+        logger.log('📋 Sample completed entries:', transformedEntries.filter(e => e.status === 'completed').slice(0, 3));
+
         const processedData = processData(transformedClasses, transformedEntries);
 
         setData(prev => {
@@ -527,9 +594,9 @@ export const useTVData = ({
   }, [licenseKey, transformClassData, transformEntryData, processData]);
 
   // Debounced fetch for performance - using ref for stability
-  // Optimized debounce for production (500ms balances responsiveness and performance)
+  // Reduced debounce for better real-time responsiveness on TV displays
   useEffect(() => {
-    debouncedFetchRef.current = debounce(fetchData, 500);
+    debouncedFetchRef.current = debounce(fetchData, 200);
   }, [fetchData]);
 
   // Set up real-time subscriptions with smart filtering
@@ -641,7 +708,8 @@ export const useTVData = ({
                   is_scored: (payload.new as any).is_scored
                 });
               }
-              debouncedFetchRef.current?.();
+              // Immediate fetch for entry changes - no debounce delay
+              fetchData();
             }
           )
           .subscribe((status) => {
@@ -654,6 +722,60 @@ export const useTVData = ({
           });
 
         newChannels.push(entryChannel);
+
+        // Get all entry IDs for this show to filter results subscription
+        const { data: entriesData } = await supabase
+          .from('entries')
+          .select('id')
+          .in('class_id', classIds);
+
+        const entryIds = entriesData?.map(e => e.id) || [];
+        const entryIdSet = new Set(entryIds);
+
+        // Subscribe to results table for in_ring and scoring status changes
+        // Note: Supabase has limits on filter array size, so we filter client-side
+        logger.log('🔧 Setting up results subscription (client-side filtering for', entryIds.length, 'entries)');
+        const resultsChannel = supabase
+          .channel(`tv-results-${licenseKey}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'results',
+            },
+            (payload) => {
+              logger.log('📡 Result change received:', payload.eventType, 'Entry ID:', (payload.new as any)?.entry_id);
+
+              // Client-side filter - only process results for entries in this show
+              const entryId = (payload.new as any)?.entry_id || (payload.old as any)?.entry_id;
+              if (entryId && entryIdSet.has(entryId)) {
+                logger.log('✅ Result change matches our show - processing');
+                if (payload.new && typeof payload.new === 'object') {
+                  logger.log('🔔 Result status change:', {
+                    entry_id: (payload.new as any).entry_id,
+                    is_in_ring: (payload.new as any).is_in_ring,
+                    is_scored: (payload.new as any).is_scored,
+                    result_status: (payload.new as any).result_status
+                  });
+                }
+                // Immediate fetch for result changes - no debounce delay
+                fetchData();
+              } else {
+                logger.log('⏭️ Result change for different show - ignoring');
+              }
+            }
+          )
+          .subscribe((status) => {
+            logger.log('🔌 Results channel status:', status);
+            if (status === 'SUBSCRIBED') {
+              logger.log('✅ Results channel subscribed (listening to all results, filtering client-side)');
+            } else if (status === 'CHANNEL_ERROR') {
+              logger.error('❌ Results channel error');
+            }
+          });
+
+        newChannels.push(resultsChannel);
       }
     }
 

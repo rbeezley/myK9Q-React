@@ -1,0 +1,110 @@
+/* ClassRunOrder Component - Individual class grid cell */
+
+.class-runorder {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .class-runorder {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Class header */
+.class-runorder-header {
+  padding: 1rem;
+  background: var(--muted);
+  border-bottom: 2px solid var(--border);
+}
+
+.class-runorder-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.class-runorder-meta {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.class-runorder-judge {
+  font-weight: 500;
+}
+
+.class-runorder-progress {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Entry list container */
+.class-runorder-entries {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Smooth scrollbar */
+.class-runorder-entries::-webkit-scrollbar {
+  width: 6px;
+}
+
+.class-runorder-entries::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.class-runorder-entries::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.class-runorder-entries::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Separator between pending and completed sections */
+.entries-separator {
+  margin: 0.5rem 0;
+  border: 0;
+  border-top: 2px dashed var(--border);
+  opacity: 0.5;
+}
+
+/* Empty state */
+.class-runorder-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.class-runorder-empty p {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .class-runorder-title {
+    font-size: 1.25rem;
+  }
+
+  .class-runorder-meta {
+    font-size: 0.875rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
