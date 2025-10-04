@@ -18,8 +18,10 @@ const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ defa
 const DogDetails = React.lazy(() => import('./pages/DogDetails/DogDetails').then(module => ({ default: module.DogDetails })));
 const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(module => ({ default: module.ClassList })));
 const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
+const CombinedEntryList = React.lazy(() => import('./pages/EntryList/CombinedEntryList').then(module => ({ default: module.CombinedEntryList })));
 const Announcements = React.lazy(() => import('./pages/Announcements/Announcements').then(module => ({ default: module.Announcements })));
 const TVDashboard = React.lazy(() => import('./pages/TVDashboard/TVDashboard').then(module => ({ default: module.TVDashboard })));
+const TVRunOrder = React.lazy(() => import('./pages/TVRunOrder/TVRunOrder').then(module => ({ default: module.TVRunOrder })));
 const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));
 const StatusPopupDemo = React.lazy(() => import('./demo/StatusPopupDemo'));
 const TestClassProgressCards = React.lazy(() => import('./pages/TestClassProgressCards').then(module => ({ default: module.TestClassProgressCards })));
@@ -104,15 +106,25 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/class/:classId/entries" 
+          <Route
+            path="/class/:classId/entries"
             element={
               <ProtectedRoute>
                 <Suspense fallback={<PageLoader message="Loading entries..." />}>
                   <EntryList />
                 </Suspense>
               </ProtectedRoute>
-            } 
+            }
+          />
+          <Route
+            path="/class/:classIdA/:classIdB/entries/combined"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading combined entries..." />}>
+                  <CombinedEntryList />
+                </Suspense>
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/announcements"
@@ -216,6 +228,14 @@ function App() {
             element={
               <Suspense fallback={<PageLoader message="Loading TV Dashboard..." />}>
                 <TVDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/tv-runorder/:licenseKey"
+            element={
+              <Suspense fallback={<PageLoader message="Loading Run Order..." />}>
+                <TVRunOrder />
               </Suspense>
             }
           />

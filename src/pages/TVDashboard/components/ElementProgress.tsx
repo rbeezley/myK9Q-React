@@ -5,7 +5,7 @@ interface ElementProgressItem {
   elementName: string;
   completed: number;
   total: number;
-  status: 'completed' | 'in-progress' | 'pending' | 'scheduled';
+  status: 'completed' | 'in_progress' | 'pending' | 'scheduled';
   scheduledTime?: string;
   estimatedCompletion?: string;
   judge?: string;
@@ -48,22 +48,22 @@ export const ElementProgress: React.FC<ElementProgressProps> = memo(({
       }
       
       // Handle multiple classes for this element type
-      // Choose the primary class (first in-progress, or first scheduled, or first available)
-      const inProgressClass = elementClasses.find(cls => cls.status === 'in-progress');
+      // Choose the primary class (first in_progress, or first scheduled, or first available)
+      const inProgressClass = elementClasses.find(cls => cls.status === 'in_progress');
       const scheduledClass = elementClasses.find(cls => cls.status === 'scheduled');
       const primaryClass = inProgressClass || scheduledClass || elementClasses[0];
-      
+
       // Count entries across all classes of this element type
-      const allClassEntries = entries.filter(entry => 
+      const allClassEntries = entries.filter(entry =>
         elementClasses.some(cls => cls.id === entry.class_id)
       );
       const completedEntries = allClassEntries.filter(entry => entry.status === 'completed').length;
       const totalEntries = allClassEntries.length || totalDogs;
-      
+
       // Determine overall status for this element type
-      let status: 'completed' | 'in-progress' | 'pending' | 'scheduled';
-      if (elementClasses.some(cls => cls.status === 'in-progress')) {
-        status = 'in-progress';
+      let status: 'completed' | 'in_progress' | 'pending' | 'scheduled';
+      if (elementClasses.some(cls => cls.status === 'in_progress')) {
+        status = 'in_progress';
       } else if (elementClasses.every(cls => cls.status === 'completed')) {
         status = 'completed';
       } else if (elementClasses.some(cls => cls.start_time)) {
@@ -71,10 +71,10 @@ export const ElementProgress: React.FC<ElementProgressProps> = memo(({
       } else {
         status = 'pending';
       }
-      
-      // Calculate estimated completion time for in-progress element types
+
+      // Calculate estimated completion time for in_progress element types
       let estimatedCompletion: string | undefined;
-      if (status === 'in-progress' && completedEntries > 0) {
+      if (status === 'in_progress' && completedEntries > 0) {
         const avgTimePerDog = 3; // minutes - this could be calculated from actual data
         const remainingDogs = totalEntries - completedEntries;
         const estimatedMinutes = remainingDogs * avgTimePerDog;
@@ -112,7 +112,7 @@ export const ElementProgress: React.FC<ElementProgressProps> = memo(({
       
       const percentage = Math.round((element.completed / element.total) * 100);
       
-      if (element.status === 'in-progress') {
+      if (element.status === 'in_progress') {
         if (element.estimatedCompletion) {
           return `${percentage}% (Est. complete: ${element.estimatedCompletion})`;
         }
@@ -136,7 +136,7 @@ export const ElementProgress: React.FC<ElementProgressProps> = memo(({
   const getProgressFillClass = useMemo(() => {
     return (status: string) => {
       switch (status) {
-        case 'in-progress':
+        case 'in_progress':
           return 'progress-fill active';
         case 'pending':
         case 'scheduled':
@@ -174,7 +174,7 @@ export const ElementProgress: React.FC<ElementProgressProps> = memo(({
                 className={getProgressFillClass(element.status)}
                 style={{ width: `${getProgressPercentage(element)}%` }}
               >
-                {element.status === 'in-progress' && (
+                {element.status === 'in_progress' && (
                   <div className="progress-shimmer"></div>
                 )}
               </div>

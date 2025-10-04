@@ -107,6 +107,32 @@
 /* Armband badge - flex item on left */
 .dog-card-armband {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Section Badge (for combined Novice A & B view) */
+.section-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-badge.section-a {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.section-badge.section-b {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
 /* Dog details - center column */

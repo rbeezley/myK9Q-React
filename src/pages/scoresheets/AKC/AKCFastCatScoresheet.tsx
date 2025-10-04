@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { Timer } from '../../../components/scoring/Timer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
@@ -12,7 +12,11 @@ type QualifyingResult = 'Q' | 'NQ' | 'E' | 'DQ';
 export const AKCFastCatScoresheet: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showContext } = useAuth();
+
+  // Get paired class ID from location state (if coming from combined Novice A & B view)
+  const pairedClassId = (location.state as { pairedClassId?: number })?.pairedClassId;
   
   // Store hooks
   const {
@@ -173,13 +177,14 @@ export const AKCFastCatScoresheet: React.FC = () => {
       
       if (isOnline) {
         // Submit directly if online
+        // Pass pairedClassId if scoring from combined Novice A & B view
         await submitScore(currentEntry.id, {
           resultText: qualifying,
           searchTime: runTime,
           mph: mph,
           points: points,
           nonQualifyingReason: qualifying !== 'Q' ? nonQualifyingReason : undefined
-        });
+        }, pairedClassId);
       } else {
         // Add to offline queue
         addToQueue({

@@ -22,7 +22,7 @@ interface ElementProgressItem {
   avgTime: number;
   fastestTime: number;
   completionPercentage: number;
-  status: 'completed' | 'in-progress' | 'pending' | 'scheduled';
+  status: 'completed' | 'in_progress' | 'pending' | 'scheduled';
   judge?: string;
 }
 
@@ -173,7 +173,7 @@ export const ElementProgressEnhanced: React.FC<ElementProgressEnhancedProps> = (
   const getStatusColor = (status: ElementProgressItem['status']): string => {
     switch (status) {
       case 'completed': return '#34C759';
-      case 'in-progress': return '#FF9500';
+      case 'in_progress': return '#FF9500';
       case 'pending': return '#8E8E93';
       case 'scheduled': return '#007AFF';
       default: return '#8E8E93';
@@ -183,7 +183,7 @@ export const ElementProgressEnhanced: React.FC<ElementProgressEnhancedProps> = (
   const getStatusText = (status: ElementProgressItem['status']): string => {
     switch (status) {
       case 'completed': return 'COMPLETE';
-      case 'in-progress': return 'IN PROGRESS';
+      case 'in_progress': return 'IN PROGRESS';
       case 'pending': return 'PENDING';
       case 'scheduled': return 'SCHEDULED';
       default: return 'UNKNOWN';
@@ -220,7 +220,7 @@ export const ElementProgressEnhanced: React.FC<ElementProgressEnhancedProps> = (
           avgTime: 47.3,
           fastestTime: 23.1,
           completionPercentage: 83.3,
-          status: 'in-progress',
+          status: 'in_progress',
           judge: 'Judge Name'
         }
       ];
@@ -241,7 +241,7 @@ export const ElementProgressEnhanced: React.FC<ElementProgressEnhancedProps> = (
       if (completionPercentage === 100) {
         status = 'completed';
       } else if (completionPercentage > 0) {
-        status = 'in-progress';
+        status = 'in_progress';
       } else {
         status = 'pending';
       }
@@ -331,7 +331,7 @@ export const ElementProgressEnhanced: React.FC<ElementProgressEnhancedProps> = (
           </div>
           <div className="summary-stat">
             <span className="stat-value">
-              {elementProgressItems.filter(item => item.status === 'in-progress').length}
+              {elementProgressItems.filter(item => item.status === 'in_progress').length}
             </span>
             <span className="stat-label">In Progress</span>
           </div>

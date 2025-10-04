@@ -28,6 +28,7 @@ import './ClassList.css';
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
+import { NoviceClassDialog } from '../../components/dialogs/NoviceClassDialog';
 
 // Helper function to convert seconds to MM:SS format
 const _formatSecondsToMMSS = (seconds: number): string => {
@@ -102,6 +103,9 @@ export const ClassList: React.FC = () => {
   const [selectedClassForMaxTime, setSelectedClassForMaxTime] = useState<ClassEntry | null>(null);
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
+  const [noviceDialogOpen, setNoviceDialogOpen] = useState(false);
+  const [selectedNoviceClass, setSelectedNoviceClass] = useState<ClassEntry | null>(null);
+  const [pairedNoviceClass, setPairedNoviceClass] = useState<ClassEntry | null>(null);
 
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -451,7 +455,11 @@ export const ClassList: React.FC = () => {
             console.log('🔄 Real-time: Updating class locally:', payload.new.id);
             setClasses(prev => prev.map(c =>
               c.id === payload.new.id
-                ? { ...c, class_status: payload.new.class_status || 'none' }
+                ? {
+                    ...c,
+                    class_status: payload.new.class_status || 'none',
+                    is_completed: payload.new.is_completed || false
+                  }
                 : c
             ));
           } else {
@@ -506,6 +514,26 @@ export const ClassList: React.FC = () => {
     return false;
   };
 
+  // Helper function to find the paired Novice class (A pairs with B, and vice versa)
+  const findPairedNoviceClass = (clickedClass: ClassEntry): ClassEntry | null => {
+    // Only proceed if this is a Novice level class
+    if (clickedClass.level !== 'Novice') {
+      return null;
+    }
+
+    // Determine the paired section (A <-> B)
+    const pairedSection = clickedClass.section === 'A' ? 'B' : 'A';
+
+    // Find the matching class with same element, level, but different section
+    const paired = classes.find(c =>
+      c.element === clickedClass.element &&
+      c.level === clickedClass.level &&
+      c.section === pairedSection
+    );
+
+    return paired || null;
+  };
+
   const handleViewEntries = (classEntry: ClassEntry) => {
     hapticFeedback.impact('medium');
 
@@ -518,8 +546,36 @@ export const ClassList: React.FC = () => {
       return;
     }
 
-    // Proceed with navigation
+    // Check if this is a Novice class and has a paired class
+    if (classEntry.level === 'Novice') {
+      const paired = findPairedNoviceClass(classEntry);
+      if (paired) {
+        // Show dialog to let user choose
+        setSelectedNoviceClass(classEntry);
+        setPairedNoviceClass(paired);
+        setNoviceDialogOpen(true);
+        return;
+      }
+    }
+
+    // Proceed with navigation (single class or non-Novice)
     navigate(`/class/${classEntry.id}/entries`);
+  };
+
+  // Handle Novice dialog selection
+  const handleNoviceDialogSelect = (option: 'A' | 'B' | 'combined') => {
+    if (!selectedNoviceClass || !pairedNoviceClass) return;
+
+    setNoviceDialogOpen(false);
+
+    if (option === 'combined') {
+      // Navigate to combined view with both class IDs
+      navigate(`/class/${selectedNoviceClass.id}/${pairedNoviceClass.id}/entries/combined`);
+    } else {
+      // Navigate to the selected section
+      const targetClass = option === selectedNoviceClass.section ? selectedNoviceClass : pairedNoviceClass;
+      navigate(`/class/${targetClass.id}/entries`);
+    }
   };
 
 
@@ -793,6 +849,10 @@ export const ClassList: React.FC = () => {
       return c;
     }));
 
+    // Close dialog
+    setStatusDialogOpen(false);
+    setSelectedClassForStatus(null);
+
     // Update database
     try {
 
@@ -832,7 +892,16 @@ export const ClassList: React.FC = () => {
 
     console.log('🔄 ClassList: Update data:', updateData);
 
-    // Update database (local state will be updated via real-time subscription)
+    // Update local state immediately for better UX
+    setClasses(prev => prev.map(c =>
+      c.id === classId ? { ...c, class_status: status } : c
+    ));
+
+    // Close dialog
+    setStatusDialogOpen(false);
+    setSelectedClassForStatus(null);
+
+    // Update database
     try {
       const { data, error } = await supabase
         .from('classes')
@@ -1744,6 +1813,32 @@ export const ClassList: React.FC = () => {
         }}
         currentStatus={selectedClassForStatus?.class_status || ''}
       />
+
+      {/* Novice Class Dialog */}
+      {noviceDialogOpen && selectedNoviceClass && pairedNoviceClass && (
+        <NoviceClassDialog
+          clickedClass={{
+            id: selectedNoviceClass.id,
+            element: selectedNoviceClass.element,
+            level: selectedNoviceClass.level,
+            section: selectedNoviceClass.section,
+            judge_name: selectedNoviceClass.judge_name
+          }}
+          pairedClass={{
+            id: pairedNoviceClass.id,
+            element: pairedNoviceClass.element,
+            level: pairedNoviceClass.level,
+            section: pairedNoviceClass.section,
+            judge_name: pairedNoviceClass.judge_name
+          }}
+          onSelect={handleNoviceDialogSelect}
+          onCancel={() => {
+            setNoviceDialogOpen(false);
+            setSelectedNoviceClass(null);
+            setPairedNoviceClass(null);
+          }}
+        />
+      )}
 
     </div>
   );

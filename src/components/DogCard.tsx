@@ -12,6 +12,7 @@ interface DogCardProps {
   statusBorder?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'scored' | 'placement-1' | 'placement-2' | 'placement-3';
   actionButton?: React.ReactNode; // Heart icon for Home, Status badge for EntryList
   resultBadges?: React.ReactNode; // For scored entries
+  sectionBadge?: 'A' | 'B' | null; // Section badge for combined Novice A & B view
 }
 
 export const DogCard = React.memo<DogCardProps>(({
@@ -24,6 +25,7 @@ export const DogCard = React.memo<DogCardProps>(({
   statusBorder = 'none',
   actionButton,
   resultBadges,
+  sectionBadge,
 }) => {
   return (
     <div
@@ -33,6 +35,11 @@ export const DogCard = React.memo<DogCardProps>(({
       <div className="dog-card-content">
         <div className="dog-card-armband">
           <ArmbandBadge number={armband} />
+          {sectionBadge && (
+            <div className={`section-badge section-${sectionBadge.toLowerCase()}`}>
+              {sectionBadge}
+            </div>
+          )}
         </div>
 
         <div className="dog-card-details">

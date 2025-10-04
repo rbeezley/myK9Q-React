@@ -7,7 +7,7 @@ import { Entry } from '../../stores/entryStore';
 import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, ChevronDown, Trophy } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, ChevronDown, Trophy, RefreshCw } from 'lucide-react';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import {
   DndContext,
@@ -68,6 +68,7 @@ export const EntryList: React.FC = () => {
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   // Removed showSearch state - using persistent search instead
 
   // Format date with abbreviated month (matches ClassList)
@@ -459,23 +460,6 @@ export const EntryList: React.FC = () => {
           console.log('🔍 STRUCTURE:', Object.keys(sampleClass || {}).sort());
           console.log('🔍 SAMPLE DATA:', sampleClass);
           console.log('🔍 Sample error:', sampleError);
-          
-          // Also try to find judge-related tables by trying common names
-          const judgeTableTests = ['tbl_judge', 'tbl_judges', 'judges', 'judge_info', 'judge_list'];
-          for (const tableName of judgeTableTests) {
-            try {
-              const { data: judgeTest, error: judgeError } = await supabase
-                .from(tableName)
-                .select('*')
-                .limit(1)
-                .single();
-              if (!judgeError && judgeTest) {
-                console.log(`🔍 FOUND JUDGE TABLE "${tableName}" with sample record:`, judgeTest);
-              }
-            } catch (_e) {
-              // Table doesn't exist, continue
-            }
-          }
         } catch (schemaError) {
           console.log('🔍 Schema discovery failed:', schemaError);
         }
@@ -505,6 +489,12 @@ export const EntryList: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadEntries();
+    setRefreshing(false);
   };
 
   const parseOrganizationData = (orgString: string) => {
@@ -699,9 +689,6 @@ export const EntryList: React.FC = () => {
     );
   }
 
-  const scoredCount = entries.filter(e => e.isScored).length;
-  const totalCount = entries.length;
-  
   // Filter and sort entries (but don't sort when in drag mode)
   const filteredEntries = entries
     .filter(entry => {
@@ -796,10 +783,7 @@ export const EntryList: React.FC = () => {
             hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
           } ${entry.inRing ? 'in-ring' : ''}`}
           statusBorder={
-            entry.isScored ?
-              (entry.placement === 1 ? 'placement-1' :
-               entry.placement === 2 ? 'placement-2' :
-               entry.placement === 3 ? 'placement-3' : 'scored') :
+            entry.isScored ? 'scored' : // All scored entries get green border
             entry.inRing ? 'none' : // In-ring will be shown in status badge
             (entry.checkinStatus === 'checked-in' ? 'checked-in' :
              entry.checkinStatus === 'conflict' ? 'conflict' :
@@ -998,11 +982,6 @@ export const EntryList: React.FC = () => {
         <div className="class-info">
           <h1>
             {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-            {classInfo?.section && classInfo.section !== '-' && classInfo.section !== '' && (
-              <span className="class-section">
-                - {classInfo.section}
-              </span>
-            )}
           </h1>
           <div className="class-subtitle">
             <div className="trial-info-row">
@@ -1019,12 +998,18 @@ export const EntryList: React.FC = () => {
                   <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
                 )}
               </div>
-              <span className="trial-detail progress">
-                <Trophy size={14} /> {scoredCount}/{totalCount} Scored
-              </span>
             </div>
           </div>
         </div>
+
+        <button
+          className={`icon-button ${refreshing ? 'rotating' : ''}`}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title="Refresh"
+        >
+          <RefreshCw className="h-5 w-5" />
+        </button>
       </header>
 
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}

@@ -316,12 +316,18 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
   // Enhanced submit handler for dual storage
   const handleEnhancedSubmit = async () => {
-    if (!currentEntry) return;
+    console.log('🚨 handleEnhancedSubmit CALLED!');
+    if (!currentEntry) {
+      console.log('⚠️ No currentEntry, returning early');
+      return;
+    }
 
+    console.log('✅ currentEntry exists:', currentEntry.id);
     setIsSubmitting(true);
     setShowConfirmation(false);
 
     try {
+      console.log('🔍 Starting score submission...');
       // Regular scoresheet submission (existing logic)
       const finalQualifying = qualifying || (isNationalsMode ? 'Qualified' : 'NQ');
       const finalResultText = finalQualifying;
@@ -362,7 +368,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       markAsScored(currentEntry.id, finalQualifying);
 
       // Submit to regular database
+      console.log('🔍 SCORESHEET: isOnline =', isOnline, 'about to call submitScore');
       if (isOnline) {
+        console.log('✅ SCORESHEET: Calling submitScore for entry', currentEntry.id);
         await submitScore(currentEntry.id, {
           resultText: finalResultText,
           searchTime: finalTotalTime,
@@ -376,7 +384,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           element: currentEntry.element,
           level: currentEntry.level
         });
+        console.log('✅ SCORESHEET: submitScore call completed');
       } else {
+        console.log('⚠️ SCORESHEET: isOnline is FALSE, adding to offline queue instead');
         addToQueue({
           entryId: currentEntry.id,
           armband: currentEntry.armband,

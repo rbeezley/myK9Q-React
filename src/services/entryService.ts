@@ -42,19 +42,26 @@ export interface ClassData {
 }
 
 /**
- * Fetch all entries for a specific class
+ * Fetch all entries for a specific class or multiple classes
+ * @param classIds - Single class ID or array of class IDs (for combined Novice A & B view)
+ * @param licenseKey - License key for tenant isolation
  */
 export async function getClassEntries(
-  classId: number,
+  classIds: number | number[],
   licenseKey: string
 ): Promise<Entry[]> {
   try {
-    
+    // Normalize to array for consistent handling
+    const classIdArray = Array.isArray(classIds) ? classIds : [classIds];
+
+    // For single class, use first ID for backward compatibility
+    const primaryClassId = classIdArray[0];
+
     // Get class data to determine element, level, section for filtering
     const { data: classData, error: classError } = await supabase
       .from('classes')
       .select('element, level, section, area_count')
-      .eq('id', classId)
+      .eq('id', primaryClassId)
       .single();
 
     if (classError || !classData) {
@@ -80,7 +87,7 @@ export async function getClassEntries(
           )
         )
       `)
-      .eq('class_id', classId)
+      .in('class_id', classIdArray)
       .eq('classes.trials.shows.license_key', licenseKey)
       .order('armband_number', { ascending: true });
 
@@ -176,7 +183,7 @@ export async function getClassEntries(
         nqReason: result?.disqualification_reason || undefined,
         excusedReason: row.excuse_reason || undefined,
         withdrawnReason: row.withdrawal_reason || undefined,
-        classId: classId,
+        classId: row.class_id,
         className: `${row.classes.element} ${row.classes.level}` + (row.classes.section && row.classes.section !== '-' ? ` ${row.classes.section}` : ''),
         section: row.classes.section,
         element: row.classes.element,
@@ -188,7 +195,7 @@ export async function getClassEntries(
         timeLimit3: '', // Will need to get from class data
         areas: classData.area_count,
         exhibitorOrder: row.exhibitor_order,
-        actualClassId: classId,
+        actualClassId: row.class_id,
         trialDate: row.classes.trials.trial_date,
         trialNumber: row.classes.trials.trial_number.toString()
       };
@@ -271,6 +278,7 @@ export async function getTrialEntries(
 
 /**
  * Submit a score for an entry
+ * @param pairedClassId - Optional paired class ID for combined Novice A & B view (updates both classes' status)
  */
 export async function submitScore(
   entryId: number,
@@ -293,7 +301,8 @@ export async function submitScore(
     areaTimes?: string[];
     element?: string;
     level?: string;
-  }
+  },
+  pairedClassId?: number  // Optional paired class ID for combined Novice A & B view
 ): Promise<boolean> {
   console.log('🎯 submitScore CALLED for entry:', entryId, 'with data:', scoreData);
   try {
@@ -459,8 +468,9 @@ export async function submitScore(
       }
 
       // Check if all entries in class are completed
+      // Pass pairedClassId if provided (from combined Novice A & B view)
       try {
-        await checkAndUpdateClassCompletion(entryData.class_id);
+        await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
       } catch (completionError) {
         console.error('⚠️ Failed to check class completion:', completionError);
       }
@@ -478,10 +488,31 @@ export async function submitScore(
 
 /**
  * Check if all entries in a class are completed and update class status
+ * Optionally also checks paired Novice class (A/B) when in combined view
+ *
+ * @param classId - The class ID to check completion for
+ * @param pairedClassId - Optional paired class ID (only provided when scoring from combined Novice A & B view)
  */
-async function checkAndUpdateClassCompletion(classId: number): Promise<void> {
+async function checkAndUpdateClassCompletion(
+  classId: number,
+  pairedClassId?: number
+): Promise<void> {
   console.log('🔍 Checking class completion status for class', classId);
 
+  // Update status for the primary class
+  await updateSingleClassCompletion(classId);
+
+  // Only update paired class if explicitly provided (i.e., scoring from combined view)
+  if (pairedClassId) {
+    console.log(`🔄 Also updating paired Novice class ${pairedClassId} (combined view context)`);
+    await updateSingleClassCompletion(pairedClassId);
+  }
+}
+
+/**
+ * Update completion status for a single class
+ */
+async function updateSingleClassCompletion(classId: number): Promise<void> {
   // Get all entries for this class
   const { data: entries, error: entriesError } = await supabase
     .from('entries')
@@ -518,28 +549,42 @@ async function checkAndUpdateClassCompletion(classId: number): Promise<void> {
       .from('classes')
       .update({
         is_completed: true,
-        completed_at: new Date().toISOString()
+        class_status: 'completed'
       })
       .eq('id', classId);
 
     if (updateError) {
-      console.error('Error updating class completion:', updateError);
+      console.error('❌ Error updating class completion:', updateError);
+      console.error('❌ Error message:', updateError.message);
+      console.error('❌ Error details:', updateError.details);
+      console.error('❌ Error hint:', updateError.hint);
+      console.error('❌ Error code:', updateError.code);
     } else {
       console.log('✅ Class', classId, 'marked as completed');
     }
-  } else if (scoredCount < totalCount) {
-    // If some entries are not scored, ensure class is not marked as completed
+  } else if (scoredCount > 0 && scoredCount < totalCount) {
+    // If some entries are scored (but not all), mark class as in_progress
+    console.log(`🔄 Updating class ${classId} status to 'in_progress' (${scoredCount}/${totalCount} scored)`);
+
     const { error: updateError } = await supabase
       .from('classes')
       .update({
         is_completed: false,
-        completed_at: null
+        class_status: 'in_progress'
       })
       .eq('id', classId);
 
     if (updateError) {
-      console.error('Error updating class status:', updateError);
+      console.error('❌ Error updating class status to in_progress:', updateError);
+      console.error('❌ Error message:', updateError.message);
+      console.error('❌ Error details:', updateError.details);
+      console.error('❌ Error hint:', updateError.hint);
+      console.error('❌ Error code:', updateError.code);
+    } else {
+      console.log(`✅ Class ${classId} status updated to 'in_progress'`);
     }
+  } else {
+    console.log(`ℹ️ No status update needed for class ${classId} (${scoredCount}/${totalCount} scored)`);
   }
 }
 

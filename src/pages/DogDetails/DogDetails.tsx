@@ -125,7 +125,7 @@ export const DogDetails: React.FC = () => {
         });
 
         // Process all classes - map check-in status from text field
-        setClasses(data.map((entry, index) => {
+        setClasses(data.map((entry) => {
           let check_in_status: ClassEntry['check_in_status'] = 'none';
 
           // Use text-based check-in status (matches what updateEntryCheckinStatus writes)

@@ -214,6 +214,8 @@
 /* Active Trials Section with Enhanced Design */
 .trials-section {
   padding: var(--token-space-xl) var(--token-space-3xl) var(--token-space-3xl); /* Added top padding for breathing room */
+  position: relative;
+  z-index: 1;
 }
 
 .trials-section h3 {
@@ -586,6 +588,8 @@
   background: var(--card);
   border-bottom: 1px solid var(--border);
   gap: 0.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .search-toggle-icon {
@@ -637,6 +641,8 @@
   border-bottom: 1px solid var(--border);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  z-index: 1;
 }
 
 .search-sort-container.collapsed {
@@ -814,6 +820,8 @@
 /* Enhanced Entry List Section */
 .entry-list {
   padding: 0 var(--token-space-3xl) var(--token-space-4xl);
+  position: relative;
+  z-index: 1;
 }
 
 .entry-list-header {
@@ -821,6 +829,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--token-space-xl);
+  position: relative;
+  z-index: 1;
 }
 
 .entry-list-title {
