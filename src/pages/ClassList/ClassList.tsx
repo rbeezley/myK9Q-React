@@ -50,9 +50,10 @@ interface ClassEntry {
   class_status: 'none' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
   is_completed?: boolean;
   is_favorite: boolean;
-  time_limit?: string;
-  time_limit2?: string;
-  time_limit3?: string;
+  time_limit_seconds?: number;
+  time_limit_area2_seconds?: number;
+  time_limit_area3_seconds?: number;
+  area_count?: number;
   start_time?: string;
   briefing_time?: string;
   break_until?: string;
@@ -498,12 +499,12 @@ export const ClassList: React.FC = () => {
 
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
-    const { time_limit, time_limit2, time_limit3 } = classEntry;
+    const { time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds } = classEntry;
 
-    // Check if any time limit is set and not '00:00'
-    const hasTime1 = Boolean(time_limit && time_limit !== '00:00');
-    const hasTime2 = Boolean(time_limit2 && time_limit2 !== '00:00');
-    const hasTime3 = Boolean(time_limit3 && time_limit3 !== '00:00');
+    // Check if any time limit is set (greater than 0)
+    const hasTime1 = Boolean(time_limit_seconds && time_limit_seconds > 0);
+    const hasTime2 = Boolean(time_limit_area2_seconds && time_limit_area2_seconds > 0);
+    const hasTime3 = Boolean(time_limit_area3_seconds && time_limit_area3_seconds > 0);
 
     return hasTime1 || hasTime2 || hasTime3;
   };

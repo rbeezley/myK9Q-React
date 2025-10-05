@@ -41,6 +41,7 @@
 /* Ensure input has right padding for clear button */
 .time-input-wrapper .time-input {
   padding-right: 32px !important;
+  min-width: 200px; /* Increased to show full placeholder text */
 }
 
 .flutter-time-input-wrapper .flutter-time-input {
@@ -239,10 +240,29 @@
   margin-bottom: 12px;
   letter-spacing: -1px;
   padding: 8px 0;
+  transition: color 0.3s ease;
+}
+
+.timer-time.warning {
+  color: #EF4444;
+  animation: pulse 1s infinite;
+}
+
+.timer-time.expired {
+  color: #DC2626;
+  animation: flash 0.5s infinite;
 }
 
 [data-theme="light"] .timer-time {
   color: #000000;
+}
+
+[data-theme="light"] .timer-time.warning {
+  color: #DC2626;
+}
+
+[data-theme="light"] .timer-time.expired {
+  color: #B91C1C;
 }
 
 .timer-warning {

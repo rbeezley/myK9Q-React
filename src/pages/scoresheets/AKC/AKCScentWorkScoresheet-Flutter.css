@@ -280,6 +280,17 @@
   color: white;
   margin-bottom: 12px;
   font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+
+.timer-display-large.warning {
+  color: #EF4444;
+  animation: pulse 1s infinite;
+}
+
+.timer-display-large.expired {
+  color: #DC2626;
+  animation: flash 0.5s infinite;
 }
 
 .timer-controls-flutter {
@@ -413,7 +424,7 @@
   outline: none;
   transition: border-color 0.2s;
   min-width: 0;
-  width: 110px;
+  width: 200px; /* Increased from 110px to show full placeholder */
   text-align: center;
 }
 
@@ -581,7 +592,7 @@
   }
 
   .flutter-time-input {
-    width: 100px;
+    width: 180px; /* Increased from 100px to show full placeholder on mobile */
     padding: 8px 12px;
     font-size: 14px;
   }

@@ -329,6 +329,25 @@ body.dialog-open {
   color: #10B981;
 }
 
+/* Total time styling for multi-area searches */
+.score-item.total-time {
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid #10B981;
+  grid-column: 1 / -1; /* Span full width */
+}
+
+.score-item.total-time .item-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.score-item.total-time .time-value.total {
+  font-size: 32px;
+  font-weight: 900;
+  color: #10B981;
+}
+
 .item-value.positive {
   color: #22C55E;
 }

@@ -13,9 +13,9 @@ interface MaxTimeDialogProps {
     element: string;
     level: string;
     class_name: string;
-    time_limit?: string;
-    time_limit2?: string;
-    time_limit3?: string;
+    time_limit_seconds?: number;
+    time_limit_area2_seconds?: number;
+    time_limit_area3_seconds?: number;
     area_count?: number;
   };
   onTimeUpdate?: () => void;
@@ -160,10 +160,19 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
   };
 
   const initializeTimes = () => {
+    // Convert seconds to MM:SS format
+    const secondsToTimeString = (seconds?: number | string): string => {
+      if (!seconds || seconds === 0) return '';
+      const totalSeconds = typeof seconds === 'string' ? parseInt(seconds) : seconds;
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
     const currentTimes = [
-      (classData.time_limit && classData.time_limit !== '00:00') ? classData.time_limit : '',
-      (classData.time_limit2 && classData.time_limit2 !== '00:00') ? classData.time_limit2 : '',
-      (classData.time_limit3 && classData.time_limit3 !== '00:00') ? classData.time_limit3 : ''
+      secondsToTimeString(classData.time_limit_seconds),
+      secondsToTimeString(classData.time_limit_area2_seconds),
+      secondsToTimeString(classData.time_limit_area3_seconds)
     ];
 
     setTimes(currentTimes);
@@ -430,12 +439,19 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
     setSaving(true);
     try {
-      // Update the class with new max times
+      // Convert MM:SS to seconds
+      const timeStringToSeconds = (timeStr: string): number => {
+        if (!timeStr) return 0;
+        const [minutes, seconds] = timeStr.split(':').map(p => parseInt(p) || 0);
+        return (minutes * 60) + seconds;
+      };
+
+      // Update the class with new max times in seconds
       // Always include all time fields to ensure clearing works properly
       const updateData: any = {
-        time_limit: times[0] || null,
-        time_limit2: times[1] || null,
-        time_limit3: times[2] || null,
+        time_limit_seconds: times[0] ? timeStringToSeconds(times[0]) : 0,
+        time_limit_area2_seconds: times[1] ? timeStringToSeconds(times[1]) : 0,
+        time_limit_area3_seconds: times[2] ? timeStringToSeconds(times[2]) : 0,
       };
 
       const { error } = await supabase

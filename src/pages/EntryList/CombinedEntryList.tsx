@@ -46,7 +46,6 @@ export const CombinedEntryList: React.FC = () => {
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
 
   const formatTrialDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
@@ -239,12 +238,6 @@ export const CombinedEntryList: React.FC = () => {
   const handleStatusClick = (e: React.MouseEvent, entryId: number) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPopupPosition({
-      top: rect.bottom + 4,
-      left: rect.left
-    });
     setActiveStatusPopup(entryId);
   };
 
@@ -260,7 +253,6 @@ export const CombinedEntryList: React.FC = () => {
       ));
 
       setActiveStatusPopup(null);
-      setPopupPosition(null);
     } catch (error) {
       console.error('Failed to update check-in status:', error);
       alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -620,7 +612,6 @@ export const CombinedEntryList: React.FC = () => {
         isOpen={activeStatusPopup !== null}
         onClose={() => {
           setActiveStatusPopup(null);
-          setPopupPosition(null);
         }}
         onStatusChange={(status) => {
           if (activeStatusPopup !== null) {

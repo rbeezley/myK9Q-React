@@ -179,8 +179,9 @@ export const Login: React.FC = () => {
                       onPaste={index === 0 ? handlePaste : undefined}
                       className={`passcode-input ${error ? 'error' : ''} ${digit ? 'filled' : ''}`}
                       disabled={isLoading}
-                      inputMode="text"
+                      inputMode="search"
                       autoComplete="off"
+                      autoCapitalize="characters"
                       aria-label={`Passcode digit ${index + 1}`}
                     />
                     <div className="input-dot" />

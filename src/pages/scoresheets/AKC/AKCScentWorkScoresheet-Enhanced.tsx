@@ -68,11 +68,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     getPendingEntries: _getPendingEntries
   } = useEntryStore();
 
-  // Detect if this is Nationals mode
-  const isNationalsMode = currentEntry?.competitionType === 'AKC_SCENT_WORK_NATIONAL' ||
-                         currentEntry?.className?.toLowerCase().includes('national') ||
-                         showContext?.showType?.toLowerCase().includes('national') ||
-                         showContext?.licenseKey === 'myK9Q1-d8609f3b-d3fd43aa-6323a604'; // AKC Nationals license
+  // Detect if this is Nationals mode - ONLY check show type field, not class name
+  const isNationalsMode = showContext?.showType?.toLowerCase().includes('national');
 
   const { addToQueue, isOnline } = useOfflineQueueStore();
 
@@ -497,6 +494,48 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     navigate(-1);
   };
 
+  // Failsafe: Get correct max time based on AKC Scent Work requirements
+  const getDefaultMaxTime = (element: string, level: string): string => {
+    const elem = element?.toLowerCase() || '';
+    const lvl = level?.toLowerCase() || '';
+
+    // AKC Scent Work time limits from class requirements
+    if (elem.includes('container')) {
+      if (lvl.includes('novice')) return '2:00';
+      if (lvl.includes('advanced')) return '2:00';
+      if (lvl.includes('excellent')) return '2:00';
+      if (lvl.includes('master')) return '2:00';
+      return '2:00'; // Container is always 2 minutes
+    }
+
+    if (elem.includes('interior')) {
+      if (lvl.includes('novice')) return '3:00';
+      if (lvl.includes('advanced')) return '3:00';
+      if (lvl.includes('excellent')) return '3:00';
+      if (lvl.includes('master')) return '3:00';
+      return '3:00'; // Interior is always 3 minutes
+    }
+
+    if (elem.includes('exterior')) {
+      if (lvl.includes('novice')) return '3:00';
+      if (lvl.includes('advanced')) return '3:00';
+      if (lvl.includes('excellent')) return '4:00';
+      if (lvl.includes('master')) return '5:00';
+      return '3:00';
+    }
+
+    if (elem.includes('buried')) {
+      if (lvl.includes('novice')) return '3:00';
+      if (lvl.includes('advanced')) return '3:00';
+      if (lvl.includes('excellent')) return '4:00';
+      if (lvl.includes('master')) return '4:00';
+      return '3:00';
+    }
+
+    // Default fallback
+    return '3:00';
+  };
+
   const getMaxTimeForArea = (areaIndex: number, entry?: any): string => {
     const targetEntry = entry || currentEntry;
     if (!targetEntry) {
@@ -504,17 +543,29 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       return "3:00";
     }
 
-    // Map area index to the appropriate timeLimit field
+    // Try to get max time from entry data (populated from database)
+    let maxTime = '';
     switch (areaIndex) {
       case 0:
-        return targetEntry.timeLimit || '02:00';
+        maxTime = targetEntry.timeLimit;
+        break;
       case 1:
-        return targetEntry.timeLimit2 || '02:00';
+        maxTime = targetEntry.timeLimit2;
+        break;
       case 2:
-        return targetEntry.timeLimit3 || '02:00';
-      default:
-        return '02:00';
+        maxTime = targetEntry.timeLimit3;
+        break;
     }
+
+    // FAILSAFE: If missing or empty, use correct default based on element and level
+    if (!maxTime || maxTime === '' || maxTime === '0:00' || maxTime === '00:00') {
+      const element = targetEntry.element || '';
+      const level = targetEntry.level || '';
+      maxTime = getDefaultMaxTime(element, level);
+      console.warn(`⚠️ Max time not set for ${element} ${level} area ${areaIndex + 1}, using default: ${maxTime}`);
+    }
+
+    return maxTime;
   };
 
   const _resetForm = (entry?: any) => {
@@ -607,17 +658,28 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   };
 
   const stopStopwatch = () => {
+    // Just stop/pause the timer - don't reset or move to next area
     setIsStopwatchRunning(false);
     if (stopwatchInterval) {
       clearInterval(stopwatchInterval);
       setStopwatchInterval(null);
     }
+    // Timer stays paused with current time visible
+    // Judge can resume or move to next area
+  };
 
+  const recordTimeAndMoveToNextArea = () => {
+    // Record current time to the current area
     const formattedTime = formatStopwatchTime(stopwatchTime);
     if (currentAreaIndex < areas.length) {
       handleAreaUpdate(currentAreaIndex, 'time', formattedTime);
+
+      // Move to next area if not on last area
       if (currentAreaIndex < areas.length - 1) {
         setCurrentAreaIndex(prev => prev + 1);
+        resetStopwatch();
+      } else {
+        // Last area - just reset timer for clarity
         resetStopwatch();
       }
     }
@@ -967,7 +1029,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         {/* Timer Section */}
         <div className="timer-section">
           <div className="timer-display">
-            <div className="timer-time">
+            <div className={`timer-time ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
               {formatStopwatchTime(stopwatchTime)}
             </div>
             {getTimerWarningMessage() && (
@@ -975,16 +1037,47 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             )}
 
             <div className="timer-controls">
-              <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-              <button
-                className={`timer-btn-main ${isStopwatchRunning ? 'stop' : 'start'}`}
-                onClick={isStopwatchRunning ? stopStopwatch : startStopwatch}
-              >
-                {isStopwatchRunning ? '⏸' : '▶'}
-                {isStopwatchRunning ? ' Stop' : ' Start'}
-              </button>
-              {isStopwatchRunning && (
-                <button className="timer-btn-secondary" onClick={_pauseStopwatch} title="Pause without moving to next area">⏸️</button>
+              {isStopwatchRunning ? (
+                // Timer is running - show Stop button
+                <>
+                  <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
+                  <button
+                    className="timer-btn-main stop"
+                    onClick={stopStopwatch}
+                  >
+                    ⏸ Stop
+                  </button>
+                </>
+              ) : stopwatchTime > 0 ? (
+                // Timer is stopped with time recorded - show Resume and Next Area buttons
+                <>
+                  <button
+                    className="timer-btn-secondary"
+                    onClick={startStopwatch}
+                    title="Continue timing current area"
+                  >
+                    ↻ Resume
+                  </button>
+                  <button
+                    className="timer-btn-main"
+                    onClick={recordTimeAndMoveToNextArea}
+                    title="Record time and move to next area"
+                  >
+                    ✓ Next Area
+                  </button>
+                  <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
+                </>
+              ) : (
+                // Timer is at zero - show Start button
+                <>
+                  <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
+                  <button
+                    className="timer-btn-main start"
+                    onClick={startStopwatch}
+                  >
+                    ▶ Start
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -1145,17 +1238,52 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
       {/* Flutter-style Timer Section */}
       <div className="flutter-timer-card">
-        <div className="timer-display-large">
+        <div className={`timer-display-large ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
           {formatStopwatchTime(stopwatchTime)}
         </div>
         <div className="timer-controls-flutter">
-          <button
-            className={`timer-btn-start ${isStopwatchRunning ? 'stop' : 'start'}`}
-            onClick={isStopwatchRunning ? stopStopwatch : startStopwatch}
-          >
-            {isStopwatchRunning ? 'Stop' : 'Start'}
-          </button>
-          <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+          {isStopwatchRunning ? (
+            // Timer is running - show Stop button
+            <>
+              <button
+                className="timer-btn-start stop"
+                onClick={stopStopwatch}
+              >
+                Stop
+              </button>
+              <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+            </>
+          ) : stopwatchTime > 0 ? (
+            // Timer is stopped with time recorded - show Resume and Next Area buttons
+            <>
+              <button
+                className="timer-btn-start resume"
+                onClick={startStopwatch}
+                title="Continue timing current area"
+              >
+                Resume
+              </button>
+              <button
+                className="timer-btn-start next-area"
+                onClick={recordTimeAndMoveToNextArea}
+                title="Record time and move to next area"
+              >
+                Next Area
+              </button>
+              <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+            </>
+          ) : (
+            // Timer is at zero - show Start button
+            <>
+              <button
+                className="timer-btn-start start"
+                onClick={startStopwatch}
+              >
+                Start
+              </button>
+              <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+            </>
+          )}
         </div>
       </div>
 
@@ -1325,11 +1453,30 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                      qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
                   </span>
                 </div>
-                <div className="score-item time-container">
-                  <span className="item-label">Time</span>
-                  <span className="item-value time-value">{areas[0]?.time || totalTime || calculateTotalTime()}</span>
-                </div>
 
+                {/* Multi-area search: show each area time + total */}
+                {areas.length > 1 ? (
+                  <>
+                    {areas.map((area, index) => (
+                      <div key={index} className="score-item time-container">
+                        <span className="item-label">{area.areaName} Time</span>
+                        <span className="item-value time-value">{area.time || '0:00.00'}</span>
+                      </div>
+                    ))}
+                    <div className="score-item time-container total-time">
+                      <span className="item-label">Total Time</span>
+                      <span className="item-value time-value total">{totalTime || calculateTotalTime()}</span>
+                    </div>
+                  </>
+                ) : (
+                  /* Single area search: show time */
+                  <div className="score-item time-container">
+                    <span className="item-label">Time</span>
+                    <span className="item-value time-value">{areas[0]?.time || totalTime || calculateTotalTime()}</span>
+                  </div>
+                )}
+
+                {/* Show faults if any (both single and multi-area) */}
                 {!isNationalsMode && faultCount > 0 && (
                   <div className="score-item">
                     <span className="item-label">Faults</span>

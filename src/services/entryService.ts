@@ -60,7 +60,7 @@ export async function getClassEntries(
     // Get class data to determine element, level, section for filtering
     const { data: classData, error: classError } = await supabase
       .from('classes')
-      .select('element, level, section, area_count')
+      .select('element, level, section, area_count, time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds')
       .eq('id', primaryClassId)
       .single();
 
@@ -148,6 +148,14 @@ export async function getClassEntries(
       }
     };
 
+    // Helper function to convert seconds to MM:SS format
+    const secondsToTimeString = (seconds?: number | null): string => {
+      if (!seconds || seconds === 0) return '';
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     // Map database fields to Entry interface using normalized table structure
     const mappedEntries = viewData.map(row => {
       const result = resultsMap.get(row.id); // Get result from our results map
@@ -190,9 +198,9 @@ export async function getClassEntries(
         level: row.classes.level,
         checkedIn: row.check_in_status_text !== 'none' && row.check_in_status_text !== null,
         checkinStatus: normalizeStatusText(row.check_in_status_text),
-        timeLimit: '', // Will need to get from class data
-        timeLimit2: '', // Will need to get from class data
-        timeLimit3: '', // Will need to get from class data
+        timeLimit: secondsToTimeString(classData.time_limit_seconds),
+        timeLimit2: secondsToTimeString(classData.time_limit_area2_seconds),
+        timeLimit3: secondsToTimeString(classData.time_limit_area3_seconds),
         areas: classData.area_count,
         exhibitorOrder: row.exhibitor_order,
         actualClassId: row.class_id,
@@ -364,8 +372,8 @@ export async function submitScore(
         resultData.area1_time_seconds = areaTimeSeconds[0];
       }
 
-      // Area 2 is only for Interior Excellent and Handler Discrimination Master
-      const useArea2 = (element.toLowerCase() === 'interior' && level.toLowerCase() === 'excellent') ||
+      // Area 2 is for Interior Excellent, Interior Master, and Handler Discrimination Master
+      const useArea2 = (element.toLowerCase() === 'interior' && (level.toLowerCase() === 'excellent' || level.toLowerCase() === 'master')) ||
                        (element.toLowerCase() === 'handler discrimination' && level.toLowerCase() === 'master');
 
       if (useArea2 && areaTimeSeconds[1] !== undefined) {
