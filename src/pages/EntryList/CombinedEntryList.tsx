@@ -7,7 +7,7 @@ import { Entry } from '../../stores/entryStore';
 import { HamburgerMenu, HeaderTicker } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import './EntryList.css';
 
@@ -555,6 +555,7 @@ export const CombinedEntryList: React.FC = () => {
                       } ${
                         !hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true) ? 'disabled' : ''
                       }`}
+                      style={{ textTransform: 'none' }}
                       onClick={(e) => {
                         const canCheckIn = hasPermission('canCheckInDogs');
                         const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
@@ -574,16 +575,16 @@ export const CombinedEntryList: React.FC = () => {
                     >
                       {(() => {
                         if (entry.inRing) {
-                          return <><span className="status-icon">▶</span> In Ring</>;
+                          return <><span className="status-icon">▶</span><span style={{ textTransform: 'none' }}> In Ring</span></>;
                         }
                         const status = entry.checkinStatus || 'none';
                         switch(status) {
-                          case 'none': return <><span className="status-icon">●</span> No Status</>;
-                          case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
-                          case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
-                          case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
-                          case 'at-gate': return <><span className="status-icon">★</span> At Gate</>;
-                          default: return status;
+                          case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> No Status</span></>;
+                          case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Checked-in</span></>;
+                          case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Conflict</span></>;
+                          case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Pulled</span></>;
+                          case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> At Gate</span></>;
+                          default: return <span style={{ textTransform: 'none' }}>{status}</span>;
                         }
                       })()}
                     </div>
@@ -656,6 +657,7 @@ export const CombinedEntryList: React.FC = () => {
             return currentEntry?.handler || '';
           })()
         }}
+        showDescriptions={true}
       />
 
       {/* Reset Confirmation Dialog */}

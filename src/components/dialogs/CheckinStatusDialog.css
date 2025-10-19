@@ -292,6 +292,8 @@
 }
 
 .status-item .status-icon svg {
+  width: 24px;
+  height: 24px;
   color: inherit !important;
   stroke: currentColor !important;
 }
@@ -334,7 +336,7 @@
 
 .status-item.status-conflict .status-icon {
   color: #ffffff !important;
-  background: #fef3c7 !important;
+  background: #f59e0b !important;
 }
 
 .status-item.status-pulled .status-icon {

@@ -1098,11 +1098,12 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                   })() : false;
 
                   if (hasExpired) {
-                    // Time expired - only show Next Area (multi-area) or Reset button
+                    // Time expired - show appropriate button based on current area
+                    const isLastArea = currentAreaIndex >= areas.length - 1;
                     return (
                       <>
                         <div className="timer-expired-indicator">⏱ Time Expired</div>
-                        {areas.length > 1 && (
+                        {!isLastArea && areas.length > 1 && (
                           <button
                             className="timer-btn-main"
                             onClick={recordTimeAndMoveToNextArea}
@@ -1115,7 +1116,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                       </>
                     );
                   } else {
-                    // Timer paused but not expired - show Resume and Next Area buttons
+                    // Timer paused but not expired - show Resume and appropriate button
+                    const isLastArea = currentAreaIndex >= areas.length - 1;
                     return (
                       <>
                         <button
@@ -1125,7 +1127,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                         >
                           ↻ Resume
                         </button>
-                        {areas.length > 1 && (
+                        {!isLastArea && areas.length > 1 && (
                           <button
                             className="timer-btn-main"
                             onClick={recordTimeAndMoveToNextArea}
@@ -1341,11 +1343,12 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
               })() : false;
 
               if (hasExpired) {
-                // Time expired - only show Next Area (multi-area) or Reset button
+                // Time expired - show appropriate button based on current area
+                const isLastArea = currentAreaIndex >= areas.length - 1;
                 return (
                   <>
                     <div className="timer-expired-indicator">⏱ Time Expired</div>
-                    {areas.length > 1 && (
+                    {!isLastArea && areas.length > 1 && (
                       <button
                         className="timer-btn-start next-area"
                         onClick={recordTimeAndMoveToNextArea}
@@ -1358,7 +1361,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                   </>
                 );
               } else {
-                // Timer paused but not expired - show Resume and Next Area buttons
+                // Timer paused but not expired - show Resume and appropriate button
+                const isLastArea = currentAreaIndex >= areas.length - 1;
                 return (
                   <>
                     <button
@@ -1368,7 +1372,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                     >
                       Resume
                     </button>
-                    {areas.length > 1 && (
+                    {!isLastArea && areas.length > 1 && (
                       <button
                         className="timer-btn-start next-area"
                         onClick={recordTimeAndMoveToNextArea}

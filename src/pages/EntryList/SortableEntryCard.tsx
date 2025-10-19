@@ -196,6 +196,8 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
               } ${
                 (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true)) ? 'disabled' : ''
               }`}
+              style={{ textTransform: 'none' }}
+              data-no-uppercase="true"
               onClick={(e) => {
                 const canCheckIn = hasPermission('canCheckInDogs');
                 const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
@@ -216,16 +218,16 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
             >
               {(() => {
                 if (entry.inRing) {
-                  return <><span className="status-icon">▶</span> In Ring</>;
+                  return <><span className="status-icon">▶</span><span style={{ textTransform: 'none' }}> In Ring</span></>;
                 }
                 const status = entry.checkinStatus || 'none';
                 switch(status) {
-                  case 'none': return <><Circle className="status-icon" size={16} /> No Status</>;
-                  case 'checked-in': return <><Check className="status-icon" size={16} /> Checked-in</>;
-                  case 'conflict': return <><AlertTriangle className="status-icon" size={16} /> Conflict</>;
-                  case 'pulled': return <><XCircle className="status-icon" size={16} /> Pulled</>;
-                  case 'at-gate': return <><Star className="status-icon" size={16} /> At Gate</>;
-                  default: return status;
+                  case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> No Status</span></>;
+                  case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Checked-in</span></>;
+                  case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Conflict</span></>;
+                  case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Pulled</span></>;
+                  case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> At Gate</span></>;
+                  default: return <span style={{ textTransform: 'none' }}>{status}</span>;
                 }
               })()}
             </div>

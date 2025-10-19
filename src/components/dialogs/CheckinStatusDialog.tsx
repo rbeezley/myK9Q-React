@@ -81,7 +81,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
               {showDescriptions ? (
                 <>
                   <div className="status-icon">
-                    <Circle className="h-5 w-5" />
+                    <Circle />
                   </div>
                   <div className="status-content">
                     <label className="status-label">Not Checked-in</label>
@@ -111,7 +111,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
               {showDescriptions ? (
                 <>
                   <div className="status-icon">
-                    <Check className="h-5 w-5" />
+                    <Check />
                   </div>
                   <div className="status-content">
                     <label className="status-label">Checked-in</label>
@@ -141,7 +141,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
               {showDescriptions ? (
                 <>
                   <div className="status-icon">
-                    <AlertTriangle className="h-5 w-5" />
+                    <AlertTriangle />
                   </div>
                   <div className="status-content">
                     <label className="status-label">Conflict</label>
@@ -171,7 +171,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
               {showDescriptions ? (
                 <>
                   <div className="status-icon">
-                    <XCircle className="h-5 w-5" />
+                    <XCircle />
                   </div>
                   <div className="status-content">
                     <label className="status-label">Pulled</label>
@@ -201,7 +201,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
               {showDescriptions ? (
                 <>
                   <div className="status-icon">
-                    <Star className="h-5 w-5" />
+                    <Star />
                   </div>
                   <div className="status-content">
                     <label className="status-label">At Gate</label>

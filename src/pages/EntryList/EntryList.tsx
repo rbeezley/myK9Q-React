@@ -288,19 +288,17 @@ export const EntryList: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.status-popup') && !target.closest('.checkin-status') && !target.closest('.reset-menu') && !target.closest('.reset-menu-button')) {
-        setActiveStatusPopup(null);
-        _setPopupPosition(null);
+      if (!target.closest('.reset-menu') && !target.closest('.reset-menu-button')) {
         setActiveResetMenu(null);
         setResetMenuPosition(null);
       }
     };
 
-    if (activeStatusPopup !== null || activeResetMenu !== null) {
+    if (activeResetMenu !== null) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [activeStatusPopup, activeResetMenu]);
+  }, [activeResetMenu]);
 
   // Set loaded state after initial render to enable transitions
   useEffect(() => {
