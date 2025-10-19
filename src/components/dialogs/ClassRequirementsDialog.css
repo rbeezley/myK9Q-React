@@ -1,4 +1,4 @@
-/* Class Requirements Dialog Styles */
+/* Class Requirements Dialog Styles - Updated for proper light/dark theme support */
 .dialog-overlay {
   position: fixed;
   inset: 0;
@@ -13,6 +13,7 @@
 
 .dialog-container {
   background: white;
+  color: #111827;
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 500px;
@@ -53,13 +54,13 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   transition: all 0.2s;
 }
 
 .close-button:hover {
   background: #f3f4f6;
-  color: #374151;
+  color: var(--token-text-secondary);
 }
 
 .dialog-content {
@@ -126,7 +127,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   font-size: 0.875rem;
   font-weight: 500;
 }
@@ -172,7 +173,7 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  background: #eef2ff;
+  background: #f0f9ff;
   border-radius: 8px;
   color: #6366f1;
   flex-shrink: 0;
@@ -187,7 +188,7 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   margin-bottom: 0.25rem;
 }
 
@@ -313,77 +314,75 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .dialog-container {
-    background: #1f2937;
-    color: #f9fafb;
-  }
+[data-theme="dark"] .dialog-container {
+  background: #1f2937;
+  color: #f9fafb;
+}
 
-  .dialog-header {
-    background: #111827;
-    border-bottom-color: #374151;
-  }
+[data-theme="dark"] .dialog-header {
+  background: #111827;
+  border-bottom-color: var(--token-text-secondary);
+}
 
-  .dialog-title {
-    color: #f9fafb !important;
-  }
+[data-theme="dark"] .dialog-title {
+  color: var(--token-text-white) !important;
+}
 
-  .title-icon {
-    color: #6366f1 !important;
-  }
+[data-theme="dark"] .title-icon {
+  color: #6366f1 !important;
+}
 
-  .close-button {
-    color: #9ca3af;
-  }
+[data-theme="dark"] .close-button {
+  color: #9ca3af;
+}
 
-  .close-button:hover {
-    background: #374151;
-    color: #f3f4f6;
-  }
+[data-theme="dark"] .close-button:hover {
+  background: #374151;
+  color: #f3f4f6;
+}
 
-  .class-title {
-    color: #f9fafb;
-  }
+[data-theme="dark"] .class-title {
+  color: #f9fafb;
+}
 
-  .entry-count {
-    color: #9ca3af;
-  }
+[data-theme="dark"] .entry-count {
+  color: #9ca3af;
+}
 
-  .requirement-item {
-    background: #111827;
-    border-color: #374151;
-  }
+[data-theme="dark"] .requirement-item {
+  background: #111827;
+  border-color: var(--token-text-secondary);
+}
 
-  .requirement-icon {
-    background: #1e1b4b;
-  }
+[data-theme="dark"] .requirement-icon {
+  background: #1e1b4b;
+}
 
-  .requirement-content label {
-    color: #9ca3af;
-  }
+[data-theme="dark"] .requirement-content label {
+  color: #9ca3af;
+}
 
-  .requirement-content .requirement-value {
-    color: #f9fafb;
-  }
+[data-theme="dark"] .requirement-content .requirement-value {
+  color: #f9fafb;
+}
 
-  .requirement-item-clickable:hover {
-    background: #374151;
-    border-color: #6366f1;
-  }
+[data-theme="dark"] .requirement-item-clickable:hover {
+  background: #374151;
+  border-color: #6366f1;
+}
 
-  .requirement-item-clickable:active {
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-  }
+[data-theme="dark"] .requirement-item-clickable:active {
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
 
-  .no-data-state h3 {
-    color: #f3f4f6 !important;
-  }
+[data-theme="dark"] .no-data-state h3 {
+  color: #f3f4f6 !important;
+}
 
-  .no-data-state p {
-    color: #d1d5db !important;
-  }
+[data-theme="dark"] .no-data-state p {
+  color: #d1d5db !important;
+}
 
-  .no-data-icon {
-    color: #9ca3af !important;
-  }
+[data-theme="dark"] .no-data-icon {
+  color: var(--token-text-muted) !important;
 }

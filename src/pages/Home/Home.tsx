@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { RefreshCw, Heart, Clock as _Clock, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
-import { ArmbandBadge } from '../../components/ui';
+import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -298,26 +297,6 @@ export const Home: React.FC = () => {
     navigate(`/dog/${armband}`);
   };
 
-  const formatTrialDate = (dateString: string) => {
-    try {
-      // Parse date components manually to avoid timezone issues (matches ClassList/EntryList)
-      const [year, month, day] = dateString.split('-').map(Number);
-      const date = new Date(year, month - 1, day); // month is 0-indexed
-
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      const dayName = days[date.getDay()];
-      const monthName = months[date.getMonth()];
-      const dayNumber = date.getDate();
-      const yearNumber = date.getFullYear();
-
-      return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
-    } catch {
-      return dateString; // Fallback to original if parsing fails
-    }
-  };
-
   const getFilteredEntries = () => {
     // First filter by favorites if needed
     let filtered = entries;
@@ -409,8 +388,11 @@ export const Home: React.FC = () => {
                   {/* Trial Date and Number */}
                   <div className="trial-title">
                     <div className="trial-name-number">
-                      <Calendar size={14} className="trial-icon" />
-                      {formatTrialDate(trial.trial_date)} • Trial {index + 1}
+                      <TrialDateBadge
+                        date={trial.trial_date}
+                        trialNumber={index + 1}
+                        className="trial-icon"
+                      />
                     </div>
                   </div>
 
@@ -418,11 +400,11 @@ export const Home: React.FC = () => {
                   <div className="trial-progress">
                     <div className="progress-row">
                       <Calendar size={14} />
-                      <span>Classes: {trial.classes_completed} of {trial.classes_total}</span>
+                      <span>Classes Completed: {trial.classes_completed} of {trial.classes_total}</span>
                     </div>
                     <div className="progress-row">
                       <Users2 size={14} />
-                      <span>Entries: {trial.entries_completed} of {trial.entries_total}</span>
+                      <span>Entries Scored: {trial.entries_completed} of {trial.entries_total}</span>
                     </div>
                   </div>
                 </div>
@@ -525,10 +507,23 @@ export const Home: React.FC = () => {
         ) : (
           <>
             <div className="entry-list-header">
-              <h3 className="entry-list-title">Dogs Entered</h3>
-              <span className="entry-count">
-                {getFilteredEntries().length}
-              </span>
+              <h3 className="entry-list-title">
+                <span className="entry-count">
+                  Dogs Entered: {getFilteredEntries().length}
+                </span>
+              </h3>
+              <button
+                className={`favorites-filter-btn ${filterBy === 'favorites' ? 'active' : ''}`}
+                onClick={() => {
+                  hapticFeedback.impact('light');
+                  setFilterBy(filterBy === 'favorites' ? 'all' : 'favorites');
+                }}
+                title={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
+                aria-label={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
+              >
+                <Heart size={18} fill={filterBy === 'favorites' ? 'currentColor' : 'none'} />
+                {filterBy === 'favorites' ? 'All Dogs' : 'Favorites'}
+              </button>
             </div>
             
             <div className="entry-grid">

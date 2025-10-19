@@ -1,0 +1,71 @@
+/* EmptyState Component Styles */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border-radius: 1rem;
+  border: 1px dashed var(--border);
+  margin: 2rem auto;
+  max-width: 400px;
+}
+
+.empty-state-icon {
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+.empty-state-icon svg {
+  width: 3rem;
+  height: 3rem;
+}
+
+.empty-state-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.empty-state-message {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.empty-state-action {
+  margin-top: 0.5rem;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .empty-state {
+  background: rgba(40, 40, 40, 0.5);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .empty-state {
+    padding: 2rem 1rem;
+    margin: 1rem auto;
+  }
+
+  .empty-state-icon svg {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .empty-state-title {
+    font-size: 1.125rem;
+  }
+
+  .empty-state-message {
+    font-size: 0.875rem;
+  }
+}

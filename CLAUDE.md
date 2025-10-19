@@ -19,6 +19,9 @@ npm run setup        # Interactive Supabase environment setup
 - **Build**: Vite 5.3 with PWA plugin
 - **State**: Zustand 5.0 with devtools middleware
 - **Database**: Supabase (PostgreSQL + real-time subscriptions)
+  - **Project**: myK9Q-React-Dev (ID: yyzgjyiqgmjzyhzkqdfx)
+  - **Region**: us-east-2
+  - **Use this project ID for all Supabase MCP operations**
 - **Routing**: React Router DOM 6.22
 - **Styling**: TailwindCSS with custom components
 - **UI**: Lucide React icons, @dnd-kit for drag-and-drop
@@ -64,6 +67,11 @@ npm run setup        # Interactive Supabase environment setup
 - `classes`: Class definitions with `self_checkin_enabled` flag
 - `entries`: Dog entries (armband_number, call_name, handler)
 - `results`: Scoring results (time, faults, placement)
+- `class_requirements`: Organization-specific class requirements with configurable rules
+  - `has_30_second_warning` (boolean, default: true): Whether 30-second warning is given
+  - `time_type` ('fixed'|'range'|'dictated', default: 'range'): Type of max time allowed
+  - `warning_notes` (text): Custom warning message for display
+  - `updated_at` (timestamp): Auto-updated via trigger when rules change
 
 **Key View**:
 - `view_entry_class_join_normalized`: Pre-joined data for queries (entries + classes + trials + shows)
@@ -117,6 +125,8 @@ npm run setup        # Interactive Supabase environment setup
 - Always filter by `license_key` for multi-tenant isolation
 - Use `self_checkin_enabled` field for exhibitor access control
 - Check-in status uses integer codes (0-3)
+- **Configurable Class Rules**: Components check database fields first (e.g., `has_30_second_warning`, `time_type`), then fall back to hardcoded logic for backward compatibility
+- Migration 013 must be run to enable configurable class rules (see [supabase/migrations/013_add_class_rule_configuration.sql](supabase/migrations/013_add_class_rule_configuration.sql))
 
 ### State Management
 - Zustand stores for global state

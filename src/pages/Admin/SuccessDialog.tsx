@@ -47,7 +47,7 @@ export const SuccessDialog: React.FC<SuccessDialogProps> = ({
           )}
 
           <div className="success-note">
-            <strong>💡 Note:</strong> Changes are now live on the TV Dashboard
+            <strong>💡 Note:</strong> Changes are now live on the Run Order Display
           </div>
         </div>
 

@@ -10,10 +10,6 @@ export const DatabaseTest: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  useEffect(() => {
-    testConnection();
-  }, []);
-
   const testConnection = async () => {
     try {
       setConnectionStatus('testing');
@@ -74,6 +70,11 @@ export const DatabaseTest: React.FC = () => {
       setError(`Connection error: ${err.message}`);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    testConnection();
+  }, []);
 
   return (
     <div style={{ 

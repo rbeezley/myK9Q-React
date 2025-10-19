@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { ClassInfo, EntryInfo } from '../../TVDashboard/hooks/useTVData';
+import { Calendar, Target, User, ClipboardCheck } from 'lucide-react';
+import { ClassInfo, EntryInfo } from '../hooks/useTVData';
 import { TVEntryCard } from './TVEntryCard';
 import './ClassRunOrder.css';
 
@@ -22,6 +23,31 @@ export const ClassRunOrder: React.FC<ClassRunOrderProps> = ({ classInfo, entries
     };
     return statusMap[resultStatus.toLowerCase()] || resultStatus;
   };
+
+  // Helper function to get status badge text and CSS class
+  const getStatusBadge = () => {
+    const status = classInfo.class_status;
+    const startTime = classInfo.start_time;
+
+    if (status === 'in_progress') {
+      return { text: 'IN PROGRESS', className: 'status-in-progress' };
+    } else if (status === 'briefing') {
+      return { text: 'BRIEFING NOW', className: 'status-briefing' };
+    } else if (status === 'start_time') {
+      if (startTime) {
+        // Format time as HH:MM
+        const timeStr = startTime.substring(0, 5); // Gets HH:MM from HH:MM:SS
+        return { text: `STARTS ${timeStr}`, className: 'status-starts' };
+      } else {
+        return { text: 'UPCOMING', className: 'status-upcoming' };
+      }
+    } else if (status === 'setup') {
+      return { text: 'UPCOMING', className: 'status-upcoming' };
+    }
+    return null;
+  };
+
+  const statusBadge = getStatusBadge();
 
   // Sort entries: In-ring first, then pending (by run order), then completed
   const sortedEntries = useMemo(() => {
@@ -53,18 +79,29 @@ export const ClassRunOrder: React.FC<ClassRunOrderProps> = ({ classInfo, entries
   // Build class display name
   const className = classInfo.class_name || `${classInfo.element_type} ${classInfo.level || ''}`.trim();
 
+  // Format trial date for display (e.g., "Sat, Sep 16, 2023" from "2023-09-16")
+  const formatTrialDate = (dateStr: string): string => {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   return (
     <div className="class-runorder">
       {/* Class header */}
       <div className="class-runorder-header">
-        <h2 className="class-runorder-title">{className}</h2>
+        <div className="class-runorder-title-row">
+          <h2 className="class-runorder-title">{className}</h2>
+          {statusBadge && (
+            <span className={`class-status-badge ${statusBadge.className}`}>
+              {statusBadge.text}
+            </span>
+          )}
+        </div>
         <div className="class-runorder-meta">
-          <span className="class-runorder-judge">
-            Judge: {classInfo.judge_name || 'TBD'}
-          </span>
-          <span className="class-runorder-progress">
-            {classInfo.entry_completed_count || 0} of {classInfo.entry_total_count || 0} scored
-          </span>
+          <span className="meta-item"><Calendar size={14} /> {formatTrialDate(classInfo.trial_date)}</span>
+          <span className="meta-item"><Target size={14} /> Trial {classInfo.trial_number}</span>
+          <span className="meta-item"><User size={14} /> {classInfo.judge_name || 'TBD'}</span>
+          <span className="meta-item"><ClipboardCheck size={14} /> {classInfo.entry_completed_count || 0} of {classInfo.entry_total_count || 0} scored</span>
         </div>
       </div>
 

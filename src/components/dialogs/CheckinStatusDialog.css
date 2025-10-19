@@ -29,7 +29,7 @@
   justify-content: space-between;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border);
-  background: var(--muted);
+  background: #f9fafb;
 }
 
 .dialog-title {
@@ -38,7 +38,7 @@
   gap: 0.75rem;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: #111827;
   flex: 1;
 }
 
@@ -71,7 +71,7 @@
 .status-dialog-dog-name {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: #111827;
   line-height: 1.2;
 }
 
@@ -96,7 +96,7 @@
   height: 32px;
   border-radius: 6px;
   border: none;
-  background: var(--secondary);
+  background: #f0f9ff;
   color: var(--secondary-foreground);
   cursor: pointer;
   transition: background-color 0.15s ease-in-out;
@@ -125,8 +125,8 @@
   display: flex;
   align-items: center;
   padding: 16px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: white;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -136,10 +136,9 @@
 }
 
 .status-option:hover {
-  background: rgba(30, 41, 59, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, #3b82f6);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .status-option:active {
@@ -164,72 +163,76 @@
   min-width: 0;
   font-weight: 600;
   font-size: 16px;
-  color: #f9fafb !important;
+  color: #111827 !important;
   line-height: 1.2;
 }
 
-/* Light mode overrides */
+/* Light mode overrides - same as default now */
 [data-theme="light"] .status-option {
-  background: rgba(248, 250, 252, 0.9);
-  border-color: rgba(226, 232, 240, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: white;
+  border-color: #e5e7eb;
 }
 
 [data-theme="light"] .status-option:hover {
-  background: rgba(241, 245, 249, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, #3b82f6);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .status-option .status-text {
-  color: #1e293b !important;
+  color: #111827 !important;
 }
 
-/* Color variables for different statuses */
+/* Color variables for different statuses - uses centralized design tokens */
 .status-option.status-none {
-  --status-color: #6b7280;
-  --status-color-rgb: 107, 114, 128;
+  --status-color: var(--status-none);
+  --status-color-rgb: 156, 163, 175;
 }
 
 .status-option.status-checked-in {
-  --status-color: #10b981;
+  --status-color: var(--status-checked-in);
   --status-color-rgb: 16, 185, 129;
 }
 
 .status-option.status-conflict {
-  --status-color: #f59e0b;
+  --status-color: var(--status-conflict);
   --status-color-rgb: 245, 158, 11;
 }
 
 .status-option.status-pulled {
-  --status-color: #ef4444;
+  --status-color: var(--status-pulled);
   --status-color-rgb: 239, 68, 68;
 }
 
 .status-option.status-at-gate {
-  --status-color: #06b6d4;
-  --status-color-rgb: 6, 182, 212;
+  --status-color: var(--status-at-gate);
+  --status-color-rgb: 139, 92, 246;
 }
 
-/* Icon colors for popup options */
+/* Icon colors and backgrounds for popup options - solid colored like badges */
 .status-option.status-none .popup-icon {
-  color: var(--status-color);
+  color: var(--status-none-text);
+  background: var(--status-none-bg);
 }
 
 .status-option.status-checked-in .popup-icon {
-  color: var(--status-color);
+  color: var(--status-checked-in-text);
+  background: var(--status-checked-in-bg);
 }
 
 .status-option.status-at-gate .popup-icon {
-  color: var(--status-color);
+  color: var(--status-at-gate-text);
+  background: var(--status-at-gate-bg);
 }
 
 .status-option.status-conflict .popup-icon {
-  color: var(--status-color);
+  color: var(--status-conflict-text);
+  background: var(--status-conflict-bg);
 }
 
 .status-option.status-pulled .popup-icon {
-  color: var(--status-color);
+  color: var(--status-pulled-text);
+  background: var(--status-pulled-bg);
 }
 
 /* EntryList-style status grid with descriptions */
@@ -251,8 +254,8 @@
   display: flex;
   align-items: center;
   padding: 16px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: white;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -263,10 +266,9 @@
 }
 
 .status-item:hover {
-  background: rgba(30, 41, 59, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, #3b82f6);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
 .status-item:active {
@@ -283,11 +285,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
   flex-shrink: 0;
-  color: var(--status-color);
+}
+
+.status-item .status-icon svg {
+  color: inherit !important;
+  stroke: currentColor !important;
 }
 
 .status-item .status-content {
@@ -299,61 +305,106 @@
   display: block;
   font-weight: 600;
   font-size: 16px;
-  color: #f9fafb !important;
+  color: #111827 !important;
   margin-bottom: 4px;
   line-height: 1.2;
 }
 
 .status-item .status-description {
   font-size: 14px;
-  color: #9ca3af !important;
+  color: #6b7280 !important;
   line-height: 1.3;
 }
 
-/* Light mode overrides for status-item */
+/* Solid colored icon backgrounds for status items - matching badges exactly */
+.status-item.status-none .status-icon {
+  color: #ffffff !important;
+  background: #9ca3af !important;
+}
+
+.status-item.status-checked-in .status-icon {
+  color: #ffffff !important;
+  background: #10b981 !important;
+}
+
+.status-item.status-at-gate .status-icon {
+  color: #ffffff !important;
+  background: #8b5cf6 !important;
+}
+
+.status-item.status-conflict .status-icon {
+  color: #ffffff !important;
+  background: #fef3c7 !important;
+}
+
+.status-item.status-pulled .status-icon {
+  color: #ffffff !important;
+  background: #ef4444 !important;
+}
+
+/* Light mode overrides for status-item - same as default */
 [data-theme="light"] .status-item {
-  background: rgba(248, 250, 252, 0.9);
-  border-color: rgba(226, 232, 240, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: white;
+  border-color: #e5e7eb;
 }
 
 [data-theme="light"] .status-item:hover {
-  background: rgba(241, 245, 249, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, #3b82f6);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="light"] .status-item .status-label {
-  color: #1e293b !important;
+  color: #111827 !important;
 }
 
 [data-theme="light"] .status-item .status-description {
-  color: #64748b !important;
+  color: #6b7280 !important;
 }
 
-/* Color variables for status-item */
+/* Dark mode overrides for status-item */
+[data-theme="dark"] .status-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .status-item:hover {
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-color: var(--status-color, #3b82f6);
+}
+
+[data-theme="dark"] .status-item .status-label {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .status-item .status-description {
+  color: #fef3c7 !important;
+}
+
+/* Color variables for status-item - uses centralized design tokens */
 .status-item.status-none {
-  --status-color: #6b7280;
-  --status-color-rgb: 107, 114, 128;
+  --status-color: var(--status-none);
+  --status-color-rgb: 156, 163, 175;
 }
 
 .status-item.status-checked-in {
-  --status-color: #10b981;
+  --status-color: var(--status-checked-in);
   --status-color-rgb: 16, 185, 129;
 }
 
 .status-item.status-conflict {
-  --status-color: #f59e0b;
+  --status-color: var(--status-conflict);
   --status-color-rgb: 245, 158, 11;
 }
 
 .status-item.status-pulled {
-  --status-color: #ef4444;
+  --status-color: var(--status-pulled);
   --status-color-rgb: 239, 68, 68;
 }
 
 .status-item.status-at-gate {
-  --status-color: #06b6d4;
-  --status-color-rgb: 6, 182, 212;
+  --status-color: var(--status-at-gate);
+  --status-color-rgb: 139, 92, 246;
 }

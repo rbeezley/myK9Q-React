@@ -4,10 +4,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 import { updateEntryCheckinStatus } from '../../services/entryService';
-import { Button, HamburgerMenu, ArmbandBadge } from '../../components/ui';
+import { Button, HamburgerMenu, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
+import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
 import {
   ArrowLeft,
   RefreshCw,
@@ -16,9 +17,11 @@ import {
   AlertTriangle,
   ThumbsUp,
   XCircle,
-  Calendar,
   Target,
-  User
+  User,
+  Check,
+  Circle,
+  Star
 } from 'lucide-react';
 import './DogDetails.css';
 
@@ -61,7 +64,6 @@ export const DogDetails: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [activePopup, setActivePopup] = useState<number | null>(null);
-  const [_popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     if (armband && showContext) {
@@ -196,7 +198,6 @@ export const DogDetails: React.FC = () => {
       
       // Close popup
       setActivePopup(null);
-      setPopupPosition(null);
 
       // Update database using the proper service function
       await updateEntryCheckinStatus(classId, status);
@@ -204,26 +205,6 @@ export const DogDetails: React.FC = () => {
       console.error('Error:', error);
       // Reload to get correct state
       await loadDogDetails();
-    }
-  };
-
-  const formatTrialDate = (dateString: string) => {
-    try {
-      // Parse date components manually to avoid timezone issues (matches Home page)
-      const [year, month, day] = dateString.split('-').map(Number);
-      const date = new Date(year, month - 1, day); // month is 0-indexed
-
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      const dayName = days[date.getDay()];
-      const monthName = months[date.getMonth()];
-      const dayNumber = date.getDate();
-      const yearNumber = date.getFullYear();
-
-      return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
-    } catch {
-      return dateString; // Fallback to original if parsing fails
     }
   };
 
@@ -251,56 +232,13 @@ export const DogDetails: React.FC = () => {
       // Show above button instead
       top = rect.top - 250;
     }
-    
-    setPopupPosition({ top, left });
+
     setActivePopup(activePopup === classId ? null : classId);
   };
 
-  const getStatusColor = (entry: ClassEntry) => {
-    if (entry.check_in_status === 'checked-in') return 'checked-in';
-    if (entry.check_in_status === 'conflict') return 'conflict';
-    if (entry.check_in_status === 'pulled') return 'pulled';
-    if (entry.check_in_status === 'at-gate') return 'at-gate';
-
-    if (entry.is_scored) {
-      const resultLower = entry.result_text?.toLowerCase();
-      if (resultLower === 'q' || resultLower === 'qualified') {
-        return 'qualified';
-      } else if (resultLower === 'nq' || resultLower === 'not qualified') {
-        return 'not-qualified';
-      } else if (resultLower === 'ex' || resultLower === 'excused') {
-        return 'excused';
-      }
-    }
-    return 'pending';
-  };
-
-  const getStatusLabel = (entry: ClassEntry) => {
-    if (entry.check_in_status === 'checked-in') return 'Checked-in';
-    if (entry.check_in_status === 'conflict') return 'Conflict';
-    if (entry.check_in_status === 'pulled') return 'Pulled';
-    if (entry.check_in_status === 'at-gate') return 'At Gate';
-
-    if (entry.is_scored && entry.result_text) {
-      const resultLower = entry.result_text.toLowerCase();
-      switch (resultLower) {
-        case 'q':
-        case 'qualified':
-          return 'Qualified';
-        case 'nq':
-        case 'not qualified':
-          return 'Not Qualified';
-        case 'ex':
-        case 'excused':
-          return 'Excused';
-        default:
-          // Capitalize first letter of any other status
-          return entry.result_text.charAt(0).toUpperCase() + entry.result_text.slice(1);
-      }
-    }
-
-    return 'Not Checked In';
-  };
+  // Use centralized status utilities
+  const getStatusColor = getEntryStatusColor;
+  const getStatusLabel = getEntryStatusLabel;
 
   const formatTime = (time: string | null) => {
     return formatTimeForDisplay(time);
@@ -410,8 +348,7 @@ export const DogDetails: React.FC = () => {
                     </h4>
                     <div className="class-meta-details">
                       <p className="class-date">
-                        <Calendar size={14} />
-                        {formatTrialDate(entry.trial_date)}
+                        <TrialDateBadge date={entry.trial_date} />
                       </p>
                       {entry.trial_number && (
                         <p className="class-trial">
@@ -453,12 +390,12 @@ export const DogDetails: React.FC = () => {
                   disabled={isScored}
                   className={`status-button ${statusColor}`}
                 >
-                  {/* Check-in status icons */}
-                  {entry.check_in_status === 'checked-in' && <span className="status-icon">✓</span>}
-                  {entry.check_in_status === 'conflict' && <span className="status-icon">!</span>}
-                  {entry.check_in_status === 'pulled' && <span className="status-icon">✕</span>}
-                  {entry.check_in_status === 'at-gate' && <span className="status-icon">★</span>}
-                  {entry.check_in_status === 'none' && !isScored && <span className="status-icon">●</span>}
+                  {/* Check-in status icons - matching dialog */}
+                  {entry.check_in_status === 'checked-in' && <Check className="status-icon h-4 w-4" />}
+                  {entry.check_in_status === 'conflict' && <AlertTriangle className="status-icon h-4 w-4" />}
+                  {entry.check_in_status === 'pulled' && <XCircle className="status-icon h-4 w-4" />}
+                  {entry.check_in_status === 'at-gate' && <Star className="status-icon h-4 w-4" />}
+                  {entry.check_in_status === 'none' && !isScored && <Circle className="status-icon h-4 w-4" />}
 
                   {/* Result status icons */}
                   {statusColor === 'qualified' && <ThumbsUp />}
@@ -477,7 +414,6 @@ export const DogDetails: React.FC = () => {
         isOpen={activePopup !== null}
         onClose={() => {
           setActivePopup(null);
-          setPopupPosition(null);
         }}
         onStatusChange={(status) => {
           if (activePopup !== null) {

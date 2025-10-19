@@ -3,6 +3,7 @@ import { X, Clock, Users, MapPin, AlertTriangle, Target, Ruler, Package, Speech 
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import './ClassRequirementsDialog.css';
+// Updated to show fixed vs range and Master warning
 
 interface ClassRequirementsDialogProps {
   isOpen: boolean;
@@ -31,6 +32,13 @@ interface ClassRequirements {
   area_count: number;
   time_limit_text: string;
   area_size: string;
+
+  // Configurable rule fields (database-driven)
+  has_30_second_warning?: boolean;  // Default: true - Whether 30-second warning is given
+  time_type?: 'fixed' | 'range' | 'dictated';  // Default: 'range' - Type of max time
+  warning_notes?: string;  // Custom warning message to display
+  updated_at?: string;  // Last update timestamp
+
   // Organization-specific fields
   required_calls?: string;    // AKC
   final_response?: string;    // UKC
@@ -141,7 +149,26 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
     // Fall back to requirements text
     if (requirements && requirements.time_limit_text) {
-      return `${requirements.time_limit_text} (range allowed)`;
+      // Use database field for time type (with fallback to string parsing for backward compatibility)
+      const timeType = requirements.time_type ||
+                      (requirements.time_limit_text.includes('-') ||
+                       requirements.time_limit_text.toLowerCase().includes('range')
+                        ? 'range' : 'fixed');
+
+      const suffix = timeType === 'fixed' ? '(fixed)' :
+                    timeType === 'dictated' ? '(dictated by organization)' :
+                    '(range allowed)';
+
+      // Use database field for warning (with fallback to level check for backward compatibility)
+      const showWarning = requirements.has_30_second_warning === false ||
+                         (requirements.has_30_second_warning === undefined &&
+                          classData.level.toLowerCase().includes('master'));
+
+      const warningText = showWarning
+        ? (requirements.warning_notes ? ` - ${requirements.warning_notes}` : ' - No 30-second warning')
+        : '';
+
+      return `${requirements.time_limit_text} ${suffix}${warningText}`;
     }
 
     return 'Not specified';

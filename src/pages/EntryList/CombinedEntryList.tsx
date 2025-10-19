@@ -36,6 +36,10 @@ export const CombinedEntryList: React.FC = () => {
     actualClassIdA?: number;
     actualClassIdB?: number;
     selfCheckin?: boolean;
+    timeLimit?: string;
+    timeLimit2?: string;
+    timeLimit3?: string;
+    areas?: number;
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband' | 'manual'>('section-armband');
@@ -107,7 +111,11 @@ export const CombinedEntryList: React.FC = () => {
           judgeNameB: judgeNameB,
           actualClassIdA: parseInt(classIdA),
           actualClassIdB: parseInt(classIdB),
-          selfCheckin: classDataA?.self_checkin_enabled ?? true
+          selfCheckin: classDataA?.self_checkin_enabled ?? true,
+          timeLimit: firstEntry.timeLimit,
+          timeLimit2: firstEntry.timeLimit2,
+          timeLimit3: firstEntry.timeLimit3,
+          areas: firstEntry.areas
         });
       }
     } catch (err) {
@@ -365,6 +373,22 @@ export const CombinedEntryList: React.FC = () => {
                 )}
                 {classInfo?.judgeNameB && classInfo.judgeNameB !== classInfo.judgeName && classInfo.judgeNameB !== 'No Judge Assigned' && (
                   <span className="trial-detail judge-warning">⚠️ Section B: {classInfo.judgeNameB}</span>
+                )}
+                {(classInfo?.timeLimit || classInfo?.timeLimit2 || classInfo?.timeLimit3) && (
+                  <span className="trial-detail time-limits">
+                    <Clock size={14} />
+                    {classInfo.areas && classInfo.areas > 1 ? (
+                      // Multi-area: show all time limits
+                      <>
+                        {classInfo.timeLimit && <span className="time-limit-badge">A1: {classInfo.timeLimit}</span>}
+                        {classInfo.timeLimit2 && <span className="time-limit-badge">A2: {classInfo.timeLimit2}</span>}
+                        {classInfo.timeLimit3 && <span className="time-limit-badge">A3: {classInfo.timeLimit3}</span>}
+                      </>
+                    ) : (
+                      // Single area: just show the time
+                      <>{classInfo.timeLimit}</>
+                    )}
+                  </span>
                 )}
               </div>
             </div>

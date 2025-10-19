@@ -152,15 +152,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     onClick={() => handleMenuItemClick(() => navigate(`/tv/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
                   >
                     <Monitor className="menu-icon" />
-                    <span>TV Dashboard</span>
-                  </button>
-
-                  <button
-                    className={`menu-item ${currentPage === 'tv' ? 'active' : ''}`}
-                    onClick={() => handleMenuItemClick(() => navigate(`/tv-runorder/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
-                  >
-                    <Monitor className="menu-icon" />
-                    <span>Simple TV Dashboard</span>
+                    <span>Run Order Display</span>
                   </button>
 
                   <button

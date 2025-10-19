@@ -5,7 +5,7 @@
 
 .warning-header {
   background: #fef3c7;
-  border-bottom-color: #f59e0b;
+  border-bottom-color: #fef3c7;
 }
 
 .warning-icon {
@@ -32,7 +32,7 @@
   width: 5rem;
   height: 5rem;
   background: #fef3c7;
-  border: 3px solid #f59e0b;
+  border: 3px solid #fef3c7;
   border-radius: 50%;
   color: #d97706;
 }
@@ -52,7 +52,7 @@
 }
 
 .warning-text {
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   line-height: 1.6;
   margin: 0;
   max-width: 400px;
@@ -99,13 +99,13 @@
 
 .secondary-action {
   background: #f3f4f6;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   border: 2px solid #e5e7eb;
 }
 
 .secondary-action:hover {
   background: #e5e7eb;
-  color: #374151;
+  color: var(--token-text-secondary);
   border-color: #d1d5db;
 }
 
@@ -161,51 +161,49 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .warning-header {
-    background: #451a03;
-    border-bottom-color: #f59e0b;
-  }
+[data-theme="dark"] .warning-header {
+  background: #451a03;
+  border-bottom-color: #fef3c7;
+}
 
-  .dialog-title {
-    color: #fbbf24;
-  }
+[data-theme="dark"] .dialog-title {
+  color: #3b82f6;
+}
 
-  .warning-icon {
-    color: #fbbf24;
-  }
+[data-theme="dark"] .warning-icon {
+  color: #3b82f6;
+}
 
-  .warning-icon-large {
-    background: #451a03;
-    border-color: #f59e0b;
-    color: #fbbf24;
-  }
+[data-theme="dark"] .warning-icon-large {
+  background: #451a03;
+  border-color: #fef3c7;
+  color: #3b82f6;
+}
 
-  .warning-message h3 {
-    color: #fbbf24;
-  }
+[data-theme="dark"] .warning-message h3 {
+  color: #3b82f6;
+}
 
-  .class-info {
-    color: #f9fafb;
-  }
+[data-theme="dark"] .class-info {
+  color: #f9fafb;
+}
 
-  .warning-text {
-    color: #d1d5db;
-  }
+[data-theme="dark"] .warning-text {
+  color: #d1d5db;
+}
 
-  .secondary-action {
-    background: #374151;
-    color: #d1d5db;
-    border-color: #4b5563;
-  }
+[data-theme="dark"] .secondary-action {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
 
-  .secondary-action:hover {
-    background: #4b5563;
-    color: #f9fafb;
-    border-color: #6b7280;
-  }
+[data-theme="dark"] .secondary-action:hover {
+  background: #4b5563;
+  color: #f9fafb;
+  border-color: var(--token-text-tertiary);
+}
 
-  .secondary-action:active {
-    background: #6b7280;
-  }
+[data-theme="dark"] .secondary-action:active {
+  background: #6b7280;
 }

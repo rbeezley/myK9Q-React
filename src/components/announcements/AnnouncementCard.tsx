@@ -3,7 +3,7 @@ import { useAnnouncementStore } from '../../stores/announcementStore';
 import { AnnouncementService } from '../../services/announcementService';
 import type { Announcement } from '../../stores/announcementStore';
 import {
-  MoreVertical,
+  MoreHorizontal,
   Edit,
   Trash2,
   Clock,
@@ -98,7 +98,7 @@ export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
                   setShowActions(!showActions);
                 }}
               >
-                <MoreVertical />
+                <MoreHorizontal />
               </button>
 
               {showActions && (

@@ -1,41 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, TrialDateBadge } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import {
-  ArrowLeft,
-  RefreshCw,
-  Heart,
-  Eye as _Eye,
-  MoreVertical,
-  Clock,
-  CheckCircle,
-  Users,
-  // ChevronDown,
-  // ChevronUp,
-  Award as _Award,
-  Search,
-  X,
-  ArrowUpDown,
-  ChevronDown,
-  Calendar,
-  Target
-} from 'lucide-react';
+import { ArrowLeft, RefreshCw, Target } from 'lucide-react';
 import './ClassList.css';
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
+import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
+import { Entry } from '../../stores/entryStore';
+import { getClassEntries } from '../../services/entryService';
 import { NoviceClassDialog } from '../../components/dialogs/NoviceClassDialog';
-
-// Helper function to convert seconds to MM:SS format
-const _formatSecondsToMMSS = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
+import { parseOrganizationData } from '../../utils/organizationUtils';
+import { getClassDisplayStatus } from '../../utils/statusUtils';
+import { ClassCard } from './ClassCard';
+import { ClassFilters } from './ClassFilters';
 
 interface ClassEntry {
   id: number;
@@ -92,8 +74,6 @@ export const ClassList: React.FC = () => {
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
-  const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
-  const [dogStatusFilters, setDogStatusFilters] = useState<Map<number, string>>(new Map());
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
     console.log('🔄 Initializing favoriteClasses state');
     return new Set();
@@ -113,7 +93,15 @@ export const ClassList: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'class_order' | 'element_level' | 'level_element'>('class_order');
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
 
+  // Prevent FOUC by adding 'loaded' class after mount
+  const [isLoaded, setIsLoaded] = useState(false);
+
   // Time input states for status dialog
+
+  // Set loaded class after component mounts to prevent FOUC
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -174,23 +162,6 @@ export const ClassList: React.FC = () => {
     }
   }, [favoriteClasses]);
 
-  // Format date with abbreviated month and trial number
-  const formatTrialDate = (dateStr: string, trialNumber: number) => {
-    // Parse date components manually to avoid timezone issues
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day); // month is 0-indexed
-
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    const dayName = days[date.getDay()];
-    const monthName = months[date.getMonth()];
-    const dayNumber = date.getDate();
-    const yearNumber = date.getFullYear();
-
-    return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber} • Trial ${trialNumber}`;
-  };
-
   useEffect(() => {
     if (trialId && showContext) {
       loadClassList();
@@ -220,6 +191,70 @@ export const ClassList: React.FC = () => {
     hapticFeedback.impact('medium');
     await loadClassList();
     setRefreshing(false);
+  };
+
+  // Print report handlers
+  const handleGenerateCheckIn = async (classId: number) => {
+    try {
+      const classData = classes.find(c => c.id === classId);
+      if (!classData || !showContext?.licenseKey) return;
+
+      const entries = await getClassEntries(classId, showContext.licenseKey);
+      const orgData = parseOrganizationData(showContext?.org || '');
+
+      const reportClassInfo: ReportClassInfo = {
+        className: classData.class_name || '',
+        element: classData.element || '',
+        level: classData.level || '',
+        section: classData.section || '',
+        trialDate: trialInfo?.trial_date || '',
+        trialNumber: trialInfo?.trial_number?.toString() || '',
+        judgeName: classData.judge_name || 'TBD',
+        organization: orgData.organization,
+        activityType: orgData.activity_type
+      };
+
+      generateCheckInSheet(reportClassInfo, entries);
+      setActivePopup(null);
+    } catch (error) {
+      console.error('Error generating check-in sheet:', error);
+      alert('Error generating check-in sheet. Please try again.');
+    }
+  };
+
+  const handleGenerateResults = async (classId: number) => {
+    try {
+      const classData = classes.find(c => c.id === classId);
+      if (!classData || !showContext?.licenseKey) return;
+
+      const entries = await getClassEntries(classId, showContext.licenseKey);
+      const completedEntries = entries.filter((e: Entry) => e.isScored);
+
+      if (completedEntries.length === 0) {
+        alert('No scored entries to display in results sheet.');
+        setActivePopup(null);
+        return;
+      }
+
+      const orgData = parseOrganizationData(showContext?.org || '');
+      const reportClassInfo: ReportClassInfo = {
+        className: classData.class_name || '',
+        element: classData.element || '',
+        level: classData.level || '',
+        section: classData.section || '',
+        trialDate: trialInfo?.trial_date || '',
+        trialNumber: trialInfo?.trial_number?.toString() || '',
+        judgeName: classData.judge_name || 'TBD',
+        organization: orgData.organization,
+        activityType: orgData.activity_type
+      };
+
+      generateResultsSheet(reportClassInfo, entries);
+      setActivePopup(null);
+    } catch (error) {
+      console.error('Error generating results sheet:', error);
+      alert('Error generating results sheet. Please try again.');
+    }
   };
 
   const loadClassList = useCallback(async () => {
@@ -382,9 +417,10 @@ export const ClassList: React.FC = () => {
             class_status: cls.class_status || 'none',
             is_completed: cls.is_completed || false,
             is_favorite: currentFavorites.has(cls.id),
-            time_limit: cls.time_limit || '',
-            time_limit2: cls.time_limit2 || '',
-            time_limit3: cls.time_limit3 || '',
+            time_limit_seconds: cls.time_limit_seconds,
+            time_limit_area2_seconds: cls.time_limit_area2_seconds,
+            time_limit_area3_seconds: cls.time_limit_area3_seconds,
+            area_count: cls.area_count,
             // Parse time values from class_status_comment based on current status
             briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
             break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
@@ -477,26 +513,6 @@ export const ClassList: React.FC = () => {
     };
   }, [trialId, showContext?.licenseKey, loadClassList]);
 
-  const parseOrganizationData = (orgString: string) => {
-    
-    if (!orgString || orgString.trim() === '') {
-      // Default to AKC Scent Work for this show based on the user's report
-      return {
-        organization: 'AKC',
-        activity_type: 'Scent Work'
-      };
-    }
-    
-    // Parse organization string like "UKC Obedience", "AKC Scent Work"
-    const parts = orgString.split(' ');
-    const result = {
-      organization: parts[0], // "UKC", "AKC", "ASCA"
-      activity_type: parts.slice(1).join(' '), // "Obedience", "Scent Work", "FastCat"
-    };
-    
-    return result;
-  };
-
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
     const { time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds } = classEntry;
@@ -581,7 +597,7 @@ export const ClassList: React.FC = () => {
 
 
   // Function to set a dog's in-ring status
-  const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
+  const _setDogInRingStatus = async (dogId: number, inRing: boolean) => {
     try {
       const { error } = await supabase
         .from('results')
@@ -600,222 +616,8 @@ export const ClassList: React.FC = () => {
     }
   };
 
-  // Function to handle opening scoresheet for a specific dog
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDogScoresheet = async (dog: ClassEntry['dogs'][0], classEntry: ClassEntry) => {
-    // First, set the dog to in-ring status
-    console.log(`Setting dog ${dog.call_name} (ID: ${dog.id}) to in-ring status...`);
-    const success = await setDogInRingStatus(dog.id, true);
-    
-    if (!success) {
-      console.error('Failed to set dog in-ring status');
-      // Continue anyway - don't block scoresheet opening
-    } else {
-      console.log(`Successfully set dog ${dog.call_name} to in-ring status`);
-      // Refresh the class list to show updated status immediately
-      await loadClassList();
-    }
 
-    // Navigate to the appropriate scoresheet with specific dog
-    const orgData = parseOrganizationData(showContext?.org || '');
-    const competition_type = showContext?.competition_type || 'Regular';
-    const element = classEntry.element || '';
-    
-    console.log('Opening scoresheet for dog:', { 
-      dogId: dog.id,
-      armband: dog.armband,
-      callName: dog.call_name,
-      classId: classEntry.id,
-      className: classEntry.class_name,
-      orgString: showContext?.org || '',
-      organization: orgData.organization,
-      activity_type: orgData.activity_type,
-      element,
-      competition_type
-    });
-    
-    // Organization-based routing with specific dog ID
-    console.log('Route selection logic:', {
-      orgMatches: orgData.organization === 'AKC',
-      activityMatches: orgData.activity_type === 'Scent Work' || orgData.activity_type === 'ScentWork'
-    });
-
-    if (orgData.organization === 'AKC') {
-      console.log('✅ AKC route selected');
-      if (orgData.activity_type === 'Scent Work' || orgData.activity_type === 'ScentWork') {
-        console.log('✅ AKC Scent Work route selected');
-        const route = `/scoresheet/akc-scent-work/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else if (orgData.activity_type === 'FastCat' || orgData.activity_type === 'Fast Cat') {
-        console.log('✅ AKC FastCat route selected');
-        const route = `/scoresheet/akc-fastcat/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else {
-        console.log('✅ AKC default (Scent Work) route selected');
-        const route = `/scoresheet/akc-scent-work/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      }
-    } else if (orgData.organization === 'UKC') {
-      console.log('✅ UKC route selected');
-      if (orgData.activity_type === 'Obedience' || element === 'Obedience') {
-        const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else if (element === 'Rally' || orgData.activity_type === 'Rally') {
-        const route = `/scoresheet/ukc-rally/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else if (orgData.activity_type === 'Nosework') {
-        const route = `/scoresheet/asca-scent-detection/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else {
-        if (element === 'Obedience') {
-          const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
-          console.log('Navigating to:', route);
-          navigate(route);
-        } else {
-          const route = `/scoresheet/ukc-rally/${classEntry.id}/${dog.id}`;
-          console.log('Navigating to:', route);
-          navigate(route);
-        }
-      }
-    } else if (orgData.organization === 'ASCA') {
-      console.log('✅ ASCA route selected');
-      if (orgData.activity_type === 'ScentDetection' || orgData.activity_type.includes('Scent')) {
-        const route = `/scoresheet/asca-scent-detection/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else {
-        const route = `/scoresheet/asca-scent-detection/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      }
-    } else {
-      console.log('⚠️ Fallback route selected (unknown organization)');
-      // Default fallback
-      if (element === 'Obedience') {
-        const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else if (element === 'Rally') {
-        const route = `/scoresheet/ukc-rally/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      } else {
-        const route = `/scoresheet/ukc-obedience/${classEntry.id}/${dog.id}`;
-        console.log('Navigating to:', route);
-        navigate(route);
-      }
-    }
-  };
-
-  const _handleStartScoring = (classEntry: ClassEntry) => {
-    // Implement improved 4-tier scoresheet selection hierarchy
-    const orgData = parseOrganizationData(showContext?.org || '');
-    const competition_type = showContext?.competition_type || 'Regular'; // Regular, Regional, National
-    const _trial_type = ''; // Will come from tbl_trial_queue.trial_type when implemented
-    const element = classEntry.element || '';
-    const level = classEntry.level || '';
-    
-    console.log('Scoresheet selection:', { 
-      organization: orgData.organization,
-      activity_type: orgData.activity_type,
-      competition_type,
-      element,
-      level
-    });
-    
-    // Organization-based routing
-    if (orgData.organization === 'AKC') {
-      if (orgData.activity_type === 'Scent Work' || orgData.activity_type === 'ScentWork') {
-        // AKC Scent Work - could have National variant in future
-        navigate(`/scoresheet/akc-scent-work/${classEntry.id}/0`); // 0 means auto-select first entry
-      } else if (orgData.activity_type === 'FastCat' || orgData.activity_type === 'Fast Cat') {
-        navigate(`/scoresheet/akc-fastcat/${classEntry.id}/0`);
-      } else {
-        // Default AKC fallback
-        navigate(`/scoresheet/akc-scent-work/${classEntry.id}/0`);
-      }
-    } else if (orgData.organization === 'UKC') {
-      if (orgData.activity_type === 'Obedience' || element === 'Obedience') {
-        navigate(`/scoresheet/ukc-obedience/${classEntry.id}/0`);
-      } else if (element === 'Rally' || orgData.activity_type === 'Rally') {
-        navigate(`/scoresheet/ukc-rally/${classEntry.id}/0`);
-      } else if (orgData.activity_type === 'Nosework') {
-        // UKC Nosework - using ASCA for now as placeholder
-        navigate(`/scoresheet/asca-scent-detection/${classEntry.id}/0`);
-      } else {
-        // Default UKC fallback based on element
-        if (element === 'Obedience') {
-          navigate(`/scoresheet/ukc-obedience/${classEntry.id}/0`);
-        } else {
-          navigate(`/scoresheet/ukc-rally/${classEntry.id}/0`);
-        }
-      }
-    } else if (orgData.organization === 'ASCA') {
-      if (orgData.activity_type === 'ScentDetection' || orgData.activity_type.includes('Scent')) {
-        navigate(`/scoresheet/asca-scent-detection/${classEntry.id}/0`);
-      } else {
-        navigate(`/scoresheet/asca-scent-detection/${classEntry.id}/0`);
-      }
-    } else {
-      // Default fallback - try to infer from element
-      if (element === 'Obedience') {
-        navigate(`/scoresheet/ukc-obedience/${classEntry.id}/0`);
-      } else if (element === 'Rally') {
-        navigate(`/scoresheet/ukc-rally/${classEntry.id}/0`);
-      } else {
-        // Ultimate fallback
-        navigate(`/scoresheet/ukc-obedience/${classEntry.id}/0`);
-      }
-    }
-  };
-
-  // No longer need integer mapping - using text directly!
-
-  // Helper function to get time input from user
-  const _getTimeInput = (statusType: string): string | null => {
-    const now = new Date();
-    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-
-    let promptMessage = '';
-    let defaultValue = currentTime;
-
-    switch (statusType) {
-      case 'start_time':
-        promptMessage = 'Enter the start time for this class (HH:MM):';
-        break;
-      case 'briefing':
-        promptMessage = 'Enter the briefing time for this class (HH:MM):';
-        break;
-      case 'break':
-        // For break, default to 15 minutes from now
-        {
-        const breakEnd = new Date(now.getTime() + 15 * 60000);
-        defaultValue = breakEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        promptMessage = 'Enter when the break ends (HH:MM):';
-        }
-        break;
-    }
-
-    const timeInput = prompt(promptMessage, defaultValue);
-
-    // Validate time format (HH:MM)
-    if (timeInput && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeInput)) {
-      return timeInput;
-    } else if (timeInput !== null) {
-      alert('Invalid time format. Please use HH:MM format.');
-      return null;
-    }
-
-    return timeInput; // null if cancelled
-  };
-
-  // New function for handling status changes with inline time inputs
+  // Function for handling status changes with inline time inputs
   const handleClassStatusChangeWithTime = async (classId: number, status: ClassEntry['class_status'], timeValue: string) => {
     console.log('🕐 Status change with time:', { classId, status, timeValue });
 
@@ -1010,17 +812,17 @@ export const ClassList: React.FC = () => {
         case 'briefing':
           return {
             label: 'Briefing',
-            time: classEntry.briefing_time
+            time: classEntry.briefing_time ?? null
           };
         case 'break':
           return {
             label: 'Break Until',
-            time: classEntry.break_until
+            time: classEntry.break_until ?? null
           };
         case 'start_time':
           return {
             label: 'Start Time',
-            time: classEntry.start_time
+            time: classEntry.start_time ?? null
           };
         case 'setup':
           return { label: 'Setup', time: null };
@@ -1082,86 +884,7 @@ export const ClassList: React.FC = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getDogStatusIcon = (dog: ClassEntry['dogs'][0]) => {
-    if (dog.is_scored) return '♦'; // Diamond for DONE (scored)
-    if (dog.in_ring) return '▶'; // Play icon for IN RING
-    if (dog.checkin_status === 4) return '★'; // Star for AT GATE
-    if (dog.checkin_status === 1) return '✓'; // Checkmark for READY (checked in)
-    if (dog.checkin_status === 2) return '!'; // Exclamation for CONFLICT
-    if (dog.checkin_status === 3) return '✕'; // X mark for PULLED
-    return '●'; // Circle for NOT CHECKED IN
-  };
-
-  const _getDogStatusText = (dog: ClassEntry['dogs'][0]) => {
-    if (dog.is_scored) return 'Completed';
-    if (dog.in_ring) return 'In Ring';
-    if (dog.checkin_status === 4) return 'At Gate';
-    if (dog.checkin_status === 1) return 'Checked-in';
-    if (dog.checkin_status === 2) return 'Conflict';
-    if (dog.checkin_status === 3) return 'Pulled';
-    return 'Not Checked-in';
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getDogStatusColor = (dog: ClassEntry['dogs'][0]) => {
-    if (dog.is_scored) return 'completed';
-    if (dog.in_ring) return 'in-ring';
-    if (dog.checkin_status === 4) return 'at-gate';
-    if (dog.checkin_status === 1) return 'checked-in';
-    if (dog.checkin_status === 2) return 'conflict';
-    if (dog.checkin_status === 3) return 'pulled';
-    return 'not-checked-in';
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getDogStatusCounts = (dogs: ClassEntry['dogs']) => {
-    const counts = {
-      all: dogs.length,
-      pending: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 0).length,
-      checkedin: dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1).length,
-      active: dogs.filter(dog => dog.in_ring || dog.checkin_status === 4).length,
-      completed: dogs.filter(dog => dog.is_scored).length,
-    };
-    return counts;
-  };
-
-  // Smart contextual preview helper functions - MANUAL STATUS WINS
-  const getClassDisplayStatus = (classEntry: ClassEntry): 'not-started' | 'in-progress' | 'completed' => {
-    // PRIORITY 1: Check is_completed field (set automatically when all entries scored)
-    if (classEntry.is_completed === true) {
-      return 'completed';
-    }
-
-    // PRIORITY 2: Manual class_status always wins (for run order only usage)
-    if (classEntry.class_status === 'completed') {
-      return 'completed';
-    }
-    if (classEntry.class_status === 'in_progress') {
-      return 'in-progress';
-    }
-
-    // PRIORITY 3: Only use automatic detection if class_status is 'none' or other basic statuses
-    if (classEntry.class_status === 'none' ||
-        classEntry.class_status === 'setup' ||
-        classEntry.class_status === 'briefing' ||
-        classEntry.class_status === 'break' ||
-        classEntry.class_status === 'start_time') {
-
-      // A class is completed when all dogs are scored
-      const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
-      if (isCompleted) {
-        return 'completed';
-      }
-      // A class is in progress if it has dogs in the ring or some scored
-      if (classEntry.dogs.some(dog => dog.in_ring) || classEntry.completed_count > 0) {
-        return 'in-progress';
-      }
-    }
-
-    return 'not-started';
-  };
-
+  // Smart contextual preview helper function
   const getContextualPreview = (classEntry: ClassEntry): string => {
     const status = getClassDisplayStatus(classEntry);
     
@@ -1202,59 +925,9 @@ export const ClassList: React.FC = () => {
     }
   };
 
-  const getFilteredDogs = (dogs: ClassEntry['dogs'], statusFilter: string) => {
-    switch (statusFilter) {
-      case 'pending':
-        return dogs.filter(dog => !dog.is_scored && dog.checkin_status === 0);
-      case 'checkedin':
-        return dogs.filter(dog => !dog.is_scored && dog.checkin_status === 1);
-      case 'active':
-        return dogs.filter(dog => dog.in_ring || dog.checkin_status === 4);
-      case 'completed':
-        return dogs.filter(dog => dog.is_scored);
-      default:
-        return dogs;
-    }
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getVisibleDogs = (dogs: ClassEntry['dogs'], classId: number) => {
-    const isExpanded = expandedClasses.has(classId);
-    const statusFilter = dogStatusFilters.get(classId) || 'all';
-    const filteredDogs = getFilteredDogs(dogs, statusFilter);
-    
-    if (isExpanded) return filteredDogs;
-    
-    // Show first 9 dogs in 3x3 grid for mobile-first compact design
-    return filteredDogs.slice(0, 9);
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const toggleClassExpansion = (classId: number) => {
-    hapticFeedback.impact('light');
-    setExpandedClasses(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(classId)) {
-        newSet.delete(classId);
-      } else {
-        newSet.add(classId);
-      }
-      return newSet;
-    });
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDogStatusFilter = (classId: number, statusFilter: string) => {
-    hapticFeedback.impact('light');
-    setDogStatusFilters(prev => {
-      const newMap = new Map(prev);
-      newMap.set(classId, statusFilter);
-      return newMap;
-    });
-  };
-
   // Search and sort functionality
-  const getFilteredAndSortedClasses = () => {
+  // Memoized filtered and sorted classes for performance optimization
+  const filteredClasses = useMemo(() => {
     const filtered = classes.filter(classEntry => {
       // Use the same logic as getClassDisplayStatus to respect manual status
       const displayStatus = getClassDisplayStatus(classEntry);
@@ -1344,9 +1017,7 @@ export const ClassList: React.FC = () => {
     });
 
     return filtered;
-  };
-
-  const filteredClasses = getFilteredAndSortedClasses();
+  }, [classes, combinedFilter, searchTerm, sortOrder]);
 
   if (isLoading) {
     return (
@@ -1381,7 +1052,7 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className="class-list-container app-container">
+    <div className={`class-list-container app-container ${isLoaded ? 'loaded' : ''}`}>
       {/* Enhanced Header with Trial Info */}
       <header className="class-list-header">
         <HamburgerMenu
@@ -1397,9 +1068,11 @@ export const ClassList: React.FC = () => {
           <div className="trial-subtitle">
             <div className="trial-info-row">
               <div className="trial-details-group">
-                <span className="trial-detail">
-                  <Calendar size={14} /> {formatTrialDate(trialInfo.trial_date, trialInfo.trial_number).split(' • ')[0]}
-                </span>
+                <TrialDateBadge
+                  date={trialInfo.trial_date}
+                  trialNumber={trialInfo.trial_number}
+                  dateOnly={true}
+                />
                 <span className="trial-detail">
                   <Target size={14} /> Trial {trialInfo.trial_number}
                 </span>
@@ -1422,252 +1095,39 @@ export const ClassList: React.FC = () => {
       <HeaderTicker />
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
-      {/* Search and Sort Header */}
-      <div className="search-controls-header">
-        <button
-          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
-          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
-          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </button>
-
-        <span className="search-controls-label">
-          {searchTerm ? `Found ${filteredClasses.length} of ${classes.length} classes` : 'Search & Sort'}
-        </span>
-      </div>
-
-      {/* Search Results Summary */}
-      {searchTerm && (
-        <div className="search-results-header">
-          <div className="search-results-summary">
-            {filteredClasses.length} of {classes.length} classes
-          </div>
-        </div>
-      )}
-
-      {/* Collapsible Search and Sort Container */}
-      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
-        <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
-          <input
-            type="text"
-            placeholder="Search class name, element, level, judge..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input-full"
-          />
-          {searchTerm && (
-            <button
-              className="clear-search-btn"
-              onClick={() => setSearchTerm('')}
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        <div className="sort-controls">
-          <button
-            className={`sort-btn ${sortOrder === 'class_order' ? 'active' : ''}`}
-            onClick={() => setSortOrder('class_order')}
-          >
-            <ArrowUpDown size={16} />
-            Class Order
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'element_level' ? 'active' : ''}`}
-            onClick={() => setSortOrder('element_level')}
-          >
-            <ArrowUpDown size={16} />
-            Element
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'level_element' ? 'active' : ''}`}
-            onClick={() => setSortOrder('level_element')}
-          >
-            <ArrowUpDown size={16} />
-            Level
-          </button>
-        </div>
-      </div>
-
-      {/* Combined Class Filter Tabs */}
-      <div className="status-tabs">
-        <button
-          className={`tab-button ${combinedFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setCombinedFilter('pending');
-          }}
-        >
-          <Clock className="tab-icon" />
-          <span className="tab-text">
-            Pending ({classes.filter(c => getClassDisplayStatus(c) !== 'completed').length})
-          </span>
-        </button>
-        <button
-          className={`tab-button ${combinedFilter === 'favorites' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setCombinedFilter('favorites');
-          }}
-        >
-          <Heart className="tab-icon" />
-          <span className="tab-text">
-            Favorites ({classes.filter(c => c.is_favorite).length})
-          </span>
-        </button>
-        <button
-          className={`tab-button ${combinedFilter === 'completed' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.impact('light');
-            setCombinedFilter('completed');
-          }}
-        >
-          <CheckCircle className="tab-icon" />
-          <span className="tab-text">
-            Completed ({classes.filter(c => getClassDisplayStatus(c) === 'completed').length})
-          </span>
-        </button>
-      </div>
+      {/* Search, Sort, and Filter Controls */}
+      <ClassFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        combinedFilter={combinedFilter}
+        setCombinedFilter={setCombinedFilter}
+        isSearchCollapsed={isSearchCollapsed}
+        setIsSearchCollapsed={setIsSearchCollapsed}
+        classes={classes}
+        filteredClasses={filteredClasses}
+        hapticFeedback={hapticFeedback}
+      />
 
       {/* Enhanced Classes List Section */}
       <div className="class-list">
-        {filteredClasses.map((classEntry) => {
-          const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
-          const _isInProgress = classEntry.class_status === 'in_progress';
-          return (
-            <div
-              key={classEntry.id}
-              className={`class-card status-${classEntry.class_status.replace('_', '-')}`}
-              onClick={(e) => {
-                console.log('🔵 Class card clicked', e.target, e.currentTarget);
-                handleViewEntries(classEntry);
-              }}
-            >
-              <div className="class-content">
-                <div className="class-header">
-                  {/* Row 1: Class Title + Status Badge */}
-                  <div className="class-header-row class-title-row">
-                    <h3 className="class-name">{classEntry.class_name}</h3>
-
-                    {/* Status Badge - Row 1 Right Side */}
-                    {hasPermission('canManageClasses') ? (
-                      <div
-                        className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
-                        style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-
-                          setSelectedClassForStatus(classEntry);
-                          setStatusDialogOpen(true);
-                        }}
-                      >
-                        {(() => {
-                          const formattedStatus = getFormattedStatus(classEntry);
-                          return (
-                            <div className="status-badge-content">
-                              <span className="status-text">{formattedStatus.label}</span>
-                              {formattedStatus.time && (
-                                <span className="status-time">{formattedStatus.time}</span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    ) : (
-                      <div className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)}`}>
-                        {(() => {
-                          const formattedStatus = getFormattedStatus(classEntry);
-                          return (
-                            <div className="status-badge-content">
-                              <span className="status-text">{formattedStatus.label}</span>
-                              {formattedStatus.time && (
-                                <span className="status-time">{formattedStatus.time}</span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Row 2: Judge + Favorite Button + Menu Button */}
-                  <div className="class-header-row class-actions-row">
-                    <p className="class-judge">Judge: {classEntry.judge_name}</p>
-
-                    <div className="class-actions">
-                      <button
-                        type="button"
-                        className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
-                        onClick={(e) => {
-                          console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
-                          e.preventDefault();
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                          toggleFavorite(classEntry.id);
-                          return false;
-                        }}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onTouchStart={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        style={{ zIndex: 15 }} // Inline style to ensure it's on top
-                      >
-                        <Heart className="favorite-icon" />
-                      </button>
-
-                      {/* 3-Dot Menu in Row 2 */}
-                      <button
-                        className="menu-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
-                        }}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Condensed Preview - Single Line for Better Space Utilization */}
-                <div className="class-preview-section">
-                  {classEntry.dogs.length > 0 ? (
-                    <div className="contextual-preview-condensed">
-                      {(() => {
-                        const preview = getContextualPreview(classEntry);
-                        // Condense multiline preview to single line
-                        return preview.replace(/\n/g, ' • ');
-                      })()}
-                    </div>
-                  ) : (
-                    <div className="no-entries">
-                      <Users className="no-entries-icon" />
-                      <p>No entries yet</p>
-                      <p className="no-entries-subtitle">
-                        Dogs will appear when registered
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            </div>
-          );
-        })}
+        {filteredClasses.map((classEntry) => (
+          <ClassCard
+            key={classEntry.id}
+            classEntry={classEntry}
+            hasPermission={hasPermission}
+            toggleFavorite={toggleFavorite}
+            handleViewEntries={handleViewEntries}
+            setActivePopup={setActivePopup}
+            setSelectedClassForStatus={setSelectedClassForStatus}
+            setStatusDialogOpen={setStatusDialogOpen}
+            activePopup={activePopup}
+            getStatusColor={getStatusColor}
+            getFormattedStatus={getFormattedStatus}
+            getContextualPreview={getContextualPreview}
+          />
+        ))}
       </div>
 
 
@@ -1734,6 +1194,35 @@ export const ClassList: React.FC = () => {
                 >
                   <span className="menu-icon">📈</span>
                   <span className="menu-label">Statistics</span>
+                </button>
+
+                {/* Divider */}
+                <div className="menu-divider"></div>
+
+                {/* Print Reports */}
+                <button
+                  className="menu-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (activePopup !== null) {
+                      handleGenerateCheckIn(activePopup);
+                    }
+                  }}
+                >
+                  <span className="menu-icon">📄</span>
+                  <span className="menu-label">Check-In Sheet</span>
+                </button>
+                <button
+                  className="menu-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (activePopup !== null) {
+                      handleGenerateResults(activePopup);
+                    }
+                  }}
+                >
+                  <span className="menu-icon">📊</span>
+                  <span className="menu-label">Results Sheet</span>
                 </button>
               </div>
             </div>

@@ -27,6 +27,12 @@ interface TimeRange {
   areas: number;
 }
 
+interface ClassRequirements {
+  has_30_second_warning?: boolean;
+  time_type?: 'fixed' | 'range' | 'dictated';
+  warning_notes?: string;
+}
+
 export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
   isOpen,
   onClose,
@@ -38,6 +44,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange | null>(null);
+  const [requirements, setRequirements] = useState<ClassRequirements | null>(null);
   const [times, setTimes] = useState<string[]>(['', '', '']);
   const [errors, setErrors] = useState<string[]>(['', '', '']);
   const [isDictatedTime, setIsDictatedTime] = useState(false);
@@ -119,6 +126,13 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
       }
 
       if (requirementsData) {
+        // Store requirements for warning display
+        setRequirements({
+          has_30_second_warning: requirementsData.has_30_second_warning,
+          time_type: requirementsData.time_type,
+          warning_notes: requirementsData.warning_notes
+        });
+
         // Parse time range from time_limit_text (e.g., "1 - 3 minutes", "4 minutes")
         const timeText = requirementsData.time_limit_text || '';
         const range = parseTimeRange(timeText);
@@ -592,6 +606,13 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
                     <AlertCircle className="notice-icon" />
                     <p>This class has a fixed max time set by the organization rules.</p>
                   </div>
+                  {/* Master Class Warning for Fixed Time */}
+                  {requirements?.has_30_second_warning === false && (
+                    <div className="dictated-notice">
+                      <AlertCircle className="notice-icon" />
+                      <p><strong>Note:</strong> {requirements.warning_notes || 'This class does not receive a 30-second warning.'}</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="time-inputs-grid">
@@ -676,6 +697,14 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
                   <p>• Type <strong>2:45</strong> for 2 minutes 45 seconds</p>
                   <p>• Use preset buttons for quick time selection</p>
                   <p>Time must be between {timeRange.min} - {timeRange.max} minutes for this class</p>
+                </div>
+              )}
+
+              {/* Master Class Warning - Use database field */}
+              {!isDictatedTime && requirements?.has_30_second_warning === false && (
+                <div className="dictated-notice">
+                  <AlertCircle className="notice-icon" />
+                  <p><strong>Note:</strong> {requirements.warning_notes || 'This class does not receive a 30-second warning.'}</p>
                 </div>
               )}
             </>

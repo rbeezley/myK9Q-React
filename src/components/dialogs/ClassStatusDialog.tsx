@@ -37,7 +37,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       label: 'Setup',
       icon: Settings,
       description: 'Preparing the ring and equipment',
-      color: '#6b7280',
+      colorVar: '--status-setup',
       needsTime: false
     },
     {
@@ -45,7 +45,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       label: 'Briefing',
       icon: Calendar,
       description: 'Judge briefing exhibitors',
-      color: '#3b82f6',
+      colorVar: '--status-briefing',
       needsTime: true,
       timeLabel: 'Briefing time',
       timePlaceholder: '10:00 AM',
@@ -56,7 +56,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       label: 'Break',
       icon: Coffee,
       description: 'Class is on break',
-      color: '#f59e0b',
+      colorVar: '--status-break',
       needsTime: true,
       timeLabel: 'Break until',
       timePlaceholder: '2:30 PM',
@@ -67,7 +67,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       label: 'Start Time',
       icon: Clock,
       description: 'Set class start time',
-      color: '#06b6d4',
+      colorVar: '--status-start-time',
       needsTime: true,
       timeLabel: 'Start time',
       timePlaceholder: '1:00 PM',
@@ -78,7 +78,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       label: 'In Progress',
       icon: Play,
       description: 'Class is actively running',
-      color: '#3b82f6',
+      colorVar: '--status-in-progress',
       needsTime: false
     },
     {
@@ -86,12 +86,21 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       label: 'Completed',
       icon: CheckCircle,
       description: 'Class has finished',
-      color: '#8b5cf6',
+      colorVar: '--status-completed',
       needsTime: false
     }
   ];
 
   // Initialize time value when status is selected
+  const getCurrentTime = (): string => {
+    const now = new Date();
+    return now.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   useEffect(() => {
     if (selectedStatus && isOpen) {
       const status = statusOptions.find(s => s.id === selectedStatus);
@@ -99,6 +108,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
         // Check if there's an existing time for this status
         const existingTime = classData[status.timeField as keyof typeof classData] as string | undefined;
         if (existingTime) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setTimeValue(existingTime);
           setIsFirstEdit(false); // Don't clear if there's an existing time
         } else {
@@ -134,15 +144,6 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
   const handleCancel = () => {
     setSelectedStatus(null);
     setTimeValue('');
-  };
-
-  const getCurrentTime = (): string => {
-    const now = new Date();
-    return now.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
   };
 
   const addMinutes = (minutes: number) => {
@@ -409,7 +410,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
                     onClick={() => handleStatusSelect(status.id)}
                     role="button"
                     tabIndex={0}
-                    style={{ '--status-color': status.color } as React.CSSProperties}
+                    style={{ '--status-color': `var(${status.colorVar})` } as React.CSSProperties}
                   >
                     <div className="status-icon">
                       <IconComponent className="h-5 w-5" />

@@ -67,18 +67,18 @@
   color: #22C55E;
 }
 
-/* Warning - Absent */
+/* Warning - Absent/Withdrawn (Purple to match entry card badges) */
 .choice-chip.warning.selected {
-  background: #F59E0B;
+  background: #9333EA;
   color: white;
-  border-color: #D97706;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  border-color: #7E22CE;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
 }
 
 .choice-chip.warning:hover:not(.selected) {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #F59E0B;
+  background: rgba(147, 51, 234, 0.2);
+  border-color: rgba(147, 51, 234, 0.4);
+  color: #9333EA;
 }
 
 /* Danger - Excused */
@@ -113,13 +113,13 @@
 
 [data-theme="light"] .choice-chip {
   background: rgba(248, 250, 252, 0.9);
-  color: #374151;
+  color: var(--token-text-secondary);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="light"] .choice-chip:hover:not(.selected) {
   background: rgba(255, 255, 255, 1);
-  color: #111827;
+  color: var(--foreground);
 }
 
 [data-theme="light"] .choice-chip.success.selected {
@@ -129,9 +129,9 @@
 }
 
 [data-theme="light"] .choice-chip.warning.selected {
-  background: #F59E0B;
+  background: #9333EA;
   color: white;
-  border-color: #D97706;
+  border-color: #7E22CE;
 }
 
 [data-theme="light"] .choice-chip.danger.selected {
@@ -143,7 +143,7 @@
 /* Fault Counter Section */
 .fault-counter-section {
   flex-direction: column;
-  text-align: center;
+  align-items: center;
 }
 
 .fault-counter-section h3 {
@@ -151,6 +151,8 @@
   color: rgba(255, 255, 255, 0.9);
   font-size: 16px;
   font-weight: 600;
+  width: 100%;
+  text-align: center !important;
 }
 
 .fault-counter {
@@ -248,23 +250,24 @@
 
 [data-theme="light"] .fault-counter-section h3,
 [data-theme="light"] .reason-selection h3 {
-  color: #374151;
+  color: var(--token-text-secondary);
+  text-align: center;
 }
 
 [data-theme="light"] .fault-btn-counter {
   background: rgba(248, 250, 252, 0.9);
-  color: #374151;
+  color: var(--token-text-secondary);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="light"] .fault-btn-counter:hover:not(:disabled) {
   background: rgba(255, 255, 255, 1);
-  color: #111827;
+  color: var(--foreground);
   border-color: rgba(0, 0, 0, 0.25);
 }
 
 [data-theme="light"] .fault-count-display {
-  color: #111827;
+  color: var(--foreground);
 }
 
 [data-theme="light"] .choice-chip.primary,

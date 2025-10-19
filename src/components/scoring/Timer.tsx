@@ -73,7 +73,29 @@ export const Timer: React.FC<TimerProps> = ({
       }
     };
   }, [area?.isRunning, area?.elapsedTime, area?.startTime, timerId]);
-  
+
+  const playTimeExpiredAlert = () => {
+    // Create audio context and play beep sound
+    if (typeof window !== 'undefined' && window.AudioContext) {
+      const audioContext = new AudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.type = 'square';
+
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+  };
+
   // Audio alert when max time exceeded
   useEffect(() => {
     if (area && maxTime && hasExceededMaxTime(timerId) && !alertPlayed.has(timerId)) {
@@ -91,28 +113,6 @@ export const Timer: React.FC<TimerProps> = ({
       onTimeUpdate(formattedTime);
     }
   }, [area, onTimeUpdate, getFormattedTime]);
-  
-  const playTimeExpiredAlert = () => {
-    // Create audio context and play beep sound
-    if (typeof window !== 'undefined' && window.AudioContext) {
-      const audioContext = new AudioContext();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.type = 'square';
-      
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.5);
-    }
-  };
   
   const handleStart = () => {
     if (area?.isPaused) {

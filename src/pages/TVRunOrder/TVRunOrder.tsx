@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { HeaderTicker, HamburgerMenu } from '../../components/ui';
-import { useTVData } from '../TVDashboard/hooks/useTVData';
+import { useTVData } from './hooks/useTVData';
 import { ClassRunOrder } from './components/ClassRunOrder';
 import './TVRunOrder.css';
 
@@ -21,10 +21,15 @@ export const TVRunOrder: React.FC = () => {
     pollingInterval: 30000
   });
 
+  // Reset page when class count changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentPage(0);
+  }, [inProgressClasses.length]);
+
   // Auto-rotation if more than 4 classes in progress
   useEffect(() => {
     if (inProgressClasses.length <= 4) {
-      setCurrentPage(0);
       return;
     }
 
@@ -77,8 +82,8 @@ export const TVRunOrder: React.FC = () => {
           </div>
         </div>
         <div className="tv-runorder-empty">
-          <h1>No Classes Currently In Progress</h1>
-          <p>The run order will appear here when classes begin.</p>
+          <h1>No Classes Available</h1>
+          <p>Classes will appear here when they are about to start or in progress.</p>
         </div>
       </div>
     );

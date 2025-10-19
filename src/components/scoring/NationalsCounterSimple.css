@@ -182,7 +182,7 @@
 }
 
 [data-theme="light"] .counter-label {
-  color: #374151;
+  color: var(--token-text-secondary);
 }
 
 [data-theme="light"] .counter-btn.decrement {

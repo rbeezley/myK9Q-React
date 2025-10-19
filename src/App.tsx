@@ -20,11 +20,9 @@ const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(mo
 const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
 const CombinedEntryList = React.lazy(() => import('./pages/EntryList/CombinedEntryList').then(module => ({ default: module.CombinedEntryList })));
 const Announcements = React.lazy(() => import('./pages/Announcements/Announcements').then(module => ({ default: module.Announcements })));
-const TVDashboard = React.lazy(() => import('./pages/TVDashboard/TVDashboard').then(module => ({ default: module.TVDashboard })));
 const TVRunOrder = React.lazy(() => import('./pages/TVRunOrder/TVRunOrder').then(module => ({ default: module.TVRunOrder })));
 const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));
 const StatusPopupDemo = React.lazy(() => import('./demo/StatusPopupDemo'));
-const TestClassProgressCards = React.lazy(() => import('./pages/TestClassProgressCards').then(module => ({ default: module.TestClassProgressCards })));
 
 // Lazy load scoresheets (grouped by organization for better chunking)
 const UKCObedienceScoresheet = React.lazy(() => 
@@ -68,14 +66,6 @@ function App() {
         <AuthProvider>
           <Routes>
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/test-cards"
-            element={
-              <Suspense fallback={<PageLoader message="Loading test cards..." />}>
-                <TestClassProgressCards />
-              </Suspense>
-            }
-          />
           <Route 
             path="/home" 
             element={
@@ -226,15 +216,7 @@ function App() {
           <Route
             path="/tv/:licenseKey"
             element={
-              <Suspense fallback={<PageLoader message="Loading TV Dashboard..." />}>
-                <TVDashboard />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/tv-runorder/:licenseKey"
-            element={
-              <Suspense fallback={<PageLoader message="Loading Run Order..." />}>
+              <Suspense fallback={<PageLoader message="Loading TV Display..." />}>
                 <TVRunOrder />
               </Suspense>
             }

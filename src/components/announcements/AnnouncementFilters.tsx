@@ -1,7 +1,7 @@
 import React from 'react';
 import { Filter, RotateCcw } from 'lucide-react';
 
-interface AnnouncementFilters {
+export interface AnnouncementFilterState {
   priority?: 'normal' | 'high' | 'urgent';
   author_role?: 'admin' | 'judge' | 'steward';
   searchTerm?: string;
@@ -9,8 +9,8 @@ interface AnnouncementFilters {
 }
 
 interface AnnouncementFiltersProps {
-  filters: AnnouncementFilters;
-  onFiltersChange: (filters: Partial<AnnouncementFilters>) => void;
+  filters: AnnouncementFilterState;
+  onFiltersChange: (filters: Partial<AnnouncementFilterState>) => void;
   onClearFilters: () => void;
 }
 
@@ -20,7 +20,7 @@ export const AnnouncementFilters: React.FC<AnnouncementFiltersProps> = ({
   onClearFilters
 }) => {
   const hasActiveFilters = Object.keys(filters).some(
-    key => key !== 'searchTerm' && filters[key as keyof AnnouncementFilters]
+    key => key !== 'searchTerm' && filters[key as keyof AnnouncementFilterState]
   );
 
   return (

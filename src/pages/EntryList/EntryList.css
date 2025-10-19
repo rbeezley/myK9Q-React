@@ -29,20 +29,20 @@
   --error: #FF3B30;
   
   /* High contrast status colors using design tokens */
-  --success-contrast: var(--token-success-contrast, #047857);
+  --success-contrast: var(--token-success-contrast, #10b981);
   --warning-contrast: var(--token-warning-contrast, #c2410c);
   --error-contrast: var(--token-error-contrast, #dc2626);
   
   /* Comprehensive status colors - now using design tokens with fallbacks */
   --status-not-checked-in: var(--token-status-none, #6b7280);
   --status-not-checked-in-bg: var(--token-status-none-bg, #f3f4f6);
-  --status-checked-in: var(--token-status-checked-in, #065f46);
+  --status-checked-in: var(--token-status-checked-in, #10b981);
   --status-checked-in-bg: var(--token-status-checked-in-bg, #d1fae5);
-  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate: var(--token-status-at-gate, #8b5cf6);
   --status-at-gate-bg: var(--token-status-at-gate-bg, #ccfbf1);
   --status-in-ring: var(--token-status-in-ring, #f97316);
   --status-in-ring-bg: var(--token-status-in-ring-bg, #fed7aa);
-  --status-conflict: var(--token-status-conflict, #f59e0b);
+  --status-conflict: var(--token-status-conflict, #fef3c7);
   --status-conflict-bg: var(--token-status-conflict-bg, #fef3c7);
   --status-pulled: var(--token-status-pulled, #ef4444);
   --status-pulled-bg: var(--token-status-pulled-bg, #fecaca);
@@ -77,19 +77,19 @@
   
   /* High contrast status colors for dark mode using design tokens */
   --success-contrast: var(--token-success-contrast, #10b981);
-  --warning-contrast: var(--token-warning-contrast, #f59e0b);
+  --warning-contrast: var(--token-warning-contrast, #fef3c7);
   --error-contrast: var(--token-error-contrast, #ef4444);
   
   /* Comprehensive status colors - dark mode using design tokens */
   --status-not-checked-in: var(--token-status-none, #9ca3af);
   --status-not-checked-in-bg: var(--token-status-none-bg, #374151);
-  --status-checked-in: var(--token-status-checked-in, #047857);
+  --status-checked-in: var(--token-status-checked-in, #10b981);
   --status-checked-in-bg: var(--token-status-checked-in-bg, #064e3b);
-  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate: var(--token-status-at-gate, #8b5cf6);
   --status-at-gate-bg: var(--token-status-at-gate-bg, #134e4a);
-  --status-in-ring: var(--token-status-in-ring, #fb923c);
+  --status-in-ring: var(--token-status-in-ring, #14b8a6);
   --status-in-ring-bg: var(--token-status-in-ring-bg, #9a3412);
-  --status-conflict: var(--token-status-conflict, #fbbf24);
+  --status-conflict: var(--token-status-conflict, #3b82f6);
   --status-conflict-bg: var(--token-status-conflict-bg, #92400e);
   --status-pulled: var(--token-status-pulled, #f87171);
   --status-pulled-bg: var(--token-status-pulled-bg, #991b1b);
@@ -167,36 +167,61 @@
   margin-top: 0.125rem;
 }
 
-/* Icon button (refresh button) */
-.icon-button {
-  background: var(--secondary);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  cursor: pointer;
+/* Header buttons container */
+.header-buttons {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  gap: 0.5rem;
+}
+
+/* Print dropdown */
+.print-dropdown-container {
+  position: relative;
+}
+
+.print-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .print-dropdown-menu {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.print-menu-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
   color: var(--foreground);
-  min-width: 44px;
-  min-height: 44px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.icon-button:hover:not(:disabled) {
+.print-menu-item:hover:not(:disabled) {
   background: var(--muted);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.icon-button:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.icon-button:disabled {
+.print-menu-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
+}
+
+.print-menu-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
 }
 
 .rotating {
@@ -265,6 +290,52 @@
   font-weight: 600;
   line-height: 1.2;
   color: var(--foreground);
+}
+
+.class-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Status badges */
+.class-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-in-progress {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.status-briefing {
+  background: linear-gradient(135deg, #fef3c7 0%, #d97706 100%);
+  color: white;
+}
+
+.status-starts {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.status-upcoming {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
 }
 
 .class-subtitle {
@@ -898,6 +969,32 @@
   font-weight: 600;
 }
 
+/* Time Limits Display */
+.trial-detail.time-limits {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.time-limit-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="light"] .time-limit-badge {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
 /* Content Area */
 .entry-list-content {
   padding: 1.5rem;
@@ -1232,12 +1329,12 @@
 
 /* Light mode override to ensure visibility */
 :root .dog-name {
-  color: #000000 !important;
+  color: var(--token-text-primary) !important;
 }
 
 /* Dark mode override with higher specificity */
 [data-theme="dark"] .dog-name {
-  color: #ffffff !important;
+  color: var(--token-text-white) !important;
 }
 
 .breed,
@@ -1308,7 +1405,7 @@
 
 .result-badge-mobile.qualified,
 .result-badge-mobile.q {
-  background: var(--success-contrast, #047857);
+  background: var(--success-contrast, #10b981);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -1319,8 +1416,23 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.result-badge-mobile.abs {
-  background: var(--text-tertiary, #6b7280);
+.result-badge-mobile.abs,
+.result-badge-mobile.absent {
+  background: var(--token-result-absent);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.result-badge-mobile.ex,
+.result-badge-mobile.excused {
+  background: var(--error-contrast, #dc2626);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.result-badge-mobile.wd,
+.result-badge-mobile.withdrawn {
+  background: var(--token-result-withdrawn);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -1344,12 +1456,12 @@
 
 /* Light mode override to ensure visibility */
 :root .breed {
-  color: #374151 !important;
+  color: var(--token-text-secondary) !important;
 }
 
 /* Dark mode override with higher specificity */
 [data-theme="dark"] .breed {
-  color: #ffffff !important;
+  color: var(--token-text-white) !important;
 }
 
 .handler-info {
@@ -1372,12 +1484,12 @@
 
 /* Light mode override to ensure visibility */
 :root .handler {
-  color: #374151 !important;
+  color: var(--token-text-secondary) !important;
 }
 
 /* Dark mode override with higher specificity */
 [data-theme="dark"] .handler {
-  color: #ffffff !important;
+  color: var(--token-text-white) !important;
 }
 
 /* Compact inline results for completed entries */
@@ -1406,12 +1518,12 @@
 }
 
 .result-badge.qualified {
-  background: var(--success-contrast, #047857);
+  background: var(--success-contrast, #10b981);
   color: white;
 }
 
 .result-badge.q {
-  background: var(--success-contrast, #047857);
+  background: var(--success-contrast, #10b981);
   color: white;
 }
 
@@ -1420,8 +1532,21 @@
   color: white;
 }
 
-.result-badge.abs {
-  background: var(--text-tertiary, #6b7280);
+.result-badge.abs,
+.result-badge.absent {
+  background: var(--token-result-absent);
+  color: white;
+}
+
+.result-badge.ex,
+.result-badge.excused {
+  background: var(--error-contrast, #dc2626);
+  color: white;
+}
+
+.result-badge.wd,
+.result-badge.withdrawn {
+  background: var(--token-result-withdrawn);
   color: white;
 }
 
@@ -1455,7 +1580,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.625rem;
-  background: var(--warning, #f59e0b);
+  background: var(--warning, #fef3c7);
   color: white;
   border-radius: 0.75rem;
   font-size: 0.75rem;
@@ -1466,15 +1591,15 @@
 
 /* Dark mode high contrast colors - Enhanced for Outdoor */
 [data-theme="dark"] .dog-name {
-  color: #ffffff;              /* Pure white for maximum contrast */
+  color: var(--token-text-white);              /* Pure white for maximum contrast */
 }
 
 [data-theme="dark"] .breed {
-  color: #ffffff;              /* Pure white for outdoor visibility */
+  color: var(--token-text-white);              /* Pure white for outdoor visibility */
 }
 
 [data-theme="dark"] .handler {
-  color: #ffffff;              /* Pure white for outdoor visibility */
+  color: var(--token-text-white);              /* Pure white for outdoor visibility */
 }
 
 [data-theme="dark"] .result-badge.qualified {
@@ -1485,9 +1610,6 @@
   background: var(--error-contrast, #ef4444);
 }
 
-[data-theme="dark"] .result-badge.abs {
-  background: var(--text-tertiary, #9ca3af);
-}
 
 [data-theme="dark"] .time-badge {
   background: var(--muted);
@@ -1509,16 +1631,7 @@
   z-index: 10 !important;
 }
 
-/* Status badge styling */
-.status-badge {
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  /* Transition removed - will be added by .loaded class */
-}
+/* Status badge styling moved to utilities.css */
 
 /* Multi-column layouts - move status below content with better touch targets */
 @media (min-width: 768px) {
@@ -1574,33 +1687,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.checkin-status.none {
-  background: var(--status-not-checked-in);
-  color: white;
-}
-
-.checkin-status.checked-in {
-  background: var(--status-checked-in);
-  color: white;
-}
-
-.checkin-status.at-gate {
-  background: var(--status-at-gate);
-  color: white;
-}
-
+/* Check-in status colors moved to utilities.css */
+/* Keeping in-ring and done for EntryList-specific statuses */
 .checkin-status.in-ring {
   background: var(--status-in-ring);
-  color: white;
-}
-
-.checkin-status.conflict {
-  background: var(--status-conflict);
-  color: white;
-}
-
-.checkin-status.pulled {
-  background: var(--status-pulled);
   color: white;
 }
 
@@ -2746,19 +2836,19 @@
 /* CRITICAL: Status badge colors with maximum specificity */
 .entry-list-container .status-badge.none,
 .entry-list-container .checkin-status.none {
-  background: #6b7280 !important;
+  background: var(--token-text-tertiary) !important;
   color: white !important;
 }
 
 .entry-list-container .status-badge.checked-in,
 .entry-list-container .checkin-status.checked-in {
-  background: var(--status-checked-in, #065f46) !important;
+  background: var(--status-checked-in, #10b981) !important;
   color: white !important;
 }
 
 .entry-list-container .status-badge.at-gate,
 .entry-list-container .checkin-status.at-gate {
-  background: var(--status-at-gate, #14b8a6) !important;
+  background: var(--status-at-gate, #8b5cf6) !important;
   color: white !important;
 }
 
@@ -2849,13 +2939,13 @@
 
 .nationals-label {
   font-weight: bold;
-  color: #9ca3af;
+  color: var(--token-text-muted);
   min-width: 50px;
   font-size: 0.7rem;
 }
 
 .nationals-label.nationals-correct {
-  color: #10b981;
+  color: var(--token-result-qualified);
 }
 
 .nationals-label.nationals-incorrect {
@@ -2863,11 +2953,11 @@
 }
 
 .nationals-label.nationals-faults {
-  color: #fbbf24;
+  color: #3b82f6;
 }
 
 .nationals-label.nationals-no-finish {
-  color: #a78bfa;
+  color: #8b5cf6;
 }
 
 .nationals-value {
@@ -2898,7 +2988,7 @@
 }
 
 .nationals-total-value.positive {
-  color: #10b981;
+  color: var(--token-result-qualified);
 }
 
 .nationals-total-value.negative {
@@ -2992,7 +3082,7 @@
 }
 
 .nationals-total-points-improved .nationals-total-value.positive {
-  color: #10b981;
+  color: var(--token-result-qualified);
 }
 
 .nationals-total-points-improved .nationals-total-value.negative {
@@ -3064,6 +3154,15 @@
   margin-top: 0.25rem;
 }
 
+/* Compact single-line layout for completed entries */
+.regular-scoresheet-single-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
 .regular-grid-item {
   display: flex;
   align-items: center;
@@ -3121,7 +3220,7 @@
 [data-theme="dark"] .reason-badge {
   background: rgba(251, 191, 36, 0.1);
   border-color: rgba(251, 191, 36, 0.4);
-  color: #fbbf24;
+  color: #3b82f6;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -3162,7 +3261,7 @@
 }
 
 [data-theme="light"] .na-badge {
-  color: #94a3b8;
+  color: #fef3c7;
 }
 
 /* Mobile responsiveness for regular cards */

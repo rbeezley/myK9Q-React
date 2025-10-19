@@ -1,15 +1,46 @@
-/* Flutter-style Scoresheet - Mobile First Design */
+/* Mobile-Optimized Scoresheet - React Implementation */
 
-.flutter-scoresheet-container {
+/* CSS Variables for theming */
+:root {
+  --scoresheet-bg: #1a1a1a;
+  --scoresheet-text: white;
+  --scoresheet-text-secondary: rgba(255, 255, 255, 0.7);
+  --scoresheet-text-tertiary: rgba(255, 255, 255, 0.6);
+  --scoresheet-text-placeholder: rgba(255, 255, 255, 0.5);
+  --scoresheet-card-bg: rgba(40, 40, 40, 0.8);
+  --scoresheet-card-border: rgba(255, 255, 255, 0.1);
+  --scoresheet-header-bg: rgba(30, 30, 30, 0.95);
+  --scoresheet-input-bg: rgba(60, 60, 60, 0.8);
+  --scoresheet-input-border: rgba(255, 255, 255, 0.2);
+  --scoresheet-badge-text: white;
+  --scoresheet-hover-overlay: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] {
+  --scoresheet-bg: #f5f5f5;
+  --scoresheet-text: #111827;
+  --scoresheet-text-secondary: #4b5563;
+  --scoresheet-text-tertiary: #6b7280;
+  --scoresheet-text-placeholder: #9ca3af;
+  --scoresheet-card-bg: rgba(255, 255, 255, 0.95);
+  --scoresheet-card-border: rgba(0, 0, 0, 0.15);
+  --scoresheet-header-bg: rgba(255, 255, 255, 0.95);
+  --scoresheet-input-bg: rgba(248, 250, 252, 0.8);
+  --scoresheet-input-border: rgba(0, 0, 0, 0.2);
+  --scoresheet-badge-text: white;
+  --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
+}
+
+.scoresheet-container {
   min-height: 100vh;
-  background: #1a1a1a;
-  color: white;
+  background: var(--scoresheet-bg);
+  color: var(--scoresheet-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   width: 100%;
 }
 
-.flutter-scoresheet {
+.scoresheet {
   width: 100%;
   padding: 0;
   min-height: 100vh;
@@ -20,13 +51,13 @@
 
 /* Header - Matching Flutter */
 .mobile-header {
-  background: rgba(30, 30, 30, 0.95);
+  background: var(--scoresheet-header-bg);
   padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--scoresheet-card-border);
   position: relative;
   z-index: 10;
 }
@@ -43,7 +74,7 @@
   font-size: 18px;
   font-weight: 600;
   margin: 0;
-  color: white;
+  color: var(--scoresheet-text);
 }
 
 .header-trial-info {
@@ -51,19 +82,19 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--scoresheet-text-secondary);
   font-weight: 500;
 }
 
 .header-trial-info .trial-separator {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--scoresheet-text-tertiary);
   font-size: 12px;
 }
 
 .back-btn, .theme-btn {
   background: none;
   border: none;
-  color: white;
+  color: var(--scoresheet-text);
   font-size: 20px;
   padding: 8px;
   cursor: pointer;
@@ -72,27 +103,27 @@
 }
 
 .back-btn:hover, .theme-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scoresheet-hover-overlay);
 }
 
 /* Trial Header - Matching other containers */
-.flutter-trial-header {
+.scoresheet-trial-header {
   text-align: center;
   padding: 16px;
-  background: rgba(40, 40, 40, 0.8);
+  background: var(--scoresheet-card-bg);
   margin: 0 16px 16px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--scoresheet-card-border);
 }
 
 /* Compact Trial Header - One Line */
-.flutter-trial-header-compact {
+.scoresheet-trial-header-compact {
   text-align: center;
   padding: 12px 16px;
-  background: rgba(40, 40, 40, 0.8);
+  background: var(--scoresheet-card-bg);
   margin: 0 16px 12px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--scoresheet-card-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,41 +134,41 @@
 .trial-info-item {
   font-size: 14px;
   font-weight: 500;
-  color: white;
+  color: var(--scoresheet-text);
 }
 
 .trial-separator {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--scoresheet-text-tertiary);
   margin: 0 4px;
 }
 
 .trial-date {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--scoresheet-text-secondary);
   margin-bottom: 4px;
 }
 
 .trial-class {
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: var(--scoresheet-text);
 }
 
 /* Dog Info Card - Full width like other pages */
-.flutter-dog-card {
-  background: rgba(40, 40, 40, 0.8);
+.scoresheet-dog-card {
+  background: var(--scoresheet-card-bg);
   margin: 0 16px 16px 16px;
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--scoresheet-card-border);
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
 /* Compact Dog Info Card */
-.flutter-dog-card-compact {
+.scoresheet-dog-card-compact {
   background: transparent;
   margin: 0 16px 12px 16px;
   padding: 12px 16px;
@@ -146,10 +177,11 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  color: var(--scoresheet-text);
 }
 
 /* Clean Dog Info - No Background */
-.flutter-dog-info-clean {
+.scoresheet-dog-info-clean {
   margin: 0 16px 12px 16px;
   padding: 12px 0;
   display: flex;
@@ -157,25 +189,26 @@
   gap: 12px;
   background: transparent;
   border: none;
+  color: var(--scoresheet-text);
 }
 
-.flutter-dog-info-card {
+.scoresheet-dog-info-card {
   margin: 0 16px 16px 16px;
   padding: 16px;
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--scoresheet-card-bg);
+  border: 1px solid var(--scoresheet-card-border);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.flutter-armband {
+.scoresheet-armband {
   width: 60px;
   height: 60px;
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
+  color: var(--scoresheet-badge-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +219,7 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
-.flutter-dog-details {
+.scoresheet-dog-details {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -194,30 +227,30 @@
   justify-content: flex-start;
 }
 
-.flutter-dog-name {
+.scoresheet-dog-name {
   font-size: 18px;
   font-weight: 600;
-  color: white;
+  color: var(--scoresheet-text);
   margin: 0;
   line-height: 1.2;
 }
 
-.flutter-dog-breed {
+.scoresheet-dog-breed {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--scoresheet-text-secondary);
   margin: 0;
 }
 
-.flutter-dog-handler {
+.scoresheet-dog-handler {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--scoresheet-text-tertiary);
   margin: 0;
 }
 
 .dog-armband {
   font-size: 32px;
   font-weight: bold;
-  color: white;
+  color: var(--scoresheet-text);
   min-width: 80px;
   text-align: center;
   align-self: flex-start;
@@ -241,7 +274,7 @@
 .dog-name {
   font-size: 18px;
   font-weight: 600;
-  color: white;
+  color: var(--scoresheet-text);
   margin: 0;
   line-height: 1.2;
   align-self: flex-start;
@@ -249,36 +282,36 @@
 
 .dog-details {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--scoresheet-text-secondary);
   margin-bottom: 2px;
 }
 
 .dog-handler {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--scoresheet-text-tertiary);
   margin: 0;
 }
 
 .person-number {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--scoresheet-text-tertiary);
 }
 
 /* Timer Card - Compact version */
-.flutter-timer-card {
-  background: rgba(40, 40, 40, 0.8);
+.scoresheet-timer-card {
+  background: var(--scoresheet-card-bg);
   margin: 0 16px 12px 16px;
   padding: 16px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--scoresheet-card-border);
   text-align: center;
 }
 
 .timer-display-large {
   font-size: 32px;
   font-weight: bold;
-  color: white;
-  margin-bottom: 12px;
+  color: var(--scoresheet-text);
+  margin-bottom: 8px;
   font-variant-numeric: tabular-nums;
   transition: color 0.3s ease;
 }
@@ -291,6 +324,15 @@
 .timer-display-large.expired {
   color: #DC2626;
   animation: flash 0.5s infinite;
+}
+
+.timer-countdown-display {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--scoresheet-text-secondary);
+  margin-bottom: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .timer-controls-flutter {
@@ -307,7 +349,7 @@
   border-radius: 20px;
   border: none;
   background: rgba(124, 58, 237, 0.8);
-  color: white;
+  color: var(--scoresheet-badge-text);
   font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
@@ -322,7 +364,7 @@
   border-radius: 28px;
   border: none;
   background: #10B981;
-  color: white;
+  color: var(--scoresheet-badge-text);
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
@@ -358,7 +400,7 @@
   color: #10B981;
 }
 
-.flutter-timer-card {
+.scoresheet-timer-card {
   position: relative;
   z-index: 1;
 }
@@ -398,12 +440,12 @@
 }
 
 /* Time Input - Compact version */
-.flutter-time-card {
-  background: rgba(40, 40, 40, 0.8);
+.scoresheet-time-card {
+  background: var(--scoresheet-card-bg);
   margin: 0 16px 12px 16px;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--scoresheet-card-border);
   text-align: center;
 }
 
@@ -414,43 +456,69 @@
   gap: 8px;
 }
 
-.flutter-time-input {
-  background: rgba(60, 60, 60, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.scoresheet-time-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.scoresheet-time-input {
+  background: var(--scoresheet-input-bg);
+  border: 1px solid var(--scoresheet-input-border);
   border-radius: 8px;
-  padding: 10px 12px;
-  color: white;
+  padding: 10px 36px 10px 12px; /* Add right padding for clear button */
+  color: var(--scoresheet-text);
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
   min-width: 0;
-  width: 200px; /* Increased from 110px to show full placeholder */
+  width: 160px;
   text-align: center;
 }
 
-.flutter-time-input.single-area {
+.scoresheet-time-clear-button {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--scoresheet-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.scoresheet-time-clear-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+}
+
+.scoresheet-time-input.single-area {
   flex: 1;
   width: auto;
 }
 
-.flutter-time-input:focus {
+.scoresheet-time-input:focus {
   border-color: #10B981;
 }
 
-.flutter-time-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.scoresheet-time-input::placeholder {
+  color: var(--scoresheet-text-placeholder);
 }
 
 .max-time {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--scoresheet-text-secondary);
   white-space: nowrap;
 }
 
 /* Area Badge Styles - Compact */
 .area-badge {
   background: rgba(16, 185, 129, 0.8);
-  color: white;
+  color: var(--scoresheet-badge-text);
   padding: 6px 10px;
   border-radius: 16px;
   font-size: 11px;
@@ -465,12 +533,12 @@
 
 .area-badge.completed {
   background: rgba(107, 114, 128, 0.8);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--scoresheet-badge-text);
 }
 
 .area-badge.pending {
   background: rgba(16, 185, 129, 0.8);
-  color: white;
+  color: var(--scoresheet-badge-text);
 }
 
 /* Max Time Badge Styles */
@@ -488,7 +556,7 @@
 }
 
 .max-time-display {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--scoresheet-text-tertiary);
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
@@ -506,7 +574,7 @@
 }
 
 /* Action Buttons - Matching Flutter */
-.flutter-actions {
+.scoresheet-actions {
   margin: 16px;
   margin-top: auto;
   display: flex;
@@ -514,7 +582,7 @@
   padding-bottom: 24px;
 }
 
-.flutter-btn-cancel, .flutter-btn-save {
+.scoresheet-btn-cancel, .scoresheet-btn-save {
   flex: 1;
   height: 56px;
   border-radius: 28px;
@@ -525,41 +593,43 @@
   transition: all 0.2s;
 }
 
-.flutter-btn-cancel {
+.scoresheet-btn-cancel {
   background: rgba(107, 114, 128, 0.8);
-  color: white;
+  color: var(--scoresheet-badge-text);
 }
 
-.flutter-btn-save {
-  background: #7C3AED;
-  color: white;
+.scoresheet-btn-save {
+  background: #10B981;
+  color: var(--scoresheet-badge-text);
 }
 
-.flutter-btn-cancel:hover {
+.scoresheet-btn-cancel:hover {
   background: rgba(107, 114, 128, 1);
   transform: scale(1.02);
 }
 
-.flutter-btn-save:hover {
-  background: #6D28D9;
+.scoresheet-btn-save:hover {
+  background: #059669;
   transform: scale(1.02);
 }
 
-.flutter-btn-save:disabled {
-  background: rgba(124, 58, 237, 0.5);
+.scoresheet-btn-save:disabled {
+  background: rgba(16, 185, 129, 0.4);
   cursor: not-allowed;
   transform: none;
   opacity: 0.6;
+  color: var(--scoresheet-badge-text);
 }
 
-[data-theme="light"] .flutter-btn-save:disabled {
-  background: rgba(124, 58, 237, 0.3);
-  color: rgba(255, 255, 255, 0.7);
+[data-theme="light"] .scoresheet-btn-save:disabled {
+  background: rgba(16, 185, 129, 0.3);
+  color: var(--scoresheet-badge-text);
+  opacity: 0.7;
 }
 
 /* Mobile responsive adjustments */
 @media (max-width: 480px) {
-  .flutter-trial-header-compact {
+  .scoresheet-trial-header-compact {
     padding: 8px 12px;
     margin: 0 12px 8px 12px;
     font-size: 12px;
@@ -573,8 +643,8 @@
     font-size: 12px;
   }
 
-  .flutter-dog-card-compact,
-  .flutter-dog-info-clean {
+  .scoresheet-dog-card-compact,
+  .scoresheet-dog-info-clean {
     margin: 0 12px 8px 12px;
     padding: 10px 0;
     gap: 10px;
@@ -591,13 +661,13 @@
     max-width: 60px;
   }
 
-  .flutter-time-input {
-    width: 180px; /* Increased from 100px to show full placeholder on mobile */
-    padding: 8px 12px;
+  .scoresheet-time-input {
+    width: 140px;
+    padding: 8px 36px 8px 12px; /* Add right padding for clear button */
     font-size: 14px;
   }
 
-  .flutter-time-input.single-area {
+  .scoresheet-time-input.single-area {
     width: auto;
     flex: 1;
   }
@@ -632,7 +702,7 @@
 
 /* Large Desktop: 1400px+ - constrained container like entry list */
 @media (min-width: 1400px) {
-  .flutter-scoresheet-container {
+  .scoresheet-container {
     max-width: 1400px;
     margin: 0 auto;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
@@ -640,100 +710,20 @@
 }
 
 /* Light theme support */
-[data-theme="light"] .flutter-scoresheet-container {
+[data-theme="light"] .scoresheet-container {
   background: #f5f5f5;
   color: #1f2937;
 }
 
-[data-theme="light"] .flutter-scoresheet {
+[data-theme="light"] .scoresheet {
   background: white;
 }
 
-[data-theme="light"] .flutter-trial-header,
-[data-theme="light"] .flutter-dog-card,
-[data-theme="light"] .flutter-timer-card,
-[data-theme="light"] .flutter-time-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.15);
-  color: #111827;
-}
+/* Light mode - all text colors now handled by CSS variables above */
 
-[data-theme="light"] .flutter-dog-card-compact,
-[data-theme="light"] .flutter-dog-info-clean {
-  background: transparent;
-  border: none;
-  color: #111827;
-}
+/* Light mode button styles - colors inherited from base via variables */
 
-[data-theme="light"] .trial-date {
-  color: #6b7280;
-}
-
-[data-theme="light"] .trial-class,
-[data-theme="light"] .dog-name {
-  color: #111827;
-}
-
-[data-theme="light"] .dog-details,
-[data-theme="light"] .person-number {
-  color: #4b5563;
-}
-
-[data-theme="light"] .dog-armband {
-  color: #111827;
-}
-
-[data-theme="light"] .timer-display-large {
-  color: #111827;
-}
-
-[data-theme="light"] .max-time {
-  color: #6b7280;
-}
-
-[data-theme="light"] .mobile-header {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1f2937;
-}
-
-[data-theme="light"] .flutter-time-input {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.2);
-  color: #1f2937;
-}
-
-[data-theme="light"] .max-time-display {
-  color: #6b7280;
-}
-
-[data-theme="light"] .flutter-btn-cancel {
-  background: rgba(107, 114, 128, 0.9);
-  color: white;
-}
-
-[data-theme="light"] .flutter-btn-cancel:hover {
-  background: rgba(107, 114, 128, 1);
-}
-
-[data-theme="light"] .flutter-btn-save {
-  background: #7C3AED;
-  color: white;
-}
-
-[data-theme="light"] .flutter-btn-save:hover {
-  background: #6D28D9;
-}
-
-/* Light theme badge styles */
-[data-theme="light"] .area-badge.pending {
-  background: rgba(16, 185, 129, 0.9);
-  color: white;
-}
-
-[data-theme="light"] .area-badge.completed {
-  background: rgba(107, 114, 128, 0.9);
-  color: white;
-}
+/* Light theme badge styles - colors inherited from base via variables */
 
 [data-theme="light"] .max-time-badge {
   background: rgba(124, 58, 237, 0.1);
@@ -754,9 +744,44 @@
   color: #B91C1C;
 }
 
+/* Timer Expired Indicator */
+.timer-expired-indicator {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #EF4444;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  animation: pulse-expired 2s ease-in-out infinite;
+}
+
+[data-theme="light"] .timer-expired-indicator {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #DC2626;
+}
+
+@keyframes pulse-expired {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
 /* Light theme responsive backgrounds */
 @media (min-width: 1400px) {
-  [data-theme="light"] .flutter-scoresheet-container {
+  [data-theme="light"] .scoresheet-container {
     background: #e5e7eb;
   }
 }

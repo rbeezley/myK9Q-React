@@ -131,7 +131,7 @@
 }
 
 .status-indicator.scored {
-  background: var(--success-contrast, #047857);
+  background: var(--success-contrast, #10b981);
   color: white;
   border: none;
 }

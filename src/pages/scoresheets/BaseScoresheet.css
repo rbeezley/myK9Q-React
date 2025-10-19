@@ -29,7 +29,7 @@
   --error: #FF3B30;
   
   /* High contrast status colors */
-  --success-contrast: #047857;
+  --success-contrast: #10b981;
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
   
@@ -60,7 +60,7 @@
   
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
-  --warning-contrast: #f59e0b;
+  --warning-contrast: #fef3c7;
   --error-contrast: #ef4444;
 }
 

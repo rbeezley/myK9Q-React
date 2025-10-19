@@ -193,7 +193,7 @@ export const Login: React.FC = () => {
             {passcode.map((char, index) => (
               <input
                 key={index}
-                ref={el => inputRefs.current[index] = el}
+                ref={el => { inputRefs.current[index] = el; }}
                 type="text"
                 value={char}
                 onChange={e => handleInputChange(index, e.target.value)}

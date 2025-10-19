@@ -3,7 +3,7 @@
 /* Color Variables */
 :root {
   --login-gradient-start: #0ea5e9;
-  --login-gradient-mid: #06b6d4;
+  --login-gradient-mid: #8b5cf6;
   --login-gradient-end: #3b82f6;
   --glass-bg: rgba(255, 255, 255, 0.12);
   --glass-border: rgba(255, 255, 255, 0.18);
@@ -23,7 +23,7 @@
 .login-background {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #3b82f6 100%);
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #3b82f6 100%);
   z-index: 0;
 }
 
@@ -485,7 +485,7 @@
 /* Dark mode override - ensure consistent blue-teal theme */
 @media (prefers-color-scheme: dark) {
   .login-background {
-    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #3b82f6 100%);
+    background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #3b82f6 100%);
   }
 }
 

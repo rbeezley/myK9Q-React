@@ -29,7 +29,7 @@
   --error: #FF3B30;
 
   /* High contrast status colors */
-  --success-contrast: #047857;
+  --success-contrast: #10b981;
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
 
@@ -63,7 +63,7 @@
 
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
-  --warning-contrast: #f59e0b;
+  --warning-contrast: #fef3c7;
   --error-contrast: #ef4444;
 }
 
@@ -448,7 +448,7 @@
 }
 
 .disable-checkin-btn .btn-icon {
-  color: #f59e0b;
+  color: #fef3c7;
 }
 
 /* Disabled state for card buttons */
@@ -574,8 +574,8 @@
 
 .status-badge.checkin-disabled {
   background-color: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-  border: 1px solid #f59e0b;
+  color: #fef3c7;
+  border: 1px solid #fef3c7;
 }
 
 .status-icon {

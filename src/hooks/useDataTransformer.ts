@@ -1,14 +1,28 @@
 import { useRef, useCallback } from 'react';
 
-interface WorkerMessage {
+/**
+ * Message sent to the Web Worker
+ */
+interface WorkerMessage<T = unknown> {
   type: 'TRANSFORM_CLASSES' | 'TRANSFORM_ENTRIES' | 'PROCESS_DATA';
-  payload: any;
+  payload: T;
 }
 
-interface WorkerResponse {
+/**
+ * Response received from the Web Worker
+ */
+interface WorkerResponse<T = unknown> {
   type: string;
-  result: any;
+  result: T;
   error?: string;
+}
+
+/**
+ * Payload for PROCESS_DATA message type
+ */
+interface ProcessDataPayload {
+  classes: unknown[];
+  entries: unknown[];
 }
 
 /**
@@ -34,7 +48,7 @@ export function useDataTransformer() {
     return workerRef.current;
   }, []);
 
-  const transformClasses = useCallback((rawClasses: any[]): Promise<any[]> => {
+  const transformClasses = useCallback(<T = unknown>(rawClasses: T[]): Promise<T[]> => {
     return new Promise((resolve, reject) => {
       const worker = getWorker();
       if (!worker) {
@@ -42,7 +56,7 @@ export function useDataTransformer() {
         return;
       }
 
-      const handleMessage = (event: MessageEvent<WorkerResponse>) => {
+      const handleMessage = (event: MessageEvent<WorkerResponse<T[]>>) => {
         if (event.data.type === 'TRANSFORM_CLASSES') {
           worker.removeEventListener('message', handleMessage);
           if (event.data.error) {
@@ -54,7 +68,7 @@ export function useDataTransformer() {
       };
 
       worker.addEventListener('message', handleMessage);
-      const message: WorkerMessage = {
+      const message: WorkerMessage<T[]> = {
         type: 'TRANSFORM_CLASSES',
         payload: rawClasses
       };
@@ -62,7 +76,7 @@ export function useDataTransformer() {
     });
   }, [getWorker]);
 
-  const transformEntries = useCallback((rawEntries: any[]): Promise<any[]> => {
+  const transformEntries = useCallback(<T = unknown>(rawEntries: T[]): Promise<T[]> => {
     return new Promise((resolve, reject) => {
       const worker = getWorker();
       if (!worker) {
@@ -70,7 +84,7 @@ export function useDataTransformer() {
         return;
       }
 
-      const handleMessage = (event: MessageEvent<WorkerResponse>) => {
+      const handleMessage = (event: MessageEvent<WorkerResponse<T[]>>) => {
         if (event.data.type === 'TRANSFORM_ENTRIES') {
           worker.removeEventListener('message', handleMessage);
           if (event.data.error) {
@@ -82,7 +96,7 @@ export function useDataTransformer() {
       };
 
       worker.addEventListener('message', handleMessage);
-      const message: WorkerMessage = {
+      const message: WorkerMessage<T[]> = {
         type: 'TRANSFORM_ENTRIES',
         payload: rawEntries
       };
@@ -90,7 +104,7 @@ export function useDataTransformer() {
     });
   }, [getWorker]);
 
-  const processData = useCallback((classes: any[], entries: any[]): Promise<any> => {
+  const processData = useCallback(<T = unknown>(classes: unknown[], entries: unknown[]): Promise<T> => {
     return new Promise((resolve, reject) => {
       const worker = getWorker();
       if (!worker) {
@@ -98,7 +112,7 @@ export function useDataTransformer() {
         return;
       }
 
-      const handleMessage = (event: MessageEvent<WorkerResponse>) => {
+      const handleMessage = (event: MessageEvent<WorkerResponse<T>>) => {
         if (event.data.type === 'PROCESS_DATA') {
           worker.removeEventListener('message', handleMessage);
           if (event.data.error) {
@@ -110,7 +124,7 @@ export function useDataTransformer() {
       };
 
       worker.addEventListener('message', handleMessage);
-      const message: WorkerMessage = {
+      const message: WorkerMessage<ProcessDataPayload> = {
         type: 'PROCESS_DATA',
         payload: { classes, entries }
       };

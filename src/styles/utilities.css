@@ -1,0 +1,473 @@
+/**
+ * Utility CSS Classes
+ *
+ * Common reusable CSS patterns used across the application.
+ * These utilities help maintain consistency and reduce CSS duplication.
+ */
+
+/* =================================================================
+   Container Utilities
+   ================================================================= */
+
+.app-container {
+  min-height: 100vh;
+  background: var(--background);
+  padding-bottom: 2rem;
+}
+
+/* Loaded state - enables smooth transitions after content loads */
+.loaded * {
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+/* =================================================================
+   Button Utilities
+   ================================================================= */
+
+/* Standard icon button - bordered style with proper touch targets */
+.icon-button {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  color: var(--foreground);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--muted);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.icon-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Transparent variant for borderless icon buttons */
+.icon-button-transparent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--foreground);
+}
+
+.icon-button-transparent:hover:not(:disabled) {
+  background: var(--muted);
+  transform: scale(1.05);
+}
+
+.icon-button-transparent:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.icon-button-transparent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =================================================================
+   Clear/Close Button
+   ================================================================= */
+
+.clear-search-btn,
+.clear-btn {
+  position: absolute;
+  right: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  color: var(--muted-foreground);
+  transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover,
+.clear-btn:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+/* =================================================================
+   Loading States
+   ================================================================= */
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--muted-foreground);
+}
+
+.loading-spinner svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =================================================================
+   Card Utilities
+   ================================================================= */
+
+.card-base {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.card-base.clickable {
+  cursor: pointer;
+}
+
+.card-base.clickable:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-base.clickable:active {
+  transform: translateY(0);
+}
+
+/* =================================================================
+   Badge Utilities
+   ================================================================= */
+
+.badge-base {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.badge-success {
+  background: #10b981;
+  color: white;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: white;
+}
+
+.badge-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.badge-muted {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* Status Badge - Squared corners for status indicators */
+.status-badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border: 1px solid transparent;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.status-badge.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.status-badge.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Class Status Colors */
+.status-badge.none {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--status-none, #6b7280);
+  border-color: rgba(107, 114, 128, 0.2);
+}
+
+.status-badge.setup {
+  background: rgba(254, 243, 199, 0.1);
+  color: var(--status-setup, #fef3c7);
+  border-color: rgba(254, 243, 199, 0.2);
+}
+
+.status-badge.briefing {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--status-briefing, #3b82f6);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.status-badge.break {
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--status-break, #14b8a6);
+  border-color: rgba(20, 184, 166, 0.2);
+}
+
+.status-badge.start-time {
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--status-start-time, #8b5cf6);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.status-badge.in-progress {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--status-in-progress, #3b82f6);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.status-badge.completed {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--status-completed, #059669);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+/* Entry Check-in Status Colors */
+.status-badge.checked-in,
+.checkin-status.checked-in {
+  background: var(--status-checked-in, #10b981);
+  color: white;
+}
+
+.status-badge.at-gate,
+.checkin-status.at-gate {
+  background: var(--status-at-gate, #8b5cf6);
+  color: white;
+}
+
+.status-badge.conflict,
+.checkin-status.conflict {
+  background: var(--status-conflict, #f59e0b);
+  color: white;
+}
+
+.status-badge.pulled,
+.checkin-status.pulled {
+  background: var(--status-pulled, #ef4444);
+  color: white;
+}
+
+.status-badge.pending,
+.checkin-status.none {
+  background: var(--status-not-checked-in, #6b7280);
+  color: white;
+}
+
+/* Entry Result Status Colors */
+.status-badge.qualified {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.not-qualified {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.status-badge.excused {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+  border-color: rgba(156, 163, 175, 0.2);
+}
+
+/* =================================================================
+   Text Utilities
+   ================================================================= */
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-success {
+  color: #10b981;
+}
+
+.text-warning {
+  color: #fef3c7;
+}
+
+.text-danger {
+  color: #ef4444;
+}
+
+/* =================================================================
+   Spacing Utilities
+   ================================================================= */
+
+.section-spacing {
+  margin-bottom: 1.5rem;
+}
+
+.section-padding {
+  padding: 1rem;
+}
+
+/* =================================================================
+   Flex Utilities
+   ================================================================= */
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =================================================================
+   Mobile Touch Targets
+   ================================================================= */
+
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (min-width: 768px) {
+  .mobile-touch-target {
+    min-height: auto;
+    min-width: auto;
+  }
+}
+
+/* =================================================================
+   Truncate Text
+   ================================================================= */
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.truncate-2-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* =================================================================
+   Dark Mode Utilities
+   ================================================================= */
+
+[data-theme="dark"] .card-base {
+  background: rgba(30, 30, 30, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .card-base.clickable:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* =================================================================
+   Animation Utilities
+   ================================================================= */
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-in-from-bottom {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -29,20 +29,20 @@
   --error: #FF3B30;
   
   /* High contrast status colors */
-  --success-contrast: #047857;
+  --success-contrast: #10b981;
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
   
   /* Status colors - matching EntryList design tokens */
   --status-not-checked-in: var(--token-status-none, #6b7280);
   --status-not-checked-in-bg: var(--token-status-none-bg, #f3f4f6);
-  --status-checked-in: var(--token-status-checked-in, #065f46);
+  --status-checked-in: var(--token-status-checked-in, #10b981);
   --status-checked-in-bg: var(--token-status-checked-in-bg, #d1fae5);
-  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate: var(--token-status-at-gate, #8b5cf6);
   --status-at-gate-bg: var(--token-status-at-gate-bg, #ccfbf1);
   --status-in-ring: var(--token-status-in-ring, #f97316);
   --status-in-ring-bg: var(--token-status-in-ring-bg, #fed7aa);
-  --status-conflict: var(--token-status-conflict, #f59e0b);
+  --status-conflict: var(--token-status-conflict, #fef3c7);
   --status-conflict-bg: var(--token-status-conflict-bg, #fef3c7);
   --status-pulled: var(--token-status-pulled, #ef4444);
   --status-pulled-bg: var(--token-status-pulled-bg, #fecaca);
@@ -54,7 +54,7 @@
   --conflict: var(--status-conflict);
   --pulled: var(--status-pulled);
   --at-gate: var(--status-at-gate);
-  --qualified: #f59e0b;
+  --qualified: #fef3c7;
   --qualified-secondary: #d97706;
   --not-qualified: #FF3B30;
   --excused: #FF9500;
@@ -83,19 +83,19 @@
 
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
-  --warning-contrast: #f59e0b;
+  --warning-contrast: #fef3c7;
   --error-contrast: #ef4444;
 
   /* Status colors - dark mode using design tokens */
   --status-not-checked-in: var(--token-status-none, #9ca3af);
   --status-not-checked-in-bg: var(--token-status-none-bg, #374151);
-  --status-checked-in: var(--token-status-checked-in, #047857);
+  --status-checked-in: var(--token-status-checked-in, #10b981);
   --status-checked-in-bg: var(--token-status-checked-in-bg, #064e3b);
-  --status-at-gate: var(--token-status-at-gate, #14b8a6);
+  --status-at-gate: var(--token-status-at-gate, #8b5cf6);
   --status-at-gate-bg: var(--token-status-at-gate-bg, #134e4a);
-  --status-in-ring: var(--token-status-in-ring, #fb923c);
+  --status-in-ring: var(--token-status-in-ring, #14b8a6);
   --status-in-ring-bg: var(--token-status-in-ring-bg, #9a3412);
-  --status-conflict: var(--token-status-conflict, #fbbf24);
+  --status-conflict: var(--token-status-conflict, #3b82f6);
   --status-conflict-bg: var(--token-status-conflict-bg, #92400e);
   --status-pulled: var(--token-status-pulled, #f87171);
   --status-pulled-bg: var(--token-status-pulled-bg, #991b1b);
@@ -421,10 +421,15 @@
 }
 
 .class-meta-details {
-  display: flex;
+  display: none; /* Hide by default to prevent layout shift on initial load */
   flex-direction: column;
   gap: 0.25rem;
   margin-top: 0.5rem;
+}
+
+/* Show meta details only after component is loaded */
+.dog-details-container.loaded .class-meta-details {
+  display: flex;
 }
 
 .class-date,
@@ -510,18 +515,20 @@
 }
 
 .status-button svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
 .status-button .status-icon {
-  font-size: 0.75rem !important;
-  width: 12px !important;
-  height: 12px !important;
-  max-width: 12px !important;
-  max-height: 12px !important;
+  font-size: 1rem !important;
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
   flex-shrink: 0 !important;
-  display: inline-block !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   margin-right: 0.25rem !important;
   vertical-align: middle !important;
 }
@@ -611,15 +618,15 @@
 }
 
 .status-button.checked-in {
-  background: var(--status-checked-in, #065f46) !important;
+  background: var(--status-checked-in, #10b981) !important;
   color: white !important;
-  border-color: var(--status-checked-in, #065f46) !important;
+  border-color: var(--status-checked-in, #10b981) !important;
 }
 
 .status-button.at-gate {
-  background: var(--status-at-gate, #14b8a6) !important;
+  background: var(--status-at-gate, #8b5cf6) !important;
   color: white !important;
-  border-color: var(--status-at-gate, #14b8a6) !important;
+  border-color: var(--status-at-gate, #8b5cf6) !important;
 }
 
 .status-button.in-ring {
@@ -812,30 +819,30 @@
   color: #1e293b !important;
 }
 
-/* Color variables for different statuses */
+/* Color variables for different statuses - uses centralized design tokens */
 .status-option.status-none {
-  --status-color: #6b7280;
-  --status-color-rgb: 107, 114, 128;
+  --status-color: var(--status-none);
+  --status-color-rgb: 156, 163, 175;
 }
 
 .status-option.status-checked-in {
-  --status-color: #10b981;
+  --status-color: var(--status-checked-in);
   --status-color-rgb: 16, 185, 129;
 }
 
 .status-option.status-conflict {
-  --status-color: #f59e0b;
+  --status-color: var(--status-conflict);
   --status-color-rgb: 245, 158, 11;
 }
 
 .status-option.status-pulled {
-  --status-color: #ef4444;
+  --status-color: var(--status-pulled);
   --status-color-rgb: 239, 68, 68;
 }
 
 .status-option.status-at-gate {
-  --status-color: #06b6d4;
-  --status-color-rgb: 6, 182, 212;
+  --status-color: var(--status-at-gate);
+  --status-color-rgb: 139, 92, 246;
 }
 
 /* Icon colors for popup options */
@@ -1090,11 +1097,6 @@
   margin: 0 auto 1rem;
   color: var(--muted-foreground);
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .loading-text {
@@ -1354,10 +1356,12 @@
   }
 }
 
-/* Smooth transitions for theme switching */
-* {
-  transition: 
+/* CRITICAL: Prevent FOUC by only enabling smooth transitions after component is loaded */
+.dog-details-container.loaded * {
+  transition:
     background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     border-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, resetEntryScore, updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { Entry } from '../../stores/entryStore';
-import { HamburgerMenu, HeaderTicker } from '../../components/ui';
-import { DogCard } from '../../components/DogCard';
+import { HamburgerMenu, HeaderTicker, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Calendar, Target, User, ChevronDown, Trophy, RefreshCw } from 'lucide-react';
-import { formatTimeForDisplay } from '../../utils/timeUtils';
+import { SortableEntryCard } from './SortableEntryCard';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Target, User, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer } from 'lucide-react';
+import { parseOrganizationData } from '../../utils/organizationUtils';
+import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
+import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import {
   DndContext,
   closestCenter,
@@ -24,10 +26,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '../../lib/supabase';
 import './EntryList.css';
 
@@ -53,10 +51,16 @@ export const EntryList: React.FC = () => {
     judgeName?: string;
     actualClassId?: number; // The real classid for real-time subscriptions
     selfCheckin?: boolean; // Controls if exhibitors can check themselves in
+    classStatus?: string; // Class status: in_progress, briefing, start_time, setup, etc.
+    totalEntries?: number;
+    completedEntries?: number;
+    timeLimit?: string; // Max time for area 1
+    timeLimit2?: string; // Max time for area 2
+    timeLimit3?: string; // Max time for area 3
+    areas?: number; // Number of areas
   } | null>(null);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
+  const [_popupPosition, _setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
@@ -69,24 +73,8 @@ export const EntryList: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showPrintMenu, setShowPrintMenu] = useState(false);
   // Removed showSearch state - using persistent search instead
-
-  // Format date with abbreviated month (matches ClassList)
-  const formatTrialDate = (dateStr: string) => {
-    // Parse date components manually to avoid timezone issues
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day); // month is 0-indexed
-
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    const dayName = days[date.getDay()];
-    const monthName = months[date.getMonth()];
-    const dayNumber = date.getDate();
-    const yearNumber = date.getFullYear();
-
-    return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
-  };
 
   // Helper function to validate and normalize text-based status
   const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
@@ -302,7 +290,7 @@ export const EntryList: React.FC = () => {
       const target = e.target as HTMLElement;
       if (!target.closest('.status-popup') && !target.closest('.checkin-status') && !target.closest('.reset-menu') && !target.closest('.reset-menu-button')) {
         setActiveStatusPopup(null);
-        setPopupPosition(null);
+        _setPopupPosition(null);
         setActiveResetMenu(null);
         setResetMenuPosition(null);
       }
@@ -331,7 +319,7 @@ export const EntryList: React.FC = () => {
     try {
       // Close the popup first to prevent multiple clicks
       setActiveStatusPopup(null);
-      setPopupPosition(null);
+      _setPopupPosition(null);
 
       // Update local state immediately for better UX
       setEntries(prev => {
@@ -381,7 +369,7 @@ export const EntryList: React.FC = () => {
     }
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setPopupPosition({
+    _setPopupPosition({
       top: rect.bottom + 5,
       left: rect.left
     });
@@ -439,10 +427,10 @@ export const EntryList: React.FC = () => {
       if (classEntries.length > 0) {
         const firstEntry = classEntries[0];
         
-        // Fetch additional class data (judge and self check-in setting)
+        // Fetch additional class data (judge, self check-in setting, status, entry counts)
         const { data: classData, error: classError } = await supabase
           .from('classes')
-          .select('judge_name, self_checkin_enabled')
+          .select('judge_name, self_checkin_enabled, class_status, total_entry_count, completed_entry_count')
           .eq('id', parseInt(classId))
           .single();
 
@@ -476,7 +464,14 @@ export const EntryList: React.FC = () => {
           trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
           judgeName: judgeName || 'No Judge Assigned',
           actualClassId: firstEntry.actualClassId, // Store the actual classid for real-time subscriptions
-          selfCheckin: classData?.self_checkin_enabled ?? true // Default to true if not set
+          selfCheckin: classData?.self_checkin_enabled ?? true, // Default to true if not set
+          classStatus: classData?.class_status,
+          totalEntries: classData?.total_entry_count,
+          completedEntries: classData?.completed_entry_count,
+          timeLimit: firstEntry.timeLimit,
+          timeLimit2: firstEntry.timeLimit2,
+          timeLimit3: firstEntry.timeLimit3,
+          areas: firstEntry.areas
         };
         
         console.log('🔍 Setting class info:', classInfoData);
@@ -497,65 +492,56 @@ export const EntryList: React.FC = () => {
     setRefreshing(false);
   };
 
-  const parseOrganizationData = (orgString: string) => {
-    if (!orgString || orgString.trim() === '') {
-      // Default to AKC Scent Work for this show based on the user's report
-      return {
-        organization: 'AKC',
-        activity_type: 'Scent Work'
-      };
-    }
-    
-    const parts = orgString.split(' ');
-    const result = {
-      organization: parts[0], // "AKC"
-      activity_type: parts.slice(1).join(' ') // "Scent Work" (keep spaces)
+  // Print report handlers
+  const handlePrintCheckIn = () => {
+    if (!classInfo) return;
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: classInfo.className,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: classInfo.section,
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type
     };
-    return result;
+
+    generateCheckInSheet(reportClassInfo, entries);
+    setShowPrintMenu(false);
+  };
+
+  const handlePrintResults = () => {
+    if (!classInfo) return;
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: classInfo.className,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: classInfo.section,
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type
+    };
+
+    generateResultsSheet(reportClassInfo, entries);
+    setShowPrintMenu(false);
   };
 
   const getScoreSheetRoute = (entry: Entry): string => {
-    const orgData = parseOrganizationData(showContext?.org || '');
-    const _competition_type = showContext?.competition_type || 'Regular';
-    const element = entry.element || '';
-    const _level = entry.level || '';
-    
-    
-    // Same routing logic as ClassList - now includes entry ID
-    if (orgData.organization === 'AKC') {
-      if (orgData.activity_type === 'Scent Work' || orgData.activity_type === 'ScentWork') {
-        return `/scoresheet/akc-scent-work/${classId}/${entry.id}`;
-      } else if (orgData.activity_type === 'FastCat' || orgData.activity_type === 'Fast Cat') {
-        return `/scoresheet/akc-fastcat/${classId}/${entry.id}`;
-      } else {
-        return `/scoresheet/akc-scent-work/${classId}/${entry.id}`;
-      }
-    } else if (orgData.organization === 'UKC') {
-      if (orgData.activity_type === 'Obedience' || element === 'Obedience') {
-        return `/scoresheet/ukc-obedience/${classId}/${entry.id}`;
-      } else if (element === 'Rally' || orgData.activity_type === 'Rally') {
-        return `/scoresheet/ukc-rally/${classId}/${entry.id}`;
-      } else if (orgData.activity_type === 'Nosework') {
-        return `/scoresheet/asca-scent-detection/${classId}/${entry.id}`;
-      } else {
-        if (element === 'Obedience') {
-          return `/scoresheet/ukc-obedience/${classId}/${entry.id}`;
-        } else {
-          return `/scoresheet/ukc-rally/${classId}/${entry.id}`;
-        }
-      }
-    } else if (orgData.organization === 'ASCA') {
-      return `/scoresheet/asca-scent-detection/${classId}/${entry.id}`;
-    } else {
-      // Default fallback
-      if (element === 'Obedience') {
-        return `/scoresheet/ukc-obedience/${classId}/${entry.id}`;
-      } else if (element === 'Rally') {
-        return `/scoresheet/ukc-rally/${classId}/${entry.id}`;
-      } else {
-        return `/scoresheet/ukc-obedience/${classId}/${entry.id}`;
-      }
-    }
+    return getScoresheetRoute({
+      org: showContext?.org || '',
+      element: entry.element || '',
+      level: entry.level || '',
+      classId: Number(classId),
+      entryId: entry.id,
+      competition_type: showContext?.competition_type || 'Regular'
+    });
   };
 
   // Clear all dogs in ring for this class, then set the specific dog
@@ -668,7 +654,65 @@ export const EntryList: React.FC = () => {
     setResetConfirmDialog({ show: false, entry: null });
   };
 
+  // Filter and sort entries (memoized for performance) - MUST be before early returns
+  const filteredEntries = useMemo(() => {
+    return entries
+      .filter(entry => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        return (
+          entry.callName.toLowerCase().includes(term) ||
+          entry.handler.toLowerCase().includes(term) ||
+          entry.breed.toLowerCase().includes(term) ||
+          entry.armband.toString().includes(term)
+        );
+      })
+      .sort((a, b) => {
+        // PRIORITY 1: In-ring dogs ALWAYS come first
+        if (a.inRing && !b.inRing) return -1;
+        if (!a.inRing && b.inRing) return 1;
 
+        // PRIORITY 2: Apply normal sorting for dogs not in ring
+        // When in manual mode (drag mode or after dragging), use the manual order
+        if (sortOrder === 'manual') {
+          const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
+          const bIndex = manualOrder.findIndex(entry => entry.id === b.id);
+          if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex;
+          }
+          // Fall back to armband if not in manual order
+          return a.armband - b.armband;
+        }
+
+        if (sortOrder === 'run') {
+          // Sort by exhibitor_order (when available), then by armband
+          const aOrder = a.exhibitorOrder || a.armband;
+          const bOrder = b.exhibitorOrder || b.armband;
+          return aOrder - bOrder;
+        } else if (sortOrder === 'placement') {
+          // Sort by placement (1st, 2nd, 3rd, etc.)
+          // Dogs with placements come first, sorted by placement
+          // Dogs without placements come after, sorted by armband
+          const aPlacement = a.placement || 999;
+          const bPlacement = b.placement || 999;
+          if (aPlacement !== bPlacement) {
+            return aPlacement - bPlacement;
+          }
+          // If both have same placement (or both have none), sort by armband
+          return a.armband - b.armband;
+        } else {
+          // Sort by armband number
+          return a.armband - b.armband;
+        }
+      });
+  }, [entries, searchTerm, sortOrder, manualOrder]);
+
+  const pendingEntries = useMemo(() => filteredEntries.filter(e => !e.isScored), [filteredEntries]);
+  const completedEntries = useMemo(() => filteredEntries.filter(e => e.isScored), [filteredEntries]);
+
+  const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+
+  // Early returns AFTER all hooks
   if (isLoading) {
     return (
       <div className="entry-list-container">
@@ -689,285 +733,24 @@ export const EntryList: React.FC = () => {
     );
   }
 
-  // Filter and sort entries (but don't sort when in drag mode)
-  const filteredEntries = entries
-    .filter(entry => {
-      if (!searchTerm) return true;
-      const term = searchTerm.toLowerCase();
-      return (
-        entry.callName.toLowerCase().includes(term) ||
-        entry.handler.toLowerCase().includes(term) ||
-        entry.breed.toLowerCase().includes(term) ||
-        entry.armband.toString().includes(term)
-      );
-    })
-    .sort((a, b) => {
-      // PRIORITY 1: In-ring dogs ALWAYS come first
-      if (a.inRing && !b.inRing) return -1;
-      if (!a.inRing && b.inRing) return 1;
-      
-      // PRIORITY 2: Apply normal sorting for dogs not in ring
-      // When in manual mode (drag mode or after dragging), use the manual order
-      if (sortOrder === 'manual') {
-        const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
-        const bIndex = manualOrder.findIndex(entry => entry.id === b.id);
-        if (aIndex !== -1 && bIndex !== -1) {
-          return aIndex - bIndex;
-        }
-        // Fall back to armband if not in manual order
-        return a.armband - b.armband;
-      }
-      
-      if (sortOrder === 'run') {
-        // Sort by exhibitor_order (when available), then by armband
-        const aOrder = a.exhibitorOrder || a.armband;
-        const bOrder = b.exhibitorOrder || b.armband;
-        return aOrder - bOrder;
-      } else if (sortOrder === 'placement') {
-        // Sort by placement (1st, 2nd, 3rd, etc.)
-        // Dogs with placements come first, sorted by placement
-        // Dogs without placements come after, sorted by armband
-        const aPlacement = a.placement || 999;
-        const bPlacement = b.placement || 999;
-        if (aPlacement !== bPlacement) {
-          return aPlacement - bPlacement;
-        }
-        // If both have same placement (or both have none), sort by armband
-        return a.armband - b.armband;
-      } else {
-        // Sort by armband number
-        return a.armband - b.armband;
-      }
-    });
-  
-  const pendingEntries = filteredEntries.filter(e => !e.isScored);
-  const completedEntries = filteredEntries.filter(e => e.isScored);
 
-  const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+  // Helper function to get status badge based on class status
+  const getStatusBadge = () => {
+    const status = classInfo?.classStatus;
 
-  // Sortable Entry Card Component
-  const SortableEntryCard = ({ entry }: { entry: Entry }) => {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({ id: entry.id });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.5 : 1,
-    };
-
-    return (
-      <div ref={setNodeRef} style={style} className={isDragMode ? 'sortable-item' : ''}>
-        {isDragMode && (
-          <div {...attributes} {...listeners} className="drag-handle">
-            <GripVertical size={20} />
-          </div>
-        )}
-        <DogCard
-          key={entry.id}
-          armband={entry.armband}
-          callName={entry.callName}
-          breed={entry.breed}
-          handler={entry.handler}
-          onClick={() => {
-            if (isDragMode) return; // Disable navigation in drag mode
-            if (hasPermission('canScore')) handleEntryClick(entry); // Entry click handler
-          }}
-          className={`${
-            hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
-          } ${entry.inRing ? 'in-ring' : ''}`}
-          statusBorder={
-            entry.isScored ? 'scored' : // All scored entries get green border
-            entry.inRing ? 'none' : // In-ring will be shown in status badge
-            (entry.checkinStatus === 'checked-in' ? 'checked-in' :
-             entry.checkinStatus === 'conflict' ? 'conflict' :
-             entry.checkinStatus === 'pulled' ? 'pulled' :
-             entry.checkinStatus === 'at-gate' ? 'at-gate' : 'none')
-          }
-          resultBadges={
-            entry.isScored ? (
-              // Check if this is a nationals show using show type from context
-              showContext?.competition_type?.toLowerCase().includes('national') ? (
-                <div className="nationals-scoresheet-improved">
-                  {/* Header Row: Placement, Time, and Result badges */}
-                  <div className="nationals-header-row">
-                    {entry.placement && (
-                      <span className="placement-badge">
-                        {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
-                      </span>
-                    )}
-                    <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
-                    <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
-                      {(() => {
-                        const result = (entry.resultText || '').toLowerCase();
-                        if (result === 'q' || result === 'qualified') return 'Q';
-                        if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                        if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                        if (result === 'ex' || result === 'excused') return 'EX';
-                        if (result === 'wd' || result === 'withdrawn') return 'WD';
-                        return entry.resultText || 'N/A';
-                      })()}
-                    </span>
-                  </div>
-
-                  {/* Stats Grid: 2x2 for Calls and Faults */}
-                  <div className="nationals-stats-grid">
-                    <div className="nationals-stat-item">
-                      <span className="nationals-stat-label">Correct</span>
-                      <span className="nationals-stat-value">{entry.correctFinds || 0}</span>
-                    </div>
-                    <div className="nationals-stat-item">
-                      <span className="nationals-stat-label">Incorrect</span>
-                      <span className="nationals-stat-value">{entry.incorrectFinds || 0}</span>
-                    </div>
-                    <div className="nationals-stat-item">
-                      <span className="nationals-stat-label">Faults</span>
-                      <span className="nationals-stat-value">{entry.faultCount || 0}</span>
-                    </div>
-                    <div className="nationals-stat-item">
-                      <span className="nationals-stat-label">No Finish</span>
-                      <span className="nationals-stat-value">{entry.noFinishCount || 0}</span>
-                    </div>
-                  </div>
-
-                  {/* Total Points Row */}
-                  <div className="nationals-total-points-improved">
-                    <span className="nationals-total-label">Total Points</span>
-                    <span className={`nationals-total-value ${(entry.totalPoints || 0) >= 0 ? 'positive' : 'negative'}`}>
-                      {(entry.totalPoints || 0) >= 0 ? '+' : ''}{entry.totalPoints || 0}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                // Regular (non-nationals) scoring display
-                entry.searchTime ? (
-                  <div className="regular-scoresheet-grid">
-                    {/* Row 1: Result and Placement OR Result and Reason */}
-                    <div className="regular-grid-item result-item">
-                      {entry.resultText && (
-                        <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
-                          {(() => {
-                            const result = entry.resultText.toLowerCase();
-                            if (result === 'q' || result === 'qualified') return 'Q';
-                            if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                            if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                            if (result === 'ex' || result === 'excused') return 'EX';
-                            if (result === 'wd' || result === 'withdrawn') return 'WD';
-                            return entry.resultText;
-                          })()}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="regular-grid-item">
-                      {(() => {
-                        const resultLower = (entry.resultText || '').toLowerCase();
-                        const isNonQualifying = resultLower.includes('nq') || resultLower.includes('non-qualifying') ||
-                                               resultLower.includes('abs') || resultLower.includes('absent') ||
-                                               resultLower.includes('ex') || resultLower.includes('excused') ||
-                                               resultLower.includes('wd') || resultLower.includes('withdrawn');
-
-                        // Show placement only if qualified (placement exists and result is qualified)
-                        if (entry.placement && !isNonQualifying && entry.placement < 100) {
-                          return (
-                            <span className="placement-badge">
-                              {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
-                            </span>
-                          );
-                        }
-
-                        // Show reason for non-qualifying results
-                        if (isNonQualifying) {
-                          if ((resultLower.includes('nq') || resultLower.includes('non-qualifying')) && entry.nqReason) {
-                            return <span className="reason-badge">{entry.nqReason}</span>;
-                          } else if ((resultLower.includes('ex') || resultLower.includes('excused')) && entry.excusedReason) {
-                            return <span className="reason-badge">{entry.excusedReason}</span>;
-                          } else if ((resultLower.includes('wd') || resultLower.includes('withdrawn')) && entry.withdrawnReason) {
-                            return <span className="reason-badge">{entry.withdrawnReason}</span>;
-                          } else if (resultLower.includes('abs') || resultLower.includes('absent')) {
-                            return <span className="na-badge">Absent</span>;
-                          }
-                        }
-
-                        return <span className="na-badge">N/A</span>;
-                      })()}
-                    </div>
-
-                    {/* Row 2: Time and Faults */}
-                    <div className="regular-grid-item">
-                      <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
-                    </div>
-
-                    <div className="regular-grid-item">
-                      <span className="faults-badge-subtle">{entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}</span>
-                    </div>
-                  </div>
-                ) : undefined
-              )
-            ) : undefined
-          }
-          actionButton={
-            !entry.isScored ? (
-              <div
-                className={`status-badge checkin-status ${
-                  entry.inRing ? 'in-ring' :
-                  (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
-                } ${
-                  (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true)) ? 'disabled' : ''
-                }`}
-                onClick={(e) => {
-                  const canCheckIn = hasPermission('canCheckInDogs');
-                  const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
-
-                  if (canCheckIn || isSelfCheckinEnabled) {
-                    handleStatusClick(e, entry.id);
-                  } else {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelfCheckinDisabledDialog(true);
-                  }
-                }}
-                title={
-                  (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true))
-                    ? "Self check-in disabled"
-                    : "Tap to change status"
-                }
-              >
-                {(() => {
-                  if (entry.inRing) {
-                    return <><span className="status-icon">▶</span> In Ring</>;
-                  }
-                  const status = entry.checkinStatus || 'none';
-                  switch(status) {
-                    case 'none': return <><span className="status-icon">●</span> No Status</>;
-                    case 'checked-in': return <><span className="status-icon">✓</span> Checked-in</>;
-                    case 'conflict': return <><span className="status-icon">!</span> Conflict</>;
-                    case 'pulled': return <><span className="status-icon">✕</span> Pulled</>;
-                    case 'at-gate': return <><span className="status-icon">★</span> At Gate</>;
-                    default: return status;
-                  }
-                })()}
-              </div>
-            ) : (
-              <button
-                className="reset-button"
-                onClick={(e) => handleResetMenuClick(e, entry.id)}
-                title="Reset score"
-              >
-                ⋯
-              </button>
-            )
-          }
-        />
-      </div>
-    );
+    if (status === 'in_progress') {
+      return { text: 'IN PROGRESS', className: 'status-in-progress' };
+    } else if (status === 'briefing') {
+      return { text: 'BRIEFING NOW', className: 'status-briefing' };
+    } else if (status === 'start_time') {
+      return { text: 'UPCOMING', className: 'status-upcoming' };
+    } else if (status === 'setup') {
+      return { text: 'UPCOMING', className: 'status-upcoming' };
+    }
+    return null;
   };
+
+  const statusBadge = getStatusBadge();
 
   return (
     <div className={`entry-list-container app-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
@@ -980,16 +763,21 @@ export const EntryList: React.FC = () => {
           currentPage="entries"
         />
         <div className="class-info">
-          <h1>
-            {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-          </h1>
+          <div className="class-title-row">
+            <h1>
+              {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+            </h1>
+            {statusBadge && (
+              <span className={`class-status-badge ${statusBadge.className}`}>
+                {statusBadge.text}
+              </span>
+            )}
+          </div>
           <div className="class-subtitle">
             <div className="trial-info-row">
               <div className="trial-details-group">
                 {classInfo?.trialDate && classInfo.trialDate !== '' && (
-                  <span className="trial-detail">
-                    <Calendar size={14} /> {formatTrialDate(classInfo.trialDate)}
-                  </span>
+                  <TrialDateBadge date={classInfo.trialDate} />
                 )}
                 {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
                   <span className="trial-detail"><Target size={14} /> Trial {classInfo.trialNumber}</span>
@@ -997,19 +785,65 @@ export const EntryList: React.FC = () => {
                 {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
                   <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
                 )}
+                {classInfo?.totalEntries !== undefined && (
+                  <span className="trial-detail"><ClipboardCheck size={14} /> {classInfo.completedEntries || 0} of {classInfo.totalEntries} scored</span>
+                )}
+                {(classInfo?.timeLimit || classInfo?.timeLimit2 || classInfo?.timeLimit3) && (
+                  <span className="trial-detail time-limits">
+                    <Clock size={14} />
+                    {classInfo.areas && classInfo.areas > 1 ? (
+                      // Multi-area: show all time limits
+                      <>
+                        {classInfo.timeLimit && <span className="time-limit-badge">A1: {classInfo.timeLimit}</span>}
+                        {classInfo.timeLimit2 && <span className="time-limit-badge">A2: {classInfo.timeLimit2}</span>}
+                        {classInfo.timeLimit3 && <span className="time-limit-badge">A3: {classInfo.timeLimit3}</span>}
+                      </>
+                    ) : (
+                      // Single area: just show the time
+                      <>{classInfo.timeLimit}</>
+                    )}
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        <button
-          className={`icon-button ${refreshing ? 'rotating' : ''}`}
-          onClick={handleRefresh}
-          disabled={refreshing}
-          title="Refresh"
-        >
-          <RefreshCw className="h-5 w-5" />
-        </button>
+        <div className="header-buttons">
+          <div className="print-dropdown-container">
+            <button
+              className="icon-button"
+              onClick={() => setShowPrintMenu(!showPrintMenu)}
+              title="Print Reports"
+            >
+              <Printer className="h-5 w-5" />
+            </button>
+
+            {showPrintMenu && (
+              <div className="print-dropdown-menu">
+                <button onClick={handlePrintCheckIn} className="print-menu-item">
+                  📄 Check-In Sheet
+                </button>
+                <button
+                  onClick={handlePrintResults}
+                  className="print-menu-item"
+                  disabled={completedEntries.length === 0}
+                >
+                  📊 Results Sheet
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button
+            className={`icon-button ${refreshing ? 'rotating' : ''}`}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Refresh"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
@@ -1154,7 +988,18 @@ export const EntryList: React.FC = () => {
             >
               <div className={`entries-grid ${isDragMode ? 'drag-mode' : ''}`}>
                 {currentEntries.map((entry) => (
-                  <SortableEntryCard key={entry.id} entry={entry} />
+                  <SortableEntryCard
+                    key={entry.id}
+                    entry={entry}
+                    isDragMode={isDragMode}
+                    showContext={showContext}
+                    classInfo={classInfo}
+                    hasPermission={hasPermission}
+                    handleEntryClick={handleEntryClick}
+                    handleStatusClick={handleStatusClick}
+                    handleResetMenuClick={handleResetMenuClick}
+                    setSelfCheckinDisabledDialog={setSelfCheckinDisabledDialog}
+                  />
                 ))}
               </div>
             </SortableContext>
@@ -1167,7 +1012,7 @@ export const EntryList: React.FC = () => {
         isOpen={activeStatusPopup !== null}
         onClose={() => {
           setActiveStatusPopup(null);
-          setPopupPosition(null);
+          _setPopupPosition(null);
         }}
         onStatusChange={(status) => {
           if (activeStatusPopup !== null) {

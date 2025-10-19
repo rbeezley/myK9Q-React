@@ -28,31 +28,31 @@
   --warning: #FF9500;
   --error: #FF3B30;
 
-  /* Standardized Class Status Colors */
-  --status-none: #6b7280;
-  --status-setup: #f59e0b;
-  --status-briefing: #8b5cf6;
-  --status-break: #06b6d4;
-  --status-start-time: #10b981;
-  --status-in-progress: #3b82f6;
-  --status-completed: #059669;
+  /* Standardized Class Status Colors - Semantic and intuitive */
+  --status-none: #e5e7eb;       /* Very light gray - subtle */
+  --status-setup: #fef3c7;      /* Blue-gray - neutral preparation */
+  --status-briefing: #3b82f6;   /* Sky blue - informational */
+  --status-break: #14b8a6;      /* Teal - refreshing pause */
+  --status-start-time: #8b5cf6; /* Violet - special attention */
+  --status-in-progress: #6366f1;/* Indigo - active ongoing */
+  --status-completed: #10b981;  /* Green - success */
   
   /* High contrast status colors */
-  --success-contrast: #047857;
+  --success-contrast: #10b981;
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
   
   /* Comprehensive status colors - 7 distinct states per specification */
   --status-not-checked-in: #6b7280;    /* Grey - not checked-in (pending) */
   --status-not-checked-in-bg: #f3f4f6; /* Light grey background */
-  --status-checked-in: #065f46;        /* Very Dark Green - checked-in (ready) */
+  --status-checked-in: #10b981;        /* Very Dark Green - checked-in (ready) */
   --status-checked-in-bg: #d1fae5;     /* Light green background */
-  --status-at-gate: #14b8a6;           /* Teal - at gate */
+  --status-at-gate: #8b5cf6;           /* Teal - at gate */
   --status-at-gate-bg: #ccfbf1;        /* Light teal background */
   --status-in-ring: #2563eb;           /* Vibrant Blue - in ring (active) */
   --status-in-ring-bg: #dbeafe;        /* Light blue background */
   --status-conflict: #f59e0b;          /* Yellow - conflict */
-  --status-conflict-bg: #fef3c7;       /* Light yellow background */
+  --status-conflict-bg: #f59e0b;       /* Light yellow background */
   --status-pulled: #ef4444;            /* Red - pulled */
   --status-pulled-bg: #fecaca;         /* Light red background */
   --status-done: #10b981;              /* Green - done/scored */
@@ -98,19 +98,19 @@
   
   /* High contrast status colors for dark mode */
   --success-contrast: #10b981;
-  --warning-contrast: #f59e0b;
+  --warning-contrast: #fef3c7;
   --error-contrast: #ef4444;
   
   /* Comprehensive status colors - dark mode per specification */
   --status-not-checked-in: #9ca3af;    /* Light grey - not checked-in */
   --status-not-checked-in-bg: #374151; /* Dark grey background */
-  --status-checked-in: #047857;        /* Dark Green - checked-in (ready) */
+  --status-checked-in: #10b981;        /* Dark Green - checked-in (ready) */
   --status-checked-in-bg: #064e3b;     /* Dark green background */
-  --status-at-gate: #14b8a6;           /* Teal - at gate */
+  --status-at-gate: #8b5cf6;           /* Teal - at gate */
   --status-at-gate-bg: #134e4a;        /* Dark teal background */
   --status-in-ring: #60a5fa;           /* Vibrant Blue - in ring */
   --status-in-ring-bg: #1e3a8a;        /* Dark blue background */
-  --status-conflict: #fbbf24;          /* Brighter yellow - conflict */
+  --status-conflict: #3b82f6;          /* Brighter yellow - conflict */
   --status-conflict-bg: #92400e;       /* Dark yellow background */
   --status-pulled: #f87171;            /* Brighter red - pulled */
   --status-pulled-bg: #991b1b;         /* Dark red background */
@@ -313,46 +313,6 @@
 .trial-detail.progress svg * {
   stroke: var(--foreground) !important;
   color: var(--foreground) !important;
-}
-
-.icon-button {
-  background: var(--secondary);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  color: var(--foreground);
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.icon-button:hover:not(:disabled) {
-  background: var(--muted);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.icon-button:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.icon-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.rotating {
-  animation: rotate 1s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 /* Trial Info Section - Compact */
@@ -648,48 +608,19 @@
 }
 
 .class-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  position: relative; /* For absolute positioning of actions */
   margin-bottom: 0.5rem;
   /* Ensure header elements stay in their positions */
   flex-shrink: 0;
   width: 100%;
+  padding-right: 120px; /* Make room for action buttons */
+  min-height: 44px; /* Prevent layout shift on load */
 }
 
-/* Two-row header layout */
-.class-header-row {
+.class-title-section {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-
-.class-actions-row {
-  /* Second row: Judge + Actions */
-  align-items: center;
-}
-
-@media (min-width: 640px) {
-  .class-header-row {
-    /* Maintain consistent row layout on larger screens */
-    gap: 1rem;
-  }
-}
-
-.class-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.class-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.25rem;
+  flex-direction: column;
+  gap: 0.125rem; /* Tight spacing between class name and judge */
 }
 
 .class-name {
@@ -715,6 +646,30 @@
   line-height: 1.3;
 }
 
+.class-time-limits {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.class-time-limits .time-limit-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .class-progress {
   margin: 0;
   font-size: 0.75rem;
@@ -724,32 +679,29 @@
 }
 
 .class-actions {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  /* Ensure actions stay visible and don't get pushed off */
+  align-items: flex-start;
+  gap: 0.25rem;
   flex-shrink: 0;
-  min-width: fit-content;
-  flex-wrap: nowrap; /* Prevent wrapping on larger screens */
+  flex-wrap: nowrap;
   pointer-events: auto; /* Ensure child buttons are clickable */
   z-index: 5; /* Raise above other content */
-  position: relative;
-  /* Status badge first, then heart, then menu */
-  align-items: flex-start;
-  order: 2; /* Place actions after class details */
 }
 
 
 .favorite-button {
-  background: var(--secondary);
-  border: 2px solid var(--border);
-  border-radius: 0.75rem;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
   padding: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s var(--apple-ease);
+  transition: all 0.2s;
   color: var(--text-tertiary);
   min-width: 48px;
   min-height: 48px;
@@ -759,52 +711,42 @@
 }
 
 .favorite-button:hover {
-  background: rgba(0, 122, 255, 0.1);
-  border-color: var(--primary);
+  background: var(--muted);
+  border-color: var(--border);
   color: var(--primary);
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="dark"] .favorite-button:hover {
-  background: rgba(59, 130, 246, 0.15); /* Dark mode primary */
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  background: var(--muted);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .favorite-button:active {
-  transform: scale(0.92);
-  background: rgba(37, 99, 235, 0.2);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
-}
-
-[data-theme="dark"] .favorite-button:active {
-  background: rgba(59, 130, 246, 0.25);
-  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.3);
+  transform: scale(0.95);
+  background: var(--secondary);
 }
 
 .favorite-button.favorited {
-  background: rgba(255, 59, 48, 0.1);
-  border-color: var(--error);
   color: var(--error);
 }
 
 [data-theme="dark"] .favorite-button.favorited {
   color: var(--error-contrast);
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .favorite-button.favorited:hover {
-  background: rgba(220, 38, 38, 0.15);
+  background: var(--muted);
+  border-color: var(--border);
   color: var(--error-contrast);
-  border-color: var(--error-contrast);
-  transform: scale(1.08);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="dark"] .favorite-button.favorited:hover {
-  background: rgba(239, 68, 68, 0.2);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+  background: var(--muted);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .favorite-icon {
@@ -816,6 +758,34 @@
 
 .favorite-button.favorited .favorite-icon {
   fill: currentColor;
+}
+
+.menu-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: all 0.2s;
+  pointer-events: none; /* Prevent icon from intercepting clicks */
+}
+
+/* Status + Preview Section - Grouped Together on One Line */
+.class-status-preview-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  width: 100%;
+  flex-wrap: wrap; /* Allow wrapping on very narrow screens */
+}
+
+.class-status-preview-section .status-badge {
+  flex-shrink: 0; /* Don't shrink the badge */
+}
+
+.class-status-preview-section .contextual-preview-condensed {
+  flex: 1;
+  min-width: 0; /* Allow text to truncate if needed */
+  text-align: left; /* Left align instead of center when next to badge */
 }
 
 /* Smart Contextual Preview Section - Clean and Informative */
@@ -1325,79 +1295,11 @@
   min-width: fit-content;
 }
 
-.status-badge {
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  border: 1px solid transparent;
-  display: inline-block;
-  transition: all 0.3s var(--apple-ease);
-}
-
-.status-badge.clickable {
-  cursor: pointer;
-  transition: all 0.2s;
-  background: transparent;
-}
-
-.status-badge.clickable:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.status-badge.none {
-  background: var(--muted);
-  color: var(--muted-foreground);
-}
-
-.status-badge.none {
-  background: rgba(107, 114, 128, 0.1);
-  color: var(--status-none);
-  border-color: rgba(107, 114, 128, 0.2);
-}
-
-.status-badge.setup {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--status-setup);
-  border-color: rgba(245, 158, 11, 0.2);
-}
-
-.status-badge.briefing {
-  background: rgba(139, 92, 246, 0.1);
-  color: var(--status-briefing);
-  border-color: rgba(139, 92, 246, 0.2);
-}
-
-.status-badge.break {
-  background: rgba(6, 182, 212, 0.1);
-  color: var(--status-break);
-  border-color: rgba(6, 182, 212, 0.2);
-}
-
-.status-badge.start-time {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--status-start-time);
-  border-color: rgba(16, 185, 129, 0.2);
-}
-
-.status-badge.in-progress {
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--status-in-progress);
-  border-color: rgba(59, 130, 246, 0.2);
-}
-
-.status-badge.completed {
-  background: rgba(5, 150, 105, 0.1);
-  color: var(--status-completed);
-  border-color: rgba(5, 150, 105, 0.2);
-}
+/* Status badge styles moved to utilities.css */
 
 /* Removed action buttons - class card click handles navigation */
 
-.menu-button {
+.class-menu-button {
   padding: 0.75rem; /* Larger padding for gloved hands */
   background: transparent;
   border: 2px solid transparent;
@@ -1408,26 +1310,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px; /* Larger touch target */
-  min-height: 44px; /* Better for outdoor use */
+  min-width: 48px; /* Match favorite button */
+  min-height: 48px; /* Match favorite button */
   flex-shrink: 0;
   position: relative;
 }
 
-.menu-button:hover {
-  background: var(--muted);
+.class-menu-button:hover {
+  background: rgba(0, 0, 0, 0.05);
   color: var(--foreground);
-  border-color: var(--border);
-  transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="dark"] .menu-button:hover {
-  background: var(--muted);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+[data-theme="dark"] .class-menu-button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.menu-button:active {
+.class-menu-button:active {
   transform: scale(0.95);
   background: var(--secondary);
 }
@@ -1518,6 +1416,12 @@
 
 .menu-label {
   flex: 1;
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
 }
 
 .status-option {
@@ -2217,7 +2121,7 @@
 
 /* Status-specific colors matching existing theme */
 .status-option.status-setup {
-  color: var(--status-setup, #f59e0b);
+  color: var(--status-setup, #fef3c7);
 }
 
 .status-option.status-briefing {
@@ -2225,7 +2129,7 @@
 }
 
 .status-option.status-break {
-  color: var(--status-break, #06b6d4);
+  color: var(--status-break, #8b5cf6);
 }
 
 .status-option.status-start_time {
@@ -2593,9 +2497,9 @@
 
 /* Enhanced status colors for bottom placement */
 .class-status-footer .status-badge.setup {
-  background: linear-gradient(135deg, var(--status-setup), #f97316);
+  background: linear-gradient(135deg, var(--status-setup), #7c8da8);
   color: white;
-  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 2px 4px rgba(254, 243, 199, 0.2);
 }
 
 .class-status-footer .status-badge.briefing {
@@ -3130,4 +3034,14 @@
   .trial-detail.progress {
     margin-left: auto;
   }
+}
+
+/* CRITICAL: Prevent FOUC by only enabling smooth transitions after component is loaded */
+.class-list-container.loaded * {
+  transition:
+    background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

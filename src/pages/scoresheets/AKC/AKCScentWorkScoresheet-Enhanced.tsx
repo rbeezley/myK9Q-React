@@ -90,7 +90,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const [faultCount, setFaultCount] = useState(0);
   const [trialDate, setTrialDate] = useState<string>('');
   const [trialNumber, setTrialNumber] = useState<string>('');
-  const [darkMode, setDarkMode] = useState(() => {
+  const [_darkMode, _setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
@@ -557,6 +557,16 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         break;
     }
 
+    // Convert if stored as seconds (e.g., 240 -> 4:00)
+    if (maxTime && !maxTime.includes(':')) {
+      const totalSeconds = parseInt(maxTime);
+      if (!isNaN(totalSeconds) && totalSeconds > 0) {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        maxTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }
+
     // FAILSAFE: If missing or empty, use correct default based on element and level
     if (!maxTime || maxTime === '' || maxTime === '0:00' || maxTime === '00:00') {
       const element = targetEntry.element || '';
@@ -616,6 +626,23 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     return `${minutes}:${seconds.padStart(5, '0')}`;
   };
 
+  const getRemainingTime = (): string => {
+    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    if (!maxTimeStr) return '';
+
+    // Parse max time string (format: "3:00" or "4:00")
+    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+
+    // Calculate remaining time
+    const remainingMs = Math.max(0, maxTimeMs - stopwatchTime);
+    const remainingSeconds = remainingMs / 1000;
+    const mins = Math.floor(remainingSeconds / 60);
+    const secs = (remainingSeconds % 60).toFixed(2);
+
+    return `${mins}:${secs.padStart(5, '0')}`;
+  };
+
   const startStopwatch = () => {
     setIsStopwatchRunning(true);
     const startTime = Date.now() - stopwatchTime;
@@ -664,8 +691,15 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       clearInterval(stopwatchInterval);
       setStopwatchInterval(null);
     }
+
+    // For single-area classes, automatically copy time to search time field
+    if (areas.length === 1) {
+      const formattedTime = formatStopwatchTime(stopwatchTime);
+      handleAreaUpdate(0, 'time', formattedTime);
+    }
+
     // Timer stays paused with current time visible
-    // Judge can resume or move to next area
+    // Judge can resume or move to next area (multi-area only)
   };
 
   const recordTimeAndMoveToNextArea = () => {
@@ -975,8 +1009,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     const isNQReasonRequired = (qualifying === 'NQ' || qualifying === 'EX' || qualifying === 'WD') && nonQualifyingReason === '';
 
     return (
-      <div className="flutter-scoresheet-container app-container" data-theme="dark">
-        <div className="flutter-scoresheet">
+      <div className="scoresheet-container app-container">
+        <div className="scoresheet">
         {/* Demo Mode Banner */}
         <div style={{
           backgroundColor: '#ff6b35',
@@ -1000,13 +1034,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             currentPage="entries"
           />
           <h1>AKC Nationals</h1>
-          <button className="theme-btn" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? '☀️' : '🌙'}
-          </button>
         </header>
 
         {/* Trial Info - Compact */}
-        <div className="flutter-trial-info">
+        <div className="scoresheet-trial-info">
           <span>{trialDate || '10/11/2025'}</span>
           <span className="separator">•</span>
           <span>Trial {trialNumber || '1'}</span>
@@ -1015,14 +1046,14 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         </div>
 
         {/* Dog Info Card - Production Styling */}
-        <div className="flutter-dog-info-card">
-          <div className="flutter-armband">
+        <div className="scoresheet-dog-info-card">
+          <div className="scoresheet-armband">
             {sampleEntry.armband}
           </div>
-          <div className="flutter-dog-details">
-            <div className="flutter-dog-name">{sampleEntry.callName}</div>
-            <div className="flutter-dog-breed">{sampleEntry.breed}</div>
-            <div className="flutter-dog-handler">Handler: {sampleEntry.handler}</div>
+          <div className="scoresheet-dog-details">
+            <div className="scoresheet-dog-name">{sampleEntry.callName}</div>
+            <div className="scoresheet-dog-breed">{sampleEntry.breed}</div>
+            <div className="scoresheet-dog-handler">Handler: {sampleEntry.handler}</div>
           </div>
         </div>
 
@@ -1031,6 +1062,13 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           <div className="timer-display">
             <div className={`timer-time ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
               {formatStopwatchTime(stopwatchTime)}
+            </div>
+            <div className="timer-countdown-display">
+              {stopwatchTime > 0 ? (
+                <>Remaining: {getRemainingTime()}</>
+              ) : (
+                <>Max Time: {getMaxTimeForArea(currentAreaIndex || 0, sampleEntry)}</>
+              )}
             </div>
             {getTimerWarningMessage() && (
               <div className="timer-warning">{getTimerWarningMessage()}</div>
@@ -1049,24 +1087,58 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                   </button>
                 </>
               ) : stopwatchTime > 0 ? (
-                // Timer is stopped with time recorded - show Resume and Next Area buttons
-                <>
-                  <button
-                    className="timer-btn-secondary"
-                    onClick={startStopwatch}
-                    title="Continue timing current area"
-                  >
-                    ↻ Resume
-                  </button>
-                  <button
-                    className="timer-btn-main"
-                    onClick={recordTimeAndMoveToNextArea}
-                    title="Record time and move to next area"
-                  >
-                    ✓ Next Area
-                  </button>
-                  <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-                </>
+                // Timer is stopped with time recorded
+                (() => {
+                  // Check if time has expired (reached max time)
+                  const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+                  const hasExpired = maxTimeStr ? (() => {
+                    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+                    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+                    return stopwatchTime >= maxTimeMs;
+                  })() : false;
+
+                  if (hasExpired) {
+                    // Time expired - only show Next Area (multi-area) or Reset button
+                    return (
+                      <>
+                        <div className="timer-expired-indicator">⏱ Time Expired</div>
+                        {areas.length > 1 && (
+                          <button
+                            className="timer-btn-main"
+                            onClick={recordTimeAndMoveToNextArea}
+                            title="Record time and move to next area"
+                          >
+                            ✓ Next Area
+                          </button>
+                        )}
+                        <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
+                      </>
+                    );
+                  } else {
+                    // Timer paused but not expired - show Resume and Next Area buttons
+                    return (
+                      <>
+                        <button
+                          className="timer-btn-secondary"
+                          onClick={startStopwatch}
+                          title="Continue timing current area"
+                        >
+                          ↻ Resume
+                        </button>
+                        {areas.length > 1 && (
+                          <button
+                            className="timer-btn-main"
+                            onClick={recordTimeAndMoveToNextArea}
+                            title="Record time and move to next area"
+                          >
+                            ✓ Next Area
+                          </button>
+                        )}
+                        <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
+                      </>
+                    );
+                  }
+                })()
               ) : (
                 // Timer is at zero - show Start button
                 <>
@@ -1194,8 +1266,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="flutter-scoresheet-container app-container" data-theme="dark">
-      <div className="flutter-scoresheet">
+    <div className="scoresheet-container app-container">
+      <div className="scoresheet">
       {/* Header */}
       <header className="mobile-header">
         <HamburgerMenu
@@ -1217,29 +1289,33 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             <span>{currentEntry.element} {currentEntry.level}</span>
           </div>
         </div>
-        <button className="theme-btn" onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? '☀️' : '🌙'}
-        </button>
       </header>
 
 
       {/* Dog Info Card - Production Styling */}
-      <div className="flutter-dog-info-card">
-        <div className="flutter-armband">
+      <div className="scoresheet-dog-info-card">
+        <div className="scoresheet-armband">
           {currentEntry.armband}
         </div>
-        <div className="flutter-dog-details">
-          <div className="flutter-dog-name">{currentEntry.callName}</div>
-          <div className="flutter-dog-breed">{currentEntry.breed}</div>
-          <div className="flutter-dog-handler">Handler: {currentEntry.handler}</div>
+        <div className="scoresheet-dog-details">
+          <div className="scoresheet-dog-name">{currentEntry.callName}</div>
+          <div className="scoresheet-dog-breed">{currentEntry.breed}</div>
+          <div className="scoresheet-dog-handler">Handler: {currentEntry.handler}</div>
         </div>
       </div>
 
 
       {/* Flutter-style Timer Section */}
-      <div className="flutter-timer-card">
+      <div className="scoresheet-timer-card">
         <div className={`timer-display-large ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
           {formatStopwatchTime(stopwatchTime)}
+        </div>
+        <div className="timer-countdown-display">
+          {stopwatchTime > 0 ? (
+            <>Remaining: {getRemainingTime()}</>
+          ) : (
+            <>Max Time: {getMaxTimeForArea(currentAreaIndex || 0)}</>
+          )}
         </div>
         <div className="timer-controls-flutter">
           {isStopwatchRunning ? (
@@ -1254,24 +1330,58 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
               <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
             </>
           ) : stopwatchTime > 0 ? (
-            // Timer is stopped with time recorded - show Resume and Next Area buttons
-            <>
-              <button
-                className="timer-btn-start resume"
-                onClick={startStopwatch}
-                title="Continue timing current area"
-              >
-                Resume
-              </button>
-              <button
-                className="timer-btn-start next-area"
-                onClick={recordTimeAndMoveToNextArea}
-                title="Record time and move to next area"
-              >
-                Next Area
-              </button>
-              <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
-            </>
+            // Timer is stopped with time recorded
+            (() => {
+              // Check if time has expired (reached max time)
+              const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+              const hasExpired = maxTimeStr ? (() => {
+                const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+                const maxTimeMs = (minutes * 60 + seconds) * 1000;
+                return stopwatchTime >= maxTimeMs;
+              })() : false;
+
+              if (hasExpired) {
+                // Time expired - only show Next Area (multi-area) or Reset button
+                return (
+                  <>
+                    <div className="timer-expired-indicator">⏱ Time Expired</div>
+                    {areas.length > 1 && (
+                      <button
+                        className="timer-btn-start next-area"
+                        onClick={recordTimeAndMoveToNextArea}
+                        title="Record time and move to next area"
+                      >
+                        Next Area
+                      </button>
+                    )}
+                    <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+                  </>
+                );
+              } else {
+                // Timer paused but not expired - show Resume and Next Area buttons
+                return (
+                  <>
+                    <button
+                      className="timer-btn-start resume"
+                      onClick={startStopwatch}
+                      title="Continue timing current area"
+                    >
+                      Resume
+                    </button>
+                    {areas.length > 1 && (
+                      <button
+                        className="timer-btn-start next-area"
+                        onClick={recordTimeAndMoveToNextArea}
+                        title="Record time and move to next area"
+                      >
+                        Next Area
+                      </button>
+                    )}
+                    <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
+                  </>
+                );
+              }
+            })()
           ) : (
             // Timer is at zero - show Start button
             <>
@@ -1296,7 +1406,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
       {/* Time Input - Conditional Badge Based on Area Count */}
       {areas.map((area, index) => (
-        <div key={index} className="flutter-time-card">
+        <div key={index} className="scoresheet-time-card">
           <div className="time-input-flutter">
             {/* Only show badge for multi-area elements/levels */}
             {areas.length > 1 && (
@@ -1304,19 +1414,19 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                 Area {index + 1}
               </div>
             )}
-            <div className="flutter-time-input-wrapper">
+            <div className="scoresheet-time-input-wrapper">
               <input
                 type="text"
                 value={area.time || ''}
                 onChange={(e) => handleSmartTimeInput(index, e.target.value)}
                 onBlur={(e) => handleTimeInputBlur(index, e.target.value)}
                 placeholder="Type: 12345 or 1:23.45"
-                className={`flutter-time-input ${areas.length === 1 ? 'single-area' : ''}`}
+                className={`scoresheet-time-input ${areas.length === 1 ? 'single-area' : ''}`}
               />
               {area.time && (
                 <button
                   type="button"
-                  className="flutter-time-clear-button"
+                  className="scoresheet-time-clear-button"
                   onClick={() => clearTimeInput(index)}
                   title="Clear time"
                 >
@@ -1407,12 +1517,12 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       )}
 
       {/* Flutter-style Action Buttons */}
-      <div className="flutter-actions">
-        <button className="flutter-btn-cancel" onClick={handleNavigateWithRingCleanup}>
+      <div className="scoresheet-actions">
+        <button className="scoresheet-btn-cancel" onClick={handleNavigateWithRingCleanup}>
           Cancel
         </button>
         <button
-          className="flutter-btn-save"
+          className="scoresheet-btn-save"
           onClick={() => setShowConfirmation(true)}
           disabled={isSubmitting || !qualifying}
         >

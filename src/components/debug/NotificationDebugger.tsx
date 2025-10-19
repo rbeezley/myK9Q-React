@@ -4,10 +4,6 @@ export const NotificationDebugger: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState<any>({});
   const [testResults, setTestResults] = useState<string[]>([]);
 
-  useEffect(() => {
-    checkNotificationStatus();
-  }, []);
-
   const checkNotificationStatus = async () => {
     const info: any = {};
 
@@ -34,6 +30,11 @@ export const NotificationDebugger: React.FC = () => {
 
     setDebugInfo(info);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    checkNotificationStatus();
+  }, []);
 
   const addTestResult = (message: string) => {
     setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);

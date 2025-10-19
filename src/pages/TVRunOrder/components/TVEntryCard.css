@@ -165,12 +165,12 @@
 }
 
 .checkin-badge.checkin-1 {
-  background: #065f46; /* Dark Green - Checked In */
+  background: #10b981; /* Dark Green - Checked In */
   color: white;
 }
 
 .checkin-badge.checkin-2 {
-  background: #f59e0b; /* Yellow - Conflict */
+  background: #fef3c7; /* Yellow - Conflict */
   color: white;
 }
 
@@ -180,7 +180,7 @@
 }
 
 .checkin-badge.checkin-4 {
-  background: #14b8a6; /* Teal - At Gate */
+  background: #8b5cf6; /* Teal - At Gate */
   color: white;
 }
 
@@ -189,11 +189,11 @@
 }
 
 [data-theme="dark"] .checkin-badge.checkin-1 {
-  background: #047857; /* Dark green for dark mode */
+  background: #10b981; /* Dark green for dark mode */
 }
 
 [data-theme="dark"] .checkin-badge.checkin-2 {
-  background: #fbbf24; /* Brighter yellow for dark mode */
+  background: #3b82f6; /* Brighter yellow for dark mode */
 }
 
 [data-theme="dark"] .checkin-badge.checkin-3 {
@@ -201,7 +201,7 @@
 }
 
 [data-theme="dark"] .checkin-badge.checkin-4 {
-  background: #14b8a6; /* Teal stays same */
+  background: #8b5cf6; /* Teal stays same */
 }
 
 /* Placement badge */

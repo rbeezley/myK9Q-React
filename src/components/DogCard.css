@@ -1,20 +1,20 @@
 /* DogCard Component - Consistent layout for Home and EntryList pages */
 
-/* Status color variables for check-in badges */
+/* Status color variables for check-in badges - using standardized colors */
 :root {
-  --status-checked-in: #065f46;
-  --status-at-gate: #14b8a6;
+  --status-checked-in: #10b981;
+  --status-at-gate: #8b5cf6;
   --status-conflict: #f59e0b;
   --status-pulled: #ef4444;
   --status-done: #10b981;
 }
 
 [data-theme="dark"] {
-  --status-checked-in: #047857;
-  --status-at-gate: #14b8a6;
-  --status-conflict: #fbbf24;
-  --status-pulled: #f87171;
-  --status-done: #34d399;
+  --status-checked-in: #10b981;
+  --status-at-gate: #8b5cf6;
+  --status-conflict: #f59e0b;
+  --status-pulled: #ef4444;
+  --status-done: #10b981;
 }
 
 .dog-card {
@@ -94,6 +94,21 @@
 
 .dog-card.placement-3 {
   border-left: 3px solid #cd7f32; /* Bronze */
+}
+
+/* Result status borders - based on result type */
+.dog-card.result-qualified {
+  border-left: 3px solid var(--success-contrast, #10b981); /* Green for qualified */
+}
+
+.dog-card.result-nq,
+.dog-card.result-ex {
+  border-left: 3px solid var(--error-contrast, #dc2626); /* Red for NQ/Excused */
+}
+
+.dog-card.result-abs,
+.dog-card.result-wd {
+  border-left: 3px solid #7c3aed; /* Purple for Absent/Withdrawn */
 }
 
 /* Content layout - flexbox */
@@ -279,12 +294,12 @@
 }
 
 .dog-card-action .status-badge.checked-in {
-  background: var(--status-checked-in, #065f46);
+  background: var(--status-checked-in, #10b981);
   color: white;
 }
 
 .dog-card-action .status-badge.at-gate {
-  background: var(--status-at-gate, #14b8a6);
+  background: var(--status-at-gate, #8b5cf6);
   color: white;
 }
 

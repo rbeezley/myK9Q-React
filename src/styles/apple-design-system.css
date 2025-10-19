@@ -21,10 +21,10 @@
 
   /* Standardized Class Status Colors */
   --status-none: #6b7280;           /* Gray - Ready/None */
-  --status-setup: #f59e0b;          /* Amber - Setup */
-  --status-briefing: #8b5cf6;       /* Purple - Briefing */
-  --status-break: #06b6d4;          /* Cyan - Break */
-  --status-start-time: #10b981;     /* Emerald - Start Time */
+  --status-setup: #fef3c7;          /* Amber - Setup */
+  --status-briefing: #3b82f6;       /* Purple - Briefing */
+  --status-break: #14b8a6;          /* Cyan - Break */
+  --status-start-time: #8b5cf6;     /* Emerald - Start Time */
   --status-in-progress: #3b82f6;    /* Blue - In Progress */
   --status-completed: #059669;      /* Green - Completed */
   
@@ -80,10 +80,10 @@
 
   /* Dark mode status colors - enhanced brightness */
   --status-none: #9ca3af;
-  --status-setup: #fbbf24;
-  --status-briefing: #a78bfa;
-  --status-break: #22d3ee;
-  --status-start-time: #34d399;
+  --status-setup: #3b82f6;
+  --status-briefing: #3b82f6;
+  --status-break: #14b8a6;
+  --status-start-time: #8b5cf6;
   --status-in-progress: #60a5fa;
   --status-completed: #10b981;
 }

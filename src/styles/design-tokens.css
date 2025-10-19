@@ -2,21 +2,97 @@
 
 :root {
   /* === STATUS COLORS === */
-  /* Check-in status colors */
-  --token-status-none: #6b7280;
-  --token-status-none-bg: #f3f4f6;
-  --token-status-checked-in: #065f46;
-  --token-status-checked-in-bg: #d1fae5;
-  --token-status-at-gate: #14b8a6;
-  --token-status-at-gate-bg: #ccfbf1;
-  --token-status-in-ring: #f97316;
-  --token-status-in-ring-bg: #fed7aa;
-  --token-status-conflict: #f59e0b;
-  --token-status-conflict-bg: #fef3c7;
-  --token-status-pulled: #ef4444;
-  --token-status-pulled-bg: #fecaca;
-  --token-status-done: #10b981;
-  --token-status-done-bg: #d1fae5;
+  /* === Check-in Status Colors === */
+  /* Not Checked-in: Gray (neutral, waiting) */
+  --status-none: #9ca3af;
+  --status-none-bg: #9ca3af;
+  --status-none-text: #ffffff;
+
+  /* Checked-in: Green (ready, good to go) */
+  --status-checked-in: #10b981;
+  --status-checked-in-bg: #10b981;
+  --status-checked-in-text: #ffffff;
+
+  /* At Gate: Purple (special attention, next up) */
+  --status-at-gate: #8b5cf6;
+  --status-at-gate-bg: #8b5cf6;
+  --status-at-gate-text: #ffffff;
+
+  /* Conflict: Orange/Amber (warning, needs resolution) */
+  --status-conflict: #f59e0b;
+  --status-conflict-bg: #f59e0b;
+  --status-conflict-text: #ffffff;
+
+  /* Pulled: Red (stopped, withdrawn) */
+  --status-pulled: #ef4444;
+  --status-pulled-bg: #ef4444;
+  --status-pulled-text: #ffffff;
+
+  /* === Class Status Colors === */
+  /* Semantic and intuitive colors aligned with check-in status system */
+
+  /* Setup: Pale yellow/cream (dawn, new beginning, fresh start) */
+  --status-setup: #fef3c7;
+  --status-setup-bg: #fef3c7;
+  --status-setup-text: #92400e;
+
+  /* Briefing: Sky blue (informational, communication) */
+  --status-briefing: #3b82f6;
+  --status-briefing-bg: #3b82f6;
+  --status-briefing-text: #ffffff;
+
+  /* Break: Teal (refreshing, pause) */
+  --status-break: #14b8a6;
+  --status-break-bg: #14b8a6;
+  --status-break-text: #ffffff;
+
+  /* Start Time: Violet (special attention, matches At Gate) */
+  --status-start-time: #8b5cf6;
+  --status-start-time-bg: #8b5cf6;
+  --status-start-time-text: #ffffff;
+
+  /* In Progress: Indigo (active, ongoing work) */
+  --status-in-progress: #6366f1;
+  --status-in-progress-bg: #6366f1;
+  --status-in-progress-text: #ffffff;
+
+  /* Completed: Green (success, done - matches Checked-in) */
+  --status-completed: #10b981;
+  --status-completed-bg: #10b981;
+  --status-completed-text: #ffffff;
+
+  /* === Result Status Colors === */
+  --status-qualified: #10b981;
+  --status-qualified-bg: #10b981;
+  --status-qualified-text: #ffffff;
+
+  --status-not-qualified: #ef4444;
+  --status-not-qualified-bg: #ef4444;
+  --status-not-qualified-text: #ffffff;
+
+  --status-excused: #fef3c7;
+  --status-excused-bg: #fef3c7;
+  --status-excused-text: #ffffff;
+
+  --status-pending: #f3f4f6;
+  --status-pending-bg: #f3f4f6;
+  --status-pending-text: #6b7280;
+
+  /* Legacy token names for backwards compatibility */
+  --token-status-none: var(--status-none);
+  --token-status-none-bg: var(--status-none-bg);
+  --token-status-checked-in: var(--status-checked-in);
+  --token-status-checked-in-bg: var(--status-checked-in-bg);
+  --token-status-at-gate: var(--status-at-gate);
+  --token-status-at-gate-bg: var(--status-at-gate-bg);
+  --token-status-in-ring: var(--status-conflict);
+  --token-status-in-ring-bg: var(--status-conflict-bg);
+  --token-status-conflict: var(--status-conflict);
+  --token-status-conflict-bg: var(--status-conflict-bg);
+  --token-status-pulled: var(--status-pulled);
+  --token-status-pulled-bg: var(--status-pulled-bg);
+  --token-status-done: var(--status-completed);
+  --token-status-done-bg: var(--status-completed-bg);
 
   /* Placement colors */
   --token-placement-1: #ffd700; /* Gold */
@@ -27,13 +103,27 @@
   --token-success: #34C759;
   --token-warning: #FF9500;
   --token-error: #FF3B30;
-  --token-success-contrast: #047857;
+  --token-success-contrast: #10b981;
   --token-warning-contrast: #c2410c;
   --token-error-contrast: #dc2626;
+
+  /* Result status colors */
+  --token-result-qualified: #10b981;
+  --token-result-nq: #dc2626;
+  --token-result-excused: #dc2626;
+  --token-result-absent: #7c3aed;
+  --token-result-withdrawn: #7c3aed;
 
   /* Brand colors */
   --token-brand-blue: #007AFF;
   --token-brand-purple: #5856D6;
+
+  /* Text colors for light mode */
+  --token-text-primary: #000000;
+  --token-text-secondary: #374151;
+  --token-text-tertiary: #6b7280;
+  --token-text-muted: #9ca3af;
+  --token-text-white: #ffffff;
 
   /* === SPACING === */
   --token-space-xs: 0.125rem;    /* 2px */
@@ -95,26 +185,69 @@
 
 /* Dark theme overrides */
 [data-theme="dark"] {
-  /* Status colors for dark mode */
-  --token-status-none: #9ca3af;
-  --token-status-none-bg: #374151;
-  --token-status-checked-in: #047857;
-  --token-status-checked-in-bg: #064e3b;
-  --token-status-at-gate: #14b8a6;
-  --token-status-at-gate-bg: #134e4a;
-  --token-status-in-ring: #fb923c;
-  --token-status-in-ring-bg: #9a3412;
-  --token-status-conflict: #fbbf24;
-  --token-status-conflict-bg: #92400e;
-  --token-status-pulled: #f87171;
-  --token-status-pulled-bg: #991b1b;
-  --token-status-done: #34d399;
-  --token-status-done-bg: #064e3b;
+  /* Check-in status colors - same as light mode for consistency */
+  --status-none: #9ca3af;
+  --status-none-bg: #9ca3af;
+
+  --status-checked-in: #10b981;
+  --status-checked-in-bg: #10b981;
+
+  --status-at-gate: #8b5cf6;
+  --status-at-gate-bg: #8b5cf6;
+
+  --status-conflict: #f59e0b;
+  --status-conflict-bg: #f59e0b;
+
+  --status-pulled: #ef4444;
+  --status-pulled-bg: #ef4444;
+
+  /* Class status colors - same as light mode for consistency */
+  --status-setup: #fef3c7;
+  --status-briefing: #3b82f6;
+  --status-break: #14b8a6;
+  --status-start-time: #8b5cf6;
+  --status-in-progress: #6366f1;
+  --status-completed: #10b981;
+
+  /* Result status colors - same as light mode for consistency */
+  --status-qualified: #10b981;
+  --status-not-qualified: #ef4444;
+  --status-excused: #fef3c7;
+
+  /* Legacy tokens */
+  --token-status-none: var(--status-none);
+  --token-status-none-bg: var(--status-none-bg);
+  --token-status-checked-in: var(--status-checked-in);
+  --token-status-checked-in-bg: var(--status-checked-in-bg);
+  --token-status-at-gate: var(--status-at-gate);
+  --token-status-at-gate-bg: var(--status-at-gate-bg);
+  --token-status-in-ring: var(--status-conflict);
+  --token-status-in-ring-bg: var(--status-conflict-bg);
+  --token-status-conflict: var(--status-conflict);
+  --token-status-conflict-bg: var(--status-conflict-bg);
+  --token-status-pulled: var(--status-pulled);
+  --token-status-pulled-bg: var(--status-pulled-bg);
+  --token-status-done: var(--status-completed);
+  --token-status-done-bg: var(--status-completed-bg);
 
   /* Semantic colors for dark mode */
   --token-success-contrast: #10b981;
-  --token-warning-contrast: #f59e0b;
+  --token-warning-contrast: #fef3c7;
   --token-error-contrast: #ef4444;
+
+  /* Result status colors for dark mode - brighter */
+  --token-result-qualified: #34d399;
+  --token-result-nq: #ef4444;
+  --token-result-excused: #ef4444;
+  --token-result-absent: #8b5cf6;
+  --token-result-withdrawn: #8b5cf6;
+
+  /* Text colors for dark mode */
+  --token-text-primary: #ffffff;
+  --token-text-secondary: #e5e7eb;
+  --token-text-tertiary: #9ca3af;
+  --token-text-muted: #6b7280;
+  --token-text-white: #ffffff;
 
   /* Shadows for dark mode */
   --token-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);

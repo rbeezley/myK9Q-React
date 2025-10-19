@@ -121,9 +121,12 @@ export const Login: React.FC = () => {
         throw new Error('Invalid passcode');
       }
 
-      // Login successful
+      // Login successful - map competition_type to showType for nationals detection
       hapticFeedback.success();
-      login(fullPasscode, showData);
+      login(fullPasscode, {
+        ...showData,
+        showType: showData.competition_type
+      });
       navigate('/home');
     } catch (err) {
       console.error('Login error:', err);
@@ -170,7 +173,7 @@ export const Login: React.FC = () => {
                 {passcode.map((digit, index) => (
                   <div key={index} className="input-wrapper">
                     <input
-                      ref={(el) => (inputRefs.current[index] = el)}
+                      ref={(el) => { inputRefs.current[index] = el; }}
                       type="text"
                       maxLength={1}
                       value={digit}

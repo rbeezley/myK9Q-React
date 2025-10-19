@@ -1,6 +1,7 @@
 /* Import design tokens first - available everywhere */
 @import './styles/design-tokens.css';
 @import './styles/apple-design-system.css';
+@import './styles/utilities.css';
 
 * {
   margin: 0;

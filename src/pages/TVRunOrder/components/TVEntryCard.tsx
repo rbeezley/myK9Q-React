@@ -4,7 +4,7 @@ import './TVEntryCard.css';
 interface TVEntryCardProps {
   armband: number;
   callName: string;
-  breed: string;
+  breed?: string;
   handler: string;
   isScored: boolean;
   inRing: boolean;
@@ -61,7 +61,7 @@ export const TVEntryCard: React.FC<TVEntryCardProps> = ({
       {/* Entry info */}
       <div className="tv-entry-info">
         <div className="tv-entry-dog">
-          {callName} · {breed}
+          {callName}{breed ? ` · ${breed}` : ''}
         </div>
         <div className="tv-entry-handler">
           {handler}

@@ -3,6 +3,18 @@
  */
 
 /**
+ * Convert seconds to MM:SS format (no hundredths)
+ * Used for displaying max time limits
+ * @param seconds - Time in seconds (integer)
+ * @returns Formatted time string in MM:SS format
+ */
+export function formatSecondsToMMSS(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+/**
  * Convert seconds (decimal) to MM:SS.HH format
  * @param seconds - Time in seconds (can be decimal)
  * @returns Formatted time string in MM:SS.HH format
