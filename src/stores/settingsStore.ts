@@ -173,6 +173,11 @@ export const useSettingsStore = create<SettingsState>()(
           if (updates.reduceMotion !== undefined) {
             applyReduceMotion(updates.reduceMotion);
           }
+
+          // Apply high contrast immediately
+          if (updates.highContrast !== undefined) {
+            applyHighContrast(updates.highContrast);
+          }
         },
 
         resetSettings: () => {
@@ -181,6 +186,7 @@ export const useSettingsStore = create<SettingsState>()(
           applyFontSize('medium');
           applyDensity('comfortable');
           applyReduceMotion(false);
+          applyHighContrast(false);
         },
 
         resetSection: (section) => {
@@ -223,6 +229,7 @@ export const useSettingsStore = create<SettingsState>()(
             applyFontSize(newSettings.fontSize);
             applyDensity(newSettings.density);
             applyReduceMotion(newSettings.reduceMotion);
+            applyHighContrast(newSettings.highContrast);
 
             return true;
           } catch (error) {
@@ -285,6 +292,18 @@ function applyReduceMotion(enabled: boolean) {
 }
 
 /**
+ * Apply high contrast mode to document
+ */
+function applyHighContrast(enabled: boolean) {
+  const root = document.documentElement;
+  if (enabled) {
+    root.classList.add('high-contrast');
+  } else {
+    root.classList.remove('high-contrast');
+  }
+}
+
+/**
  * Initialize settings on app load
  */
 export function initializeSettings() {
@@ -293,4 +312,5 @@ export function initializeSettings() {
   applyFontSize(settings.fontSize);
   applyDensity(settings.density);
   applyReduceMotion(settings.reduceMotion);
+  applyHighContrast(settings.highContrast);
 }
