@@ -32,6 +32,11 @@
   background: #f9fafb;
 }
 
+[data-theme="dark"] .dialog-header {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
 .dialog-title {
   display: flex;
   align-items: center;
@@ -40,6 +45,10 @@
   font-weight: 600;
   color: #111827;
   flex: 1;
+}
+
+[data-theme="dark"] .dialog-title {
+  color: #f1f5f9;
 }
 
 .status-dialog-info {
@@ -75,6 +84,10 @@
   line-height: 1.2;
 }
 
+[data-theme="dark"] .status-dialog-dog-name {
+  color: #f1f5f9;
+}
+
 .status-dialog-handler {
   font-size: 0.875rem;
   color: var(--muted-foreground);
@@ -96,17 +109,28 @@
   height: 32px;
   border-radius: 6px;
   border: none;
-  background: #f0f9ff;
-  color: var(--secondary-foreground);
+  background: #e0f2fe;
+  color: #0369a1;
   cursor: pointer;
-  transition: background-color 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
   font-size: 16px;
   font-weight: 500;
   flex-shrink: 0;
 }
 
+[data-theme="dark"] .close-button {
+  background: rgba(51, 65, 85, 0.8);
+  color: #94a3b8;
+}
+
 .close-button:hover {
-  background: var(--secondary-hover);
+  background: #bae6fd;
+  transform: scale(1.05);
+}
+
+[data-theme="dark"] .close-button:hover {
+  background: rgba(71, 85, 105, 0.9);
+  color: #cbd5e1;
 }
 
 .close-button:active {
@@ -209,6 +233,11 @@
   --status-color-rgb: 139, 92, 246;
 }
 
+.status-option.status-come-to-gate {
+  --status-color: #3b82f6;
+  --status-color-rgb: 59, 130, 246;
+}
+
 /* Icon colors and backgrounds for popup options - solid colored like badges */
 .status-option.status-none .popup-icon {
   color: var(--status-none-text);
@@ -223,6 +252,11 @@
 .status-option.status-at-gate .popup-icon {
   color: var(--status-at-gate-text);
   background: var(--status-at-gate-bg);
+}
+
+.status-option.status-come-to-gate .popup-icon {
+  color: #ffffff;
+  background: #3b82f6;
 }
 
 .status-option.status-conflict .popup-icon {
@@ -334,6 +368,11 @@
   background: #8b5cf6 !important;
 }
 
+.status-item.status-come-to-gate .status-icon {
+  color: #ffffff !important;
+  background: #3b82f6 !important;
+}
+
 .status-item.status-conflict .status-icon {
   color: #ffffff !important;
   background: #f59e0b !important;
@@ -409,4 +448,9 @@
 .status-item.status-at-gate {
   --status-color: var(--status-at-gate);
   --status-color-rgb: 139, 92, 246;
+}
+
+.status-item.status-come-to-gate {
+  --status-color: #3b82f6;
+  --status-color-rgb: 59, 130, 246;
 }

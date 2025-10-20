@@ -1,10 +1,11 @@
 import React from 'react';
-import { Circle, Check, AlertTriangle, XCircle, Star } from 'lucide-react';
+import { Circle, Check, AlertTriangle, XCircle, Star, Bell } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import { getCheckInStatusIcon } from '../../utils/statusUtils';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 export interface CheckInStatusBadgeProps {
-  /** Check-in status: 'none', 'checked-in', 'conflict', 'pulled', 'at-gate' */
+  /** Check-in status: 'none', 'checked-in', 'conflict', 'pulled', 'at-gate', 'come-to-gate' */
   status?: string;
   /** Whether the badge is clickable */
   clickable?: boolean;
@@ -34,6 +35,8 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
   className = '',
   asButton = false
 }) => {
+  const haptic = useHapticFeedback();
+
   // Get label based on status
   const getLabel = (status: string): string => {
     switch (status) {
@@ -41,6 +44,7 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
       case 'conflict': return 'Conflict';
       case 'pulled': return 'Pulled';
       case 'at-gate': return 'At Gate';
+      case 'come-to-gate': return 'Come to Gate';
       default: return 'Not Checked In';
     }
   };
@@ -55,7 +59,20 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
       case 'AlertTriangle': return <AlertTriangle {...props} />;
       case 'XCircle': return <XCircle {...props} />;
       case 'Star': return <Star {...props} />;
+      case 'Bell': return <Bell {...props} />;
       default: return <Circle {...props} />;
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      // Provide different haptic feedback based on status
+      if (status === 'conflict') {
+        haptic.warning(); // Warning pulse for conflicts
+      } else {
+        haptic.light(); // Quick tap for normal status changes
+      }
+      onClick(e);
     }
   };
 
@@ -65,7 +82,7 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
       statusColor={status}
       icon={getIcon(status)}
       clickable={clickable}
-      onClick={onClick}
+      onClick={handleClick}
       className={className}
       asButton={asButton}
     />

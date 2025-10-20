@@ -1,0 +1,217 @@
+
+> myk9q-react@1.0.0 lint
+> eslint . --report-unused-disable-directives --max-warnings 0
+
+
+d:\AI-Projects\myK9Q-React-new\src\App.tsx
+  108:31  error  React Hook "useAuth" is called in function "handleBeforeUnload" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+
+d:\AI-Projects\myK9Q-React-new\src\components\ui\DeviceDebugPanel.tsx
+  40:3  error  React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+
+d:\AI-Projects\myK9Q-React-new\src\components\ui\DeviceTierToast.tsx
+  39:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+d:\AI-Projects\myK9Q-React-new\src\components\ui\DeviceTierToast.tsx:39:7
+  37 |
+  38 |     if (hasShownThisSession) {
+> 39 |       setHasShown(true);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |       return;
+  41 |     }
+  42 |  react-hooks/set-state-in-effect
+
+d:\AI-Projects\myK9Q-React-new\src\components\ui\StickyHeader.tsx
+   81:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+d:\AI-Projects\myK9Q-React-new\src\components\ui\StickyHeader.tsx:81:7
+  79 |   useEffect(() => {
+  80 |     if (!autoHide) {
+> 81 |       setIsVisible(true);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  82 |       return;
+  83 |     }
+  84 |  react-hooks/set-state-in-effect
+  167:3  error  'containerRef' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\components\ui\VirtualList.tsx
+  318:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+d:\AI-Projects\myK9Q-React-new\src\contexts\SettingsContext.tsx
+  51:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  65:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  73:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\useMonitoring.ts
+  17:33  error  Error: Cannot call impure function during render
+
+`performance.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\useMonitoring.ts:17:33
+  15 |  */
+  16 | export function useRenderMetrics(componentName: string): void {
+> 17 |   const renderStartRef = useRef(performance.now());
+     |                                 ^^^^^^^^^^^^^^^^^ Cannot call impure function
+  18 |
+  19 |   useEffect(() => {
+  20 |     const renderTime = performance.now() - renderStartRef.current;  react-hooks/purity
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\usePerformance.ts
+  107:11  error  'taskId' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  152:5   error  Error: Expected the dependency list for useCallback to be an array literal
+
+Expected the dependency list for useCallback to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\usePerformance.ts:152:5
+  150 |       return () => clearTimeout(timeoutId);
+  151 |     },
+> 152 |     [settings, ...deps]
+      |     ^^^^^^^^^^^^^^^^^^^ Expected the dependency list for useCallback to be an array literal
+  153 |   ) as T;
+  154 | }
+  155 |                                                                                                                                                                                                                                                                                react-hooks/use-memo
+  176:5   error  Error: Expected the dependency list for useCallback to be an array literal
+
+Expected the dependency list for useCallback to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\usePerformance.ts:176:5
+  174 |       }
+  175 |     },
+> 176 |     [settings, ...deps]
+      |     ^^^^^^^^^^^^^^^^^^^ Expected the dependency list for useCallback to be an array literal
+  177 |   ) as T;
+  178 | }
+  179 |                                                                                                                                                                                                                                                                                                                    react-hooks/use-memo
+  206:37  error  Error: Cannot call impure function during render
+
+`performance.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\usePerformance.ts:206:37
+  204 |  */
+  205 | export function useRenderTime(componentName: string): void {
+> 206 |   const renderStart = useMemo(() => performance.now(), []);
+      |                                     ^^^^^^^^^^^^^^^^^ Cannot call impure function
+  207 |
+  208 |   useEffect(() => {
+  209 |     const renderEnd = performance.now();  react-hooks/purity
+
+d:\AI-Projects\myK9Q-React-new\src\hooks\useScrollRestoration.ts
+  12:3  error  'clearScrollPosition' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\pages\Settings\Settings.tsx
+  10:10  error  'SETTINGS_VERSION' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\services\analyticsService.ts
+  343:11  error  'match' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  344:11  error  Unnecessary escape character: \/                                                  no-useless-escape
+  344:66  error  Unnecessary escape character: \/                                                  no-useless-escape
+
+d:\AI-Projects\myK9Q-React-new\src\services\metricsApiService.ts
+   10:10  error  'UserSession' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  132:5   error  'licenseKey' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\services\rageClickDetector.ts
+  191:25  error  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\utils\deviceDetection.ts
+  278:12  error  'error' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\utils\idleWork.ts
+  33:44  error  'options' is defined but never used. Allowed unused args must match /^_/u                              @typescript-eslint/no-unused-vars
+  43:7   error  'cancelIdleCallbackPolyfill' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\utils\logger.ts
+  19:12  error  'error' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts
+  130:6   error  Error: Expected the dependency list for useMemo to be an array literal
+
+Expected the dependency list for useMemo to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts:130:6
+  128 |     if (!array || array.length === 0) return [];
+  129 |     return transform(array);
+> 130 |   }, [array, ...deps]);
+      |      ^^^^^^^^^^^^^^^^ Expected the dependency list for useMemo to be an array literal
+  131 | }
+  132 |
+  133 | /**            react-hooks/use-memo
+  144:6   error  Error: Expected the dependency list for useMemo to be an array literal
+
+Expected the dependency list for useMemo to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts:144:6
+  142 |     if (!array || array.length === 0) return [];
+  143 |     return array.filter(predicate);
+> 144 |   }, [array, ...deps]);
+      |      ^^^^^^^^^^^^^^^^ Expected the dependency list for useMemo to be an array literal
+  145 | }
+  146 |
+  147 | /**     react-hooks/use-memo
+  158:6   error  Error: Expected the dependency list for useMemo to be an array literal
+
+Expected the dependency list for useMemo to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts:158:6
+  156 |     if (!array || array.length === 0) return [];
+  157 |     return [...array].sort(compareFn);
+> 158 |   }, [array, ...deps]);
+      |      ^^^^^^^^^^^^^^^^ Expected the dependency list for useMemo to be an array literal
+  159 | }
+  160 |
+  161 | /**  react-hooks/use-memo
+  168:18  error  Error: Expected the first argument to be an inline function expression
+
+Expected the first argument to be an inline function expression.
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts:168:18
+  166 |   deps: any[]
+  167 | ): T {
+> 168 |   return useMemo(factory, deps);
+      |                  ^^^^^^^ Expected the first argument to be an inline function expression
+  169 | }
+  170 |
+  171 | /**                                                        react-hooks/use-memo
+  168:27  error  Error: Expected the dependency list for useMemo to be an array literal
+
+Expected the dependency list for useMemo to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts:168:27
+  166 |   deps: any[]
+  167 | ): T {
+> 168 |   return useMemo(factory, deps);
+      |                           ^^^^ Expected the dependency list for useMemo to be an array literal
+  169 | }
+  170 |
+  171 | /**                                                  react-hooks/use-memo
+  179:34  error  Error: Expected the dependency list for useMemo to be an array literal
+
+Expected the dependency list for useMemo to be an array literal.
+
+d:\AI-Projects\myK9Q-React-new\src\utils\memoUtils.ts:179:34
+  177 |   deps: any[]
+  178 | ): T {
+> 179 |   return useMemo(() => callback, deps);
+      |                                  ^^^^ Expected the dependency list for useMemo to be an array literal
+  180 | }
+  181 |
+  182 | /**                                    react-hooks/use-memo
+
+d:\AI-Projects\myK9Q-React-new\src\utils\scrollUtils.ts
+  227:32  error  'block' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  227:49  error  'inline' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 34 problems (30 errors, 4 warnings)
+

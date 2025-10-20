@@ -1,0 +1,225 @@
+/* BottomSheet.css */
+
+.bottom-sheet-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+
+  /* Safe area support for iOS */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.bottom-sheet-dragging {
+  transition: none !important;
+}
+
+/* Heights */
+.bottom-sheet-auto {
+  max-height: 90vh;
+}
+
+.bottom-sheet-half {
+  height: 50vh;
+}
+
+.bottom-sheet-full {
+  height: 90vh;
+}
+
+/* Drag handle */
+.bottom-sheet-handle {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 8px 0;
+  cursor: grab;
+}
+
+.bottom-sheet-handle:active {
+  cursor: grabbing;
+}
+
+.bottom-sheet-handle-bar {
+  width: 36px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+/* Header */
+.bottom-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.bottom-sheet-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.bottom-sheet-close {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.bottom-sheet-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.bottom-sheet-close:active {
+  transform: scale(0.95);
+}
+
+/* Content */
+.bottom-sheet-content {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  padding: 20px;
+}
+
+/* Scrollbar styling */
+.bottom-sheet-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  /* On desktop, center the bottom sheet and make it narrower */
+  .bottom-sheet {
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    border-radius: 20px;
+    bottom: 20px;
+    animation: slideUpDesktop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes slideUpDesktop {
+    from {
+      transform: translateX(-50%) translateY(100%);
+    }
+    to {
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  .bottom-sheet-overlay {
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .bottom-sheet {
+    background: #1f2937;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .bottom-sheet-header {
+    border-bottom-color: #374151;
+  }
+
+  .bottom-sheet-title {
+    color: #f9fafb;
+  }
+
+  .bottom-sheet-close {
+    color: #9ca3af;
+  }
+
+  .bottom-sheet-close:hover {
+    background: #374151;
+    color: #f9fafb;
+  }
+
+  .bottom-sheet-handle-bar {
+    background: #4b5563;
+  }
+
+  .bottom-sheet-content::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .bottom-sheet-content::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .bottom-sheet-overlay,
+  .bottom-sheet {
+    animation: none;
+  }
+
+  .bottom-sheet-close:active {
+    transform: none;
+  }
+}

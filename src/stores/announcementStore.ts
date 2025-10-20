@@ -53,6 +53,7 @@ interface AnnouncementState {
   // Current context
   currentLicenseKey: string | null;
   currentShowName: string | null;
+  isInitializing: boolean; // Lock to prevent concurrent initialization
 
   // Actions
   setLicenseKey: (licenseKey: string, showName?: string) => void;
@@ -89,6 +90,60 @@ const generateUserIdentifier = (): string => {
   return identifier;
 };
 
+// Announcement cache helpers
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+interface AnnouncementCache {
+  data: Announcement[];
+  timestamp: number;
+  licenseKey: string;
+}
+
+const getCachedAnnouncements = (licenseKey: string): Announcement[] | null => {
+  try {
+    const cached = localStorage.getItem(`announcements_cache_${licenseKey}`);
+    if (!cached) return null;
+
+    const cache: AnnouncementCache = JSON.parse(cached);
+    const now = Date.now();
+
+    // Check if cache is still fresh
+    if (now - cache.timestamp < CACHE_TTL && cache.licenseKey === licenseKey) {
+      console.log('📦 Using cached announcements (age:', Math.round((now - cache.timestamp) / 1000), 'seconds)');
+      return cache.data;
+    }
+
+    console.log('📦 Cache expired (age:', Math.round((now - cache.timestamp) / 1000), 'seconds)');
+    return null;
+  } catch (error) {
+    console.error('Error reading announcement cache:', error);
+    return null;
+  }
+};
+
+const setCachedAnnouncements = (licenseKey: string, data: Announcement[]): void => {
+  try {
+    const cache: AnnouncementCache = {
+      data,
+      timestamp: Date.now(),
+      licenseKey
+    };
+    localStorage.setItem(`announcements_cache_${licenseKey}`, JSON.stringify(cache));
+    console.log('📦 Cached', data.length, 'announcements');
+  } catch (error) {
+    console.error('Error caching announcements:', error);
+  }
+};
+
+const clearAnnouncementCache = (licenseKey: string): void => {
+  try {
+    localStorage.removeItem(`announcements_cache_${licenseKey}`);
+    console.log('📦 Cleared announcement cache');
+  } catch (error) {
+    console.error('Error clearing announcement cache:', error);
+  }
+};
+
 export const useAnnouncementStore = create<AnnouncementState>()(
   devtools(
     (set, get) => ({
@@ -103,20 +158,55 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       filters: {},
       currentLicenseKey: null,
       currentShowName: null,
+      isInitializing: false,
 
       setLicenseKey: (licenseKey: string, showName?: string) => {
         const current = get();
+
+        console.log('🔑 setLicenseKey called with:', { licenseKey, showName, currentLicenseKey: current.currentLicenseKey, isInitializing: current.isInitializing, isLoading: current.isLoading });
+
+        // Guard: Don't refetch if license key hasn't changed
+        if (current.currentLicenseKey === licenseKey) {
+          console.log('✋ License key unchanged, skipping fetch');
+          return;
+        }
+
+        // Guard: Don't allow concurrent calls
+        if (current.isLoading) {
+          console.log('✋ Already loading announcements, skipping duplicate call');
+          return;
+        }
+
+        // Guard: Prevent concurrent initialization
+        if (current.isInitializing) {
+          console.log('✋ Already initializing announcements, skipping duplicate call');
+          return;
+        }
+
+        // Guard: If we have an active channel for this license, we're already set up
+        if (current.realtimeChannel && current.isConnected) {
+          const _channelName = `announcements-${licenseKey}`;
+          // Check if the existing channel matches the requested license key
+          if (current.realtimeChannel.topic.includes(licenseKey)) {
+            console.log('✋ Already connected to announcement channel for this license key, skipping');
+            return;
+          }
+        }
+
+        console.log('✅ Proceeding with setLicenseKey');
+
+        // Set initialization lock AND license key synchronously to prevent race conditions
+        set({
+          isInitializing: true,
+          currentLicenseKey: licenseKey,
+          currentShowName: showName || null
+        });
 
         // If switching to different license key, clean up
         if (current.currentLicenseKey && current.currentLicenseKey !== licenseKey) {
           current.disableRealtime();
           set({ announcements: [], unreadCount: 0 });
         }
-
-        set({
-          currentLicenseKey: licenseKey,
-          currentShowName: showName || null
-        });
 
         // Store in localStorage for persistence
         localStorage.setItem('current_show_license', licenseKey);
@@ -128,15 +218,52 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         serviceWorkerManager.updateLicenseKey(licenseKey);
 
         // Auto-fetch announcements for new license
-        get().fetchAnnouncements(licenseKey);
-        get().enableRealtime(licenseKey);
+        Promise.all([
+          get().fetchAnnouncements(licenseKey),
+          get().enableRealtime(licenseKey)
+        ]).finally(() => {
+          // Clear initialization lock after both operations complete
+          set({ isInitializing: false });
+        });
       },
 
-      fetchAnnouncements: async (licenseKey?: string) => {
+      fetchAnnouncements: async (licenseKey?: string, forceRefresh = false) => {
         const targetLicenseKey = licenseKey || get().currentLicenseKey;
         if (!targetLicenseKey) {
           set({ error: 'No license key provided' });
           return;
+        }
+
+        // Check cache first unless force refresh
+        if (!forceRefresh) {
+          const cached = getCachedAnnouncements(targetLicenseKey);
+          if (cached) {
+            // Still need to get read status for current user
+            const userIdentifier = generateUserIdentifier();
+            const { data: reads } = await supabase
+              .from('announcement_reads')
+              .select('announcement_id')
+              .eq('user_identifier', userIdentifier)
+              .eq('license_key', targetLicenseKey);
+
+            const readIds = new Set(reads?.map(r => r.announcement_id) || []);
+
+            // Mark announcements as read/unread
+            const announcementsWithReadStatus = cached.map(announcement => ({
+              ...announcement,
+              is_read: readIds.has(announcement.id)
+            }));
+
+            // Calculate unread count
+            const unreadCount = announcementsWithReadStatus.filter(a => !a.is_read).length;
+
+            set({
+              announcements: announcementsWithReadStatus,
+              unreadCount,
+              isLoading: false
+            });
+            return;
+          }
         }
 
         set({ isLoading: true, error: null });
@@ -151,6 +278,11 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             .order('created_at', { ascending: false });
 
           if (error) throw error;
+
+          // Cache the raw announcements
+          if (announcements) {
+            setCachedAnnouncements(targetLicenseKey, announcements);
+          }
 
           // Get read status for current user
           const userIdentifier = generateUserIdentifier();
@@ -204,6 +336,9 @@ export const useAnnouncementStore = create<AnnouncementState>()(
 
           if (error) throw error;
 
+          // Invalidate cache
+          clearAnnouncementCache(currentLicenseKey);
+
           // Add to local state
           set(state => ({
             announcements: [{ ...data, is_read: false }, ...state.announcements],
@@ -225,6 +360,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
 
       updateAnnouncement: async (id, updates) => {
+        const { currentLicenseKey } = get();
+
         try {
           const { data, error } = await supabase
             .from('announcements')
@@ -234,6 +371,11 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             .single();
 
           if (error) throw error;
+
+          // Invalidate cache
+          if (currentLicenseKey) {
+            clearAnnouncementCache(currentLicenseKey);
+          }
 
           // Update local state
           set(state => ({
@@ -249,6 +391,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
 
       deleteAnnouncement: async (id) => {
+        const { currentLicenseKey } = get();
+
         try {
           const { error } = await supabase
             .from('announcements')
@@ -256,6 +400,11 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             .eq('id', id);
 
           if (error) throw error;
+
+          // Invalidate cache
+          if (currentLicenseKey) {
+            clearAnnouncementCache(currentLicenseKey);
+          }
 
           // Remove from local state
           set(state => ({

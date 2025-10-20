@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { Timer } from '../../../components/scoring/Timer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
+import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { SyncIndicator } from '../../../components/ui';
 import './AKCFastCatScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'E' | 'DQ';
@@ -22,79 +24,93 @@ export const AKCFastCatScoresheet: React.FC = () => {
   const {
     isScoring,
     startScoringSession,
-    submitScore: addScoreToSession,
+    submitScore: _addScoreToSession,
     moveToNextEntry,
     moveToPreviousEntry,
     endScoringSession
   } = useScoringStore();
-  
+
   const {
     currentClassEntries,
     currentEntry,
     setCurrentClassEntries,
     setCurrentEntry,
-    markAsScored,
+    markAsScored: _markAsScored,
     getPendingEntries
   } = useEntryStore();
-  
-  const { addToQueue, isOnline } = useOfflineQueueStore();
-  
+
+  const { addToQueue: _addToQueue, isOnline } = useOfflineQueueStore();
+
+  // Optimistic scoring hook
+  const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
+
   // Local state
   const [runTime, setRunTime] = useState<string>('');
   const [qualifying, setQualifying] = useState<QualifyingResult>('Q');
   const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
-  const [mph, setMph] = useState<number>(0);
-  const [points, setPoints] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  
+
   // FastCat course is 100 yards
   const COURSE_LENGTH = 100; // yards
-  
-  // Load class entries on mount
-  useEffect(() => {
-    if (classId && showContext?.licenseKey) {
-      loadEntries();
+
+  // Helper function - defined before useMemo
+  const parseTimeToSeconds = (timeString: string): number => {
+    if (!timeString) return 0;
+
+    const parts = timeString.split(':');
+    if (parts.length === 2) {
+      // MM:SS.ms format
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseFloat(parts[1]) || 0;
+      return (minutes * 60) + seconds;
+    } else {
+      // SS.ms format
+      return parseFloat(timeString) || 0;
     }
-  }, [classId, showContext]);
-  
-  // Calculate MPH and points when run time changes
-  useEffect(() => {
-    if (runTime) {
-      calculateMphAndPoints();
+  };
+
+  // Calculate MPH and points automatically when runTime changes
+  const { mph, points } = useMemo(() => {
+    if (!runTime || !currentEntry) {
+      return { mph: 0, points: 0 };
     }
-  }, [runTime, currentEntry]);
-  
-  // Clear in-ring status when leaving scoresheet
-  useEffect(() => {
-    return () => {
-      if (currentEntry?.id) {
-        markInRing(currentEntry.id, false).catch(error => {
-          console.error('Failed to clear in-ring status on unmount:', error);
-        });
-      }
-    };
-  }, []); // Fixed: removed currentEntry?.id dependency
-  
+
+    const timeInSeconds = parseTimeToSeconds(runTime);
+    if (timeInSeconds <= 0) {
+      return { mph: 0, points: 0 };
+    }
+
+    // Calculate MPH: (Distance in yards * 3600) / (Time in seconds * 1760)
+    const calculatedMph = (COURSE_LENGTH * 3600) / (timeInSeconds * 1760);
+    const roundedMph = Math.round(calculatedMph * 100) / 100; // Round to 2 decimal places
+
+    // Calculate points based on dog's height category
+    // This is a simplified point calculation - actual AKC formula is more complex
+    const basePoints = Math.round(calculatedMph * 2);
+
+    return { mph: roundedMph, points: basePoints };
+  }, [runTime, currentEntry, COURSE_LENGTH]);
+
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
-    
+
     try {
       const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);
       setCurrentClassEntries(parseInt(classId));
-      
+
       // Set first pending entry as current
       const pending = entries.filter(e => !e.isScored);
       if (pending.length > 0) {
         setCurrentEntry(pending[0]);
-        
+
         // Mark dog as in-ring when scoresheet opens
         if (pending[0].id) {
           markInRing(pending[0].id, true).catch(error => {
             console.error('Failed to mark dog in-ring on scoresheet open:', error);
           });
         }
-        
+
         // Start scoring session if not already started
         if (!isScoring) {
           startScoringSession(
@@ -110,122 +126,89 @@ export const AKCFastCatScoresheet: React.FC = () => {
       console.error('Error loading entries:', error);
     }
   };
-  
-  const parseTimeToSeconds = (timeString: string): number => {
-    if (!timeString) return 0;
-    
-    const parts = timeString.split(':');
-    if (parts.length === 2) {
-      // MM:SS.ms format
-      const minutes = parseInt(parts[0]) || 0;
-      const seconds = parseFloat(parts[1]) || 0;
-      return (minutes * 60) + seconds;
-    } else {
-      // SS.ms format
-      return parseFloat(timeString) || 0;
+
+  // Load class entries on mount
+  useEffect(() => {
+    if (classId && showContext?.licenseKey) {
+      loadEntries();
     }
-  };
-  
-  const calculateMphAndPoints = () => {
-    if (!runTime || !currentEntry) return;
-    
-    const timeInSeconds = parseTimeToSeconds(runTime);
-    if (timeInSeconds <= 0) return;
-    
-    // Calculate MPH: (Distance in yards * 3600) / (Time in seconds * 1760)
-    const calculatedMph = (COURSE_LENGTH * 3600) / (timeInSeconds * 1760);
-    setMph(Math.round(calculatedMph * 100) / 100); // Round to 2 decimal places
-    
-    // Calculate points based on dog's height category
-    // This is a simplified point calculation - actual AKC formula is more complex
-    const basePoints = Math.round(calculatedMph * 2);
-    setPoints(basePoints);
-  };
-  
+  }, [classId, showContext, loadEntries]);
+
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, []); // Fixed: removed currentEntry?.id dependency
+
   const handleSubmit = () => {
     if (!runTime) {
       alert('Please enter a run time');
       return;
     }
-    
-    calculateMphAndPoints();
+
+    // mph and points are automatically calculated via useMemo
     setShowConfirmation(true);
   };
   
   const confirmSubmit = async () => {
     if (!currentEntry) return;
-    
-    setIsSubmitting(true);
+
     setShowConfirmation(false);
-    
-    const scoreData = {
+
+    // Submit score optimistically
+    await submitScoreOptimistically({
       entryId: currentEntry.id,
+      classId: parseInt(classId!),
       armband: currentEntry.armband,
-      time: runTime,
-      qualifying: qualifying,
-      mph: mph,
-      points: points,
-      nonQualifyingReason: qualifying !== 'Q' ? nonQualifyingReason : undefined
-    };
-    
-    try {
-      // Add to scoring session
-      addScoreToSession(scoreData);
-      
-      // Update entry store
-      markAsScored(currentEntry.id, qualifying);
-      
-      if (isOnline) {
-        // Submit directly if online
-        // Pass pairedClassId if scoring from combined Novice A & B view
-        await submitScore(currentEntry.id, {
-          resultText: qualifying,
-          searchTime: runTime,
-          mph: mph,
-          points: points,
-          nonQualifyingReason: qualifying !== 'Q' ? nonQualifyingReason : undefined
-        }, pairedClassId);
-      } else {
-        // Add to offline queue
-        addToQueue({
-          entryId: currentEntry.id,
-          armband: currentEntry.armband,
-          classId: parseInt(classId!),
-          className: currentEntry.className,
-          scoreData: {
-            resultText: qualifying,
-            searchTime: runTime,
-            nonQualifyingReason: qualifying !== 'Q' ? nonQualifyingReason : undefined,
-            mph: mph,
-            points: points
+      className: currentEntry.className,
+      scoreData: {
+        resultText: qualifying,
+        searchTime: runTime,
+        mph: mph,
+        points: points,
+        nonQualifyingReason: qualifying !== 'Q' ? nonQualifyingReason : undefined,
+      },
+      pairedClassId: pairedClassId,
+      onSuccess: async () => {
+        console.log('✅ FastCAT score saved');
+
+        // Remove from ring
+        if (currentEntry?.id) {
+          try {
+            await markInRing(currentEntry.id, false);
+            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
+          } catch (error) {
+            console.error('❌ Failed to remove dog from ring:', error);
           }
-        });
+        }
+
+        // Move to next entry
+        const pendingEntries = getPendingEntries();
+        if (pendingEntries.length > 0) {
+          setCurrentEntry(pendingEntries[0]);
+          moveToNextEntry();
+
+          // Reset form (mph and points will auto-reset to 0 when runTime is cleared)
+          setRunTime('');
+          setQualifying('Q');
+          setNonQualifyingReason('');
+        } else {
+          // All entries scored
+          endScoringSession();
+          navigate(-1);
+        }
+      },
+      onError: (error) => {
+        console.error('❌ FastCAT score submission failed:', error);
+        alert(`Failed to submit score: ${error.message}`);
+        setIsSubmitting(false);
       }
-      
-      // Move to next entry
-      const pendingEntries = getPendingEntries();
-      if (pendingEntries.length > 0) {
-        setCurrentEntry(pendingEntries[0]);
-        moveToNextEntry();
-        
-        // Reset form
-        setRunTime('');
-        setQualifying('Q');
-        setNonQualifyingReason('');
-        setMph(0);
-        setPoints(0);
-      } else {
-        // All entries scored
-        endScoringSession();
-        navigate(-1);
-      }
-      
-    } catch (error) {
-      console.error('Error submitting score:', error);
-      alert('Failed to submit score. It has been saved offline.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
   
   const handlePrevious = () => {
@@ -372,15 +355,19 @@ export const AKCFastCatScoresheet: React.FC = () => {
           >
             Previous
           </button>
-          
-          <button
-            className="submit-button"
-            onClick={handleSubmit}
-            disabled={!runTime || isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Score'}
-          </button>
-          
+
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className="submit-button"
+              onClick={handleSubmit}
+              disabled={!runTime || isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Score'}
+            </button>
+            {isSyncing && <SyncIndicator status="syncing" />}
+            {hasError && <SyncIndicator status="error" />}
+          </div>
+
           <button
             className="nav-button"
             onClick={handleNext}

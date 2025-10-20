@@ -8,16 +8,20 @@
  * - Maintains compatibility with regular shows
  */
 
+/* eslint-disable react-hooks/immutability -- Timer functionality requires Date.now() and state management in async functions */
+/* eslint-disable react-hooks/purity -- Timer functionality requires Date.now() which is intentionally impure */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
+import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 // import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
-import { HamburgerMenu } from '../../../components/ui';
+import { HamburgerMenu, SyncIndicator } from '../../../components/ui';
 import { DogCard } from '../../../components/DogCard';
 import { X } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
@@ -52,7 +56,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const {
     isScoring,
     startScoringSession,
-    submitScore: addScoreToSession,
+    submitScore: _addScoreToSession,
     moveToNextEntry: _moveToNextEntry,
     moveToPreviousEntry, // eslint-disable-line @typescript-eslint/no-unused-vars
     endScoringSession: _endScoringSession
@@ -64,14 +68,17 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     setEntries,
     setCurrentClassEntries,
     setCurrentEntry,
-    markAsScored,
+    markAsScored: _markAsScored,
     getPendingEntries: _getPendingEntries
   } = useEntryStore();
 
   // Detect if this is Nationals mode - ONLY check show type field, not class name
   const isNationalsMode = showContext?.showType?.toLowerCase().includes('national');
 
-  const { addToQueue, isOnline } = useOfflineQueueStore();
+  const { addToQueue: _addToQueue, isOnline: _isOnline } = useOfflineQueueStore();
+
+  // Optimistic scoring hook
+  const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
 
   // Nationals-specific state
   const [alertsCorrect, setAlertsCorrect] = useState(0);
@@ -243,217 +250,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   }, [alertsCorrect, alertsIncorrect, isNationalsMode]);
 
-  // Automatic penalty for excused dogs
-  useEffect(() => {
-    if (qualifying === 'Excused' || qualifying === 'EX') {
-      setIsExcused(true);
-
-      if (isNationalsMode) {
-        // Nationals: zero points and max search time
-        setAlertsCorrect(0);
-        setAlertsIncorrect(0);
-        setFinishCallErrors(0);
-        setFaultCount(0);
-
-        // Set max search time for all areas
-        const updatedAreas = areas.map((area, index) => ({
-          ...area,
-          time: getMaxTimeForArea(index),
-          found: false,
-          correct: false
-        }));
-        setAreas(updatedAreas);
-
-        // Set total time to sum of all max times
-        const totalMaxTime = updatedAreas.reduce((sum, area) => {
-          const timeInSeconds = convertTimeToSeconds(area.time);
-          return sum + timeInSeconds;
-        }, 0);
-        setTotalTime(formatSecondsToTime(totalMaxTime));
-      } else {
-        // Regular shows: search time should be 00:00.00, all counts zero
-        setAlertsCorrect(0);
-        setAlertsIncorrect(0);
-        setFinishCallErrors(0);
-        setFaultCount(0);
-
-        const updatedAreas = areas.map((area) => ({
-          ...area,
-          time: '00:00.00',
-          found: false,
-          correct: false
-        }));
-        setAreas(updatedAreas);
-        setTotalTime('00:00.00');
-      }
-    }
-  }, [qualifying, areas.length, isNationalsMode]); // Re-run when qualifying changes or areas are initialized
-
-  // Get qualifying options based on mode
-  const _getQualifyingOptions = () => {
-    if (isNationalsMode) {
-      // Nationals: Only Qualified/Absent/Excused
-      return [
-        { value: 'Qualified', label: 'Qualified' },
-        { value: 'Absent', label: 'Absent' },
-        { value: 'Excused', label: 'Excused' }
-      ];
-    } else {
-      // Regular shows
-      return [
-        { value: 'Q', label: 'Qualified' },
-        { value: 'NQ', label: 'Not Qualified' },
-        { value: 'EX', label: 'Excused' },
-        { value: 'WD', label: 'Withdrawn' },
-        { value: 'DQ', label: 'Disqualified' },
-        { value: 'ABS', label: 'Absent' }
-      ];
-    }
-  };
-
-  // Enhanced submit handler for dual storage
-  const handleEnhancedSubmit = async () => {
-    console.log('🚨 handleEnhancedSubmit CALLED!');
-    if (!currentEntry) {
-      console.log('⚠️ No currentEntry, returning early');
-      return;
-    }
-
-    console.log('✅ currentEntry exists:', currentEntry.id);
-    setIsSubmitting(true);
-    setShowConfirmation(false);
-
-    try {
-      console.log('🔍 Starting score submission...');
-      // Regular scoresheet submission (existing logic)
-      const finalQualifying = qualifying || (isNationalsMode ? 'Qualified' : 'NQ');
-      const finalResultText = finalQualifying;
-      const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
-
-      // Get the appropriate reason based on the result type
-      const getFinalReason = () => {
-        if (finalQualifying === 'Q' || finalQualifying === 'Qualified') return undefined;
-        if (finalQualifying === 'WD' || finalQualifying === 'Withdrawn') {
-          return withdrawnReason;
-        }
-        return nonQualifyingReason;
-      };
-      const finalReason = getFinalReason();
-
-      // Prepare area results
-      const areaResults: Record<string, string> = {};
-      areas.forEach(area => {
-        areaResults[area.areaName.toLowerCase()] = `${area.time}${area.found ? ' FOUND' : ' NOT FOUND'}${area.correct ? ' CORRECT' : ' INCORRECT'}`;
-      });
-
-      const scoreData = {
-        entryId: currentEntry.id,
-        armband: currentEntry.armband,
-        time: finalTotalTime,
-        qualifying: finalQualifying,
-        areas: areaResults,
-        nonQualifyingReason: finalReason,
-        // Nationals-specific fields
-        correctCount: alertsCorrect,
-        incorrectCount: alertsIncorrect,
-        faultCount: faultCount,
-        finishCallErrors: finishCallErrors
-      };
-
-      // Add to scoring session
-      addScoreToSession(scoreData);
-      markAsScored(currentEntry.id, finalQualifying);
-
-      // Submit to regular database
-      console.log('🔍 SCORESHEET: isOnline =', isOnline, 'about to call submitScore');
-      if (isOnline) {
-        console.log('✅ SCORESHEET: Calling submitScore for entry', currentEntry.id);
-        await submitScore(currentEntry.id, {
-          resultText: finalResultText,
-          searchTime: finalTotalTime,
-          nonQualifyingReason: finalReason,
-          correctCount: alertsCorrect,
-          incorrectCount: alertsIncorrect,
-          faultCount: faultCount,
-          finishCallErrors: finishCallErrors,
-          points: calculateNationalsPoints(),
-          areaTimes: areas.map(area => area.time).filter(time => time && time !== ''),
-          element: currentEntry.element,
-          level: currentEntry.level
-        });
-        console.log('✅ SCORESHEET: submitScore call completed');
-      } else {
-        console.log('⚠️ SCORESHEET: isOnline is FALSE, adding to offline queue instead');
-        addToQueue({
-          entryId: currentEntry.id,
-          armband: currentEntry.armband,
-          classId: parseInt(classId!),
-          className: currentEntry.className,
-          scoreData: {
-            resultText: finalResultText,
-            searchTime: finalTotalTime,
-            nonQualifyingReason: finalReason,
-            areas: areaResults,
-            correctCount: alertsCorrect,
-            incorrectCount: alertsIncorrect,
-            faultCount: faultCount,
-            finishCallErrors: finishCallErrors,
-            points: calculateNationalsPoints(),
-            areaTimes: areas.map(area => area.time).filter(time => time && time !== ''),
-            element: currentEntry.element,
-            level: currentEntry.level
-          }
-        });
-      }
-
-      // NATIONALS: Also submit to nationals_scores table for TV dashboard
-      if (isNationalsMode && showContext?.licenseKey) {
-        try {
-          const timeInSeconds = convertTimeToSeconds(finalTotalTime || '0');
-          const elementType = mapElementToNationalsType(currentEntry.element || '');
-          const day = getCurrentDay(); // You'll need to implement this
-
-          await nationalsScoring.submitScore({
-            entry_id: currentEntry.id,
-            armband: currentEntry.armband.toString(),
-            element_type: elementType,
-            day: day,
-            alerts_correct: alertsCorrect,
-            alerts_incorrect: alertsIncorrect,
-            faults: faultCount,
-            finish_call_errors: finishCallErrors,
-            time_seconds: timeInSeconds,
-            excused: isExcused || finalQualifying === 'Excused',
-            notes: finalReason
-          });
-
-          console.log('✅ Nationals score submitted to TV dashboard');
-        } catch (nationalsError) {
-          console.error('❌ Failed to submit Nationals score:', nationalsError);
-          // Don't fail the whole submission - regular score still saved
-        }
-      }
-
-      // Navigate back to entry list (dogs rarely come in order) and remove from ring
-      if (currentEntry?.id) {
-        try {
-          await markInRing(currentEntry.id, false);
-          console.log(`✅ Removed dog ${currentEntry.armband} from ring after score submission`);
-        } catch (error) {
-          console.error('❌ Failed to remove dog from ring:', error);
-        }
-      }
-      navigate(-1);
-
-    } catch (error) {
-      console.error('Error submitting score:', error);
-      alert(`Failed to submit score: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Helper functions
+  // Helper function: Convert time string to seconds
   const convertTimeToSeconds = (timeString: string): number => {
     const parts = timeString.split(':');
     if (parts.length === 2) {
@@ -462,36 +259,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       return Math.round(minutes * 60 + seconds);
     }
     return Math.round(parseFloat(timeString) || 0);
-  };
-
-  const mapElementToNationalsType = (element: string) => {
-    const elementLower = element?.toLowerCase() || '';
-    if (elementLower.includes('container')) return 'CONTAINER';
-    if (elementLower.includes('buried')) return 'BURIED';
-    if (elementLower.includes('interior')) return 'INTERIOR';
-    if (elementLower.includes('exterior')) return 'EXTERIOR';
-    if (elementLower.includes('handler') || elementLower.includes('discrimination')) return 'HD_CHALLENGE';
-    return 'CONTAINER'; // Default
-  };
-
-  const getCurrentDay = (): 1 | 2 | 3 => {
-    // This should be determined by your trial/class data
-    // For now, return 1 as default
-    return 1;
-  };
-
-  // Helper function to remove dog from ring and navigate
-  const handleNavigateWithRingCleanup = async () => {
-    if (currentEntry?.id) {
-      try {
-        await markInRing(currentEntry.id, false);
-        console.log(`✅ Removed dog ${currentEntry.armband} from ring before navigation`);
-      } catch (error) {
-        console.error('❌ Failed to remove dog from ring:', error);
-        // Continue with navigation even if ring cleanup fails
-      }
-    }
-    navigate(-1);
   };
 
   // Failsafe: Get correct max time based on AKC Scent Work requirements
@@ -576,6 +343,209 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
 
     return maxTime;
+  };
+
+  // Automatic penalty for excused dogs
+  useEffect(() => {
+    if (qualifying === 'Excused' || qualifying === 'EX') {
+      setIsExcused(true);
+
+      if (isNationalsMode) {
+        // Nationals: zero points and max search time
+        setAlertsCorrect(0);
+        setAlertsIncorrect(0);
+        setFinishCallErrors(0);
+        setFaultCount(0);
+
+        // Set max search time for all areas
+        const updatedAreas = areas.map((area, index) => ({
+          ...area,
+          time: getMaxTimeForArea(index),
+          found: false,
+          correct: false
+        }));
+        setAreas(updatedAreas);
+
+        // Set total time to sum of all max times
+        const totalMaxTime = updatedAreas.reduce((sum, area) => {
+          const timeInSeconds = convertTimeToSeconds(area.time);
+          return sum + timeInSeconds;
+        }, 0);
+        setTotalTime(formatSecondsToTime(totalMaxTime));
+      } else {
+        // Regular shows: search time should be 00:00.00, all counts zero
+        setAlertsCorrect(0);
+        setAlertsIncorrect(0);
+        setFinishCallErrors(0);
+        setFaultCount(0);
+
+        const updatedAreas = areas.map((area) => ({
+          ...area,
+          time: '00:00.00',
+          found: false,
+          correct: false
+        }));
+        setAreas(updatedAreas);
+        setTotalTime('00:00.00');
+      }
+    }
+  }, [qualifying, areas.length, isNationalsMode]); // Re-run when qualifying changes or areas are initialized
+
+  // Get qualifying options based on mode
+  const _getQualifyingOptions = () => {
+    if (isNationalsMode) {
+      // Nationals: Only Qualified/Absent/Excused
+      return [
+        { value: 'Qualified', label: 'Qualified' },
+        { value: 'Absent', label: 'Absent' },
+        { value: 'Excused', label: 'Excused' }
+      ];
+    } else {
+      // Regular shows
+      return [
+        { value: 'Q', label: 'Qualified' },
+        { value: 'NQ', label: 'Not Qualified' },
+        { value: 'EX', label: 'Excused' },
+        { value: 'WD', label: 'Withdrawn' },
+        { value: 'DQ', label: 'Disqualified' },
+        { value: 'ABS', label: 'Absent' }
+      ];
+    }
+  };
+
+  // Enhanced submit handler with optimistic updates
+  const handleEnhancedSubmit = async () => {
+    console.log('🚀 handleEnhancedSubmit with OPTIMISTIC UPDATES!');
+    if (!currentEntry) {
+      console.log('⚠️ No currentEntry, returning early');
+      return;
+    }
+
+    console.log('✅ currentEntry exists:', currentEntry.id);
+    setShowConfirmation(false);
+
+    // Prepare score data
+    const finalQualifying = qualifying || (isNationalsMode ? 'Qualified' : 'NQ');
+    const finalResultText = finalQualifying;
+    const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
+
+    // Get the appropriate reason based on the result type
+    const getFinalReason = () => {
+      if (finalQualifying === 'Q' || finalQualifying === 'Qualified') return undefined;
+      if (finalQualifying === 'WD' || finalQualifying === 'Withdrawn') {
+        return withdrawnReason;
+      }
+      return nonQualifyingReason;
+    };
+    const finalReason = getFinalReason();
+
+    // Prepare area results
+    const areaResults: Record<string, string> = {};
+    areas.forEach(area => {
+      areaResults[area.areaName.toLowerCase()] = `${area.time}${area.found ? ' FOUND' : ' NOT FOUND'}${area.correct ? ' CORRECT' : ' INCORRECT'}`;
+    });
+
+    // Submit score optimistically
+    await submitScoreOptimistically({
+      entryId: currentEntry.id,
+      classId: parseInt(classId!),
+      armband: currentEntry.armband,
+      className: currentEntry.className,
+      scoreData: {
+        resultText: finalResultText,
+        searchTime: finalTotalTime,
+        nonQualifyingReason: finalReason,
+        areas: areaResults,
+        correctCount: alertsCorrect,
+        incorrectCount: alertsIncorrect,
+        faultCount: faultCount,
+        finishCallErrors: finishCallErrors,
+        points: calculateNationalsPoints(),
+        areaTimes: areas.map(area => area.time).filter(time => time && time !== ''),
+        element: currentEntry.element,
+        level: currentEntry.level
+      },
+      onSuccess: async () => {
+        console.log('✅ Score saved - handling post-submission tasks');
+
+        // NATIONALS: Also submit to nationals_scores table for TV dashboard
+        if (isNationalsMode && showContext?.licenseKey) {
+          try {
+            const timeInSeconds = convertTimeToSeconds(finalTotalTime || '0');
+            const elementType = mapElementToNationalsType(currentEntry.element || '');
+            const day = getCurrentDay();
+
+            await nationalsScoring.submitScore({
+              entry_id: currentEntry.id,
+              armband: currentEntry.armband.toString(),
+              element_type: elementType,
+              day: day,
+              alerts_correct: alertsCorrect,
+              alerts_incorrect: alertsIncorrect,
+              faults: faultCount,
+              finish_call_errors: finishCallErrors,
+              time_seconds: timeInSeconds,
+              excused: isExcused || finalQualifying === 'Excused',
+              notes: finalReason
+            });
+
+            console.log('✅ Nationals score submitted to TV dashboard');
+          } catch (nationalsError) {
+            console.error('❌ Failed to submit Nationals score:', nationalsError);
+            // Don't fail the whole submission - regular score still saved
+          }
+        }
+
+        // Remove from ring and navigate
+        if (currentEntry?.id) {
+          try {
+            await markInRing(currentEntry.id, false);
+            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
+          } catch (error) {
+            console.error('❌ Failed to remove dog from ring:', error);
+          }
+        }
+
+        // Navigate back to entry list
+        navigate(-1);
+      },
+      onError: (error) => {
+        console.error('❌ Score submission failed:', error);
+        alert(`Failed to submit score: ${error.message}`);
+        setIsSubmitting(false);
+      }
+    });
+  };
+
+  // Helper functions
+  const mapElementToNationalsType = (element: string) => {
+    const elementLower = element?.toLowerCase() || '';
+    if (elementLower.includes('container')) return 'CONTAINER';
+    if (elementLower.includes('buried')) return 'BURIED';
+    if (elementLower.includes('interior')) return 'INTERIOR';
+    if (elementLower.includes('exterior')) return 'EXTERIOR';
+    if (elementLower.includes('handler') || elementLower.includes('discrimination')) return 'HD_CHALLENGE';
+    return 'CONTAINER'; // Default
+  };
+
+  const getCurrentDay = (): 1 | 2 | 3 => {
+    // This should be determined by your trial/class data
+    // For now, return 1 as default
+    return 1;
+  };
+
+  // Helper function to remove dog from ring and navigate
+  const handleNavigateWithRingCleanup = async () => {
+    if (currentEntry?.id) {
+      try {
+        await markInRing(currentEntry.id, false);
+        console.log(`✅ Removed dog ${currentEntry.armband} from ring before navigation`);
+      } catch (error) {
+        console.error('❌ Failed to remove dog from ring:', error);
+        // Continue with navigation even if ring cleanup fails
+      }
+    }
+    navigate(-1);
   };
 
   const _resetForm = (entry?: any) => {
@@ -1533,6 +1503,14 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           {isSubmitting ? 'Saving...' : 'Save'}
         </button>
       </div>
+
+      {/* Sync Status Indicators */}
+      {(isSyncing || hasError) && (
+        <div style={{ textAlign: 'center', marginTop: '-8px', marginBottom: '8px' }}>
+          {isSyncing && <SyncIndicator status="syncing" />}
+          {hasError && <SyncIndicator status="error" />}
+        </div>
+      )}
 
       {/* Judge Confirmation Dialog */}
       {showConfirmation && (

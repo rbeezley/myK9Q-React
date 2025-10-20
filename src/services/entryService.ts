@@ -139,7 +139,7 @@ export async function getClassEntries(
 
 
     // Helper function to normalize text-based status values
-    const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
+    const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' => {
       if (!statusText) return 'none';
 
       const status = statusText.toLowerCase().trim();
@@ -147,6 +147,7 @@ export async function getClassEntries(
         case 'none': return 'none';
         case 'checked-in': return 'checked-in';
         case 'at-gate': return 'at-gate';
+        case 'come-to-gate': return 'come-to-gate';
         case 'conflict': return 'conflict';
         case 'pulled': return 'pulled';
         default: return 'none';
@@ -859,7 +860,7 @@ export function subscribeToEntryUpdates(
  */
 export async function updateEntryCheckinStatus(
   entryId: number,
-  checkinStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate'
+  checkinStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate'
 ): Promise<boolean> {
   try {
     // Use text-based status directly (no more numeric conversion)

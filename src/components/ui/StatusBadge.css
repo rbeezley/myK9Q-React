@@ -107,6 +107,11 @@
   color: #ffffff !important;
 }
 
+.status-badge.come-to-gate {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
 /* Check-in status: none (not checked in) */
 .status-badge.none {
   background: #9ca3af !important;

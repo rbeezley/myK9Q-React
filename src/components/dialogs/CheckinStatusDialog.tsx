@@ -6,11 +6,13 @@ import {
   Check,
   XCircle,
   AlertTriangle,
-  Star
+  Star,
+  X,
+  Bell
 } from 'lucide-react';
 import './CheckinStatusDialog.css';
 
-export type CheckinStatus = 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate';
+export type CheckinStatus = 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate';
 
 interface CheckinStatusDialogProps {
   isOpen: boolean;
@@ -53,14 +55,14 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
                   <span className="status-dialog-handler">{dogInfo.handler}</span>
                 </div>
               </div>
-              <span className="status-dialog-action">Change Status</span>
             </div>
           </div>
           <button
             className="close-button"
             onClick={onClose}
+            aria-label="Close"
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
 
@@ -127,6 +129,66 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
             </div>
 
             <div
+              className={showDescriptions ? "status-item status-come-to-gate" : "status-option status-come-to-gate"}
+              onMouseDown={() => handleStatusSelect('come-to-gate')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleStatusSelect('come-to-gate');
+                }
+              }}
+            >
+              {showDescriptions ? (
+                <>
+                  <div className="status-icon">
+                    <Bell />
+                  </div>
+                  <div className="status-content">
+                    <label className="status-label">Come to Gate</label>
+                    <div className="status-description">Gate steward calling exhibitor</div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Bell className="popup-icon" />
+                  <span className="status-text">Come to Gate</span>
+                </>
+              )}
+            </div>
+
+            <div
+              className={showDescriptions ? "status-item status-at-gate" : "status-option status-at-gate"}
+              onMouseDown={() => handleStatusSelect('at-gate')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleStatusSelect('at-gate');
+                }
+              }}
+            >
+              {showDescriptions ? (
+                <>
+                  <div className="status-icon">
+                    <Star />
+                  </div>
+                  <div className="status-content">
+                    <label className="status-label">At Gate</label>
+                    <div className="status-description">Dog is waiting at the ring entrance</div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Star className="popup-icon" />
+                  <span className="status-text">At Gate</span>
+                </>
+              )}
+            </div>
+
+            <div
               className={showDescriptions ? "status-item status-conflict" : "status-option status-conflict"}
               onMouseDown={() => handleStatusSelect('conflict')}
               role="button"
@@ -182,36 +244,6 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
                 <>
                   <XCircle className="popup-icon" />
                   <span className="status-text">Pulled</span>
-                </>
-              )}
-            </div>
-
-            <div
-              className={showDescriptions ? "status-item status-at-gate" : "status-option status-at-gate"}
-              onMouseDown={() => handleStatusSelect('at-gate')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleStatusSelect('at-gate');
-                }
-              }}
-            >
-              {showDescriptions ? (
-                <>
-                  <div className="status-icon">
-                    <Star />
-                  </div>
-                  <div className="status-content">
-                    <label className="status-label">At Gate</label>
-                    <div className="status-description">Dog is waiting at the ring entrance</div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Star className="popup-icon" />
-                  <span className="status-text">At Gate</span>
                 </>
               )}
             </div>

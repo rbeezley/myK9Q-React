@@ -1,0 +1,366 @@
+/**
+ * Performance Settings Panel Styles
+ */
+
+.perf-settings-panel,
+.perf-settings-content {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  color: var(--foreground, #000);
+}
+
+.perf-settings-content {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Modal */
+.perf-settings-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+.perf-settings-modal {
+  background: var(--background, #fff);
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.perf-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.perf-settings-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.perf-close-btn {
+  background: var(--muted, #f3f4f6);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-secondary, #666);
+  transition: all 0.2s ease;
+}
+
+.perf-close-btn:hover {
+  background: var(--muted-hover, #e5e7eb);
+  color: var(--foreground, #000);
+}
+
+/* Sections */
+.perf-section {
+  margin-bottom: 32px;
+}
+
+.perf-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--foreground, #000);
+}
+
+.perf-description {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+  line-height: 1.6;
+}
+
+/* Device Info Card */
+.device-info-card {
+  background: var(--muted, #f3f4f6);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.device-tier-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.tier-icon {
+  font-size: 48px;
+}
+
+.tier-info {
+  flex: 1;
+}
+
+.tier-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--foreground, #000);
+  margin-bottom: 4px;
+}
+
+.tier-sublabel {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+/* Device Specs */
+.device-specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spec-label {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+.spec-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground, #000);
+}
+
+/* Performance Modes */
+.perf-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.perf-mode-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--background, #fff);
+}
+
+.perf-mode-card:hover {
+  border-color: var(--primary, #6366f1);
+  background: var(--muted, #f3f4f6);
+}
+
+.perf-mode-card.selected {
+  border-color: var(--primary, #6366f1);
+  background: var(--primary-light, #eef2ff);
+}
+
+.perf-mode-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mode-icon {
+  font-size: 32px;
+}
+
+.mode-info {
+  text-align: center;
+}
+
+.mode-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground, #000);
+  margin-bottom: 2px;
+}
+
+.mode-desc {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+/* Settings Grid */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--muted, #f3f4f6);
+  border-radius: 8px;
+}
+
+.setting-label {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+.setting-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground, #000);
+}
+
+/* Footer */
+.perf-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.perf-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary, #666);
+  background: var(--info-light, #eff6ff);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 3px solid var(--info, #3b82f6);
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .perf-settings-modal {
+    background: var(--background-dark, #1f2937);
+    color: var(--foreground-dark, #fff);
+  }
+
+  .device-info-card {
+    background: var(--muted-dark, #374151);
+  }
+
+  .device-tier-badge {
+    border-bottom-color: var(--border-dark, #4b5563);
+  }
+
+  .tier-label {
+    color: var(--foreground-dark, #fff);
+  }
+
+  .tier-sublabel {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .spec-label {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .spec-value {
+    color: var(--foreground-dark, #fff);
+  }
+
+  .perf-mode-card {
+    background: var(--background-dark, #1f2937);
+    border-color: var(--border-dark, #4b5563);
+  }
+
+  .perf-mode-card:hover {
+    border-color: var(--primary-dark, #818cf8);
+    background: var(--muted-dark, #374151);
+  }
+
+  .perf-mode-card.selected {
+    border-color: var(--primary-dark, #818cf8);
+    background: rgba(129, 140, 248, 0.1);
+  }
+
+  .mode-name {
+    color: var(--foreground-dark, #fff);
+  }
+
+  .mode-desc {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .setting-item {
+    background: var(--muted-dark, #374151);
+  }
+
+  .setting-label {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .setting-value {
+    color: var(--foreground-dark, #fff);
+  }
+
+  .perf-note {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--text-secondary-dark, #9ca3af);
+    border-left-color: var(--info-dark, #60a5fa);
+  }
+
+  .perf-close-btn {
+    background: var(--muted-dark, #374151);
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .perf-close-btn:hover {
+    background: var(--muted-hover-dark, #4b5563);
+    color: var(--foreground-dark, #fff);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .perf-settings-content {
+    padding: 16px;
+  }
+
+  .device-specs {
+    grid-template-columns: 1fr;
+  }
+
+  .perf-modes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .perf-mode-card,
+  .perf-close-btn {
+    transition: none;
+  }
+}

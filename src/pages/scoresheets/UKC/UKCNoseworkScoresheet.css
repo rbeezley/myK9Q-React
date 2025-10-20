@@ -1,0 +1,279 @@
+/**
+ * UKC Nosework Scoresheet Styles
+ */
+
+.ukc-nosework-scoresheet {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Fault Counter Section */
+.fault-section {
+  text-align: center;
+}
+
+.fault-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.fault-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border, #e0e0e0);
+  background: var(--color-background, white);
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text, #333);
+}
+
+.fault-btn:hover:not(:disabled) {
+  background: var(--color-primary, #6366f1);
+  color: white;
+  transform: scale(1.05);
+}
+
+.fault-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.fault-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.fault-btn.increment {
+  border-color: var(--color-danger, #ef4444);
+}
+
+.fault-btn.decrement {
+  border-color: var(--color-success, #10b981);
+}
+
+.fault-count {
+  font-size: 3rem;
+  font-weight: bold;
+  min-width: 100px;
+  padding: 1rem;
+  background: var(--color-muted, #f3f4f6);
+  border-radius: 12px;
+  color: var(--color-text, #333);
+}
+
+.fault-info {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.fault-info .info-text {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--color-muted, #f3f4f6);
+}
+
+.fault-info .warning {
+  background: var(--color-danger-light, #fee2e2);
+  color: var(--color-danger, #ef4444);
+  font-weight: 600;
+}
+
+/* Time Display */
+.time-display {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-muted, #f3f4f6);
+  border-radius: 12px;
+  color: var(--color-primary, #6366f1);
+}
+
+/* Qualifying Options */
+.qualifying-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.result-chip {
+  padding: 1rem;
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: 12px;
+  background: var(--color-background, white);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  color: var(--color-text, #333);
+}
+
+.result-chip:hover {
+  border-color: var(--color-primary, #6366f1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.result-chip:active {
+  transform: translateY(0);
+}
+
+.result-chip.selected {
+  background: var(--color-primary, #6366f1);
+  color: white;
+  border-color: var(--color-primary, #6366f1);
+}
+
+/* NQ Reason Input */
+.nq-reason {
+  margin-top: 1.5rem;
+}
+
+.nq-reason label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text, #333);
+}
+
+.nq-reason input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--color-background, white);
+  color: var(--color-text, #333);
+}
+
+.nq-reason input:focus {
+  outline: none;
+  border-color: var(--color-primary, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Confirmation Dialog */
+.confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.confirmation-dialog {
+  background: var(--color-background, white);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.confirmation-dialog h2 {
+  margin: 0 0 1.5rem 0;
+  color: var(--color-text, #333);
+}
+
+.confirmation-details {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--color-muted, #f3f4f6);
+  border-radius: 8px;
+}
+
+.confirmation-details p {
+  margin: 0.5rem 0;
+  color: var(--color-text, #333);
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --color-background: #1f2937;
+  --color-text: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-border: #374151;
+  --color-muted: #374151;
+  --color-primary: #818cf8;
+  --color-danger: #f87171;
+  --color-danger-light: #7f1d1d;
+  --color-success: #34d399;
+}
+
+[data-theme="dark"] .fault-btn {
+  background: var(--color-background);
+}
+
+[data-theme="dark"] .fault-count {
+  background: #111827;
+}
+
+[data-theme="dark"] .time-display {
+  background: #111827;
+}
+
+[data-theme="dark"] .result-chip {
+  background: var(--color-background);
+}
+
+[data-theme="dark"] .result-chip.selected {
+  background: var(--color-primary);
+  color: #1f2937;
+}
+
+/* Touch Feedback */
+.fault-btn:active:not(:disabled) {
+  transform: scale(0.95);
+  transition: transform 0.05s;
+}
+
+.result-chip:active {
+  transform: scale(0.98);
+  transition: transform 0.05s;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .fault-counter {
+    gap: 1rem;
+  }
+
+  .fault-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .fault-count {
+    font-size: 2rem;
+    min-width: 80px;
+  }
+
+  .time-display {
+    font-size: 1.5rem;
+  }
+
+  .qualifying-options {
+    grid-template-columns: 1fr;
+  }
+}

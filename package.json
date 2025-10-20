@@ -19,6 +19,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.75.1",
     "@tanstack/react-query": "^5.90.5",
+    "@tanstack/react-virtual": "^3.13.12",
     "clsx": "^2.1.1",
     "lucide-react": "^0.546.0",
     "react": "^19.2.0",

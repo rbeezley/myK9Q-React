@@ -49,11 +49,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   statusColor,
   clickable = false,
   onClick,
-  icon,
+  icon: _icon, // Reserved for future use
   className = '',
   asButton = false
 }) => {
-  const baseClassName = `status-badge ${statusColor} ${clickable ? 'clickable' : ''} ${className}`.trim();
+  const baseClassName = `status-badge ${statusColor} ${clickable ? 'clickable touchable' : ''} ${className}`.trim();
 
   const content = (
     <div className="status-badge-content">

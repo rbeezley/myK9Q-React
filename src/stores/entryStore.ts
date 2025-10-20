@@ -21,7 +21,7 @@ export interface Entry {
   element?: string;
   level?: string;
   checkedIn?: boolean;
-  checkinStatus?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate';
+  checkinStatus?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate';
   timeLimit?: string;
   timeLimit2?: string;
   timeLimit3?: string;

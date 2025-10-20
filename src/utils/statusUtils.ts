@@ -7,7 +7,7 @@
 
 // Type definitions
 export type ClassStatus = 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed' | 'none';
-export type EntryCheckInStatus = 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'pending';
+export type EntryCheckInStatus = 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'pending';
 export type EntryResultStatus = 'qualified' | 'not-qualified' | 'excused' | 'pending';
 
 /**
@@ -174,6 +174,7 @@ export function getEntryStatusColor(entry: DogEntry): string {
   if (entry.check_in_status === 'conflict') return 'conflict';
   if (entry.check_in_status === 'pulled') return 'pulled';
   if (entry.check_in_status === 'at-gate') return 'at-gate';
+  if (entry.check_in_status === 'come-to-gate') return 'come-to-gate';
 
   // Result status for scored entries
   if (entry.is_scored) {
@@ -199,6 +200,7 @@ export function getEntryStatusLabel(entry: DogEntry): string {
   if (entry.check_in_status === 'conflict') return 'Conflict';
   if (entry.check_in_status === 'pulled') return 'Pulled';
   if (entry.check_in_status === 'at-gate') return 'At Gate';
+  if (entry.check_in_status === 'come-to-gate') return 'Come to Gate';
 
   // Result status for scored entries
   if (entry.is_scored && entry.result_text) {
@@ -226,7 +228,7 @@ export function getEntryStatusLabel(entry: DogEntry): string {
  * Gets the icon name for a check-in status
  * Returns Lucide React icon names to match dialog
  */
-export function getCheckInStatusIcon(checkInStatus?: string): 'Circle' | 'Check' | 'AlertTriangle' | 'XCircle' | 'Star' {
+export function getCheckInStatusIcon(checkInStatus?: string): 'Circle' | 'Check' | 'AlertTriangle' | 'XCircle' | 'Star' | 'Bell' {
   switch (checkInStatus) {
     case 'checked-in':
       return 'Check';
@@ -236,6 +238,8 @@ export function getCheckInStatusIcon(checkInStatus?: string): 'Circle' | 'Check'
       return 'XCircle';
     case 'at-gate':
       return 'Star';
+    case 'come-to-gate':
+      return 'Bell';
     default:
       return 'Circle';
   }

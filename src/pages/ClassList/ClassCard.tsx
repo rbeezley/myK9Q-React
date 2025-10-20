@@ -47,6 +47,7 @@ interface ClassCardProps {
   getStatusColor: (status: ClassEntry['class_status'], classEntry?: ClassEntry) => string;
   getFormattedStatus: (classEntry: ClassEntry) => { label: string; time: string | null };
   getContextualPreview: (classEntry: ClassEntry) => string;
+  onPrefetch?: () => void;
 }
 
 export const ClassCard: React.FC<ClassCardProps> = ({
@@ -61,6 +62,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   getStatusColor,
   getFormattedStatus,
   getContextualPreview,
+  onPrefetch,
 }) => {
   const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
   const _isInProgress = classEntry.class_status === 'in_progress';
@@ -68,7 +70,9 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   return (
     <div
       key={classEntry.id}
-      className={`class-card status-${classEntry.class_status.replace('_', '-')}`}
+      className={`class-card touchable status-${classEntry.class_status.replace('_', '-')}`}
+      onMouseEnter={() => onPrefetch?.()}
+      onTouchStart={() => onPrefetch?.()}
       onClick={(e) => {
         console.log('🔵 Class card clicked', e.target, e.currentTarget);
         handleViewEntries(classEntry);

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArmbandBadge } from './ui';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import './DogCard.css';
 
 interface DogCardProps {
@@ -9,10 +10,12 @@ interface DogCardProps {
   handler: string;
   onClick?: () => void;
   className?: string;
-  statusBorder?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'scored' | 'placement-1' | 'placement-2' | 'placement-3' | 'result-qualified' | 'result-nq' | 'result-ex' | 'result-abs' | 'result-wd';
+  statusBorder?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'scored' | 'placement-1' | 'placement-2' | 'placement-3' | 'result-qualified' | 'result-nq' | 'result-ex' | 'result-abs' | 'result-wd';
   actionButton?: React.ReactNode; // Heart icon for Home, Status badge for EntryList
   resultBadges?: React.ReactNode; // For scored entries
   sectionBadge?: 'A' | 'B' | null; // Section badge for combined Novice A & B view
+  /** Prefetch data on hover/touch (optional) */
+  onPrefetch?: () => void;
 }
 
 export const DogCard = React.memo<DogCardProps>(({
@@ -26,11 +29,33 @@ export const DogCard = React.memo<DogCardProps>(({
   actionButton,
   resultBadges,
   sectionBadge,
+  onPrefetch,
 }) => {
+  const haptic = useHapticFeedback();
+
+  const handleClick = () => {
+    if (onClick) {
+      haptic.light(); // Quick haptic for card tap
+      onClick();
+    }
+  };
+
+  const handleMouseEnter = () => {
+    // Desktop: prefetch on hover
+    onPrefetch?.();
+  };
+
+  const handleTouchStart = () => {
+    // Mobile: prefetch on touch
+    onPrefetch?.();
+  };
+
   return (
     <div
-      className={`dog-card ${statusBorder} ${className}`}
-      onClick={onClick}
+      className={`dog-card ${onClick ? 'touchable' : ''} ${statusBorder} ${className}`}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onTouchStart={handleTouchStart}
     >
       <div className="dog-card-content">
         <div className="dog-card-armband">

@@ -12,6 +12,59 @@ export default defineConfig({
     //   cert: fs.readFileSync('path/to/cert.pem'),
     // }
   },
+  build: {
+    // Optimize chunk splitting
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Vendor chunks
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@supabase')) {
+              return 'supabase-vendor';
+            }
+            if (id.includes('lucide-react') || id.includes('clsx')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('@dnd-kit')) {
+              return 'dnd-vendor';
+            }
+            if (id.includes('@tanstack/react-virtual')) {
+              return 'virtual-vendor';
+            }
+          }
+          // App chunks
+          if (id.includes('/stores/')) {
+            return 'stores';
+          }
+          if (id.includes('/services/')) {
+            return 'services';
+          }
+        }
+      }
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Minify CSS
+    cssMinify: true,
+    // Source maps only for errors in production
+    sourcemap: 'hidden'
+  },
+  optimizeDeps: {
+    // Pre-bundle heavy dependencies
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@supabase/supabase-js',
+      'zustand',
+      'lucide-react'
+    ]
+  },
   plugins: [
     react(),
     VitePWA({

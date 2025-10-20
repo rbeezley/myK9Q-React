@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { MultiTimer } from '../../../components/scoring/MultiTimer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
+import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { SyncIndicator } from '../../../components/ui';
 import './ASCAScentDetectionScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'E';
@@ -25,23 +27,26 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
   const {
     isScoring,
     startScoringSession,
-    submitScore: addScoreToSession,
+    submitScore: _addScoreToSession,
     moveToNextEntry,
     moveToPreviousEntry,
     endScoringSession
   } = useScoringStore();
-  
+
   const {
     currentClassEntries,
     currentEntry,
     setCurrentClassEntries,
     setCurrentEntry,
-    markAsScored,
+    markAsScored: _markAsScored,
     getPendingEntries
   } = useEntryStore();
-  
-  const { addToQueue, isOnline } = useOfflineQueueStore();
-  
+
+  const { addToQueue: _addToQueue, isOnline } = useOfflineQueueStore();
+
+  // Optimistic scoring hook
+  const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
+
   // Local state - ASCA typically has single search areas
   const [searchAreas, setSearchAreas] = useState<SearchArea[]>([
     { areaName: 'Search Area', time: '', found: false, alert: false }
@@ -57,44 +62,27 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
     name: area.areaName,
     maxTime: 4 * 60 * 1000 // 4 minutes in milliseconds
   }));
-  
-  // Load class entries on mount
-  useEffect(() => {
-    if (classId && showContext?.licenseKey) {
-      loadEntries();
-    }
-  }, [classId, showContext]);
-  
-  // Clear in-ring status when leaving scoresheet
-  useEffect(() => {
-    return () => {
-      if (currentEntry?.id) {
-        markInRing(currentEntry.id, false).catch(error => {
-          console.error('Failed to clear in-ring status on unmount:', error);
-        });
-      }
-    };
-  }, []); // Fixed: removed currentEntry?.id dependency
-  
+
+  // Load entries function - defined before useEffect
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
-    
+
     try {
       const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);
       setCurrentClassEntries(parseInt(classId));
-      
+
       // Set first pending entry as current
       const pending = entries.filter(e => !e.isScored);
       if (pending.length > 0) {
         setCurrentEntry(pending[0]);
-        
+
         // Mark dog as in-ring when scoresheet opens
         if (pending[0].id) {
           markInRing(pending[0].id, true).catch(error => {
             console.error('Failed to mark dog in-ring on scoresheet open:', error);
           });
         }
-        
+
         // Start scoring session if not already started
         if (!isScoring) {
           startScoringSession(
@@ -110,6 +98,24 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
       console.error('Error loading entries:', error);
     }
   };
+
+  // Load class entries on mount
+  useEffect(() => {
+    if (classId && showContext?.licenseKey) {
+      loadEntries();
+    }
+  }, [classId, showContext, loadEntries]);
+
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, []); // Fixed: removed currentEntry?.id dependency
   
   const handleAreaUpdate = (areaIndex: number, field: keyof SearchArea, value: any) => {
     setSearchAreas(prev => prev.map((area, index) => 
@@ -154,83 +160,68 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
   
   const confirmSubmit = async () => {
     if (!currentEntry) return;
-    
-    setIsSubmitting(true);
+
     setShowConfirmation(false);
-    
+
     const finalQualifying = qualifying === 'Q' ? calculateQualifying() : qualifying;
     const finalTotalTime = totalTime || calculateTotalTime();
-    
+
     // Prepare area results
     const areaResults: Record<string, string> = {};
     searchAreas.forEach(area => {
       areaResults[area.areaName.toLowerCase()] = `${area.time}${area.found ? ' FOUND' : ' NOT FOUND'}${area.alert ? ' ALERT' : ' NO ALERT'}`;
     });
-    
-    const scoreData = {
+
+    // Submit score optimistically
+    await submitScoreOptimistically({
       entryId: currentEntry.id,
+      classId: parseInt(classId!),
       armband: currentEntry.armband,
-      time: finalTotalTime,
-      qualifying: finalQualifying,
-      areas: areaResults,
-      nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined
-    };
-    
-    try {
-      // Add to scoring session
-      addScoreToSession(scoreData);
-      
-      // Update entry store
-      markAsScored(currentEntry.id, finalQualifying);
-      
-      if (isOnline) {
-        // Submit directly if online
-        await submitScore(currentEntry.id, {
-          resultText: finalQualifying,
-          searchTime: finalTotalTime,
-          nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined
-        });
-      } else {
-        // Add to offline queue
-        addToQueue({
-          entryId: currentEntry.id,
-          armband: currentEntry.armband,
-          classId: parseInt(classId!),
-          className: currentEntry.className,
-          scoreData: {
-            resultText: finalQualifying,
-            searchTime: finalTotalTime,
-            nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
-            areas: areaResults
+      className: currentEntry.className,
+      scoreData: {
+        resultText: finalQualifying,
+        searchTime: finalTotalTime,
+        nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
+        areas: areaResults,
+      },
+      onSuccess: async () => {
+        console.log('✅ ASCA Scent Detection score saved');
+
+        // Remove from ring
+        if (currentEntry?.id) {
+          try {
+            await markInRing(currentEntry.id, false);
+            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
+          } catch (error) {
+            console.error('❌ Failed to remove dog from ring:', error);
           }
-        });
+        }
+
+        // Move to next entry
+        const pendingEntries = getPendingEntries();
+        if (pendingEntries.length > 0) {
+          setCurrentEntry(pendingEntries[0]);
+          moveToNextEntry();
+
+          // Reset form
+          setSearchAreas([
+            { areaName: 'Search Area', time: '', found: false, alert: false }
+          ]);
+          setQualifying('Q');
+          setNonQualifyingReason('');
+          setTotalTime('');
+        } else {
+          // All entries scored
+          endScoringSession();
+          navigate(-1);
+        }
+      },
+      onError: (error) => {
+        console.error('❌ ASCA Scent Detection score submission failed:', error);
+        alert(`Failed to submit score: ${error.message}`);
+        setIsSubmitting(false);
       }
-      
-      // Move to next entry
-      const pendingEntries = getPendingEntries();
-      if (pendingEntries.length > 0) {
-        setCurrentEntry(pendingEntries[0]);
-        moveToNextEntry();
-        
-        // Reset form
-        setSearchAreas([
-          { areaName: 'Search Area', time: '', found: false, alert: false }
-        ]);
-        setQualifying('Q');
-        setNonQualifyingReason('');
-        setTotalTime('');
-      } else {
-        // All entries scored
-        endScoringSession();
-        navigate(-1);
-      }
-      
-    } catch (error) {
-      console.error('Error submitting score:', error);
-      alert('Failed to submit score. It has been saved offline.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
   
   const handlePrevious = () => {
@@ -393,15 +384,19 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
           >
             Previous
           </button>
-          
-          <button
-            className="submit-button"
-            onClick={handleSubmit}
-            disabled={!allAreasScored || isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Score'}
-          </button>
-          
+
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className="submit-button"
+              onClick={handleSubmit}
+              disabled={!allAreasScored || isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Score'}
+            </button>
+            {isSyncing && <SyncIndicator status="syncing" />}
+            {hasError && <SyncIndicator status="error" />}
+          </div>
+
           <button
             className="nav-button"
             onClick={handleNext}

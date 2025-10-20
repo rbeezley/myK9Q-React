@@ -1,0 +1,356 @@
+/**
+ * One-Handed Mode Styles
+ *
+ * Optimizes UI for one-handed operation:
+ * - Bottom-aligned actions
+ * - Floating action button (FAB)
+ * - Reachability mode
+ * - Hand-specific layouts
+ */
+
+/* ============================================
+   ONE-HANDED MODE BASE
+   ============================================ */
+
+.one-handed-mode {
+  --fab-size: 56px;
+  --fab-offset: 16px;
+}
+
+/* ============================================
+   FLOATING ACTION BUTTON (FAB)
+   ============================================ */
+
+.fab-enabled .floating-action-button {
+  position: fixed;
+  bottom: var(--fab-offset);
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  cursor: pointer;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-enabled .floating-action-button:active {
+  transform: scale(0.95);
+}
+
+/* Hand-specific positioning */
+.hand-left .floating-action-button {
+  left: var(--fab-offset);
+}
+
+.hand-right .floating-action-button {
+  right: var(--fab-offset);
+}
+
+.hand-auto .floating-action-button {
+  right: var(--fab-offset); /* Default to right for right-handed majority */
+}
+
+/* FAB ripple effect */
+.floating-action-button::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.5s, opacity 0.5s;
+}
+
+.floating-action-button:active::after {
+  opacity: 1;
+  transform: scale(1.5);
+}
+
+/* ============================================
+   THUMB ZONE OPTIMIZATION
+   ============================================ */
+
+.one-handed-mode .primary-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+/* Ensure content doesn't hide behind fixed actions */
+.one-handed-mode .content-with-actions {
+  padding-bottom: 88px; /* FAB size + padding + safe area */
+}
+
+/* ============================================
+   REACHABILITY MODE
+   ============================================ */
+
+.reachability-enabled.reachability-active {
+  transform: translateY(50%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reachability-enabled.reachability-active::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+  pointer-events: none;
+}
+
+/* Reachability trigger zone (top of screen) */
+.reachability-enabled .reachability-trigger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 1001;
+  cursor: pointer;
+}
+
+.reachability-enabled .reachability-trigger::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.reachability-enabled .reachability-trigger:hover::after {
+  opacity: 1;
+}
+
+/* ============================================
+   HAND-SPECIFIC LAYOUTS
+   ============================================ */
+
+/* Left-handed: align important items to left */
+.hand-left .one-handed-action-group {
+  justify-content: flex-start;
+}
+
+.hand-left .one-handed-menu {
+  left: 0;
+  right: auto;
+  transform-origin: left bottom;
+}
+
+/* Right-handed: align important items to right */
+.hand-right .one-handed-action-group {
+  justify-content: flex-end;
+}
+
+.hand-right .one-handed-menu {
+  right: 0;
+  left: auto;
+  transform-origin: right bottom;
+}
+
+/* Auto: center items */
+.hand-auto .one-handed-action-group {
+  justify-content: center;
+}
+
+.hand-auto .one-handed-menu {
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+}
+
+/* ============================================
+   QUICK ACTIONS MENU
+   ============================================ */
+
+.one-handed-mode .quick-actions {
+  position: fixed;
+  bottom: calc(var(--fab-size) + var(--fab-offset) + 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 998;
+}
+
+.quick-actions.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* Position based on hand */
+.hand-left .quick-actions {
+  left: var(--fab-offset);
+}
+
+.hand-right .quick-actions {
+  right: var(--fab-offset);
+}
+
+.hand-auto .quick-actions {
+  right: var(--fab-offset);
+}
+
+.quick-actions .quick-action-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-actions .quick-action-button:hover {
+  background: #f3f4f6;
+  transform: scale(1.1);
+}
+
+.quick-actions .quick-action-button:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   COMPACT MODE
+   ============================================ */
+
+.one-handed-mode .compact-header {
+  padding: 8px 16px;
+  min-height: 44px;
+}
+
+.one-handed-mode .compact-list-item {
+  padding: 12px 16px;
+  min-height: 56px;
+}
+
+/* ============================================
+   THUMB-FRIENDLY SPACING
+   ============================================ */
+
+.one-handed-mode .action-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+
+.one-handed-mode .action-button {
+  flex: 1;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ============================================
+   MOBILE-SPECIFIC
+   ============================================ */
+
+@media (max-width: 768px) {
+  .one-handed-mode {
+    --fab-size: 64px;
+    --fab-offset: 20px;
+  }
+
+  /* Larger touch targets on mobile */
+  .one-handed-mode .action-button {
+    min-height: 56px;
+    font-size: 1.125rem;
+  }
+
+  /* More prominent FAB on mobile */
+  .fab-enabled .floating-action-button {
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  }
+}
+
+/* ============================================
+   LANDSCAPE MODE
+   ============================================ */
+
+@media (orientation: landscape) and (max-height: 600px) {
+  /* In landscape, reduce vertical space */
+  .one-handed-mode .primary-actions {
+    padding: 8px 16px;
+  }
+
+  .one-handed-mode {
+    --fab-size: 48px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .one-handed-mode .primary-actions {
+    background: #1f2937;
+    border-top-color: #374151;
+  }
+
+  .quick-actions .quick-action-button {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .quick-actions .quick-action-button:hover {
+    background: #374151;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-action-button,
+  .quick-actions,
+  .reachability-enabled,
+  .quick-action-button {
+    transition: none;
+  }
+
+  .floating-action-button:active,
+  .quick-action-button:active,
+  .quick-action-button:hover {
+    transform: none;
+  }
+
+  .floating-action-button::after {
+    display: none;
+  }
+}

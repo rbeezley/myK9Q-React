@@ -48,8 +48,8 @@ export function getScoresheetRoute(params: ScoresheetRouteParams): string {
     } else if (element === 'Rally' || orgData.activity_type === 'Rally') {
       return `/scoresheet/ukc-rally/${classId}/${entryId}`;
     } else if (orgData.activity_type === 'Nosework') {
-      // UKC Nosework - using ASCA as placeholder
-      return `/scoresheet/asca-scent-detection/${classId}/${entryId}`;
+      // UKC Nosework - dedicated scoresheet
+      return `/scoresheet/ukc-nosework/${classId}/${entryId}`;
     } else {
       // UKC fallback based on element
       if (element === 'Obedience') {

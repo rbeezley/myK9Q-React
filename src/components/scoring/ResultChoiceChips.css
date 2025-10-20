@@ -207,7 +207,8 @@
   color: rgba(255, 255, 255, 0.9);
   font-size: 16px;
   font-weight: 600;
-  text-align: center;
+  width: 100%;
+  text-align: center !important;
 }
 
 .reason-choice-chips {
@@ -251,7 +252,8 @@
 [data-theme="light"] .fault-counter-section h3,
 [data-theme="light"] .reason-selection h3 {
   color: var(--token-text-secondary);
-  text-align: center;
+  width: 100%;
+  text-align: center !important;
 }
 
 [data-theme="light"] .fault-btn-counter {

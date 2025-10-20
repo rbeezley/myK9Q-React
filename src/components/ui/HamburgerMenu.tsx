@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon } from 'lucide-react';
 import './HamburgerMenu.css';
 
 interface HamburgerMenuProps {
@@ -12,7 +12,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'entries' | 'admin' | 'tv';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'entries' | 'admin' | 'tv';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -141,6 +141,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   )}
                 </div>
                 <span>Announcements</span>
+              </button>
+
+              <button
+                className={`menu-item ${currentPage === 'settings' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/settings'))}
+              >
+                <SettingsIcon className="menu-icon" />
+                <span>Settings</span>
               </button>
 
               {/* Admin Section - Only show for admin users */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Circle, Check, AlertTriangle, XCircle, Star } from 'lucide-react';
+import { GripVertical, Circle, Check, AlertTriangle, XCircle, Star, Bell } from 'lucide-react';
 import { DogCard } from '../../components/DogCard';
 import { Entry } from '../../stores/entryStore';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
@@ -21,6 +21,7 @@ interface SortableEntryCardProps {
   handleStatusClick: (e: React.MouseEvent, entryId: number) => void;
   handleResetMenuClick: (e: React.MouseEvent, entryId: number) => void;
   setSelfCheckinDisabledDialog: (value: boolean) => void;
+  onPrefetch?: (entry: Entry) => void;
 }
 
 export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
@@ -33,6 +34,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
   handleStatusClick,
   handleResetMenuClick,
   setSelfCheckinDisabledDialog,
+  onPrefetch,
 }) => {
   const {
     attributes,
@@ -66,6 +68,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
           if (isDragMode) return; // Disable navigation in drag mode
           if (hasPermission('canScore')) handleEntryClick(entry); // Entry click handler
         }}
+        onPrefetch={() => onPrefetch?.(entry)}
         className={`${
           hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
         } ${entry.inRing ? 'in-ring' : ''}`}
@@ -86,7 +89,8 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
           (entry.checkinStatus === 'checked-in' ? 'checked-in' :
            entry.checkinStatus === 'conflict' ? 'conflict' :
            entry.checkinStatus === 'pulled' ? 'pulled' :
-           entry.checkinStatus === 'at-gate' ? 'at-gate' : 'none')
+           entry.checkinStatus === 'at-gate' ? 'at-gate' :
+           entry.checkinStatus === 'come-to-gate' ? 'come-to-gate' : 'none')
         }
         resultBadges={
           entry.isScored ? (
@@ -222,11 +226,12 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                 }
                 const status = entry.checkinStatus || 'none';
                 switch(status) {
-                  case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> No Status</span></>;
-                  case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Checked-in</span></>;
-                  case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Conflict</span></>;
-                  case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Pulled</span></>;
-                  case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> At Gate</span></>;
+                  case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>No Status</span></>;
+                  case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Checked-in</span></>;
+                  case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Conflict</span></>;
+                  case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Pulled</span></>;
+                  case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>At Gate</span></>;
+                  case 'come-to-gate': return <><Bell className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Come to Gate</span></>;
                   default: return <span style={{ textTransform: 'none' }}>{status}</span>;
                 }
               })()}

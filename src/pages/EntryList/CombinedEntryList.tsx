@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { getClassEntries, resetEntryScore, updateEntryCheckinStatus } from '../../services/entryService';
-import { Entry } from '../../stores/entryStore';
-import { HamburgerMenu, HeaderTicker } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell } from 'lucide-react';
+import { Entry } from '../../stores/entryStore';
+import { useEntryListData, useEntryListActions, useEntryListFilters, useEntryListSubscriptions } from './hooks';
+import { formatTimeForDisplay } from '../../utils/timeUtils';
 import './EntryList.css';
-
-type TabType = 'pending' | 'completed';
-type SectionFilter = 'all' | 'A' | 'B';
 
 export const CombinedEntryList: React.FC = () => {
   const { classIdA, classIdB } = useParams<{ classIdA: string; classIdB: string }>();
@@ -20,37 +17,73 @@ export const CombinedEntryList: React.FC = () => {
   const { showContext } = useAuth();
   const { hasPermission } = usePermission();
 
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('pending');
-  const [sectionFilter, setSectionFilter] = useState<SectionFilter>('all');
-  const [classInfo, setClassInfo] = useState<{
-    className: string;
-    element: string;
-    level: string;
-    trialDate?: string;
-    trialNumber?: string;
-    judgeName?: string;
-    judgeNameB?: string;
-    actualClassIdA?: number;
-    actualClassIdB?: number;
-    selfCheckin?: boolean;
-    timeLimit?: string;
-    timeLimit2?: string;
-    timeLimit3?: string;
-    areas?: number;
-  } | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband' | 'manual'>('section-armband');
+  // Data management using shared hook
+  const {
+    entries,
+    classInfo,
+    isRefreshing,
+    fetchError,
+    refresh
+  } = useEntryListData({
+    classIdA,
+    classIdB
+  });
+
+  // Actions using shared hook
+  const {
+    handleStatusChange: handleStatusChangeHook,
+    handleResetScore: handleResetScoreHook,
+    isSyncing,
+    hasError
+  } = useEntryListActions(refresh);
+
+  // Filters using shared hook (with section filter enabled)
+  const {
+    activeTab,
+    setActiveTab,
+    searchTerm,
+    setSearchTerm,
+    sectionFilter,
+    setSectionFilter,
+    filteredEntries,
+    entryCounts
+  } = useEntryListFilters({
+    entries,
+    supportManualSort: false,
+    supportSectionFilter: true
+  });
+
+  // Real-time subscriptions using shared hook
+  const classIds = classIdA && classIdB ? [parseInt(classIdA), parseInt(classIdB)] : [];
+  useEntryListSubscriptions({
+    classIds,
+    licenseKey: showContext?.licenseKey || '',
+    onRefresh: refresh,
+    enabled: classIds.length > 0
+  });
+
+  // Local UI state
+  const [localEntries, setLocalEntries] = useState<Entry[]>([]);
+  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband'>('section-armband');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
 
+  // Sync local entries with fetched data
+  useEffect(() => {
+    setLocalEntries(entries);
+  }, [entries]);
+
+  // Initial load animation
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Date formatting helper
   const formatTrialDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
@@ -66,101 +99,12 @@ export const CombinedEntryList: React.FC = () => {
     return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
   };
 
-
-  const loadEntries = async () => {
-    if (!classIdA || !classIdB || !showContext?.licenseKey) return;
-
-    console.log('🔄 Loading combined entries for classes:', classIdA, classIdB);
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Load entries from both classes
-      const classIdsArray = [parseInt(classIdA), parseInt(classIdB)];
-      const combinedEntries = await getClassEntries(classIdsArray, showContext.licenseKey);
-
-      setEntries(combinedEntries);
-
-      // Get class info from both classes
-      if (combinedEntries.length > 0) {
-        const firstEntry = combinedEntries[0];
-
-        // Fetch class data for both classes
-        const { data: classDataA } = await supabase
-          .from('classes')
-          .select('judge_name, self_checkin_enabled')
-          .eq('id', parseInt(classIdA))
-          .single();
-
-        const { data: classDataB } = await supabase
-          .from('classes')
-          .select('judge_name')
-          .eq('id', parseInt(classIdB))
-          .single();
-
-        const judgeNameA = classDataA?.judge_name || 'No Judge Assigned';
-        const judgeNameB = classDataB?.judge_name || 'No Judge Assigned';
-
-        setClassInfo({
-          className: `${firstEntry.element} ${firstEntry.level} A & B`,
-          element: firstEntry.element || '',
-          level: firstEntry.level || '',
-          trialDate: firstEntry.trialDate || '',
-          trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
-          judgeName: judgeNameA,
-          judgeNameB: judgeNameB,
-          actualClassIdA: parseInt(classIdA),
-          actualClassIdB: parseInt(classIdB),
-          selfCheckin: classDataA?.self_checkin_enabled ?? true,
-          timeLimit: firstEntry.timeLimit,
-          timeLimit2: firstEntry.timeLimit2,
-          timeLimit3: firstEntry.timeLimit3,
-          areas: firstEntry.areas
-        });
-      }
-    } catch (err) {
-      console.error('Error loading combined entries:', err);
-      setError(`Failed to load entries: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadEntries();
-    setRefreshing(false);
-  };
-
-  useEffect(() => {
-    loadEntries();
-  }, [classIdA, classIdB, showContext?.licenseKey]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Filter entries by section
+  // Apply section filter and sort
   const sectionFilteredEntries = sectionFilter === 'all'
-    ? entries
-    : entries.filter(e => e.section === sectionFilter);
+    ? filteredEntries
+    : filteredEntries.filter(e => e.section === sectionFilter);
 
-  // Rest of the filter and sort logic (similar to EntryList)
-  const filteredEntries = sectionFilteredEntries.filter(entry => {
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        entry.callName.toLowerCase().includes(searchLower) ||
-        entry.handler.toLowerCase().includes(searchLower) ||
-        entry.breed.toLowerCase().includes(searchLower) ||
-        entry.armband.toString().includes(searchLower)
-      );
-    }
-    return true;
-  });
-
-  const sortedEntries = [...filteredEntries].sort((a, b) => {
+  const sortedEntries = [...sectionFilteredEntries].sort((a, b) => {
     if (sortOrder === 'section-armband') {
       // Sort by section first, then armband
       if (a.section && b.section && a.section !== b.section) {
@@ -211,16 +155,15 @@ export const CombinedEntryList: React.FC = () => {
     if (!resetConfirmDialog.entry) return;
 
     try {
-      await resetEntryScore(resetConfirmDialog.entry.id);
+      await handleResetScoreHook(resetConfirmDialog.entry.id);
 
       // Update local state to move entry back to pending
-      setEntries(prev => prev.map(entry =>
+      setLocalEntries(prev => prev.map(entry =>
         entry.id === resetConfirmDialog.entry!.id
           ? {
               ...entry,
               isScored: false,
               inRing: false,
-              score: undefined,
               placement: undefined,
               searchTime: undefined,
               resultText: undefined
@@ -249,24 +192,28 @@ export const CombinedEntryList: React.FC = () => {
     setActiveStatusPopup(entryId);
   };
 
-  const handleStatusChange = async (entryId: number, newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate') => {
+  const handleStatusChange = async (entryId: number, newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
+    // Close popup first
+    setActiveStatusPopup(null);
+
+    // Optimistic update: update local state immediately
+    setLocalEntries(prev => prev.map(entry =>
+      entry.id === entryId
+        ? { ...entry, checkinStatus: newStatus }
+        : entry
+    ));
+
+    // Sync with server (hook handles rollback on error)
     try {
-      await updateEntryCheckinStatus(entryId, newStatus);
-
-      // Update local state
-      setEntries(prev => prev.map(entry =>
-        entry.id === entryId
-          ? { ...entry, checkinStatus: newStatus as 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' }
-          : entry
-      ));
-
-      setActiveStatusPopup(null);
+      await handleStatusChangeHook(entryId, newStatus);
     } catch (error) {
-      console.error('Failed to update check-in status:', error);
-      alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Status change failed:', error);
+      // Refresh to get correct state
+      refresh();
     }
   };
 
+  // Organization parsing
   const parseOrganizationData = (orgString: string) => {
     if (!orgString || orgString.trim() === '') {
       return {
@@ -282,6 +229,7 @@ export const CombinedEntryList: React.FC = () => {
     };
   };
 
+  // Score click handler
   const handleScoreClick = (entry: Entry) => {
     if (entry.isScored) {
       return;
@@ -319,7 +267,8 @@ export const CombinedEntryList: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  // Loading state
+  if (!entries.length && !fetchError) {
     return (
       <div className="entry-list-container">
         <div className="flex items-center justify-center" style={{ minHeight: '50vh' }}>
@@ -332,13 +281,15 @@ export const CombinedEntryList: React.FC = () => {
     );
   }
 
-  if (error) {
+  // Error state
+  if (fetchError) {
     return (
       <div className="entry-list-container">
-        <div className="error">
-          <h2>Error</h2>
-          <p>{error}</p>
-        </div>
+        <ErrorState
+          message={`Failed to load entries: ${fetchError.message || 'Please check your connection and try again.'}`}
+          onRetry={refresh}
+          isRetrying={isRefreshing}
+        />
       </div>
     );
   }
@@ -395,14 +346,34 @@ export const CombinedEntryList: React.FC = () => {
           </div>
         </div>
 
-        <button
-          className={`icon-button ${refreshing ? 'rotating' : ''}`}
-          onClick={handleRefresh}
-          disabled={refreshing}
-          title="Refresh"
-        >
-          <RefreshCw className="h-5 w-5" />
-        </button>
+        <div className="header-buttons">
+          {/* Background refresh indicator */}
+          {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
+
+          {/* Sync indicator for optimistic updates */}
+          {isSyncing && (
+            <SyncIndicator
+              status="syncing"
+              compact
+            />
+          )}
+          {hasError && (
+            <SyncIndicator
+              status="error"
+              compact
+              errorMessage="Sync failed"
+            />
+          )}
+
+          <button
+            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
+            onClick={() => refresh()}
+            disabled={isRefreshing}
+            title="Refresh"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       <HeaderTicker />
@@ -509,14 +480,14 @@ export const CombinedEntryList: React.FC = () => {
           onClick={() => setActiveTab('pending')}
         >
           <Clock className="status-icon" size={16} />
-          Pending ({pendingEntries.length})
+          Pending ({entryCounts.pending})
         </button>
         <button
           className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
           <CheckCircle className="status-icon" size={16} />
-          Completed ({completedEntries.length})
+          Completed ({entryCounts.completed})
         </button>
       </div>
 
@@ -538,7 +509,18 @@ export const CombinedEntryList: React.FC = () => {
                 onClick={() => handleScoreClick(entry)}
                 className={hasPermission('canScore') && !entry.isScored ? 'clickable' : ''}
                 statusBorder={
-                  entry.isScored ? 'scored' : // All scored entries get green border
+                  entry.isScored ? (
+                    // For scored entries, use result status color
+                    (() => {
+                      const result = (entry.resultText || '').toLowerCase();
+                      if (result === 'q' || result === 'qualified') return 'result-qualified';
+                      if (result === 'nq' || result === 'non-qualifying') return 'result-nq';
+                      if (result === 'ex' || result === 'excused') return 'result-ex';
+                      if (result === 'abs' || result === 'absent') return 'result-abs';
+                      if (result === 'wd' || result === 'withdrawn') return 'result-wd';
+                      return 'scored'; // Fallback to generic scored
+                    })()
+                  ) :
                   entry.inRing ? 'none' :
                   (entry.checkinStatus === 'checked-in' ? 'checked-in' :
                    entry.checkinStatus === 'conflict' ? 'conflict' :
@@ -546,6 +528,105 @@ export const CombinedEntryList: React.FC = () => {
                    entry.checkinStatus === 'at-gate' ? 'at-gate' : 'none')
                 }
                 sectionBadge={entry.section as 'A' | 'B' | null}
+                resultBadges={
+                  entry.isScored ? (
+                    // Check if this is a nationals show using show type from context
+                    showContext?.competition_type?.toLowerCase().includes('national') ? (
+                      <div className="nationals-scoresheet-improved">
+                        {/* Header Row: Placement, Time, and Result badges */}
+                        <div className="nationals-header-row">
+                          {entry.placement && (
+                            <span className="placement-badge">
+                              {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                            </span>
+                          )}
+                          <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+                          <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
+                            {(() => {
+                              const result = (entry.resultText || '').toLowerCase();
+                              if (result === 'q' || result === 'qualified') return 'Q';
+                              if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                              if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                              if (result === 'ex' || result === 'excused') return 'EX';
+                              if (result === 'wd' || result === 'withdrawn') return 'WD';
+                              return entry.resultText || 'N/A';
+                            })()}
+                          </span>
+                        </div>
+
+                        {/* Stats Grid: 2x2 for Calls and Faults */}
+                        <div className="nationals-stats-grid">
+                          <div className="nationals-stat-item">
+                            <span className="nationals-stat-label">Correct</span>
+                            <span className="nationals-stat-value">{entry.correctFinds || 0}</span>
+                          </div>
+                          <div className="nationals-stat-item">
+                            <span className="nationals-stat-label">Incorrect</span>
+                            <span className="nationals-stat-value">{entry.incorrectFinds || 0}</span>
+                          </div>
+                          <div className="nationals-stat-item">
+                            <span className="nationals-stat-label">Faults</span>
+                            <span className="nationals-stat-value">{entry.faultCount || 0}</span>
+                          </div>
+                          <div className="nationals-stat-item">
+                            <span className="nationals-stat-label">No Finish</span>
+                            <span className="nationals-stat-value">{entry.noFinishCount || 0}</span>
+                          </div>
+                        </div>
+
+                        {/* Total Points Row */}
+                        <div className="nationals-total-points-improved">
+                          <span className="nationals-total-label">Total Points</span>
+                          <span className={`nationals-total-value ${(entry.totalPoints || 0) >= 0 ? 'positive' : 'negative'}`}>
+                            {(entry.totalPoints || 0) >= 0 ? '+' : ''}{entry.totalPoints || 0}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      // Regular (non-nationals) scoring display
+                      entry.searchTime ? (
+                        <div className="regular-scoresheet-single-line">
+                          {/* Single line: Placement, Result, Time, Faults */}
+                          {(() => {
+                            const resultLower = (entry.resultText || '').toLowerCase();
+                            const isNonQualifying = resultLower.includes('nq') || resultLower.includes('non-qualifying') ||
+                                                   resultLower.includes('abs') || resultLower.includes('absent') ||
+                                                   resultLower.includes('ex') || resultLower.includes('excused') ||
+                                                   resultLower.includes('wd') || resultLower.includes('withdrawn');
+
+                            // Show placement only if qualified (placement exists and result is qualified)
+                            if (entry.placement && !isNonQualifying && entry.placement < 100) {
+                              return (
+                                <span className="placement-badge">
+                                  {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {entry.resultText && (
+                            <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
+                              {(() => {
+                                const result = entry.resultText.toLowerCase();
+                                if (result === 'q' || result === 'qualified') return 'Q';
+                                if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                                if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                                if (result === 'ex' || result === 'excused') return 'EX';
+                                if (result === 'wd' || result === 'withdrawn') return 'WD';
+                                return entry.resultText;
+                              })()}
+                            </span>
+                          )}
+
+                          <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+
+                          <span className="faults-badge-subtle">{entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}</span>
+                        </div>
+                      ) : undefined
+                    )
+                  ) : undefined
+                }
                 actionButton={
                   !entry.isScored ? (
                     <div
@@ -579,11 +660,12 @@ export const CombinedEntryList: React.FC = () => {
                         }
                         const status = entry.checkinStatus || 'none';
                         switch(status) {
-                          case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> No Status</span></>;
-                          case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Checked-in</span></>;
-                          case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Conflict</span></>;
-                          case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> Pulled</span></>;
-                          case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0 }} /><span style={{ textTransform: 'none' }}> At Gate</span></>;
+                          case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>No Status</span></>;
+                          case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Checked-in</span></>;
+                          case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Conflict</span></>;
+                          case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Pulled</span></>;
+                          case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>At Gate</span></>;
+                          case 'come-to-gate': return <><Bell className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Come to Gate</span></>;
                           default: return <span style={{ textTransform: 'none' }}>{status}</span>;
                         }
                       })()}
@@ -622,7 +704,7 @@ export const CombinedEntryList: React.FC = () => {
             <div
               className="reset-option"
               onClick={() => {
-                const entry = entries.find(e => e.id === activeResetMenu);
+                const entry = localEntries.find(e => e.id === activeResetMenu);
                 if (entry) handleResetScore(entry);
               }}
             >
@@ -645,15 +727,15 @@ export const CombinedEntryList: React.FC = () => {
         }}
         dogInfo={{
           armband: (() => {
-            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            const currentEntry = localEntries.find(e => e.id === activeStatusPopup);
             return currentEntry?.armband || 0;
           })(),
           callName: (() => {
-            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            const currentEntry = localEntries.find(e => e.id === activeStatusPopup);
             return currentEntry?.callName || '';
           })(),
           handler: (() => {
-            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            const currentEntry = localEntries.find(e => e.id === activeStatusPopup);
             return currentEntry?.handler || '';
           })()
         }}

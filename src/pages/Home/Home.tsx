@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '../../utils/logger';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
+import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
+import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
+import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
 import './Home.css';
 
@@ -38,6 +42,7 @@ export const Home: React.FC = () => {
   const { showContext, logout: _logout, role: _role } = useAuth();
   const { hasPermission: _hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
+  const { prefetch } = usePrefetch();
 
   // Search, sort, and filter state
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
@@ -45,12 +50,68 @@ export const Home: React.FC = () => {
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
   const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
 
+  // Use stale-while-revalidate for instant loading from cache
+  const {
+    data: cachedData,
+    isStale: _isStale,
+    isRefreshing,
+    error: fetchError,
+    refresh
+  } = useStaleWhileRevalidate<{
+    entries: EntryData[];
+    trials: TrialData[];
+  }>(
+    `home-dashboard-${showContext?.licenseKey}`,
+    async () => {
+      return await fetchDashboardData();
+    },
+    {
+      ttl: 60000, // 1 minute cache
+      fetchOnMount: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true
+    }
+  );
+
+  // Local state for data (synced from cache)
   const [entries, setEntries] = useState<EntryData[]>([]);
   const [trials, setTrials] = useState<TrialData[]>([]);
-  const [_isLoading, _setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [favoriteDogs, setFavoriteDogs] = useState<Set<number>>(new Set());
   const [dogFavoritesLoaded, setDogFavoritesLoaded] = useState(false);
+
+  // Virtual scrolling ref
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  // Optimistic update hook for favorites
+  const { update: _performOptimisticUpdate } = useOptimisticUpdate();
+
+  // Calculate number of columns based on viewport width
+  const [columnCount, setColumnCount] = useState(1);
+
+  useEffect(() => {
+    const updateColumns = () => {
+      const width = window.innerWidth;
+      if (width >= 1200) {
+        setColumnCount(3); // Desktop: 3 columns
+      } else if (width >= 768) {
+        setColumnCount(2); // Tablet: 2 columns
+      } else {
+        setColumnCount(1); // Mobile: 1 column
+      }
+    };
+
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+
+  // Sync cached data with local state
+  useEffect(() => {
+    if (cachedData) {
+      setTrials(cachedData.trials);
+      setEntries(cachedData.entries);
+    }
+  }, [cachedData]);
 
   // Load dog favorites from localStorage
   useEffect(() => {
@@ -128,8 +189,7 @@ export const Home: React.FC = () => {
     }
   }, [favoriteDogs, dogFavoritesLoaded]);
 
-  const loadDashboardData = useCallback(async () => {
-    _setIsLoading(true);
+  const fetchDashboardData = useCallback(async (): Promise<{ entries: EntryData[]; trials: TrialData[] }> => {
     try {
       logger.log('🔍 Show context:', showContext);
       logger.log('🔍 Show ID:', showContext?.showId);
@@ -161,76 +221,72 @@ export const Home: React.FC = () => {
         logger.error('Error loading entries:', entriesError);
       }
 
-      // Process trials with counts
-      if (trialsData) {
-        const processedTrials = await Promise.all(trialsData.map(async (trial) => {
-          // Get class counts for this trial
-          const { count: totalClasses } = await supabase
-            .from('classes')
-            .select('*', { count: 'exact', head: true })
-            .eq('trial_id', trial.id);
+      let processedTrials: TrialData[] = [];
 
-          // Get completed class counts (assuming classes with all entries scored)
-          const { count: completedClasses } = await supabase
-            .from('classes')
-            .select('*', { count: 'exact', head: true })
-            .eq('trial_id', trial.id)
-            .eq('is_completed', true);
+      // Process trials with counts - OPTIMIZED to reduce database queries
+      if (trialsData && trialsData.length > 0) {
+        const trialIds = trialsData.map(t => t.id);
 
-          // Get entry counts for this trial (via classes)
-          const { data: trialClasses } = await supabase
-            .from('classes')
-            .select('id')
-            .eq('trial_id', trial.id);
+        // Fetch all classes for all trials in ONE query
+        const { data: allClasses } = await supabase
+          .from('classes')
+          .select('id, trial_id, is_completed')
+          .in('trial_id', trialIds);
 
-          const classIds = trialClasses?.map(c => c.id) || [];
-
-          let totalEntries = 0;
-          let completedEntries = 0;
-
-          if (classIds.length > 0) {
-            const { count: totalEntriesCount } = await supabase
-              .from('entries')
-              .select('*', { count: 'exact', head: true })
-              .in('class_id', classIds);
-
-            // For completed entries, we need to check the results table
-            const { data: entriesWithResults } = await supabase
-              .from('entries')
-              .select('id')
-              .in('class_id', classIds);
-
-            const entryIds = entriesWithResults?.map(e => e.id) || [];
-
-            let completedEntriesCount = 0;
-            if (entryIds.length > 0) {
-              const { count } = await supabase
-                .from('results')
-                .select('*', { count: 'exact', head: true })
-                .in('entry_id', entryIds)
-                .eq('is_scored', true);
-              completedEntriesCount = count || 0;
-            }
-
-            totalEntries = totalEntriesCount || 0;
-            completedEntries = completedEntriesCount;
+        // Group classes by trial_id
+        const classesByTrial = new Map<number, typeof allClasses>();
+        allClasses?.forEach(cls => {
+          if (!classesByTrial.has(cls.trial_id)) {
+            classesByTrial.set(cls.trial_id, []);
           }
+          classesByTrial.get(cls.trial_id)!.push(cls);
+        });
+
+        // Get all class IDs for entry counting
+        const allClassIds = allClasses?.map(c => c.id) || [];
+
+        // Fetch entry counts for all classes in ONE query
+        const { data: allEntries } = await supabase
+          .from('entries')
+          .select('id, class_id')
+          .in('class_id', allClassIds);
+
+        // Fetch scored results for all entries in ONE query
+        const entryIds = allEntries?.map(e => e.id) || [];
+        const { data: scoredResults } = entryIds.length > 0 ? await supabase
+          .from('results')
+          .select('entry_id')
+          .in('entry_id', entryIds)
+          .eq('is_scored', true) : { data: [] };
+
+        const scoredEntryIds = new Set(scoredResults?.map(r => r.entry_id) || []);
+
+        // Process trials with the data we already have
+        processedTrials = trialsData.map(trial => {
+          const trialClasses = classesByTrial.get(trial.id) || [];
+          const totalClasses = trialClasses.length;
+          const completedClasses = trialClasses.filter(c => c.is_completed).length;
+
+          const classIds = trialClasses.map(c => c.id);
+          const trialEntries = allEntries?.filter(e => classIds.includes(e.class_id)) || [];
+          const totalEntries = trialEntries.length;
+          const completedEntries = trialEntries.filter(e => scoredEntryIds.has(e.id)).length;
 
           return {
             ...trial,
-            classes_completed: completedClasses || 0,
-            classes_total: totalClasses || 0,
+            classes_completed: completedClasses,
+            classes_total: totalClasses,
             entries_completed: completedEntries,
             entries_total: totalEntries
           };
-        }));
-        setTrials(processedTrials);
+        });
       }
 
       // Process entries - get unique dogs by armband
+      let processedEntries: EntryData[] = [];
       if (entriesData) {
         const uniqueDogs = new Map<number, EntryData>();
-        
+
         entriesData.forEach(entry => {
           if (!uniqueDogs.has(entry.armband)) {
             uniqueDogs.set(entry.armband, {
@@ -245,31 +301,25 @@ export const Home: React.FC = () => {
             });
           }
         });
-        
-        const newEntries = Array.from(uniqueDogs.values());
-        logger.log('🐕 Setting new entries with armbands:', newEntries.map(e => e.armband));
-        logger.log('🐕 Entries with favorites:', newEntries.map(e => `${e.armband}:${e.is_favorite}`));
-        setEntries(newEntries);
+
+        processedEntries = Array.from(uniqueDogs.values());
+        logger.log('🐕 Processed entries with armbands:', processedEntries.map(e => e.armband));
+        logger.log('🐕 Entries with favorites:', processedEntries.map(e => `${e.armband}:${e.is_favorite}`));
       }
+
+      return { entries: processedEntries, trials: processedTrials };
     } catch (error) {
       logger.error('Error loading dashboard data:', error);
-    } finally {
-      _setIsLoading(false);
+      return { entries: [], trials: [] };
     }
-  }, [showContext?.showId, showContext?.licenseKey]);
+  }, [showContext?.showId, showContext?.licenseKey, favoriteDogs]);
 
-  useEffect(() => {
-    if (showContext && dogFavoritesLoaded) {
-      loadDashboardData();
-    }
-  }, [showContext, dogFavoritesLoaded, loadDashboardData]);
+  // Data is loaded via useStaleWhileRevalidate hook - no manual loading needed
 
   const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
     hapticFeedback.impact('medium');
-    await loadDashboardData();
-    setRefreshing(false);
-  }, [loadDashboardData, hapticFeedback]);
+    await refresh();
+  }, [refresh, hapticFeedback]);
 
   const toggleFavorite = useCallback((armband: number) => {
     logger.log('🐕 toggleFavorite called for armband:', armband);
@@ -296,6 +346,30 @@ export const Home: React.FC = () => {
     hapticFeedback.impact('light');
     navigate(`/dog/${armband}`);
   };
+
+  // Prefetch trial class data when hovering/touching trial card
+  const handleTrialPrefetch = useCallback(async (trialId: number) => {
+    if (!showContext?.showId || !showContext?.licenseKey) return;
+
+    await prefetch(
+      `trial-classes-${trialId}`,
+      async () => {
+        // Fetch classes for this trial
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('trial_id', trialId)
+          .order('class_order');
+
+        logger.log('📡 Prefetched trial classes:', trialId, classData?.length || 0);
+        return classData || [];
+      },
+      {
+        ttl: 60, // 1 minute cache
+        priority: 2 // Medium priority
+      }
+    );
+  }, [showContext?.showId, showContext?.licenseKey, prefetch]);
 
   const getFilteredEntries = () => {
     // First filter by favorites if needed
@@ -327,6 +401,21 @@ export const Home: React.FC = () => {
     }
   };
 
+  // Get filtered entries for virtualization
+  const filteredEntries = getFilteredEntries();
+
+  // Calculate row count based on columns
+  const rowCount = Math.ceil(filteredEntries.length / columnCount);
+
+  // Virtual scrolling setup - virtualize ROWS, not individual items
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual intentionally returns functions that cannot be memoized
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 105, // Estimated height of each ROW (card height + gap)
+    overscan: 5, // Render 5 extra rows above/below viewport for smoother scrolling
+  });
+
   return (
     <div className="home-container app-container">
       {/* Enhanced Header with Glass Morphism */}
@@ -337,14 +426,19 @@ export const Home: React.FC = () => {
           <h1>Home</h1>
         </div>
         
-        <button
-          className={`icon-button ${refreshing ? 'rotating' : ''}`}
-          onClick={handleRefresh}
-          disabled={refreshing}
-          title="Refresh"
-        >
-          <RefreshCw className="h-5 w-5" />
-        </button>
+        <div className="header-buttons">
+          {/* Background refresh indicator */}
+          {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
+
+          <button
+            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
@@ -378,6 +472,8 @@ export const Home: React.FC = () => {
               <div
                 key={trial.id}
                 className={`trial-card ${trialStatus}`}
+                onMouseEnter={() => handleTrialPrefetch(trial.id)}
+                onTouchStart={() => handleTrialPrefetch(trial.id)}
                 onClick={() => {
                   hapticFeedback.impact('medium');
                   logger.log('Navigating to trial:', trial.id, 'id:', trial.id);
@@ -498,7 +594,33 @@ export const Home: React.FC = () => {
 
       {/* Enhanced Entry List Section */}
       <div className="entry-list">
-        {filterBy === 'favorites' && getFilteredEntries().length === 0 ? (
+        {fetchError ? (
+          <ErrorState
+            message={`Failed to load dashboard: ${fetchError.message || 'Please check your connection and try again.'}`}
+            onRetry={handleRefresh}
+            isRetrying={isRefreshing}
+          />
+        ) : !cachedData ? (
+          <div className="loading-skeleton">
+            <div className="skeleton-header">
+              <div className="skeleton-text skeleton-title"></div>
+            </div>
+            <div className="skeleton-grid">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="skeleton-card">
+                  <div className="skeleton-card-content">
+                    <div className="skeleton-avatar"></div>
+                    <div className="skeleton-info">
+                      <div className="skeleton-text skeleton-name"></div>
+                      <div className="skeleton-text skeleton-breed"></div>
+                      <div className="skeleton-text skeleton-handler"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : filterBy === 'favorites' && getFilteredEntries().length === 0 ? (
           <div className="no-favorites">
             <Heart className="no-favorites-icon" />
             <h3>No Favorites Yet</h3>
@@ -509,7 +631,8 @@ export const Home: React.FC = () => {
             <div className="entry-list-header">
               <h3 className="entry-list-title">
                 <span className="entry-count">
-                  Dogs Entered: {getFilteredEntries().length}
+                  Dogs Entered: {filteredEntries.length}
+                  {filteredEntries.length !== entries.length && ` (of ${entries.length} total)`}
                 </span>
               </h3>
               <button
@@ -525,58 +648,98 @@ export const Home: React.FC = () => {
                 {filterBy === 'favorites' ? 'All Dogs' : 'Favorites'}
               </button>
             </div>
-            
-            <div className="entry-grid">
-              {getFilteredEntries().map((entry) => {
-                return (
-                  <div 
-                    key={entry.armband}
-                    className="entry-card"
-                    onClick={() => handleDogClick(entry.armband)}
-                  >
-                    <div className="entry-content">
-                      {/* Prominent Armband */}
-                      <div className="entry-armband">
-                        <ArmbandBadge number={entry.armband} />
-                      </div>
-                      
-                      {/* Dog Details */}
-                      <div className="entry-details">
-                        <h4 className="entry-name">{entry.call_name}</h4>
-                        <p className="entry-breed">{entry.breed}</p>
-                        <p className="entry-handler">{entry.handler}</p>
-                      </div>
-                      
-                      {/* Actions */}
-                      <div className="entry-actions">
-                        <button
-                          type="button"
-                          className={`favorite-button ${entry.is_favorite ? 'favorited' : ''}`}
-                          onClick={(e) => {
-                            logger.log('🚨 Dog heart button clicked! Armband:', entry.armband, 'Target:', e.target);
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.nativeEvent.stopImmediatePropagation();
-                            toggleFavorite(entry.armband);
-                            return false;
-                          }}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          onTouchStart={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          style={{ zIndex: 15 }}
+
+            {/* Virtual Scrolling Container */}
+            <div
+              ref={parentRef}
+              className="entry-grid-virtual"
+              style={{
+                height: '600px',
+                overflow: 'auto',
+                contain: 'strict',
+              }}
+            >
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  // Calculate which entries belong in this row
+                  const startIndex = virtualRow.index * columnCount;
+                  const endIndex = Math.min(startIndex + columnCount, filteredEntries.length);
+                  const rowEntries = filteredEntries.slice(startIndex, endIndex);
+
+                  return (
+                    <div
+                      key={virtualRow.index}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${columnCount}, 1fr)`,
+                        gap: '1rem',
+                        padding: '0.5rem 1rem 0.5rem 1rem',
+                      }}
+                    >
+                      {rowEntries.map((entry) => (
+                        <div
+                          key={entry.armband}
+                          className="entry-card"
+                          onClick={() => handleDogClick(entry.armband)}
                         >
-                          <Heart className="favorite-icon" />
-                        </button>
-                      </div>
+                          <div className="entry-content">
+                            {/* Prominent Armband */}
+                            <div className="entry-armband">
+                              <ArmbandBadge number={entry.armband} />
+                            </div>
+
+                            {/* Dog Details */}
+                            <div className="entry-details">
+                              <h4 className="entry-name">{entry.call_name}</h4>
+                              <p className="entry-breed">{entry.breed}</p>
+                              <p className="entry-handler">{entry.handler}</p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="entry-actions">
+                              <button
+                                type="button"
+                                className={`favorite-button ${entry.is_favorite ? 'favorited' : ''}`}
+                                onClick={(e) => {
+                                  logger.log('🚨 Dog heart button clicked! Armband:', entry.armband, 'Target:', e.target);
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.nativeEvent.stopImmediatePropagation();
+                                  toggleFavorite(entry.armband);
+                                  return false;
+                                }}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                                onTouchStart={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                                style={{ zIndex: 15 }}
+                              >
+                                <Heart className="favorite-icon" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </>
         )}

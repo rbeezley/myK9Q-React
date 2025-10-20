@@ -1,0 +1,111 @@
+/* Skeleton loader for ClassCard - matches exact dimensions */
+
+.class-card.skeleton {
+  cursor: default;
+  pointer-events: none;
+  min-height: 200px; /* Approximate ClassCard height */
+}
+
+.class-card.skeleton .class-content {
+  gap: 1rem;
+}
+
+/* Icon skeletons (heart and menu) */
+.skeleton-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+}
+
+/* Class name skeleton */
+.skeleton-class-name {
+  height: 1.5rem;
+  width: 70%;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  margin-bottom: 0.5rem;
+}
+
+/* Judge name skeleton */
+.skeleton-judge-name {
+  height: 1rem;
+  width: 50%;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+}
+
+/* Info items skeleton (time, entries, progress) */
+.class-info-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.skeleton-info-item {
+  height: 1.25rem;
+  width: 5rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+}
+
+/* Status badge skeleton */
+.skeleton-status-badge {
+  height: 2rem;
+  width: 8rem;
+  border-radius: 1rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  margin-top: 1rem;
+}
+
+/* Preview text skeleton */
+.skeleton-preview {
+  height: 1rem;
+  width: 100%;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  margin-top: 0.5rem;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .skeleton-icon,
+[data-theme="dark"] .skeleton-class-name,
+[data-theme="dark"] .skeleton-judge-name,
+[data-theme="dark"] .skeleton-info-item,
+[data-theme="dark"] .skeleton-status-badge,
+[data-theme="dark"] .skeleton-preview {
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+    background: #f0f0f0;
+  }
+
+  [data-theme="dark"] .shimmer {
+    background: #2a2a2a;
+  }
+}

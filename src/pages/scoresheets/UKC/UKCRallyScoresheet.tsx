@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { Timer } from '../../../components/scoring/Timer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, submitScore, markInRing } from '../../../services/entryService';
+import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { SyncIndicator } from '../../../components/ui';
 import '../BaseScoresheet.css';
 import './UKCRallyScoresheet.css';
 
@@ -19,7 +21,7 @@ export const UKCRallyScoresheet: React.FC = () => {
   const {
     isScoring,
     startScoringSession,
-    submitScore: addScoreToSession,
+    submitScore: _addScoreToSession,
     moveToNextEntry,
     moveToPreviousEntry,
     endScoringSession
@@ -30,12 +32,15 @@ export const UKCRallyScoresheet: React.FC = () => {
     currentEntry,
     setCurrentClassEntries,
     setCurrentEntry,
-    markAsScored,
+    markAsScored: _markAsScored,
     getPendingEntries
   } = useEntryStore();
   
-  const { addToQueue, isOnline } = useOfflineQueueStore();
-  
+  const { addToQueue: _addToQueue, isOnline } = useOfflineQueueStore();
+
+  // Optimistic scoring hook
+  const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
+
   // Local state
   const [totalScore, setTotalScore] = useState<number>(100); // UKC Rally starts with 100 points
   const [deductions, setDeductions] = useState<number>(0);
@@ -65,24 +70,6 @@ export const UKCRallyScoresheet: React.FC = () => {
     setDarkMode(!darkMode);
   };
 
-  // Load class entries on mount
-  useEffect(() => {
-    if (classId && showContext?.licenseKey) {
-      loadEntries();
-    }
-  }, [classId, showContext]);
-  
-  // Clear in-ring status when leaving scoresheet
-  useEffect(() => {
-    return () => {
-      if (currentEntry?.id) {
-        markInRing(currentEntry.id, false).catch(error => {
-          console.error('Failed to clear in-ring status on unmount:', error);
-        });
-      }
-    };
-  }, []); // Fixed: removed currentEntry?.id dependency
-  
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
     
@@ -117,7 +104,25 @@ export const UKCRallyScoresheet: React.FC = () => {
       console.error('Error loading entries:', error);
     }
   };
-  
+
+  // Load class entries on mount
+  useEffect(() => {
+    if (classId && showContext?.licenseKey) {
+      loadEntries();
+    }
+  }, [classId, showContext, loadEntries]);
+
+  // Clear in-ring status when leaving scoresheet
+  useEffect(() => {
+    return () => {
+      if (currentEntry?.id) {
+        markInRing(currentEntry.id, false).catch(error => {
+          console.error('Failed to clear in-ring status on unmount:', error);
+        });
+      }
+    };
+  }, []); // Fixed: removed currentEntry?.id dependency
+
   const calculateFinalScore = () => {
     return Math.max(0, totalScore - deductions);
   };
@@ -136,80 +141,62 @@ export const UKCRallyScoresheet: React.FC = () => {
   
   const confirmSubmit = async () => {
     if (!currentEntry) return;
-    
-    setIsSubmitting(true);
+
     setShowConfirmation(false);
-    
+
     const finalScore = calculateFinalScore();
     const finalQualifying = calculateQualifying();
-    
-    const scoreData = {
+
+    // Submit score optimistically
+    await submitScoreOptimistically({
       entryId: currentEntry.id,
+      classId: parseInt(classId!),
       armband: currentEntry.armband,
-      score: finalScore,
-      time: courseTime,
-      qualifying: finalQualifying,
-      deductions: deductions,
-      nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined
-    };
-    
-    try {
-      // Add to scoring session
-      addScoreToSession(scoreData);
-      
-      // Update entry store
-      markAsScored(currentEntry.id, finalQualifying);
-      
-      if (isOnline) {
-        // Submit directly if online
-        await submitScore(currentEntry.id, {
-          resultText: finalQualifying,
-          searchTime: courseTime,
-          score: finalScore,
-          deductions: deductions,
-          nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined
-        });
-      } else {
-        // Add to offline queue
-        addToQueue({
-          entryId: currentEntry.id,
-          armband: currentEntry.armband,
-          classId: parseInt(classId!),
-          className: currentEntry.className,
-          scoreData: {
-            resultText: finalQualifying,
-            searchTime: courseTime,
-            nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
-            score: finalScore,
-            deductions: deductions
+      className: currentEntry.className,
+      scoreData: {
+        resultText: finalQualifying,
+        searchTime: courseTime,
+        score: finalScore,
+        deductions: deductions,
+        nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
+      },
+      onSuccess: async () => {
+        console.log('✅ UKC Rally score saved');
+
+        // Remove from ring
+        if (currentEntry?.id) {
+          try {
+            await markInRing(currentEntry.id, false);
+            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
+          } catch (error) {
+            console.error('❌ Failed to remove dog from ring:', error);
           }
-        });
+        }
+
+        // Move to next entry
+        const pendingEntries = getPendingEntries();
+        if (pendingEntries.length > 0) {
+          setCurrentEntry(pendingEntries[0]);
+          moveToNextEntry();
+
+          // Reset form
+          setTotalScore(100);
+          setDeductions(0);
+          setCourseTime('');
+          setQualifying('Q');
+          setNonQualifyingReason('');
+        } else {
+          // All entries scored
+          endScoringSession();
+          navigate(-1);
+        }
+      },
+      onError: (error) => {
+        console.error('❌ UKC Rally score submission failed:', error);
+        alert(`Failed to submit score: ${error.message}`);
+        setIsSubmitting(false);
       }
-      
-      // Move to next entry
-      const pendingEntries = getPendingEntries();
-      if (pendingEntries.length > 0) {
-        setCurrentEntry(pendingEntries[0]);
-        moveToNextEntry();
-        
-        // Reset form
-        setTotalScore(100);
-        setDeductions(0);
-        setCourseTime('');
-        setQualifying('Q');
-        setNonQualifyingReason('');
-      } else {
-        // All entries scored
-        endScoringSession();
-        navigate(-1);
-      }
-      
-    } catch (error) {
-      console.error('Error submitting score:', error);
-      alert('Failed to submit score. It has been saved offline.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
   
   const handlePrevious = () => {
@@ -376,15 +363,19 @@ export const UKCRallyScoresheet: React.FC = () => {
           >
             Previous
           </button>
-          
-          <button
-            className="submit-button btn-primary"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !courseTime}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Score'}
-          </button>
-          
+
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              className="submit-button btn-primary"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !courseTime}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Score'}
+            </button>
+            {isSyncing && <SyncIndicator status="syncing" />}
+            {hasError && <SyncIndicator status="error" />}
+          </div>
+
           <button
             className="nav-button btn-secondary"
             onClick={handleNext}

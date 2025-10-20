@@ -4,6 +4,7 @@
 :root {
   --status-checked-in: #10b981;
   --status-at-gate: #8b5cf6;
+  --status-come-to-gate: #3b82f6;
   --status-conflict: #f59e0b;
   --status-pulled: #ef4444;
   --status-done: #10b981;
@@ -12,6 +13,7 @@
 [data-theme="dark"] {
   --status-checked-in: #10b981;
   --status-at-gate: #8b5cf6;
+  --status-come-to-gate: #3b82f6;
   --status-conflict: #f59e0b;
   --status-pulled: #ef4444;
   --status-done: #10b981;
@@ -78,6 +80,10 @@
 
 .dog-card.at-gate {
   border-left: 3px solid var(--status-at-gate);
+}
+
+.dog-card.come-to-gate {
+  border-left: 3px solid var(--status-come-to-gate);
 }
 
 .dog-card.scored {
@@ -254,7 +260,7 @@
 
 /* Status badge for EntryList page - CRITICAL: Match EntryList.css constraints exactly */
 .dog-card-action .status-badge {
-  padding: 0.25rem 0.5rem !important;
+  padding: 0.375rem 0.625rem !important;
   border-radius: 0.375rem !important;
   font-size: 0.625rem !important; /* Match EntryList.css */
   font-weight: 500 !important;
@@ -271,7 +277,7 @@
   position: relative !important;
   text-align: center !important;
   /* CRITICAL: Match EntryList.css constraints exactly */
-  max-width: 85px !important; /* Match EntryList.css */
+  max-width: 95px !important; /* Increased for better padding */
   max-height: 32px !important; /* Match EntryList.css */
   min-height: 28px !important; /* Preserve touch target */
   overflow: hidden !important;
@@ -300,6 +306,11 @@
 
 .dog-card-action .status-badge.at-gate {
   background: var(--status-at-gate, #8b5cf6);
+  color: white;
+}
+
+.dog-card-action .status-badge.come-to-gate {
+  background: var(--status-come-to-gate, #3b82f6);
   color: white;
 }
 

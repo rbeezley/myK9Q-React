@@ -1,16 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { getClassEntries, updateEntryCheckinStatus, subscribeToEntryUpdates, resetEntryScore, updateExhibitorOrder, markInRing } from '../../services/entryService';
-import { Entry } from '../../stores/entryStore';
-import { HamburgerMenu, HeaderTicker, TrialDateBadge } from '../../components/ui';
+import { usePrefetch } from '@/hooks/usePrefetch';
+import { HamburgerMenu, HeaderTicker, TrialDateBadge, SyncIndicator, RefreshIndicator, ErrorState } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { SortableEntryCard } from './SortableEntryCard';
 import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Target, User, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer } from 'lucide-react';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
+import { updateExhibitorOrder, markInRing } from '../../services/entryService';
+import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
+import { Entry } from '../../stores/entryStore';
+import { useEntryListData, useEntryListActions, useEntryListSubscriptions } from './hooks';
 import {
   DndContext,
   closestCenter,
@@ -26,7 +29,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { supabase } from '../../lib/supabase';
 import './EntryList.css';
 
 type TabType = 'pending' | 'completed';
@@ -36,29 +38,40 @@ export const EntryList: React.FC = () => {
   const navigate = useNavigate();
   const { showContext, role } = useAuth();
   const { hasPermission } = usePermission();
-  
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { prefetch } = usePrefetch();
+
+  // Data management using shared hook
+  const {
+    entries,
+    classInfo,
+    isRefreshing,
+    fetchError,
+    refresh
+  } = useEntryListData({
+    classId
+  });
+
+  // Actions using shared hook
+  const {
+    handleStatusChange: handleStatusChangeHook,
+    handleResetScore: handleResetScoreHook,
+    isSyncing,
+    hasError
+  } = useEntryListActions(refresh);
+
+  // Real-time subscriptions using shared hook
+  const actualClassId = classInfo?.actualClassId;
+  const classIds = actualClassId ? [actualClassId] : [];
+  useEntryListSubscriptions({
+    classIds,
+    licenseKey: showContext?.licenseKey || '',
+    onRefresh: refresh,
+    enabled: classIds.length > 0
+  });
+
+  // Local state for UI and features unique to EntryList
+  const [localEntries, setLocalEntries] = useState<Entry[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('pending');
-  const [classInfo, setClassInfo] = useState<{
-    className: string;
-    element: string;
-    level: string;
-    section: string;
-    trialDate?: string;
-    trialNumber?: string;
-    judgeName?: string;
-    actualClassId?: number; // The real classid for real-time subscriptions
-    selfCheckin?: boolean; // Controls if exhibitors can check themselves in
-    classStatus?: string; // Class status: in_progress, briefing, start_time, setup, etc.
-    totalEntries?: number;
-    completedEntries?: number;
-    timeLimit?: string; // Max time for area 1
-    timeLimit2?: string; // Max time for area 2
-    timeLimit3?: string; // Max time for area 3
-    areas?: number; // Number of areas
-  } | null>(null);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
   const [_popupPosition, _setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
@@ -72,24 +85,12 @@ export const EntryList: React.FC = () => {
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [showPrintMenu, setShowPrintMenu] = useState(false);
-  // Removed showSearch state - using persistent search instead
 
-  // Helper function to validate and normalize text-based status
-  const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' => {
-    if (!statusText) return 'none';
-
-    const status = statusText.toLowerCase().trim();
-    switch (status) {
-      case 'none': return 'none';
-      case 'checked-in': return 'checked-in';
-      case 'at-gate': return 'at-gate';
-      case 'conflict': return 'conflict';
-      case 'pulled': return 'pulled';
-      default: return 'none';
-    }
-  };
+  // Sync local entries with fetched data
+  useEffect(() => {
+    setLocalEntries(entries);
+  }, [entries]);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -102,27 +103,27 @@ export const EntryList: React.FC = () => {
   // Handle drag end - Updates database for persistent reordering
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (active.id !== over?.id) {
       const oldIndex = currentEntries.findIndex(entry => entry.id === active.id);
       const newIndex = currentEntries.findIndex(entry => entry.id === over?.id);
-      
+
       if (oldIndex !== -1 && newIndex !== -1) {
         // Create new reordered array
         const reorderedCurrentEntries = arrayMove(currentEntries, oldIndex, newIndex);
-        
+
         // Update local state immediately for smooth UX
-        const otherEntries = entries.filter(entry => !currentEntries.find(ce => ce.id === entry.id));
+        const otherEntries = localEntries.filter(entry => !currentEntries.find(ce => ce.id === entry.id));
         const newAllEntries = [...otherEntries, ...reorderedCurrentEntries];
-        setEntries(newAllEntries);
+        setLocalEntries(newAllEntries);
         setManualOrder(reorderedCurrentEntries);
         setSortOrder('manual');
-        
+
         // Update database with new exhibitor_order values
         setIsUpdatingOrder(true);
         try {
           await updateExhibitorOrder(reorderedCurrentEntries);
-          
+
           // Update local entries with new exhibitor_order values
           const updatedEntries = newAllEntries.map(entry => {
             const reorderedIndex = reorderedCurrentEntries.findIndex(re => re.id === entry.id);
@@ -131,158 +132,17 @@ export const EntryList: React.FC = () => {
             }
             return entry;
           });
-          setEntries(updatedEntries);
-          
+          setLocalEntries(updatedEntries);
+
           console.log('✅ Successfully updated run order in database');
         } catch (error) {
           console.error('❌ Failed to update run order in database:', error);
-          // TODO: Show user error message and optionally revert local changes
         } finally {
           setIsUpdatingOrder(false);
         }
       }
     }
   };
-
-  useEffect(() => {
-    if (classId && showContext?.licenseKey) {
-      loadEntries();
-    }
-  }, [classId, showContext]);
-
-  // Subscribe to real-time entry updates
-  useEffect(() => {
-    if (!classId || !showContext?.licenseKey || !classInfo?.actualClassId) {
-      console.log('⚠️ Not setting up real-time subscription yet:', {
-        classId: !!classId,
-        licenseKey: !!showContext?.licenseKey,
-        actualClassId: !!classInfo?.actualClassId
-      });
-      return;
-    }
-
-    console.log('🔌 Setting up real-time subscription for ACTUAL classId:', classInfo.actualClassId, '(URL classId was:', classId, ')');
-    console.log('🔑 License key:', showContext.licenseKey);
-
-    const unsubscribeEntries = subscribeToEntryUpdates(
-      classInfo.actualClassId, // Use the ACTUAL classid (275) instead of URL parameter (340)
-      showContext.licenseKey,
-      (payload) => {
-        console.log('🔄 Real-time entry update received:', payload);
-        console.log('🔄 Event type:', payload.eventType);
-        console.log('🔄 Old data:', payload.old);
-        console.log('🔄 New data:', payload.new);
-
-        const newData = payload.new as any;
-        const oldData = payload.old as any;
-
-        // Check if this is an in_ring status change
-        if (newData?.in_ring !== oldData?.in_ring) {
-          console.log('📍 In-ring status changed:', {
-            entryId: newData?.id,
-            oldInRing: oldData?.in_ring,
-            newInRing: newData?.in_ring,
-            armband: newData?.armband
-          });
-        }
-
-        // Check if this is a check-in status change (text field)
-        if (newData?.check_in_status_text !== oldData?.check_in_status_text) {
-          console.log('🏁 Check-in status changed:', {
-            entryId: newData?.id,
-            oldCheckIn: oldData?.check_in_status_text,
-            newCheckIn: newData?.check_in_status_text,
-            armband: newData?.armband,
-            statusText: normalizeStatusText(newData?.check_in_status_text)
-          });
-        }
-
-        // Instead of reloading all entries, update only the specific entry that changed
-        if (newData?.id) {
-          console.log('🎯 Updating specific entry ID:', newData.id, 'without full page reload');
-
-          setEntries(prev => prev.map(entry => {
-            if (entry.id === newData.id) {
-              const updatedEntry = {
-                ...entry,
-                inRing: newData.in_ring || false,
-                // Note: isScored comes from results table, not entries table
-                // So we only update it if it's actually present in the payload
-                isScored: newData.is_scored !== undefined ? newData.is_scored : entry.isScored,
-                resultText: newData.result_text || entry.resultText,
-                searchTime: newData.search_time || entry.searchTime,
-                faultCount: newData.fault_count || entry.faultCount,
-                placement: newData.placement || entry.placement,
-                checkinStatus: normalizeStatusText(newData.check_in_status_text) || entry.checkinStatus
-              };
-
-              console.log('✅ Updated entry:', {
-                id: updatedEntry.id,
-                armband: updatedEntry.armband,
-                callName: updatedEntry.callName,
-                inRing: updatedEntry.inRing,
-                isScored: updatedEntry.isScored
-              });
-
-              return updatedEntry;
-            }
-            return entry;
-          }));
-        }
-      }
-    );
-
-    // Also subscribe to results table changes for scoring updates
-    const unsubscribeResults = supabase
-      .channel(`results:${classInfo.actualClassId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'results'
-        },
-        (payload) => {
-          console.log('🎯 Results table update received:', payload);
-          const newData = payload.new as any;
-
-          if (newData?.entry_id) {
-            console.log('📊 Updating entry scoring status for entry_id:', newData.entry_id);
-
-            setEntries(prev => prev.map(entry => {
-              if (entry.id === newData.entry_id) {
-                const updatedEntry = {
-                  ...entry,
-                  isScored: newData.is_scored || false,
-                  inRing: newData.is_in_ring || false,
-                  resultText: newData.result_status || entry.resultText,
-                  searchTime: newData.search_time_seconds?.toString() || entry.searchTime,
-                  faultCount: newData.total_faults ?? entry.faultCount,
-                  placement: newData.final_placement ?? entry.placement
-                };
-
-                console.log('✅ Updated entry from results:', {
-                  id: updatedEntry.id,
-                  armband: updatedEntry.armband,
-                  callName: updatedEntry.callName,
-                  isScored: updatedEntry.isScored,
-                  resultText: updatedEntry.resultText
-                });
-
-                return updatedEntry;
-              }
-              return entry;
-            }));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      unsubscribeEntries();
-      unsubscribeResults.unsubscribe();
-    };
-  }, [classId, showContext?.licenseKey, classInfo?.actualClassId]);
 
   // Close popups when clicking outside
   useEffect(() => {
@@ -304,47 +164,35 @@ export const EntryList: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 250); // Increased delay to ensure CSS is fully loaded and applied
+    }, 250);
 
     return () => clearTimeout(timer);
   }, []);
 
   const handleStatusChange = async (entryId: number, status: NonNullable<Entry['checkinStatus']>) => {
-    console.log('🔄 EntryList: handleStatusChange called with:', { entryId, status });
-    // Store original state for potential rollback
-    const originalEntries = entries;
+    // Close the popup first to prevent multiple clicks
+    setActiveStatusPopup(null);
+    _setPopupPosition(null);
 
+    // Optimistic update: update local state immediately
+    setLocalEntries(prev => prev.map(entry =>
+      entry.id === entryId
+        ? {
+            ...entry,
+            checkedIn: status !== 'none',
+            checkinStatus: status,
+            inRing: false,
+          }
+        : entry
+    ));
+
+    // Sync with server (hook handles retry and rollback)
     try {
-      // Close the popup first to prevent multiple clicks
-      setActiveStatusPopup(null);
-      _setPopupPosition(null);
-
-      // Update local state immediately for better UX
-      setEntries(prev => {
-        const newEntries = prev.map(entry =>
-          entry.id === entryId
-            ? {
-                ...entry,
-                checkedIn: status !== 'none',
-                checkinStatus: status,
-                inRing: false, // Clear in-ring status when manually changing status
-              }
-            : entry
-        );
-        return newEntries;
-      });
-
-      // Make API call to update database - always update, including 'none' status
-      await updateEntryCheckinStatus(entryId, status);
-      
+      await handleStatusChangeHook(entryId, status);
     } catch (error) {
-      console.error('❌ EntryList: Failed to update check-in status:', error);
-      
-      // Revert local state changes on error
-      setEntries(originalEntries);
-      
-      // Show error message to user
-      alert(`Failed to update check-in status: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+      console.error('Status change failed:', error);
+      // Refresh to get correct state
+      refresh();
     }
   };
 
@@ -354,11 +202,9 @@ export const EntryList: React.FC = () => {
     e.nativeEvent.stopImmediatePropagation();
 
     // Check if exhibitor can check themselves in
-    const canCheckIn = hasPermission('canCheckInDogs');
+    const _canCheckIn = hasPermission('canCheckInDogs');
     const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
     const userRole = role;
-
-    console.log('🔐 Permission check:', { canCheckIn, isSelfCheckinEnabled, userRole, isExhibitor: userRole === 'exhibitor' });
 
     // If user is an exhibitor and self check-in is disabled, prevent action
     if (userRole === 'exhibitor' && !isSelfCheckinEnabled) {
@@ -376,118 +222,9 @@ export const EntryList: React.FC = () => {
     return false;
   };
 
-  const loadEntries = async () => {
-    if (!classId || !showContext?.licenseKey) return;
-    
-    console.log('🔄 LoadEntries called - refreshing entry data...');
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
-      
-      // Debug: Show in-ring status for all entries
-      const inRingEntries = classEntries.filter(entry => entry.inRing);
-      if (inRingEntries.length > 0) {
-        console.log('📍 In-ring entries found:', inRingEntries.map(e => ({
-          id: e.id,
-          armband: e.armband,
-          callName: e.callName,
-          inRing: e.inRing
-        })));
-      } else {
-        console.log('📍 No entries currently in ring');
-      }
-
-      // Debug: Show scoring status for all entries
-      const scoredEntries = classEntries.filter(entry => entry.isScored);
-      console.log('🐛 SCORED ENTRIES DEBUG:', {
-        totalEntries: classEntries.length,
-        scoredCount: scoredEntries.length,
-        scoredEntries: scoredEntries.map(e => ({
-          id: e.id,
-          armband: e.armband,
-          callName: e.callName,
-          isScored: e.isScored,
-          resultText: e.resultText
-        })),
-        allEntriesScoring: classEntries.map(e => ({
-          id: e.id,
-          armband: e.armband,
-          callName: e.callName,
-          isScored: e.isScored
-        }))
-      });
-
-      setEntries(classEntries);
-      
-      // Get class info from first entry and fetch additional class data
-      if (classEntries.length > 0) {
-        const firstEntry = classEntries[0];
-        
-        // Fetch additional class data (judge, self check-in setting, status, entry counts)
-        const { data: classData, error: classError } = await supabase
-          .from('classes')
-          .select('judge_name, self_checkin_enabled, class_status, total_entry_count, completed_entry_count')
-          .eq('id', parseInt(classId))
-          .single();
-
-        console.log('🔍 Class data fetched:', classData);
-        console.log('🔍 Class error:', classError);
-        
-        // SCHEMA DISCOVERY: Get a complete sample record to see all available fields
-        try {
-          const { data: sampleClass, error: sampleError } = await supabase
-            .from('classes')
-            .select('*')
-            .limit(1)
-            .single();
-          console.log('🔍 COMPLETE classes record with ALL fields:');
-          console.log('🔍 STRUCTURE:', Object.keys(sampleClass || {}).sort());
-          console.log('🔍 SAMPLE DATA:', sampleClass);
-          console.log('🔍 Sample error:', sampleError);
-        } catch (schemaError) {
-          console.log('🔍 Schema discovery failed:', schemaError);
-        }
-          
-        // Get judge name from class data
-        const judgeName = classData?.judge_name || 'No Judge Assigned';
-        
-        const classInfoData = {
-          className: firstEntry.className,
-          element: firstEntry.element || '',
-          level: firstEntry.level || '',
-          section: firstEntry.section || '',
-          trialDate: firstEntry.trialDate || '',
-          trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
-          judgeName: judgeName || 'No Judge Assigned',
-          actualClassId: firstEntry.actualClassId, // Store the actual classid for real-time subscriptions
-          selfCheckin: classData?.self_checkin_enabled ?? true, // Default to true if not set
-          classStatus: classData?.class_status,
-          totalEntries: classData?.total_entry_count,
-          completedEntries: classData?.completed_entry_count,
-          timeLimit: firstEntry.timeLimit,
-          timeLimit2: firstEntry.timeLimit2,
-          timeLimit3: firstEntry.timeLimit3,
-          areas: firstEntry.areas
-        };
-        
-        console.log('🔍 Setting class info:', classInfoData);
-        setClassInfo(classInfoData);
-      }
-    } catch (err) {
-      console.error('Error loading entries:', err);
-      console.error('Error details:', err);
-      setError(`Failed to load entries: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Refresh handler
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadEntries();
-    setRefreshing(false);
+    await refresh();
   };
 
   // Print report handlers
@@ -499,7 +236,7 @@ export const EntryList: React.FC = () => {
       className: classInfo.className,
       element: classInfo.element,
       level: classInfo.level,
-      section: classInfo.section,
+      section: classInfo.section || '',
       trialDate: classInfo.trialDate || '',
       trialNumber: classInfo.trialNumber || '',
       judgeName: classInfo.judgeName || 'TBD',
@@ -507,7 +244,7 @@ export const EntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateCheckInSheet(reportClassInfo, entries);
+    generateCheckInSheet(reportClassInfo, localEntries);
     setShowPrintMenu(false);
   };
 
@@ -519,7 +256,7 @@ export const EntryList: React.FC = () => {
       className: classInfo.className,
       element: classInfo.element,
       level: classInfo.level,
-      section: classInfo.section,
+      section: classInfo.section || '',
       trialDate: classInfo.trialDate || '',
       trialNumber: classInfo.trialNumber || '',
       judgeName: classInfo.judgeName || 'TBD',
@@ -527,7 +264,7 @@ export const EntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateResultsSheet(reportClassInfo, entries);
+    generateResultsSheet(reportClassInfo, localEntries);
     setShowPrintMenu(false);
   };
 
@@ -546,12 +283,9 @@ export const EntryList: React.FC = () => {
   const setDogInRingStatus = async (dogId: number, inRing: boolean) => {
     try {
       if (inRing) {
-        // Only clear other dogs if this dog is not already in ring
-        // This prevents clearing the dog that's currently being scored
-        const currentDog = entries.find(entry => entry.id === dogId);
+        const currentDog = localEntries.find(entry => entry.id === dogId);
         if (!currentDog?.inRing) {
-          // First clear all other dogs in this class (but not the target dog)
-          const otherEntries = entries.filter(entry => entry.id !== dogId && entry.inRing);
+          const otherEntries = localEntries.filter(entry => entry.id !== dogId && entry.inRing);
           if (otherEntries.length > 0) {
             await Promise.all(
               otherEntries.map(entry => markInRing(entry.id, false))
@@ -559,9 +293,8 @@ export const EntryList: React.FC = () => {
           }
         }
       }
-      
-      // Now set the specific dog's status (only if it's different)
-      const currentDog = entries.find(entry => entry.id === dogId);
+
+      const currentDog = localEntries.find(entry => entry.id === dogId);
       if (currentDog?.inRing !== inRing) {
         await markInRing(dogId, inRing);
       }
@@ -572,41 +305,39 @@ export const EntryList: React.FC = () => {
     }
   };
 
+
   const handleEntryClick = async (entry: Entry) => {
-    // Don't navigate if the entry is already scored
     if (entry.isScored) {
       return;
     }
-    
+
     if (!hasPermission('canScore')) {
       alert('You do not have permission to score entries.');
       return;
     }
-    
+
     // Set dog status to in-ring when scoresheet opens
     if (entry.id && !entry.isScored) {
       const success = await setDogInRingStatus(entry.id, true);
       if (success) {
-        // Update local state to reflect the change immediately
-        setEntries(prev => prev.map(e => 
+        setLocalEntries(prev => prev.map(e =>
           e.id === entry.id ? { ...e, inRing: true } : e
         ));
       }
     }
-    
+
     const route = getScoreSheetRoute(entry);
-    
     navigate(route);
   };
 
   const handleResetMenuClick = (e: React.MouseEvent, entryId: number) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     setResetMenuPosition({
       top: rect.bottom + 5,
-      left: rect.left - 100 // Offset left since menu is wider
+      left: rect.left - 100
     });
     setActiveResetMenu(entryId);
   };
@@ -619,13 +350,13 @@ export const EntryList: React.FC = () => {
 
   const confirmResetScore = async () => {
     if (!resetConfirmDialog.entry) return;
-    
+
     try {
-      await resetEntryScore(resetConfirmDialog.entry.id);
-      
+      await handleResetScoreHook(resetConfirmDialog.entry.id);
+
       // Update local state to move entry back to pending
-      setEntries(prev => prev.map(entry => 
-        entry.id === resetConfirmDialog.entry!.id 
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === resetConfirmDialog.entry!.id
           ? {
               ...entry,
               isScored: false,
@@ -637,14 +368,14 @@ export const EntryList: React.FC = () => {
             }
           : entry
       ));
-      
+
       // Switch to pending tab to show the reset entry
       setActiveTab('pending');
     } catch (error) {
       console.error('Failed to reset score:', error);
       alert(`Failed to reset score: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
+
     setResetConfirmDialog({ show: false, entry: null });
   };
 
@@ -652,9 +383,9 @@ export const EntryList: React.FC = () => {
     setResetConfirmDialog({ show: false, entry: null });
   };
 
-  // Filter and sort entries (memoized for performance) - MUST be before early returns
+  // Filter and sort entries (memoized for performance)
   const filteredEntries = useMemo(() => {
-    return entries
+    return localEntries
       .filter(entry => {
         if (!searchTerm) return true;
         const term = searchTerm.toLowerCase();
@@ -671,47 +402,85 @@ export const EntryList: React.FC = () => {
         if (!a.inRing && b.inRing) return 1;
 
         // PRIORITY 2: Apply normal sorting for dogs not in ring
-        // When in manual mode (drag mode or after dragging), use the manual order
         if (sortOrder === 'manual') {
           const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
           const bIndex = manualOrder.findIndex(entry => entry.id === b.id);
           if (aIndex !== -1 && bIndex !== -1) {
             return aIndex - bIndex;
           }
-          // Fall back to armband if not in manual order
           return a.armband - b.armband;
         }
 
         if (sortOrder === 'run') {
-          // Sort by exhibitor_order (when available), then by armband
           const aOrder = a.exhibitorOrder || a.armband;
           const bOrder = b.exhibitorOrder || b.armband;
           return aOrder - bOrder;
         } else if (sortOrder === 'placement') {
-          // Sort by placement (1st, 2nd, 3rd, etc.)
-          // Dogs with placements come first, sorted by placement
-          // Dogs without placements come after, sorted by armband
           const aPlacement = a.placement || 999;
           const bPlacement = b.placement || 999;
           if (aPlacement !== bPlacement) {
             return aPlacement - bPlacement;
           }
-          // If both have same placement (or both have none), sort by armband
           return a.armband - b.armband;
         } else {
-          // Sort by armband number
           return a.armband - b.armband;
         }
       });
-  }, [entries, searchTerm, sortOrder, manualOrder]);
+  }, [localEntries, searchTerm, sortOrder, manualOrder]);
 
   const pendingEntries = useMemo(() => filteredEntries.filter(e => !e.isScored), [filteredEntries]);
   const completedEntries = useMemo(() => filteredEntries.filter(e => e.isScored), [filteredEntries]);
 
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
 
+  // Prefetch scoresheet data when hovering/touching entry card
+  const handleEntryPrefetch = useCallback((entry: Entry) => {
+    if (entry.isScored || !showContext?.org) return;
+
+    const route = getScoreSheetRoute(entry);
+
+    // Preload scoresheet JavaScript bundle (parallel to data prefetch)
+    preloadScoresheetByType(showContext.org, entry.element || '');
+
+    // Prefetch current entry (high priority)
+    prefetch(
+      `scoresheet-${entry.id}`,
+      async () => {
+        // Prefetch any scoresheet-specific data here
+        // For now, just cache the route info
+        console.log('📡 Prefetched scoresheet route:', entry.id, route);
+        return { entryId: entry.id, route, entry };
+      },
+      {
+        ttl: 30, // 30 seconds cache (scoring data changes frequently)
+        priority: 3 // High priority - likely next action
+      }
+    );
+
+    // Sequential prefetch: Also prefetch next 2-3 entries in the list
+    const currentIndex = pendingEntries.findIndex(e => e.id === entry.id);
+    if (currentIndex !== -1) {
+      // Prefetch next 2 entries with lower priority
+      const nextEntries = pendingEntries.slice(currentIndex + 1, currentIndex + 3);
+      nextEntries.forEach((nextEntry, offset) => {
+        const nextRoute = getScoreSheetRoute(nextEntry);
+        prefetch(
+          `scoresheet-${nextEntry.id}`,
+          async () => {
+            console.log('📡 Prefetched next entry route:', nextEntry.id, nextRoute);
+            return { entryId: nextEntry.id, route: nextRoute, entry: nextEntry };
+          },
+          {
+            ttl: 30,
+            priority: 2 - offset // Priority 2 for next entry, 1 for entry after
+          }
+        );
+      });
+    }
+  }, [showContext?.org, prefetch, pendingEntries, getScoreSheetRoute]);
+
   // Early returns AFTER all hooks
-  if (isLoading) {
+  if (!entries.length && !fetchError) {
     return (
       <div className="entry-list-container">
         <div className="loading">Loading entries...</div>
@@ -719,18 +488,17 @@ export const EntryList: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (fetchError) {
     return (
       <div className="entry-list-container">
-        <div className="error">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => navigate(-1)}>Go Back</button>
-        </div>
+        <ErrorState
+          message={`Failed to load entries: ${fetchError.message || 'Please check your connection and try again.'}`}
+          onRetry={handleRefresh}
+          isRetrying={isRefreshing}
+        />
       </div>
     );
   }
-
 
   // Helper function to get status badge based on class status
   const getStatusBadge = () => {
@@ -790,14 +558,12 @@ export const EntryList: React.FC = () => {
                   <span className="trial-detail time-limits">
                     <Clock size={14} />
                     {classInfo.areas && classInfo.areas > 1 ? (
-                      // Multi-area: show all time limits
                       <>
                         {classInfo.timeLimit && <span className="time-limit-badge">A1: {classInfo.timeLimit}</span>}
                         {classInfo.timeLimit2 && <span className="time-limit-badge">A2: {classInfo.timeLimit2}</span>}
                         {classInfo.timeLimit3 && <span className="time-limit-badge">A3: {classInfo.timeLimit3}</span>}
                       </>
                     ) : (
-                      // Single area: just show the time
                       <>{classInfo.timeLimit}</>
                     )}
                   </span>
@@ -808,6 +574,22 @@ export const EntryList: React.FC = () => {
         </div>
 
         <div className="header-buttons">
+          {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
+
+          {isSyncing && (
+            <SyncIndicator
+              status="syncing"
+              compact
+            />
+          )}
+          {hasError && (
+            <SyncIndicator
+              status="error"
+              compact
+              errorMessage="Sync failed"
+            />
+          )}
+
           <div className="print-dropdown-container">
             <button
               className="icon-button"
@@ -834,9 +616,9 @@ export const EntryList: React.FC = () => {
           </div>
 
           <button
-            className={`icon-button ${refreshing ? 'rotating' : ''}`}
+            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
             onClick={handleRefresh}
-            disabled={refreshing}
+            disabled={isRefreshing}
             title="Refresh"
           >
             <RefreshCw className="h-5 w-5" />
@@ -844,9 +626,7 @@ export const EntryList: React.FC = () => {
         </div>
       </header>
 
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
       <HeaderTicker />
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Search and Sort Header */}
       <div className="search-controls-header">
@@ -860,15 +640,14 @@ export const EntryList: React.FC = () => {
         </button>
 
         <span className="search-controls-label">
-          {searchTerm ? `Found ${filteredEntries.length} of ${entries.length} entries` : 'Search & Sort'}
+          {searchTerm ? `Found ${filteredEntries.length} of ${localEntries.length} entries` : 'Search & Sort'}
         </span>
       </div>
 
-      {/* Search Results Summary */}
       {searchTerm && (
         <div className="search-results-header">
           <div className="search-results-summary">
-            {filteredEntries.length} of {entries.length} entries
+            {filteredEntries.length} of {localEntries.length} entries
           </div>
         </div>
       )}
@@ -899,7 +678,7 @@ export const EntryList: React.FC = () => {
             className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
             onClick={() => {
               setSortOrder('run');
-              setIsDragMode(false); // Exit drag mode when switching sorts
+              setIsDragMode(false);
             }}
           >
             <ArrowUpDown size={16} />
@@ -909,7 +688,7 @@ export const EntryList: React.FC = () => {
             className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
             onClick={() => {
               setSortOrder('armband');
-              setIsDragMode(false); // Exit drag mode when switching sorts
+              setIsDragMode(false);
             }}
           >
             <ArrowUpDown size={16} />
@@ -919,7 +698,7 @@ export const EntryList: React.FC = () => {
             className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
             onClick={() => {
               setSortOrder('placement');
-              setIsDragMode(false); // Exit drag mode when switching sorts
+              setIsDragMode(false);
             }}
           >
             <Trophy size={16} />
@@ -930,7 +709,6 @@ export const EntryList: React.FC = () => {
               className={`sort-btn ${isDragMode ? 'active' : ''} ${isUpdatingOrder ? 'loading' : ''}`}
               onClick={() => {
                 if (!isDragMode) {
-                  // Entering drag mode - preserve current visible order
                   setManualOrder([...currentEntries]);
                   setSortOrder('manual');
                 }
@@ -946,20 +724,20 @@ export const EntryList: React.FC = () => {
 
         {searchTerm && !isSearchCollapsed && (
           <div className="search-results-count">
-            {filteredEntries.length} of {entries.length}
+            {filteredEntries.length} of {localEntries.length}
           </div>
         )}
       </div>
 
       <div className="status-tabs">
-        <button 
+        <button
           className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
           <Clock className="status-icon" size={16} />
           Pending ({pendingEntries.length})
         </button>
-        <button 
+        <button
           className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
@@ -975,12 +753,12 @@ export const EntryList: React.FC = () => {
             <p>{activeTab === 'pending' ? 'All entries have been scored.' : 'No entries have been scored yet.'}</p>
           </div>
         ) : (
-          <DndContext 
+          <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext 
+            <SortableContext
               items={currentEntries.map(e => e.id)}
               strategy={verticalListSortingStrategy}
             >
@@ -997,6 +775,7 @@ export const EntryList: React.FC = () => {
                     handleStatusClick={handleStatusClick}
                     handleResetMenuClick={handleResetMenuClick}
                     setSelfCheckinDisabledDialog={setSelfCheckinDisabledDialog}
+                    onPrefetch={handleEntryPrefetch}
                   />
                 ))}
               </div>
@@ -1019,15 +798,15 @@ export const EntryList: React.FC = () => {
         }}
         dogInfo={{
           armband: (() => {
-            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            const currentEntry = localEntries.find(e => e.id === activeStatusPopup);
             return currentEntry?.armband || 0;
           })(),
           callName: (() => {
-            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            const currentEntry = localEntries.find(e => e.id === activeStatusPopup);
             return currentEntry?.callName || '';
           })(),
           handler: (() => {
-            const currentEntry = entries.find(e => e.id === activeStatusPopup);
+            const currentEntry = localEntries.find(e => e.id === activeStatusPopup);
             return currentEntry?.handler || '';
           })()
         }}
@@ -1036,7 +815,7 @@ export const EntryList: React.FC = () => {
 
       {/* Reset Menu Popup */}
       {activeResetMenu !== null && resetMenuPosition && (
-        <div 
+        <div
           className="reset-menu"
           style={{
             position: 'fixed',
@@ -1046,10 +825,10 @@ export const EntryList: React.FC = () => {
           }}
         >
           <div className="reset-menu-content">
-            <button 
+            <button
               className="reset-option"
               onClick={() => {
-                const entry = entries.find(e => e.id === activeResetMenu);
+                const entry = localEntries.find(e => e.id === activeResetMenu);
                 if (entry) handleResetScore(entry);
               }}
             >
@@ -1071,13 +850,13 @@ export const EntryList: React.FC = () => {
               This will remove their current score and move them back to the pending list.
             </p>
             <div className="reset-dialog-buttons">
-              <button 
+              <button
                 className="reset-dialog-cancel"
                 onClick={cancelResetScore}
                 >
                 Cancel
               </button>
-              <button 
+              <button
                 className="reset-dialog-confirm"
                 onClick={confirmResetScore}
                 >

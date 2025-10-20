@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
+import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
+import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, TrialDateBadge } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState } from '../../components/ui';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { ArrowLeft, RefreshCw, Target } from 'lucide-react';
 import './ClassList.css';
@@ -66,24 +68,256 @@ export const ClassList: React.FC = () => {
   const { showContext, role: _role, logout: _logout } = useAuth();
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
-  const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
-  const [classes, setClasses] = useState<ClassEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
-  const [activePopup, setActivePopup] = useState<number | null>(null);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
+  const { prefetch } = usePrefetch();
+
+  // Local state for data (synced from cache)
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
     console.log('🔄 Initializing favoriteClasses state');
     return new Set();
   });
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
+
+  // Fetch function that can access state
+  const fetchClassListData = useCallback(async (): Promise<{ trialInfo: TrialInfo | null; classes: ClassEntry[] }> => {
+    console.log('🔄 Starting fetchClassListData function');
+    console.log('🔍 Show context:', showContext);
+    console.log('🔍 Trial ID:', trialId);
+
+    // Load favorites first to ensure they're available when processing classes
+    let currentFavorites = new Set<number>();
+    try {
+      const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
+      console.log('🔍 Loading favorites with key:', favoritesKey);
+      const savedFavorites = localStorage.getItem(favoritesKey);
+      console.log('💾 Raw localStorage value:', savedFavorites);
+      if (savedFavorites) {
+        const favoriteIds = JSON.parse(savedFavorites) as number[];
+        currentFavorites = new Set(favoriteIds);
+        setFavoriteClasses(currentFavorites);
+        console.log('✅ Loaded favorites:', Array.from(currentFavorites));
+      } else {
+        console.log('📭 No favorites found in localStorage');
+      }
+      setFavoritesLoaded(true);
+    } catch (error) {
+      console.error('Error loading favorites from localStorage in fetchClassListData:', error);
+    }
+
+    try {
+      // Load trial info using normalized table
+      const { data: trialData, error: trialError } = await supabase
+        .from('trials')
+        .select('*')
+        .eq('show_id', showContext?.showId)
+        .eq('id', parseInt(trialId!))
+        .single();
+
+      if (trialError) {
+        console.error('Error loading trial:', trialError);
+        return { trialInfo: null, classes: [] };
+      }
+
+      // Debug: log trial data to see available fields
+      console.log('🔍 Trial data loaded:', trialData);
+
+      // Load classes for this trial using normalized tables
+      const { data: classData, error: classError } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('trial_id', parseInt(trialId!))
+        .order('class_order');
+
+      if (classError) {
+        console.error('Error loading classes:', classError);
+        return { trialInfo: null, classes: [] };
+      }
+
+      // Debug: log class data to see what's loaded
+      console.log('🔍 Class data loaded:', classData);
+      console.log('🔍 Class data count:', classData?.length || 0);
+
+      if (trialData && classData) {
+        // Build trial info
+        const trialInfo: TrialInfo = {
+          trial_name: trialData.trial_name,
+          trial_date: trialData.trial_date,
+          trial_number: trialData.trial_number || trialData.trialid,
+          total_classes: classData.length,
+          pending_classes: classData.filter(c => c.is_completed !== true).length,
+          completed_classes: classData.filter(c => c.is_completed === true).length
+        };
+
+        // Load ALL entries for this trial using normalized tables
+        const { data: allTrialEntries, error: trialEntriesError } = await supabase
+          .from('entries')
+          .select(`
+            *,
+            classes!inner (
+              element,
+              level,
+              section,
+              trial_id
+            ),
+            results (
+              is_in_ring,
+              is_scored
+            )
+          `)
+          .eq('classes.trial_id', parseInt(trialId!))
+          .order('armband_number', { ascending: true });
+
+        if (trialEntriesError) {
+          console.error('Error loading trial entries:', trialEntriesError);
+        }
+
+        // Process classes with entry data
+        const processedClasses = classData.map((cls: any) => {
+          // Filter entries for this specific class using class_id
+          const entryData = (allTrialEntries || []).filter(entry =>
+            entry.class_id === cls.id
+          );
+
+          // Process dog entries with custom status priority sorting
+          const dogs = (entryData || []).map(entry => ({
+            id: entry.id,
+            armband: entry.armband_number,
+            call_name: entry.dog_call_name,
+            breed: entry.dog_breed,
+            handler: entry.handler_name,
+            in_ring: entry.results?.[0]?.is_in_ring || false,
+            checkin_status: entry.check_in_status || 0,
+            is_scored: entry.results?.[0]?.is_scored || false
+          })).sort((a, b) => {
+            // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
+            const getStatusPriority = (dog: typeof a) => {
+              if (dog.is_scored) return 7; // Completed (last)
+              if (dog.in_ring) return 1; // In-ring (first)
+              if (dog.checkin_status === 4) return 2; // At gate
+              if (dog.checkin_status === 1) return 3; // Checked-in
+              if (dog.checkin_status === 2) return 4; // Conflict
+              if (dog.checkin_status === 0) return 5; // Not checked-in (pending)
+              if (dog.checkin_status === 3) return 6; // Pulled
+              return 8; // Unknown status
+            };
+
+            const priorityA = getStatusPriority(a);
+            const priorityB = getStatusPriority(b);
+
+            if (priorityA !== priorityB) {
+              return priorityA - priorityB;
+            }
+
+            // Secondary sort by armband number
+            return a.armband - b.armband;
+          });
+
+          // Count totals
+          const entryCount = dogs.length;
+          const completedCount = dogs.filter(dog => dog.is_scored).length;
+
+          // Construct class name from element, level, and section (hide section if it's a dash)
+          const sectionPart = cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
+          const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
+
+          return {
+            id: cls.id,
+            element: cls.element,
+            level: cls.level,
+            section: cls.section,
+            class_name: className,
+            class_order: cls.class_order || 999, // Default high value for classes without order
+            class_type: cls.class_type,
+            judge_name: cls.judge_name || 'TBA',
+            entry_count: entryCount,
+            completed_count: completedCount,
+            class_status: cls.class_status || 'none',
+            is_completed: cls.is_completed || false,
+            is_favorite: currentFavorites.has(cls.id),
+            time_limit_seconds: cls.time_limit_seconds,
+            time_limit_area2_seconds: cls.time_limit_area2_seconds,
+            time_limit_area3_seconds: cls.time_limit_area3_seconds,
+            area_count: cls.area_count,
+            // Parse time values from class_status_comment based on current status
+            briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
+            break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
+            start_time: cls.class_status === 'start_time' ? cls.class_status_comment : undefined,
+            dogs: dogs
+          };
+        });
+
+        // Sort classes by class_order first, then element, level, section
+        const sortedClasses = processedClasses.sort((a, b) => {
+          // Primary sort: class_order (ascending)
+          if (a.class_order !== b.class_order) {
+            return a.class_order - b.class_order;
+          }
+
+          // Secondary sort: element (alphabetical)
+          if (a.element !== b.element) {
+            return a.element.localeCompare(b.element);
+          }
+
+          // Tertiary sort: level (custom order for common levels)
+          const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
+          const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
+          const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+
+          if (aLevelOrder !== bLevelOrder) {
+            return aLevelOrder - bLevelOrder;
+          }
+
+          // If same level order, sort alphabetically
+          if (a.level !== b.level) {
+            return a.level.localeCompare(b.level);
+          }
+
+          // Quaternary sort: section (alphabetical)
+          return a.section.localeCompare(b.section);
+        });
+
+        return { trialInfo, classes: sortedClasses };
+      }
+
+      return { trialInfo: null, classes: [] };
+    } catch (error) {
+      console.error('Error:', error);
+      return { trialInfo: null, classes: [] };
+    }
+  }, [showContext, trialId]);
+
+  // Use stale-while-revalidate for instant loading from cache
+  const {
+    data: cachedData,
+    isStale: _isStale,
+    isRefreshing,
+    error: fetchError,
+    refresh
+  } = useStaleWhileRevalidate<{
+    trialInfo: TrialInfo | null;
+    classes: ClassEntry[];
+  }>(
+    `class-list-trial-${trialId}`,
+    fetchClassListData,
+    {
+      ttl: 60000, // 1 minute cache
+      fetchOnMount: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true
+    }
+  );
+
+  // Local state for data (synced from cache)
+  const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
+  const [classes, setClasses] = useState<ClassEntry[]>([]);
+  const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
+  const [activePopup, setActivePopup] = useState<number | null>(null);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
   const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
   const [selectedClassForRequirements, setSelectedClassForRequirements] = useState<ClassEntry | null>(null);
   const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
   const [selectedClassForMaxTime, setSelectedClassForMaxTime] = useState<ClassEntry | null>(null);
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
-  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
   const [noviceDialogOpen, setNoviceDialogOpen] = useState(false);
   const [selectedNoviceClass, setSelectedNoviceClass] = useState<ClassEntry | null>(null);
   const [pairedNoviceClass, setPairedNoviceClass] = useState<ClassEntry | null>(null);
@@ -94,14 +328,18 @@ export const ClassList: React.FC = () => {
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
 
   // Prevent FOUC by adding 'loaded' class after mount
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded] = useState(true);
 
   // Time input states for status dialog
 
-  // Set loaded class after component mounts to prevent FOUC
+  // Sync cached data with local state
   useEffect(() => {
-    setIsLoaded(true);
-  }, []);
+    if (cachedData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing immutable cache data to mutable local state for real-time updates
+      setTrialInfo(cachedData.trialInfo);
+      setClasses(cachedData.classes);
+    }
+  }, [cachedData]);
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -153,7 +391,8 @@ export const ClassList: React.FC = () => {
   useEffect(() => {
     if (classes.length > 0) {
       console.log('🔄 Updating classes is_favorite based on favoriteClasses:', Array.from(favoriteClasses));
-      setClasses(prevClasses => 
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing favorite state from localStorage to class data
+      setClasses(prevClasses =>
         prevClasses.map(classEntry => ({
           ...classEntry,
           is_favorite: favoriteClasses.has(classEntry.id)
@@ -162,11 +401,7 @@ export const ClassList: React.FC = () => {
     }
   }, [favoriteClasses]);
 
-  useEffect(() => {
-    if (trialId && showContext) {
-      loadClassList();
-    }
-  }, [trialId, showContext]);
+  // Data is loaded via useStaleWhileRevalidate hook - no manual loading needed
 
 
   useEffect(() => {
@@ -187,10 +422,8 @@ export const ClassList: React.FC = () => {
   }, [activePopup]);
 
   const handleRefresh = async () => {
-    setRefreshing(true);
     hapticFeedback.impact('medium');
-    await loadClassList();
-    setRefreshing(false);
+    await refresh();
   };
 
   // Print report handlers
@@ -257,221 +490,10 @@ export const ClassList: React.FC = () => {
     }
   };
 
-  const loadClassList = useCallback(async () => {
-    console.log('🔄 Starting loadClassList function');
-    console.log('🔍 Show context:', showContext);
-    console.log('🔍 Trial ID:', trialId);
-    setIsLoading(true);
-
-    // Load favorites first to ensure they're available when processing classes
-    let currentFavorites = new Set<number>();
-    try {
-      const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
-      console.log('🔍 Loading favorites with key:', favoritesKey);
-      const savedFavorites = localStorage.getItem(favoritesKey);
-      console.log('💾 Raw localStorage value:', savedFavorites);
-      if (savedFavorites) {
-        const favoriteIds = JSON.parse(savedFavorites) as number[];
-        currentFavorites = new Set(favoriteIds);
-        setFavoriteClasses(currentFavorites);
-        console.log('✅ Loaded favorites:', Array.from(currentFavorites));
-      } else {
-        console.log('📭 No favorites found in localStorage');
-      }
-      setFavoritesLoaded(true);
-    } catch (error) {
-      console.error('Error loading favorites from localStorage in loadClassList:', error);
-    }
-    
-    try {
-      // Load trial info using normalized table (legacy table structure doesn't match)
-      const { data: trialData, error: trialError } = await supabase
-        .from('trials')
-        .select('*')
-        .eq('show_id', showContext?.showId)
-        .eq('id', parseInt(trialId!))
-        .single();
-
-      if (trialError) {
-        console.error('Error loading trial:', trialError);
-        return;
-      }
-
-      // Debug: log trial data to see available fields
-      console.log('🔍 Trial data loaded:', trialData);
-
-      // Load classes for this trial using normalized tables
-      const { data: classData, error: classError } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('trial_id', parseInt(trialId!))
-        .order('class_order');
-
-      if (classError) {
-        console.error('Error loading classes:', classError);
-        return;
-      }
-
-      // Debug: log class data to see what's loaded
-      console.log('🔍 Class data loaded:', classData);
-      console.log('🔍 Class data count:', classData?.length || 0);
-
-      if (trialData && classData) {
-        // Set trial info
-        setTrialInfo({
-          trial_name: trialData.trial_name,
-          trial_date: trialData.trial_date,
-          trial_number: trialData.trial_number || trialData.trialid,
-          total_classes: classData.length,
-          pending_classes: classData.filter(c => c.is_completed !== true).length,
-          completed_classes: classData.filter(c => c.is_completed === true).length
-        });
-
-
-        // Load ALL entries for this trial using normalized tables
-        const { data: allTrialEntries, error: trialEntriesError } = await supabase
-          .from('entries')
-          .select(`
-            *,
-            classes!inner (
-              element,
-              level,
-              section,
-              trial_id
-            ),
-            results (
-              is_in_ring,
-              is_scored
-            )
-          `)
-          .eq('classes.trial_id', parseInt(trialId!))
-          .order('armband_number', { ascending: true });
-          // Custom sorting will be applied after data retrieval
-
-        if (trialEntriesError) {
-          console.error('Error loading trial entries:', trialEntriesError);
-        }
-
-
-        // Process classes with entry data
-        const processedClasses = classData.map((cls: any) => {
-          // Filter entries for this specific class using class_id
-          const entryData = (allTrialEntries || []).filter(entry =>
-            entry.class_id === cls.id
-          );
-          
-
-          // Process dog entries with custom status priority sorting
-          const dogs = (entryData || []).map(entry => ({
-            id: entry.id,
-            armband: entry.armband_number,
-            call_name: entry.dog_call_name,
-            breed: entry.dog_breed,
-            handler: entry.handler_name,
-            in_ring: entry.results?.[0]?.is_in_ring || false,
-            checkin_status: entry.check_in_status || 0,
-            is_scored: entry.results?.[0]?.is_scored || false
-          })).sort((a, b) => {
-            // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
-            const getStatusPriority = (dog: typeof a) => {
-              if (dog.is_scored) return 7; // Completed (last)
-              if (dog.in_ring) return 1; // In-ring (first)
-              if (dog.checkin_status === 4) return 2; // At gate
-              if (dog.checkin_status === 1) return 3; // Checked-in
-              if (dog.checkin_status === 2) return 4; // Conflict
-              if (dog.checkin_status === 0) return 5; // Not checked-in (pending)
-              if (dog.checkin_status === 3) return 6; // Pulled
-              return 8; // Unknown status
-            };
-            
-            const priorityA = getStatusPriority(a);
-            const priorityB = getStatusPriority(b);
-            
-            if (priorityA !== priorityB) {
-              return priorityA - priorityB;
-            }
-            
-            // Secondary sort by armband number
-            return a.armband - b.armband;
-          });
-
-          // Count totals
-          const entryCount = dogs.length;
-          const completedCount = dogs.filter(dog => dog.is_scored).length;
-
-          // Construct class name from element, level, and section (hide section if it's a dash)
-          const sectionPart = cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
-          const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
-          
-          return {
-            id: cls.id,
-            element: cls.element,
-            level: cls.level,
-            section: cls.section,
-            class_name: className,
-            class_order: cls.class_order || 999, // Default high value for classes without order
-            class_type: cls.class_type,
-            judge_name: cls.judge_name || 'TBA',
-            entry_count: entryCount,
-            completed_count: completedCount,
-            class_status: cls.class_status || 'none',
-            is_completed: cls.is_completed || false,
-            is_favorite: currentFavorites.has(cls.id),
-            time_limit_seconds: cls.time_limit_seconds,
-            time_limit_area2_seconds: cls.time_limit_area2_seconds,
-            time_limit_area3_seconds: cls.time_limit_area3_seconds,
-            area_count: cls.area_count,
-            // Parse time values from class_status_comment based on current status
-            briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
-            break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
-            start_time: cls.class_status === 'start_time' ? cls.class_status_comment : undefined,
-            dogs: dogs
-          };
-        });
-
-        // Sort classes by class_order first, then element, level, section
-        const sortedClasses = processedClasses.sort((a, b) => {
-          // Primary sort: class_order (ascending)
-          if (a.class_order !== b.class_order) {
-            return a.class_order - b.class_order;
-          }
-          
-          // Secondary sort: element (alphabetical)
-          if (a.element !== b.element) {
-            return a.element.localeCompare(b.element);
-          }
-          
-          // Tertiary sort: level (custom order for common levels)
-          const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
-          const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
-          const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
-          
-          if (aLevelOrder !== bLevelOrder) {
-            return aLevelOrder - bLevelOrder;
-          }
-          
-          // If same level order, sort alphabetically
-          if (a.level !== b.level) {
-            return a.level.localeCompare(b.level);
-          }
-          
-          // Quaternary sort: section (alphabetical)
-          return a.section.localeCompare(b.section);
-        });
-        
-        setClasses(sortedClasses);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showContext?.licenseKey, trialId]);
-
   // Subscribe to real-time entry updates for all classes in this trial
   useEffect(() => {
     if (!trialId || !showContext?.licenseKey) return;
-    
+
     // Subscribe to entry changes that affect classes in this trial
     const subscription = supabase
       .channel(`entries-trial-${trialId}`)
@@ -500,18 +522,18 @@ export const ClassList: React.FC = () => {
                 : c
             ));
           } else {
-            // For other changes (INSERT, DELETE), do full reload
-            console.log('🔄 Real-time: Full reload needed for:', payload.eventType);
-            loadClassList();
+            // For other changes (INSERT, DELETE), do full refresh
+            console.log('🔄 Real-time: Full refresh needed for:', payload.eventType);
+            refresh();
           }
         }
       )
       .subscribe();
-    
+
     return () => {
       subscription.unsubscribe();
     };
-  }, [trialId, showContext?.licenseKey, loadClassList]);
+  }, [trialId, showContext?.licenseKey, refresh]);
 
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
@@ -550,6 +572,34 @@ export const ClassList: React.FC = () => {
 
     return paired || null;
   };
+
+  // Prefetch class entry data when hovering/touching class card
+  const handleClassPrefetch = useCallback(async (classId: number) => {
+    if (!showContext?.licenseKey) return;
+
+    await prefetch(
+      `class-entries-${classId}`,
+      async () => {
+        // Fetch entries for this class
+        const { data: entriesData } = await supabase
+          .from('entries')
+          .select(`
+            *,
+            classes!inner (element, level, section, trial_id),
+            results (is_in_ring, is_scored)
+          `)
+          .eq('class_id', classId)
+          .order('armband_number', { ascending: true });
+
+        console.log('📡 Prefetched class entries:', classId, entriesData?.length || 0);
+        return entriesData || [];
+      },
+      {
+        ttl: 60, // 1 minute cache
+        priority: 3 // High priority - likely next action
+      }
+    );
+  }, [showContext?.licenseKey, prefetch]);
 
   const handleViewEntries = (classEntry: ClassEntry) => {
     hapticFeedback.impact('medium');
@@ -672,13 +722,13 @@ export const ClassList: React.FC = () => {
         console.error('❌ Update data:', updateData);
         console.error('❌ Class ID:', classId);
         // Revert on error
-        loadClassList();
+        await refresh();
       } else {
         console.log('✅ Successfully updated class status with time');
       }
     } catch (error) {
       console.error('Exception updating class status:', error);
-      loadClassList();
+      await refresh();
     }
   };
 
@@ -717,7 +767,7 @@ export const ClassList: React.FC = () => {
         console.error('❌ Class ID:', classId);
         console.error('❌ Full error object:', JSON.stringify(error, null, 2));
         // Revert on error
-        loadClassList();
+        await refresh();
       } else {
         console.log('✅ Successfully updated class status');
         console.log('✅ Class ID:', classId);
@@ -728,7 +778,7 @@ export const ClassList: React.FC = () => {
       }
     } catch (error) {
       console.error('💥 Exception updating class status:', error);
-      loadClassList();
+      await refresh();
     }
   };
 
@@ -1019,7 +1069,8 @@ export const ClassList: React.FC = () => {
     return filtered;
   }, [classes, combinedFilter, searchTerm, sortOrder]);
 
-  if (isLoading) {
+  // Show loading skeleton only if no cached data exists
+  if (!cachedData && !fetchError) {
     return (
       <div className="class-list-container">
         <div className="flex items-center justify-center h-64">
@@ -1028,6 +1079,19 @@ export const ClassList: React.FC = () => {
             <p className="text-muted-foreground">Loading classes...</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Show error state with retry button if fetch failed
+  if (fetchError) {
+    return (
+      <div className="class-list-container">
+        <ErrorState
+          message={`Failed to load classes: ${fetchError.message || 'Please check your connection and try again.'}`}
+          onRetry={handleRefresh}
+          isRetrying={isRefreshing}
+        />
       </div>
     );
   }
@@ -1081,14 +1145,19 @@ export const ClassList: React.FC = () => {
           </div>
         </div>
 
-        <button
-          className={`icon-button ${refreshing ? 'rotating' : ''}`}
-          onClick={handleRefresh}
-          disabled={refreshing}
-          title="Refresh"
-        >
-          <RefreshCw className="h-5 w-5" />
-        </button>
+        <div className="header-buttons">
+          {/* Background refresh indicator */}
+          {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
+
+          <button
+            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
@@ -1126,6 +1195,7 @@ export const ClassList: React.FC = () => {
             getStatusColor={getStatusColor}
             getFormattedStatus={getFormattedStatus}
             getContextualPreview={getContextualPreview}
+            onPrefetch={() => handleClassPrefetch(classEntry.id)}
           />
         ))}
       </div>
@@ -1270,7 +1340,7 @@ export const ClassList: React.FC = () => {
         }}
         onTimeUpdate={() => {
           // Refresh class data after time update
-          loadClassList();
+          refresh();
         }}
       />
 

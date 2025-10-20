@@ -1,0 +1,174 @@
+/* OfflineFallback.css */
+
+.offline-fallback {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f9fafb, #e5e7eb);
+}
+
+.offline-fallback-content {
+  max-width: 500px;
+  text-align: center;
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.offline-fallback-icon {
+  margin-bottom: 1.5rem;
+  color: #9ca3af;
+}
+
+.offline-fallback h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.offline-fallback-message {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+}
+
+.offline-fallback-message strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.offline-fallback-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.offline-fallback-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.offline-fallback-btn-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.offline-fallback-btn-primary:hover {
+  background: #4f46e5;
+}
+
+.offline-fallback-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.offline-fallback-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.offline-fallback-available {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.offline-fallback-available h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.offline-fallback-available > p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.offline-fallback-available ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.offline-fallback-available li {
+  margin: 0.5rem 0;
+}
+
+.offline-fallback-available a {
+  display: block;
+  padding: 0.625rem 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.offline-fallback-available a:hover {
+  background: #f0f9ff;
+  color: #4f46e5;
+}
+
+.offline-fallback-more {
+  padding: 0.625rem 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.offline-fallback-tip {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #0c4a6e;
+  text-align: left;
+}
+
+.offline-fallback-tip strong {
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .offline-fallback {
+    padding: 1rem;
+  }
+
+  .offline-fallback-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .offline-fallback h1 {
+    font-size: 1.5rem;
+  }
+
+  .offline-fallback-actions {
+    flex-direction: column;
+  }
+
+  .offline-fallback-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
