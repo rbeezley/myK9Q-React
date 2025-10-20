@@ -1,10 +1,18 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { OfflineIndicator, DeviceDebugPanel, DeviceTierToast } from './components/ui';
+import { MonitoringDashboard } from './components/monitoring/MonitoringDashboard';
+import { applyDeviceClasses, startPerformanceMonitoring } from './utils/deviceDetection';
+import { initializeSettings } from './stores/settingsStore';
+import { performanceMonitor } from './services/performanceMonitor';
+import { analyticsService } from './services/analyticsService';
+import { metricsApiService } from './services/metricsApiService';
+import { useSettingsStore } from './stores/settingsStore';
 
 // Import unified container system
 import './styles/containers.css';
@@ -30,9 +38,14 @@ const UKCObedienceScoresheet = React.lazy(() =>
     default: module.UKCObedienceScoresheet 
   }))
 );
-const UKCRallyScoresheet = React.lazy(() => 
-  import('./pages/scoresheets/UKC/UKCRallyScoresheet').then(module => ({ 
-    default: module.UKCRallyScoresheet 
+const UKCRallyScoresheet = React.lazy(() =>
+  import('./pages/scoresheets/UKC/UKCRallyScoresheet').then(module => ({
+    default: module.UKCRallyScoresheet
+  }))
+);
+const UKCNoseworkScoresheet = React.lazy(() =>
+  import('./pages/scoresheets/UKC/UKCNoseworkScoresheet').then(module => ({
+    default: module.UKCNoseworkScoresheet
   }))
 );
 const AKCScentWorkScoresheet = React.lazy(() =>
@@ -58,12 +71,67 @@ const NationalsWireframe = React.lazy(() =>
     default: module.NationalsWireframe
   }))
 );
+const Settings = React.lazy(() =>
+  import('./pages/Settings/Settings').then(module => ({
+    default: module.Settings
+  }))
+);
+const PerformanceMetricsAdmin = React.lazy(() =>
+  import('./pages/Admin/PerformanceMetricsAdmin').then(module => ({
+    default: module.PerformanceMetricsAdmin
+  }))
+);
 
 function App() {
+  // Initialize device detection and performance monitoring
+  useEffect(() => {
+    // Initialize user settings (theme, font size, density, etc.)
+    initializeSettings();
+
+    // Apply device-specific CSS classes
+    applyDeviceClasses();
+
+    // Start monitoring performance and auto-adjust if needed
+    const stopMonitoring = startPerformanceMonitoring();
+
+    // Initialize performance and analytics monitoring
+    performanceMonitor.setEnabled(true);
+    analyticsService.setEnabled(true);
+
+    // Track initial page view
+    analyticsService.trackPageView(window.location.pathname);
+
+    // Send performance report on page unload (if monitoring enabled and has problems)
+    const handleBeforeUnload = async () => {
+      const { settings } = useSettingsStore.getState();
+
+      if (settings.enablePerformanceMonitoring) {
+        // Smart batching: only send if there are errors or poor performance
+        if (performanceMonitor.hasProblems()) {
+          const report = performanceMonitor.generateReport();
+          // Note: License key would need to come from auth context for proper implementation
+          // For now, send with generic ID
+          await metricsApiService.sendPerformanceReport(report, 'unknown');
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      stopMonitoring();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
+          <OfflineIndicator />
+          <DeviceTierToast />
+          <DeviceDebugPanel position="bottom-right" />
+          <MonitoringDashboard />
           <Routes>
           <Route path="/login" element={<Login />} />
           <Route 
@@ -127,6 +195,16 @@ function App() {
             }
           />
           <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading settings..." />}>
+                  <Settings />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/scoresheet/ukc-obedience/:classId/:entryId"
             element={
               <ProtectedRoute>
@@ -138,8 +216,8 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/scoresheet/ukc-rally/:classId/:entryId" 
+          <Route
+            path="/scoresheet/ukc-rally/:classId/:entryId"
             element={
               <ProtectedRoute>
                 <ScoresheetErrorBoundary>
@@ -148,9 +226,21 @@ function App() {
                   </Suspense>
                 </ScoresheetErrorBoundary>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
+          <Route
+            path="/scoresheet/ukc-nosework/:classId/:entryId"
+            element={
+              <ProtectedRoute>
+                <ScoresheetErrorBoundary>
+                  <Suspense fallback={<ScoresheetLoader />}>
+                    <UKCNoseworkScoresheet />
+                  </Suspense>
+                </ScoresheetErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/scoresheet/akc-scent-work/:classId/:entryId" 
             element={
               <ProtectedRoute>
@@ -227,6 +317,16 @@ function App() {
               <Suspense fallback={<PageLoader message="Loading Competition Admin..." />}>
                 <CompetitionAdmin />
               </Suspense>
+            }
+          />
+          <Route
+            path="/admin/metrics"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading Performance Metrics..." />}>
+                  <PerformanceMetricsAdmin />
+                </Suspense>
+              </ProtectedRoute>
             }
           />
           <Route path="/" element={<Navigate to="/login" replace />} />

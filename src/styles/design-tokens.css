@@ -18,6 +18,11 @@
   --status-at-gate-bg: #8b5cf6;
   --status-at-gate-text: #ffffff;
 
+  /* Come to Gate: Blue (gate steward calling exhibitor) */
+  --status-come-to-gate: #3b82f6;
+  --status-come-to-gate-bg: #3b82f6;
+  --status-come-to-gate-text: #ffffff;
+
   /* Conflict: Orange/Amber (warning, needs resolution) */
   --status-conflict: #f59e0b;
   --status-conflict-bg: #f59e0b;
@@ -135,6 +140,18 @@
   --token-space-3xl: 1.5rem;     /* 24px */
   --token-space-4xl: 2rem;       /* 32px */
 
+  /* === DENSITY SPACING (Phase 1B) === */
+  /* These are multipliers for element spacing based on density setting */
+  --spacing-multiplier: 1;        /* Default */
+  --spacing-compact: 0.25rem;     /* Tight spacing */
+  --spacing-comfortable: 0.5rem;  /* Standard spacing */
+  --spacing-spacious: 1rem;       /* Generous spacing */
+
+  /* Element-specific spacing (adjusts with density) */
+  --element-padding: calc(var(--spacing-comfortable) * var(--spacing-multiplier));
+  --element-margin: calc(var(--spacing-comfortable) * var(--spacing-multiplier));
+  --element-gap: calc(var(--spacing-comfortable) * var(--spacing-multiplier));
+
   /* === BORDER RADIUS === */
   --token-radius-sm: 0.375rem;   /* 6px */
   --token-radius-md: 0.5rem;     /* 8px */
@@ -194,6 +211,9 @@
 
   --status-at-gate: #8b5cf6;
   --status-at-gate-bg: #8b5cf6;
+
+  --status-come-to-gate: #3b82f6;
+  --status-come-to-gate-bg: #3b82f6;
 
   --status-conflict: #f59e0b;
   --status-conflict-bg: #f59e0b;
@@ -289,4 +309,41 @@
 [data-theme="dark"] .token-status-in-ring-hover:hover {
   box-shadow: 0 12px 32px rgba(249, 115, 22, 0.3), 0 8px 16px rgba(0, 0, 0, 0.4);
   border-color: rgba(249, 115, 22, 0.5);
+}
+
+/* === DENSITY CLASSES (Phase 1B) === */
+html.density-compact {
+  --spacing-multiplier: 0.5;
+  --element-padding: var(--spacing-compact);
+  --element-margin: var(--spacing-compact);
+  --element-gap: var(--spacing-compact);
+}
+
+html.density-comfortable {
+  --spacing-multiplier: 1;
+  --element-padding: var(--spacing-comfortable);
+  --element-margin: var(--spacing-comfortable);
+  --element-gap: var(--spacing-comfortable);
+}
+
+html.density-spacious {
+  --spacing-multiplier: 1.5;
+  --element-padding: var(--spacing-spacious);
+  --element-margin: var(--spacing-spacious);
+  --element-gap: var(--spacing-spacious);
+}
+
+/* Apply density to common elements */
+html.density-compact button,
+html.density-compact .setting-item,
+html.density-compact .card {
+  padding: calc(var(--element-padding) * 0.75);
+  gap: calc(var(--element-gap) * 0.75);
+}
+
+html.density-spacious button,
+html.density-spacious .setting-item,
+html.density-spacious .card {
+  padding: calc(var(--element-padding) * 1.25);
+  gap: calc(var(--element-gap) * 1.25);
 }
