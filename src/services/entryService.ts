@@ -773,26 +773,25 @@ export async function getClassInfo(
 
 /**
  * Subscribe to real-time entry updates
+ * Uses syncManager to respect user settings for realTimeSync
  */
 export function subscribeToEntryUpdates(
   actualClassId: number,
   licenseKey: string,
   onUpdate: (payload: any) => void
 ) {
-  console.log('🔌 Creating subscription for class_id:', actualClassId);
-  console.log('🔍 Using correct column name: class_id (matching the main query)');
-  console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
+  // Import syncManager dynamically to avoid circular dependencies
+  import('./syncManager').then(({ syncManager }) => {
+    const key = `entries:${actualClassId}`;
 
-  const subscription = supabase
-    .channel(`entries:${actualClassId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'entries',
-        filter: `class_id=eq.${actualClassId}` // Fixed: using class_id to match the main query
-      },
+    console.log('🔌 Setting up subscription via syncManager for class_id:', actualClassId);
+    console.log('🔍 Using correct column name: class_id (matching the main query)');
+    console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
+
+    return syncManager.subscribeToUpdates(
+      key,
+      'entries',
+      `class_id=eq.${actualClassId}`,
       (payload) => {
         console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
         console.log('🔄 Event type:', payload.eventType);
@@ -800,14 +799,14 @@ export function subscribeToEntryUpdates(
         console.log('🔄 Schema:', payload.schema);
         console.log('🔄 Timestamp:', new Date().toISOString());
         console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
-        
+
         if (payload.new) {
           console.log('📈 NEW record data:', JSON.stringify(payload.new, null, 2));
         }
         if (payload.old) {
           console.log('📉 OLD record data:', JSON.stringify(payload.old, null, 2));
         }
-        
+
         // Log specific field changes for in_ring updates
         if (payload.new && payload.old) {
           console.log('📊 FIELD CHANGES DETECTED:');
@@ -817,41 +816,29 @@ export function subscribeToEntryUpdates(
           console.log('  🆔 entry_id:', newData.id);
           console.log('  🏷️ armband:', newData.armband);
           console.log('  📂 class_id:', newData.class_id);
-          
+
           // Check if this is specifically an in_ring change
           if (oldData.in_ring !== newData.in_ring) {
             console.log('🎯 THIS IS AN IN_RING STATUS CHANGE!');
             console.log(`  Dog #${newData.armband} (ID: ${newData.id}) is now ${newData.in_ring ? 'IN RING' : 'NOT IN RING'}`);
           }
         }
-        
+
         console.log('✅ About to call onUpdate callback...');
         onUpdate(payload);
         console.log('✅ onUpdate callback completed');
         console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
       }
-    )
-    .subscribe((status, err) => {
-      console.log('📡 Subscription status:', status);
-      if (err) {
-        console.error('📡 Subscription error:', err);
-      }
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ Successfully subscribed to real-time updates for class_id', actualClassId);
-        console.log('🎯 Subscription will only receive updates for entries in this class');
-      } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Channel error - subscription failed');
-      } else if (status === 'TIMED_OUT') {
-        console.error('⏰ Subscription timed out');
-      } else {
-        console.log('📡 Subscription status update:', status);
-      }
-    });
+    );
+  });
 
-  // Return unsubscribe function
+  // Return unsubscribe function that imports syncManager
   return () => {
-    console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
-    subscription.unsubscribe();
+    import('./syncManager').then(({ syncManager }) => {
+      const key = `entries:${actualClassId}`;
+      console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
+      syncManager.unsubscribe(key);
+    });
   };
 }
 
