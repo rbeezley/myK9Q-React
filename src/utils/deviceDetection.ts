@@ -139,13 +139,19 @@ export async function detectDeviceCapabilities(): Promise<DeviceCapabilities> {
 
 /**
  * Get performance settings based on device capabilities
+ * Respects user's manual performanceMode override from settings
  */
 export async function getPerformanceSettings(): Promise<PerformanceSettings> {
   if (performanceSettings) {
     return performanceSettings;
   }
 
+  // Check if user has manual performance mode override
+  const userSettings = getUserPerformanceMode();
   const capabilities = await detectDeviceCapabilities();
+
+  // Override tier if user has manual setting
+  const effectiveTier = userSettings || capabilities.tier;
 
   // Default settings for high-end devices
   let settings: PerformanceSettings = {
@@ -162,7 +168,7 @@ export async function getPerformanceSettings(): Promise<PerformanceSettings> {
   };
 
   // Adjust for medium-tier devices
-  if (capabilities.tier === 'medium') {
+  if (effectiveTier === 'medium') {
     settings = {
       ...settings,
       virtualScrollThreshold: 30,
@@ -176,7 +182,7 @@ export async function getPerformanceSettings(): Promise<PerformanceSettings> {
   }
 
   // Adjust for low-end devices
-  if (capabilities.tier === 'low') {
+  if (effectiveTier === 'low') {
     settings = {
       ...settings,
       animations: !capabilities.batterySaving,
@@ -392,6 +398,42 @@ export async function applyDeviceClasses(): Promise<void> {
   if (capabilities.touch) {
     document.documentElement.classList.add('touch-device');
   }
+}
+
+/**
+ * Get user's performance mode from settings
+ * Returns null if set to 'auto', otherwise returns the manual tier
+ */
+function getUserPerformanceMode(): 'low' | 'medium' | 'high' | null {
+  try {
+    const settingsStr = localStorage.getItem('myK9Q_settings');
+    if (!settingsStr) return null;
+
+    const stored = JSON.parse(settingsStr);
+    const settings = stored?.state?.settings;
+
+    if (!settings || settings.performanceMode === 'auto') {
+      return null;
+    }
+
+    // Map performanceMode to tier
+    return settings.performanceMode as 'low' | 'medium' | 'high';
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get device tier, respecting user override
+ */
+export async function getDeviceTier(): Promise<'low' | 'medium' | 'high'> {
+  const userMode = getUserPerformanceMode();
+  if (userMode) {
+    return userMode;
+  }
+
+  const capabilities = await detectDeviceCapabilities();
+  return capabilities.tier;
 }
 
 /**

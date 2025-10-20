@@ -415,3 +415,108 @@
   transform: none;
   opacity: 0.7;
 }
+
+/* ==========================================================================
+   Reduce Animations Mode (for accessibility)
+   ========================================================================== */
+
+.reduce-animations * {
+  animation-duration: calc(var(--animation-duration, 300ms) * 0.3) !important;
+  transition-duration: calc(var(--transition-duration, 150ms) * 0.3) !important;
+  animation-timing-function: linear !important;
+  transition-timing-function: linear !important;
+}
+
+.reduce-animations .decorative-animation {
+  animation: none !important;
+}
+
+/* ==========================================================================
+   GPU Acceleration Classes
+   ========================================================================== */
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.gpu-accelerated button,
+.gpu-accelerated a,
+.gpu-accelerated .card {
+  transform: translateZ(0);
+}
+
+/* ==========================================================================
+   Lazy Loading Image States
+   ========================================================================== */
+
+img[data-src] {
+  background-color: #f3f4f6;
+  min-height: 100px;
+}
+
+img[data-placeholder] {
+  filter: blur(10px);
+  transition: filter 0.3s ease-in-out;
+}
+
+img.loaded {
+  filter: blur(0);
+}
+
+/* ==========================================================================
+   Will-Change Management (remove after animation)
+   ========================================================================== */
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+*:not(:hover):not(:active):not(:focus) {
+  will-change: auto;
+}
+
+/* ==========================================================================
+   Contain Classes for Better Performance
+   ========================================================================== */
+
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict-perf {
+  contain: strict;
+}
+
+/* ==========================================================================
+   High Contrast Mode Support
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  * {
+    backdrop-filter: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ==========================================================================
+   Reduced Data Mode (for slow connections)
+   ========================================================================== */
+
+.reduced-data img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.reduced-data video {
+  preload: none;
+}
