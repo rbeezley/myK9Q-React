@@ -8,6 +8,7 @@
 @import './styles/performance.css';
 @import './styles/viewport.css';
 @import './styles/high-contrast.css';
+@import './styles/reduce-motion.css';
 
 * {
   margin: 0;
