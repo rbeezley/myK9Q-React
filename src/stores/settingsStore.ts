@@ -253,8 +253,10 @@ function applyTheme(theme: 'light' | 'dark' | 'auto') {
   const root = document.documentElement;
 
   if (theme === 'auto') {
-    // Remove manual theme class, let system preference take over
+    // Detect system preference and apply appropriate class
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     root.classList.remove('theme-light', 'theme-dark');
+    root.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
   } else {
     root.classList.remove('theme-light', 'theme-dark');
     root.classList.add(`theme-${theme}`);
