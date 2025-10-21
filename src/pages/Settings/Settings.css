@@ -5,7 +5,7 @@
  */
 
 .settings-page {
-  padding: var(--spacing-lg, 1.5rem);
+  padding: var(--token-space-lg) var(--token-space-3xl);
   padding-bottom: 4rem;
   height: 100vh;
   overflow-y: scroll; /* Force scrollbar to always show */
@@ -624,7 +624,7 @@
 /* Responsive */
 @media (max-width: 640px) {
   .settings-page {
-    padding: var(--spacing-md, 1rem);
+    padding: var(--token-space-lg) var(--token-space-xl);
   }
 
   .settings-header {
