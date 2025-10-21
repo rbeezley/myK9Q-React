@@ -312,32 +312,95 @@
 
 /* Dark Theme */
 .theme-dark .search-input {
-  background-color: var(--background-dark-primary, #1f2937);
-  border-color: var(--border-dark-color, #374151);
-  color: var(--text-dark-primary, #f9fafb);
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgba(75, 85, 99, 0.8);
+  color: #f9fafb;
 }
 
 .theme-dark .search-input::placeholder {
-  color: var(--text-dark-secondary, #9ca3af);
+  color: #9ca3af;
 }
 
-.theme-dark .search-results {
-  background-color: var(--background-dark-primary, #1f2937);
-  border-color: var(--border-dark-color, #374151);
+.theme-dark .search-input:hover {
+  border-color: #6366f1;
+  background-color: rgba(31, 41, 55, 1);
 }
 
-.theme-dark .result-button:hover {
-  background-color: var(--background-dark-secondary, #111827);
+.theme-dark .search-input:focus {
+  border-color: #6366f1;
+  background-color: rgba(31, 41, 55, 1);
 }
 
-.theme-dark .result-button:focus {
-  background-color: var(--background-dark-secondary, #111827);
+.theme-dark .search-icon {
+  color: #9ca3af;
+}
+
+.theme-dark .clear-search {
+  color: #9ca3af;
+}
+
+.theme-dark .clear-search:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #f9fafb;
 }
 
 .theme-dark .category-select {
-  background-color: var(--background-dark-primary, #1f2937);
-  border-color: var(--border-dark-color, #374151);
-  color: var(--text-dark-primary, #f9fafb);
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgba(75, 85, 99, 0.8);
+  color: #f9fafb;
+}
+
+.theme-dark .category-select:hover {
+  border-color: #6366f1;
+  background-color: rgba(31, 41, 55, 1);
+}
+
+.theme-dark .category-select:focus {
+  border-color: #6366f1;
+  background-color: rgba(31, 41, 55, 1);
+}
+
+.theme-dark .search-results {
+  background-color: rgba(31, 41, 55, 0.98);
+  border-color: rgba(75, 85, 99, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .results-header {
+  color: #9ca3af;
+  border-bottom-color: rgba(75, 85, 99, 0.5);
+}
+
+.theme-dark .result-item {
+  border-bottom-color: rgba(75, 85, 99, 0.3);
+}
+
+.theme-dark .result-button:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.theme-dark .result-button:focus {
+  background-color: rgba(55, 65, 81, 0.7);
+}
+
+.theme-dark .result-title {
+  color: #f9fafb;
+}
+
+.theme-dark .result-description {
+  color: #9ca3af;
+}
+
+.theme-dark .result-arrow {
+  color: #9ca3af;
+}
+
+.theme-dark .no-results p:first-child {
+  color: #f9fafb;
+}
+
+.theme-dark .no-results {
+  color: #9ca3af;
 }
 
 /* High Contrast Mode */
