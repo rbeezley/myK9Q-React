@@ -9,7 +9,7 @@
   background: #f3f4f6;
 }
 
-[data-theme="dark"] .metrics-admin {
+.theme-dark .metrics-admin {
   background: #0f172a;
 }
 
@@ -23,7 +23,7 @@
   border-bottom: 2px solid #e5e7eb;
 }
 
-[data-theme="dark"] .metrics-header {
+.theme-dark .metrics-header {
   border-bottom-color: #1e293b;
 }
 
@@ -34,7 +34,7 @@
   color: #111827;
 }
 
-[data-theme="dark"] .metrics-header h1 {
+.theme-dark .metrics-header h1 {
   color: #f1f5f9;
 }
 
@@ -60,7 +60,7 @@
   border: 1px solid #d1d5db;
 }
 
-[data-theme="dark"] .days-select {
+.theme-dark .days-select {
   background: #1e293b;
   color: #f1f5f9;
   border-color: #475569;
@@ -94,7 +94,7 @@
   text-align: center;
 }
 
-[data-theme="dark"] .stat-card {
+.theme-dark .stat-card {
   background: #1e293b;
   border-color: #475569;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -113,7 +113,7 @@
   margin-bottom: 8px;
 }
 
-[data-theme="dark"] .stat-label {
+.theme-dark .stat-label {
   color: #9ca3af;
 }
 
@@ -136,8 +136,8 @@
   color: #6b7280;
 }
 
-[data-theme="dark"] .loading,
-[data-theme="dark"] .empty-state {
+.theme-dark .loading,
+.theme-dark .empty-state {
   color: #9ca3af;
 }
 
@@ -164,7 +164,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="dark"] .sessions-list {
+.theme-dark .sessions-list {
   background: #1e293b;
   border-color: #475569;
 }
@@ -179,7 +179,7 @@
   color: #111827;
 }
 
-[data-theme="dark"] .sessions-list h2 {
+.theme-dark .sessions-list h2 {
   background: #0f172a;
   border-bottom-color: #475569;
   color: #f1f5f9;
@@ -209,7 +209,7 @@
   z-index: 10;
 }
 
-[data-theme="dark"] .table-header {
+.theme-dark .table-header {
   background: #0f172a;
   color: #9ca3af;
 }
@@ -226,7 +226,7 @@
   align-items: center;
 }
 
-[data-theme="dark"] .table-row {
+.theme-dark .table-row {
   border-bottom-color: #475569;
 }
 
@@ -234,7 +234,7 @@
   background: #f9fafb;
 }
 
-[data-theme="dark"] .table-row:hover {
+.theme-dark .table-row:hover {
   background: #334155;
 }
 
@@ -243,7 +243,7 @@
   border-left: 3px solid #ef4444;
 }
 
-[data-theme="dark"] .table-row.has-errors {
+.theme-dark .table-row.has-errors {
   background: rgba(239, 68, 68, 0.1);
 }
 
@@ -256,7 +256,7 @@
   color: #6366f1;
 }
 
-[data-theme="dark"] .col-id code {
+.theme-dark .col-id code {
   background: #0f172a;
   color: #a5b4fc;
 }
@@ -298,7 +298,7 @@
   overflow: hidden;
 }
 
-[data-theme="dark"] .session-detail {
+.theme-dark .session-detail {
   background: #1e293b;
   border-color: #475569;
 }
@@ -312,7 +312,7 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-[data-theme="dark"] .detail-header {
+.theme-dark .detail-header {
   background: #0f172a;
   border-bottom-color: #475569;
 }
@@ -324,7 +324,7 @@
   color: #111827;
 }
 
-[data-theme="dark"] .detail-header h2 {
+.theme-dark .detail-header h2 {
   color: #f1f5f9;
 }
 
@@ -341,7 +341,7 @@
   color: #111827;
 }
 
-[data-theme="dark"] .close-btn:hover {
+.theme-dark .close-btn:hover {
   color: #f1f5f9;
 }
 
@@ -364,7 +364,7 @@
   letter-spacing: 0.5px;
 }
 
-[data-theme="dark"] .detail-section h3 {
+.theme-dark .detail-section h3 {
   color: #f1f5f9;
 }
 
@@ -385,8 +385,8 @@
   font-size: 13px;
 }
 
-[data-theme="dark"] .detail-item,
-[data-theme="dark"] .issue-item {
+.theme-dark .detail-item,
+.theme-dark .issue-item {
   background: #334155;
 }
 
@@ -396,8 +396,8 @@
   color: #6b7280;
 }
 
-[data-theme="dark"] .detail-item .label,
-[data-theme="dark"] .issue-item .label {
+.theme-dark .detail-item .label,
+.theme-dark .issue-item .label {
   color: #9ca3af;
 }
 
@@ -407,7 +407,7 @@
   color: #6366f1;
 }
 
-[data-theme="dark"] .detail-item code {
+.theme-dark .detail-item code {
   color: #a5b4fc;
 }
 
@@ -416,7 +416,7 @@
   color: #111827;
 }
 
-[data-theme="dark"] .issue-item .value {
+.theme-dark .issue-item .value {
   color: #f1f5f9;
 }
 
@@ -434,7 +434,7 @@
   text-align: center;
 }
 
-[data-theme="dark"] .metric-card {
+.theme-dark .metric-card {
   background: #334155;
 }
 
@@ -446,7 +446,7 @@
   margin-bottom: 4px;
 }
 
-[data-theme="dark"] .metric-name {
+.theme-dark .metric-name {
   color: #9ca3af;
 }
 
@@ -472,7 +472,7 @@
   word-break: break-all;
 }
 
-[data-theme="dark"] .json-view {
+.theme-dark .json-view {
   background: #0f172a;
 }
 

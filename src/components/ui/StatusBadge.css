@@ -158,7 +158,7 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .status-badge.pending {
+.theme-dark .status-badge.pending {
   background: rgba(100, 116, 139, 0.3);
   color: #fef3c7;
 }

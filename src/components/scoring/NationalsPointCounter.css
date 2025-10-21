@@ -245,64 +245,64 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .nationals-point-counter {
+.theme-dark .nationals-point-counter {
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   border-color: #3498db;
   color: #ecf0f1;
 }
 
-[data-theme="dark"] .point-counter-header {
+.theme-dark .point-counter-header {
   border-bottom-color: #34495e;
 }
 
-[data-theme="dark"] .point-counter-header h3 {
+.theme-dark .point-counter-header h3 {
   color: #3498db;
 }
 
-[data-theme="dark"] .point-row.positive {
+.theme-dark .point-row.positive {
   background: #1e3a2e;
   border-left-color: #27ae60;
 }
 
-[data-theme="dark"] .point-row.negative {
+.theme-dark .point-row.negative {
   background: #3a1e1e;
   border-left-color: #e74c3c;
 }
 
-[data-theme="dark"] .point-label {
+.theme-dark .point-label {
   color: #bdc3c7;
 }
 
-[data-theme="dark"] .total-points.positive {
+.theme-dark .total-points.positive {
   background: #1e3a2e;
   border-color: #27ae60;
   color: #2ecc71;
 }
 
-[data-theme="dark"] .total-points.negative {
+.theme-dark .total-points.negative {
   background: #3a1e1e;
   border-color: #e74c3c;
   color: #ec7063;
 }
 
-[data-theme="dark"] .total-points.excused {
+.theme-dark .total-points.excused {
   background: #3a351e;
   border-color: #f39c12;
   color: #f4d03f;
 }
 
-[data-theme="dark"] .rule {
+.theme-dark .rule {
   background: #34495e;
   color: #95a5a6;
 }
 
-[data-theme="dark"] .compact-point-counter {
+.theme-dark .compact-point-counter {
   background: #2c3e50;
   border-color: #34495e;
   color: #ecf0f1;
 }
 
-[data-theme="dark"] .compact-title {
+.theme-dark .compact-title {
   color: #95a5a6;
 }
 

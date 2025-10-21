@@ -490,105 +490,105 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .time-input-label {
+.theme-dark .time-input-label {
   color: #f3f4f6;
 }
 
-[data-theme="dark"] .time-input {
+.theme-dark .time-input {
   background: #1f2937;
   border-color: var(--token-text-secondary);
   color: #f9fafb;
 }
 
-[data-theme="dark"] .time-input:focus {
+.theme-dark .time-input:focus {
   border-color: #6366f1;
   background: #1f2937;
 }
 
-[data-theme="dark"] .time-input.error {
+.theme-dark .time-input.error {
   background: #451a1a;
   border-color: #ef4444;
 }
 
-[data-theme="dark"] .clear-time-btn {
+.theme-dark .clear-time-btn {
   color: #9ca3af;
 }
 
-[data-theme="dark"] .clear-time-btn:hover {
+.theme-dark .clear-time-btn:hover {
   background: #374151;
   color: #f3f4f6;
 }
 
-[data-theme="dark"] .clear-time-btn:active {
+.theme-dark .clear-time-btn:active {
   background: #4b5563;
 }
 
-[data-theme="dark"] .help-text {
+.theme-dark .help-text {
   background: #111827;
   border-left-color: #6366f1;
 }
 
-[data-theme="dark"] .help-text p {
+.theme-dark .help-text p {
   color: #d1d5db;
 }
 
-[data-theme="dark"] .dictated-time-item {
+.theme-dark .dictated-time-item {
   background: #1e3a8a;
   border-color: #3b82f6;
 }
 
-[data-theme="dark"] .dictated-time-icon {
+.theme-dark .dictated-time-icon {
   background: #3b82f6;
 }
 
-[data-theme="dark"] .dictated-time-content label {
+.theme-dark .dictated-time-content label {
   color: #93c5fd;
 }
 
-[data-theme="dark"] .dictated-time-value {
+.theme-dark .dictated-time-value {
   color: #dbeafe;
 }
 
-[data-theme="dark"] .dictated-notice {
+.theme-dark .dictated-notice {
   background: #451a03;
   border-color: #fef3c7;
 }
 
-[data-theme="dark"] .dictated-notice p {
+.theme-dark .dictated-notice p {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .notice-icon {
+.theme-dark .notice-icon {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .time-preset-btn {
+.theme-dark .time-preset-btn {
   background: #374151;
   border-color: #4b5563;
   color: #f9fafb;
 }
 
-[data-theme="dark"] .time-preset-btn:hover {
+.theme-dark .time-preset-btn:hover {
   background: #4b5563;
   border-color: var(--token-text-tertiary);
 }
 
-[data-theme="dark"] .time-preset-btn:active {
+.theme-dark .time-preset-btn:active {
   background: #6b7280;
 }
 
-[data-theme="dark"] .time-preset-btn.active {
+.theme-dark .time-preset-btn.active {
   background: #6366f1;
   border-color: #6366f1;
   color: white;
 }
 
-[data-theme="dark"] .time-preset-btn.active:hover {
+.theme-dark .time-preset-btn.active:hover {
   background: #5855eb;
   border-color: #5855eb;
 }
 
-[data-theme="dark"] .dialog-footer {
+.theme-dark .dialog-footer {
   background: #111827;
   border-top-color: var(--token-text-secondary);
 }
@@ -715,55 +715,55 @@
 }
 
 /* Dark mode support for warning banner */
-[data-theme="dark"] .warning-banner {
+.theme-dark .warning-banner {
   background: #451a03;
   border-color: #fef3c7;
 }
 
-[data-theme="dark"] .warning-icon {
+.theme-dark .warning-icon {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .warning-text p {
+.theme-dark .warning-text p {
   color: #3b82f6;
 }
 
 /* Message Banners Dark Mode */
-[data-theme="dark"] .validation-message {
+.theme-dark .validation-message {
   background: #451a03;
   border-color: #fef3c7;
 }
 
-[data-theme="dark"] .validation-message .message-icon {
+.theme-dark .validation-message .message-icon {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .validation-message .message-content p {
+.theme-dark .validation-message .message-content p {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .error-message {
+.theme-dark .error-message {
   background: #450a0a;
   border-color: #ef4444;
 }
 
-[data-theme="dark"] .error-message .message-icon {
+.theme-dark .error-message .message-icon {
   color: #fca5a5;
 }
 
-[data-theme="dark"] .error-message .message-content p {
+.theme-dark .error-message .message-content p {
   color: #fca5a5;
 }
 
-[data-theme="dark"] .success-message {
+.theme-dark .success-message {
   background: #022c22;
   border-color: #10b981;
 }
 
-[data-theme="dark"] .success-message .message-icon {
+.theme-dark .success-message .message-icon {
   color: #34d399;
 }
 
-[data-theme="dark"] .success-message .message-content p {
+.theme-dark .success-message .message-content p {
   color: #34d399;
 }

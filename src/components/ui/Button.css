@@ -147,15 +147,15 @@
 }
 
 /* Dark mode adjustments */
-[data-theme="dark"] .btn-primary {
+.theme-dark .btn-primary {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+.theme-dark .btn-primary:hover:not(:disabled) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+.theme-dark .btn-secondary:hover:not(:disabled) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 

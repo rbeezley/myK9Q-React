@@ -111,30 +111,30 @@
 
 /* Light theme support */
 
-[data-theme="light"] .choice-chip {
+.theme-light .choice-chip {
   background: rgba(248, 250, 252, 0.9);
   color: var(--token-text-secondary);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="light"] .choice-chip:hover:not(.selected) {
+.theme-light .choice-chip:hover:not(.selected) {
   background: rgba(255, 255, 255, 1);
   color: var(--foreground);
 }
 
-[data-theme="light"] .choice-chip.success.selected {
+.theme-light .choice-chip.success.selected {
   background: #22C55E;
   color: white;
   border-color: #16A34A;
 }
 
-[data-theme="light"] .choice-chip.warning.selected {
+.theme-light .choice-chip.warning.selected {
   background: #9333EA;
   color: white;
   border-color: #7E22CE;
 }
 
-[data-theme="light"] .choice-chip.danger.selected {
+.theme-light .choice-chip.danger.selected {
   background: #EF4444;
   color: white;
   border-color: #DC2626;
@@ -242,45 +242,45 @@
 }
 
 /* Light theme for all containers */
-[data-theme="light"] .result-choice-chips,
-[data-theme="light"] .fault-counter-section,
-[data-theme="light"] .reason-selection {
+.theme-light .result-choice-chips,
+.theme-light .fault-counter-section,
+.theme-light .reason-selection {
   background: rgba(255, 255, 255, 0.95);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="light"] .fault-counter-section h3,
-[data-theme="light"] .reason-selection h3 {
+.theme-light .fault-counter-section h3,
+.theme-light .reason-selection h3 {
   color: var(--token-text-secondary);
   width: 100%;
   text-align: center !important;
 }
 
-[data-theme="light"] .fault-btn-counter {
+.theme-light .fault-btn-counter {
   background: rgba(248, 250, 252, 0.9);
   color: var(--token-text-secondary);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="light"] .fault-btn-counter:hover:not(:disabled) {
+.theme-light .fault-btn-counter:hover:not(:disabled) {
   background: rgba(255, 255, 255, 1);
   color: var(--foreground);
   border-color: rgba(0, 0, 0, 0.25);
 }
 
-[data-theme="light"] .fault-count-display {
+.theme-light .fault-count-display {
   color: var(--foreground);
 }
 
-[data-theme="light"] .choice-chip.primary,
-[data-theme="light"] .choice-chip.secondary {
+.theme-light .choice-chip.primary,
+.theme-light .choice-chip.secondary {
   background: rgba(107, 114, 128, 0.1);
   border-color: rgba(107, 114, 128, 0.3);
   color: #4B5563;
 }
 
-[data-theme="light"] .choice-chip.primary.selected,
-[data-theme="light"] .choice-chip.secondary.selected {
+.theme-light .choice-chip.primary.selected,
+.theme-light .choice-chip.secondary.selected {
   background: #6B7280;
   color: white;
   border-color: #4B5563;

@@ -69,7 +69,7 @@
 }
 
 /* Dark mode */
-[data-theme="dark"] .refresh-indicator__content {
+.theme-dark .refresh-indicator__content {
   background: rgba(99, 102, 241, 0.9);
 }
 

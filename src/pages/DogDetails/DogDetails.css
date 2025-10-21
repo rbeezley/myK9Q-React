@@ -61,7 +61,7 @@
   --done-purple: #7c3aed;
 }
 
-[data-theme="dark"] {
+.theme-dark {
   /* Dark theme - Enhanced for Outdoor Visibility */
   --background: #1a1d23;
   --foreground: #ffffff;
@@ -131,7 +131,7 @@
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-[data-theme="dark"] .dog-header {
+.theme-dark .dog-header {
   background: rgba(26, 29, 35, 0.8);
 }
 
@@ -681,7 +681,7 @@
   padding: 0 1rem;
 }
 
-[data-theme="dark"] .bottom-nav {
+.theme-dark .bottom-nav {
   background: rgba(26, 29, 35, 0.95);
 }
 
@@ -858,27 +858,27 @@
 }
 
 /* Dark mode enhancements */
-[data-theme="dark"] .class-card {
+.theme-dark .class-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .class-card:hover {
+.theme-dark .class-card:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
-[data-theme="dark"] .dog-info-card {
+.theme-dark .dog-info-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .dog-info-card:hover {
+.theme-dark .dog-info-card:hover {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme="dark"] .theme-toggle {
+.theme-dark .theme-toggle {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .theme-toggle:hover {
+.theme-dark .theme-toggle:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
@@ -893,7 +893,7 @@
     --muted-foreground: #666666;
   }
   
-  [data-theme="dark"] {
+  .theme-dark {
     --surface: #000000;
     --card: #000000;
     --border: #ffffff;

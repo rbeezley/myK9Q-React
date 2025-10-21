@@ -32,7 +32,7 @@
     --warning-contrast: #a16207;
   }
   
-  [data-theme="dark"] {
+  .theme-dark {
     --text-primary: #ffffff;
     --text-secondary: #f5f5f5;
     --background: #000000;

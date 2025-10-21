@@ -142,7 +142,7 @@
   margin: 1.5rem 0;
 }
 
-[data-theme="dark"] .qualifying-section {
+.theme-dark .qualifying-section {
   background: rgba(26, 29, 35, 0.8);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -212,7 +212,7 @@
   animation: slideIn 0.3s ease;
 }
 
-[data-theme="dark"] .reason-section {
+.theme-dark .reason-section {
   background: rgba(26, 29, 35, 0.8);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -274,7 +274,7 @@
   margin-top: 1.5rem;
 }
 
-[data-theme="dark"] .action-buttons {
+.theme-dark .action-buttons {
   background: rgba(26, 29, 35, 0.8);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -369,7 +369,7 @@
   border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-[data-theme="dark"] .confirmation-dialog {
+.theme-dark .confirmation-dialog {
   background: rgba(26, 29, 35, 0.95);
 }
 

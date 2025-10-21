@@ -41,7 +41,7 @@
   --auto-color: #3b82f6;
 }
 
-[data-theme="dark"] {
+.theme-dark {
   /* Dark theme - Enhanced for Outdoor Visibility */
   --background: #1a1d23;
   --foreground: #ffffff;
@@ -67,12 +67,12 @@
   --error-contrast: #ef4444;
 }
 
-[data-theme="dark"] .class-card {
+.theme-dark .class-card {
   background: rgba(26, 29, 35, 0.8);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .class-card:hover {
+.theme-dark .class-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 

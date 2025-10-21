@@ -314,75 +314,75 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .dialog-container {
+.theme-dark .dialog-container {
   background: #1f2937;
   color: #f9fafb;
 }
 
-[data-theme="dark"] .dialog-header {
+.theme-dark .dialog-header {
   background: #111827;
   border-bottom-color: var(--token-text-secondary);
 }
 
-[data-theme="dark"] .dialog-title {
+.theme-dark .dialog-title {
   color: var(--token-text-white) !important;
 }
 
-[data-theme="dark"] .title-icon {
+.theme-dark .title-icon {
   color: #6366f1 !important;
 }
 
-[data-theme="dark"] .close-button {
+.theme-dark .close-button {
   color: #9ca3af;
 }
 
-[data-theme="dark"] .close-button:hover {
+.theme-dark .close-button:hover {
   background: #374151;
   color: #f3f4f6;
 }
 
-[data-theme="dark"] .class-title {
+.theme-dark .class-title {
   color: #f9fafb;
 }
 
-[data-theme="dark"] .entry-count {
+.theme-dark .entry-count {
   color: #9ca3af;
 }
 
-[data-theme="dark"] .requirement-item {
+.theme-dark .requirement-item {
   background: #111827;
   border-color: var(--token-text-secondary);
 }
 
-[data-theme="dark"] .requirement-icon {
+.theme-dark .requirement-icon {
   background: #1e1b4b;
 }
 
-[data-theme="dark"] .requirement-content label {
+.theme-dark .requirement-content label {
   color: #9ca3af;
 }
 
-[data-theme="dark"] .requirement-content .requirement-value {
+.theme-dark .requirement-content .requirement-value {
   color: #f9fafb;
 }
 
-[data-theme="dark"] .requirement-item-clickable:hover {
+.theme-dark .requirement-item-clickable:hover {
   background: #374151;
   border-color: #6366f1;
 }
 
-[data-theme="dark"] .requirement-item-clickable:active {
+.theme-dark .requirement-item-clickable:active {
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
-[data-theme="dark"] .no-data-state h3 {
+.theme-dark .no-data-state h3 {
   color: #f3f4f6 !important;
 }
 
-[data-theme="dark"] .no-data-state p {
+.theme-dark .no-data-state p {
   color: #d1d5db !important;
 }
 
-[data-theme="dark"] .no-data-icon {
+.theme-dark .no-data-icon {
   color: var(--token-text-muted) !important;
 }

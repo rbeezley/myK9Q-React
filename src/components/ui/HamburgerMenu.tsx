@@ -43,11 +43,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
   // Apply theme to document
   useEffect(() => {
+    const root = document.documentElement;
     if (darkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark');
+      root.classList.remove('theme-light');
+      root.classList.add('theme-dark');
       localStorage.setItem('theme', 'dark');
     } else {
-      document.documentElement.setAttribute('data-theme', 'light');
+      root.classList.remove('theme-dark');
+      root.classList.add('theme-light');
       localStorage.setItem('theme', 'light');
     }
   }, [darkMode]);

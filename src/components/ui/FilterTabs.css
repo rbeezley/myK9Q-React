@@ -88,10 +88,10 @@
 }
 
 /* Dark mode */
-[data-theme="dark"] .tab-button:hover {
+.theme-dark .tab-button:hover {
   background: rgba(60, 60, 60, 0.5);
 }
 
-[data-theme="dark"] .tab-button.active {
+.theme-dark .tab-button.active {
   box-shadow: 0 2px 4px rgba(99, 102, 241, 0.4);
 }

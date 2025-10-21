@@ -330,8 +330,7 @@ export function SettingsSearch({
 export function useSearchableSettings(): SearchableSettingmatch[] {
   return useMemo(
     () => [
-      // Display settings
-      { id: 'theme', title: 'Theme', description: 'Choose light, dark, or automatic', category: 'Display', sectionId: 'display-section', keywords: ['appearance', 'color', 'mode'] },
+      // Display settings (theme removed - now in hamburger menu only)
       { id: 'fontSize', title: 'Font Size', description: 'Adjust text size for readability', category: 'Display', sectionId: 'display-section', keywords: ['text', 'size', 'accessibility'] },
       { id: 'density', title: 'Spacing', description: 'How much space between elements', category: 'Display', sectionId: 'display-section', keywords: ['compact', 'comfortable', 'spacious'] },
       { id: 'reduceMotion', title: 'Reduce Motion', description: 'Minimize animations and transitions', category: 'Display', sectionId: 'display-section', keywords: ['animation', 'accessibility', 'performance'] },

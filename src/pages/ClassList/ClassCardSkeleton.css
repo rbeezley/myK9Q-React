@@ -88,12 +88,12 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .skeleton-icon,
-[data-theme="dark"] .skeleton-class-name,
-[data-theme="dark"] .skeleton-judge-name,
-[data-theme="dark"] .skeleton-info-item,
-[data-theme="dark"] .skeleton-status-badge,
-[data-theme="dark"] .skeleton-preview {
+.theme-dark .skeleton-icon,
+.theme-dark .skeleton-class-name,
+.theme-dark .skeleton-judge-name,
+.theme-dark .skeleton-info-item,
+.theme-dark .skeleton-status-badge,
+.theme-dark .skeleton-preview {
   background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
   background-size: 200% 100%;
 }
@@ -105,7 +105,7 @@
     background: #f0f0f0;
   }
 
-  [data-theme="dark"] .shimmer {
+  .theme-dark .shimmer {
     background: #2a2a2a;
   }
 }

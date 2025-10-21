@@ -152,24 +152,8 @@ export function Settings() {
         title="Display"
         description="Customize how the app looks"
         defaultExpanded={true}
-        badge={5}
+        badge={4}
       >
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="theme">Theme</label>
-            <span className="setting-hint">Choose light, dark, or automatic</span>
-          </div>
-          <select
-            id="theme"
-            value={settings.theme}
-            onChange={(e) => updateSettings({ theme: e.target.value as any })}
-          >
-            <option value="auto">Auto (System)</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </div>
-
         <div className="setting-item">
           <div className="setting-info">
             <label htmlFor="fontSize">Font Size</label>

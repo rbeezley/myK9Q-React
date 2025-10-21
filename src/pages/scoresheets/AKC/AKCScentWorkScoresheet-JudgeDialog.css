@@ -503,107 +503,107 @@ body.dialog-open {
 }
 
 /* Light Theme Support */
-[data-theme="light"] .judge-confirmation-dialog {
+.theme-light .judge-confirmation-dialog {
   background: white;
   border-color: rgba(0, 0, 0, 0.15);
   color: #111827;
 }
 
-[data-theme="light"] .judge-confirmation-dialog .dialog-header {
+.theme-light .judge-confirmation-dialog .dialog-header {
   background: rgba(241, 245, 249, 0.8);
   border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .judge-confirmation-dialog .dialog-header h2 {
+.theme-light .judge-confirmation-dialog .dialog-header h2 {
   color: #111827;
 }
 
-[data-theme="light"] .judge-confirmation-dialog .trial-info-line {
+.theme-light .judge-confirmation-dialog .trial-info-line {
   color: rgba(0, 0, 0, 0.7);
 }
 
-[data-theme="light"] .judge-confirmation-dialog .dialog-header .flutter-trial-header-compact {
+.theme-light .judge-confirmation-dialog .dialog-header .flutter-trial-header-compact {
   color: rgba(0, 0, 0, 0.7);
 }
 
-[data-theme="light"] .judge-confirmation-dialog .dialog-header .trial-separator {
+.theme-light .judge-confirmation-dialog .dialog-header .trial-separator {
   color: rgba(0, 0, 0, 0.4);
 }
 
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card {
+.theme-light .dialog-dog-card .confirmation-dog-card {
   background: rgba(248, 250, 252, 0.8);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
 /* Fix DogCard text colors in light mode */
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card h4,
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card .dog-name {
+.theme-light .dialog-dog-card .confirmation-dog-card h4,
+.theme-light .dialog-dog-card .confirmation-dog-card .dog-name {
   color: #111827 !important;
 }
 
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card p,
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card .dog-breed,
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card .dog-handler {
+.theme-light .dialog-dog-card .confirmation-dog-card p,
+.theme-light .dialog-dog-card .confirmation-dog-card .dog-breed,
+.theme-light .dialog-dog-card .confirmation-dog-card .dog-handler {
   color: #4b5563 !important;
 }
 
-[data-theme="light"] .dialog-dog-card .confirmation-dog-card .armband {
+.theme-light .dialog-dog-card .confirmation-dog-card .armband {
   color: #ffffff !important; /* Keep armband badge white text */
 }
 
-[data-theme="light"] .trial-class {
+.theme-light .trial-class {
   color: #059669;
 }
 
-[data-theme="light"] .dog-summary,
-[data-theme="light"] .nationals-breakdown {
+.theme-light .dog-summary,
+.theme-light .nationals-breakdown {
   background: rgba(248, 250, 252, 0.8);
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .dog-name-large {
+.theme-light .dog-name-large {
   color: #111827;
 }
 
-[data-theme="light"] .dog-breed,
-[data-theme="light"] .handler-name {
+.theme-light .dog-breed,
+.theme-light .handler-name {
   color: #4b5563;
 }
 
-[data-theme="light"] .score-label {
+.theme-light .score-label {
   color: #374151;
 }
 
-[data-theme="light"] .score-value {
+.theme-light .score-value {
   color: #111827;
 }
 
-[data-theme="light"] .score-row {
+.theme-light .score-row {
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .nationals-breakdown h3 {
+.theme-light .nationals-breakdown h3 {
   color: #111827;
 }
 
-[data-theme="light"] .score-item {
+.theme-light .score-item {
   background: rgba(255, 255, 255, 0.8);
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .item-label {
+.theme-light .item-label {
   color: #6b7280;
 }
 
-[data-theme="light"] .total-points {
+.theme-light .total-points {
   background: rgba(16, 185, 129, 0.1);
   border-color: #059669;
 }
 
-[data-theme="light"] .total-label {
+.theme-light .total-label {
   color: #059669;
 }
 
-[data-theme="light"] .total-value {
+.theme-light .total-value {
   color: #059669;
 }

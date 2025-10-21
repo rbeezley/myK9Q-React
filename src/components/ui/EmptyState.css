@@ -45,7 +45,7 @@
 }
 
 /* Dark mode adjustments */
-[data-theme="dark"] .empty-state {
+.theme-dark .empty-state {
   background: rgba(40, 40, 40, 0.5);
 }
 

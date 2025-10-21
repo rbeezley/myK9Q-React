@@ -184,10 +184,10 @@
 }
 
 /* Dark mode */
-[data-theme="dark"] .search-controls-header {
+.theme-dark .search-controls-header {
   background: rgba(30, 30, 30, 0.5);
 }
 
-[data-theme="dark"] .search-input-full {
+.theme-dark .search-input-full {
   background: rgba(40, 40, 40, 0.5);
 }

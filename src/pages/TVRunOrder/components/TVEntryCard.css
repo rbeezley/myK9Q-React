@@ -13,7 +13,7 @@
   transition: all 0.2s ease;
 }
 
-[data-theme="dark"] .tv-entry-card {
+.theme-dark .tv-entry-card {
   --status-done: #34d399; /* Brighter green for dark mode */
   background: rgba(26, 29, 35, 0.8);
 }
@@ -30,7 +30,7 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
-[data-theme="dark"] .tv-entry-card.in-ring {
+.theme-dark .tv-entry-card.in-ring {
   background: rgba(59, 130, 246, 0.2);
 }
 
@@ -184,23 +184,23 @@
   color: white;
 }
 
-[data-theme="dark"] .checkin-badge.checkin-0 {
+.theme-dark .checkin-badge.checkin-0 {
   background: #9ca3af; /* Light grey for dark mode */
 }
 
-[data-theme="dark"] .checkin-badge.checkin-1 {
+.theme-dark .checkin-badge.checkin-1 {
   background: #10b981; /* Dark green for dark mode */
 }
 
-[data-theme="dark"] .checkin-badge.checkin-2 {
+.theme-dark .checkin-badge.checkin-2 {
   background: #3b82f6; /* Brighter yellow for dark mode */
 }
 
-[data-theme="dark"] .checkin-badge.checkin-3 {
+.theme-dark .checkin-badge.checkin-3 {
   background: #f87171; /* Brighter red for dark mode */
 }
 
-[data-theme="dark"] .checkin-badge.checkin-4 {
+.theme-dark .checkin-badge.checkin-4 {
   background: #8b5cf6; /* Teal stays same */
 }
 

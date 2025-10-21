@@ -10,7 +10,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] .class-runorder {
+.theme-dark .class-runorder {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 

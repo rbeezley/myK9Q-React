@@ -10,7 +10,7 @@
   --status-done: #10b981;
 }
 
-[data-theme="dark"] {
+.theme-dark {
   --status-checked-in: #10b981;
   --status-at-gate: #8b5cf6;
   --status-come-to-gate: #3b82f6;
@@ -33,7 +33,7 @@
   min-height: 80px;
 }
 
-[data-theme="dark"] .dog-card {
+.theme-dark .dog-card {
   background: rgba(26, 29, 35, 0.8);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -57,7 +57,7 @@
   border-color: rgba(0, 122, 255, 0.3);
 }
 
-[data-theme="dark"] .dog-card:hover {
+.theme-dark .dog-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 

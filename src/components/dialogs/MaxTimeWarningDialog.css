@@ -161,49 +161,49 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .warning-header {
+.theme-dark .warning-header {
   background: #451a03;
   border-bottom-color: #fef3c7;
 }
 
-[data-theme="dark"] .dialog-title {
+.theme-dark .dialog-title {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .warning-icon {
+.theme-dark .warning-icon {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .warning-icon-large {
+.theme-dark .warning-icon-large {
   background: #451a03;
   border-color: #fef3c7;
   color: #3b82f6;
 }
 
-[data-theme="dark"] .warning-message h3 {
+.theme-dark .warning-message h3 {
   color: #3b82f6;
 }
 
-[data-theme="dark"] .class-info {
+.theme-dark .class-info {
   color: #f9fafb;
 }
 
-[data-theme="dark"] .warning-text {
+.theme-dark .warning-text {
   color: #d1d5db;
 }
 
-[data-theme="dark"] .secondary-action {
+.theme-dark .secondary-action {
   background: #374151;
   color: #d1d5db;
   border-color: #4b5563;
 }
 
-[data-theme="dark"] .secondary-action:hover {
+.theme-dark .secondary-action:hover {
   background: #4b5563;
   color: #f9fafb;
   border-color: var(--token-text-tertiary);
 }
 
-[data-theme="dark"] .secondary-action:active {
+.theme-dark .secondary-action:active {
   background: #6b7280;
 }

@@ -228,19 +228,19 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .nationals-section {
+.theme-dark .nationals-section {
   background: #2c3e50;
   border-color: #3498db;
 }
 
-[data-theme="dark"] .nationals-controls .counter-controls {
+.theme-dark .nationals-controls .counter-controls {
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
   padding: 0 !important;
 }
 
-[data-theme="dark"] .counter-value {
+.theme-dark .counter-value {
   background: transparent !important;
   border: none !important;
   color: white !important;
@@ -249,24 +249,24 @@
   box-shadow: none !important;
 }
 
-[data-theme="dark"] .control-group label {
+.theme-dark .control-group label {
   color: #bdc3c7;
 }
 
-[data-theme="dark"] .control-group:last-child label {
+.theme-dark .control-group:last-child label {
   color: #e74c3c;
 }
 
-[data-theme="dark"] .score-summary {
+.theme-dark .score-summary {
   background: #2c3e50;
   border-color: #34495e;
 }
 
-[data-theme="dark"] .score-summary strong {
+.theme-dark .score-summary strong {
   color: #ecf0f1;
 }
 
-[data-theme="dark"] .nationals-summary {
+.theme-dark .nationals-summary {
   background: #2c3e50;
   border-color: #34495e;
 }

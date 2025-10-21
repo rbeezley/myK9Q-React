@@ -16,7 +16,7 @@
   --scoresheet-hover-overlay: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="light"] {
+.theme-light {
   --scoresheet-bg: #f5f5f5;
   --scoresheet-text: #111827;
   --scoresheet-text-secondary: #4b5563;
@@ -628,7 +628,7 @@
   color: var(--scoresheet-badge-text);
 }
 
-[data-theme="light"] .scoresheet-btn-save:disabled {
+.theme-light .scoresheet-btn-save:disabled {
   background: rgba(16, 185, 129, 0.3);
   color: var(--scoresheet-badge-text);
   opacity: 0.7;
@@ -717,12 +717,12 @@
 }
 
 /* Light theme support */
-[data-theme="light"] .scoresheet-container {
+.theme-light .scoresheet-container {
   background: #f5f5f5;
   color: #1f2937;
 }
 
-[data-theme="light"] .scoresheet {
+.theme-light .scoresheet {
   background: white;
 }
 
@@ -732,20 +732,20 @@
 
 /* Light theme badge styles - colors inherited from base via variables */
 
-[data-theme="light"] .max-time-badge {
+.theme-light .max-time-badge {
   background: rgba(124, 58, 237, 0.1);
   border: 1px solid rgba(124, 58, 237, 0.3);
   color: rgba(124, 58, 237, 0.9);
 }
 
 /* Light theme timer warning styles */
-[data-theme="light"] .timer-warning.warning {
+.theme-light .timer-warning.warning {
   background: rgba(239, 68, 68, 0.05);
   border: 2px solid #EF4444;
   color: #DC2626;
 }
 
-[data-theme="light"] .timer-warning.expired {
+.theme-light .timer-warning.expired {
   background: rgba(220, 38, 38, 0.1);
   border: 2px solid #DC2626;
   color: #B91C1C;
@@ -769,7 +769,7 @@
   animation: pulse-expired 2s ease-in-out infinite;
 }
 
-[data-theme="light"] .timer-expired-indicator {
+.theme-light .timer-expired-indicator {
   background: rgba(220, 38, 38, 0.15);
   border: 1px solid rgba(220, 38, 38, 0.4);
   color: #DC2626;
@@ -788,7 +788,7 @@
 
 /* Light theme responsive backgrounds */
 @media (min-width: 1400px) {
-  [data-theme="light"] .scoresheet-container {
+  .theme-light .scoresheet-container {
     background: #e5e7eb;
   }
 }

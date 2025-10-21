@@ -208,7 +208,7 @@
 }
 
 /* Dark Mode */
-[data-theme="dark"] {
+.theme-dark {
   --color-background: #1f2937;
   --color-text: #f9fafb;
   --color-text-secondary: #9ca3af;
@@ -220,23 +220,23 @@
   --color-success: #34d399;
 }
 
-[data-theme="dark"] .fault-btn {
+.theme-dark .fault-btn {
   background: var(--color-background);
 }
 
-[data-theme="dark"] .fault-count {
+.theme-dark .fault-count {
   background: #111827;
 }
 
-[data-theme="dark"] .time-display {
+.theme-dark .time-display {
   background: #111827;
 }
 
-[data-theme="dark"] .result-chip {
+.theme-dark .result-chip {
   background: var(--color-background);
 }
 
-[data-theme="dark"] .result-chip.selected {
+.theme-dark .result-chip.selected {
   background: var(--color-primary);
   color: #1f2937;
 }

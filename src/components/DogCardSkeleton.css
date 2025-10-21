@@ -71,11 +71,11 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .skeleton-armband,
-[data-theme="dark"] .skeleton-name,
-[data-theme="dark"] .skeleton-breed,
-[data-theme="dark"] .skeleton-handler,
-[data-theme="dark"] .skeleton-action {
+.theme-dark .skeleton-armband,
+.theme-dark .skeleton-name,
+.theme-dark .skeleton-breed,
+.theme-dark .skeleton-handler,
+.theme-dark .skeleton-action {
   background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
   background-size: 200% 100%;
 }
@@ -87,7 +87,7 @@
     background: #f0f0f0;
   }
 
-  [data-theme="dark"] .shimmer {
+  .theme-dark .shimmer {
     background: #2a2a2a;
   }
 }

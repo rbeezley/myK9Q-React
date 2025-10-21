@@ -139,16 +139,16 @@
 }
 
 /* Dark Mode Adjustments */
-[data-theme="dark"] .novice-class-dialog {
+.theme-dark .novice-class-dialog {
   background: var(--card);
   border-color: var(--border);
 }
 
-[data-theme="dark"] .dialog-option {
+.theme-dark .dialog-option {
   background: white;
 }
 
-[data-theme="dark"] .dialog-option:hover {
+.theme-dark .dialog-option:hover {
   background: #f9fafb;
 }
 

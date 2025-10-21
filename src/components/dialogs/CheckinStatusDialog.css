@@ -32,7 +32,7 @@
   background: #f9fafb;
 }
 
-[data-theme="dark"] .dialog-header {
+.theme-dark .dialog-header {
   background: #1e293b;
   border-bottom: 1px solid #334155;
 }
@@ -47,7 +47,7 @@
   flex: 1;
 }
 
-[data-theme="dark"] .dialog-title {
+.theme-dark .dialog-title {
   color: #f1f5f9;
 }
 
@@ -84,7 +84,7 @@
   line-height: 1.2;
 }
 
-[data-theme="dark"] .status-dialog-dog-name {
+.theme-dark .status-dialog-dog-name {
   color: #f1f5f9;
 }
 
@@ -118,7 +118,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .close-button {
+.theme-dark .close-button {
   background: rgba(51, 65, 85, 0.8);
   color: #94a3b8;
 }
@@ -128,7 +128,7 @@
   transform: scale(1.05);
 }
 
-[data-theme="dark"] .close-button:hover {
+.theme-dark .close-button:hover {
   background: rgba(71, 85, 105, 0.9);
   color: #cbd5e1;
 }
@@ -192,18 +192,18 @@
 }
 
 /* Light mode overrides - same as default now */
-[data-theme="light"] .status-option {
+.theme-light .status-option {
   background: white;
   border-color: #e5e7eb;
 }
 
-[data-theme="light"] .status-option:hover {
+.theme-light .status-option:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, #3b82f6);
 }
 
-[data-theme="light"] .status-option .status-text {
+.theme-light .status-option .status-text {
   color: #111827 !important;
 }
 
@@ -384,43 +384,43 @@
 }
 
 /* Light mode overrides for status-item - same as default */
-[data-theme="light"] .status-item {
+.theme-light .status-item {
   background: white;
   border-color: #e5e7eb;
 }
 
-[data-theme="light"] .status-item:hover {
+.theme-light .status-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, #3b82f6);
 }
 
-[data-theme="light"] .status-item .status-label {
+.theme-light .status-item .status-label {
   color: #111827 !important;
 }
 
-[data-theme="light"] .status-item .status-description {
+.theme-light .status-item .status-description {
   color: #6b7280 !important;
 }
 
 /* Dark mode overrides for status-item */
-[data-theme="dark"] .status-item {
+.theme-dark .status-item {
   background: #1e293b;
   border-color: #334155;
 }
 
-[data-theme="dark"] .status-item:hover {
+.theme-dark .status-item:hover {
   background: #334155;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   border-color: var(--status-color, #3b82f6);
 }
 
-[data-theme="dark"] .status-item .status-label {
+.theme-dark .status-item .status-label {
   color: #f1f5f9 !important;
 }
 
-[data-theme="dark"] .status-item .status-description {
+.theme-dark .status-item .status-description {
   color: #fef3c7 !important;
 }
 

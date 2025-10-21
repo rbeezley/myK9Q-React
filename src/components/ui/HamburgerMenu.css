@@ -24,13 +24,13 @@
 }
 
 /* Dark mode menu button visibility */
-[data-theme="dark"] .menu-button {
+.theme-dark .menu-button {
   background: var(--muted);
   border: 1px solid var(--border);
   color: var(--foreground);
 }
 
-[data-theme="dark"] .menu-button:hover {
+.theme-dark .menu-button:hover {
   background: var(--secondary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -45,7 +45,7 @@
 }
 
 /* Light mode overlay - less prominent */
-[data-theme="light"] .menu-overlay {
+.theme-light .menu-overlay {
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -225,7 +225,7 @@
 }
 
 /* Dark mode specific styles */
-[data-theme="dark"] .hamburger-menu {
+.theme-dark .hamburger-menu {
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
 }
 

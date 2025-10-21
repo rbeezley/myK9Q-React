@@ -86,10 +86,10 @@
 }
 
 /* Dark mode specific adjustments */
-[data-theme="dark"] .card {
+.theme-dark .card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .card.clickable:hover {
+.theme-dark .card.clickable:hover {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }

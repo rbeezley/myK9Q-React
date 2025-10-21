@@ -87,33 +87,33 @@
 }
 
 /* Light mode overrides */
-[data-theme="light"] .status-item {
+.theme-light .status-item {
   background: rgba(248, 250, 252, 0.9);
   border-color: rgba(226, 232, 240, 0.6);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-[data-theme="light"] .status-item:hover {
+.theme-light .status-item:hover {
   background: rgba(241, 245, 249, 0.95);
   border-color: var(--status-color, #3b82f6);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .status-label {
+.theme-light .status-label {
   color: #111827 !important;
 }
 
-[data-theme="light"] .status-description {
+.theme-light .status-description {
   color: var(--token-text-tertiary) !important;
 }
 
 /* Light mode selected status text readability */
-[data-theme="light"] .status-item-selected .status-label {
+.theme-light .status-item-selected .status-label {
   color: #111827 !important;
   font-weight: 700;
 }
 
-[data-theme="light"] .status-item-selected .status-description {
+.theme-light .status-item-selected .status-description {
   color: #475569 !important;
 }
 
@@ -287,12 +287,12 @@
 }
 
 /* Light mode quick buttons */
-[data-theme="light"] .time-quick-button {
+.theme-light .time-quick-button {
   background: rgba(59, 130, 246, 0.08);
   border-color: rgba(59, 130, 246, 0.3);
 }
 
-[data-theme="light"] .time-quick-button:hover {
+.theme-light .time-quick-button:hover {
   background: rgba(59, 130, 246, 0.15);
   border-color: #3b82f6;
 }
@@ -341,29 +341,29 @@
 }
 
 /* Light mode overrides for time input */
-[data-theme="light"] .time-status-header {
+.theme-light .time-status-header {
   background: rgba(248, 250, 252, 0.8);
   border-color: rgba(226, 232, 240, 0.8);
 }
 
-[data-theme="light"] .time-status-title {
+.theme-light .time-status-title {
   color: #111827 !important;
 }
 
-[data-theme="light"] .time-status-description {
+.theme-light .time-status-description {
   color: var(--token-text-tertiary) !important;
 }
 
-[data-theme="light"] .time-input-label {
+.theme-light .time-input-label {
   color: #111827 !important;
 }
 
-[data-theme="light"] .time-input {
+.theme-light .time-input {
   background: rgba(248, 250, 252, 0.9);
   border-color: rgba(226, 232, 240, 0.8);
   color: #111827 !important;
 }
 
-[data-theme="light"] .time-action-cancel {
+.theme-light .time-action-cancel {
   color: var(--token-text-tertiary) !important;
 }

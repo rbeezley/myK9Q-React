@@ -59,7 +59,7 @@
   --stress-touch-target: 52px;
 }
 
-[data-theme="dark"] {
+.theme-dark {
   /* Dark Theme - Enhanced for Outdoor Visibility */
   --background: #1a1d23;
   --foreground: #ffffff;
@@ -521,7 +521,7 @@ body {
     --muted-foreground: #000000;
   }
   
-  [data-theme="dark"] {
+  .theme-dark {
     --border: #ffffff;
     --muted-foreground: #ffffff;
   }

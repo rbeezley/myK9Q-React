@@ -20,7 +20,7 @@
   min-height: 56px;
 }
 
-[data-theme="dark"] .announcements-header {
+.theme-dark .announcements-header {
   background: rgba(26, 29, 35, 0.8);
 }
 
@@ -415,7 +415,7 @@
 }
 
 /* Dark Theme */
-[data-theme="dark"] .announcements-container {
+.theme-dark .announcements-container {
   --background: #1a1a1a;
   --surface: rgba(40, 40, 40, 0.8);
   --surface-variant: rgba(60, 60, 60, 0.8);
@@ -435,7 +435,7 @@
 }
 
 /* Light Theme */
-[data-theme="light"] .announcements-container {
+.theme-light .announcements-container {
   --background: #f5f5f5;
   --surface: rgba(255, 255, 255, 0.95);
   --surface-variant: rgba(248, 250, 252, 0.8);
