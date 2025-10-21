@@ -124,17 +124,18 @@ export function Settings() {
   };
 
   return (
-    <div className="settings-page">
+    <div className="settings-container">
       <HamburgerMenu currentPage="settings" />
-      <div className="settings-header">
-        <h1>Settings</h1>
-        <button
-          className="reset-all-btn"
-          onClick={() => setShowResetConfirm(true)}
-        >
-          Reset All
-        </button>
-      </div>
+      <div className="settings-content">
+        <div className="settings-header">
+          <h1>Settings</h1>
+          <button
+            className="reset-all-btn"
+            onClick={() => setShowResetConfirm(true)}
+          >
+            Reset All
+          </button>
+        </div>
 
       {/* Search Settings */}
       <SettingsSearch
@@ -949,6 +950,7 @@ export function Settings() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

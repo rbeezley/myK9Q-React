@@ -4,38 +4,45 @@
  * Modern, clean settings UI with improved visual hierarchy and spacing.
  */
 
-.settings-page {
-  padding: var(--token-space-lg) var(--token-space-3xl);
-  padding-bottom: 4rem;
+.settings-container {
   height: 100vh;
-  overflow-y: scroll; /* Force scrollbar to always show */
-  overflow-x: hidden;
+  overflow: hidden;
   background: var(--background);
   color: var(--foreground);
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: var(--token-space-lg) var(--token-space-3xl);
+  padding-bottom: 4rem;
 }
 
 /* Custom Scrollbar Styling */
-.settings-page::-webkit-scrollbar {
+.settings-content::-webkit-scrollbar {
   width: 12px;
 }
 
-.settings-page::-webkit-scrollbar-track {
+.settings-content::-webkit-scrollbar-track {
   background: rgba(31, 41, 55, 0.5);
   border-radius: 10px;
 }
 
-.settings-page::-webkit-scrollbar-thumb {
+.settings-content::-webkit-scrollbar-thumb {
   background: rgba(99, 102, 241, 0.6);
   border-radius: 10px;
   border: 2px solid rgba(31, 41, 55, 0.5);
 }
 
-.settings-page::-webkit-scrollbar-thumb:hover {
+.settings-content::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 102, 241, 0.8);
 }
 
 /* Firefox scrollbar */
-.settings-page {
+.settings-content {
   scrollbar-width: thin;
   scrollbar-color: rgba(99, 102, 241, 0.6) rgba(31, 41, 55, 0.5);
 }
@@ -623,7 +630,7 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-  .settings-page {
+  .settings-content {
     padding: var(--token-space-lg) var(--token-space-xl);
   }
 
