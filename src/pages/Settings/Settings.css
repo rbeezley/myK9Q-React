@@ -5,13 +5,13 @@
  */
 
 .settings-page {
-  max-width: 1000px;
-  margin: 0 auto;
   padding: var(--spacing-lg, 1.5rem);
   padding-bottom: 4rem;
   height: 100vh;
   overflow-y: scroll; /* Force scrollbar to always show */
   overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 /* Custom Scrollbar Styling */
