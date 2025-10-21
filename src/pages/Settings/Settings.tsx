@@ -125,9 +125,9 @@ export function Settings() {
 
   return (
     <div className="settings-container">
-      <HamburgerMenu currentPage="settings" />
       <div className="settings-content">
         <div className="settings-header">
+          <HamburgerMenu currentPage="settings" />
           <h1>Settings</h1>
           <button
             className="reset-all-btn"

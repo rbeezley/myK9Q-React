@@ -55,6 +55,15 @@
   margin-bottom: var(--spacing-xl, 2.5rem);
   padding-bottom: 0;
   border-bottom: none;
+  gap: 1rem;
+}
+
+.settings-header .menu-button {
+  flex-shrink: 0;
+}
+
+.settings-header h1 {
+  flex: 1;
 }
 
 .settings-header h1 {
