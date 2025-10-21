@@ -43,3 +43,7 @@ export { PerformanceSettingsPanel } from './PerformanceSettingsPanel';
 export type { PerformanceSettingsPanelProps } from './PerformanceSettingsPanel';
 export { DeviceTierToast } from './DeviceTierToast';
 export type { DeviceTierToastProps } from './DeviceTierToast';
+export { CollapsibleSection, CollapsibleSectionGroup } from './CollapsibleSection';
+export type { CollapsibleSectionProps, CollapsibleSectionGroupProps } from './CollapsibleSection';
+export { SettingsSearch, useSearchableSettings } from './SettingsSearch';
+export type { SettingsSearchProps, SearchableSettingmatch } from './SettingsSearch';

@@ -7,7 +7,13 @@
 
 import { useState, useRef } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { PerformanceSettingsPanel, HamburgerMenu } from '@/components/ui';
+import {
+  PerformanceSettingsPanel,
+  HamburgerMenu,
+  CollapsibleSection,
+  SettingsSearch,
+  useSearchableSettings
+} from '@/components/ui';
 import { clearAllCaches, clearScrollPositions, undoCacheClear, canUndoCacheClear } from '@/utils/cacheManager';
 import './Settings.css';
 
@@ -18,7 +24,9 @@ export function Settings() {
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [isClearing, setIsClearing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchableSettings = useSearchableSettings();
 
   // Show toast message
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -128,11 +136,24 @@ export function Settings() {
         </button>
       </div>
 
-      {/* Display Section */}
-      <section className="settings-section">
-        <h2>Display</h2>
-        <p className="section-description">Customize how the app looks</p>
+      {/* Search Settings */}
+      <SettingsSearch
+        settings={searchableSettings}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        showCategoryFilter={true}
+        placeholder="Search settings..."
+        autoFocus={false}
+      />
 
+      {/* Display Section */}
+      <CollapsibleSection
+        id="display-section"
+        title="Display"
+        description="Customize how the app looks"
+        defaultExpanded={true}
+        badge={5}
+      >
         <div className="setting-item">
           <div className="setting-info">
             <label htmlFor="theme">Theme</label>
@@ -212,12 +233,16 @@ export function Settings() {
             <span className="toggle-slider"></span>
           </label>
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Performance Section */}
-      <section className="settings-section">
-        <h2>Performance</h2>
-        <p className="section-description">Optimize for your device</p>
+      <CollapsibleSection
+        id="performance-section"
+        title="Performance"
+        description="Optimize for your device"
+        defaultExpanded={false}
+        badge={2}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -265,12 +290,16 @@ export function Settings() {
             <option value="original">Original</option>
           </select>
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Mobile Section */}
-      <section className="settings-section">
-        <h2>Mobile</h2>
-        <p className="section-description">One-handed use and touch optimizations</p>
+      <CollapsibleSection
+        id="mobile-section"
+        title="Mobile"
+        description="One-handed use and touch optimizations"
+        defaultExpanded={false}
+        badge={4}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -355,12 +384,16 @@ export function Settings() {
             <span className="toggle-slider"></span>
           </label>
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Data & Sync Section */}
-      <section className="settings-section">
-        <h2>Data & Sync</h2>
-        <p className="section-description">Control how data syncs and stores</p>
+      <CollapsibleSection
+        id="sync-section"
+        title="Data & Sync"
+        description="Control how data syncs and stores"
+        defaultExpanded={false}
+        badge={6}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -461,12 +494,16 @@ export function Settings() {
             <span className="toggle-slider"></span>
           </label>
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Notifications Section */}
-      <section className="settings-section">
-        <h2>Notifications</h2>
-        <p className="section-description">Manage alerts and reminders</p>
+      <CollapsibleSection
+        id="notifications-section"
+        title="Notifications"
+        description="Manage alerts and reminders"
+        defaultExpanded={false}
+        badge={8}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -596,12 +633,16 @@ export function Settings() {
             </div>
           </>
         )}
-      </section>
+      </CollapsibleSection>
 
       {/* Scoring Section */}
-      <section className="settings-section">
-        <h2>Scoring</h2>
-        <p className="section-description">Customize scoresheet behavior</p>
+      <CollapsibleSection
+        id="scoring-section"
+        title="Scoring"
+        description="Customize scoresheet behavior"
+        defaultExpanded={false}
+        badge={3}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -651,12 +692,16 @@ export function Settings() {
             <option value="never">Never Ask</option>
           </select>
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Privacy & Security Section */}
-      <section className="settings-section">
-        <h2>Privacy & Security</h2>
-        <p className="section-description">Protect your data and account</p>
+      <CollapsibleSection
+        id="privacy-section"
+        title="Privacy & Security"
+        description="Protect your data and account"
+        defaultExpanded={false}
+        badge={3}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -723,12 +768,16 @@ export function Settings() {
             Clear Scroll Positions
           </button>
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Advanced Section */}
-      <section className="settings-section">
-        <h2>Advanced</h2>
-        <p className="section-description">Developer and experimental features</p>
+      <CollapsibleSection
+        id="advanced-section"
+        title="Advanced"
+        description="Developer and experimental features"
+        defaultExpanded={false}
+        badge={6}
+      >
 
         <div className="setting-item">
           <div className="setting-info">
@@ -848,7 +897,7 @@ export function Settings() {
             onChange={handleImportFile}
           />
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Toast Notification */}
       {toast && (
