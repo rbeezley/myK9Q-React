@@ -7,10 +7,11 @@ import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
 import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState } from '../../components/ui';
-import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FloatingActionButton, InstallPrompt } from '../../components/ui';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
+import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown, ArrowUp } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -39,10 +40,11 @@ interface TrialData {
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { showContext, logout: _logout, role: _role } = useAuth();
+  const { showContext, logout: _logout, role } = useAuth();
   const { hasPermission: _hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const { prefetch } = usePrefetch();
+  const { settings } = useSettingsStore();
 
   // Search, sort, and filter state
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
@@ -109,9 +111,16 @@ export const Home: React.FC = () => {
   useEffect(() => {
     if (cachedData) {
       setTrials(cachedData.trials);
-      setEntries(cachedData.entries);
+
+      // Apply favorites to entries before setting state
+      const entriesWithFavorites = cachedData.entries.map(entry => ({
+        ...entry,
+        is_favorite: favoriteDogs.has(entry.armband)
+      }));
+
+      setEntries(entriesWithFavorites);
     }
-  }, [cachedData]);
+  }, [cachedData, favoriteDogs]);
 
   // Load dog favorites from localStorage
   useEffect(() => {
@@ -168,26 +177,6 @@ export const Home: React.FC = () => {
       logger.log('🐕 Not saving dog favorites - not loaded yet:', { licenseKey: showContext?.licenseKey, dogFavoritesLoaded, size: favoriteDogs.size });
     }
   }, [favoriteDogs, showContext?.licenseKey, dogFavoritesLoaded]);
-
-  // Update entries' is_favorite property when favoriteDogs changes
-  useEffect(() => {
-    if (entries.length > 0 && dogFavoritesLoaded) {
-      logger.log('🐕 Updating entries is_favorite based on favoriteDogs:', Array.from(favoriteDogs));
-      logger.log('🐕 Current entries armbands:', entries.map(e => e.armband));
-      setEntries(prevEntries => {
-        const updatedEntries = prevEntries.map(entry => {
-          const shouldBeFavorite = favoriteDogs.has(entry.armband);
-          logger.log(`🐕 Entry ${entry.armband} (${entry.call_name}): favorite=${shouldBeFavorite}`);
-          return {
-            ...entry,
-            is_favorite: shouldBeFavorite
-          };
-        });
-        logger.log('🐕 Updated entries with favorites:', updatedEntries.map(e => `${e.armband}:${e.is_favorite}`));
-        return updatedEntries;
-      });
-    }
-  }, [favoriteDogs, dogFavoritesLoaded]);
 
   const fetchDashboardData = useCallback(async (): Promise<{ entries: EntryData[]; trials: TrialData[] }> => {
     try {
@@ -295,7 +284,7 @@ export const Home: React.FC = () => {
               call_name: entry.call_name,
               breed: entry.breed,
               handler: entry.handler,
-              is_favorite: favoriteDogs.has(entry.armband), // Use current favoriteDogs state
+              is_favorite: false, // Will be updated by useEffect after favorites load
               class_name: entry.class_name,
               is_scored: entry.is_scored
             });
@@ -312,18 +301,18 @@ export const Home: React.FC = () => {
       logger.error('Error loading dashboard data:', error);
       return { entries: [], trials: [] };
     }
-  }, [showContext?.showId, showContext?.licenseKey, favoriteDogs]);
+  }, [showContext?.showId, showContext?.licenseKey]);
 
   // Data is loaded via useStaleWhileRevalidate hook - no manual loading needed
 
   const handleRefresh = useCallback(async () => {
-    hapticFeedback.impact('medium');
+    hapticFeedback.medium();
     await refresh();
   }, [refresh, hapticFeedback]);
 
   const toggleFavorite = useCallback((armband: number) => {
     logger.log('🐕 toggleFavorite called for armband:', armband);
-    hapticFeedback.impact('light');
+    hapticFeedback.light();
     
     // Update the favoriteDogs set for localStorage persistence
     setFavoriteDogs(prev => {
@@ -343,7 +332,7 @@ export const Home: React.FC = () => {
   }, [hapticFeedback]);
   
   const handleDogClick = (armband: number) => {
-    hapticFeedback.impact('light');
+    hapticFeedback.light();
     navigate(`/dog/${armband}`);
   };
 
@@ -417,15 +406,15 @@ export const Home: React.FC = () => {
   });
 
   return (
-    <div className="home-container app-container">
+    <div className="home-container page-container">
       {/* Enhanced Header with Glass Morphism */}
       <header className="home-header">
         <HamburgerMenu currentPage="home" />
-        
+
         <div className="header-center">
           <h1>Home</h1>
         </div>
-        
+
         <div className="header-buttons">
           {/* Background refresh indicator */}
           {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
@@ -445,8 +434,25 @@ export const Home: React.FC = () => {
       <HeaderTicker />
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
+      {/* PWA Install Prompt - Only shown to exhibitors with favorited dogs */}
+      {role === 'exhibitor' && favoriteDogs.size > 0 && settings.enableNotifications && (
+        <div style={{ padding: '0 1rem', marginTop: '0.5rem' }}>
+          <InstallPrompt
+            mode="banner"
+            showNotificationBenefit={true}
+            favoritedCount={favoriteDogs.size}
+          />
+        </div>
+      )}
+
       {/* Show info moved to hamburger menu for maximum screen space */}
 
+      {/* Pull to Refresh Wrapper */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={settings.pullToRefresh}
+        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+      >
       {/* Enhanced Active Trials Section */}
       <div className="trials-section">
         <div className="trials-scroll">
@@ -475,7 +481,7 @@ export const Home: React.FC = () => {
                 onMouseEnter={() => handleTrialPrefetch(trial.id)}
                 onTouchStart={() => handleTrialPrefetch(trial.id)}
                 onClick={() => {
-                  hapticFeedback.impact('medium');
+                  hapticFeedback.medium();
                   logger.log('Navigating to trial:', trial.id, 'id:', trial.id);
                   navigate(`/trial/${trial.id}/classes`);
                 }}
@@ -581,7 +587,7 @@ export const Home: React.FC = () => {
           <button
             className={`sort-btn favorites-btn ${filterBy === 'favorites' ? 'active' : ''}`}
             onClick={() => {
-              hapticFeedback.impact('light');
+              hapticFeedback.light();
               setFilterBy(filterBy === 'favorites' ? 'all' : 'favorites');
             }}
             title="Favorites"
@@ -638,7 +644,7 @@ export const Home: React.FC = () => {
               <button
                 className={`favorites-filter-btn ${filterBy === 'favorites' ? 'active' : ''}`}
                 onClick={() => {
-                  hapticFeedback.impact('light');
+                  hapticFeedback.light();
                   setFilterBy(filterBy === 'favorites' ? 'all' : 'favorites');
                 }}
                 title={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
@@ -744,7 +750,14 @@ export const Home: React.FC = () => {
           </>
         )}
       </div>
+      </PullToRefresh>
 
+      {/* Floating Action Button - Scroll to Top */}
+      <FloatingActionButton
+        icon={<ArrowUp />}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        ariaLabel="Scroll to top"
+      />
     </div>
   );
 };

@@ -57,17 +57,15 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       notifyClassStarting: false,
       notifyYourTurn: false,
       notifyResults: false,
-      notifyConflicts: true,
       notifySyncErrors: true,
 
       // Scoring - quick and efficient
       voiceAnnouncements: false,
       autoSaveFrequency: '30s',
-      confirmationPrompts: 'errors-only',
+      confirmationPrompts: 'smart',
 
       // Security - balanced
-      autoLogout: 30,
-      rememberMe: true,
+      autoLogout: 480, // 8 hours
     },
   },
 
@@ -105,8 +103,8 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       notificationSound: true,
       notifyClassStarting: true,
       notifyYourTurn: true,
+      notifyYourTurnLeadDogs: 2,
       notifyResults: true,
-      notifyConflicts: true,
       notifySyncErrors: true,
 
       // Scoring - not typically used
@@ -115,8 +113,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       confirmationPrompts: 'always',
 
       // Security - longer sessions
-      autoLogout: 60,
-      rememberMe: true,
+      autoLogout: 720, // 12 hours
     },
   },
 
@@ -155,7 +152,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       notifyClassStarting: false,
       notifyYourTurn: false,
       notifyResults: true,
-      notifyConflicts: false,
       notifySyncErrors: false,
 
       // Scoring - disabled
@@ -164,8 +160,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       confirmationPrompts: 'always',
 
       // Security - shorter sessions
-      autoLogout: 15,
-      rememberMe: false,
+      autoLogout: 240, // 4 hours
     },
   },
 
@@ -203,18 +198,17 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       notificationSound: true,
       notifyClassStarting: true,
       notifyYourTurn: true,
+      notifyYourTurnLeadDogs: 2,
       notifyResults: true,
-      notifyConflicts: true,
       notifySyncErrors: true,
 
       // Scoring - full control
       voiceAnnouncements: false,
       autoSaveFrequency: '30s',
-      confirmationPrompts: 'errors-only',
+      confirmationPrompts: 'smart',
 
       // Security - extended
-      autoLogout: 60,
-      rememberMe: true,
+      autoLogout: 1440, // 24 hours
 
       // Advanced - enabled
       developerMode: true,

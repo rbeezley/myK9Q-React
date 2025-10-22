@@ -3,7 +3,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import type { Announcement } from '../../stores/announcementStore';
-import { HamburgerMenu } from '../../components/ui';
+import { HamburgerMenu, PullToRefresh } from '../../components/ui';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { AnnouncementCard } from '../../components/announcements/AnnouncementCard';
 import { CreateAnnouncementModal } from '../../components/announcements/CreateAnnouncementModal';
 import { AnnouncementFilters } from '../../components/announcements/AnnouncementFilters';
@@ -27,6 +28,7 @@ import '../../components/announcements/AnnouncementComponents.css';
 export const Announcements: React.FC = () => {
   const { showContext, role } = useAuth();
   const { hasRole } = usePermission();
+  const { settings } = useSettingsStore();
   const {
     announcements,
     unreadCount,
@@ -233,7 +235,12 @@ export const Announcements: React.FC = () => {
         />
       )}
 
-      {/* Content */}
+      {/* Content with Pull to Refresh */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={settings.pullToRefresh}
+        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+      >
       <div className="announcements-content">
         {error && (
           <div className="error-banner">
@@ -300,6 +307,7 @@ export const Announcements: React.FC = () => {
           </div>
         )}
       </div>
+      </PullToRefresh>
 
       {/* Active Filters Summary */}
       {(searchTerm || Object.keys(filters).some(key => key !== 'searchTerm' && filters[key as keyof typeof filters])) && (

@@ -5,7 +5,7 @@
  * Users can control display, performance, mobile, sync, notifications, etc.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import {
   PerformanceSettingsPanel,
@@ -15,6 +15,13 @@ import {
   useSearchableSettings
 } from '@/components/ui';
 import { clearAllCaches, clearScrollPositions, undoCacheClear, canUndoCacheClear } from '@/utils/cacheManager';
+import { useDNDToggle } from '@/hooks/useNotifications';
+import { notificationService } from '@/services/notificationService';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { exportPersonalData, clearAllData, getStorageUsage, formatBytes } from '@/services/dataExportService';
+import voiceAnnouncementService from '@/services/voiceAnnouncementService';
+import smartConfirmationService from '@/services/smartConfirmation';
+import { Download, CheckCircle2, AlertCircle, Database, Trash2, Volume2, User } from 'lucide-react';
 import './Settings.css';
 
 export function Settings() {
@@ -22,16 +29,78 @@ export function Settings() {
   const [showPerformanceDetails, setShowPerformanceDetails] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
+  const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [storageUsage, setStorageUsage] = useState<{ estimated: number; quota: number; percentUsed: number; localStorageSize: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchableSettings = useSearchableSettings();
+  const { isActive: isDNDActive, setFor: setDNDFor, disable: disableDND } = useDNDToggle();
+  const { isInstalled, canInstall, promptInstall, getInstallInstructions } = usePWAInstall();
+
+  // Quiet hours state
+  const [quietHoursConfig, setQuietHoursConfigState] = useState(() => {
+    const stored = localStorage.getItem('notification_quiet_hours');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return { enabled: false, startTime: '22:00', endTime: '08:00', allowUrgent: true };
+  });
+
+  // Load storage usage on mount
+  useEffect(() => {
+    getStorageUsage().then(setStorageUsage);
+  }, []);
+
+  // Configure voice announcement service when settings change
+  useEffect(() => {
+    voiceAnnouncementService.setEnabled(settings.voiceAnnouncements);
+    voiceAnnouncementService.setDefaultConfig({
+      lang: settings.voiceLanguage,
+      rate: settings.voiceRate,
+      pitch: settings.voicePitch,
+      volume: settings.voiceVolume,
+    });
+  }, [settings.voiceAnnouncements, settings.voiceLanguage, settings.voiceRate, settings.voicePitch, settings.voiceVolume]);
 
   // Show toast message
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
+  };
+
+  // Export personal data
+  const handleExportData = async () => {
+    try {
+      const authData = localStorage.getItem('myK9Q_auth');
+      const licenseKey = authData ? JSON.parse(authData).licenseKey : undefined;
+      await exportPersonalData(licenseKey);
+      showToast('Your data has been exported successfully!');
+    } catch (error) {
+      showToast('Failed to export your data', 'error');
+      console.error('Export data error:', error);
+    }
+  };
+
+  // Clear all data
+  const handleClearAllData = async () => {
+    setShowClearDataConfirm(false);
+    setIsClearing(true);
+
+    try {
+      await clearAllData({ keepAuth: true, keepSettings: false, keepFavorites: false });
+      showToast('All data cleared successfully! You remain logged in.', 'success');
+
+      // Refresh storage usage
+      const usage = await getStorageUsage();
+      setStorageUsage(usage);
+    } catch (error) {
+      showToast('Failed to clear data', 'error');
+      console.error('Clear data error:', error);
+    } finally {
+      setIsClearing(false);
+    }
   };
 
   // Export settings
@@ -123,8 +192,44 @@ export function Settings() {
     }
   };
 
+  // DND handlers
+  const handleDNDToggle = () => {
+    if (isDNDActive) {
+      disableDND();
+      showToast('Do Not Disturb disabled', 'info');
+    } else {
+      setDNDFor(60); // 1 hour default
+      showToast('Do Not Disturb enabled for 1 hour', 'info');
+    }
+  };
+
+  const handleDNDDurationChange = (minutes: number) => {
+    setDNDFor(minutes);
+    showToast(`Do Not Disturb enabled for ${minutes} minutes`, 'info');
+  };
+
+  // Quiet hours handlers
+  const handleQuietHoursToggle = (enabled: boolean) => {
+    const newConfig = { ...quietHoursConfig, enabled };
+    setQuietHoursConfigState(newConfig);
+    notificationService.setQuietHours(newConfig);
+    showToast(enabled ? 'Quiet hours enabled' : 'Quiet hours disabled', 'info');
+  };
+
+  const handleQuietHoursChange = (startTime: string, endTime: string) => {
+    const newConfig = { ...quietHoursConfig, startTime, endTime };
+    setQuietHoursConfigState(newConfig);
+    notificationService.setQuietHours(newConfig);
+  };
+
+  const handleQuietHoursAllowUrgent = (allowUrgent: boolean) => {
+    const newConfig = { ...quietHoursConfig, allowUrgent };
+    setQuietHoursConfigState(newConfig);
+    notificationService.setQuietHours(newConfig);
+  };
+
   return (
-    <div className="settings-container">
+    <div className="settings-container page-container">
       <div className="settings-content">
         <div className="settings-header">
           <HamburgerMenu currentPage="settings" />
@@ -283,7 +388,7 @@ export function Settings() {
         title="Mobile"
         description="One-handed use and touch optimizations"
         defaultExpanded={false}
-        badge={4}
+        badge={5}
       >
 
         <div className="setting-item">
@@ -508,6 +613,62 @@ export function Settings() {
 
         {settings.enableNotifications && (
           <>
+            {/* PWA Installation Status */}
+            <div className="setting-item indented" style={{ backgroundColor: isInstalled ? '#10b98114' : '#f9731614', borderLeft: '3px solid', borderColor: isInstalled ? '#22c55e' : '#f97316', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
+              <div className="setting-info" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  {isInstalled ? <CheckCircle2 size={20} color="#22c55e" /> : <AlertCircle size={20} color="#f97316" />}
+                  <label style={{ fontWeight: 600, fontSize: '1rem', color: isInstalled ? '#22c55e' : '#f97316' }}>
+                    {isInstalled ? 'App Installed' : 'App Not Installed'}
+                  </label>
+                </div>
+                <span className="setting-hint notification-instructions-hint" style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                  {isInstalled
+                    ? 'You\'ll receive notifications for your favorited dogs (❤️) when they\'re up next'
+                    : 'Install the app and favorite your dogs (❤️) to receive notifications when they\'re up next'
+                  }
+                </span>
+                {!isInstalled && canInstall && (
+                  <button
+                    className="primary-button"
+                    onClick={promptInstall}
+                    style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                  >
+                    <Download size={16} />
+                    Install App
+                  </button>
+                )}
+                {!isInstalled && !canInstall && (
+                  <>
+                    <div className="install-instructions-box">
+                      <strong className="install-instructions-title">Manual Installation Required</strong>
+                      <p className="install-instructions-text">To receive notifications, install this app through your browser's menu.</p>
+                      <p className="install-instructions-hint">Click the button below for step-by-step instructions.</p>
+                    </div>
+                    <button
+                      className="primary-button"
+                      onClick={async () => {
+                        const userAgent = navigator.userAgent.toLowerCase();
+                        let instructions = getInstallInstructions();
+
+                        if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+                          instructions = '1. Click the three dots menu (⋮) in the top-right corner\n2. Select "Save and Share" → "Install app"\n   OR look for an install icon (⊕) in the address bar\n3. Click "Install" in the popup\n\nOnce installed, favorite your dogs (❤️) to receive notifications when they\'re up next!';
+                        } else if (userAgent.includes('edg')) {
+                          instructions = '1. Click the three dots menu (...) in the top-right corner\n2. Select "Apps" → "Install myK9Q"\n   OR look for an install icon in the address bar\n3. Click "Install" in the popup\n\nOnce installed, favorite your dogs (❤️) to receive notifications when they\'re up next!';
+                        }
+
+                        alert(`📱 Install myK9Q for Notifications\n\n${instructions}`);
+                      }}
+                      style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem', width: '100%', justifyContent: 'center' }}
+                    >
+                      <Download size={16} />
+                      How to Install
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
             <div className="setting-item indented">
               <div className="setting-info">
                 <label htmlFor="notificationSound">Sound</label>
@@ -572,9 +733,30 @@ export function Settings() {
               </label>
             </div>
 
+            {settings.notifyYourTurn && (
+              <div className="setting-item indented">
+                <div className="setting-info">
+                  <label htmlFor="notifyYourTurnLeadDogs">Notify When Dogs Ahead</label>
+                  <span className="setting-hint">How many dogs before you to get notified</span>
+                </div>
+                <select
+                  id="notifyYourTurnLeadDogs"
+                  value={settings.notifyYourTurnLeadDogs}
+                  onChange={(e) => updateSettings({ notifyYourTurnLeadDogs: parseInt(e.target.value) as any })}
+                >
+                  <option value="1">1 dog ahead (default)</option>
+                  <option value="2">2 dogs ahead</option>
+                  <option value="3">3 dogs ahead</option>
+                  <option value="4">4 dogs ahead</option>
+                  <option value="5">5 dogs ahead</option>
+                </select>
+              </div>
+            )}
+
             <div className="setting-item indented">
               <div className="setting-info">
                 <label htmlFor="notifyResults">Results Posted</label>
+                <span className="setting-hint">When entire class is complete with placements</span>
               </div>
               <label className="toggle-switch">
                 <input
@@ -582,21 +764,6 @@ export function Settings() {
                   type="checkbox"
                   checked={settings.notifyResults}
                   onChange={(e) => updateSettings({ notifyResults: e.target.checked })}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="notifyConflicts">Schedule Conflicts</label>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="notifyConflicts"
-                  type="checkbox"
-                  checked={settings.notifyConflicts}
-                  onChange={(e) => updateSettings({ notifyConflicts: e.target.checked })}
                 />
                 <span className="toggle-slider"></span>
               </label>
@@ -616,6 +783,106 @@ export function Settings() {
                 <span className="toggle-slider"></span>
               </label>
             </div>
+
+            <h3 className="subsection-title">Do Not Disturb</h3>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="dnd-toggle">Do Not Disturb</label>
+                <span className="setting-hint">Temporarily silence all notifications</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="dnd-toggle"
+                  type="checkbox"
+                  checked={isDNDActive}
+                  onChange={handleDNDToggle}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            {isDNDActive && (
+              <div className="setting-item indented">
+                <div className="setting-info">
+                  <label htmlFor="dnd-duration">Duration</label>
+                  <span className="setting-hint">Automatically disable DND after</span>
+                </div>
+                <select
+                  id="dnd-duration"
+                  onChange={(e) => handleDNDDurationChange(parseInt(e.target.value))}
+                  defaultValue="60"
+                >
+                  <option value="30">30 Minutes</option>
+                  <option value="60">1 Hour</option>
+                  <option value="120">2 Hours</option>
+                  <option value="240">4 Hours</option>
+                  <option value="480">8 Hours</option>
+                </select>
+              </div>
+            )}
+
+            <h3 className="subsection-title">Quiet Hours</h3>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="quiet-hours-toggle">Enable Quiet Hours</label>
+                <span className="setting-hint">Schedule when to silence notifications</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="quiet-hours-toggle"
+                  type="checkbox"
+                  checked={quietHoursConfig.enabled}
+                  onChange={(e) => handleQuietHoursToggle(e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            {quietHoursConfig.enabled && (
+              <>
+                <div className="setting-item indented">
+                  <div className="setting-info">
+                    <label htmlFor="quiet-hours-start">Start Time</label>
+                  </div>
+                  <input
+                    id="quiet-hours-start"
+                    type="time"
+                    value={quietHoursConfig.startTime}
+                    onChange={(e) => handleQuietHoursChange(e.target.value, quietHoursConfig.endTime)}
+                  />
+                </div>
+
+                <div className="setting-item indented">
+                  <div className="setting-info">
+                    <label htmlFor="quiet-hours-end">End Time</label>
+                  </div>
+                  <input
+                    id="quiet-hours-end"
+                    type="time"
+                    value={quietHoursConfig.endTime}
+                    onChange={(e) => handleQuietHoursChange(quietHoursConfig.startTime, e.target.value)}
+                  />
+                </div>
+
+                <div className="setting-item indented">
+                  <div className="setting-info">
+                    <label htmlFor="quiet-hours-allow-urgent">Allow Urgent Notifications</label>
+                    <span className="setting-hint">Still show urgent alerts during quiet hours</span>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      id="quiet-hours-allow-urgent"
+                      type="checkbox"
+                      checked={quietHoursConfig.allowUrgent}
+                      onChange={(e) => handleQuietHoursAllowUrgent(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
+              </>
+            )}
           </>
         )}
       </CollapsibleSection>
@@ -626,13 +893,15 @@ export function Settings() {
         title="Scoring"
         description="Customize scoresheet behavior"
         defaultExpanded={false}
-        badge={3}
+        badge={11}
       >
+
+        <h3 className="subsection-title">Voice Announcements</h3>
 
         <div className="setting-item">
           <div className="setting-info">
-            <label htmlFor="voiceAnnouncements">Voice Announcements</label>
-            <span className="setting-hint">Speak timer warnings aloud</span>
+            <label htmlFor="voiceAnnouncements">Enable Voice Announcements</label>
+            <span className="setting-hint">Speak timer warnings and results aloud</span>
           </div>
           <label className="toggle-switch">
             <input
@@ -645,26 +914,195 @@ export function Settings() {
           </label>
         </div>
 
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="autoSaveFrequency">Auto-Save Frequency</label>
-            <span className="setting-hint">How often to save progress</span>
-          </div>
-          <select
-            id="autoSaveFrequency"
-            value={settings.autoSaveFrequency}
-            onChange={(e) => updateSettings({ autoSaveFrequency: e.target.value as any })}
-          >
-            <option value="immediate">Immediately</option>
-            <option value="30s">Every 30 Seconds</option>
-            <option value="1m">Every Minute</option>
-            <option value="5m">Every 5 Minutes</option>
-          </select>
-        </div>
+        {settings.voiceAnnouncements && (
+          <>
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="voiceLanguage">Language</label>
+                <span className="setting-hint">Voice language and accent</span>
+              </div>
+              <select
+                id="voiceLanguage"
+                value={settings.voiceLanguage}
+                onChange={(e) => updateSettings({ voiceLanguage: e.target.value })}
+              >
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="es-ES">Spanish</option>
+                <option value="fr-FR">French</option>
+                <option value="de-DE">German</option>
+              </select>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="voiceRate">Speed: {settings.voiceRate.toFixed(1)}x</label>
+                <span className="setting-hint">How fast the voice speaks</span>
+              </div>
+              <input
+                id="voiceRate"
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.1"
+                value={settings.voiceRate}
+                onChange={(e) => updateSettings({ voiceRate: parseFloat(e.target.value) })}
+              />
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="voicePitch">Pitch: {settings.voicePitch.toFixed(1)}</label>
+                <span className="setting-hint">Voice tone (higher = higher pitched)</span>
+              </div>
+              <input
+                id="voicePitch"
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.1"
+                value={settings.voicePitch}
+                onChange={(e) => updateSettings({ voicePitch: parseFloat(e.target.value) })}
+              />
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="voiceVolume">Volume: {Math.round(settings.voiceVolume * 100)}%</label>
+                <span className="setting-hint">Voice loudness</span>
+              </div>
+              <input
+                id="voiceVolume"
+                type="range"
+                min="0"
+                max="1.0"
+                step="0.1"
+                value={settings.voiceVolume}
+                onChange={(e) => updateSettings({ voiceVolume: parseFloat(e.target.value) })}
+              />
+            </div>
+
+            <div className="setting-item indented">
+              <button
+                className="secondary-button"
+                onClick={() => voiceAnnouncementService.testVoice()}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <Volume2 size={16} />
+                Test Voice
+              </button>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="announceTimerCountdown">Announce Timer Countdown</label>
+                <span className="setting-hint">Speak time warnings during runs</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="announceTimerCountdown"
+                  type="checkbox"
+                  checked={settings.announceTimerCountdown}
+                  onChange={(e) => updateSettings({ announceTimerCountdown: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="announceRunNumber">Announce Run Number</label>
+                <span className="setting-hint">Speak armband and dog name</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="announceRunNumber"
+                  type="checkbox"
+                  checked={settings.announceRunNumber}
+                  onChange={(e) => updateSettings({ announceRunNumber: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="announceResults">Announce Results</label>
+                <span className="setting-hint">Speak qualification and placement</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="announceResults"
+                  type="checkbox"
+                  checked={settings.announceResults}
+                  onChange={(e) => updateSettings({ announceResults: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+          </>
+        )}
+
+        <h3 className="subsection-title">Auto-Save</h3>
 
         <div className="setting-item">
           <div className="setting-info">
-            <label htmlFor="confirmationPrompts">Confirmation Prompts</label>
+            <label htmlFor="autoSaveEnabled">Enable Auto-Save</label>
+            <span className="setting-hint">Automatically save scoresheet progress</span>
+          </div>
+          <label className="toggle-switch">
+            <input
+              id="autoSaveEnabled"
+              type="checkbox"
+              checked={settings.autoSaveEnabled}
+              onChange={(e) => updateSettings({ autoSaveEnabled: e.target.checked })}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+
+        {settings.autoSaveEnabled && (
+          <>
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="autoSaveFrequency">Save Frequency</label>
+                <span className="setting-hint">How often to auto-save</span>
+              </div>
+              <select
+                id="autoSaveFrequency"
+                value={settings.autoSaveFrequency}
+                onChange={(e) => updateSettings({ autoSaveFrequency: e.target.value as any })}
+              >
+                <option value="immediate">Immediately</option>
+                <option value="10s">Every 10 Seconds</option>
+                <option value="30s">Every 30 Seconds</option>
+                <option value="1m">Every Minute</option>
+                <option value="5m">Every 5 Minutes</option>
+              </select>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="maxDraftsPerEntry">Max Drafts Per Entry</label>
+                <span className="setting-hint">Number of drafts to keep</span>
+              </div>
+              <input
+                id="maxDraftsPerEntry"
+                type="number"
+                min="1"
+                max="10"
+                value={settings.maxDraftsPerEntry}
+                onChange={(e) => updateSettings({ maxDraftsPerEntry: parseInt(e.target.value) || 3 })}
+              />
+            </div>
+          </>
+        )}
+
+        <h3 className="subsection-title">Confirmation Prompts</h3>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="confirmationPrompts">Confirmation Mode</label>
             <span className="setting-hint">When to ask "Are you sure?"</span>
           </div>
           <select
@@ -673,10 +1111,49 @@ export function Settings() {
             onChange={(e) => updateSettings({ confirmationPrompts: e.target.value as any })}
           >
             <option value="always">Always Confirm</option>
-            <option value="errors-only">Only on Errors</option>
+            <option value="smart">Smart (Learn from Experience)</option>
             <option value="never">Never Ask</option>
           </select>
         </div>
+
+        {settings.confirmationPrompts === 'smart' && (
+          <>
+            <div className="setting-item indented" style={{ background: 'var(--card-bg)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+              <div className="setting-info" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <User size={18} />
+                  <label style={{ fontWeight: 600 }}>Your Experience Level</label>
+                </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                  {(() => {
+                    const stats = smartConfirmationService.getStats();
+                    return (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span>{stats.experienceLabel}</span>
+                          <span>{stats.totalActions} actions completed</span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              width: `${Math.min(stats.experienceLevel, 100)}%`,
+                              height: '100%',
+                              background: '#6366f1',
+                              transition: 'width 0.3s ease'
+                            }}
+                          />
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                          As you gain experience, confirmations will be reduced for routine actions.
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </CollapsibleSection>
 
       {/* Privacy & Security Section */}
@@ -685,7 +1162,7 @@ export function Settings() {
         title="Privacy & Security"
         description="Protect your data and account"
         defaultExpanded={false}
-        badge={3}
+        badge={6}
       >
 
         <div className="setting-item">
@@ -698,45 +1175,95 @@ export function Settings() {
             value={settings.autoLogout}
             onChange={(e) => updateSettings({ autoLogout: parseInt(e.target.value) as any })}
           >
-            <option value="0">Never</option>
-            <option value="15">After 15 Minutes</option>
-            <option value="30">After 30 Minutes</option>
-            <option value="60">After 1 Hour</option>
+            <option value="240">After 4 Hours</option>
+            <option value="480">After 8 Hours (Default)</option>
+            <option value="720">After 12 Hours</option>
+            <option value="1440">After 24 Hours</option>
           </select>
         </div>
 
+        <h3 className="subsection-title">Privacy Controls</h3>
+
         <div className="setting-item">
           <div className="setting-info">
-            <label htmlFor="rememberMe">Remember Me</label>
-            <span className="setting-hint">Stay logged in on this device</span>
+            <label htmlFor="enablePerformanceMonitoring">Performance Analytics</label>
+            <span className="setting-hint">Share anonymous usage data to help improve the app</span>
           </div>
           <label className="toggle-switch">
             <input
-              id="rememberMe"
+              id="enablePerformanceMonitoring"
               type="checkbox"
-              checked={settings.rememberMe}
-              onChange={(e) => updateSettings({ rememberMe: e.target.checked })}
+              checked={settings.enablePerformanceMonitoring}
+              onChange={(e) => updateSettings({ enablePerformanceMonitoring: e.target.checked })}
             />
             <span className="toggle-slider"></span>
           </label>
         </div>
 
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="biometricLogin">Biometric Login</label>
-            <span className="setting-hint">Use fingerprint/face ID</span>
+        {/* Storage Usage Display */}
+        {storageUsage && (
+          <div className="setting-item" style={{ background: 'var(--card-bg)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <div className="setting-info" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Database size={18} />
+                <label style={{ fontWeight: 600 }}>Storage Usage</label>
+              </div>
+              <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                  <span>Local Storage:</span>
+                  <span>{formatBytes(storageUsage.localStorageSize)}</span>
+                </div>
+                {storageUsage.quota > 0 && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                      <span>Total Used:</span>
+                      <span>{formatBytes(storageUsage.estimated)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                      <span>Available:</span>
+                      <span>{formatBytes(storageUsage.quota - storageUsage.estimated)}</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${Math.min(storageUsage.percentUsed, 100)}%`,
+                          height: '100%',
+                          background: storageUsage.percentUsed > 80 ? '#ef4444' : storageUsage.percentUsed > 60 ? '#f59e0b' : '#22c55e',
+                          transition: 'width 0.3s ease'
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', textAlign: 'right' }}>
+                      {storageUsage.percentUsed.toFixed(1)}% used
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-          <label className="toggle-switch">
-            <input
-              id="biometricLogin"
-              type="checkbox"
-              checked={settings.biometricLogin}
-              onChange={(e) => updateSettings({ biometricLogin: e.target.checked })}
-              disabled={!('credentials' in navigator)}
-            />
-            <span className="toggle-slider"></span>
-          </label>
+        )}
+
+        <div className="setting-actions" style={{ marginTop: '1rem' }}>
+          <button
+            className="secondary-button"
+            onClick={handleExportData}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Download size={16} />
+            Export My Data
+          </button>
+          <button
+            className="danger-button"
+            onClick={() => setShowClearDataConfirm(true)}
+            disabled={isClearing}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Trash2 size={16} />
+            {isClearing ? 'Clearing...' : 'Clear All Data'}
+          </button>
         </div>
+
+        <h3 className="subsection-title">Cache Management</h3>
 
         <div className="setting-actions">
           <button
@@ -761,13 +1288,13 @@ export function Settings() {
         title="Advanced"
         description="Developer and experimental features"
         defaultExpanded={false}
-        badge={6}
+        badge={12}
       >
 
         <div className="setting-item">
           <div className="setting-info">
             <label htmlFor="developerMode">Developer Mode</label>
-            <span className="setting-hint">Enable debugging tools</span>
+            <span className="setting-hint">Enable debugging tools (dev builds only)</span>
           </div>
           <label className="toggle-switch">
             <input
@@ -782,16 +1309,19 @@ export function Settings() {
 
         {settings.developerMode && (
           <>
+            <h3 className="subsection-title">Performance Monitors</h3>
+
             <div className="setting-item indented">
               <div className="setting-info">
-                <label htmlFor="showFPS">Show FPS Counter</label>
+                <label htmlFor="devShowFPS">FPS Counter</label>
+                <span className="setting-hint">Real-time frames per second</span>
               </div>
               <label className="toggle-switch">
                 <input
-                  id="showFPS"
+                  id="devShowFPS"
                   type="checkbox"
-                  checked={settings.showFPS}
-                  onChange={(e) => updateSettings({ showFPS: e.target.checked })}
+                  checked={settings.devShowFPS}
+                  onChange={(e) => updateSettings({ devShowFPS: e.target.checked })}
                 />
                 <span className="toggle-slider"></span>
               </label>
@@ -799,14 +1329,33 @@ export function Settings() {
 
             <div className="setting-item indented">
               <div className="setting-info">
-                <label htmlFor="showNetworkRequests">Show Network Requests</label>
+                <label htmlFor="devShowMemory">Memory Monitor</label>
+                <span className="setting-hint">JS heap usage (Chrome only)</span>
               </div>
               <label className="toggle-switch">
                 <input
-                  id="showNetworkRequests"
+                  id="devShowMemory"
                   type="checkbox"
-                  checked={settings.showNetworkRequests}
-                  onChange={(e) => updateSettings({ showNetworkRequests: e.target.checked })}
+                  checked={settings.devShowMemory}
+                  onChange={(e) => updateSettings({ devShowMemory: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <h3 className="subsection-title">Inspectors</h3>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="devShowNetwork">Network Inspector</label>
+                <span className="setting-hint">Track HTTP requests</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="devShowNetwork"
+                  type="checkbox"
+                  checked={settings.devShowNetwork}
+                  onChange={(e) => updateSettings({ devShowNetwork: e.target.checked })}
                 />
                 <span className="toggle-slider"></span>
               </label>
@@ -814,7 +1363,26 @@ export function Settings() {
 
             <div className="setting-item indented">
               <div className="setting-info">
-                <label htmlFor="consoleLogging">Console Logging</label>
+                <label htmlFor="devShowStateInspector">State Inspector</label>
+                <span className="setting-hint">View Zustand store state</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="devShowStateInspector"
+                  type="checkbox"
+                  checked={settings.devShowStateInspector}
+                  onChange={(e) => updateSettings({ devShowStateInspector: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <h3 className="subsection-title">Console Logging</h3>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="consoleLogging">Log Level</label>
+                <span className="setting-hint">What to show in console</span>
               </div>
               <select
                 id="consoleLogging"
@@ -825,6 +1393,54 @@ export function Settings() {
                 <option value="errors">Errors Only</option>
                 <option value="all">Everything</option>
               </select>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="devLogStateChanges">Log State Changes</label>
+                <span className="setting-hint">Console log Zustand actions</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="devLogStateChanges"
+                  type="checkbox"
+                  checked={settings.devLogStateChanges}
+                  onChange={(e) => updateSettings({ devLogStateChanges: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="devLogNetworkRequests">Log Network Requests</label>
+                <span className="setting-hint">Console log HTTP requests</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="devLogNetworkRequests"
+                  type="checkbox"
+                  checked={settings.devLogNetworkRequests}
+                  onChange={(e) => updateSettings({ devLogNetworkRequests: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="devLogPerformanceMarks">Log Performance Marks</label>
+                <span className="setting-hint">Console log timing marks</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  id="devLogPerformanceMarks"
+                  type="checkbox"
+                  checked={settings.devLogPerformanceMarks}
+                  onChange={(e) => updateSettings({ devLogPerformanceMarks: e.target.checked })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
             </div>
           </>
         )}
@@ -918,6 +1534,46 @@ export function Settings() {
                 onClick={handleClearCache}
               >
                 Clear Cache
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Data Confirmation Modal */}
+      {showClearDataConfirm && (
+        <div className="modal-overlay" onClick={() => setShowClearDataConfirm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>⚠️ Clear All Personal Data?</h3>
+            <p style={{ marginBottom: '1rem' }}>
+              This will permanently delete:
+            </p>
+            <ul style={{ marginLeft: '1.5rem', marginBottom: '1rem', lineHeight: '1.6' }}>
+              <li>All favorited dogs (❤️)</li>
+              <li>All app settings and preferences</li>
+              <li>Scroll positions and UI state</li>
+              <li>Notification preferences</li>
+              <li>All locally cached data</li>
+            </ul>
+            <p className="modal-hint" style={{ fontWeight: 600, color: '#ef4444' }}>
+              You will remain logged in, but all other data will be lost. This cannot be undone.
+            </p>
+            <p className="modal-hint">
+              💡 Tip: Use "Export My Data" first if you want to keep a backup.
+            </p>
+            <div className="modal-actions">
+              <button
+                className="secondary-button"
+                onClick={() => setShowClearDataConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="danger-button"
+                onClick={handleClearAllData}
+                disabled={isClearing}
+              >
+                {isClearing ? 'Clearing...' : 'Yes, Delete Everything'}
               </button>
             </div>
           </div>

@@ -120,8 +120,8 @@ export async function generateSmartDefaults(
     showBadges: true,
     notifyClassStarting: true,
     notifyYourTurn: true,
+    notifyYourTurnLeadDogs: 2,
     notifyResults: true,
-    notifyConflicts: true,
     notifySyncErrors: true,
 
     // Accessibility
@@ -130,12 +130,10 @@ export async function generateSmartDefaults(
     // Scoring
     voiceAnnouncements: false,
     autoSaveFrequency: getAutoSaveFrequencyDefault(context),
-    confirmationPrompts: 'errors-only' as const,
+    confirmationPrompts: 'smart' as const,
 
     // Privacy & Security
-    autoLogout: 30,
-    rememberMe: true,
-    biometricLogin: false,
+    autoLogout: 480, // Default: 8 hours
 
     // Mobile
     oneHandedMode: false,
@@ -253,7 +251,7 @@ function getStorageLimitDefault(context: SmartDefaultsContext): 100 | 500 | 1000
 /**
  * Get auto-save frequency default based on context
  */
-function getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '30s' | '1m' | '5m' {
+function getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '10s' | '30s' | '1m' | '5m' {
   // High-end devices with good connection: immediate
   if (context.deviceTier === 'high' && context.connectionQuality === 'fast') {
     return 'immediate';
@@ -264,8 +262,8 @@ function getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate'
     return '1m';
   }
 
-  // Default: 30 seconds
-  return '30s';
+  // Default: 10 seconds
+  return '10s';
 }
 
 /**

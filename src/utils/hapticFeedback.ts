@@ -1,6 +1,11 @@
 /**
  * Haptic Feedback Simulation for Dog Show Trial Interfaces
  * Provides visual feedback for touch interactions when haptic feedback is not available
+ *
+ * @deprecated This utility is deprecated. Use the useHapticFeedback hook instead:
+ * import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+ *
+ * The hook provides better settings integration and more patterns (success, error, warning).
  */
 
 export const simulateHapticFeedback = (element: HTMLElement, duration: number = 100) => {

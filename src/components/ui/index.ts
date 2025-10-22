@@ -47,3 +47,8 @@ export { CollapsibleSection, CollapsibleSectionGroup } from './CollapsibleSectio
 export type { CollapsibleSectionProps, CollapsibleSectionGroupProps } from './CollapsibleSection';
 export { SettingsSearch, useSearchableSettings } from './SettingsSearch';
 export type { SettingsSearchProps, SearchableSettingmatch } from './SettingsSearch';
+export { FloatingActionButton } from './FloatingActionButton';
+export type { FloatingActionButtonProps } from './FloatingActionButton';
+export { InstallPrompt, IOSInstallInstructions } from './InstallPrompt';
+export type { InstallPromptProps } from './InstallPrompt';
+export { AutoLogoutWarning } from './AutoLogoutWarning';

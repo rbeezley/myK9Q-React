@@ -1,0 +1,272 @@
+/**
+ * State Inspector Styles
+ *
+ * Displays Zustand store state with change history
+ */
+
+.state-inspector-toggle {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  z-index: 9998;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.state-inspector-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+.state-inspector-toggle:active {
+  transform: translateY(0);
+}
+
+.state-inspector {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  width: 500px;
+  max-height: calc(100vh - 100px);
+  background: #1f2937;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 9997;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.state-inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.state-inspector-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.state-inspector-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.store-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.store-tabs button {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.store-tabs button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.store-tabs button.active {
+  background: #7c3aed;
+  color: white;
+}
+
+.current-state {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.state-json {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a3e635;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.change-history {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.change-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
+
+.change-item {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-left: 3px solid #7c3aed;
+}
+
+.change-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.change-store {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.change-action {
+  color: #60a5fa;
+  font-weight: 500;
+  flex: 1;
+}
+
+.change-time {
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.change-data {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 8px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #fbbf24;
+  overflow-x: auto;
+  margin: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .state-inspector {
+    width: calc(100vw - 40px);
+    left: 20px;
+    top: 60px;
+    max-height: calc(100vh - 160px);
+  }
+
+  .state-inspector-toggle {
+    bottom: 160px;
+  }
+
+  .state-json,
+  .change-data {
+    font-size: 10px;
+  }
+}
+
+/* Scrollbar styling */
+.current-state::-webkit-scrollbar,
+.change-list::-webkit-scrollbar,
+.state-json::-webkit-scrollbar,
+.change-data::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.current-state::-webkit-scrollbar-track,
+.change-list::-webkit-scrollbar-track,
+.state-json::-webkit-scrollbar-track,
+.change-data::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.current-state::-webkit-scrollbar-thumb,
+.change-list::-webkit-scrollbar-thumb,
+.state-json::-webkit-scrollbar-thumb,
+.change-data::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.current-state::-webkit-scrollbar-thumb:hover,
+.change-list::-webkit-scrollbar-thumb:hover,
+.state-json::-webkit-scrollbar-thumb:hover,
+.change-data::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .state-inspector-toggle,
+  .icon-button,
+  .store-tabs button {
+    transition: none;
+  }
+}

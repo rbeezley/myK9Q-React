@@ -5,14 +5,18 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { OfflineIndicator, DeviceDebugPanel, DeviceTierToast } from './components/ui';
-import { MonitoringDashboard } from './components/monitoring/MonitoringDashboard';
+import { OfflineIndicator, DeviceDebugPanel, DeviceTierToast, AutoLogoutWarning } from './components/ui';
+import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
 import { applyDeviceClasses, startPerformanceMonitoring } from './utils/deviceDetection';
+import developerModeService from './services/developerMode';
 import { initializeSettings } from './stores/settingsStore';
 import { performanceMonitor } from './services/performanceMonitor';
 import { analyticsService } from './services/analyticsService';
 import { metricsApiService } from './services/metricsApiService';
 import { useSettingsStore } from './stores/settingsStore';
+import { useOneHandedMode } from './hooks/useOneHandedMode';
+import { useAutoLogout } from './hooks/useAutoLogout';
+import { notificationIntegration } from './services/notificationIntegration';
 
 // Import unified container system
 import './styles/containers.css';
@@ -82,7 +86,14 @@ const PerformanceMetricsAdmin = React.lazy(() =>
   }))
 );
 
-function App() {
+// Component that needs to be inside AuthProvider to use auth context
+function AppWithAuth() {
+  // Apply one-handed mode globally
+  useOneHandedMode();
+
+  // Apply auto-logout timer
+  const autoLogout = useAutoLogout();
+
   // Initialize device detection and performance monitoring
   useEffect(() => {
     // Initialize user settings (theme, font size, density, etc.)
@@ -100,6 +111,12 @@ function App() {
 
     // Track initial page view
     analyticsService.trackPageView(window.location.pathname);
+
+    // Initialize notification integration
+    notificationIntegration.initialize();
+
+    // Initialize developer tools
+    developerModeService.initialize();
 
     // Send performance report on page unload (if monitoring enabled and has problems)
     const handleBeforeUnload = async () => {
@@ -120,19 +137,33 @@ function App() {
 
     return () => {
       stopMonitoring();
+      notificationIntegration.destroy();
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <OfflineIndicator />
-          <DeviceTierToast />
-          <DeviceDebugPanel position="bottom-right" />
-          <MonitoringDashboard />
-          <Routes>
+    <>
+      {/* Auto-logout warning modal */}
+      {autoLogout.showWarning && (
+        <AutoLogoutWarning
+          secondsRemaining={autoLogout.secondsRemaining}
+          onExtend={autoLogout.extendSession}
+          onLogoutNow={autoLogout.logoutNow}
+          onDismiss={autoLogout.dismissWarning}
+        />
+      )}
+      <OfflineIndicator />
+      <DeviceTierToast />
+      <DeviceDebugPanel position="bottom-right" />
+      <MonitoringDashboard />
+
+      {/* Developer Tools (only in development mode) */}
+      <PerformanceMonitor />
+      <NetworkInspector />
+      <StateInspector />
+
+      <Routes>
           <Route path="/login" element={<Login />} />
           <Route 
             path="/home" 
@@ -331,6 +362,16 @@ function App() {
           />
           <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppWithAuth />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

@@ -5,8 +5,9 @@ import { usePermission } from '../../hooks/usePermission';
 import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState } from '../../components/ui';
-import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { ArrowLeft, RefreshCw, Target } from 'lucide-react';
 import './ClassList.css';
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
@@ -69,6 +70,7 @@ export const ClassList: React.FC = () => {
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const { prefetch } = usePrefetch();
+  const { settings } = useSettingsStore();
 
   // Local state for data (synced from cache)
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
@@ -422,7 +424,7 @@ export const ClassList: React.FC = () => {
   }, [activePopup]);
 
   const handleRefresh = async () => {
-    hapticFeedback.impact('medium');
+    hapticFeedback.medium();
     await refresh();
   };
 
@@ -602,7 +604,7 @@ export const ClassList: React.FC = () => {
   }, [showContext?.licenseKey, prefetch]);
 
   const handleViewEntries = (classEntry: ClassEntry) => {
-    hapticFeedback.impact('medium');
+    hapticFeedback.medium();
 
     // Check if max time warning should be shown
     if (shouldShowMaxTimeWarning() && !isMaxTimeSet(classEntry)) {
@@ -790,10 +792,10 @@ export const ClassList: React.FC = () => {
     // Enhanced haptic feedback for outdoor/gloved use
     if (isCurrentlyFavorite) {
       // Removing favorite - softer feedback
-      hapticFeedback.impact('light');
+      hapticFeedback.light();
     } else {
       // Adding favorite - stronger feedback for confirmation
-      hapticFeedback.impact('medium');
+      hapticFeedback.medium();
     }
     
     // Update favorites set for localStorage persistence
@@ -1116,7 +1118,7 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className={`class-list-container app-container ${isLoaded ? 'loaded' : ''}`}>
+    <div className={`class-list-container page-container ${isLoaded ? 'loaded' : ''}`}>
       {/* Enhanced Header with Trial Info */}
       <header className="class-list-header">
         <HamburgerMenu
@@ -1163,6 +1165,13 @@ export const ClassList: React.FC = () => {
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
       <HeaderTicker />
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
+
+      {/* Pull to Refresh Wrapper */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={settings.pullToRefresh}
+        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+      >
 
       {/* Search, Sort, and Filter Controls */}
       <ClassFilters
@@ -1400,6 +1409,7 @@ export const ClassList: React.FC = () => {
         />
       )}
 
+      </PullToRefresh>
     </div>
   );
 };

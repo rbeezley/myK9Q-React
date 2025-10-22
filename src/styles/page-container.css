@@ -1,0 +1,108 @@
+/**
+ * Page Container System for myK9Q
+ *
+ * Mobile-first responsive container pattern optimized for:
+ * - Mobile: Full width with padding
+ * - Tablet: Full width with padding (PRIMARY USER - judges/stewards with tablets)
+ * - Desktop: Max-width constraint for readability
+ *
+ * Design Philosophy:
+ * - Maximize screen space on tablets (640-1024px) - our core users
+ * - Only constrain width on desktop (1024px+) for comfortable reading
+ * - Simple, maintainable, consistent pattern across all pages
+ */
+
+/* Base container - mobile and tablet (full width) */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  padding: var(--token-space-lg) var(--token-space-3xl);
+  padding-bottom: 4rem;
+}
+
+/* Mobile - slightly reduced padding */
+@media (max-width: 640px) {
+  .page-container {
+    padding: var(--token-space-lg) var(--token-space-xl);
+  }
+}
+
+/* Desktop - constrain width for readability (1024px+ = desktop monitors) */
+@media (min-width: 1024px) {
+  .page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--token-space-lg) var(--token-space-4xl);
+  }
+}
+
+/* Large desktop - slightly wider for big monitors */
+@media (min-width: 1440px) {
+  .page-container {
+    max-width: 1400px;
+  }
+}
+
+/**
+ * Variant: Scrollable container (for pages with sticky headers)
+ * Used by Settings, potentially other config pages
+ */
+.page-container-scroll {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.page-container-scroll .page-content {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: var(--token-space-lg) var(--token-space-3xl);
+  padding-bottom: 4rem;
+}
+
+@media (max-width: 640px) {
+  .page-container-scroll .page-content {
+    padding: var(--token-space-lg) var(--token-space-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container-scroll .page-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--token-space-lg) var(--token-space-4xl);
+  }
+}
+
+@media (min-width: 1440px) {
+  .page-container-scroll .page-content {
+    max-width: 1400px;
+  }
+}
+
+/**
+ * Responsive Breakpoint Summary:
+ *
+ * Mobile (< 640px):
+ *   - Full width, 16px horizontal padding
+ *   - Maximize space on small screens
+ *
+ * Tablet (640px - 1023px):
+ *   - Full width, 24px horizontal padding
+ *   - PRIMARY USER GROUP - judges/stewards use iPads/Android tablets
+ *   - No max-width constraint - use full tablet screen
+ *
+ * Desktop (1024px - 1439px):
+ *   - 1200px max-width, centered, 32px horizontal padding
+ *   - Constrained for comfortable reading on monitors
+ *
+ * Large Desktop (1440px+):
+ *   - 1400px max-width, centered, 32px horizontal padding
+ *   - Slightly wider for large monitors
+ */

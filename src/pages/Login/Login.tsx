@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authenticatePasscode } from '../../services/authService';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -109,6 +110,17 @@ export const Login: React.FC = () => {
       return;
     }
 
+    // ⚡ RATE LIMIT CHECK - Prevent brute force attacks
+    const rateLimitResult = checkRateLimit('login');
+
+    if (!rateLimitResult.allowed) {
+      hapticFeedback.impact('heavy');
+      setError(rateLimitResult.message);
+      setPasscode(['', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     hapticFeedback.impact('medium');
@@ -121,7 +133,8 @@ export const Login: React.FC = () => {
         throw new Error('Invalid passcode');
       }
 
-      // Login successful - map competition_type to showType for nationals detection
+      // ✅ Login successful - clear rate limit tracking
+      clearRateLimit('login');
       hapticFeedback.success();
       login(fullPasscode, {
         ...showData,
@@ -130,8 +143,25 @@ export const Login: React.FC = () => {
       navigate('/home');
     } catch (err) {
       console.error('Login error:', err);
+
+      // ❌ Failed attempt - record for rate limiting
+      recordFailedAttempt('login');
+
+      // Check if now rate limited after this failure
+      const newRateLimitResult = checkRateLimit('login');
+
       hapticFeedback.impact('heavy');
-      setError('Invalid passcode. Please check and try again.');
+
+      if (!newRateLimitResult.allowed) {
+        // Show rate limit message instead of generic error
+        setError(newRateLimitResult.message);
+      } else if (newRateLimitResult.remainingAttempts <= 2) {
+        // Show warning when getting close to limit
+        setError(`Invalid passcode. ${newRateLimitResult.remainingAttempts} attempt${newRateLimitResult.remainingAttempts === 1 ? '' : 's'} remaining before temporary block.`);
+      } else {
+        setError('Invalid passcode. Please check and try again.');
+      }
+
       setPasscode(['', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {

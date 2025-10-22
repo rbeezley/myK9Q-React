@@ -1,0 +1,191 @@
+/**
+ * Floating Action Button Styles
+ *
+ * Material Design-inspired FAB with hand-specific positioning.
+ * Integrates with one-handed-mode.css system.
+ */
+
+.floating-action-button {
+  /* Base positioning */
+  position: fixed;
+  bottom: var(--fab-offset, 16px);
+  z-index: var(--z-fab, 10001);
+
+  /* Size */
+  width: var(--fab-size, 56px);
+  height: var(--fab-size, 56px);
+  min-width: 44px; /* WCAG touch target minimum */
+  min-height: 44px;
+
+  /* Shape */
+  border-radius: 50%;
+  border: none;
+
+  /* Appearance */
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  cursor: pointer;
+
+  /* Content centering */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Transitions */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Hand-specific positioning */
+.floating-action-button.hand-left {
+  left: var(--fab-offset, 16px);
+  right: auto;
+}
+
+.floating-action-button.hand-right {
+  right: var(--fab-offset, 16px);
+  left: auto;
+}
+
+.floating-action-button.hand-auto {
+  right: var(--fab-offset, 16px); /* Default to right for right-handed majority */
+  left: auto;
+}
+
+/* Hover state (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  .floating-action-button:hover {
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+/* Active/pressed state */
+.floating-action-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Focus state (keyboard navigation) */
+.floating-action-button:focus {
+  outline: none;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4),
+              0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Disabled state */
+.floating-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Ripple effect */
+.floating-action-button::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.5s, opacity 0.5s;
+  pointer-events: none;
+}
+
+.floating-action-button:active::after {
+  opacity: 1;
+  transform: scale(1.5);
+  transition: 0s;
+}
+
+/* Icon sizing */
+.floating-action-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .floating-action-button {
+    --fab-size: 64px;
+    --fab-offset: 20px;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  }
+
+  .floating-action-button svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Landscape mode - smaller FAB */
+@media (orientation: landscape) and (max-height: 600px) {
+  .floating-action-button {
+    --fab-size: 48px;
+    --fab-offset: 16px;
+  }
+
+  .floating-action-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .floating-action-button {
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
+    box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .floating-action-button:hover {
+      box-shadow: 0 6px 16px rgba(129, 140, 248, 0.5);
+    }
+  }
+
+  .floating-action-button:active {
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
+  }
+
+  .floating-action-button:focus {
+    box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4),
+                0 0 0 3px rgba(129, 140, 248, 0.2);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .floating-action-button,
+  .floating-action-button::after {
+    transition: none;
+  }
+
+  .floating-action-button:hover,
+  .floating-action-button:active {
+    transform: none;
+  }
+
+  .floating-action-button::after {
+    display: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .floating-action-button {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+
+  .floating-action-button:focus {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+}

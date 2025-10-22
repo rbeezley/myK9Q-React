@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon } from 'lucide-react';
 import './HamburgerMenu.css';
 
+/**
+ * HamburgerMenu Component
+ *
+ * A slide-out navigation menu that appears from the left side of the viewport.
+ *
+ * Architecture:
+ * - Uses React Portal to render the menu overlay at document.body level
+ * - This ensures the menu is always positioned relative to the viewport, not parent containers
+ * - Desktop pages with .page-container margins won't affect menu positioning
+ * - Provides consistent behavior across all pages
+ *
+ * @example
+ * <HamburgerMenu currentPage="home" />
+ */
 interface HamburgerMenuProps {
   /** Optional back navigation - if provided, shows as first menu item */
   backNavigation?: {
@@ -86,8 +101,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Menu Overlay */}
-      {isMenuOpen && (
+      {/* Menu Overlay - Rendered at document root using Portal */}
+      {isMenuOpen && createPortal(
         <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}>
           <nav
             className="hamburger-menu"
@@ -195,7 +210,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               </button>
             </div>
           </nav>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

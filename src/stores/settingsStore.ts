@@ -47,27 +47,45 @@ export interface AppSettings {
   showBadges: boolean;
   notifyClassStarting: boolean;
   notifyYourTurn: boolean;
+  notifyYourTurnLeadDogs: 1 | 2 | 3 | 4 | 5; // How many dogs ahead to notify
   notifyResults: boolean;
-  notifyConflicts: boolean;
   notifySyncErrors: boolean;
 
   // Scoring
   voiceAnnouncements: boolean;
-  autoSaveFrequency: 'immediate' | '30s' | '1m' | '5m';
-  confirmationPrompts: 'always' | 'errors-only' | 'never';
+  voiceLanguage: string; // Language code (e.g., 'en-US', 'es-ES')
+  voiceRate: number; // 0.5 to 2.0
+  voicePitch: number; // 0 to 2.0
+  voiceVolume: number; // 0 to 1.0
+  announceTimerCountdown: boolean; // Announce 30s, 10s, 5s, etc.
+  announceRunNumber: boolean; // Announce armband number and dog name
+  announceResults: boolean; // Announce qualification/placement
+  autoSaveFrequency: 'immediate' | '10s' | '30s' | '1m' | '5m';
+  autoSaveEnabled: boolean;
+  maxDraftsPerEntry: number; // How many auto-save drafts to keep
+  confirmationPrompts: 'always' | 'smart' | 'never'; // smart = bypass for experienced users
+  bypassConfirmationsAfter: number; // Number of successful actions before bypassing
 
   // Privacy & Security
-  autoLogout: 0 | 15 | 30 | 60; // minutes, 0 = never
-  rememberMe: boolean;
-  biometricLogin: boolean;
+  autoLogout: 240 | 480 | 720 | 1440; // minutes, 240 = 4h, 480 = 8h (default), 720 = 12h, 1440 = 24h
 
-  // Advanced
+  // Developer Tools
   developerMode: boolean;
-  showFPS: boolean;
-  showNetworkRequests: boolean;
+  devShowFPS: boolean;
+  devShowMemory: boolean;
+  devShowNetwork: boolean;
+  devShowStateInspector: boolean;
+  devShowPerformanceProfiler: boolean;
+  devLogStateChanges: boolean;
+  devLogNetworkRequests: boolean;
+  devLogPerformanceMarks: boolean;
   consoleLogging: 'none' | 'errors' | 'all';
   enableBetaFeatures: boolean;
   enablePerformanceMonitoring: boolean; // Track metrics to database
+
+  // Legacy (deprecated)
+  showFPS?: boolean;
+  showNetworkRequests?: boolean;
 }
 
 interface SettingsState {
@@ -117,24 +135,38 @@ const defaultSettings: AppSettings = {
   showBadges: true,
   notifyClassStarting: true,
   notifyYourTurn: true,
+  notifyYourTurnLeadDogs: 2, // Default: notify when 2 dogs ahead
   notifyResults: true,
-  notifyConflicts: true,
   notifySyncErrors: true,
 
   // Scoring
   voiceAnnouncements: false,
-  autoSaveFrequency: '30s',
-  confirmationPrompts: 'errors-only',
+  voiceLanguage: 'en-US',
+  voiceRate: 1.0,
+  voicePitch: 1.0,
+  voiceVolume: 1.0,
+  announceTimerCountdown: true,
+  announceRunNumber: true,
+  announceResults: true,
+  autoSaveFrequency: '10s',
+  autoSaveEnabled: true,
+  maxDraftsPerEntry: 3,
+  confirmationPrompts: 'smart',
+  bypassConfirmationsAfter: 10,
 
   // Privacy & Security
-  autoLogout: 30,
-  rememberMe: true,
-  biometricLogin: false,
+  autoLogout: 480, // Default: 8 hours (typical trial length)
 
-  // Advanced
+  // Developer Tools
   developerMode: false,
-  showFPS: false,
-  showNetworkRequests: false,
+  devShowFPS: false,
+  devShowMemory: false,
+  devShowNetwork: false,
+  devShowStateInspector: false,
+  devShowPerformanceProfiler: false,
+  devLogStateChanges: false,
+  devLogNetworkRequests: false,
+  devLogPerformanceMarks: false,
   consoleLogging: 'errors',
   enableBetaFeatures: false,
   enablePerformanceMonitoring: false, // Disabled by default to minimize database costs

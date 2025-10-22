@@ -163,7 +163,8 @@
   position: relative;
 }
 
-.setting-item.indented::before {
+/* Removed blue dot indicator */
+/* .setting-item.indented::before {
   content: '';
   position: absolute;
   left: 1rem;
@@ -173,7 +174,7 @@
   height: 6px;
   background: var(--primary, #6366f1);
   border-radius: 50%;
-}
+} */
 
 .setting-item.indented:hover {
   background: rgba(31, 41, 55, 0.85);
@@ -499,10 +500,11 @@
   margin-left: 1.5rem;
 }
 
-.theme-light,
+/* Removed blue dot indicator for light mode */
+/* .theme-light,
 .theme-light .setting-item.indented::before {
   background: var(--primary, #6366f1);
-}
+} */
 
 .theme-light,
 .theme-light .setting-item.indented:hover {
@@ -885,4 +887,64 @@
     min-width: unset;
     bottom: 1rem;
   }
+}
+
+/* Install Instructions Box */
+.install-instructions-box {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(55, 65, 81, 0.8);
+  border-radius: 8px;
+  border-left: 3px solid #f97316;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+.install-instructions-title {
+  color: #f9fafb;
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.install-instructions-text {
+  margin: 0 0 0.5rem 0;
+  color: #e5e7eb;
+}
+
+.install-instructions-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  color: #d1d5db;
+}
+
+/* Light Mode - Install Instructions */
+.theme-light .install-instructions-box {
+  background: #fef3c7;
+  border-left-color: #f59e0b;
+  color: #92400e;
+}
+
+.theme-light .install-instructions-title {
+  color: #78350f;
+}
+
+.theme-light .install-instructions-text {
+  color: #92400e;
+}
+
+.theme-light .install-instructions-hint {
+  color: #b45309;
+  opacity: 1;
+}
+
+/* Notification Instructions Hint - adapts to theme */
+.notification-instructions-hint {
+  color: #d1d5db;
+}
+
+.theme-light .notification-instructions-hint {
+  color: #374151;
 }

@@ -3,6 +3,7 @@
  *
  * Provides vibration feedback for mobile devices to enhance touch interactions.
  * Falls back gracefully on devices/browsers that don't support vibration API.
+ * Respects user settings for haptic feedback (settings.hapticFeedback).
  *
  * Usage:
  * ```tsx
@@ -14,6 +15,8 @@
  * }}>Click Me</button>
  * ```
  */
+
+import { useSettingsStore } from '@/stores/settingsStore';
 
 export type HapticPattern = 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'warning';
 
@@ -50,10 +53,20 @@ function isVibrationSupported(): boolean {
 
 /**
  * Trigger vibration with fallback
+ * @param pattern - Vibration pattern in milliseconds
+ * @param respectSettings - Whether to check user settings (default: true)
  */
-function vibrate(pattern: number | number[]): boolean {
+function vibrate(pattern: number | number[], respectSettings = true): boolean {
   if (!isVibrationSupported()) {
     return false;
+  }
+
+  // Check user settings if requested
+  if (respectSettings) {
+    const { settings } = useSettingsStore.getState();
+    if (!settings.hapticFeedback) {
+      return false; // User has disabled haptic feedback
+    }
   }
 
   try {
@@ -70,9 +83,11 @@ function vibrate(pattern: number | number[]): boolean {
  *
  * Provides methods for different vibration patterns.
  * Safe to call on all devices - gracefully degrades.
+ * Automatically respects user's haptic feedback setting.
  */
 export function useHapticFeedback(): HapticFeedbackAPI {
-  const isSupported = isVibrationSupported();
+  const { settings } = useSettingsStore();
+  const isSupported = isVibrationSupported() && settings.hapticFeedback;
 
   return {
     /**

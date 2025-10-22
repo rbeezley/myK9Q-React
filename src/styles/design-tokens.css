@@ -198,6 +198,10 @@
   --token-z-overlay: 100;
   --token-z-modal: 1000;
   --token-z-toast: 2000;
+
+  /* Menu overlay z-index (high to ensure it appears above all content) */
+  --z-menu-overlay: 9999;
+  --z-menu: 10000;
 }
 
 /* Dark theme overrides */

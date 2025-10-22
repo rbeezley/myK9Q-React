@@ -46,7 +46,9 @@ interface ClassFiltersProps {
   classes: ClassEntry[];
   filteredClasses: ClassEntry[];
   hapticFeedback: {
-    impact: (type: 'light' | 'medium' | 'heavy') => void;
+    light: () => void;
+    medium: () => void;
+    heavy: () => void;
   };
 }
 
@@ -141,7 +143,7 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
         <button
           className={`tab-button ${combinedFilter === 'pending' ? 'active' : ''}`}
           onClick={() => {
-            hapticFeedback.impact('light');
+            hapticFeedback.light();
             setCombinedFilter('pending');
           }}
         >
@@ -153,7 +155,7 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
         <button
           className={`tab-button ${combinedFilter === 'favorites' ? 'active' : ''}`}
           onClick={() => {
-            hapticFeedback.impact('light');
+            hapticFeedback.light();
             setCombinedFilter('favorites');
           }}
         >
@@ -165,7 +167,7 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
         <button
           className={`tab-button ${combinedFilter === 'completed' ? 'active' : ''}`}
           onClick={() => {
-            hapticFeedback.impact('light');
+            hapticFeedback.light();
             setCombinedFilter('completed');
           }}
         >

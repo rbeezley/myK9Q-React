@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
-import { HamburgerMenu, HeaderTicker, TrialDateBadge, SyncIndicator, RefreshIndicator, ErrorState } from '../../components/ui';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { HamburgerMenu, HeaderTicker, TrialDateBadge, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { SortableEntryCard } from './SortableEntryCard';
 import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Target, User, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer } from 'lucide-react';
@@ -39,6 +40,7 @@ export const EntryList: React.FC = () => {
   const { showContext, role } = useAuth();
   const { hasPermission } = usePermission();
   const { prefetch } = usePrefetch();
+  const { settings } = useSettingsStore();
 
   // Data management using shared hook
   const {
@@ -519,7 +521,7 @@ export const EntryList: React.FC = () => {
   const statusBadge = getStatusBadge();
 
   return (
-    <div className={`entry-list-container app-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
+    <div className={`entry-list-container page-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
       <header className="entry-list-header">
         <HamburgerMenu
           backNavigation={{
@@ -627,6 +629,13 @@ export const EntryList: React.FC = () => {
       </header>
 
       <HeaderTicker />
+
+      {/* Pull to Refresh Wrapper */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={settings.pullToRefresh}
+        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+      >
 
       {/* Search and Sort Header */}
       <div className="search-controls-header">
@@ -890,6 +899,7 @@ export const EntryList: React.FC = () => {
         </div>
       )}
 
+      </PullToRefresh>
     </div>
   );
 };
