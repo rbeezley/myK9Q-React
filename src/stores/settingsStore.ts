@@ -54,6 +54,7 @@ export interface AppSettings {
   // Scoring
   voiceAnnouncements: boolean;
   voiceLanguage: string; // Language code (e.g., 'en-US', 'es-ES')
+  voiceName: string; // Specific voice name (e.g., 'Microsoft David - English (United States)')
   voiceRate: number; // 0.5 to 2.0
   voicePitch: number; // 0 to 2.0
   voiceVolume: number; // 0 to 1.0
@@ -142,6 +143,7 @@ const defaultSettings: AppSettings = {
   // Scoring
   voiceAnnouncements: false,
   voiceLanguage: 'en-US',
+  voiceName: '', // Empty = use default voice for language
   voiceRate: 1.0,
   voicePitch: 1.0,
   voiceVolume: 1.0,

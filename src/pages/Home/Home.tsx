@@ -12,7 +12,7 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown, ArrowUp } from 'lucide-react';
-import './Home.css';
+// CSS imported in index.css to prevent FOUC
 
 interface EntryData {
   id: number;

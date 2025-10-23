@@ -11,6 +11,11 @@
 @import './styles/high-contrast.css';
 @import './styles/reduce-motion.css';
 
+/* Import critical page CSS to prevent FOUC (Flash of Unstyled Content) */
+@import './pages/EntryList/EntryList.css';
+@import './pages/ClassList/ClassList.css';
+@import './pages/Home/Home.css';
+
 * {
   margin: 0;
   padding: 0;

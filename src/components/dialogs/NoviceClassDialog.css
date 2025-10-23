@@ -144,12 +144,46 @@
   border-color: var(--border);
 }
 
+.theme-dark .novice-class-dialog h2 {
+  color: var(--foreground);
+}
+
 .theme-dark .dialog-option {
-  background: white;
+  background: var(--background);
+  border-color: var(--border);
 }
 
 .theme-dark .dialog-option:hover {
-  background: #f9fafb;
+  background: var(--muted);
+  border-color: #6366f1;
+}
+
+.theme-dark .dialog-option span {
+  color: var(--foreground);
+}
+
+.theme-dark .dialog-option:has(input:checked) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
+}
+
+.theme-dark .dialog-option:has(input:checked) span {
+  color: var(--foreground);
+}
+
+.theme-dark .dialog-button.cancel {
+  background: var(--muted);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.theme-dark .dialog-button.cancel:hover {
+  background: var(--accent);
+}
+
+.theme-dark .dialog-button.continue {
+  background: #6366f1;
+  color: white;
 }
 
 /* Mobile Responsive */

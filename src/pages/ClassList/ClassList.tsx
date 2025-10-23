@@ -9,14 +9,13 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { ArrowLeft, RefreshCw, Target } from 'lucide-react';
-import './ClassList.css';
+// CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { Entry } from '../../stores/entryStore';
 import { getClassEntries } from '../../services/entryService';
-import { NoviceClassDialog } from '../../components/dialogs/NoviceClassDialog';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { ClassCard } from './ClassCard';
@@ -320,9 +319,6 @@ export const ClassList: React.FC = () => {
   const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
   const [selectedClassForMaxTime, setSelectedClassForMaxTime] = useState<ClassEntry | null>(null);
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
-  const [noviceDialogOpen, setNoviceDialogOpen] = useState(false);
-  const [selectedNoviceClass, setSelectedNoviceClass] = useState<ClassEntry | null>(null);
-  const [pairedNoviceClass, setPairedNoviceClass] = useState<ClassEntry | null>(null);
 
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -619,10 +615,8 @@ export const ClassList: React.FC = () => {
     if (classEntry.level === 'Novice') {
       const paired = findPairedNoviceClass(classEntry);
       if (paired) {
-        // Show dialog to let user choose
-        setSelectedNoviceClass(classEntry);
-        setPairedNoviceClass(paired);
-        setNoviceDialogOpen(true);
+        // Navigate directly to combined view with both class IDs (no dialog)
+        navigate(`/class/${classEntry.id}/${paired.id}/entries/combined`);
         return;
       }
     }
@@ -631,21 +625,6 @@ export const ClassList: React.FC = () => {
     navigate(`/class/${classEntry.id}/entries`);
   };
 
-  // Handle Novice dialog selection
-  const handleNoviceDialogSelect = (option: 'A' | 'B' | 'combined') => {
-    if (!selectedNoviceClass || !pairedNoviceClass) return;
-
-    setNoviceDialogOpen(false);
-
-    if (option === 'combined') {
-      // Navigate to combined view with both class IDs
-      navigate(`/class/${selectedNoviceClass.id}/${pairedNoviceClass.id}/entries/combined`);
-    } else {
-      // Navigate to the selected section
-      const targetClass = option === selectedNoviceClass.section ? selectedNoviceClass : pairedNoviceClass;
-      navigate(`/class/${targetClass.id}/entries`);
-    }
-  };
 
 
   // Function to set a dog's in-ring status
@@ -1382,32 +1361,6 @@ export const ClassList: React.FC = () => {
         }}
         currentStatus={selectedClassForStatus?.class_status || ''}
       />
-
-      {/* Novice Class Dialog */}
-      {noviceDialogOpen && selectedNoviceClass && pairedNoviceClass && (
-        <NoviceClassDialog
-          clickedClass={{
-            id: selectedNoviceClass.id,
-            element: selectedNoviceClass.element,
-            level: selectedNoviceClass.level,
-            section: selectedNoviceClass.section,
-            judge_name: selectedNoviceClass.judge_name
-          }}
-          pairedClass={{
-            id: pairedNoviceClass.id,
-            element: pairedNoviceClass.element,
-            level: pairedNoviceClass.level,
-            section: pairedNoviceClass.section,
-            judge_name: pairedNoviceClass.judge_name
-          }}
-          onSelect={handleNoviceDialogSelect}
-          onCancel={() => {
-            setNoviceDialogOpen(false);
-            setSelectedNoviceClass(null);
-            setPairedNoviceClass(null);
-          }}
-        />
-      )}
 
       </PullToRefresh>
     </div>

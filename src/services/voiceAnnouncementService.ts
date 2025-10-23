@@ -358,12 +358,21 @@ class VoiceAnnouncementService {
 
   /**
    * Test voice announcement (for settings)
+   * Always works regardless of enabled state (for testing purposes)
    */
   public testVoice(text: string = 'This is a test of the voice announcement system'): void {
-    this.announce({
+    if (!this.synthesis) {
+      console.warn('Speech synthesis not supported in this browser');
+      return;
+    }
+
+    // Temporarily bypass the enabled check for testing
+    const utterance = this.createUtterance({
       text,
       priority: 'high',
     });
+
+    this.speak(utterance);
   }
 }
 

@@ -446,6 +446,20 @@
   50% { opacity: .5; }
 }
 
+/* Subtle, professional pulse animation for in-progress status badges */
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.03);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  }
+}
+
 
 .tab-icon {
   width: 0.875rem;
@@ -492,7 +506,7 @@
   border-radius: 1rem;
   margin-bottom: 0.75rem;
   cursor: pointer;
-  transition: all 0.5s var(--apple-ease);
+  transition: none !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
@@ -552,13 +566,35 @@
 }
 
 .class-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   border-color: rgba(0, 122, 255, 0.2);
 }
 
+/* Override animations and transitions on class cards ONLY (not badges) */
+.class-card,
+.class-card.status-in-progress,
+.class-card.touchable,
+.class-card.status-in-progress.touchable {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Override touch-feedback.css media query transitions for cards only */
+@media (hover: none) {
+  .class-card,
+  .class-card.status-in-progress {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .class-card:active {
+    transform: none !important;
+  }
+}
+
 .theme-dark .class-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Dark Mode Variations for New Dog Grid Components */
@@ -1822,7 +1858,6 @@
   .dog-handler {
     font-size: 0.625rem;
   }
-}
 
 /* Performance Optimizations */
 @media (prefers-reduced-motion: reduce) {
@@ -2429,6 +2464,7 @@
 .class-header .status-badge.in-progress {
   background: var(--status-in-ring);
   color: white;
+  animation: subtlePulse 4s ease-in-out infinite !important;
 }
 
 .class-header .status-badge.completed {
@@ -2524,6 +2560,7 @@
   background: linear-gradient(135deg, var(--status-in-progress), #2563eb);
   color: white;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  animation: subtlePulse 4s ease-in-out infinite !important;
 }
 
 .class-status-footer .status-badge.completed {

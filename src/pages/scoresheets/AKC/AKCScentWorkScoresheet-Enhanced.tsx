@@ -14,6 +14,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
+import { useSettingsStore } from '../../../stores/settingsStore';
 import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
@@ -26,6 +27,7 @@ import { DogCard } from '../../../components/DogCard';
 import { X } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import { formatSecondsToTime } from '../../../utils/timeUtils';
+import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
@@ -121,6 +123,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
   const [stopwatchInterval, setStopwatchInterval] = useState<NodeJS.Timeout | null>(null);
   const [currentAreaIndex, setCurrentAreaIndex] = useState(0);
+
+  // Settings for voice announcements
+  const settings = useSettingsStore(state => state.settings);
 
   // Refs to capture current values for cleanup
   const currentEntryRef = useRef(currentEntry);
@@ -739,6 +744,48 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
     return null;
   };
+
+  // Voice announcement for 30-second warning
+  const has30SecondAnnouncedRef = useRef(false);
+
+  useEffect(() => {
+    if (!settings.voiceAnnouncements || !settings.announceTimerCountdown) {
+      return;
+    }
+
+    if (!isStopwatchRunning) {
+      // Reset the flag when timer stops
+      has30SecondAnnouncedRef.current = false;
+      return;
+    }
+
+    // No warnings for Master level
+    const level = currentEntry?.level?.toLowerCase() || '';
+    if (level === 'master' || level === 'masters') return;
+
+    // Get max time for current area being timed
+    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    if (!maxTimeStr) return;
+
+    // Parse max time string (format: "3:00") to milliseconds
+    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
+    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+
+    // Calculate remaining time
+    const remainingMs = maxTimeMs - stopwatchTime;
+    const remainingSeconds = Math.floor(remainingMs / 1000);
+
+    // Announce at exactly 30 seconds remaining (only once)
+    if (remainingSeconds === 30 && !has30SecondAnnouncedRef.current) {
+      voiceAnnouncementService.announceTimeRemaining(30);
+      has30SecondAnnouncedRef.current = true;
+    }
+
+    // Reset flag if we're not at 30 seconds (in case timer is reset/restarted)
+    if (remainingSeconds !== 30 && has30SecondAnnouncedRef.current) {
+      has30SecondAnnouncedRef.current = false;
+    }
+  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, currentAreaIndex]);
 
   const handleAreaUpdate = (index: number, field: keyof AreaScore, value: any) => {
     setAreas(prev => prev.map((area, i) =>

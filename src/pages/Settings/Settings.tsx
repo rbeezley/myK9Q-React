@@ -39,6 +39,24 @@ export function Settings() {
   const { isActive: isDNDActive, setFor: setDNDFor, disable: disableDND } = useDNDToggle();
   const { isInstalled, canInstall, promptInstall, getInstallInstructions } = usePWAInstall();
 
+  // Available voices for selection
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = voiceAnnouncementService.getAvailableVoices();
+      setAvailableVoices(voices);
+    };
+
+    loadVoices();
+
+    // Voices may load asynchronously
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
+
   // Quiet hours state
   const [quietHoursConfig, setQuietHoursConfigState] = useState(() => {
     const stored = localStorage.getItem('notification_quiet_hours');
@@ -56,13 +74,21 @@ export function Settings() {
   // Configure voice announcement service when settings change
   useEffect(() => {
     voiceAnnouncementService.setEnabled(settings.voiceAnnouncements);
+
+    // Find the selected voice by name
+    let selectedVoice: SpeechSynthesisVoice | null = null;
+    if (settings.voiceName) {
+      selectedVoice = availableVoices.find(v => v.name === settings.voiceName) || null;
+    }
+
     voiceAnnouncementService.setDefaultConfig({
+      voice: selectedVoice,
       lang: settings.voiceLanguage,
       rate: settings.voiceRate,
       pitch: settings.voicePitch,
       volume: settings.voiceVolume,
     });
-  }, [settings.voiceAnnouncements, settings.voiceLanguage, settings.voiceRate, settings.voicePitch, settings.voiceVolume]);
+  }, [settings.voiceAnnouncements, settings.voiceLanguage, settings.voiceName, settings.voiceRate, settings.voicePitch, settings.voiceVolume, availableVoices]);
 
   // Show toast message
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -924,7 +950,7 @@ export function Settings() {
               <select
                 id="voiceLanguage"
                 value={settings.voiceLanguage}
-                onChange={(e) => updateSettings({ voiceLanguage: e.target.value })}
+                onChange={(e) => updateSettings({ voiceLanguage: e.target.value, voiceName: '' })}
               >
                 <option value="en-US">English (US)</option>
                 <option value="en-GB">English (UK)</option>
@@ -936,7 +962,31 @@ export function Settings() {
 
             <div className="setting-item indented">
               <div className="setting-info">
-                <label htmlFor="voiceRate">Speed: {settings.voiceRate.toFixed(1)}x</label>
+                <label htmlFor="voiceName">Voice</label>
+                <span className="setting-hint">Choose a specific voice</span>
+              </div>
+              <select
+                id="voiceName"
+                value={settings.voiceName ?? ''}
+                onChange={(e) => updateSettings({ voiceName: e.target.value })}
+              >
+                <option value="">Default for language</option>
+                {availableVoices
+                  .filter(voice => {
+                    const langPrefix = (settings.voiceLanguage ?? 'en-US').split('-')[0];
+                    return voice.lang.startsWith(langPrefix);
+                  })
+                  .map(voice => (
+                    <option key={voice.name} value={voice.name}>
+                      {voice.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="voiceRate">Speed: {(settings.voiceRate ?? 1.0).toFixed(1)}x</label>
                 <span className="setting-hint">How fast the voice speaks</span>
               </div>
               <input
@@ -945,14 +995,14 @@ export function Settings() {
                 min="0.5"
                 max="2.0"
                 step="0.1"
-                value={settings.voiceRate}
+                value={settings.voiceRate ?? 1.0}
                 onChange={(e) => updateSettings({ voiceRate: parseFloat(e.target.value) })}
               />
             </div>
 
             <div className="setting-item indented">
               <div className="setting-info">
-                <label htmlFor="voicePitch">Pitch: {settings.voicePitch.toFixed(1)}</label>
+                <label htmlFor="voicePitch">Pitch: {(settings.voicePitch ?? 1.0).toFixed(1)}</label>
                 <span className="setting-hint">Voice tone (higher = higher pitched)</span>
               </div>
               <input
@@ -961,14 +1011,14 @@ export function Settings() {
                 min="0.5"
                 max="2.0"
                 step="0.1"
-                value={settings.voicePitch}
+                value={settings.voicePitch ?? 1.0}
                 onChange={(e) => updateSettings({ voicePitch: parseFloat(e.target.value) })}
               />
             </div>
 
             <div className="setting-item indented">
               <div className="setting-info">
-                <label htmlFor="voiceVolume">Volume: {Math.round(settings.voiceVolume * 100)}%</label>
+                <label htmlFor="voiceVolume">Volume: {Math.round((settings.voiceVolume ?? 1.0) * 100)}%</label>
                 <span className="setting-hint">Voice loudness</span>
               </div>
               <input
@@ -977,7 +1027,7 @@ export function Settings() {
                 min="0"
                 max="1.0"
                 step="0.1"
-                value={settings.voiceVolume}
+                value={settings.voiceVolume ?? 1.0}
                 onChange={(e) => updateSettings({ voiceVolume: parseFloat(e.target.value) })}
               />
             </div>

@@ -30,7 +30,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import './EntryList.css';
+// CSS imported in index.css to prevent FOUC
 
 type TabType = 'pending' | 'completed';
 

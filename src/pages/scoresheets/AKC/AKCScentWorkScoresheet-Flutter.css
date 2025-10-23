@@ -346,48 +346,69 @@
 }
 
 .timer-btn-pause, .timer-btn-reset {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
   border: none;
   background: rgba(124, 58, 237, 0.8);
   color: var(--scoresheet-badge-text);
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
 
 .timer-btn-start {
-  min-width: 140px;
-  height: 56px;
-  border-radius: 28px;
+  width: 160px;
+  min-width: 160px;
+  height: 64px;
+  border-radius: 32px;
   border: none;
   background: #10B981;
   color: var(--scoresheet-badge-text);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .timer-btn-start.stop {
   background: #EF4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .timer-btn-pause:hover, .timer-btn-reset:hover {
   background: rgba(124, 58, 237, 1);
   transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.timer-btn-pause:active, .timer-btn-reset:active {
+  transform: scale(0.95);
 }
 
 .timer-btn-start:hover {
   transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.timer-btn-start:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.timer-btn-start.stop:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
 }
 
 .timer-secondary {

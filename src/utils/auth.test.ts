@@ -125,7 +125,9 @@ describe('getPermissionsForRole', () => {
       canViewPasscodes: true,
       canAccessScoresheet: true,
       canChangeRunOrder: true,
-      canCheckInDogs: true
+      canCheckInDogs: true,
+      canScore: true,
+      canManageClasses: true
     });
   });
 
@@ -135,7 +137,9 @@ describe('getPermissionsForRole', () => {
       canViewPasscodes: false,
       canAccessScoresheet: true,
       canChangeRunOrder: true,
-      canCheckInDogs: true
+      canCheckInDogs: true,
+      canScore: true,
+      canManageClasses: true
     });
   });
 
@@ -145,7 +149,9 @@ describe('getPermissionsForRole', () => {
       canViewPasscodes: false,
       canAccessScoresheet: false,
       canChangeRunOrder: true,
-      canCheckInDogs: true
+      canCheckInDogs: true,
+      canScore: false,
+      canManageClasses: false
     });
   });
 
@@ -155,7 +161,9 @@ describe('getPermissionsForRole', () => {
       canViewPasscodes: false,
       canAccessScoresheet: false,
       canChangeRunOrder: false,
-      canCheckInDogs: true
+      canCheckInDogs: true,
+      canScore: false,
+      canManageClasses: false
     });
   });
 });
