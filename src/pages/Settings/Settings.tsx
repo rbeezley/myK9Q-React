@@ -1035,14 +1035,16 @@ export function Settings() {
             <div className="setting-item indented">
               <button
                 className="secondary-button"
-                onClick={() => voiceAnnouncementService.testVoice()}
+                onClick={() => {
+                  console.log('[Settings] Test Voice button clicked');
+                  voiceAnnouncementService.testVoice();
+                }}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 <Volume2 size={16} />
                 Test Voice
               </button>
             </div>
-
             <div className="setting-item indented">
               <div className="setting-info">
                 <label htmlFor="announceTimerCountdown">Announce Timer Countdown</label>

@@ -78,10 +78,30 @@ class VoiceAnnouncementService {
 
     this.voices = this.synthesis.getVoices();
 
-    // Set default voice to first en-US voice if available
+    // Set default voice - prefer Google UK English Male, fallback to first en-US voice
     if (!this.defaultConfig.voice && this.voices.length > 0) {
-      const enUSVoice = this.voices.find(v => v.lang === 'en-US');
-      this.defaultConfig.voice = enUSVoice || this.voices[0];
+      // Try to find Google UK English Male first
+      let defaultVoice = this.voices.find(v =>
+        v.name.toLowerCase().includes('google') &&
+        v.name.toLowerCase().includes('uk') &&
+        v.name.toLowerCase().includes('male')
+      );
+
+      // Fallback to any Google UK voice
+      if (!defaultVoice) {
+        defaultVoice = this.voices.find(v =>
+          v.name.toLowerCase().includes('google') &&
+          v.lang.startsWith('en-GB')
+        );
+      }
+
+      // Fallback to first en-US voice
+      if (!defaultVoice) {
+        defaultVoice = this.voices.find(v => v.lang === 'en-US');
+      }
+
+      // Last resort: first available voice
+      this.defaultConfig.voice = defaultVoice || this.voices[0];
     }
   }
 
@@ -110,7 +130,16 @@ class VoiceAnnouncementService {
    * Update the default voice configuration
    */
   public setDefaultConfig(config: Partial<VoiceConfig>): void {
-    this.defaultConfig = { ...this.defaultConfig, ...config };
+    // Filter out undefined values to prevent overwriting good defaults with undefined
+    const filteredConfig: Partial<VoiceConfig> = {};
+
+    if (config.voice !== undefined) filteredConfig.voice = config.voice;
+    if (config.lang !== undefined) filteredConfig.lang = config.lang;
+    if (config.rate !== undefined && isFinite(config.rate)) filteredConfig.rate = config.rate;
+    if (config.pitch !== undefined && isFinite(config.pitch)) filteredConfig.pitch = config.pitch;
+    if (config.volume !== undefined && isFinite(config.volume)) filteredConfig.volume = config.volume;
+
+    this.defaultConfig = { ...this.defaultConfig, ...filteredConfig };
   }
 
   /**
@@ -165,19 +194,33 @@ class VoiceAnnouncementService {
   private createUtterance(options: AnnouncementOptions): SpeechSynthesisUtterance {
     const utterance = new SpeechSynthesisUtterance(options.text);
 
-    // Apply voice configuration
+    // Apply voice configuration, filtering out undefined values
     const config = { ...this.defaultConfig, ...(options.voiceConfig || {}) };
 
     if (config.voice) {
       utterance.voice = config.voice;
     }
-    utterance.lang = config.lang;
-    utterance.rate = config.rate;
-    utterance.pitch = config.pitch;
-    utterance.volume = config.volume;
+    // Only set if defined and is a finite number
+    if (config.lang !== undefined) {
+      utterance.lang = config.lang;
+    }
+    if (config.rate !== undefined && isFinite(config.rate)) {
+      utterance.rate = config.rate;
+    }
+    if (config.pitch !== undefined && isFinite(config.pitch)) {
+      utterance.pitch = config.pitch;
+    }
+    if (config.volume !== undefined && isFinite(config.volume)) {
+      utterance.volume = config.volume;
+    }
 
     // Set up callbacks
+    utterance.onstart = () => {
+      console.log('[VoiceService] Speech started');
+    };
+
     utterance.onend = () => {
+      console.log('[VoiceService] Speech ended');
       this.currentUtterance = null;
       if (options.onEnd) {
         options.onEnd();
@@ -185,7 +228,13 @@ class VoiceAnnouncementService {
     };
 
     utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event);
+      console.error('[VoiceService] Speech synthesis error:', event);
+      console.error('[VoiceService] Error details:', {
+        error: event.error,
+        charIndex: event.charIndex,
+        elapsedTime: event.elapsedTime,
+        name: event.name
+      });
       this.currentUtterance = null;
       if (options.onError) {
         options.onError(event);
@@ -366,13 +415,40 @@ class VoiceAnnouncementService {
       return;
     }
 
-    // Temporarily bypass the enabled check for testing
-    const utterance = this.createUtterance({
-      text,
-      priority: 'high',
-    });
+    console.log('[VoiceService] Test voice called');
+    console.log('[VoiceService] Current config:', this.defaultConfig);
+    console.log('[VoiceService] Available voices:', this.voices.length);
+    console.log('[VoiceService] Is speaking:', this.synthesis.speaking);
+    console.log('[VoiceService] Is paused:', this.synthesis.paused);
 
-    this.speak(utterance);
+    // Cancel any previous speech to work around Chrome speechSynthesis queue bug
+    this.cancel();
+
+    // Chrome bug workaround: Add small delay after cancel to ensure queue clears
+    setTimeout(() => {
+      // Reload voices to ensure we have them (they may not have loaded yet)
+      if (this.voices.length === 0) {
+        this.loadVoices();
+      }
+
+      // Temporarily bypass the enabled check for testing
+      const utterance = this.createUtterance({
+        text,
+        priority: 'high',
+      });
+
+      console.log('[VoiceService] Utterance created:', {
+        text: utterance.text,
+        voice: utterance.voice?.name,
+        lang: utterance.lang,
+        rate: utterance.rate,
+        pitch: utterance.pitch,
+        volume: utterance.volume
+      });
+
+      this.speak(utterance);
+      console.log('[VoiceService] Speak called, speaking:', this.synthesis?.speaking);
+    }, 100);
   }
 }
 

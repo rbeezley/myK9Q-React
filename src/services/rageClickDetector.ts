@@ -36,6 +36,8 @@ export class RageClickDetector {
   private lastClickTime: number = 0;
   private lastClickElement: string | null = null;
   private enabled: boolean = true;
+  private pageLoadTime: number = Date.now();
+  private readonly PAGE_LOAD_GRACE_PERIOD = 2000; // ms to ignore events after page load
 
   // Configuration thresholds
   private readonly RAPID_CLICK_THRESHOLD = 300; // ms between clicks to be considered "rapid"
@@ -225,6 +227,12 @@ export class RageClickDetector {
    */
   private handleScroll(): void {
     if (!this.enabled) return;
+
+    // Ignore scroll events during page load grace period (prevents false positives from auto-scroll)
+    const timeSincePageLoad = Date.now() - this.pageLoadTime;
+    if (timeSincePageLoad < this.PAGE_LOAD_GRACE_PERIOD) {
+      return;
+    }
 
     const now = performance.now();
     this.scrollBuffer.push(now);

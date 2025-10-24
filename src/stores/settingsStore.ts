@@ -142,8 +142,8 @@ const defaultSettings: AppSettings = {
 
   // Scoring
   voiceAnnouncements: false,
-  voiceLanguage: 'en-US',
-  voiceName: '', // Empty = use default voice for language
+  voiceLanguage: 'en-GB',
+  voiceName: 'Google UK English Male', // Default to Google UK English Male
   voiceRate: 1.0,
   voicePitch: 1.0,
   voiceVolume: 1.0,
