@@ -7,12 +7,15 @@
  */
 
 import { useEffect, useState } from 'react';
-import { WifiOff, Wifi, CloudOff, CloudUpload, AlertCircle } from 'lucide-react';
+import { WifiOff, Wifi, CloudOff, CloudUpload, AlertCircle, Signal, SignalLow, SignalMedium, SignalHigh } from 'lucide-react';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
+import { networkDetectionService } from '@/services/networkDetectionService';
 import './OfflineIndicator.css';
 
 export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [connectionQuality, setConnectionQuality] = useState<'slow' | 'medium' | 'fast' | null>(null);
+  const [connectionType, setConnectionType] = useState<string>('');
   const { queue, isSyncing, failedItems } = useOfflineQueueStore();
 
   const pendingCount = queue.filter(q => q.status === 'pending').length;
@@ -26,11 +29,69 @@ export function OfflineIndicator() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Subscribe to network changes
+    const unsubscribe = networkDetectionService.subscribe((networkInfo) => {
+      // Determine connection quality
+      // Inline slow connection detection (checks effective type and downlink speed)
+      const isSlowConnection =
+        networkInfo.effectiveType === 'slow-2g' ||
+        networkInfo.effectiveType === '2g' ||
+        (networkInfo.downlink !== undefined && networkInfo.downlink < 1);
+
+      if (isSlowConnection) {
+        setConnectionQuality('slow');
+      } else if (networkInfo.effectiveType === '3g') {
+        setConnectionQuality('medium');
+      } else if (networkInfo.effectiveType === '4g' || networkInfo.connectionType === 'wifi' || networkInfo.connectionType === 'ethernet') {
+        setConnectionQuality('fast');
+      } else {
+        setConnectionQuality(null);
+      }
+
+      // Determine connection type for display
+      if (networkInfo.connectionType === 'wifi') {
+        setConnectionType('WiFi');
+      } else if (networkInfo.connectionType === 'cellular') {
+        setConnectionType(`Cellular ${networkInfo.effectiveType?.toUpperCase() || ''}`);
+      } else if (networkInfo.connectionType === 'ethernet') {
+        setConnectionType('Ethernet');
+      } else {
+        setConnectionType('');
+      }
+    });
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      unsubscribe();
     };
   }, []);
+
+  // Helper function to get signal icon based on quality
+  const getSignalIcon = () => {
+    if (connectionQuality === 'slow') return SignalLow;
+    if (connectionQuality === 'medium') return SignalMedium;
+    if (connectionQuality === 'fast') return SignalHigh;
+    return Signal;
+  };
+
+  // Show slow connection warning even if online and no sync issues
+  if (isOnline && connectionQuality === 'slow' && pendingCount === 0 && syncingCount === 0 && failedCount === 0) {
+    const SignalIcon = getSignalIcon();
+    return (
+      <div className="offline-indicator slow-connection-mode">
+        <div className="offline-indicator-content">
+          <SignalIcon className="offline-icon" size={20} />
+          <div className="offline-text">
+            <strong>Slow Connection</strong>
+            <span className="offline-count">
+              {connectionType} - App may be slow
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Don't show anything if online and no pending items
   if (isOnline && pendingCount === 0 && syncingCount === 0 && failedCount === 0) {
@@ -76,6 +137,7 @@ export function OfflineIndicator() {
 
   // Failed mode
   if (failedCount > 0) {
+    const showConnectionHint = connectionQuality === 'slow' && connectionType;
     return (
       <div className="offline-indicator failed-mode">
         <div className="offline-indicator-content">
@@ -84,6 +146,7 @@ export function OfflineIndicator() {
             <strong>Sync Failed</strong>
             <span className="offline-count">
               {failedCount} {failedCount === 1 ? 'score' : 'scores'} failed to sync
+              {showConnectionHint && ` • ${connectionType} may be too slow`}
             </span>
           </div>
         </div>

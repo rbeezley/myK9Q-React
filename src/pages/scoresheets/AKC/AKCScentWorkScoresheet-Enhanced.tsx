@@ -1021,6 +1021,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
 
     // Demo mode UI - same as main component but with sample data
+    // For Qualified scores, all area times must be completed; for other results, times are optional
     const allAreasScored = qualifying !== 'Q' || areas.every(area => area.time && area.time !== '');
     const isResultSelected = qualifying !== '';
     const isNQReasonRequired = (qualifying === 'NQ' || qualifying === 'EX' || qualifying === 'WD') && nonQualifyingReason === '';
@@ -1537,6 +1538,22 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         />
       )}
 
+      {/* Validation message for incomplete Qualified scores */}
+      {qualifying === 'Q' && !areas.every(area => area.time && area.time !== '') && (
+        <div style={{
+          padding: '8px 16px',
+          marginBottom: '8px',
+          backgroundColor: '#fef3c7',
+          border: '1px solid #f59e0b',
+          borderRadius: '6px',
+          color: '#92400e',
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
+          ⚠️ All area times must be completed for a Qualified score
+        </div>
+      )}
+
       {/* Flutter-style Action Buttons */}
       <div className="scoresheet-actions">
         <button className="scoresheet-btn-cancel" onClick={handleNavigateWithRingCleanup}>
@@ -1545,7 +1562,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         <button
           className="scoresheet-btn-save"
           onClick={() => setShowConfirmation(true)}
-          disabled={isSubmitting || !qualifying}
+          disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !areas.every(area => area.time && area.time !== ''))}
         >
           {isSubmitting ? 'Saving...' : 'Save'}
         </button>

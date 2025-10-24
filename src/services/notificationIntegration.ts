@@ -54,7 +54,7 @@ class NotificationIntegration {
    */
   initialize(): void {
     if (this.isInitialized) {
-      console.log('📱 Notification integration already initialized');
+      console.log('📱 Notification integration already initialized - skipping');
       return;
     }
 
@@ -148,6 +148,11 @@ class NotificationIntegration {
    * Clean up resources
    */
   destroy(): void {
+    if (!this.isInitialized) {
+      console.log('📱 Notification integration not initialized - skipping destroy');
+      return;
+    }
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
     }

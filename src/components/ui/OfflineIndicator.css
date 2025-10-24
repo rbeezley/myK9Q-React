@@ -83,6 +83,16 @@
   color: white;
 }
 
+/* Slow Connection Mode - Yellow/Orange Warning */
+.slow-connection-mode {
+  background: linear-gradient(135deg, #f59e0b 0%, #fb923c 100%);
+  color: white;
+}
+
+.slow-connection-mode .offline-icon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
 /* Animations */
 @keyframes slideDown {
   from {

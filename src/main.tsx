@@ -7,6 +7,13 @@ import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 
 const updateSW = registerSW({
   onNeedRefresh() {
+    // In development, don't auto-prompt for refresh to avoid interrupting work
+    if (import.meta.env.DEV) {
+      console.log('🔄 New service worker available (auto-refresh disabled in dev mode)')
+      return
+    }
+
+    // In production, prompt user for update
     if (confirm('New content available. Reload?')) {
       updateSW(true)
     }
