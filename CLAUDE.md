@@ -23,7 +23,7 @@ npm run setup        # Interactive Supabase environment setup
   - **Region**: us-east-2
   - **Use this project ID for all Supabase MCP operations**
 - **Routing**: React Router DOM 6.22
-- **Styling**: TailwindCSS with custom components
+- **Styling**: Semantic CSS with design tokens (CSS variables for theming)
 - **UI**: Lucide React icons, @dnd-kit for drag-and-drop
 - **Testing**: Vitest + React Testing Library + Playwright
 
@@ -112,6 +112,156 @@ npm run setup        # Interactive Supabase environment setup
 - **Icons**: 192x192 and 512x512 maskable icons required
 
 ## Development Rules
+
+### CSS Architecture & Standards
+
+**Philosophy: Simple, Clean, Fast**
+- Semantic CSS class names (NOT utility-first like Tailwind)
+- Design tokens via CSS variables for all spacing/colors
+- Consolidated files (30 total, not 100+)
+- One media query block per breakpoint per file
+
+**Core Principles:**
+1. **Mobile-First**: Base styles are mobile, enhance for tablet/desktop
+2. **Design Tokens Only**: Never hardcode colors or spacing
+3. **Zero !important**: Only allowed in utility classes
+4. **Consolidated Media Queries**: One block per breakpoint per file
+
+**File Organization:**
+
+**Global Styles** (`src/styles/`):
+- `design-tokens.css` - All CSS variables (spacing, colors, typography)
+- `shared-components.css` - Reusable component patterns (cards, buttons, badges)
+- `page-container.css` - Page layout system
+- `utilities.css` - Utility classes (.sr-only, .truncate, etc.)
+
+**Page Styles** (`src/pages/*/`):
+- ONE CSS file per page route
+- Contains ONLY page-specific styles
+- Common patterns should reference shared-components.css classes
+
+**Component Styles**:
+- **Simple components** (Button, Badge, Card): Use `src/components/ui/shared-ui.css`
+- **Complex components** (DogCard, MultiTimer): Own CSS file (100+ lines of unique styles)
+- **Dialogs**: Use `src/components/dialogs/shared-dialog.css`
+
+**When to Create New CSS File:**
+```
+✅ CREATE new file when:
+   - Component has 100+ lines of unique styles
+   - Component has complex state-dependent styling
+   - Component is page-specific (page CSS files)
+
+❌ USE shared CSS when:
+   - Component is < 100 lines of CSS
+   - Styles are mostly variations of existing patterns
+   - Component uses design tokens with minimal customization
+```
+
+**Required CSS File Structure:**
+```css
+/* ===== COMPONENT_NAME.css ===== */
+
+/* CSS Variables (if needed) */
+:root { --component-var: value; }
+
+/* Base/Mobile Styles (no media query - mobile first!) */
+.component {
+  padding: var(--token-space-lg);  /* Always use tokens */
+  color: var(--foreground);         /* Never hardcode colors */
+}
+
+/* Tablet (ONE block only) */
+@media (min-width: 640px) {
+  .component { padding: var(--token-space-xl); }
+}
+
+/* Desktop (ONE block only) */
+@media (min-width: 1024px) {
+  .component { padding: var(--token-space-3xl); }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .component { animation: none; }
+}
+
+/* Theme (use CSS variables - they handle switching) */
+.theme-dark .component { /* Usually not needed */ }
+```
+
+**Spacing System (Horizontal Alignment):**
+```css
+/* Mobile: All sections use 12px left padding */
+.page-section { padding: 0 var(--token-space-lg); }
+
+/* Desktop: All sections use 24px */
+@media (min-width: 1024px) {
+  .page-section { padding: 0 var(--token-space-3xl); }
+}
+```
+
+**Design Token Reference:**
+```css
+/* Spacing */
+--token-space-xs: 0.125rem;   /* 2px */
+--token-space-sm: 0.25rem;    /* 4px */
+--token-space-md: 0.5rem;     /* 8px */
+--token-space-lg: 0.75rem;    /* 12px - mobile container padding */
+--token-space-xl: 1rem;       /* 16px */
+--token-space-2xl: 1.25rem;   /* 20px */
+--token-space-3xl: 1.5rem;    /* 24px - desktop container padding */
+--token-space-4xl: 2rem;      /* 32px */
+
+/* Status Colors */
+--status-checked-in: #10b981;
+--status-at-gate: #8b5cf6;
+--status-in-ring: #3b82f6;
+/* See design-tokens.css for complete list */
+```
+
+**Forbidden Practices:**
+```css
+/* ❌ NEVER do this */
+@media (max-width: 640px) { .foo { } }
+/* ... 500 lines later ... */
+@media (max-width: 640px) { .bar { } }  /* Duplicate breakpoint! */
+
+.component { padding: 12px; }            /* Hardcoded spacing! */
+.component { color: red !important; }    /* Specificity war! */
+.status { background: #10b981; }         /* Hardcoded color! */
+
+/* ✅ ALWAYS do this */
+@media (max-width: 640px) {
+  .foo { }
+  .bar { }  /* Consolidated in ONE block */
+}
+
+.component { padding: var(--token-space-lg); }
+.component { color: red; }  /* No !important needed */
+.status { background: var(--status-checked-in); }
+```
+
+**Media Query Breakpoints (Use These Only):**
+- Mobile: `< 640px` (base styles, NO media query wrapper)
+- Tablet: `@media (min-width: 640px)`
+- Desktop: `@media (min-width: 1024px)`
+- Large: `@media (min-width: 1440px)` (rarely needed)
+
+**Pre-Commit CSS Checklist:**
+- [ ] All spacing uses design tokens (no hardcoded px/rem)
+- [ ] All colors use design tokens (no hardcoded hex)
+- [ ] Zero `!important` declarations (except utility classes)
+- [ ] Media queries consolidated (one block per breakpoint)
+- [ ] Tested at 375px, 768px, 1024px, 1440px
+- [ ] Light and dark theme both work
+- [ ] Left-edge alignment verified across all sections
+
+**Reference Documents:**
+- [CSS-IMPROVEMENT-ROADMAP.md](CSS-IMPROVEMENT-ROADMAP.md) - Consolidation plan and metrics
+- [docs/CSS_ARCHITECTURE.md](docs/CSS_ARCHITECTURE.md) - Detailed patterns and pitfalls
+- [docs/COMPONENT_TESTING.md](docs/COMPONENT_TESTING.md) - Testing matrix
+- [docs/style-guides/design-system.md](docs/style-guides/design-system.md) - Design tokens and colors
 
 ### Type Safety
 - TypeScript strict mode enabled

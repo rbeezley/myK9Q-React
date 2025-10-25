@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import './AutoLogoutWarning.css';
+import './shared-ui.css';
 
 interface AutoLogoutWarningProps {
   /** Seconds remaining until auto-logout */

@@ -10,7 +10,7 @@ import { WifiOff, Wifi, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react
 import { syncManager } from '@/services/syncManager';
 import { networkDetectionService } from '@/services/networkDetectionService';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
-import './OfflineStatusBar.css';
+import './shared-ui.css';
 
 interface OfflineStatusBarProps {
   className?: string;
@@ -151,7 +151,7 @@ export function OfflineStatusBar({ className = '' }: OfflineStatusBarProps) {
               onClick={handleManualSync}
               title="Sync now"
             >
-              <RefreshCw size={16} />
+              <RefreshCw size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               Sync
             </button>
           )}
@@ -160,7 +160,7 @@ export function OfflineStatusBar({ className = '' }: OfflineStatusBarProps) {
 
       {syncState.error && (
         <div className="status-error">
-          <AlertCircle size={14} />
+          <AlertCircle size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
           {syncState.error}
         </div>
       )}

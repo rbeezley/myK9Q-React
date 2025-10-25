@@ -32,7 +32,7 @@ export const TrialDateBadge: React.FC<TrialDateBadgeProps> = ({
 
   return (
     <span className={`trial-detail ${className}`.trim()}>
-      {showIcon && <Calendar size={14} />} {displayText}
+      {showIcon && <Calendar size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />} {displayText}
     </span>
   );
 };

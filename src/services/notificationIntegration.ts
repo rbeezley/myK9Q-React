@@ -178,7 +178,7 @@ class NotificationIntegration {
       }
 
       // Detect entry marked as "in ring"
-      if (prevEntry && !prevEntry.inRing && entry.inRing) {
+      if (prevEntry && prevEntry.status !== 'in-ring' && entry.status === 'in-ring') {
         this.onEntryInRing(entry);
       }
     });

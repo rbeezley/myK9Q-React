@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
+// Updated field mappings for unified view
 import { updateEntryCheckinStatus } from '../../services/entryService';
 import { Button, HamburgerMenu, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
@@ -104,12 +105,12 @@ export const DogDetails: React.FC = () => {
   const loadDogDetails = async () => {
     setIsLoading(true);
     try {
-      // Query the view which now includes check_in_status_text field
+      // Query the view which now includes entry_status field
       const { data, error } = await supabase
         .from('view_entry_class_join_normalized')
         .select('*')
         .eq('license_key', showContext?.licenseKey)
-        .eq('armband', parseInt(armband!));
+        .eq('armband_number', parseInt(armband!));
 
       if (error) {
         console.error('Error loading dog details:', error);
@@ -120,50 +121,31 @@ export const DogDetails: React.FC = () => {
         // Set dog info from first record
         const firstEntry = data[0];
         setDogInfo({
-          armband: firstEntry.armband,
-          call_name: firstEntry.call_name,
-          breed: firstEntry.breed,
-          handler: firstEntry.handler
+          armband: firstEntry.armband_number,
+          call_name: firstEntry.dog_call_name,
+          breed: firstEntry.dog_breed,
+          handler: firstEntry.handler_name
         });
 
-        // Process all classes - map check-in status from text field
+        // Process all classes - map entry status from unified status field
         setClasses(data.map((entry) => {
-          let check_in_status: ClassEntry['check_in_status'] = 'none';
-
-          // Use text-based check-in status (matches what updateEntryCheckinStatus writes)
-          const statusText = entry.check_in_status_text || 'none';
-
-          switch (statusText) {
-            case 'checked-in':
-              check_in_status = 'checked-in';
-              break;
-            case 'conflict':
-              check_in_status = 'conflict';
-              break;
-            case 'pulled':
-              check_in_status = 'pulled';
-              break;
-            case 'at-gate':
-              check_in_status = 'at-gate';
-              break;
-            default: // 'none' or null
-              check_in_status = 'none';
-              break;
-          }
+          // Use unified entry_status field
+          const statusText = entry.entry_status || 'none';
+          const check_in_status: ClassEntry['check_in_status'] = statusText === 'in-ring' ? 'none' : statusText as CheckinStatus;
 
           return {
             id: entry.id,
-            class_name: entry.class_name,
-            class_type: entry.class_type,
-            trial_name: entry.trial_name,
+            class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : 'Unknown Class',
+            class_type: entry.element || 'Unknown',
+            trial_name: `Trial ${entry.trial_number || ''}`,
             trial_date: entry.trial_date,
-            search_time: entry.search_time,
-            fault_count: entry.fault_count,
+            search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
+            fault_count: entry.total_faults || null,
             result_text: entry.result_status,
             is_scored: entry.is_scored || false,
             checked_in: check_in_status !== 'none',
             check_in_status,
-            position: entry.placement || undefined, // Use actual placement from results
+            position: entry.final_placement || undefined,
             // Map additional fields
             element: entry.element,
             level: entry.level,
@@ -183,19 +165,26 @@ export const DogDetails: React.FC = () => {
   const handleStatusChange = async (classId: number, status: CheckinStatus) => {
     try {
       hapticFeedback.impact('medium');
-      
+
+      // Exhibitors should only be able to use standard check-in statuses
+      // 'in-ring' and 'completed' are filtered out by showRingManagement={false}
+      if (status === 'in-ring' || status === 'completed') {
+        console.warn('Ring management statuses not available for exhibitors');
+        return;
+      }
+
       // Update local state immediately for better UX
-      setClasses(prev => prev.map(c => 
-        c.id === classId 
-          ? { 
-              ...c, 
+      setClasses(prev => prev.map(c =>
+        c.id === classId
+          ? {
+              ...c,
               checked_in: status !== 'none',
               check_in_status: status,
               // Keep result_text unchanged - it's for scoring results only
-            } 
+            }
           : c
       ));
-      
+
       // Close popup
       setActivePopup(null);
 
@@ -322,87 +311,119 @@ export const DogDetails: React.FC = () => {
           const isScored = entry.is_scored;
           
           return (
-            <div key={entry.id} className={`class-card ${statusColor}`}>
-              <div className="class-content">
-                {/* Position Badge */}
-                <div className="class-position">
-                  {entry.position ? (
-                    <div className="position-badge">
-                      <Trophy />
-                      <span className="position-number">{entry.position}</span>
-                    </div>
-                  ) : (
-                    <span className="position-placeholder">--</span>
-                  )}
-                </div>
-                  
-                {/* Class Information */}
-                <div className="class-info">
-                  <div className="class-meta">
-                    <h4 className="class-name">
-                      {[
-                        entry.element,
-                        entry.level,
-                        entry.section && entry.section !== '-' ? entry.section : null
-                      ].filter(Boolean).join(' • ')}
-                    </h4>
-                    <div className="class-meta-details">
-                      <p className="class-date">
-                        <TrialDateBadge date={entry.trial_date} />
-                      </p>
-                      {entry.trial_number && (
-                        <p className="class-trial">
-                          <Target size={14} />
-                          Trial {entry.trial_number}
-                        </p>
-                      )}
-                      {entry.judge_name && (
-                        <p className="class-judge">
-                          <User size={14} />
-                          {entry.judge_name}
-                        </p>
-                      )}
-                    </div>
+            <div key={entry.id} className={`class-card ${statusColor}`} style={{ position: 'relative' }}>
+              {/* Status Button - positioned absolute, aligned with position badge */}
+              <button
+                onClick={(e) => !isScored && handleOpenPopup(e, entry.id)}
+                disabled={isScored}
+                className={`status-button ${statusColor}`}
+                style={{
+                  position: 'absolute',
+                  top: '0.875rem',  // Aligned with position badge
+                  right: '1rem',
+                  zIndex: 1,
+                  minWidth: '100px',
+                  height: '36px'
+                }}
+              >
+                {/* Check-in status icons - matching dialog */}
+                {entry.check_in_status === 'checked-in' && <Check className="status-icon h-4 w-4" />}
+                {entry.check_in_status === 'conflict' && <AlertTriangle className="status-icon h-4 w-4" />}
+                {entry.check_in_status === 'pulled' && <XCircle className="status-icon h-4 w-4" />}
+                {entry.check_in_status === 'at-gate' && <Star className="status-icon h-4 w-4" />}
+                {entry.check_in_status === 'none' && !isScored && <Circle className="status-icon h-4 w-4" />}
+
+                {/* Result status icons */}
+                {statusColor === 'qualified' && <ThumbsUp />}
+                {statusColor === 'not-qualified' && <XCircle />}
+
+                {getStatusLabel(entry)}
+              </button>
+
+              <div className="class-content" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {/* Top row: Position Badge + Class Name */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  paddingRight: '120px'
+                }}>
+                  {/* Position Badge */}
+                  <div className="class-position" style={{ flexShrink: 0 }}>
+                    {entry.position ? (
+                      <div className="position-badge">
+                        <Trophy />
+                        <span className="position-number">{entry.position}</span>
+                      </div>
+                    ) : (
+                      <span className="position-placeholder">--</span>
+                    )}
                   </div>
 
-                  {/* Performance Stats - only show if dog has completed the class */}
-                  {entry.is_scored && (
-                    <div className="class-stats">
-                      <div className="stat-item">
-                        <Clock />
-                        <span className="stat-value">
-                          {formatTime(entry.search_time)}
-                        </span>
-                      </div>
-                      <div className="stat-item">
-                        <AlertTriangle />
-                        <span className="stat-value">
-                          {entry.fault_count || 0} faults
-                        </span>
-                      </div>
-                    </div>
+                  {/* Class Name - vertically centered with badge */}
+                  <h4 className="class-name" style={{
+                    margin: 0,
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    lineHeight: 1.2,
+                    flex: 1
+                  }}>
+                    {[
+                      entry.element,
+                      entry.level,
+                      entry.section && entry.section !== '-' ? entry.section : null
+                    ].filter(Boolean).join(' • ')}
+                  </h4>
+                </div>
+
+                {/* Second row: Metadata */}
+                <div className="class-meta-details" style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                  fontSize: '0.875rem',
+                  color: 'var(--text-secondary)',
+                  paddingLeft: '60px'
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <TrialDateBadge date={entry.trial_date} />
+                  </span>
+                  {entry.trial_number && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+                      Trial {entry.trial_number}
+                    </span>
+                  )}
+                  {entry.judge_name && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+                      {entry.judge_name}
+                    </span>
                   )}
                 </div>
-                
-                {/* Status Button */}
-                <button
-                  onClick={(e) => !isScored && handleOpenPopup(e, entry.id)}
-                  disabled={isScored}
-                  className={`status-button ${statusColor}`}
-                >
-                  {/* Check-in status icons - matching dialog */}
-                  {entry.check_in_status === 'checked-in' && <Check className="status-icon h-4 w-4" />}
-                  {entry.check_in_status === 'conflict' && <AlertTriangle className="status-icon h-4 w-4" />}
-                  {entry.check_in_status === 'pulled' && <XCircle className="status-icon h-4 w-4" />}
-                  {entry.check_in_status === 'at-gate' && <Star className="status-icon h-4 w-4" />}
-                  {entry.check_in_status === 'none' && !isScored && <Circle className="status-icon h-4 w-4" />}
 
-                  {/* Result status icons */}
-                  {statusColor === 'qualified' && <ThumbsUp />}
-                  {statusColor === 'not-qualified' && <XCircle />}
-
-                  {getStatusLabel(entry)}
-                </button>
+                {/* Performance Stats - only show if dog has completed the class */}
+                {entry.is_scored && (
+                  <div className="class-stats" style={{
+                    marginTop: '0.25rem',
+                    paddingLeft: '60px'
+                  }}>
+                    <div className="stat-item">
+                      <Clock />
+                      <span className="stat-value">
+                        {formatTime(entry.search_time)}
+                      </span>
+                    </div>
+                    <div className="stat-item">
+                      <AlertTriangle />
+                      <span className="stat-value">
+                        {entry.fault_count || 0} faults
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

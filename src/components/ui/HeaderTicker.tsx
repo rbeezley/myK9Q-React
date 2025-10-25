@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronRight } from 'lucide-react';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import './HeaderTicker.css';
+import './shared-ui.css';
 
 export const HeaderTicker: React.FC = () => {
   const navigate = useNavigate();
@@ -63,7 +63,7 @@ export const HeaderTicker: React.FC = () => {
             )}
           </div>
         </div>
-        <ChevronRight size={14} className="header-ticker-arrow" />
+        <ChevronRight size={14} className="header-ticker-arrow"  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
       </div>
     </div>
   );

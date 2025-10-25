@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDeviceCapabilities } from '@/hooks/usePerformance';
-import './DeviceTierToast.css';
+import './shared-ui.css';
 
 export interface DeviceTierToastProps {
   /** Duration to show toast (ms) */

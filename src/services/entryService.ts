@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Entry } from '../stores/entryStore';
+import { Entry, EntryStatus } from '../stores/entryStore';
 import { QueuedScore } from '../stores/offlineQueueStore';
 import { recalculatePlacementsForClass } from './placementService';
 import { convertTimeToSeconds } from './entryTransformers';
@@ -183,6 +183,12 @@ export async function getClassEntries(
         // Debug mapping completed
       }
 
+      // Determine unified status
+      // Priority: Use entry_status if available, fallback to old fields for backward compatibility
+      const status = (row.entry_status as EntryStatus | undefined) ||
+                     (result?.is_in_ring ? 'in-ring' as EntryStatus :
+                      normalizeStatusText(row.check_in_status_text));
+
       return {
         id: row.id,
         armband: row.armband_number,
@@ -192,7 +198,15 @@ export async function getClassEntries(
         jumpHeight: '', // Not in normalized schema yet
         preferredTime: '', // Not in normalized schema yet
         isScored: result?.is_scored || false,
-        inRing: result?.is_in_ring || false,
+
+        // New unified status field
+        status,
+
+        // Deprecated fields (backward compatibility)
+        inRing: status === 'in-ring',
+        checkedIn: status !== 'none',
+        checkinStatus: status,
+
         resultText: result?.result_status || 'pending',
         searchTime: result?.search_time_seconds?.toString() || '0.00',
         faultCount: result?.total_faults || 0,
@@ -209,8 +223,6 @@ export async function getClassEntries(
         section: row.classes.section,
         element: row.classes.element,
         level: row.classes.level,
-        checkedIn: row.check_in_status_text !== 'none' && row.check_in_status_text !== null,
-        checkinStatus: normalizeStatusText(row.check_in_status_text),
         timeLimit: secondsToTimeString(classData.time_limit_seconds),
         timeLimit2: secondsToTimeString(classData.time_limit_area2_seconds),
         timeLimit3: secondsToTimeString(classData.time_limit_area3_seconds),
@@ -271,26 +283,43 @@ export async function getTrialEntries(
       return [];
     }
 
-    return data.map(row => ({
-      id: row.id,
-      armband: row.armband,
-      callName: row.call_name,
-      breed: row.breed,
-      handler: row.handler,
-      jumpHeight: row.jump_height,
-      preferredTime: row.preferred_time,
-      isScored: row.is_scored || false,
-      inRing: row.in_ring || false,
-      resultText: row.result_text,
-      searchTime: row.search_time,
-      faultCount: row.fault_count,
-      placement: row.placement,
-      classId: row.class_id,
-      className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
-      section: row.section,
-      element: row.element,
-      level: row.level
-    }));
+    return data.map(row => {
+      // Get result if exists
+      const result = row.results?.[0];
+
+      // Determine status
+      const status = (row.entry_status as EntryStatus | undefined) ||
+                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'none' as EntryStatus);
+
+      return {
+        id: row.id,
+        armband: row.armband,
+        callName: row.call_name,
+        breed: row.breed,
+        handler: row.handler,
+        jumpHeight: row.jump_height,
+        preferredTime: row.preferred_time,
+        isScored: row.is_scored || false,
+
+        // New unified status
+        status,
+
+        // Deprecated fields (backward compatibility)
+        inRing: status === 'in-ring',
+        checkedIn: status !== 'none',
+        checkinStatus: status,
+
+        resultText: row.result_text,
+        searchTime: row.search_time,
+        faultCount: row.fault_count,
+        placement: row.placement,
+        classId: row.class_id,
+        className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
+        section: row.section,
+        element: row.element,
+        level: row.level
+      };
+    });
   } catch (error) {
     console.error('Error in getTrialEntries:', error);
     throw error;
@@ -647,10 +676,41 @@ export async function markInRing(
   console.log(`🔄 markInRing called: entryId=${entryId}, inRing=${inRing}`);
 
   try {
-    // First check if a result record exists for this entry
+    // Update the unified entry_status field
+    const newStatus: EntryStatus = inRing ? 'in-ring' : 'none';
+
+    const { error } = await supabase
+      .from('entries')
+      .update({ entry_status: newStatus })
+      .eq('id', entryId)
+      .select();
+
+    if (error) {
+      console.error('❌ markInRing database error:', error);
+      throw error;
+    }
+
+    console.log(`✅ markInRing successful: entry ${entryId} set to ${newStatus}`);
+
+    return true;
+  } catch (error) {
+    console.error('❌ markInRing error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Mark an entry as completed without full scoring details
+ * This is used for manual completion by gate stewards when not using ringside scoring
+ */
+export async function markEntryCompleted(entryId: number): Promise<boolean> {
+  console.log(`🔄 markEntryCompleted called: entryId=${entryId}`);
+
+  try {
+    // Check if entry is already scored with actual data
     const { data: existingResult, error: checkError } = await supabase
       .from('results')
-      .select('id, entry_id')
+      .select('id, entry_id, is_scored')
       .eq('entry_id', entryId)
       .single();
 
@@ -659,56 +719,49 @@ export async function markInRing(
       throw checkError;
     }
 
-    let data;
-    let error;
+    if (existingResult && existingResult.is_scored) {
+      console.warn('⚠️ Entry is already scored - skipping manual completion');
+      return true; // Don't overwrite existing score
+    }
 
+    // Update the unified entry_status field to 'completed'
+    const { error: statusError } = await supabase
+      .from('entries')
+      .update({ entry_status: 'completed' })
+      .eq('id', entryId)
+      .select();
+
+    if (statusError) {
+      console.error('❌ markEntryCompleted database error:', statusError);
+      throw statusError;
+    }
+
+    // Also create/update result record for consistency
     if (existingResult) {
-      // Update existing result record
-      const updateResult = await supabase
+      await supabase
         .from('results')
-        .update({ is_in_ring: inRing })
-        .eq('entry_id', entryId)
-        .select('id, entry_id, is_in_ring');
-
-      data = updateResult.data;
-      error = updateResult.error;
+        .update({
+          is_scored: true,
+          result_status: 'manual_complete',
+          scoring_completed_at: new Date().toISOString()
+        })
+        .eq('entry_id', entryId);
     } else {
-      // Create new result record with just the in_ring status
-      const insertResult = await supabase
+      await supabase
         .from('results')
         .insert({
           entry_id: entryId,
-          is_in_ring: inRing,
-          is_scored: false,
-          result_status: 'pending'
-        })
-        .select('id, entry_id, is_in_ring');
-
-      data = insertResult.data;
-      error = insertResult.error;
+          is_scored: true,
+          result_status: 'manual_complete',
+          scoring_completed_at: new Date().toISOString()
+        });
     }
 
-    if (error) {
-      console.error('❌ markInRing database error:', error);
-      throw error;
-    }
-
-    console.log('✅ markInRing database update successful:', data);
-    console.log('🔍 Updated records count:', data?.length || 0);
-
-    if (data && data.length > 0) {
-      console.log('📊 Updated result details:', {
-        resultId: data[0].id,
-        entryId: data[0].entry_id,
-        inRing: data[0].is_in_ring
-      });
-    } else {
-      console.warn('⚠️ No records were updated - entry might not exist');
-    }
+    console.log(`✅ markEntryCompleted successful: entry ${entryId} set to completed`)
 
     return true;
   } catch (error) {
-    console.error('Error in markInRing:', error);
+    console.error('Error in markEntryCompleted:', error);
     throw error;
   }
 }
@@ -847,15 +900,15 @@ export function subscribeToEntryUpdates(
  */
 export async function updateEntryCheckinStatus(
   entryId: number,
-  checkinStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate'
+  checkinStatus: EntryStatus
 ): Promise<boolean> {
   try {
-    // Use text-based status directly (no more numeric conversion)
-    const updateData: { check_in_status_text: string } = {
-      check_in_status_text: checkinStatus   // Use new text-based field
+    // Update the unified entry_status field
+    const updateData = {
+      entry_status: checkinStatus
     };
 
-    console.log('🔄 Updating check-in status with text field:', updateData);
+    console.log('🔄 Updating entry status:', updateData);
 
     const { error } = await supabase
       .from('entries')
@@ -864,18 +917,18 @@ export async function updateEntryCheckinStatus(
       .select();
 
     if (error) {
-      console.error('❌ Database error updating check-in status:', error);
+      console.error('❌ Database error updating entry status:', error);
       console.error('❌ Error details:', JSON.stringify(error, null, 2));
       console.error('❌ Update data that failed:', updateData);
       throw new Error(`Database update failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
-    console.log('✅ Check-in status updated successfully using text field');
+    console.log('✅ Entry status updated successfully');
 
     // Verify the update by reading it back
     const { data: verifyData } = await supabase
       .from('entries')
-      .select('id, check_in_status_text')
+      .select('id, entry_status')
       .eq('id', entryId)
       .single();
 
@@ -977,26 +1030,43 @@ export async function getEntriesByArmband(
       return [];
     }
 
-    return data.map(row => ({
-      id: row.id,
-      armband: row.armband,
-      callName: row.call_name,
-      breed: row.breed,
-      handler: row.handler,
-      jumpHeight: row.jump_height,
-      preferredTime: row.preferred_time,
-      isScored: row.is_scored || false,
-      inRing: row.in_ring || false,
-      resultText: row.result_text,
-      searchTime: row.search_time,
-      faultCount: row.fault_count,
-      placement: row.placement,
-      classId: row.class_id,
-      className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
-      section: row.section,
-      element: row.element,
-      level: row.level
-    }));
+    return data.map(row => {
+      // Get result if exists
+      const result = row.results?.[0];
+
+      // Determine status
+      const status = (row.entry_status as EntryStatus | undefined) ||
+                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'none' as EntryStatus);
+
+      return {
+        id: row.id,
+        armband: row.armband,
+        callName: row.call_name,
+        breed: row.breed,
+        handler: row.handler,
+        jumpHeight: row.jump_height,
+        preferredTime: row.preferred_time,
+        isScored: row.is_scored || false,
+
+        // New unified status
+        status,
+
+        // Deprecated fields (backward compatibility)
+        inRing: status === 'in-ring',
+        checkedIn: status !== 'none',
+        checkinStatus: status,
+
+        resultText: row.result_text,
+        searchTime: row.search_time,
+        faultCount: row.fault_count,
+        placement: row.placement,
+        classId: row.class_id,
+        className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
+        section: row.section,
+        element: row.element,
+        level: row.level
+      };
+    });
   } catch (error) {
     console.error('Error in getEntriesByArmband:', error);
     throw error;

@@ -98,10 +98,10 @@ export const ClassRunOrder: React.FC<ClassRunOrderProps> = ({ classInfo, entries
           )}
         </div>
         <div className="class-runorder-meta">
-          <span className="meta-item"><Calendar size={14} /> {formatTrialDate(classInfo.trial_date)}</span>
-          <span className="meta-item"><Target size={14} /> Trial {classInfo.trial_number}</span>
-          <span className="meta-item"><User size={14} /> {classInfo.judge_name || 'TBD'}</span>
-          <span className="meta-item"><ClipboardCheck size={14} /> {classInfo.entry_completed_count || 0} of {classInfo.entry_total_count || 0} scored</span>
+          <span className="meta-item"><Calendar size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {formatTrialDate(classInfo.trial_date)}</span>
+          <span className="meta-item"><Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {classInfo.trial_number}</span>
+          <span className="meta-item"><User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.judge_name || 'TBD'}</span>
+          <span className="meta-item"><ClipboardCheck size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.entry_completed_count || 0} of {classInfo.entry_total_count || 0} scored</span>
         </div>
       </div>
 

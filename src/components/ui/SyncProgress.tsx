@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { X, CheckCircle, XCircle, RefreshCw, AlertCircle } from 'lucide-react';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
-import './SyncProgress.css';
+import './shared-ui.css';
 
 interface SyncProgressProps {
   /** Whether to show the detailed progress */
@@ -43,22 +43,22 @@ export function SyncProgress({
         <div className="sync-progress-title">
           {isSyncing || syncingCount > 0 ? (
             <>
-              <RefreshCw className="sync-progress-icon syncing" size={18} />
+              <RefreshCw className="sync-progress-icon syncing" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
               <span>Syncing...</span>
             </>
           ) : failedCount > 0 ? (
             <>
-              <XCircle className="sync-progress-icon failed" size={18} />
+              <XCircle className="sync-progress-icon failed" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
               <span>Sync Failed</span>
             </>
           ) : pendingCount > 0 ? (
             <>
-              <AlertCircle className="sync-progress-icon pending" size={18} />
+              <AlertCircle className="sync-progress-icon pending" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
               <span>Pending Sync</span>
             </>
           ) : (
             <>
-              <CheckCircle className="sync-progress-icon success" size={18} />
+              <CheckCircle className="sync-progress-icon success" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
               <span>Synced</span>
             </>
           )}
@@ -68,7 +68,7 @@ export function SyncProgress({
           onClick={() => setIsManuallyHidden(true)}
           aria-label="Close"
         >
-          <X size={16} />
+          <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
         </button>
       </div>
 
@@ -112,7 +112,7 @@ export function SyncProgress({
           <div className="sync-progress-list">
             {syncingItems.slice(0, 3).map(item => (
               <div key={item.id} className="sync-progress-item syncing">
-                <RefreshCw size={14} className="syncing" />
+                <RefreshCw size={14} className="syncing"  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
                 <span>
                   #{item.armband} - {item.className}
                   {item.retryCount > 0 && ` (Retry ${item.retryCount})`}
@@ -121,7 +121,7 @@ export function SyncProgress({
             ))}
             {failedItems.slice(0, 3).map(item => (
               <div key={item.id} className="sync-progress-item failed">
-                <XCircle size={14} />
+                <XCircle size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
                 <span>
                   #{item.armband} - {item.className}
                   {item.lastError && (

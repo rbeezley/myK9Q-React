@@ -118,6 +118,17 @@
   color: #ffffff !important;
 }
 
+/* Ring management statuses */
+.status-badge.in-ring {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+}
+
+.status-badge.completed {
+  background: #059669 !important;
+  color: #ffffff !important;
+}
+
 /* Class status: none (no status set) - very subtle */
 .status-badge.no-status {
   background: #e5e7eb !important;

@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect, ReactNode } from 'react';
-import './PullToRefresh.css';
+import './shared-ui.css';
 
 export interface PullToRefreshProps {
   /** Content to wrap */

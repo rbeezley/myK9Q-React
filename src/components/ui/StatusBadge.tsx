@@ -1,5 +1,5 @@
 import React from 'react';
-import './StatusBadge.css';
+import './shared-ui.css';
 
 export interface StatusBadgeProps {
   /** The display label for the status */

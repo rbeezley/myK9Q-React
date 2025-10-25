@@ -12,7 +12,7 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown, ArrowUp } from 'lucide-react';
-// CSS imported in index.css to prevent FOUC
+import './Home.css';
 
 interface EntryData {
   id: number;
@@ -204,7 +204,7 @@ export const Home: React.FC = () => {
         .from('view_entry_class_join_normalized')
         .select('*')
         .eq('license_key', showContext?.licenseKey)
-        .order('armband', { ascending: true });
+        .order('armband_number', { ascending: true });
 
       if (entriesError) {
         logger.error('Error loading entries:', entriesError);
@@ -277,15 +277,15 @@ export const Home: React.FC = () => {
         const uniqueDogs = new Map<number, EntryData>();
 
         entriesData.forEach(entry => {
-          if (!uniqueDogs.has(entry.armband)) {
-            uniqueDogs.set(entry.armband, {
+          if (!uniqueDogs.has(entry.armband_number)) {
+            uniqueDogs.set(entry.armband_number, {
               id: entry.id,
-              armband: entry.armband,
-              call_name: entry.call_name,
-              breed: entry.breed,
-              handler: entry.handler,
+              armband: entry.armband_number,
+              call_name: entry.dog_call_name,
+              breed: entry.dog_breed,
+              handler: entry.handler_name,
               is_favorite: false, // Will be updated by useEffect after favorites load
-              class_name: entry.class_name,
+              class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : undefined,
               is_scored: entry.is_scored
             });
           }
@@ -406,7 +406,7 @@ export const Home: React.FC = () => {
   });
 
   return (
-    <div className="home-container page-container">
+    <div className="home-container">
       {/* Enhanced Header with Glass Morphism */}
       <header className="home-header">
         <HamburgerMenu currentPage="home" />
@@ -453,6 +453,7 @@ export const Home: React.FC = () => {
         enabled={settings.pullToRefresh}
         threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
       >
+      <div className="home-scrollable-content">
       {/* Enhanced Active Trials Section */}
       <div className="trials-section">
         <div className="trials-scroll">
@@ -501,7 +502,7 @@ export const Home: React.FC = () => {
                   {/* Progress Section */}
                   <div className="trial-progress">
                     <div className="progress-row">
-                      <Calendar size={14} />
+                      <Calendar size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
                       <span>Classes Completed: {trial.classes_completed} of {trial.classes_total}</span>
                     </div>
                     <div className="progress-row">
@@ -544,7 +545,7 @@ export const Home: React.FC = () => {
       {/* Collapsible Search and Sort Container */}
       <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
         <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
+          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search dog name, breed, handler..."
@@ -557,7 +558,7 @@ export const Home: React.FC = () => {
               className="clear-search-btn"
               onClick={() => setSearchTerm('')}
             >
-              <X size={16} />
+              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             </button>
           )}
         </div>
@@ -567,21 +568,21 @@ export const Home: React.FC = () => {
             className={`sort-btn ${sortBy === 'armband' ? 'active' : ''}`}
             onClick={() => setSortBy('armband')}
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Armband
           </button>
           <button
             className={`sort-btn ${sortBy === 'name' ? 'active' : ''}`}
             onClick={() => setSortBy('name')}
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Dog
           </button>
           <button
             className={`sort-btn ${sortBy === 'handler' ? 'active' : ''}`}
             onClick={() => setSortBy('handler')}
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Handler
           </button>
           <button
@@ -593,7 +594,7 @@ export const Home: React.FC = () => {
             title="Favorites"
             aria-label="Favorites"
           >
-            <Heart size={16} />
+            <Heart size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           </button>
         </div>
       </div>
@@ -650,7 +651,7 @@ export const Home: React.FC = () => {
                 title={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
                 aria-label={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
               >
-                <Heart size={18} fill={filterBy === 'favorites' ? 'currentColor' : 'none'} />
+                <Heart size={18} fill={filterBy === 'favorites' ? 'currentColor' : 'none'}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
                 {filterBy === 'favorites' ? 'All Dogs' : 'Favorites'}
               </button>
             </div>
@@ -660,7 +661,7 @@ export const Home: React.FC = () => {
               ref={parentRef}
               className="entry-grid-virtual"
               style={{
-                height: '600px',
+                flex: 1,
                 overflow: 'auto',
                 contain: 'strict',
               }}
@@ -749,6 +750,7 @@ export const Home: React.FC = () => {
             </div>
           </>
         )}
+      </div>
       </div>
       </PullToRefresh>
 

@@ -8,11 +8,14 @@ import {
   AlertTriangle,
   Star,
   X,
-  Bell
+  Bell,
+  Target,
+  CheckCircle
 } from 'lucide-react';
+import './shared-dialog.css';
 import './CheckinStatusDialog.css';
 
-export type CheckinStatus = 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate';
+export type CheckinStatus = 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed';
 
 interface CheckinStatusDialogProps {
   isOpen: boolean;
@@ -24,6 +27,7 @@ interface CheckinStatusDialogProps {
     handler: string;
   };
   showDescriptions?: boolean;
+  showRingManagement?: boolean; // Show "In Ring" and "Completed" options (for stewards/judges only)
 }
 
 export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
@@ -31,7 +35,8 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
   onClose,
   onStatusChange,
   dogInfo,
-  showDescriptions = false
+  showDescriptions = false,
+  showRingManagement = false
 }) => {
   const { hasPermission: _hasPermission } = usePermission();
 
@@ -62,7 +67,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
             onClick={onClose}
             aria-label="Close"
           >
-            <X size={20} />
+            <X size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           </button>
         </div>
 
@@ -247,6 +252,70 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
                 </>
               )}
             </div>
+
+            {showRingManagement && (
+              <>
+                <div
+                  className={showDescriptions ? "status-item status-in-ring" : "status-option status-in-ring"}
+                  onMouseDown={() => handleStatusSelect('in-ring')}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleStatusSelect('in-ring');
+                    }
+                  }}
+                >
+                  {showDescriptions ? (
+                    <>
+                      <div className="status-icon">
+                        <Target />
+                      </div>
+                      <div className="status-content">
+                        <label className="status-label">In Ring</label>
+                        <div className="status-description">Dog is currently competing in the ring</div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Target className="popup-icon" />
+                      <span className="status-text">In Ring</span>
+                    </>
+                  )}
+                </div>
+
+                <div
+                  className={showDescriptions ? "status-item status-completed" : "status-option status-completed"}
+                  onMouseDown={() => handleStatusSelect('completed')}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleStatusSelect('completed');
+                    }
+                  }}
+                >
+                  {showDescriptions ? (
+                    <>
+                      <div className="status-icon">
+                        <CheckCircle />
+                      </div>
+                      <div className="status-content">
+                        <label className="status-label">Completed</label>
+                        <div className="status-description">Dog has finished competing (no score)</div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="popup-icon" />
+                      <span className="status-text">Completed</span>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

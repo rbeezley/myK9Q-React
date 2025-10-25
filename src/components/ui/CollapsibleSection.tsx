@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
-import './CollapsibleSection.css';
+import './shared-ui.css';
 
 export interface CollapsibleSectionProps {
   /** Section title */

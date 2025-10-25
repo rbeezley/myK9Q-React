@@ -280,15 +280,16 @@
   letter-spacing: -0.02em;
 }
 
-/* Class cards with sophisticated styling */
+/* Class cards with sophisticated styling - Compact version */
 .class-card {
   position: relative;
-  margin-bottom: 1rem;
-  padding: 1.25rem;
+  margin-bottom: 0.875rem;
+  padding: 0.875rem 1rem;
   background: var(--card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--status-not-checked-in, #6b7280);  /* Default left border */
   border-radius: 16px;
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow: hidden;
@@ -296,43 +297,50 @@
   will-change: transform;
 }
 
-.class-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--border);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+/* Match left accent border to status button colors - ALWAYS visible */
+.class-card.none,
+.class-card.pending {
+  border-left-color: var(--status-not-checked-in, #6b7280);
 }
 
-.class-card.qualified::before {
-  background: linear-gradient(180deg, var(--qualified) 0%, var(--qualified-secondary) 100%);
+.class-card.checked-in {
+  border-left-color: var(--status-checked-in, #10b981);
 }
 
-.class-card.not-qualified::before {
-  background: linear-gradient(180deg, var(--not-qualified) 0%, var(--error-contrast) 100%);
+.class-card.at-gate {
+  border-left-color: var(--status-at-gate, #8b5cf6);
 }
 
-.class-card.excused::before {
-  background: linear-gradient(180deg, var(--excused) 0%, var(--warning-contrast) 100%);
+.class-card.come-to-gate {
+  border-left-color: var(--status-at-gate, #8b5cf6);
 }
 
-.class-card.at-gate::before {
-  background: linear-gradient(180deg, var(--at-gate) 0%, var(--brand-blue) 100%);
+.class-card.in-ring {
+  border-left-color: var(--status-in-ring, #3b82f6);
 }
 
-.class-card.checked-in::before {
-  background: linear-gradient(180deg, var(--checked-in) 0%, var(--success-contrast) 100%);
+.class-card.conflict {
+  border-left-color: var(--status-conflict, #f59e0b);
 }
 
-.class-card.conflict::before {
-  background: linear-gradient(180deg, var(--conflict) 0%, var(--warning) 100%);
+.class-card.pulled {
+  border-left-color: var(--status-pulled, #ef4444);
 }
 
-.class-card.pulled::before {
-  background: linear-gradient(180deg, var(--pulled) 0%, var(--error) 100%);
+.class-card.completed {
+  border-left-color: var(--status-done, #10b981);
+}
+
+.class-card.qualified {
+  border-left-color: var(--qualified-secondary, #d97706);
+}
+
+.class-card.not-qualified {
+  border-left-color: var(--not-qualified, #FF3B30);
+}
+
+.class-card.excused {
+  border-left-color: var(--excused, #FF9500);
 }
 
 .class-card:hover {
@@ -343,10 +351,9 @@
 
 .class-content {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
   width: 100%;
-  min-height: 48px;
 }
 
 /* Position badge */
@@ -422,9 +429,12 @@
 
 .class-meta-details {
   display: none; /* Hide by default to prevent layout shift on initial load */
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 /* Show meta details only after component is loaded */
@@ -435,7 +445,7 @@
 .class-date,
 .class-trial,
 .class-judge {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
   display: flex;
@@ -452,11 +462,11 @@
 }
 
 .class-name {
-  margin: 0.25rem 0;
+  margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: var(--foreground);
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
 .class-type {
@@ -563,21 +573,15 @@
 }
 
 .dog-details-container:not(.loaded) .class-card {
-  margin-bottom: 1rem !important;
-  padding: 1.25rem !important;
+  margin-bottom: 0.875rem !important;
+  padding: 0.875rem 1rem !important;
 }
 
 .dog-details-container:not(.loaded) .class-content {
   display: flex !important;
-  align-items: flex-start !important;
-  gap: 1rem !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
   width: 100% !important;
-  min-height: 48px !important;
-}
-
-.dog-details-container:not(.loaded) .class-info {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
 }
 
 /* Ensure smooth transition once loaded */
@@ -949,7 +953,7 @@
   }
 
   .class-card {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
   }
 
   .status-button {
@@ -961,7 +965,7 @@
 @media (max-width: 1024px) {
   /* Optimize for thumb zones - put most common actions in easy reach */
   .class-card {
-    padding: 1.25rem; /* More padding for easier touch */
+    padding: 1rem; /* More padding for easier touch */
   }
 
   .status-button {

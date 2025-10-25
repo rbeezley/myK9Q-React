@@ -1,5 +1,5 @@
 import React from 'react';
-import './EmptyState.css';
+import './shared-ui.css';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;

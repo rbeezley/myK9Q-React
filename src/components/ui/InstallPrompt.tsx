@@ -8,7 +8,7 @@
 import React from 'react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Download, X, Bell } from 'lucide-react';
-import './InstallPrompt.css';
+import './shared-ui.css';
 
 export interface InstallPromptProps {
   /**
@@ -111,11 +111,11 @@ export function InstallPrompt({
           onClick={handleDismiss}
           aria-label="Dismiss install prompt"
         >
-          <X size={20} />
+          <X size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
         </button>
 
         <div className="install-prompt-icon">
-          <Download size={48} />
+          <Download size={48}  style={{ width: '48px', height: '48px', flexShrink: 0 }} />
         </div>
 
         <h3 className="install-prompt-title">Install myK9Q</h3>
@@ -125,20 +125,20 @@ export function InstallPrompt({
         <ul className="install-prompt-benefits">
           {showNotificationBenefit && (
             <li>
-              <Bell size={16} />
+              <Bell size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               <span>Get notified when your dogs are up</span>
             </li>
           )}
           <li>
-            <Download size={16} />
+            <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             <span>Works offline</span>
           </li>
           <li>
-            <Download size={16} />
+            <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             <span>Faster loading</span>
           </li>
           <li>
-            <Download size={16} />
+            <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             <span>Home screen access</span>
           </li>
         </ul>
@@ -148,7 +148,7 @@ export function InstallPrompt({
             className="install-prompt-button primary"
             onClick={handleInstall}
           >
-            <Download size={20} />
+            <Download size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
             Install App
           </button>
           <button
@@ -171,7 +171,7 @@ export function InstallPrompt({
     <div className="install-prompt-banner">
       <div className="install-prompt-banner-content">
         <div className="install-prompt-banner-icon">
-          <Download size={24} />
+          <Download size={24}  style={{ width: '24px', height: '24px', flexShrink: 0 }} />
         </div>
         <div className="install-prompt-banner-text">
           <strong>Install myK9Q</strong>
@@ -191,7 +191,7 @@ export function InstallPrompt({
           onClick={handleDismiss}
           aria-label="Dismiss"
         >
-          <X size={18} />
+          <X size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
         </button>
       </div>
     </div>

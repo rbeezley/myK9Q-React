@@ -1,0 +1,153 @@
+/* Reusable Passcode Input Component Styles */
+
+.passcode-input-component {
+  width: 100%;
+}
+
+.passcode-input-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.passcode-inputs {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+/* Passcode Input Boxes */
+.passcode-input {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.passcode-input:focus {
+  border-color: #6366f1;
+  background: #fafafa;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Success State - All inputs filled */
+.passcode-input.filled {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.passcode-inputs.all-filled .passcode-input {
+  animation: successPulse 0.4s ease-out;
+}
+
+/* Error State */
+.passcode-input.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.passcode-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+/* Filled Indicator Dots */
+.input-dot {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  background: #6366f1;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+}
+
+.input-wrapper:has(.passcode-input:not(:placeholder-shown)) .input-dot,
+.input-wrapper:has(.passcode-input:not([value=""])) .input-dot {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.2);
+}
+
+/* Reset Button */
+.reset-button {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0.75rem;
+}
+
+.reset-button:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: rotate(90deg);
+}
+
+.reset-button:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* Animations */
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .passcode-input {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .passcode-inputs {
+    gap: 0.5rem;
+  }
+}

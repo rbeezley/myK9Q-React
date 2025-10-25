@@ -2,14 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authenticatePasscode } from '../../services/authService';
+import { detectDatabaseWithValidation, isMigrationModeEnabled } from '../../services/databaseDetectionService';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
+import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
 import './Login.css';
 
 export const Login: React.FC = () => {
   const [passcode, setPasscode] = useState(['', '', '', '', '']);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -126,7 +130,46 @@ export const Login: React.FC = () => {
     hapticFeedback.impact('medium');
 
     try {
-      // Authenticate passcode against Supabase database
+      // Check if migration mode is enabled (dual-database detection)
+      if (isMigrationModeEnabled()) {
+        console.log('Migration mode enabled - performing database detection');
+
+        // Detect which database contains this show
+        const detectionResult = await detectDatabaseWithValidation(fullPasscode);
+
+        if (detectionResult.database === 'legacy' && detectionResult.redirectUrl) {
+          // Show is in legacy database - redirect to Flutter app
+          console.log('Redirecting to Flutter app:', detectionResult.redirectUrl);
+
+          // Clear rate limit before redirecting
+          clearRateLimit('login');
+          hapticFeedback.success();
+
+          // Show transition message to user
+          setError('');
+          setIsLoading(false);
+          setRedirectUrl(detectionResult.redirectUrl);
+          setShowTransition(true);
+
+          // Redirect will happen after user sees the transition message
+          return;
+        }
+
+        // Continue with V3 authentication if not legacy
+        if (detectionResult.database === 'v3' && detectionResult.showData) {
+          // Already validated, use the show data directly
+          clearRateLimit('login');
+          hapticFeedback.success();
+          login(fullPasscode, {
+            ...detectionResult.showData,
+            showType: detectionResult.showData.competition_type || detectionResult.showData.show_type
+          });
+          navigate('/home');
+          return;
+        }
+      }
+
+      // Standard authentication flow (no migration mode or V3 database)
       const showData = await authenticatePasscode(fullPasscode);
 
       if (!showData) {
@@ -173,8 +216,20 @@ export const Login: React.FC = () => {
     await handleSubmitWithPasscode(passcode);
   };
 
+  const handleTransitionComplete = () => {
+    // Redirect to Flutter app
+    window.location.href = redirectUrl;
+  };
+
   return (
-    <div className="login-container">
+    <>
+      {/* Show transition message when redirecting to legacy app */}
+      {showTransition && (
+        <TransitionMessage onComplete={handleTransitionComplete} />
+      )}
+
+      {/* Login page */}
+      <div className="login-container">
       {/* Purple gradient background matching Flutter */}
       <div className="login-background" />
       
@@ -280,5 +335,6 @@ export const Login: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };

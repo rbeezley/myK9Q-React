@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Clock, Users, MapPin, AlertTriangle, Target, Ruler, Package, Speech } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import './shared-dialog.css';
 import './ClassRequirementsDialog.css';
 // Updated to show fixed vs range and Master warning
 

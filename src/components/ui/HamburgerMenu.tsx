@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon } from 'lucide-react';
-import './HamburgerMenu.css';
+import './shared-ui.css';
 
 /**
  * HamburgerMenu Component

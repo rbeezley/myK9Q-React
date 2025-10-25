@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import './RefreshIndicator.css';
+import './shared-ui.css';
 
 interface RefreshIndicatorProps {
   /** Whether to show the indicator */

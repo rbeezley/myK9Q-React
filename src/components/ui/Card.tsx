@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import './Card.css';
+import './shared-ui.css';
 
 interface CardProps {
   children: React.ReactNode;

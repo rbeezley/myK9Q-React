@@ -5,8 +5,10 @@ import { usePermission } from '../../hooks/usePermission';
 import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell } from 'lucide-react';
+import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
+import { applyRunOrderPreset } from '../../services/runOrderService';
 import { useEntryListData, useEntryListActions, useEntryListFilters, useEntryListSubscriptions } from './hooks';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import './EntryList.css';
@@ -33,6 +35,8 @@ export const CombinedEntryList: React.FC = () => {
   const {
     handleStatusChange: handleStatusChangeHook,
     handleResetScore: handleResetScoreHook,
+    handleMarkInRing,
+    handleMarkCompleted,
     isSyncing,
     hasError
   } = useEntryListActions(refresh);
@@ -71,6 +75,8 @@ export const CombinedEntryList: React.FC = () => {
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
+  const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   // Sync local entries with fetched data
   useEffect(() => {
@@ -151,6 +157,42 @@ export const CombinedEntryList: React.FC = () => {
     setResetConfirmDialog({ show: true, entry });
   };
 
+  // Handle applying run order preset from dialog
+  const handleApplyRunOrder = async (preset: RunOrderPreset) => {
+    try {
+      console.log('🔄 Applying run order preset:', preset);
+
+      // Apply the preset and update database
+      const reorderedEntries = await applyRunOrderPreset(localEntries, preset);
+
+      // Update local state
+      setLocalEntries(reorderedEntries);
+
+      // Close dialog
+      setRunOrderDialogOpen(false);
+
+      // Show success message
+      setShowSuccessMessage(true);
+
+      // Switch to run order sort view
+      setSortOrder('run');
+
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+
+      // Refresh to ensure data is in sync
+      await refresh();
+
+      console.log('✅ Run order applied successfully');
+    } catch (error) {
+      console.error('❌ Error applying run order:', error);
+      setRunOrderDialogOpen(false);
+      // TODO: Show error toast
+    }
+  };
+
   const confirmResetScore = async () => {
     if (!resetConfirmDialog.entry) return;
 
@@ -192,14 +234,50 @@ export const CombinedEntryList: React.FC = () => {
     setActiveStatusPopup(entryId);
   };
 
-  const handleStatusChange = async (entryId: number, newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
+  const handleStatusChange = async (entryId: number, newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed') => {
     // Close popup first
     setActiveStatusPopup(null);
 
+    // Handle special manual ring management statuses
+    if (newStatus === 'in-ring') {
+      // Optimistic update for in-ring
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, status: 'in-ring' }
+          : entry
+      ));
+
+      try {
+        await handleMarkInRing(entryId);
+      } catch (error) {
+        console.error('Mark in-ring failed:', error);
+        refresh();
+      }
+      return;
+    }
+
+    if (newStatus === 'completed') {
+      // Optimistic update for completed
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, isScored: true, status: 'completed' }
+          : entry
+      ));
+
+      try {
+        await handleMarkCompleted(entryId);
+      } catch (error) {
+        console.error('Mark completed failed:', error);
+        refresh();
+      }
+      return;
+    }
+
+    // Handle normal check-in status changes
     // Optimistic update: update local state immediately
     setLocalEntries(prev => prev.map(entry =>
       entry.id === entryId
-        ? { ...entry, checkinStatus: newStatus }
+        ? { ...entry, status: newStatus }
         : entry
     ));
 
@@ -313,21 +391,21 @@ export const CombinedEntryList: React.FC = () => {
               <div className="trial-details-group">
                 {classInfo?.trialDate && classInfo.trialDate !== '' && (
                   <span className="trial-detail">
-                    <Calendar size={14} /> {formatTrialDate(classInfo.trialDate)}
+                    <Calendar size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {formatTrialDate(classInfo.trialDate)}
                   </span>
                 )}
                 {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
-                  <span className="trial-detail"><Target size={14} /> Trial {classInfo.trialNumber}</span>
+                  <span className="trial-detail"><Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {classInfo.trialNumber}</span>
                 )}
                 {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
-                  <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
+                  <span className="trial-detail"><User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.judgeName}</span>
                 )}
                 {classInfo?.judgeNameB && classInfo.judgeNameB !== classInfo.judgeName && classInfo.judgeNameB !== 'No Judge Assigned' && (
                   <span className="trial-detail judge-warning">⚠️ Section B: {classInfo.judgeNameB}</span>
                 )}
                 {(classInfo?.timeLimit || classInfo?.timeLimit2 || classInfo?.timeLimit3) && (
                   <span className="trial-detail time-limits">
-                    <Clock size={14} />
+                    <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
                     {classInfo.areas && classInfo.areas > 1 ? (
                       // Multi-area: show all time limits
                       <>
@@ -404,7 +482,7 @@ export const CombinedEntryList: React.FC = () => {
 
       <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
         <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
+          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search dog name, handler, breed, or armband..."
@@ -414,40 +492,60 @@ export const CombinedEntryList: React.FC = () => {
           />
           {searchTerm && (
             <button className="clear-search" onClick={() => setSearchTerm('')}>
-              <X size={18} />
+              <X size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
             </button>
           )}
         </div>
 
         <div className="sort-controls">
-          <button
-            className={`sort-btn ${sortOrder === 'section-armband' ? 'active' : ''}`}
-            onClick={() => setSortOrder('section-armband')}
-          >
-            <ArrowUpDown size={16} />
-            Section & Armband
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
-            onClick={() => setSortOrder('run')}
-          >
-            <Clock size={16} />
-            Run Order
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
-            onClick={() => setSortOrder('armband')}
-          >
-            <ArrowUpDown size={16} />
-            Armband
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
-            onClick={() => setSortOrder('placement')}
-          >
-            <Trophy size={16} />
-            Placement
-          </button>
+          {/* Primary group - Global/Persistent */}
+          {hasPermission('canChangeRunOrder') && (
+            <div className="sort-group sort-group-primary">
+              <span className="sort-label">Run Order:</span>
+              <button
+                className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
+                onClick={() => setSortOrder('run')}
+              >
+                <Clock size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                Run Order
+              </button>
+              <button
+                className="sort-btn"
+                onClick={() => setRunOrderDialogOpen(true)}
+              >
+                <ListOrdered size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                Set Run Order
+              </button>
+            </div>
+          )}
+
+          {/* Secondary group - Local/Temporary */}
+          <div className="sort-group sort-group-secondary">
+            <span className="sort-label">Sort:</span>
+            <button
+              className={`sort-btn ${sortOrder === 'section-armband' ? 'active' : ''}`}
+              onClick={() => setSortOrder('section-armband')}
+            >
+              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+              Section & Armband
+            </button>
+            <button
+              className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
+              onClick={() => setSortOrder('armband')}
+            >
+              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+              Armband
+            </button>
+            {activeTab === 'completed' && (
+              <button
+                className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
+                onClick={() => setSortOrder('placement')}
+              >
+                <Trophy size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                Placement
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -479,14 +577,14 @@ export const CombinedEntryList: React.FC = () => {
           className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
-          <Clock className="status-icon" size={16} />
+          <Clock className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           Pending ({entryCounts.pending})
         </button>
         <button
           className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
-          <CheckCircle className="status-icon" size={16} />
+          <CheckCircle className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           Completed ({entryCounts.completed})
         </button>
       </div>
@@ -521,11 +619,12 @@ export const CombinedEntryList: React.FC = () => {
                       return 'scored'; // Fallback to generic scored
                     })()
                   ) :
-                  entry.inRing ? 'none' :
-                  (entry.checkinStatus === 'checked-in' ? 'checked-in' :
-                   entry.checkinStatus === 'conflict' ? 'conflict' :
-                   entry.checkinStatus === 'pulled' ? 'pulled' :
-                   entry.checkinStatus === 'at-gate' ? 'at-gate' : 'none')
+                  entry.status === 'in-ring' ? 'none' :
+                  (entry.status === 'checked-in' ? 'checked-in' :
+                   entry.status === 'conflict' ? 'conflict' :
+                   entry.status === 'pulled' ? 'pulled' :
+                   entry.status === 'at-gate' ? 'at-gate' :
+                   entry.status === 'completed' ? 'completed' : 'none')
                 }
                 sectionBadge={entry.section as 'A' | 'B' | null}
                 resultBadges={
@@ -631,8 +730,7 @@ export const CombinedEntryList: React.FC = () => {
                   !entry.isScored ? (
                     <div
                       className={`status-badge checkin-status ${
-                        entry.inRing ? 'in-ring' :
-                        (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
+                        (entry.status || 'none').toLowerCase().replace(' ', '-')
                       } ${
                         !hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true) ? 'disabled' : ''
                       }`}
@@ -655,18 +753,21 @@ export const CombinedEntryList: React.FC = () => {
                       }
                     >
                       {(() => {
-                        if (entry.inRing) {
-                          return <><span className="status-icon">▶</span><span style={{ textTransform: 'none' }}> In Ring</span></>;
-                        }
-                        const status = entry.checkinStatus || 'none';
+                        const iconSize = 14;
+                        const iconStyle = { width: `${iconSize}px`, height: `${iconSize}px`, flexShrink: 0, marginRight: '0.375rem', display: 'inline-block', verticalAlign: 'middle' };
+
+                        const status = entry.status || 'none';
+                        const textStyle = { textTransform: 'none' as const, fontSize: '0.6875rem' };
                         switch(status) {
-                          case 'none': return <><Circle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>No Status</span></>;
-                          case 'checked-in': return <><Check className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Checked-in</span></>;
-                          case 'conflict': return <><AlertTriangle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Conflict</span></>;
-                          case 'pulled': return <><XCircle className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Pulled</span></>;
-                          case 'at-gate': return <><Star className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>At Gate</span></>;
-                          case 'come-to-gate': return <><Bell className="status-icon" size={12} style={{ width: '12px', height: '12px', flexShrink: 0, marginRight: '0.25rem', display: 'inline-block', verticalAlign: 'middle' }} /><span style={{ textTransform: 'none' }}>Come to Gate</span></>;
-                          default: return <span style={{ textTransform: 'none' }}>{status}</span>;
+                          case 'in-ring': return <><span className="status-icon" style={{ fontSize: '11px', marginRight: '0.375rem' }}>▶</span><span style={textStyle}>In Ring</span></>;
+                          case 'completed': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Completed</span></>;
+                          case 'none': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
+                          case 'checked-in': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Checked-in</span></>;
+                          case 'conflict': return <><AlertTriangle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Conflict</span></>;
+                          case 'pulled': return <><XCircle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Pulled</span></>;
+                          case 'at-gate': return <><Star className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>At Gate</span></>;
+                          case 'come-to-gate': return <><Bell className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Come to Gate</span></>;
+                          default: return <span style={textStyle}>{status}</span>;
                         }
                       })()}
                     </div>
@@ -740,7 +841,30 @@ export const CombinedEntryList: React.FC = () => {
           })()
         }}
         showDescriptions={true}
+        showRingManagement={hasPermission('canScore')}
       />
+
+      {/* Run Order Dialog */}
+      <RunOrderDialog
+        isOpen={runOrderDialogOpen}
+        onClose={() => setRunOrderDialogOpen(false)}
+        entries={localEntries}
+        onApplyOrder={handleApplyRunOrder}
+        onOpenDragMode={() => {
+          // CombinedEntryList doesn't support drag mode
+          // Close dialog and show message that manual drag is not available
+          setRunOrderDialogOpen(false);
+          console.log('Manual drag mode not available for combined entry lists');
+        }}
+      />
+
+      {/* Success Message Toast */}
+      {showSuccessMessage && (
+        <div className="success-toast">
+          <CheckCircle size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
+          <span>Run order updated successfully</span>
+        </div>
+      )}
 
       {/* Reset Confirmation Dialog */}
       {resetConfirmDialog.show && resetConfirmDialog.entry && (

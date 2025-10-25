@@ -153,7 +153,7 @@ export const NotificationSettings: React.FC = () => {
           <h3>Push Notifications</h3>
         </div>
         <div className={`permission-status ${status.color}`}>
-          <StatusIcon size={16} />
+          <StatusIcon size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           <span>{status.text}</span>
         </div>
       </div>
@@ -243,7 +243,7 @@ export const NotificationSettings: React.FC = () => {
             <h4>Notification Behavior</h4>
             <div className="setting-row">
               <div className="setting-info">
-                {preferences.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                {preferences.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
                 <span>Sound</span>
               </div>
               <label className="toggle-switch">
@@ -258,7 +258,7 @@ export const NotificationSettings: React.FC = () => {
 
             <div className="setting-row">
               <div className="setting-info">
-                <Smartphone size={18} />
+                <Smartphone size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
                 <span>Vibration</span>
               </div>
               <label className="toggle-switch">
@@ -277,7 +277,7 @@ export const NotificationSettings: React.FC = () => {
             <h4>Quiet Hours</h4>
             <div className="setting-row">
               <div className="setting-info">
-                <Clock size={18} />
+                <Clock size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
                 <span>Do not disturb</span>
               </div>
               <label className="toggle-switch">

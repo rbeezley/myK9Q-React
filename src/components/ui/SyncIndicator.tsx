@@ -1,6 +1,6 @@
 import React from 'react';
 import { Cloud as _Cloud, CloudOff, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
-import './SyncIndicator.css';
+import './shared-ui.css';
 
 export interface SyncIndicatorProps {
   /** Current sync status */
@@ -25,13 +25,13 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({
   const getIcon = () => {
     switch (status) {
       case 'synced':
-        return <CheckCircle className="sync-icon" size={16} />;
+        return <CheckCircle className="sync-icon" size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />;
       case 'syncing':
-        return <RefreshCw className="sync-icon spinning" size={16} />;
+        return <RefreshCw className="sync-icon spinning" size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />;
       case 'offline':
-        return <CloudOff className="sync-icon" size={16} />;
+        return <CloudOff className="sync-icon" size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />;
       case 'error':
-        return <AlertCircle className="sync-icon" size={16} />;
+        return <AlertCircle className="sync-icon" size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />;
     }
   };
 
@@ -113,7 +113,7 @@ export const GlobalSyncIndicator: React.FC = () => {
 
   return (
     <div className="global-sync-indicator">
-      <CloudOff size={14} />
+      <CloudOff size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
       <span>Offline Mode</span>
     </div>
   );

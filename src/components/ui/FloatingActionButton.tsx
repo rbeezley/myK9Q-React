@@ -8,7 +8,7 @@
 import React from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import './FloatingActionButton.css';
+import './shared-ui.css';
 
 export interface FloatingActionButtonProps {
   /** Icon to display in the FAB */

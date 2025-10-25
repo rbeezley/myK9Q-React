@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import './Button.css';
+import './shared-ui.css';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;

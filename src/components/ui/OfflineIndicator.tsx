@@ -7,10 +7,10 @@
  */
 
 import { useEffect, useState } from 'react';
-import { WifiOff, Wifi, CloudOff, CloudUpload, AlertCircle, Signal, SignalLow, SignalMedium, SignalHigh } from 'lucide-react';
+import { WifiOff, Wifi, CloudOff, CloudUpload, AlertCircle, SignalLow } from 'lucide-react';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { networkDetectionService } from '@/services/networkDetectionService';
-import './OfflineIndicator.css';
+import './shared-ui.css';
 
 export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -67,21 +67,12 @@ export function OfflineIndicator() {
     };
   }, []);
 
-  // Helper function to get signal icon based on quality
-  const getSignalIcon = () => {
-    if (connectionQuality === 'slow') return SignalLow;
-    if (connectionQuality === 'medium') return SignalMedium;
-    if (connectionQuality === 'fast') return SignalHigh;
-    return Signal;
-  };
-
   // Show slow connection warning even if online and no sync issues
   if (isOnline && connectionQuality === 'slow' && pendingCount === 0 && syncingCount === 0 && failedCount === 0) {
-    const SignalIcon = getSignalIcon();
     return (
       <div className="offline-indicator slow-connection-mode">
         <div className="offline-indicator-content">
-          <SignalIcon className="offline-icon" size={20} />
+          <SignalLow className="offline-icon" size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="offline-text">
             <strong>Slow Connection</strong>
             <span className="offline-count">
@@ -103,7 +94,7 @@ export function OfflineIndicator() {
     return (
       <div className="offline-indicator offline-mode">
         <div className="offline-indicator-content">
-          <WifiOff className="offline-icon" size={20} />
+          <WifiOff className="offline-icon" size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="offline-text">
             <strong>Working Offline</strong>
             {pendingCount > 0 && (
@@ -112,7 +103,7 @@ export function OfflineIndicator() {
               </span>
             )}
           </div>
-          <CloudOff className="offline-cloud-icon" size={16} />
+          <CloudOff className="offline-cloud-icon" size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
         </div>
       </div>
     );
@@ -123,7 +114,7 @@ export function OfflineIndicator() {
     return (
       <div className="offline-indicator syncing-mode">
         <div className="offline-indicator-content">
-          <CloudUpload className="offline-icon syncing-icon" size={20} />
+          <CloudUpload className="offline-icon syncing-icon" size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="offline-text">
             <strong>Syncing...</strong>
             <span className="offline-count">
@@ -141,7 +132,7 @@ export function OfflineIndicator() {
     return (
       <div className="offline-indicator failed-mode">
         <div className="offline-indicator-content">
-          <AlertCircle className="offline-icon" size={20} />
+          <AlertCircle className="offline-icon" size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="offline-text">
             <strong>Sync Failed</strong>
             <span className="offline-count">
@@ -159,7 +150,7 @@ export function OfflineIndicator() {
     return (
       <div className="offline-indicator pending-mode">
         <div className="offline-indicator-content">
-          <Wifi className="offline-icon" size={20} />
+          <Wifi className="offline-icon" size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="offline-text">
             <strong>Online</strong>
             <span className="offline-count">

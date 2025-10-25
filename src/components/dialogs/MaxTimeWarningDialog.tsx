@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Clock, X } from 'lucide-react';
+import './shared-dialog.css';
 import './MaxTimeWarningDialog.css';
 
 interface MaxTimeWarningDialogProps {

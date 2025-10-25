@@ -17,7 +17,7 @@ import {
   type PreloadProgress,
   type PreloadedShow,
 } from '@/services/preloadService';
-import './PreloadShowDialog.css';
+import './shared-ui.css';
 
 interface PreloadShowDialogProps {
   licenseKey: string;
@@ -179,11 +179,11 @@ export function PreloadShowDialog({
       <div className="preload-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="preload-dialog-header">
           <h2 className="preload-dialog-title">
-            <Download size={24} />
+            <Download size={24}  style={{ width: '24px', height: '24px', flexShrink: 0 }} />
             Offline Download
           </h2>
           <button className="preload-dialog-close" onClick={onClose}>
-            <X size={20} />
+            <X size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           </button>
         </div>
 
@@ -192,7 +192,7 @@ export function PreloadShowDialog({
             <h3>{showName}</h3>
             {estimate && (
               <div className="preload-estimate">
-                <HardDrive size={16} />
+                <HardDrive size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                 <span>
                   ~{formatBytes(estimate.estimatedBytes)} • {estimate.entryCount} entries •{' '}
                   {estimate.classCount} classes
@@ -205,7 +205,7 @@ export function PreloadShowDialog({
           {isPreloaded && preloadedShow && !isDownloading && (
             <div className="preload-status preload-status-success">
               <div className="preload-status-icon">
-                <Check size={20} />
+                <Check size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
               </div>
               <div className="preload-status-info">
                 <strong>Downloaded</strong>
@@ -223,7 +223,7 @@ export function PreloadShowDialog({
                   onClick={handleExtend}
                   title="Extend for 7 more days"
                 >
-                  <RefreshCw size={16} />
+                  <RefreshCw size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                   Extend
                 </button>
                 <button
@@ -260,7 +260,7 @@ export function PreloadShowDialog({
           {/* Error */}
           {error && (
             <div className="preload-error">
-              <AlertCircle size={20} />
+              <AlertCircle size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
               <span>{error}</span>
             </div>
           )}
@@ -296,7 +296,7 @@ export function PreloadShowDialog({
                 Cancel
               </button>
               <button className="preload-btn preload-btn-primary" onClick={handleDownload}>
-                <Download size={16} />
+                <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                 Download Show
               </button>
             </>

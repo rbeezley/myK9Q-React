@@ -1,5 +1,5 @@
 import React from 'react';
-import './FilterTabs.css';
+import './shared-ui.css';
 
 export interface FilterTab {
   value: string;

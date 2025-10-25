@@ -7,7 +7,7 @@
  */
 
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import './StickyHeader.css';
+import './shared-ui.css';
 
 export interface StickyHeaderProps {
   /** Header content */

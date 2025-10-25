@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search, X, ArrowUpDown, ChevronDown } from 'lucide-react';
-import './SearchSortControls.css';
+import './shared-ui.css';
 
 export interface SortOption {
   value: string;
@@ -96,7 +96,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({
       <div className={`search-sort-container ${isCollapsed ? 'collapsed' : 'expanded'}`}>
         {/* Search Input */}
         <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
+          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
           <input
             type="text"
             placeholder={searchPlaceholder}
@@ -110,7 +110,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({
               onClick={() => onSearchChange('')}
               aria-label="Clear search"
             >
-              <X size={16} />
+              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             </button>
           )}
         </div>
@@ -124,7 +124,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({
                 className={`sort-btn ${sortOrder === option.value ? 'active' : ''}`}
                 onClick={() => onSortChange(option.value)}
               >
-                {option.icon || <ArrowUpDown size={16} />}
+                {option.icon || <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />}
                 {option.label}
               </button>
             ))}

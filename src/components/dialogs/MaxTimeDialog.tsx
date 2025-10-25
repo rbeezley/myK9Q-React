@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Clock, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import './shared-dialog.css';
 import './MaxTimeDialog.css';
 
 interface MaxTimeDialogProps {
@@ -17,6 +18,7 @@ interface MaxTimeDialogProps {
     time_limit_area2_seconds?: number;
     time_limit_area3_seconds?: number;
     area_count?: number;
+    pairedClassId?: number; // For combined Novice A & B classes
   };
   onTimeUpdate?: () => void;
 }
@@ -468,10 +470,17 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         time_limit_area3_seconds: times[2] ? timeStringToSeconds(times[2]) : 0,
       };
 
+      // For combined Novice A & B classes, update both records
+      const idsToUpdate = classData.pairedClassId
+        ? [classData.id, classData.pairedClassId]
+        : [classData.id];
+
+      console.log('⏱️ Updating max times for class IDs:', idsToUpdate);
+
       const { error } = await supabase
         .from('classes')
         .update(updateData)
-        .eq('id', classData.id);
+        .in('id', idsToUpdate);
 
       if (error) {
         console.error('❌ Error updating max times:', error);

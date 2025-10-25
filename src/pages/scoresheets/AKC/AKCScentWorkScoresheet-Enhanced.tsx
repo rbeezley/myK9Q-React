@@ -1202,7 +1202,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                     onClick={() => clearTimeInput(index)}
                     title="Clear time"
                   >
-                    <X size={16} />
+                    <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                   </button>
                 )}
               </div>
@@ -1452,7 +1452,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                   onClick={() => clearTimeInput(index)}
                   title="Clear time"
                 >
-                  <X size={16} />
+                  <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                 </button>
               )}
             </div>

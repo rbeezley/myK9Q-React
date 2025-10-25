@@ -4,15 +4,16 @@
  * Mobile-first responsive container pattern optimized for:
  * - Mobile: Full width with padding
  * - Tablet: Full width with padding (PRIMARY USER - judges/stewards with tablets)
- * - Desktop: Max-width constraint for readability
+ * - Desktop: Full width with padding
  *
  * Design Philosophy:
- * - Maximize screen space on tablets (640-1024px) - our core users
- * - Only constrain width on desktop (1024px+) for comfortable reading
+ * - FULL WIDTH EVERYWHERE for maximum consistency
+ * - Maximize screen space at all viewport sizes
+ * - Individual components (grids, cards) handle wide screens with responsive layouts
  * - Simple, maintainable, consistent pattern across all pages
  */
 
-/* Base container - mobile and tablet (full width) */
+/* Base container - full width at all screen sizes for consistency */
 .page-container {
   width: 100%;
   min-height: 100vh;
@@ -29,19 +30,10 @@
   }
 }
 
-/* Desktop - constrain width for readability (1024px+ = desktop monitors) */
+/* Desktop - increased padding but NO max-width constraint (full width everywhere) */
 @media (min-width: 1024px) {
   .page-container {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: var(--token-space-lg) var(--token-space-4xl);
-  }
-}
-
-/* Large desktop - slightly wider for big monitors */
-@media (min-width: 1440px) {
-  .page-container {
-    max-width: 1400px;
   }
 }
 
@@ -74,15 +66,7 @@
 
 @media (min-width: 1024px) {
   .page-container-scroll .page-content {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: var(--token-space-lg) var(--token-space-4xl);
-  }
-}
-
-@media (min-width: 1440px) {
-  .page-container-scroll .page-content {
-    max-width: 1400px;
   }
 }
 
@@ -98,11 +82,8 @@
  *   - PRIMARY USER GROUP - judges/stewards use iPads/Android tablets
  *   - No max-width constraint - use full tablet screen
  *
- * Desktop (1024px - 1439px):
- *   - 1200px max-width, centered, 32px horizontal padding
- *   - Constrained for comfortable reading on monitors
- *
- * Large Desktop (1440px+):
- *   - 1400px max-width, centered, 32px horizontal padding
- *   - Slightly wider for large monitors
+ * Desktop (1024px+):
+ *   - Full width, 32px horizontal padding
+ *   - NO max-width constraint for consistency across all screen sizes
+ *   - Individual components use responsive grids to handle wide screens
  */

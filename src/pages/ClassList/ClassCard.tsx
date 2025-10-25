@@ -121,10 +121,11 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           <div className="class-title-section">
             <h3 className="class-name">{classEntry.class_name}</h3>
             <p className="class-judge">Judge: {classEntry.judge_name}</p>
-            {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) && (
-              <div className="class-time-limits">
-                <Clock size={14} />
-                {classEntry.area_count && classEntry.area_count > 1 ? (
+            <div className="class-time-limits">
+              <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+              <span className="time-limit-label">Max Time:</span>
+              {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
+                classEntry.area_count && classEntry.area_count > 1 ? (
                   <>
                     {classEntry.time_limit_seconds && (
                       <span className="time-limit-badge">A1: {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>
@@ -140,9 +141,11 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                   classEntry.time_limit_seconds && (
                     <span className="time-limit-badge">{formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>
                   )
-                )}
-              </div>
-            )}
+                )
+              ) : (
+                <span className="time-limit-badge time-limit-tbd">TBD</span>
+              )}
+            </div>
           </div>
         </div>
 

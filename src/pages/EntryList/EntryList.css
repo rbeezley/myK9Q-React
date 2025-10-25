@@ -642,8 +642,74 @@
 .sort-controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
+}
+
+/* Sort groups */
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  flex-wrap: wrap;
+}
+
+.sort-group-primary {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.sort-group-secondary {
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .sort-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .sort-group {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.625rem 0.875rem;
+  }
+
+  .sort-label {
+    min-width: fit-content;
+  }
+
+  .sort-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: fit-content;
+  }
+}
+
+/* Extra small mobile adjustments */
+@media (max-width: 480px) {
+  .sort-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .sort-label {
+    width: 100%;
+    text-align: center;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .sort-btn {
+    width: 100%;
+  }
 }
 
 .sort-label {
@@ -678,6 +744,35 @@
   border-color: var(--primary);
 }
 
+/* Sort separator */
+.sort-separator {
+  color: var(--muted-foreground);
+  margin: 0 0.25rem;
+  font-weight: 300;
+  opacity: 0.5;
+}
+
+/* Primary action button (Set Run Order) */
+.sort-btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  font-weight: 600;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.sort-btn-primary:hover {
+  background: linear-gradient(135deg, #5558e3 0%, #7c4ee8 100%);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.sort-btn-primary.active {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
 .search-results-count {
   font-size: 0.875rem;
   color: var(--text-secondary);
@@ -688,44 +783,41 @@
 /* Drag and drop styles */
 .sortable-item {
   position: relative;
-}
-
-.drag-handle {
-  position: absolute;
-  left: -40px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  cursor: grab;
-  padding: 0.5rem;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.drag-handle:active {
-  cursor: grabbing;
+/* External drag handle (visible, positioned to left of card) */
+.drag-handle-external {
+  flex-shrink: 0;
+  cursor: grab !important;
+  padding: 12px !important;
+  background: #6366f1 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  touch-action: none !important;
+  user-select: none !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  z-index: 10 !important;
 }
 
-.entries-grid.drag-mode {
-  padding-left: 50px;
+.drag-handle-external:hover {
+  background: #5558e3 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4) !important;
 }
 
-.entries-grid.drag-mode .entry-card {
-  margin-bottom: 0.5rem;
-  transition: transform 0.2s ease;
-}
-
-.entries-grid.drag-mode .sortable-item {
-  cursor: grab;
-}
-
-.entries-grid.drag-mode .sortable-item:active {
-  cursor: grabbing;
+.drag-handle-external:active {
+  cursor: grabbing !important;
+  transform: scale(0.98) !important;
 }
 
 /* Ultra-narrow screens optimization (280px-480px) */
@@ -1008,6 +1100,12 @@
   gap: 1rem;
   max-width: 100%;
   margin: 0 auto;
+}
+
+/* Disable grid in drag mode - use block layout for drag handles */
+.entries-grid.drag-mode {
+  display: block !important;
+  grid-template-columns: unset !important;
 }
 
 /* Tablet - 2 columns */
@@ -1687,6 +1785,18 @@
 .checkin-status:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Check-in status badge sizing - better integration with card */
+.dog-card-action .checkin-status {
+  padding: 0.4rem 0.625rem;
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  line-height: 1.2;
 }
 
 /* Check-in status colors moved to utilities.css */
@@ -3092,3 +3202,45 @@
 .dog-card .status-badge.checkin-status {
   text-transform: none !important;
 }
+
+
+/* Success Toast Notification */
+.success-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(16, 185, 129, 0.95);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  font-size: 15px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .success-toast {
+    top: 70px;
+    padding: 0.875rem 1.25rem;
+    font-size: 14px;
+  }
+}
+

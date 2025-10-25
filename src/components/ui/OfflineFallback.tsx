@@ -8,7 +8,7 @@
 import { WifiOff, RefreshCw, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getVisitedRoutes } from '@/utils/offlineRouter';
-import './OfflineFallback.css';
+import './shared-ui.css';
 
 interface OfflineFallbackProps {
   /**
@@ -38,7 +38,7 @@ export function OfflineFallback({ path, message }: OfflineFallbackProps) {
     <div className="offline-fallback">
       <div className="offline-fallback-content">
         <div className="offline-fallback-icon">
-          <WifiOff size={64} />
+          <WifiOff size={64}  style={{ width: '64px', height: '64px', flexShrink: 0 }} />
         </div>
 
         <h1>You're Offline</h1>
@@ -58,11 +58,11 @@ export function OfflineFallback({ path, message }: OfflineFallbackProps) {
 
         <div className="offline-fallback-actions">
           <button className="offline-fallback-btn offline-fallback-btn-primary" onClick={handleRetry}>
-            <RefreshCw size={20} />
+            <RefreshCw size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
             Retry
           </button>
           <button className="offline-fallback-btn offline-fallback-btn-secondary" onClick={handleGoHome}>
-            <Home size={20} />
+            <Home size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
             Go Home
           </button>
         </div>

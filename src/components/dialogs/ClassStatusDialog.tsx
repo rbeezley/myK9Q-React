@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar } from 'lucide-react';
+import './shared-dialog.css';
 import './ClassStatusDialog.css';
 
 interface ClassStatusDialogProps {

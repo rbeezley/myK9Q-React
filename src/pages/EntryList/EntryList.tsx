@@ -6,12 +6,14 @@ import { usePrefetch } from '@/hooks/usePrefetch';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, HeaderTicker, TrialDateBadge, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
+import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Target, User, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Target, User, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered } from 'lucide-react';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { updateExhibitorOrder, markInRing } from '../../services/entryService';
+import { applyRunOrderPreset } from '../../services/runOrderService';
 import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
 import { Entry } from '../../stores/entryStore';
 import { useEntryListData, useEntryListActions, useEntryListSubscriptions } from './hooks';
@@ -57,6 +59,8 @@ export const EntryList: React.FC = () => {
   const {
     handleStatusChange: handleStatusChangeHook,
     handleResetScore: handleResetScoreHook,
+    handleMarkInRing,
+    handleMarkCompleted,
     isSyncing,
     hasError
   } = useEntryListActions(refresh);
@@ -86,6 +90,8 @@ export const EntryList: React.FC = () => {
   const [manualOrder, setManualOrder] = useState<Entry[]>([]);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   const [showPrintMenu, setShowPrintMenu] = useState(false);
 
@@ -146,6 +152,49 @@ export const EntryList: React.FC = () => {
     }
   };
 
+  // Handle applying run order preset from dialog
+  const handleApplyRunOrder = async (preset: RunOrderPreset) => {
+    try {
+      console.log('🔄 Applying run order preset:', preset);
+
+      // Apply the preset and update database
+      const reorderedEntries = await applyRunOrderPreset(localEntries, preset);
+
+      // Update local state
+      setLocalEntries(reorderedEntries);
+
+      // Close dialog
+      setRunOrderDialogOpen(false);
+
+      // Show success message
+      setShowSuccessMessage(true);
+
+      // Switch to run order sort view
+      setSortOrder('run');
+
+      // Auto-hide success message after 2 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+
+      // Refresh to ensure data is in sync
+      await refresh();
+
+      console.log('✅ Run order applied successfully');
+    } catch (error) {
+      console.error('❌ Error applying run order:', error);
+      setRunOrderDialogOpen(false);
+      // TODO: Show error toast
+    }
+  };
+
+  // Handle opening drag mode from dialog
+  const handleOpenDragMode = () => {
+    setManualOrder([...currentEntries]);
+    setSortOrder('manual');
+    setIsDragMode(true);
+  };
+
   // Close popups when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -171,11 +220,47 @@ export const EntryList: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleStatusChange = async (entryId: number, status: NonNullable<Entry['checkinStatus']>) => {
+  const handleStatusChange = async (entryId: number, status: NonNullable<Entry['checkinStatus']> | 'in-ring' | 'completed') => {
     // Close the popup first to prevent multiple clicks
     setActiveStatusPopup(null);
     _setPopupPosition(null);
 
+    // Handle special manual ring management statuses
+    if (status === 'in-ring') {
+      // Optimistic update for in-ring
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, inRing: true }
+          : entry
+      ));
+
+      try {
+        await handleMarkInRing(entryId);
+      } catch (error) {
+        console.error('Mark in-ring failed:', error);
+        refresh();
+      }
+      return;
+    }
+
+    if (status === 'completed') {
+      // Optimistic update for completed
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, isScored: true, inRing: false }
+          : entry
+      ));
+
+      try {
+        await handleMarkCompleted(entryId);
+      } catch (error) {
+        console.error('Mark completed failed:', error);
+        refresh();
+      }
+      return;
+    }
+
+    // Handle normal check-in status changes
     // Optimistic update: update local state immediately
     setLocalEntries(prev => prev.map(entry =>
       entry.id === entryId
@@ -286,8 +371,8 @@ export const EntryList: React.FC = () => {
     try {
       if (inRing) {
         const currentDog = localEntries.find(entry => entry.id === dogId);
-        if (!currentDog?.inRing) {
-          const otherEntries = localEntries.filter(entry => entry.id !== dogId && entry.inRing);
+        if (currentDog?.status !== 'in-ring') {
+          const otherEntries = localEntries.filter(entry => entry.id !== dogId && entry.status === 'in-ring');
           if (otherEntries.length > 0) {
             await Promise.all(
               otherEntries.map(entry => markInRing(entry.id, false))
@@ -548,17 +633,17 @@ export const EntryList: React.FC = () => {
                   <TrialDateBadge date={classInfo.trialDate} />
                 )}
                 {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
-                  <span className="trial-detail"><Target size={14} /> Trial {classInfo.trialNumber}</span>
+                  <span className="trial-detail"><Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {classInfo.trialNumber}</span>
                 )}
                 {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
-                  <span className="trial-detail"><User size={14} /> {classInfo.judgeName}</span>
+                  <span className="trial-detail"><User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.judgeName}</span>
                 )}
                 {classInfo?.totalEntries !== undefined && (
-                  <span className="trial-detail"><ClipboardCheck size={14} /> {classInfo.completedEntries || 0} of {classInfo.totalEntries} scored</span>
+                  <span className="trial-detail"><ClipboardCheck size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.completedEntries || 0} of {classInfo.totalEntries} scored</span>
                 )}
                 {(classInfo?.timeLimit || classInfo?.timeLimit2 || classInfo?.timeLimit3) && (
                   <span className="trial-detail time-limits">
-                    <Clock size={14} />
+                    <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
                     {classInfo.areas && classInfo.areas > 1 ? (
                       <>
                         {classInfo.timeLimit && <span className="time-limit-badge">A1: {classInfo.timeLimit}</span>}
@@ -663,7 +748,7 @@ export const EntryList: React.FC = () => {
 
       <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
         <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
+          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search dog name, handler, breed, or armband..."
@@ -676,59 +761,76 @@ export const EntryList: React.FC = () => {
               className="clear-search-btn"
               onClick={() => setSearchTerm('')}
             >
-              <X size={16} />
+              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             </button>
           )}
         </div>
 
         <div className="sort-controls">
-          <span className="sort-label">Sort:</span>
-          <button
-            className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
-            onClick={() => {
-              setSortOrder('run');
-              setIsDragMode(false);
-            }}
-          >
-            <ArrowUpDown size={16} />
-            Run Order
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
-            onClick={() => {
-              setSortOrder('armband');
-              setIsDragMode(false);
-            }}
-          >
-            <ArrowUpDown size={16} />
-            Armband
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
-            onClick={() => {
-              setSortOrder('placement');
-              setIsDragMode(false);
-            }}
-          >
-            <Trophy size={16} />
-            Placement
-          </button>
-          {hasPermission('canChangeRunOrder') && (
+          {/* Run Order (Global/Persistent) */}
+          <div className="sort-group sort-group-primary">
+            <span className="sort-label">Run Order:</span>
             <button
-              className={`sort-btn ${isDragMode ? 'active' : ''} ${isUpdatingOrder ? 'loading' : ''}`}
+              className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
               onClick={() => {
-                if (!isDragMode) {
-                  setManualOrder([...currentEntries]);
-                  setSortOrder('manual');
-                }
-                setIsDragMode(!isDragMode);
+                setSortOrder('run');
+                setIsDragMode(false);
               }}
-              disabled={isUpdatingOrder}
             >
-              <GripVertical size={16} />
-              {isUpdatingOrder ? 'Saving...' : (isDragMode ? 'Done' : 'Reorder')}
+              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+              Run Order
             </button>
-          )}
+
+            {hasPermission('canChangeRunOrder') && (
+              <>
+                {isDragMode ? (
+                  <button
+                    className={`sort-btn sort-btn-primary active ${isUpdatingOrder ? 'loading' : ''}`}
+                    onClick={() => setIsDragMode(false)}
+                    disabled={isUpdatingOrder}
+                  >
+                    <GripVertical size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                    {isUpdatingOrder ? 'Saving...' : 'Done'}
+                  </button>
+                ) : (
+                  <button
+                    className="sort-btn sort-btn-primary"
+                    onClick={() => setRunOrderDialogOpen(true)}
+                  >
+                    <ListOrdered size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                    Set Run Order
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Local View Sorting (Temporary) */}
+          <div className="sort-group sort-group-secondary">
+            <span className="sort-label">Sort:</span>
+            <button
+              className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
+              onClick={() => {
+                setSortOrder('armband');
+                setIsDragMode(false);
+              }}
+            >
+              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+              Armband
+            </button>
+            {activeTab === 'completed' && (
+              <button
+                className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
+                onClick={() => {
+                  setSortOrder('placement');
+                  setIsDragMode(false);
+                }}
+              >
+                <Trophy size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                Placement
+              </button>
+            )}
+          </div>
         </div>
 
         {searchTerm && !isSearchCollapsed && (
@@ -743,14 +845,14 @@ export const EntryList: React.FC = () => {
           className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
-          <Clock className="status-icon" size={16} />
+          <Clock className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           Pending ({pendingEntries.length})
         </button>
         <button
           className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
-          <CheckCircle className="status-icon" size={16} />
+          <CheckCircle className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           Completed ({completedEntries.length})
         </button>
       </div>
@@ -820,7 +922,25 @@ export const EntryList: React.FC = () => {
           })()
         }}
         showDescriptions={true}
+        showRingManagement={hasPermission('canScore')}
       />
+
+      {/* Run Order Dialog */}
+      <RunOrderDialog
+        isOpen={runOrderDialogOpen}
+        onClose={() => setRunOrderDialogOpen(false)}
+        entries={localEntries}
+        onApplyOrder={handleApplyRunOrder}
+        onOpenDragMode={handleOpenDragMode}
+      />
+
+      {/* Success Message Toast */}
+      {showSuccessMessage && (
+        <div className="success-toast">
+          <CheckCircle size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
+          <span>Run order updated successfully</span>
+        </div>
+      )}
 
       {/* Reset Menu Popup */}
       {activeResetMenu !== null && resetMenuPosition && (

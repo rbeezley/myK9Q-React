@@ -113,13 +113,13 @@ export const StateInspector: React.FC = () => {
                 className="icon-button"
                 title={showDetails ? "Hide Details" : "Show Details"}
               >
-                {showDetails ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showDetails ? <EyeOff size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} /> : <Eye size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />}
               </button>
               <button onClick={handleExport} className="icon-button" title="Export Snapshot">
-                <Download size={16} />
+                <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               </button>
               <button onClick={() => setIsOpen(false)} className="icon-button">
-                <X size={16} />
+                <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               </button>
             </div>
           </div>

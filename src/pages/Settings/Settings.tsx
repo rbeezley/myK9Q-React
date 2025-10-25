@@ -643,7 +643,7 @@ export function Settings() {
             <div className="setting-item indented" style={{ backgroundColor: isInstalled ? '#10b98114' : '#f9731614', borderLeft: '3px solid', borderColor: isInstalled ? '#22c55e' : '#f97316', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
               <div className="setting-info" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  {isInstalled ? <CheckCircle2 size={20} color="#22c55e" /> : <AlertCircle size={20} color="#f97316" />}
+                  {isInstalled ? <CheckCircle2 size={20} color="#22c55e" /> : <AlertCircle size={20} color="#f97316"  style={{ width: '20px', height: '20px', flexShrink: 0 }} />}
                   <label style={{ fontWeight: 600, fontSize: '1rem', color: isInstalled ? '#22c55e' : '#f97316' }}>
                     {isInstalled ? 'App Installed' : 'App Not Installed'}
                   </label>
@@ -660,7 +660,7 @@ export function Settings() {
                     onClick={promptInstall}
                     style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                   >
-                    <Download size={16} />
+                    <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                     Install App
                   </button>
                 )}
@@ -687,7 +687,7 @@ export function Settings() {
                       }}
                       style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem', width: '100%', justifyContent: 'center' }}
                     >
-                      <Download size={16} />
+                      <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                       How to Install
                     </button>
                   </>
@@ -1173,7 +1173,7 @@ export function Settings() {
             <div className="setting-item indented" style={{ background: 'var(--card-bg)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
               <div className="setting-info" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <User size={18} />
+                  <User size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
                   <label style={{ fontWeight: 600 }}>Your Experience Level</label>
                 </div>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
@@ -1257,7 +1257,7 @@ export function Settings() {
           <div className="setting-item" style={{ background: 'var(--card-bg)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
             <div className="setting-info" style={{ width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <Database size={18} />
+                <Database size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
                 <label style={{ fontWeight: 600 }}>Storage Usage</label>
               </div>
               <div style={{ marginTop: '0.5rem' }}>
@@ -1301,7 +1301,7 @@ export function Settings() {
             onClick={handleExportData}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            <Download size={16} />
+            <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Export My Data
           </button>
           <button

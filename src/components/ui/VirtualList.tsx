@@ -13,7 +13,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import './VirtualList.css';
+import './shared-ui.css';
 
 export interface VirtualListProps<T> {
   /** Array of items to render */

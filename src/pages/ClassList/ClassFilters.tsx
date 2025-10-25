@@ -95,7 +95,7 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
       {/* Collapsible Search and Sort Container */}
       <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
         <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
+          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search class name, element, level, judge..."
@@ -108,7 +108,7 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
               className="clear-search-btn"
               onClick={() => setSearchTerm('')}
             >
-              <X size={16} />
+              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             </button>
           )}
         </div>
@@ -118,21 +118,21 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
             className={`sort-btn ${sortOrder === 'class_order' ? 'active' : ''}`}
             onClick={() => setSortOrder('class_order')}
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Class Order
           </button>
           <button
             className={`sort-btn ${sortOrder === 'element_level' ? 'active' : ''}`}
             onClick={() => setSortOrder('element_level')}
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Element
           </button>
           <button
             className={`sort-btn ${sortOrder === 'level_element' ? 'active' : ''}`}
             onClick={() => setSortOrder('level_element')}
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Level
           </button>
         </div>

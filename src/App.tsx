@@ -23,7 +23,10 @@ import './styles/containers.css';
 
 // Eager load critical components
 import { Login } from './pages/Login/Login';
+import { Landing } from './pages/Landing/Landing';
 import { DatabaseTest } from './components/DatabaseTest';
+import { TestConnections } from './pages/TestConnections'; // Temporary for Phase 1.3
+import { MigrationTest } from './pages/MigrationTest/MigrationTest'; // Migration testing
 
 // Lazy load pages for code splitting
 const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ default: module.Home })));
@@ -326,6 +329,8 @@ function AppWithAuth() {
             } 
           />
           <Route path="/debug" element={<DatabaseTest />} />
+          <Route path="/test-connections" element={<TestConnections />} />
+          <Route path="/migration-test" element={<MigrationTest />} />
           <Route
             path="/demo/status-popup"
             element={
@@ -360,7 +365,7 @@ function AppWithAuth() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Landing />} />
           </Routes>
     </>
   );

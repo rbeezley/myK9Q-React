@@ -130,13 +130,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Prevent flash of incorrectly styled content during hydration */
-.entry-list-container[data-loaded="false"] * {
+.entry-list-container[data-loaded="false"] *,
+.class-list-container[data-loaded="false"] *,
+.page-container[data-loaded="false"] *,
+.app-container[data-loaded="false"] * {
   transition: none !important;
   animation: none !important;
 }
 
 /* Enable transitions after hydration is complete */
-.entry-list-container[data-loaded="true"] * {
+.entry-list-container[data-loaded="true"] *,
+.class-list-container[data-loaded="true"] *,
+.page-container[data-loaded="true"] *,
+.app-container[data-loaded="true"] * {
   transition: inherit;
   animation: inherit;
 }

@@ -20,20 +20,20 @@ export const CompetitorCard: React.FC<CompetitorCardProps> = ({
 }) => {
   const getStatusBadge = () => {
     if (!showStatus) return null;
-    
-    if (entry.inRing) {
+
+    if (entry.status === 'in-ring') {
       return <span className="status-badge in-ring">IN RING</span>;
     }
-    
+
     if (entry.isScored) {
       return <span className="status-badge scored">{entry.resultText || 'SCORED'}</span>;
     }
-    
+
     return <span className="status-badge pending">PENDING</span>;
   };
-  
+
   const getStatusColor = () => {
-    if (entry.inRing) return 'status-in-ring';
+    if (entry.status === 'in-ring') return 'status-in-ring';
     if (entry.isScored) {
       switch (entry.resultText) {
         case 'Q': return 'status-qualified';

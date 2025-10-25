@@ -15,7 +15,7 @@
 
 import { useEffect, useState, useRef, ReactNode } from 'react';
 import { X } from 'lucide-react';
-import './BottomSheet.css';
+import './shared-ui.css';
 
 export interface BottomSheetProps {
   /**
@@ -190,7 +190,7 @@ export function BottomSheet({
               onClick={onClose}
               aria-label="Close"
             >
-              <X size={20} />
+              <X size={20}  style={{ width: '20px', height: '20px', flexShrink: 0 }} />
             </button>
           </div>
         )}

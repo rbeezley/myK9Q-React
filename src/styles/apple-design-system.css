@@ -1,102 +1,9 @@
-/* MyK9Show Apple-Inspired Design System */
-/* Global CSS Variables and Component Classes */
+/* ===================================================================
+   APPLE DESIGN SYSTEM - COMPONENT CLASSES
+   References design-tokens.css for all colors and values
+   =================================================================== */
 
-:root {
-  /* Pure Apple Colors */
-  --apple-pure-black: #000000;
-  --apple-pure-white: #ffffff;
-  --apple-system-gray: #8e8e93;
-  
-  /* MyK9Show Brand Colors */
-  --brand-blue: #007AFF;
-  --brand-purple: #5856D6;
-  --brand-gradient: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
-  
-  /* Status Colors */
-  --pending-orange: #FF9500;
-  --pending-glow: 0 0 20px rgba(255, 149, 0, 0.3);
-  --success-green: #34C759;
-  --error-red: #FF3B30;
-  --warning-amber: #FF9500;
-
-  /* Standardized Class Status Colors */
-  --status-none: #6b7280;           /* Gray - Ready/None */
-  --status-setup: #fef3c7;          /* Amber - Setup */
-  --status-briefing: #3b82f6;       /* Purple - Briefing */
-  --status-break: #14b8a6;          /* Cyan - Break */
-  --status-start-time: #8b5cf6;     /* Emerald - Start Time */
-  --status-in-progress: #3b82f6;    /* Blue - In Progress */
-  --status-completed: #059669;      /* Green - Completed */
-  
-  /* Glass Morphism */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-blur: blur(20px);
-  
-  /* Apple Easing */
-  --apple-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --apple-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  
-  /* Typography - SF Pro */
-  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
-  
-  /* Light Theme Variables */
-  --background: #fefefe;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --muted: #f6f6f6;
-  --muted-foreground: #6b7280;
-  --border: #e5e7eb;
-  --input: #f3f4f6;
-  --primary: #007AFF;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  
-  /* Touch Targets - Enhanced for Stress Conditions */
-  --min-touch-target: 44px;
-  --stress-touch-target: 52px;
-}
-
-.theme-dark {
-  /* Dark Theme - Enhanced for Outdoor Visibility */
-  --background: #1a1d23;
-  --foreground: #ffffff;
-  --card: #1a1d23;
-  --card-foreground: #ffffff;
-  --muted: #2a2a2a;
-  --muted-foreground: #ffffff;
-  --border: #4a5568;
-  --input: #2a2a2a;
-  --primary: #007AFF;
-  --primary-foreground: #ffffff;
-  --secondary: #2a2a2a;
-  --secondary-foreground: #ffffff;
-
-  /* Dark Mode Glass Morphism - Enhanced for Outdoor */
-  --glass-bg: rgba(26, 29, 35, 0.9);
-  --glass-border: rgba(74, 85, 104, 0.3);
-
-  /* Dark mode status colors - enhanced brightness */
-  --status-none: #9ca3af;
-  --status-setup: #3b82f6;
-  --status-briefing: #3b82f6;
-  --status-break: #14b8a6;
-  --status-start-time: #8b5cf6;
-  --status-in-progress: #60a5fa;
-  --status-completed: #10b981;
-}
-
-/* Global Base Styles */
-body {
-  font-family: var(--font-family);
-  background: var(--background);
-  color: var(--foreground);
-  transition: background-color 0.3s var(--apple-ease);
-}
-
-/* Apple-Inspired Component Classes */
+/* ===== COMPONENT CLASSES ===== */
 
 /* Premium Cards */
 .apple-card {
@@ -105,7 +12,7 @@ body {
   border-radius: 1rem;
   padding: 1.5rem;
   backdrop-filter: var(--glass-blur);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--token-shadow-sm);
   transition: all 0.5s var(--apple-ease);
   position: relative;
   overflow: hidden;
@@ -126,25 +33,25 @@ body {
 
 .apple-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--token-shadow-xl);
   border-color: rgba(0, 122, 255, 0.2);
 }
 
 /* Premium Card with Orange Glow (for pending states) */
 .apple-card-pending {
   border-color: var(--pending-orange);
-  box-shadow: 0 0 0 2px #FF9500, 0 4px 12px rgba(255, 149, 0, 0.3);
+  box-shadow: 0 0 0 2px var(--pending-orange), var(--pending-glow);
 }
 
 /* Enhanced Orange Glow for Outdoor Visibility */
 .entry-card.checkin-none {
-  box-shadow: 0 0 0 2px #FF9500, 0 4px 12px rgba(255, 149, 0, 0.3);
-  border-color: #FF9500;
+  box-shadow: 0 0 0 2px var(--pending-orange), var(--pending-glow);
+  border-color: var(--pending-orange);
 }
 
 .entry-card.pending-entry {
-  box-shadow: 0 0 0 2px #FF9500, 0 4px 12px rgba(255, 149, 0, 0.3);
-  border-color: #FF9500;
+  box-shadow: 0 0 0 2px var(--pending-orange), var(--pending-glow);
+  border-color: var(--pending-orange);
 }
 
 /* Blue Circular Armband Badge */
@@ -173,8 +80,8 @@ body {
 
 /* Premium Tab System */
 .apple-tabs-container {
-  background: linear-gradient(to right, 
-    rgba(142, 142, 147, 0.12) 0%, 
+  background: linear-gradient(to right,
+    rgba(142, 142, 147, 0.12) 0%,
     rgba(142, 142, 147, 0.08) 100%);
   border: 1px solid rgba(142, 142, 147, 0.2);
   border-radius: 0.75rem;
@@ -186,8 +93,8 @@ body {
 .apple-tab-trigger {
   border-radius: 0.5rem;
   transition: all 0.3s var(--apple-ease);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--token-font-md);
+  font-weight: var(--token-font-weight-medium);
   padding: 0.75rem 1rem;
   background: transparent;
   border: none;
@@ -197,11 +104,11 @@ body {
 }
 
 .apple-tab-trigger[data-state="active"] {
-  background: linear-gradient(to right, 
-    rgba(0, 122, 255, 0.1) 0%, 
+  background: linear-gradient(to right,
+    rgba(0, 122, 255, 0.1) 0%,
     rgba(0, 122, 255, 0.05) 100%);
   color: var(--primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--token-shadow-sm);
 }
 
 /* Premium Buttons */
@@ -211,8 +118,8 @@ body {
   border-radius: 0.75rem;
   padding: 0.75rem 1.5rem;
   color: white;
-  font-size: 0.875rem;
-  font-weight: 590;
+  font-size: var(--token-font-md);
+  font-weight: var(--token-font-weight-semibold);
   cursor: pointer;
   transition: all 0.3s var(--apple-ease);
   min-height: var(--min-touch-target);
@@ -243,8 +150,8 @@ body {
   border-radius: 0.75rem;
   padding: 0.75rem 1.5rem;
   color: var(--secondary-foreground);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--token-font-md);
+  font-weight: var(--token-font-weight-medium);
   cursor: pointer;
   transition: all 0.3s var(--apple-ease);
   min-height: var(--min-touch-target);
@@ -265,7 +172,7 @@ body {
 /* Typography Classes - Standardized Apple Font Weights */
 .apple-text-title {
   font-size: 1.875rem;
-  font-weight: 650; /* Large titles use 650 */
+  font-weight: 650;
   line-height: 1.2;
   color: var(--foreground);
   font-family: var(--font-family);
@@ -273,7 +180,7 @@ body {
 
 .apple-text-heading {
   font-size: 1.25rem;
-  font-weight: 590; /* Standard heading weight */
+  font-weight: var(--token-font-weight-semibold);
   line-height: 1.3;
   color: var(--foreground);
   font-family: var(--font-family);
@@ -281,7 +188,7 @@ body {
 
 .apple-text-subheading {
   font-size: 1.125rem;
-  font-weight: 590; /* Consistent with headings */
+  font-weight: var(--token-font-weight-semibold);
   line-height: 1.3;
   color: var(--foreground);
   font-family: var(--font-family);
@@ -289,7 +196,7 @@ body {
 
 .apple-text-body {
   font-size: 1rem;
-  font-weight: 400; /* Regular body text */
+  font-weight: var(--token-font-weight-normal);
   line-height: 1.5;
   color: var(--foreground);
   font-family: var(--font-family);
@@ -297,7 +204,7 @@ body {
 
 .apple-text-body-medium {
   font-size: 1rem;
-  font-weight: 500; /* Medium body text */
+  font-weight: var(--token-font-weight-medium);
   line-height: 1.5;
   color: var(--foreground);
   font-family: var(--font-family);
@@ -305,7 +212,7 @@ body {
 
 .apple-text-caption {
   font-size: 0.8125rem;
-  font-weight: 500; /* Consistent medium weight for captions */
+  font-weight: var(--token-font-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--muted-foreground);
@@ -332,7 +239,7 @@ body {
   backdrop-filter: var(--glass-blur);
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: var(--token-z-overlay);
 }
 
 /* Navigation */
@@ -347,7 +254,7 @@ body {
   display: flex;
   justify-content: space-around;
   padding: 0.75rem 0;
-  z-index: 50;
+  z-index: var(--token-z-overlay);
 }
 
 .apple-nav-button {
@@ -359,7 +266,7 @@ body {
   border: none;
   color: var(--muted-foreground);
   font-size: 0.6875rem;
-  font-weight: 500;
+  font-weight: var(--token-font-weight-medium);
   cursor: pointer;
   transition: all 0.2s var(--apple-ease);
   padding: 0.5rem;
@@ -389,8 +296,8 @@ body {
   align-items: center;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--token-font-sm);
+  font-weight: var(--token-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.025em;
   line-height: 1;
@@ -443,54 +350,54 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s var(--apple-ease);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  box-shadow: var(--token-shadow-md);
+  z-index: var(--token-z-overlay);
   font-size: 1.2rem;
 }
 
 .apple-theme-toggle:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--token-shadow-lg);
 }
 
-/* Responsive Design */
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 640px) {
   .apple-card {
     padding: 1rem;
     border-radius: 0.75rem;
   }
-  
+
   .apple-header {
     padding: 1rem;
   }
-  
+
   .apple-armband-badge {
     width: 2.25rem;
     height: 2.25rem;
     font-size: 0.8125rem;
   }
-  
+
   .apple-text-title {
     font-size: 1.5rem;
   }
-  
+
   .apple-text-heading {
     font-size: 1.125rem;
   }
 }
 
-/* Accessibility & Performance */
+/* ===== ACCESSIBILITY ===== */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .apple-card-pending,
   .entry-card.checkin-none,
   .entry-card.pending-entry {
-    box-shadow: 0 0 0 2px #FF9500 !important;
+    box-shadow: 0 0 0 2px var(--pending-orange) !important;
   }
 }
 
@@ -499,9 +406,9 @@ body {
   .apple-card,
   .entry-card {
     backdrop-filter: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--token-shadow-sm);
   }
-  
+
   .apple-header {
     backdrop-filter: none;
   }
@@ -520,7 +427,7 @@ body {
     --border: #000000;
     --muted-foreground: #000000;
   }
-  
+
   .theme-dark {
     --border: #ffffff;
     --muted-foreground: #ffffff;
@@ -533,7 +440,7 @@ body {
   .apple-bottom-nav {
     display: none;
   }
-  
+
   .apple-card {
     border: 1px solid #000000;
     box-shadow: none;

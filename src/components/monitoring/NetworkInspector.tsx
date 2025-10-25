@@ -121,13 +121,13 @@ export const NetworkInspector: React.FC = () => {
           <div className="network-inspector-header">
             <h3>Network Inspector</h3>
             <button onClick={() => setIsOpen(false)} className="close-button">
-              <X size={18} />
+              <X size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
             </button>
           </div>
 
           <div className="network-inspector-controls">
             <div className="search-box">
-              <Search size={14} />
+              <Search size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Filter by URL..."
@@ -137,7 +137,7 @@ export const NetworkInspector: React.FC = () => {
             </div>
 
             <div className="filter-group">
-              <Filter size={14} />
+              <Filter size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
               <select
                 value={methodFilter}
                 onChange={(e) => setMethodFilter(e.target.value)}
@@ -162,7 +162,7 @@ export const NetworkInspector: React.FC = () => {
             </div>
 
             <button onClick={handleExport} className="export-button" title="Export as JSON">
-              <Download size={14} />
+              <Download size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
               Export
             </button>
           </div>

@@ -9,7 +9,7 @@
 import { useState, useEffect } from 'react';
 import { useDeviceCapabilities, usePerformanceSettings } from '@/hooks/usePerformance';
 import { setPerformanceOverrides, resetDeviceDetection } from '@/utils/deviceDetection';
-import './DeviceDebugPanel.css';
+import './shared-ui.css';
 
 export interface DeviceDebugPanelProps {
   /** Show panel by default */

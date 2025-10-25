@@ -41,6 +41,7 @@ interface ClassEntry {
   start_time?: string;
   briefing_time?: string;
   break_until?: string;
+  pairedClassId?: number; // For combined Novice A & B classes
   dogs: {
     id: number;
     armband: number;
@@ -326,7 +327,13 @@ export const ClassList: React.FC = () => {
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
 
   // Prevent FOUC by adding 'loaded' class after mount
-  const [isLoaded] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Trigger loaded animation after initial render
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Time input states for status dialog
 
@@ -552,7 +559,7 @@ export const ClassList: React.FC = () => {
   };
 
   // Helper function to find the paired Novice class (A pairs with B, and vice versa)
-  const findPairedNoviceClass = (clickedClass: ClassEntry): ClassEntry | null => {
+  const findPairedNoviceClass = useCallback((clickedClass: ClassEntry): ClassEntry | null => {
     // Only proceed if this is a Novice level class
     if (clickedClass.level !== 'Novice') {
       return null;
@@ -569,7 +576,7 @@ export const ClassList: React.FC = () => {
     );
 
     return paired || null;
-  };
+  }, [classes]);
 
   // Prefetch class entry data when hovering/touching class card
   const handleClassPrefetch = useCallback(async (classId: number) => {
@@ -611,8 +618,15 @@ export const ClassList: React.FC = () => {
       return;
     }
 
-    // Check if this is a Novice class and has a paired class
-    if (classEntry.level === 'Novice') {
+    // Check if this is a combined Novice A & B class (has pairedClassId)
+    if (classEntry.pairedClassId) {
+      // Navigate directly to combined view with both class IDs
+      navigate(`/class/${classEntry.id}/${classEntry.pairedClassId}/entries/combined`);
+      return;
+    }
+
+    // Fallback: Check if this is a Novice class and has a paired class
+    if (classEntry.level === 'Novice' && (classEntry.section === 'A' || classEntry.section === 'B')) {
       const paired = findPairedNoviceClass(classEntry);
       if (paired) {
         // Navigate directly to combined view with both class IDs (no dialog)
@@ -652,29 +666,46 @@ export const ClassList: React.FC = () => {
   const handleClassStatusChangeWithTime = async (classId: number, status: ClassEntry['class_status'], timeValue: string) => {
     console.log('🕐 Status change with time:', { classId, status, timeValue });
 
+    // Find the class entry to check if it has a paired class
+    const classEntry = classes.find(c => c.id === classId);
+    const pairedId = classEntry?.pairedClassId;
+    const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
+
+    console.log('🕐 Updating class IDs with time:', idsToUpdate);
+
     // Use text status directly
     const updateData: any = {
       class_status: status
     };
 
+    // Store the time in class_status_comment field
+    switch (status) {
+      case 'briefing':
+        updateData.class_status_comment = timeValue;
+        break;
+      case 'break':
+        updateData.class_status_comment = timeValue;
+        break;
+      case 'start_time':
+        updateData.class_status_comment = timeValue;
+        break;
+    }
+
     // Update local state with both status and time
     setClasses(prev => prev.map(c => {
-      if (c.id === classId) {
+      if (idsToUpdate.includes(c.id)) {
         const updatedClass = { ...c, class_status: status };
 
-        // Store the time in class_status_comment field
+        // Store the time values in local state
         switch (status) {
           case 'briefing':
             updatedClass.briefing_time = timeValue;
-            updateData.class_status_comment = timeValue;
             break;
           case 'break':
             updatedClass.break_until = timeValue;
-            updateData.class_status_comment = timeValue;
             break;
           case 'start_time':
             updatedClass.start_time = timeValue;
-            updateData.class_status_comment = timeValue;
             break;
         }
 
@@ -687,7 +718,7 @@ export const ClassList: React.FC = () => {
     setStatusDialogOpen(false);
     setSelectedClassForStatus(null);
 
-    // Update database
+    // Update database - update all IDs (both A and B for combined Novice classes)
     try {
 
       // Note: The normalized classes table should support time columns
@@ -696,16 +727,17 @@ export const ClassList: React.FC = () => {
       const { error } = await supabase
         .from('classes')
         .update(updateData)
-        .eq('id', classId);
+        .in('id', idsToUpdate);
 
       if (error) {
         console.error('❌ Error updating class status with time:', error);
         console.error('❌ Update data:', updateData);
-        console.error('❌ Class ID:', classId);
+        console.error('❌ Class IDs:', idsToUpdate);
         // Revert on error
         await refresh();
       } else {
         console.log('✅ Successfully updated class status with time');
+        console.log('✅ Class IDs:', idsToUpdate);
       }
     } catch (error) {
       console.error('Exception updating class status:', error);
@@ -716,6 +748,13 @@ export const ClassList: React.FC = () => {
   // Simplified function for statuses without time input
   const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
     console.log('🔄 ClassList: Updating class status:', { classId, status });
+
+    // Find the class entry to check if it has a paired class
+    const classEntry = classes.find(c => c.id === classId);
+    const pairedId = classEntry?.pairedClassId;
+    const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
+
+    console.log('🔄 ClassList: Updating class IDs:', idsToUpdate);
 
     // Use text status directly
     const updateData = {
@@ -728,30 +767,30 @@ export const ClassList: React.FC = () => {
 
     // Update local state immediately for better UX
     setClasses(prev => prev.map(c =>
-      c.id === classId ? { ...c, class_status: status } : c
+      idsToUpdate.includes(c.id) ? { ...c, class_status: status } : c
     ));
 
     // Close dialog
     setStatusDialogOpen(false);
     setSelectedClassForStatus(null);
 
-    // Update database
+    // Update database - update all IDs (both A and B for combined Novice classes)
     try {
       const { data, error } = await supabase
         .from('classes')
         .update(updateData)
-        .eq('id', classId);
+        .in('id', idsToUpdate);
 
       if (error) {
         console.error('❌ Error updating class status:', error);
         console.error('❌ Update data:', updateData);
-        console.error('❌ Class ID:', classId);
+        console.error('❌ Class IDs:', idsToUpdate);
         console.error('❌ Full error object:', JSON.stringify(error, null, 2));
         // Revert on error
         await refresh();
       } else {
         console.log('✅ Successfully updated class status');
-        console.log('✅ Class ID:', classId);
+        console.log('✅ Class IDs:', idsToUpdate);
         console.log('✅ New status:', status);
         console.log('✅ DB status value:', status);
         console.log('✅ Update data:', updateData);
@@ -767,7 +806,7 @@ export const ClassList: React.FC = () => {
     const classEntry = classes.find(c => c.id === classId);
     const isCurrentlyFavorite = classEntry?.is_favorite;
     console.log('💖 Toggling favorite for class:', classId, 'Currently favorite:', isCurrentlyFavorite);
-    
+
     // Enhanced haptic feedback for outdoor/gloved use
     if (isCurrentlyFavorite) {
       // Removing favorite - softer feedback
@@ -776,24 +815,33 @@ export const ClassList: React.FC = () => {
       // Adding favorite - stronger feedback for confirmation
       hapticFeedback.medium();
     }
-    
+
+    // For combined Novice A & B classes, we need to find the paired class
+    const pairedId = classEntry?.pairedClassId;
+    const idsToToggle = pairedId ? [classId, pairedId] : [classId];
+
     // Update favorites set for localStorage persistence
     setFavoriteClasses(prev => {
       const newFavorites = new Set(prev);
-      if (newFavorites.has(classId)) {
-        newFavorites.delete(classId);
-        console.log('🗑️ Removing from favorites:', classId);
-      } else {
-        newFavorites.add(classId);
-        console.log('⭐ Adding to favorites:', classId);
-      }
+      const shouldAdd = !newFavorites.has(classId);
+
+      idsToToggle.forEach(id => {
+        if (shouldAdd) {
+          newFavorites.add(id);
+          console.log('⭐ Adding to favorites:', id);
+        } else {
+          newFavorites.delete(id);
+          console.log('🗑️ Removing from favorites:', id);
+        }
+      });
+
       console.log('💾 New favorites set:', Array.from(newFavorites));
       return newFavorites;
     });
-    
+
     // Update classes state to reflect the change immediately
-    setClasses(prev => prev.map(c => 
-      c.id === classId ? { ...c, is_favorite: !c.is_favorite } : c
+    setClasses(prev => prev.map(c =>
+      idsToToggle.includes(c.id) ? { ...c, is_favorite: !c.is_favorite } : c
     ));
   };
 
@@ -918,11 +966,11 @@ export const ClassList: React.FC = () => {
   // Smart contextual preview helper function
   const getContextualPreview = (classEntry: ClassEntry): string => {
     const status = getClassDisplayStatus(classEntry);
-    
+
     switch (status) {
       case 'not-started':
-        return `${classEntry.entry_count} entries • Starts after current class`;
-        
+        return `${classEntry.entry_count} ${classEntry.entry_count === 1 ? 'entry' : 'entries'} • Not yet started`;
+
       case 'completed':
         return `Completed • ${classEntry.entry_count} ${classEntry.entry_count === 1 ? 'entry' : 'entries'} scored`;
         
@@ -956,10 +1004,64 @@ export const ClassList: React.FC = () => {
     }
   };
 
+  // Helper function to group Novice A/B classes into combined entries
+  const groupNoviceClasses = useCallback((classList: ClassEntry[]): ClassEntry[] => {
+    const grouped: ClassEntry[] = [];
+    const processedIds = new Set<number>();
+
+    for (const classEntry of classList) {
+      // Skip if already processed as part of a pair
+      if (processedIds.has(classEntry.id)) continue;
+
+      // Check if this is a Novice class with section A or B
+      if (classEntry.level === 'Novice' && (classEntry.section === 'A' || classEntry.section === 'B')) {
+        // Find the paired class
+        const paired = findPairedNoviceClass(classEntry);
+
+        if (paired) {
+          // Mark both as processed
+          processedIds.add(classEntry.id);
+          processedIds.add(paired.id);
+
+          // Determine which class comes first (use class_order or section)
+          const first = classEntry.section === 'A' ? classEntry : paired;
+          const second = classEntry.section === 'A' ? paired : classEntry;
+
+          // Create combined entry
+          const combined: ClassEntry = {
+            ...first, // Use first class as base
+            id: first.id, // Primary ID for navigation
+            section: 'A & B', // Combined section label
+            class_name: `${first.element} ${first.level} A & B`, // Combined name
+            entry_count: first.entry_count + second.entry_count, // Sum entries
+            completed_count: first.completed_count + second.completed_count, // Sum completed
+            dogs: [...first.dogs, ...second.dogs], // Merge dogs array
+            is_favorite: first.is_favorite || second.is_favorite, // Favorite if either is favorited
+            // Store paired ID for navigation
+            pairedClassId: second.id
+          };
+
+          grouped.push(combined);
+        } else {
+          // No pair found, add as-is
+          grouped.push(classEntry);
+        }
+      } else {
+        // Not a Novice A/B class, add as-is
+        grouped.push(classEntry);
+      }
+    }
+
+    return grouped;
+  }, [findPairedNoviceClass]);
+
   // Search and sort functionality
   // Memoized filtered and sorted classes for performance optimization
   const filteredClasses = useMemo(() => {
-    const filtered = classes.filter(classEntry => {
+    // First, group Novice A/B classes together
+    const groupedClasses = groupNoviceClasses(classes);
+
+    const filtered = groupedClasses.filter(classEntry => {
       // Use the same logic as getClassDisplayStatus to respect manual status
       const displayStatus = getClassDisplayStatus(classEntry);
       const isCompleted = displayStatus === 'completed';
@@ -1048,7 +1150,7 @@ export const ClassList: React.FC = () => {
     });
 
     return filtered;
-  }, [classes, combinedFilter, searchTerm, sortOrder]);
+  }, [classes, combinedFilter, searchTerm, sortOrder, groupNoviceClasses]);
 
   // Show loading skeleton only if no cached data exists
   if (!cachedData && !fetchError) {
@@ -1097,7 +1199,7 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className={`class-list-container page-container ${isLoaded ? 'loaded' : ''}`}>
+    <div className={`class-list-container page-container ${isLoaded ? 'loaded' : ''}`} data-loaded={isLoaded}>
       {/* Enhanced Header with Trial Info */}
       <header className="class-list-header">
         <HamburgerMenu
@@ -1119,7 +1221,7 @@ export const ClassList: React.FC = () => {
                   dateOnly={true}
                 />
                 <span className="trial-detail">
-                  <Target size={14} /> Trial {trialInfo.trial_number}
+                  <Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {trialInfo.trial_number}
                 </span>
               </div>
             </div>

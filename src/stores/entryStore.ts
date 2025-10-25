@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+// Entry status type - single source of truth
+export type EntryStatus =
+  | 'none'           // Not checked in
+  | 'checked-in'     // Checked in
+  | 'at-gate'        // Called to gate
+  | 'come-to-gate'   // Being called to gate
+  | 'conflict'       // Scheduling conflict
+  | 'pulled'         // Withdrawn from class
+  | 'in-ring'        // Currently competing
+  | 'completed';     // Finished (manual completion, no score)
+
 export interface Entry {
   id: number;
   armband: number;
@@ -10,7 +21,16 @@ export interface Entry {
   jumpHeight?: string;
   preferredTime?: string;
   isScored: boolean;
-  inRing: boolean;
+  // New unified status field
+  status: EntryStatus;
+  // Deprecated fields (for backward compatibility during migration)
+  /** @deprecated Use status instead */
+  inRing?: boolean;
+  /** @deprecated Use status instead */
+  checkedIn?: boolean;
+  /** @deprecated Use status instead */
+  checkinStatus?: EntryStatus;
+
   resultText?: string;
   searchTime?: string;
   faultCount?: number;
@@ -20,8 +40,6 @@ export interface Entry {
   section?: string;
   element?: string;
   level?: string;
-  checkedIn?: boolean;
-  checkinStatus?: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate';
   timeLimit?: string;
   timeLimit2?: string;
   timeLimit3?: string;

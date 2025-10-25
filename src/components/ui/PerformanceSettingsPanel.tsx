@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useDeviceCapabilities, usePerformanceSettings } from '@/hooks/usePerformance';
 import { setPerformanceOverrides } from '@/utils/deviceDetection';
-import './PerformanceSettingsPanel.css';
+import './shared-ui.css';
 
 export interface PerformanceSettingsPanelProps {
   /** Callback when settings change */

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './shared-dialog.css';
 import './NoviceClassDialog.css';
 
 interface ClassInfo {

@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { useOptimisticUpdate } from '../../../hooks/useOptimisticUpdate';
-import { updateEntryCheckinStatus, resetEntryScore, markInRing } from '../../../services/entryService';
+import { updateEntryCheckinStatus, resetEntryScore, markInRing, markEntryCompleted } from '../../../services/entryService';
 import { Entry as _Entry } from '../../../stores/entryStore';
 
 /**
  * Shared hook for entry list actions with optimistic updates.
  * Handles check-in status changes, reset score, and in-ring status.
  */
-export const useEntryListActions = (onRefresh: () => void) => {
+export const useEntryListActions = (_onRefresh: () => void) => {
   // Optimistic update hook for check-in status changes
   const { update, isSyncing, hasError } = useOptimisticUpdate();
 
@@ -22,11 +22,11 @@ export const useEntryListActions = (onRefresh: () => void) => {
           await updateEntryCheckinStatus(entryId, newStatus);
           return { entryId, status: newStatus };
         },
-        onSuccess: () => onRefresh(),
+        onSuccess: () => {}, // Real-time subscriptions will update the data
         onError: (error) => console.error('Status update failed:', error)
       });
     },
-    [update, onRefresh]
+    [update]
   );
 
   /**
@@ -36,12 +36,13 @@ export const useEntryListActions = (onRefresh: () => void) => {
     async (entryId: number) => {
       try {
         await resetEntryScore(entryId);
-        onRefresh();
+        // Real-time subscriptions will update the data
       } catch (error) {
         console.error('Error resetting score:', error);
+        throw error; // Let caller handle refresh on error
       }
     },
-    [onRefresh]
+    []
   );
 
   /**
@@ -51,12 +52,45 @@ export const useEntryListActions = (onRefresh: () => void) => {
     async (entryId: number, currentInRing: boolean) => {
       try {
         await markInRing(entryId, !currentInRing);
-        onRefresh();
+        // Real-time subscriptions will update the data
       } catch (error) {
         console.error('Error toggling in-ring status:', error);
+        throw error; // Let caller handle refresh on error
       }
     },
-    [onRefresh]
+    []
+  );
+
+  /**
+   * Mark entry as in-ring (for manual ring management)
+   */
+  const handleMarkInRing = useCallback(
+    async (entryId: number) => {
+      try {
+        await markInRing(entryId, true);
+        // Real-time subscriptions will update the data
+      } catch (error) {
+        console.error('Error marking entry in-ring:', error);
+        throw error; // Let caller handle refresh on error
+      }
+    },
+    []
+  );
+
+  /**
+   * Mark entry as completed without full score (for manual ring management)
+   */
+  const handleMarkCompleted = useCallback(
+    async (entryId: number) => {
+      try {
+        await markEntryCompleted(entryId);
+        // Real-time subscriptions will update the data
+      } catch (error) {
+        console.error('Error marking entry completed:', error);
+        throw error; // Let caller handle refresh on error
+      }
+    },
+    []
   );
 
   /**
@@ -68,18 +102,21 @@ export const useEntryListActions = (onRefresh: () => void) => {
         await Promise.all(
           entryIds.map((id) => updateEntryCheckinStatus(id, newStatus))
         );
-        onRefresh();
+        // Real-time subscriptions will update the data
       } catch (error) {
         console.error('Error in batch update:', error);
+        throw error; // Let caller handle refresh on error
       }
     },
-    [onRefresh]
+    []
   );
 
   return {
     handleStatusChange,
     handleResetScore,
     handleToggleInRing,
+    handleMarkInRing,
+    handleMarkCompleted,
     handleBatchStatusUpdate,
     isSyncing,
     hasError

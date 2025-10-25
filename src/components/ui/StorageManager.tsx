@@ -17,7 +17,7 @@ import {
   extendShowExpiration,
   type PreloadedShow,
 } from '@/services/preloadService';
-import './StorageManager.css';
+import './shared-ui.css';
 
 export function StorageManager() {
   const [shows, setShows] = useState<PreloadedShow[]>([]);
@@ -137,12 +137,12 @@ export function StorageManager() {
     <div className="storage-manager">
       <div className="storage-header">
         <div className="storage-title">
-          <HardDrive size={24} />
+          <HardDrive size={24}  style={{ width: '24px', height: '24px', flexShrink: 0 }} />
           <h2>Offline Storage</h2>
         </div>
         {shows.length > 0 && (
           <button className="storage-cleanup-btn" onClick={handleCleanup}>
-            <RefreshCw size={16} />
+            <RefreshCw size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
             Cleanup Expired
           </button>
         )}
@@ -151,13 +151,13 @@ export function StorageManager() {
       {/* Success/Error Messages */}
       {successMessage && (
         <div className="storage-message storage-message-success">
-          <Check size={16} />
+          <Check size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           {successMessage}
         </div>
       )}
       {errorMessage && (
         <div className="storage-message storage-message-error">
-          <AlertCircle size={16} />
+          <AlertCircle size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
           {errorMessage}
         </div>
       )}
@@ -183,7 +183,7 @@ export function StorageManager() {
       {/* Downloaded Shows List */}
       {shows.length === 0 ? (
         <div className="storage-empty">
-          <Download size={48} />
+          <Download size={48}  style={{ width: '48px', height: '48px', flexShrink: 0 }} />
           <h3>No Downloaded Shows</h3>
           <p>Download shows for offline use to access them without WiFi.</p>
         </div>
@@ -215,7 +215,7 @@ export function StorageManager() {
                       onClick={() => handleExtend(show.licenseKey, show.showName)}
                       title="Extend for 7 more days"
                     >
-                      <RefreshCw size={16} />
+                      <RefreshCw size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                       Extend
                     </button>
                     <button
