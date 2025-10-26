@@ -69,11 +69,11 @@
 
 .theme-dark .class-card {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
 .theme-dark .class-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
 }
 
 /* Main container */
@@ -178,7 +178,7 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: 1.5rem;
-  border-left: 4px solid var(--brand-blue);
+  border-left: var(--token-space-sm) solid var(--brand-blue);
 }
 
 .instructions-panel h3 {
@@ -336,10 +336,10 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 2px solid rgba(99, 102, 241, 0.5);
+  border: var(--token-space-xs) solid rgba(99, 102, 241, 0.5);
   background: rgba(99, 102, 241, 0.1);
   text-align: center;
 }
@@ -348,7 +348,7 @@
   background: rgba(99, 102, 241, 0.2);
   border-color: rgba(99, 102, 241, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(99, 102, 241, 0.3);
 }
 
 .release-card-btn .btn-icon {
@@ -384,7 +384,7 @@
 .immediate-btn:hover:not(:disabled) {
   background: rgba(139, 92, 246, 0.2);
   border-color: rgba(139, 92, 246, 0.8);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(139, 92, 246, 0.3);
 }
 
 .immediate-btn .btn-icon {
@@ -399,7 +399,7 @@
 .auto-btn:hover:not(:disabled) {
   background: rgba(59, 130, 246, 0.2);
   border-color: rgba(59, 130, 246, 0.8);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(59, 130, 246, 0.3);
 }
 
 .auto-btn .btn-icon {
@@ -414,7 +414,7 @@
 .embargo-btn:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.8);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(239, 68, 68, 0.3);
 }
 
 .embargo-btn .btn-icon {
@@ -429,7 +429,7 @@
 .enable-checkin-btn:hover:not(:disabled) {
   background: rgba(16, 185, 129, 0.2);
   border-color: rgba(16, 185, 129, 0.8);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(16, 185, 129, 0.3);
 }
 
 .enable-checkin-btn .btn-icon {
@@ -444,7 +444,7 @@
 .disable-checkin-btn:hover:not(:disabled) {
   background: rgba(245, 158, 11, 0.2);
   border-color: rgba(245, 158, 11, 0.8);
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(245, 158, 11, 0.3);
 }
 
 .disable-checkin-btn .btn-icon {
@@ -463,10 +463,10 @@
   color: white;
   flex: 1;
   justify-content: center;
-  padding: 12px 24px;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   font-size: 14px;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -623,7 +623,7 @@
   margin-bottom: 0.75rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px var(--token-space-sm) rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -643,14 +643,14 @@
 
 .class-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.12);
   border-color: rgba(0, 122, 255, 0.3);
 }
 
 .class-card.selected {
   border-color: var(--brand-blue);
   background-color: rgba(0, 122, 255, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.15);
 }
 
 .class-card:active {
@@ -790,8 +790,8 @@
 .loading-spinner {
   width: 2rem;
   height: 2rem;
-  border: 2px solid var(--border);
-  border-top: 2px solid var(--brand-blue);
+  border: var(--token-space-xs) solid var(--border);
+  border-top: var(--token-space-xs) solid var(--brand-blue);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -930,7 +930,7 @@
   padding: 2rem;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-2xl) 40px rgba(0, 0, 0, 0.15);
 }
 
 .sync-progress-header {

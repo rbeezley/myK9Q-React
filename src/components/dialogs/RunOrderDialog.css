@@ -16,7 +16,7 @@
   flex-direction: column;
   position: relative;
   pointer-events: auto;
-  padding: 0 24px;
+  padding: 0 var(--token-space-3xl);
 }
 
 .run-order-dialog .dialog-header {
@@ -24,17 +24,17 @@
   top: 0;
   z-index: 10;
   background: inherit;
-  padding-top: 24px;
-  padding-bottom: 20px;
+  padding-top: var(--token-space-3xl);
+  padding-bottom: var(--token-space-2xl);
   border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
+  margin-bottom: var(--token-space-3xl);
   min-height: 70px;
 }
 
 .run-order-dialog .dialog-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: var(--token-space-2xl);
+  right: var(--token-space-2xl);
   width: 40px;
   height: 40px;
   display: flex;
@@ -42,7 +42,7 @@
   justify-content: center;
   background: rgba(148, 163, 184, 0.1);
   border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-secondary);
@@ -60,36 +60,36 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 20px;
+  padding-bottom: var(--token-space-2xl);
   pointer-events: auto;
 }
 
 .run-order-intro {
   font-size: 14px;
   color: var(--text-secondary);
-  margin-bottom: 20px;
+  margin-bottom: var(--token-space-2xl);
   line-height: 1.5;
 }
 
 .run-order-options {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--token-space-xl);
 }
 
 /* Group Styling */
 .run-order-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--token-space-md);
 }
 
 .run-order-group-label {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
-  padding-left: 4px;
+  margin-bottom: var(--token-space-sm);
+  padding-left: var(--token-space-sm);
 }
 
 /* Option Styling */
@@ -106,20 +106,20 @@
 .run-order-option label {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 14px var(--token-space-xl);
   background: var(--card);
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  border: var(--token-space-xs) solid var(--border);
+  border-radius: var(--token-space-lg);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.08);
 }
 
 .run-order-option label:hover {
   background: var(--accent);
   border-color: rgba(99, 102, 241, 0.5);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.12);
 }
 
 .run-order-option input[type="radio"]:checked + label {
@@ -143,10 +143,10 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   background: rgba(99, 102, 241, 0.1);
   color: var(--primary);
-  margin-right: 16px;
+  margin-right: var(--token-space-xl);
   flex-shrink: 0;
 }
 
@@ -159,7 +159,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--token-space-sm);
 }
 
 .run-order-label {
@@ -181,10 +181,10 @@
   position: sticky;
   bottom: 0;
   display: flex;
-  gap: 12px;
+  gap: var(--token-space-lg);
   justify-content: flex-end;
-  padding: 24px 24px 24px 0;
-  margin-top: 24px;
+  padding: var(--token-space-3xl) var(--token-space-3xl) var(--token-space-3xl) 0;
+  margin-top: var(--token-space-3xl);
   border-top: 1px solid var(--border);
   background: inherit;
   z-index: 20;
@@ -192,7 +192,7 @@
 }
 
 .run-order-dialog .dialog-button {
-  padding: 12px 24px;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
@@ -223,12 +223,12 @@
 .run-order-dialog .dialog-button-primary {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.3);
 }
 
 .run-order-dialog .dialog-button-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(99, 102, 241, 0.4);
 }
 
 .run-order-dialog .dialog-button-primary:active:not(:disabled) {
@@ -248,13 +248,13 @@
   }
 
   .run-order-option label {
-    padding: 12px 14px;
+    padding: var(--token-space-lg) 14px;
   }
 
   .run-order-icon {
     width: 36px;
     height: 36px;
-    margin-right: 12px;
+    margin-right: var(--token-space-lg);
   }
 
   .run-order-label {
@@ -262,7 +262,7 @@
   }
 
   .run-order-description {
-    font-size: 12px;
+    font-size: var(--token-space-lg);
   }
 
   .run-order-group-label {
@@ -270,13 +270,13 @@
   }
 
   .run-order-dialog .dialog-actions {
-    padding-top: 20px;
-    margin-top: 20px;
+    padding-top: var(--token-space-2xl);
+    margin-top: var(--token-space-2xl);
     gap: 10px;
   }
 
   .run-order-dialog .dialog-button {
-    padding: 10px 20px;
+    padding: 10px var(--token-space-2xl);
     font-size: 14px;
     min-width: 90px;
   }

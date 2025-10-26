@@ -3,7 +3,7 @@
 .result-choice-chips-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--token-space-xl);
   width: 100%;
   max-width: none;
 }
@@ -13,9 +13,9 @@
 .fault-counter-section,
 .reason-selection {
   display: flex;
-  padding: 12px;
+  padding: var(--token-space-lg);
   background: rgba(40, 40, 40, 0.8);
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: 100%;
   box-sizing: border-box;
@@ -24,15 +24,15 @@
 }
 
 .result-choice-chips {
-  gap: 8px;
+  gap: var(--token-space-md);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .choice-chip {
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 2px solid transparent;
+  padding: var(--token-space-md) var(--token-space-xl);
+  border-radius: var(--token-space-2xl);
+  border: var(--token-space-xs) solid transparent;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -58,7 +58,7 @@
   background: #22C55E;
   color: white;
   border-color: #16A34A;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(34, 197, 94, 0.3);
 }
 
 .choice-chip.success:hover:not(.selected) {
@@ -72,7 +72,7 @@
   background: #9333EA;
   color: white;
   border-color: #7E22CE;
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(147, 51, 234, 0.3);
 }
 
 .choice-chip.warning:hover:not(.selected) {
@@ -86,7 +86,7 @@
   background: #EF4444;
   color: white;
   border-color: #DC2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
 .choice-chip.danger:hover:not(.selected) {
@@ -99,11 +99,11 @@
 @media (max-width: 480px) {
   .result-choice-chips {
     gap: 6px;
-    margin: 12px 0;
+    margin: var(--token-space-lg) 0;
   }
 
   .choice-chip {
-    padding: 6px 12px;
+    padding: 6px var(--token-space-lg);
     font-size: 13px;
     min-width: 70px;
   }
@@ -147,9 +147,9 @@
 }
 
 .fault-counter-section h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 var(--token-space-lg) 0;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   font-weight: 600;
   width: 100%;
   text-align: center;
@@ -159,17 +159,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--token-space-xl);
 }
 
 .fault-btn-counter {
   width: 44px;
   height: 44px;
   border-radius: 22px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.2);
   background: rgba(60, 60, 60, 0.8);
   color: rgba(255, 255, 255, 0.9);
-  font-size: 20px;
+  font-size: var(--token-space-2xl);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -190,7 +190,7 @@
 }
 
 .fault-count-display {
-  font-size: 24px;
+  font-size: var(--token-space-3xl);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.9);
   min-width: 40px;
@@ -203,9 +203,9 @@
 }
 
 .reason-selection h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 var(--token-space-lg) 0;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   font-weight: 600;
   width: 100%;
   text-align: center;
@@ -213,17 +213,17 @@
 
 .reason-choice-chips {
   display: flex;
-  gap: 8px;
+  gap: var(--token-space-md);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 /* Small reason chips */
 .choice-chip.small {
-  padding: 8px 16px;
+  padding: var(--token-space-md) var(--token-space-xl);
   font-size: 14px;
   min-width: auto;
-  border-radius: 20px;
+  border-radius: var(--token-space-2xl);
 }
 
 .choice-chip.primary,
@@ -238,7 +238,7 @@
   background: #6B7280;
   color: white;
   border-color: #4B5563;
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(107, 114, 128, 0.3);
 }
 
 /* Light theme for all containers */
@@ -284,5 +284,5 @@
   background: #6B7280;
   color: white;
   border-color: #4B5563;
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(107, 114, 128, 0.3);
 }

@@ -54,7 +54,7 @@
 /* Header - Matching Flutter */
 .mobile-header {
   background: var(--scoresheet-header-bg);
-  padding: 12px 16px;
+  padding: var(--token-space-lg) var(--token-space-xl);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -68,7 +68,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: var(--token-space-xs);
   flex: 1;
 }
 
@@ -83,24 +83,24 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: var(--scoresheet-text-secondary);
   font-weight: 500;
 }
 
 .header-trial-info .trial-separator {
   color: var(--scoresheet-text-tertiary);
-  font-size: 12px;
+  font-size: var(--token-space-lg);
 }
 
 .back-btn, .theme-btn {
   background: none;
   border: none;
   color: var(--scoresheet-text);
-  font-size: 20px;
-  padding: 8px;
+  font-size: var(--token-space-2xl);
+  padding: var(--token-space-md);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   transition: background 0.2s;
 }
 
@@ -111,25 +111,25 @@
 /* Trial Header - Matching other containers */
 .scoresheet-trial-header {
   text-align: center;
-  padding: 16px;
+  padding: var(--token-space-xl);
   background: var(--scoresheet-card-bg);
-  margin: 0 16px 16px 16px;
-  border-radius: 12px;
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
 }
 
 /* Compact Trial Header - One Line */
 .scoresheet-trial-header-compact {
   text-align: center;
-  padding: 12px 16px;
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: var(--scoresheet-card-bg);
-  margin: 0 16px 12px 16px;
-  border-radius: 12px;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--token-space-md);
   flex-wrap: wrap;
 }
 
@@ -142,17 +142,17 @@
 .trial-separator {
   font-size: 14px;
   color: var(--scoresheet-text-tertiary);
-  margin: 0 4px;
+  margin: 0 var(--token-space-sm);
 }
 
 .trial-date {
   font-size: 14px;
   color: var(--scoresheet-text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: var(--token-space-sm);
 }
 
 .trial-class {
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   font-weight: 600;
   color: var(--scoresheet-text);
 }
@@ -160,50 +160,50 @@
 /* Dog Info Card - Full width like other pages */
 .scoresheet-dog-card {
   background: var(--scoresheet-card-bg);
-  margin: 0 16px 16px 16px;
-  padding: 16px;
-  border-radius: 12px;
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  padding: var(--token-space-xl);
+  border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--token-space-xl);
 }
 
 /* Compact Dog Info Card */
 .scoresheet-dog-card-compact {
   background: transparent;
-  margin: 0 16px 12px 16px;
-  padding: 12px 16px;
-  border-radius: 12px;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
   border: none;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--token-space-lg);
   color: var(--scoresheet-text);
 }
 
 /* Clean Dog Info - No Background */
 .scoresheet-dog-info-clean {
-  margin: 0 16px 12px 16px;
-  padding: 12px 0;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-lg) 0;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--token-space-lg);
   background: transparent;
   border: none;
   color: var(--scoresheet-text);
 }
 
 .scoresheet-dog-info-card {
-  margin: 0 16px 16px 16px;
-  padding: 16px;
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  padding: var(--token-space-xl);
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: var(--token-space-xl);
   background: var(--scoresheet-card-bg);
   border: 1px solid var(--scoresheet-card-border);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: var(--token-space-lg);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
 }
 
 .scoresheet-armband {
@@ -214,17 +214,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--token-space-3xl);
   font-weight: bold;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(59, 130, 246, 0.3);
 }
 
 .scoresheet-dog-details {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--token-space-xs);
   align-items: flex-start;
   justify-content: flex-start;
 }
@@ -250,7 +250,7 @@
 }
 
 .dog-armband {
-  font-size: 32px;
+  font-size: var(--token-space-4xl);
   font-weight: bold;
   color: var(--scoresheet-text);
   min-width: 80px;
@@ -267,7 +267,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--token-space-xs);
   align-items: flex-start;
   text-align: left;
   justify-content: flex-start;
@@ -285,7 +285,7 @@
 .dog-details {
   font-size: 14px;
   color: var(--scoresheet-text-secondary);
-  margin-bottom: 2px;
+  margin-bottom: var(--token-space-xs);
 }
 
 .dog-handler {
@@ -295,25 +295,25 @@
 }
 
 .person-number {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: var(--scoresheet-text-tertiary);
 }
 
 /* Timer Card - Compact version */
 .scoresheet-timer-card {
   background: var(--scoresheet-card-bg);
-  margin: 0 16px 12px 16px;
-  padding: 16px 12px;
-  border-radius: 12px;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-xl) var(--token-space-lg);
+  border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
 }
 
 .timer-display-large {
-  font-size: 32px;
+  font-size: var(--token-space-4xl);
   font-weight: bold;
   color: var(--scoresheet-text);
-  margin-bottom: 8px;
+  margin-bottom: var(--token-space-md);
   font-variant-numeric: tabular-nums;
   transition: color 0.3s ease;
 }
@@ -329,10 +329,10 @@
 }
 
 .timer-countdown-display {
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   font-weight: 500;
   color: var(--scoresheet-text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: var(--token-space-lg);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -341,8 +341,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--token-space-md);
+  margin-bottom: var(--token-space-md);
 }
 
 .timer-btn-pause, .timer-btn-reset {
@@ -352,45 +352,45 @@
   border: none;
   background: rgba(124, 58, 237, 0.8);
   color: var(--scoresheet-badge-text);
-  font-size: 20px;
+  font-size: var(--token-space-2xl);
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(124, 58, 237, 0.3);
 }
 
 .timer-btn-start {
   width: 160px;
   min-width: 160px;
   height: 64px;
-  border-radius: 32px;
+  border-radius: var(--token-space-4xl);
   border: none;
   background: #10B981;
   color: var(--scoresheet-badge-text);
-  font-size: 20px;
+  font-size: var(--token-space-2xl);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--token-space-md);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(16, 185, 129, 0.3);
 }
 
 .timer-btn-start.stop {
   background: #EF4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
 .timer-btn-pause:hover, .timer-btn-reset:hover {
   background: rgba(124, 58, 237, 1);
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(124, 58, 237, 0.4);
 }
 
 .timer-btn-pause:active, .timer-btn-reset:active {
@@ -399,26 +399,26 @@
 
 .timer-btn-start:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px var(--token-space-xl) rgba(16, 185, 129, 0.4);
 }
 
 .timer-btn-start:active {
   transform: scale(0.95);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.3);
 }
 
 .timer-btn-start.stop:hover {
-  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 6px var(--token-space-xl) rgba(239, 68, 68, 0.4);
 }
 
 .timer-secondary {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: var(--token-space-2xl);
+  right: var(--token-space-2xl);
   background: rgba(16, 185, 129, 0.2);
-  border: 2px solid #10B981;
-  border-radius: 20px;
-  padding: 8px 12px;
+  border: var(--token-space-xs) solid #10B981;
+  border-radius: var(--token-space-2xl);
+  padding: var(--token-space-md) var(--token-space-lg);
   font-size: 14px;
   color: #10B981;
 }
@@ -430,24 +430,24 @@
 
 /* Timer Warning Styles */
 .timer-warning {
-  margin: 0 16px 16px 16px;
-  padding: 12px 16px;
-  border-radius: 8px;
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-md);
   text-align: center;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   animation: pulse 1s infinite;
 }
 
 .timer-warning.warning {
   background: rgba(239, 68, 68, 0.1);
-  border: 2px solid #EF4444;
+  border: var(--token-space-xs) solid #EF4444;
   color: #EF4444;
 }
 
 .timer-warning.expired {
   background: rgba(220, 38, 38, 0.2);
-  border: 2px solid #DC2626;
+  border: var(--token-space-xs) solid #DC2626;
   color: #DC2626;
   animation: flash 0.5s infinite;
 }
@@ -465,9 +465,9 @@
 /* Time Input - Compact version */
 .scoresheet-time-card {
   background: var(--scoresheet-card-bg);
-  margin: 0 16px 12px 16px;
-  padding: 12px;
-  border-radius: 12px;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-lg);
+  border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
 }
@@ -476,7 +476,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--token-space-md);
 }
 
 .scoresheet-time-input-wrapper {
@@ -488,8 +488,8 @@
 .scoresheet-time-input {
   background: var(--scoresheet-input-bg);
   border: 1px solid var(--scoresheet-input-border);
-  border-radius: 8px;
-  padding: 10px 36px 10px 12px; /* Add right padding for clear button */
+  border-radius: var(--token-space-md);
+  padding: 10px 36px 10px var(--token-space-lg); /* Add right padding for clear button */
   color: var(--scoresheet-text);
   font-size: 14px;
   outline: none;
@@ -501,16 +501,16 @@
 
 .scoresheet-time-clear-button {
   position: absolute;
-  right: 8px;
+  right: var(--token-space-md);
   background: none;
   border: none;
   color: var(--scoresheet-text-secondary);
   cursor: pointer;
-  padding: 4px;
+  padding: var(--token-space-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--token-space-sm);
   transition: all 0.2s;
 }
 
@@ -543,7 +543,7 @@
   background: rgba(16, 185, 129, 0.8);
   color: var(--scoresheet-badge-text);
   padding: 6px 10px;
-  border-radius: 16px;
+  border-radius: var(--token-space-xl);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
@@ -569,8 +569,8 @@
   background: rgba(124, 58, 237, 0.2);
   border: 1px solid rgba(124, 58, 237, 0.4);
   color: rgba(124, 58, 237, 1);
-  padding: 6px 12px;
-  border-radius: 16px;
+  padding: 6px var(--token-space-lg);
+  border-radius: var(--token-space-xl);
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -580,7 +580,7 @@
 
 .max-time-display {
   color: var(--scoresheet-text-tertiary);
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
@@ -588,26 +588,26 @@
 
 /* Result Choice Chips positioned properly - Compact */
 .results-section {
-  margin: 0 16px 12px 16px;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
 }
 
 /* Nationals Counter positioned properly - Compact */
 .nationals-counter-simple {
-  margin: 0 16px 12px 16px;
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
 }
 
 /* Action Buttons - Matching Flutter */
 .scoresheet-actions {
-  margin: 16px;
+  margin: var(--token-space-xl);
   margin-top: auto;
   display: flex;
-  gap: 12px;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
-  padding-top: 16px;
+  gap: var(--token-space-lg);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--token-space-3xl));
+  padding-top: var(--token-space-xl);
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-  width: calc(100% - 32px);
+  width: calc(100% - var(--token-space-4xl));
 }
 
 .scoresheet-btn-cancel, .scoresheet-btn-save {
@@ -658,32 +658,32 @@
 /* Mobile responsive adjustments */
 @media (max-width: 480px) {
   .scoresheet-trial-header-compact {
-    padding: 8px 12px;
-    margin: 0 12px 8px 12px;
-    font-size: 12px;
+    padding: var(--token-space-md) var(--token-space-lg);
+    margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
+    font-size: var(--token-space-lg);
   }
 
   .trial-info-item {
-    font-size: 12px;
+    font-size: var(--token-space-lg);
   }
 
   .trial-separator {
-    font-size: 12px;
+    font-size: var(--token-space-lg);
   }
 
   .scoresheet-dog-card-compact,
   .scoresheet-dog-info-clean {
-    margin: 0 12px 8px 12px;
+    margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
     padding: 10px 0;
     gap: 10px;
   }
 
   .time-input-flutter {
-    gap: 8px;
+    gap: var(--token-space-md);
   }
 
   .area-badge {
-    padding: 6px 8px;
+    padding: 6px var(--token-space-md);
     font-size: 11px;
     min-width: 50px;
     max-width: 60px;
@@ -691,7 +691,7 @@
 
   .scoresheet-time-input {
     width: 140px;
-    padding: 8px 36px 8px 12px; /* Add right padding for clear button */
+    padding: var(--token-space-md) 36px var(--token-space-md) var(--token-space-lg); /* Add right padding for clear button */
     font-size: 14px;
   }
 
@@ -705,7 +705,7 @@
   }
 
   .dog-name {
-    font-size: 16px;
+    font-size: var(--token-space-xl);
   }
 
   .dog-details {
@@ -713,7 +713,7 @@
   }
 
   .dog-handler {
-    font-size: 12px;
+    font-size: var(--token-space-lg);
   }
 }
 
@@ -762,27 +762,27 @@
 /* Light theme timer warning styles */
 .theme-light .timer-warning.warning {
   background: rgba(239, 68, 68, 0.05);
-  border: 2px solid #EF4444;
+  border: var(--token-space-xs) solid #EF4444;
   color: #DC2626;
 }
 
 .theme-light .timer-warning.expired {
   background: rgba(220, 38, 38, 0.1);
-  border: 2px solid #DC2626;
+  border: var(--token-space-xs) solid #DC2626;
   color: #B91C1C;
 }
 
 /* Timer Expired Indicator */
 .timer-expired-indicator {
-  padding: 8px 16px;
-  border-radius: 12px;
+  padding: var(--token-space-md) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.5);
   color: #EF4444;
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   font-weight: 600;
   text-align: center;
-  margin: 0 8px;
+  margin: 0 var(--token-space-md);
   display: flex;
   align-items: center;
   justify-content: center;

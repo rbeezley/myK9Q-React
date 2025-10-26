@@ -35,7 +35,7 @@
   font-weight: 650;
   color: var(--foreground);
   letter-spacing: -0.02em;
-  border-bottom: 2px solid rgba(255, 107, 107, 0.2);
+  border-bottom: var(--token-space-xs) solid rgba(255, 107, 107, 0.2);
   padding-bottom: 0.75rem;
 }
 
@@ -92,7 +92,7 @@
   padding: 1.5rem;
   background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 142, 83, 0.1) 100%);
   border-radius: 1rem;
-  border: 2px solid rgba(255, 107, 107, 0.3);
+  border: var(--token-space-xs) solid rgba(255, 107, 107, 0.3);
   margin-top: 1.5rem;
 }
 
@@ -137,14 +137,14 @@
   backdrop-filter: blur(20px);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
   margin: 1.5rem 0;
 }
 
 .theme-dark .qualifying-section {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
 .qualifying-section label {
@@ -180,12 +180,12 @@
 .qual-button:hover {
   background: var(--muted);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
 }
 
 .qual-button.active {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(0, 0, 0, 0.2);
 }
 
 .qual-button:nth-child(1).active {
@@ -206,7 +206,7 @@
   backdrop-filter: blur(20px);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
   margin: 1.5rem 0;
   animation: slideIn 0.3s ease;
@@ -214,7 +214,7 @@
 
 .theme-dark .reason-section {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
 @keyframes slideIn {
@@ -265,7 +265,7 @@
   backdrop-filter: blur(20px);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
@@ -276,7 +276,7 @@
 
 .theme-dark .action-buttons {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
 .nav-button {
@@ -295,7 +295,7 @@
 .nav-button:hover:not(:disabled) {
   background: var(--muted);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
 }
 
 .nav-button:disabled {
@@ -314,13 +314,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 107, 107, 0.3);
   grid-column: 2;
 }
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(255, 107, 107, 0.4);
 }
 
 .submit-button:disabled {
@@ -364,7 +364,7 @@
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-2xl) 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.8);
 }
@@ -439,12 +439,12 @@
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
   color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 107, 107, 0.3);
 }
 
 .confirm-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(255, 107, 107, 0.4);
 }
 
 /* Responsive Design */

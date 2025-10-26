@@ -43,7 +43,7 @@
 .icon-button:hover:not(:disabled) {
   background: var(--muted);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
 }
 
 .icon-button:active:not(:disabled) {
@@ -154,7 +154,7 @@
 }
 
 .card-base.clickable:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
@@ -222,7 +222,7 @@
 
 .status-badge.clickable:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 /* Class Status Colors */
@@ -424,7 +424,7 @@
 }
 
 .theme-dark .card-base.clickable:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
 /* =================================================================

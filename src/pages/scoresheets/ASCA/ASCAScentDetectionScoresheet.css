@@ -5,32 +5,32 @@
 
 /* Timer Section */
 .timer-section {
-  margin: 24px 0;
+  margin: var(--token-space-3xl) 0;
 }
 
 /* Area Scoring */
 .area-scoring {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 24px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-3xl);
+  margin: var(--token-space-3xl) 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
 }
 
 .area-scoring h3 {
-  margin: 0 0 20px 0;
-  font-size: 20px;
+  margin: 0 0 var(--token-space-2xl) 0;
+  font-size: var(--token-space-2xl);
   color: #333;
-  border-bottom: 2px solid #9C27B0;
-  padding-bottom: 8px;
+  border-bottom: var(--token-space-xs) solid #9C27B0;
+  padding-bottom: var(--token-space-md);
 }
 
 .area-card {
   background: #f8f9fa;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
+  border: var(--token-space-xs) solid #e0e0e0;
+  border-radius: var(--token-space-md);
+  padding: var(--token-space-xl);
+  margin-bottom: var(--token-space-xl);
   transition: border-color 0.3s;
 }
 
@@ -39,8 +39,8 @@
 }
 
 .area-header h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
+  margin: 0 0 var(--token-space-lg) 0;
+  font-size: var(--token-space-xl);
   color: #333;
   font-weight: 600;
 }
@@ -48,7 +48,7 @@
 .area-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: var(--token-space-2xl);
   align-items: start;
 }
 
@@ -58,16 +58,16 @@
 }
 
 .time-input label {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: #666;
-  margin-bottom: 4px;
+  margin-bottom: var(--token-space-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .time-input input {
-  padding: 12px;
-  border: 2px solid #e0e0e0;
+  padding: var(--token-space-lg);
+  border: var(--token-space-xs) solid #e0e0e0;
   border-radius: 6px;
   font-size: 18px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -88,13 +88,13 @@
 .result-controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--token-space-lg);
 }
 
 .result-controls label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--token-space-md);
   font-size: 14px;
   color: #333;
   cursor: pointer;
@@ -110,17 +110,17 @@
 /* Total Time Section */
 .total-time-section {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 24px 0;
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-3xl);
+  margin: var(--token-space-3xl) 0;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
   border: 3px solid #9C27B0;
 }
 
 .total-time-section h3 {
-  margin: 0 0 8px 0;
-  font-size: 32px;
+  margin: 0 0 var(--token-space-md) 0;
+  font-size: var(--token-space-4xl);
   color: #9C27B0;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-weight: bold;
@@ -135,17 +135,17 @@
 /* Qualifying Section */
 .qualifying-section {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 24px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-3xl);
+  margin: var(--token-space-3xl) 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
 }
 
 .qualifying-section label {
   display: block;
   font-size: 14px;
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: var(--token-space-lg);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -153,16 +153,16 @@
 .qualifying-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--token-space-lg);
 }
 
 .qual-button {
-  padding: 16px;
-  font-size: 20px;
+  padding: var(--token-space-xl);
+  font-size: var(--token-space-2xl);
   font-weight: bold;
-  border: 2px solid #e0e0e0;
+  border: var(--token-space-xs) solid #e0e0e0;
   background: white;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -195,10 +195,10 @@
 /* Reason Section */
 .reason-section {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 24px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-3xl);
+  margin: var(--token-space-3xl) 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
   animation: slideIn 0.3s ease;
 }
 
@@ -217,17 +217,17 @@
   display: block;
   font-size: 14px;
   color: #666;
-  margin-bottom: 8px;
+  margin-bottom: var(--token-space-md);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .reason-section textarea {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: var(--token-space-lg);
+  border: var(--token-space-xs) solid #e0e0e0;
+  border-radius: var(--token-space-md);
+  font-size: var(--token-space-xl);
   resize: vertical;
   min-height: 80px;
   transition: border-color 0.3s;
@@ -241,21 +241,21 @@
 /* Action Buttons */
 .action-buttons {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 24px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-3xl);
+  margin: var(--token-space-3xl) 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 16px;
+  gap: var(--token-space-xl);
 }
 
 .nav-button {
-  padding: 14px 24px;
-  font-size: 16px;
-  border: 2px solid #e0e0e0;
+  padding: 14px var(--token-space-3xl);
+  font-size: var(--token-space-xl);
+  border: var(--token-space-xs) solid #e0e0e0;
   background: white;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -271,20 +271,20 @@
 }
 
 .submit-button {
-  padding: 16px 32px;
+  padding: var(--token-space-xl) var(--token-space-4xl);
   font-size: 18px;
   font-weight: bold;
   background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   cursor: pointer;
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(156, 39, 176, 0.4);
 }
 
 .submit-button:disabled {
@@ -318,13 +318,13 @@
 
 .confirmation-dialog {
   background: white;
-  border-radius: 12px;
-  padding: 32px;
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease;
 }
 
@@ -340,16 +340,16 @@
 }
 
 .confirmation-dialog h2 {
-  margin: 0 0 24px 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   color: #333;
 }
 
 .confirmation-details {
-  margin-bottom: 24px;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .confirmation-details p {
-  margin: 8px 0;
+  margin: var(--token-space-md) 0;
   color: #666;
 }
 
@@ -359,21 +359,21 @@
 
 .confirmation-buttons {
   display: flex;
-  gap: 16px;
+  gap: var(--token-space-xl);
   justify-content: flex-end;
 }
 
 .confirmation-buttons button {
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 8px;
+  padding: var(--token-space-lg) var(--token-space-3xl);
+  font-size: var(--token-space-xl);
+  border-radius: var(--token-space-md);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .confirmation-buttons button:first-child {
   background: white;
-  border: 2px solid #e0e0e0;
+  border: var(--token-space-xs) solid #e0e0e0;
   color: #666;
 }
 
@@ -389,23 +389,23 @@
 
 .confirm-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(156, 39, 176, 0.4);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .area-inputs {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: var(--token-space-xl);
   }
   
   .total-time-section h3 {
-    font-size: 24px;
+    font-size: var(--token-space-3xl);
   }
   
   .qualifying-buttons {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: var(--token-space-md);
   }
   
   .action-buttons {

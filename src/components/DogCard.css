@@ -27,7 +27,7 @@
   padding: 1rem;
   cursor: pointer;
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
   min-height: 80px;
@@ -35,7 +35,7 @@
 
 .theme-dark .dog-card {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
 .dog-card::before {
@@ -53,12 +53,12 @@
 
 .dog-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.12);
   border-color: rgba(0, 122, 255, 0.3);
 }
 
 .theme-dark .dog-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
 }
 
 .dog-card:active {
@@ -145,7 +145,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .section-badge.section-a {
@@ -279,7 +279,7 @@
   /* CRITICAL: Match EntryList.css constraints exactly */
   max-width: 100px; /* Increased for better padding */
   max-height: 28px; /* Smaller to fit content */
-  min-height: 24px; /* Smaller minimum */
+  min-height: var(--token-space-3xl); /* Smaller minimum */
   overflow: hidden;
   text-overflow: ellipsis;
   box-sizing: border-box;
@@ -338,7 +338,7 @@
 
 .dog-card-action .status-badge:hover:not(.disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .dog-card-action .status-badge:active:not(.disabled) {

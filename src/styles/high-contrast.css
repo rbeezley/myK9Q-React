@@ -16,12 +16,12 @@
 
   /* High contrast borders */
   --border-color: #000000;
-  --border-width: 2px;
+  --border-width: var(--token-space-xs);
   --border-style: solid;
 
   /* Interactive states */
-  --focus-outline: 4px solid #0066cc;
-  --focus-outline-offset: 2px;
+  --focus-outline: var(--token-space-sm) solid #0066cc;
+  --focus-outline-offset: var(--token-space-xs);
 
   /* Semantic colors with high contrast */
   --color-success: #006400; /* Dark green */
@@ -42,7 +42,7 @@
 
   /* Remove decorative elements */
   --shadow-none: none;
-  --border-radius: 2px;
+  --border-radius: var(--token-space-xs);
 }
 
 /* Dark theme high contrast */
@@ -118,7 +118,7 @@
 
 .high-contrast a:hover {
   text-decoration: underline;
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: var(--token-space-xs);
 }
 
 .high-contrast a:visited {
@@ -131,7 +131,7 @@
   border: var(--border-width) var(--border-style) var(--border-color);
   font-weight: 600;
   min-height: 44px; /* WCAG touch target size */
-  padding: 12px 24px;
+  padding: var(--token-space-lg) var(--token-space-3xl);
 }
 
 .high-contrast button:focus,
@@ -201,8 +201,8 @@
 /* Checkboxes and radio buttons */
 .high-contrast input[type="checkbox"],
 .high-contrast input[type="radio"] {
-  width: 24px;
-  height: 24px;
+  width: var(--token-space-3xl);
+  height: var(--token-space-3xl);
   border: var(--border-width) var(--border-style) var(--border-color);
   appearance: none;
   -webkit-appearance: none;
@@ -223,15 +223,15 @@
   color: var(--text-inverse);
   font-size: 18px;
   font-weight: bold;
-  line-height: 20px;
+  line-height: var(--token-space-2xl);
 }
 
 .high-contrast input[type="radio"]:checked::after {
   content: "";
   display: block;
-  width: 12px;
-  height: 12px;
-  margin: 4px;
+  width: var(--token-space-lg);
+  height: var(--token-space-lg);
+  margin: var(--token-space-sm);
   background-color: var(--text-inverse);
   border-radius: 50%;
 }
@@ -275,7 +275,7 @@
 .high-contrast th,
 .high-contrast td {
   border: var(--border-width) var(--border-style) var(--border-color);
-  padding: 12px;
+  padding: var(--token-space-lg);
 }
 
 .high-contrast th {
@@ -292,7 +292,7 @@
 .high-contrast .status-badge {
   border: var(--border-width) var(--border-style) var(--border-color);
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 6px var(--token-space-lg);
 }
 
 .high-contrast .badge-success {
@@ -404,8 +404,8 @@
 
 /* Scrollbars */
 .high-contrast ::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
 }
 
 .high-contrast ::-webkit-scrollbar-track {
@@ -415,7 +415,7 @@
 
 .high-contrast ::-webkit-scrollbar-thumb {
   background-color: var(--border-color);
-  border: 2px solid var(--background-primary);
+  border: var(--token-space-xs) solid var(--background-primary);
 }
 
 .high-contrast ::-webkit-scrollbar-thumb:hover {
@@ -503,12 +503,12 @@
 
 /* List items */
 .high-contrast li {
-  margin-bottom: 8px;
+  margin-bottom: var(--token-space-md);
 }
 
 .high-contrast ul,
 .high-contrast ol {
-  padding-left: 24px;
+  padding-left: var(--token-space-3xl);
 }
 
 /* Code blocks */
@@ -516,7 +516,7 @@
 .high-contrast code {
   background-color: var(--background-tertiary);
   border: var(--border-width) var(--border-style) var(--border-color);
-  padding: 4px 8px;
+  padding: var(--token-space-sm) var(--token-space-md);
   font-weight: 600;
 }
 

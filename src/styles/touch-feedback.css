@@ -28,7 +28,7 @@
 
   .dog-card:active {
     transform: scale(0.97);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
   }
 
   /* Class Card touch feedback */
@@ -40,7 +40,7 @@
 
   .class-card:active {
     transform: scale(0.97);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
   }
 
   /* Entry Card touch feedback */
@@ -52,7 +52,7 @@
 
   .entry-card:active {
     transform: scale(0.97);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
   }
 
   /* Button touch feedback */
@@ -119,7 +119,7 @@
   .fault-button:active,
   .elimination-button:active {
     transform: scale(0.93);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.2);
   }
 
   /* Number input touch feedback */
@@ -158,7 +158,7 @@
   .dog-card:hover,
   .class-card:hover,
   .entry-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
   }
 }
 

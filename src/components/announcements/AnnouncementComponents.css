@@ -15,12 +15,12 @@
 
 .announcement-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
   border-color: var(--primary-subtle);
 }
 
 .announcement-card.unread {
-  border-left: 4px solid var(--primary);
+  border-left: var(--token-space-sm) solid var(--primary);
   background: var(--primary-subtle);
 }
 
@@ -152,7 +152,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 8rem;
   padding: 0.25rem;
@@ -352,7 +352,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.1);
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
@@ -371,7 +371,7 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   flex-shrink: 0;
 }
 
@@ -381,8 +381,8 @@
 }
 
 .modal-icon {
-  width: 24px;
-  height: 24px;
+  width: var(--token-space-3xl);
+  height: var(--token-space-3xl);
 }
 
 .modal-header-content {
@@ -457,8 +457,8 @@
 }
 
 .warning-icon {
-  width: 20px;
-  height: 20px;
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
   flex-shrink: 0;
   color: var(--warning);
 }
@@ -515,8 +515,8 @@
 }
 
 .btn-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
 }
 
 /* AnnouncementFilters Styles */
@@ -729,7 +729,7 @@
 
 .create-announcement-modal {
   border: 1px solid var(--border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.1);
 }
 
 /* Modal Header */
@@ -892,7 +892,7 @@
 
 .priority-card {
   padding: 1rem;
-  border: 2px solid var(--border);
+  border: var(--token-space-xs) solid var(--border);
   border-radius: 0.5rem;
   background: var(--surface);
   cursor: pointer;
@@ -1109,8 +1109,8 @@
 .spinner {
   width: 1rem;
   height: 1rem;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
+  border: var(--token-space-xs) solid transparent;
+  border-top: var(--token-space-xs) solid currentColor;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

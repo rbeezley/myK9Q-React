@@ -9,7 +9,7 @@
  *
  * Apple Human Interface Guidelines:
  * - 44x44pt minimum (44px @1x, 88px @2x, 132px @3x)
- * - 8px minimum spacing between targets
+ * - var(--token-space-md) minimum spacing between targets
  *
  * Android Material Design:
  * - 48x48dp minimum (48px)
@@ -26,12 +26,12 @@
   --touch-target-xl: 64px;
 
   /* Spacing for touch targets */
-  --touch-spacing-min: 8px;
-  --touch-spacing-comfortable: 12px;
-  --touch-spacing-generous: 16px;
+  --touch-spacing-min: var(--token-space-md);
+  --touch-spacing-comfortable: var(--token-space-lg);
+  --touch-spacing-generous: var(--token-space-xl);
 
   /* Hit area expansion (invisible padding) */
-  --hit-area-expand: 8px;
+  --hit-area-expand: var(--token-space-md);
 }
 
 /* ============================================
@@ -44,20 +44,20 @@
 .touch-target {
   min-width: var(--touch-target-min);
   min-height: var(--touch-target-min);
-  padding: 12px 16px;
+  padding: var(--token-space-lg) var(--token-space-xl);
   position: relative;
 }
 
 .touch-target-comfortable {
   min-width: var(--touch-target-comfortable);
   min-height: var(--touch-target-comfortable);
-  padding: 14px 20px;
+  padding: 14px var(--token-space-2xl);
 }
 
 .touch-target-large {
   min-width: var(--touch-target-large);
   min-height: var(--touch-target-large);
-  padding: 16px 24px;
+  padding: var(--token-space-xl) var(--token-space-3xl);
 }
 
 .touch-target-xl {
@@ -68,7 +68,7 @@
 
 /**
  * Expand hit area for small visual elements
- * Example: Icon buttons that look 24px but need 44px hit area
+ * Example: Icon buttons that look var(--token-space-3xl) but need 44px hit area
  */
 .touch-target-expand::before {
   content: '';
@@ -96,7 +96,7 @@
 .touch-target-icon-comfortable {
   min-width: var(--touch-target-comfortable);
   min-height: var(--touch-target-comfortable);
-  padding: 12px;
+  padding: var(--token-space-lg);
 }
 
 /* ============================================
@@ -143,9 +143,9 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px;
+  padding: var(--token-space-xl);
   background: white;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px var(--token-space-md) rgba(0, 0, 0, 0.1);
   z-index: 100;
 }
 
@@ -164,8 +164,8 @@
  * Top 1/3 of screen on mobile
  */
 .stretch-zone {
-  padding-top: 16px;
-  padding-bottom: 24px;
+  padding-top: var(--token-space-xl);
+  padding-bottom: var(--token-space-3xl);
 }
 
 /* ============================================
@@ -182,10 +182,10 @@
   min-height: var(--touch-target-min);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--token-space-lg);
   cursor: pointer;
-  padding: 12px;
-  border-radius: 8px;
+  padding: var(--token-space-lg);
+  border-radius: var(--token-space-md);
   transition: background 0.2s;
 }
 
@@ -196,8 +196,8 @@
 
 .touch-checkbox input,
 .touch-radio input {
-  width: 20px;
-  height: 20px;
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
   cursor: pointer;
 }
 
@@ -209,7 +209,7 @@
  * Text links need adequate padding
  */
 .touch-link {
-  padding: 8px 4px;
+  padding: var(--token-space-md) var(--token-space-sm);
   min-height: var(--touch-target-min);
   display: inline-flex;
   align-items: center;
@@ -224,7 +224,7 @@
  */
 .touch-swipeable {
   min-height: var(--touch-target-large);
-  padding: 12px 16px;
+  padding: var(--token-space-lg) var(--token-space-xl);
   cursor: grab;
   user-select: none;
   touch-action: pan-y; /* Allow vertical scroll, handle horizontal swipe */
@@ -244,12 +244,12 @@
  */
 .touch-bottom-sheet-trigger {
   min-height: var(--touch-target-large);
-  padding: 14px 16px;
+  padding: 14px var(--token-space-xl);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  border-radius: 12px;
+  gap: var(--token-space-lg);
+  border-radius: var(--token-space-lg);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -269,8 +269,8 @@
 .touch-link:focus-visible,
 .touch-checkbox:focus-visible,
 .touch-radio:focus-visible {
-  outline: 2px solid var(--primary-color, #007AFF);
-  outline-offset: 2px;
+  outline: var(--token-space-xs) solid var(--primary-color, #007AFF);
+  outline-offset: var(--token-space-xs);
 }
 
 /**
@@ -292,7 +292,7 @@
   .touch-target-mobile-large {
     min-width: var(--touch-target-large);
     min-height: var(--touch-target-large);
-    padding: 16px 24px;
+    padding: var(--token-space-xl) var(--token-space-3xl);
   }
 
   /* More generous spacing on mobile */

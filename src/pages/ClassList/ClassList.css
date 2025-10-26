@@ -127,7 +127,7 @@
 
 .theme-dark .trial-info-card {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
 .trial-info-content {
@@ -230,8 +230,8 @@
   position: absolute;
   top: var(--token-space-md);
   right: var(--token-space-md);
-  width: 8px;
-  height: 8px;
+  width: var(--token-space-md);
+  height: var(--token-space-md);
   border-radius: 50%;
   background: var(--warning);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -246,12 +246,12 @@
   0%, 100% {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(59, 130, 246, 0.2);
   }
   50% {
     opacity: 0.9;
     transform: scale(1.03);
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 var(--token-space-xs) 6px rgba(59, 130, 246, 0.3);
   }
 }
 
@@ -291,7 +291,7 @@
 }
 
 .theme-dark .class-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
 /* Status-based left accent borders */
@@ -346,7 +346,7 @@
 }
 
 .theme-dark .class-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
 .class-card:active {
@@ -460,8 +460,8 @@
 }
 
 .action-icon-button {
-  width: 32px;
-  height: 32px;
+  width: var(--token-space-4xl);
+  height: var(--token-space-4xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -508,8 +508,8 @@
 }
 
 .class-time-limits svg {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
   opacity: 0.6;
 }
 
@@ -579,8 +579,8 @@
 }
 
 .dog-status-dot {
-  width: 8px;
-  height: 8px;
+  width: var(--token-space-md);
+  height: var(--token-space-md);
   border-radius: 50%;
 }
 
@@ -640,7 +640,7 @@
 
 .theme-dark .dog-entry:hover {
   background: rgba(0, 122, 255, 0.08);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.15);
 }
 
 .dog-armband {
@@ -711,8 +711,8 @@
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
+  width: var(--token-space-4xl);
+  height: var(--token-space-4xl);
   color: var(--primary);
   animation: spin 1s linear infinite;
 }

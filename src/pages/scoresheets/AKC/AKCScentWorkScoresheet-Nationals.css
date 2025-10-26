@@ -4,36 +4,36 @@
 .nationals-badge {
   background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
   color: #856404;
-  padding: 4px 8px;
+  padding: var(--token-space-sm) var(--token-space-md);
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(255, 215, 0, 0.3);
 }
 
 /* Nationals Section */
 .nationals-section {
   background: #f8f9fa;
-  border: 2px solid #007bff;
-  border-radius: 12px;
-  margin: 16px 0;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+  border: var(--token-space-xs) solid #007bff;
+  border-radius: var(--token-space-lg);
+  margin: var(--token-space-xl) 0;
+  padding: var(--token-space-xl);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 123, 255, 0.1);
 }
 
 /* Nationals Controls */
 .nationals-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
+  gap: var(--token-space-xl);
+  margin-top: var(--token-space-xl);
 }
 
 .control-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--token-space-md);
 }
 
 .control-group label {
@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--token-space-xl);
   background: transparent;
   border: none;
   border-radius: 0;
@@ -68,22 +68,22 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 123, 255, 0.2);
 }
 
 .counter-controls button:hover {
   background: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-md) rgba(0, 123, 255, 0.3);
 }
 
 .counter-controls button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 123, 255, 0.2);
 }
 
 .counter-value {
-  font-size: 32px;
+  font-size: var(--token-space-4xl);
   font-weight: bold;
   color: white;
   min-width: 40px;
@@ -98,22 +98,22 @@
 /* Excused Checkbox */
 .control-group:last-child {
   grid-column: 1 / -1;
-  margin-top: 8px;
+  margin-top: var(--token-space-md);
 }
 
 .control-group:last-child label {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 16px;
+  gap: var(--token-space-md);
+  font-size: var(--token-space-xl);
   color: #dc3545;
   font-weight: 700;
 }
 
 .control-group:last-child input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
   accent-color: #dc3545;
 }
 
@@ -121,14 +121,14 @@
 .area-status {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--token-space-md);
 }
 
 .status-correct {
   background: #28a745;
   color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: var(--token-space-xs) var(--token-space-md);
+  border-radius: var(--token-space-lg);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -137,8 +137,8 @@
 .status-incorrect {
   background: #dc3545;
   color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: var(--token-space-xs) var(--token-space-md);
+  border-radius: var(--token-space-lg);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -147,8 +147,8 @@
 .status-not-found {
   background: #6c757d;
   color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: var(--token-space-xs) var(--token-space-md);
+  border-radius: var(--token-space-lg);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -156,23 +156,23 @@
 
 /* Nationals Summary in Confirmation Modal */
 .nationals-summary {
-  margin-bottom: 16px;
-  padding: 12px;
+  margin-bottom: var(--token-space-xl);
+  padding: var(--token-space-lg);
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   border: 1px solid #dee2e6;
 }
 
 /* Enhanced Score Summary */
 .score-summary {
   background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  margin: 16px 0;
+  padding: var(--token-space-xl);
+  border-radius: var(--token-space-md);
+  margin: var(--token-space-xl) 0;
 }
 
 .score-summary p {
-  margin: 8px 0;
+  margin: var(--token-space-md) 0;
   font-size: 14px;
 }
 
@@ -185,22 +185,22 @@
 @media (max-width: 768px) {
   .nationals-controls {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: var(--token-space-lg);
   }
 
   .counter-controls {
-    gap: 8px;
+    gap: var(--token-space-md);
     padding: 6px;
   }
 
   .counter-controls button {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
+    width: var(--token-space-4xl);
+    height: var(--token-space-4xl);
+    font-size: var(--token-space-xl);
   }
 
   .counter-value {
-    font-size: 20px;
+    font-size: var(--token-space-2xl);
     min-width: 36px;
     padding: 0;
     background: transparent;
@@ -215,7 +215,7 @@
 
   .area-status {
     flex-direction: column;
-    gap: 4px;
+    gap: var(--token-space-sm);
     align-items: flex-start;
   }
 
@@ -294,12 +294,12 @@
 /* Accessibility Improvements */
 .counter-controls button:focus {
   outline: 3px solid #80bdff;
-  outline-offset: 2px;
+  outline-offset: var(--token-space-xs);
 }
 
 .control-group input[type="checkbox"]:focus {
   outline: 3px solid #80bdff;
-  outline-offset: 2px;
+  outline-offset: var(--token-space-xs);
 }
 
 /* Print Styles */
@@ -319,7 +319,7 @@
 
   .control-group {
     display: inline-block;
-    margin-right: 20px;
+    margin-right: var(--token-space-2xl);
     margin-bottom: 10px;
   }
 

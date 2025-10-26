@@ -192,7 +192,7 @@
 
 @media (pointer: fine) {
   .touch-target {
-    min-height: 32px;
-    min-width: 32px;
+    min-height: var(--token-space-4xl);
+    min-width: var(--token-space-4xl);
   }
 }

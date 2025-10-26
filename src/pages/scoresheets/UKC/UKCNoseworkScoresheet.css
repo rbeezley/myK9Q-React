@@ -24,7 +24,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: 2px solid var(--color-border, #e0e0e0);
+  border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
   background: var(--color-background, white);
   font-size: 2rem;
   font-weight: bold;
@@ -62,7 +62,7 @@
   min-width: 100px;
   padding: 1rem;
   background: var(--color-muted, #f3f4f6);
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   color: var(--color-text, #333);
 }
 
@@ -74,7 +74,7 @@
 
 .fault-info .info-text {
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   background: var(--color-muted, #f3f4f6);
 }
 
@@ -92,7 +92,7 @@
   margin-top: 1rem;
   padding: 1rem;
   background: var(--color-muted, #f3f4f6);
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   color: var(--color-primary, #6366f1);
 }
 
@@ -106,8 +106,8 @@
 
 .result-chip {
   padding: 1rem;
-  border: 2px solid var(--color-border, #e0e0e0);
-  border-radius: 12px;
+  border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
+  border-radius: var(--token-space-lg);
   background: var(--color-background, white);
   cursor: pointer;
   font-size: 1rem;
@@ -119,7 +119,7 @@
 .result-chip:hover {
   border-color: var(--color-primary, #6366f1);
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) 6px rgba(0, 0, 0, 0.1);
 }
 
 .result-chip:active {
@@ -147,8 +147,8 @@
 .nq-reason input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid var(--color-border, #e0e0e0);
-  border-radius: 8px;
+  border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
+  border-radius: var(--token-space-md);
   font-size: 1rem;
   background: var(--color-background, white);
   color: var(--color-text, #333);
@@ -177,11 +177,11 @@
 
 .confirmation-dialog {
   background: var(--color-background, white);
-  border-radius: 16px;
+  border-radius: var(--token-space-xl);
   padding: 2rem;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-2xl) 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .confirmation-dialog h2 {
@@ -193,7 +193,7 @@
   margin-bottom: 1.5rem;
   padding: 1rem;
   background: var(--color-muted, #f3f4f6);
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
 }
 
 .confirmation-details p {

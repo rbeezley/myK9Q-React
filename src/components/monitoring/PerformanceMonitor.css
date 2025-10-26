@@ -7,11 +7,11 @@
 .performance-monitor {
   position: fixed;
   top: 60px;
-  right: 12px;
+  right: var(--token-space-lg);
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--token-space-md);
   pointer-events: none;
   user-select: none;
 }
@@ -19,10 +19,10 @@
 .perf-metric {
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(10px);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
   min-width: 80px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
   border-left-width: 3px;
   border-left-style: solid;
 }
@@ -33,7 +33,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 2px;
+  margin-bottom: var(--token-space-xs);
 }
 
 .perf-value {
@@ -47,7 +47,7 @@
   font-size: 9px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.5);
-  margin-top: 2px;
+  margin-top: var(--token-space-xs);
 }
 
 /* Mobile responsive */
@@ -55,7 +55,7 @@
   .performance-monitor {
     top: auto;
     bottom: 80px;
-    right: 8px;
+    right: var(--token-space-md);
     gap: 6px;
   }
 
@@ -69,22 +69,22 @@
   }
 
   .perf-value {
-    font-size: 16px;
+    font-size: var(--token-space-xl);
   }
 
   .perf-sublabel {
-    font-size: 8px;
+    font-size: var(--token-space-md);
   }
 }
 
 /* High contrast mode */
 .high-contrast .performance-monitor {
-  border: 2px solid var(--border-high-contrast);
+  border: var(--token-space-xs) solid var(--border-high-contrast);
 }
 
 .high-contrast .perf-metric {
   background: var(--bg-high-contrast);
-  border-width: 4px;
+  border-width: var(--token-space-sm);
 }
 
 /* Reduce motion */

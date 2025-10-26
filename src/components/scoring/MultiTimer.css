@@ -8,11 +8,11 @@
   justify-content: center;
   padding: 48px;
   background: #f8f9fa;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
 }
 
 .loading-message {
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   color: #666;
   text-align: center;
 }
@@ -20,23 +20,23 @@
 /* Header */
 .multi-timer-header {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e0e0e0;
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-3xl);
+  margin-bottom: var(--token-space-3xl);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
+  border: var(--token-space-xs) solid #e0e0e0;
 }
 
 .timer-summary h2 {
-  margin: 0 0 16px 0;
-  font-size: 24px;
+  margin: 0 0 var(--token-space-xl) 0;
+  font-size: var(--token-space-3xl);
   color: #333;
 }
 
 .timer-stats {
   display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: var(--token-space-3xl);
+  margin-bottom: var(--token-space-3xl);
   flex-wrap: wrap;
 }
 
@@ -48,11 +48,11 @@
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  margin-bottom: var(--token-space-sm);
 }
 
 .stat-value {
@@ -65,17 +65,17 @@
 /* Global Controls */
 .global-controls {
   display: flex;
-  gap: 12px;
+  gap: var(--token-space-lg);
   flex-wrap: wrap;
 }
 
 .global-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg) var(--token-space-2xl);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -98,7 +98,7 @@
 .global-button.start-all:hover:not(:disabled) {
   background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(76, 175, 80, 0.3);
 }
 
 .global-button.pause-all {
@@ -109,7 +109,7 @@
 .global-button.pause-all:hover:not(:disabled) {
   background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 152, 0, 0.3);
 }
 
 .global-button.stop-all {
@@ -120,7 +120,7 @@
 .global-button.stop-all:hover:not(:disabled) {
   background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(244, 67, 54, 0.3);
 }
 
 .global-button.sound-toggle {
@@ -134,7 +134,7 @@
 
 .global-button.sound-toggle:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(33, 150, 243, 0.3);
 }
 
 .global-button:active:not(:disabled) {
@@ -144,7 +144,7 @@
 /* Timer Grid Layouts */
 .timer-grid {
   display: grid;
-  gap: 20px;
+  gap: var(--token-space-2xl);
 }
 
 .timer-grid.horizontal {
@@ -180,32 +180,32 @@
 
 @media (max-width: 768px) {
   .multi-timer-header {
-    padding: 16px;
+    padding: var(--token-space-xl);
   }
   
   .timer-summary h2 {
-    font-size: 20px;
+    font-size: var(--token-space-2xl);
   }
   
   .timer-stats {
-    gap: 16px;
+    gap: var(--token-space-xl);
   }
   
   .stat-value {
-    font-size: 16px;
+    font-size: var(--token-space-xl);
   }
   
   .global-controls {
-    gap: 8px;
+    gap: var(--token-space-md);
   }
   
   .global-button {
-    padding: 10px 16px;
-    font-size: 12px;
+    padding: 10px var(--token-space-xl);
+    font-size: var(--token-space-lg);
   }
   
   .timer-grid {
-    gap: 16px;
+    gap: var(--token-space-xl);
   }
   
   .timer-grid.horizontal,
@@ -221,13 +221,13 @@
 @media (max-width: 480px) {
   .timer-stats {
     flex-direction: column;
-    gap: 12px;
+    gap: var(--token-space-lg);
     align-items: center;
   }
   
   .stat-item {
     flex-direction: row;
-    gap: 8px;
+    gap: var(--token-space-md);
   }
   
   .global-controls {

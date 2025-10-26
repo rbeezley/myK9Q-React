@@ -23,7 +23,7 @@
 
 /* Custom Scrollbar Styling */
 .settings-content::-webkit-scrollbar {
-  width: 12px;
+  width: var(--token-space-lg);
 }
 
 .settings-content::-webkit-scrollbar-track {
@@ -34,7 +34,7 @@
 .settings-content::-webkit-scrollbar-thumb {
   background: rgba(99, 102, 241, 0.6);
   border-radius: 10px;
-  border: 2px solid rgba(31, 41, 55, 0.5);
+  border: var(--token-space-xs) solid rgba(31, 41, 55, 0.5);
 }
 
 .settings-content::-webkit-scrollbar-thumb:hover {
@@ -90,7 +90,7 @@
   background: var(--danger, #ef4444);
   color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
 .reset-all-btn:active {
@@ -142,8 +142,8 @@
   border-bottom: none;
   min-height: auto;
   transition: background 0.15s ease;
-  margin-bottom: 8px;
-  border-radius: 12px;
+  margin-bottom: var(--token-space-md);
+  border-radius: var(--token-space-lg);
 }
 
 .setting-item:hover {
@@ -159,7 +159,7 @@
   background: rgba(31, 41, 55, 0.7);
   margin-left: 1.5rem;
   margin-right: 0;
-  border-left: 4px solid var(--primary, #6366f1);
+  border-left: var(--token-space-sm) solid var(--primary, #6366f1);
   position: relative;
 }
 
@@ -216,7 +216,7 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f9fafb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
-  background-size: 16px;
+  background-size: var(--token-space-xl);
   transition: all 0.2s ease;
   min-width: 200px;
   font-weight: 500;
@@ -239,7 +239,7 @@
   position: relative;
   display: inline-block;
   width: 56px;
-  height: 32px;
+  height: var(--token-space-4xl);
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -257,22 +257,22 @@
   right: 0;
   bottom: 0;
   background: rgba(75, 85, 99, 0.8);
-  border-radius: 32px;
+  border-radius: var(--token-space-4xl);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid rgba(75, 85, 99, 0.5);
+  border: var(--token-space-xs) solid rgba(75, 85, 99, 0.5);
 }
 
 .toggle-slider::before {
   content: '';
   position: absolute;
-  height: 24px;
-  width: 24px;
+  height: var(--token-space-3xl);
+  width: var(--token-space-3xl);
   left: 3px;
-  bottom: 2px;
+  bottom: var(--token-space-xs);
   background: white;
   border-radius: 50%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) 6px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -324,7 +324,7 @@
   margin: var(--spacing-md, 1rem) 0;
   padding: var(--spacing-lg, 1.5rem);
   background: rgba(31, 41, 55, 0.6);
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   border: 1.5px solid rgba(75, 85, 99, 0.5);
 }
 
@@ -335,7 +335,7 @@
   margin-top: var(--spacing-md, 1rem);
   padding: 1.25rem 1.5rem;
   background: rgba(55, 65, 81, 0.4);
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   border: 1.5px solid rgba(75, 85, 99, 0.4);
 }
 
@@ -378,7 +378,7 @@
   background: var(--danger-dark, #dc2626);
   border-color: var(--danger-dark, #dc2626);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
 .danger-button:active {
@@ -413,7 +413,7 @@
 
 .modal-content {
   background: #1f2937;
-  border-radius: 16px;
+  border-radius: var(--token-space-xl);
   padding: var(--spacing-xl, 2rem);
   max-width: 500px;
   width: 100%;
@@ -483,20 +483,20 @@
 .theme-light .setting-item {
   background: white;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.05);
 }
 
 .theme-light,
 .theme-light .setting-item:hover {
   background: #fafbfc;
   border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.08);
 }
 
 .theme-light,
 .theme-light .setting-item.indented {
   background: #f3f4f6;
-  border-left: 4px solid var(--primary, #6366f1);
+  border-left: var(--token-space-sm) solid var(--primary, #6366f1);
   margin-left: 1.5rem;
 }
 
@@ -533,8 +533,8 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
-  background-size: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background-size: var(--token-space-xl);
+  box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.05);
 }
 
 .theme-light,
@@ -560,7 +560,7 @@
 .theme-light,
 .theme-light .toggle-slider::before {
   background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .theme-light,
@@ -688,7 +688,7 @@
 
   .setting-item.indented {
     padding-left: 1.25rem;
-    border-left-width: 2px;
+    border-left-width: var(--token-space-xs);
   }
 
   .setting-actions {
@@ -737,7 +737,7 @@
 
 /* High Contrast Mode */
 .high-contrast .setting-item {
-  border-bottom: 2px solid var(--border-color, #4b5563);
+  border-bottom: var(--token-space-xs) solid var(--border-color, #4b5563);
 }
 
 .high-contrast .toggle-slider {
@@ -745,7 +745,7 @@
 }
 
 .high-contrast .setting-item select {
-  border: 2px solid currentColor;
+  border: var(--token-space-xs) solid currentColor;
 }
 
 /* Touch Optimizations */
@@ -758,8 +758,8 @@
   .toggle-slider::before {
     height: 28px;
     width: 28px;
-    left: 2px;
-    bottom: 2px;
+    left: var(--token-space-xs);
+    bottom: var(--token-space-xs);
   }
 
   .toggle-switch input:checked + .toggle-slider::before {
@@ -784,7 +784,7 @@
   right: 2rem;
   min-width: 300px;
   padding: 1rem 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   font-size: 0.875rem;
   font-weight: 500;
   color: white;
@@ -895,7 +895,7 @@
   margin-top: 0.5rem;
   padding: 0.75rem;
   background: rgba(55, 65, 81, 0.8);
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   border-left: 3px solid #f97316;
   line-height: 1.6;
   color: #e5e7eb;

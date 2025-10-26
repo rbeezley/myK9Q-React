@@ -26,8 +26,8 @@
 .passcode-input {
   width: 60px;
   height: 60px;
-  border: 2px solid #d1d5db;
-  border-radius: 12px;
+  border: var(--token-space-xs) solid #d1d5db;
+  border-radius: var(--token-space-lg);
   background: white;
   color: #1f2937;
   font-size: 1.5rem;
@@ -91,7 +91,7 @@
 /* Reset Button */
 .reset-button {
   background: white;
-  border: 2px solid #e5e7eb;
+  border: var(--token-space-xs) solid #e5e7eb;
   border-radius: 50%;
   width: 36px;
   height: 36px;

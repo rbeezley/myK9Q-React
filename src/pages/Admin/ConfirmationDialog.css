@@ -26,7 +26,7 @@
 
 .dialog-container {
   background: white;
-  border-radius: 24px;
+  border-radius: var(--token-space-3xl);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   max-width: 500px;
   width: 90%;
@@ -97,7 +97,7 @@
 .dialog-details {
   background: var(--muted);
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   padding: 1rem;
   margin-top: 1rem;
 }
@@ -136,7 +136,7 @@
 .success-note {
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   border: 1px solid #10b981;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   padding: 1rem;
   margin-top: 1rem;
   color: #10b981;
@@ -159,7 +159,7 @@
 .dialog-btn {
   padding: 0.75rem 2rem;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -170,7 +170,7 @@
 .dialog-btn-cancel {
   background: white;
   color: var(--token-text-tertiary);
-  border: 2px solid #d1d5db;
+  border: var(--token-space-xs) solid #d1d5db;
 }
 
 .dialog-btn-cancel:hover {
@@ -181,12 +181,12 @@
 
 .dialog-btn-confirm {
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
 }
 
 .dialog-btn-confirm:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(0, 0, 0, 0.2);
 }
 
 .dialog-btn-warning {
@@ -194,7 +194,7 @@
 }
 
 .dialog-btn-warning:hover {
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(245, 158, 11, 0.4);
 }
 
 .dialog-btn-success {
@@ -202,7 +202,7 @@
 }
 
 .dialog-btn-success:hover {
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(16, 185, 129, 0.4);
 }
 
 .dialog-btn-danger {
@@ -210,7 +210,7 @@
 }
 
 .dialog-btn-danger:hover {
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(239, 68, 68, 0.4);
 }
 
 /* Responsive Design */

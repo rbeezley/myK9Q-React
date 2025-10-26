@@ -74,16 +74,16 @@
  * Responsive Breakpoint Summary:
  *
  * Mobile (< 640px):
- *   - Full width, 16px horizontal padding
+ *   - Full width, var(--token-space-xl) horizontal padding
  *   - Maximize space on small screens
  *
  * Tablet (640px - 1023px):
- *   - Full width, 24px horizontal padding
+ *   - Full width, var(--token-space-3xl) horizontal padding
  *   - PRIMARY USER GROUP - judges/stewards use iPads/Android tablets
  *   - No max-width constraint - use full tablet screen
  *
  * Desktop (1024px+):
- *   - Full width, 32px horizontal padding
+ *   - Full width, var(--token-space-4xl) horizontal padding
  *   - NO max-width constraint for consistency across all screen sizes
  *   - Individual components use responsive grids to handle wide screens
  */

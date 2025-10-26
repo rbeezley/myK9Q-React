@@ -116,14 +116,14 @@
   border-radius: var(--token-space-2xl);
   font-size: 2rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.3);
+  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .dog-info-card:hover .armband-display {
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-2xl) rgba(0, 122, 255, 0.4);
 }
 
 /* Dog Details Typography */
@@ -191,7 +191,7 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--status-not-checked-in);
+  border-left: var(--token-space-sm) solid var(--status-not-checked-in);
   border-radius: var(--token-space-xl);
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow: hidden;
@@ -279,19 +279,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 215, 0, 0.4);
   animation: glow 2s ease-in-out infinite;
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4); }
-  50% { box-shadow: 0 4px 20px rgba(255, 215, 0, 0.6); }
+  0%, 100% { box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 var(--token-space-sm) var(--token-space-2xl) rgba(255, 215, 0, 0.6); }
 }
 
 .position-badge svg {
   color: white;
-  width: 20px;
-  height: 20px;
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
 }
 
 .position-number {
@@ -302,9 +302,9 @@
   color: #FFA500;
   font-size: 0.625rem;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 1px var(--token-space-sm);
   border-radius: 6px;
-  border: 2px solid #FFA500;
+  border: var(--token-space-xs) solid #FFA500;
 }
 
 .position-placeholder {
@@ -393,8 +393,8 @@
 }
 
 .stat-item svg {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
   opacity: 0.6;
 }
 
@@ -411,7 +411,7 @@
   width: auto;
   height: 48px;
   padding: 0 var(--token-space-xl);
-  border: 2px solid var(--border);
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-lg);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -426,16 +426,16 @@
 }
 
 .status-button svg {
-  width: 20px;
-  height: 20px;
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
 }
 
 .status-button .status-icon {
   font-size: 1rem;
-  width: 20px;
-  height: 20px;
-  max-width: 20px;
-  max-height: 20px;
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
+  max-width: var(--token-space-2xl);
+  max-height: var(--token-space-2xl);
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -505,7 +505,7 @@
   background: linear-gradient(135deg, var(--qualified) 0%, var(--qualified-secondary) 100%);
   color: white;
   border-color: var(--qualified);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(245, 158, 11, 0.4);
   font-weight: 700;
   text-transform: capitalize;
 }
@@ -571,8 +571,8 @@
 }
 
 .nav-button svg {
-  width: 24px;
-  height: 24px;
+  width: var(--token-space-3xl);
+  height: var(--token-space-3xl);
 }
 
 .nav-label {
@@ -595,8 +595,8 @@
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
+  width: var(--token-space-4xl);
+  height: var(--token-space-4xl);
   margin: 0 auto var(--token-space-xl);
   color: var(--muted-foreground);
   animation: spin 1s linear infinite;
@@ -662,8 +662,8 @@
 }
 
 .error-button svg {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
 }
 
 /* ========== THEME TOGGLE ========== */
@@ -699,7 +699,7 @@
 }
 
 .theme-dark .class-card:hover {
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
 }
 
 .theme-dark .dog-info-card {
@@ -707,15 +707,15 @@
 }
 
 .theme-dark .dog-info-card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-2xl) 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
 .theme-dark .theme-toggle {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
 .theme-dark .theme-toggle:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
 }
 
 /* ========== PREVENT CSS REHYDRATION ========== */
@@ -724,7 +724,7 @@
   min-width: 120px;
   height: 48px;
   padding: 0 var(--token-space-xl);
-  border: 2px solid var(--border);
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-lg);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -736,16 +736,16 @@
 
 .dog-details-container:not(.loaded) .status-button .status-icon {
   margin-right: var(--token-space-xs);
-  width: 12px;
-  height: 12px;
+  width: var(--token-space-lg);
+  height: var(--token-space-lg);
   font-size: 0.75rem;
   flex-shrink: 0;
   display: inline-block;
 }
 
 .dog-details-container:not(.loaded) .status-button svg {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
 }
 
 .dog-details-container:not(.loaded) .class-card {
@@ -836,7 +836,7 @@
   }
 
   .popup-option {
-    margin-bottom: 4px;
+    margin-bottom: var(--token-space-sm);
   }
 
   .popup-option:last-child {
@@ -873,13 +873,13 @@
   .status-button {
     border-width: 3px;
     font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
   }
 
   .dog-info-card,
   .class-card {
     border-width: 3px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
   }
 }
 

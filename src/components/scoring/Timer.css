@@ -1,34 +1,34 @@
 .timer {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--token-space-lg);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 2px solid #e0e0e0;
+  border: var(--token-space-xs) solid #e0e0e0;
 }
 
 /* Size variants */
 .timer.small {
-  padding: 12px;
+  padding: var(--token-space-lg);
 }
 
 .timer.medium {
-  padding: 16px;
+  padding: var(--token-space-xl);
 }
 
 .timer.large {
-  padding: 24px;
+  padding: var(--token-space-3xl);
 }
 
 /* Status-based styling */
 .timer.running {
   border-color: #4CAF50;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(76, 175, 80, 0.2);
 }
 
 .timer.paused {
   border-color: #FF9800;
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 152, 0, 0.2);
 }
 
 .timer.stopped {
@@ -45,12 +45,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--token-space-xl);
 }
 
 .timer-name {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   font-weight: 600;
   color: #333;
 }
@@ -64,28 +64,28 @@
 }
 
 .timer-max-time {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: #666;
   background: #f5f5f5;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: var(--token-space-sm) var(--token-space-md);
+  border-radius: var(--token-space-sm);
 }
 
 /* Display */
 .timer-display {
   text-align: center;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: var(--token-space-2xl);
+  border-radius: var(--token-space-md);
+  margin-bottom: var(--token-space-xl);
   transition: all 0.3s ease;
 }
 
 .timer.small .timer-display {
-  padding: 12px;
+  padding: var(--token-space-lg);
 }
 
 .timer.large .timer-display {
-  padding: 32px;
+  padding: var(--token-space-4xl);
 }
 
 .timer-display.gray {
@@ -128,14 +128,14 @@
 
 .timer-time {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 32px;
+  font-size: var(--token-space-4xl);
   font-weight: bold;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: var(--token-space-md);
 }
 
 .timer.small .timer-time {
-  font-size: 24px;
+  font-size: var(--token-space-3xl);
 }
 
 .timer.large .timer-time {
@@ -146,9 +146,9 @@
 .timer-progress-container {
   position: relative;
   background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  height: 8px;
-  margin-top: 12px;
+  border-radius: var(--token-space-sm);
+  height: var(--token-space-md);
+  margin-top: var(--token-space-lg);
   overflow: hidden;
 }
 
@@ -156,7 +156,7 @@
   height: 100%;
   background: currentColor;
   transition: width 0.1s ease;
-  border-radius: 4px;
+  border-radius: var(--token-space-sm);
 }
 
 .timer-progress-text {
@@ -171,7 +171,7 @@
 .timer-warning {
   font-size: 14px;
   font-weight: bold;
-  margin-top: 8px;
+  margin-top: var(--token-space-md);
   animation: blink 1s infinite;
 }
 
@@ -187,16 +187,16 @@
 /* Controls */
 .timer-controls {
   display: flex;
-  gap: 8px;
+  gap: var(--token-space-md);
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--token-space-lg);
 }
 
 .timer-button {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: var(--token-space-md) var(--token-space-xl);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -208,13 +208,13 @@
 }
 
 .timer.small .timer-button {
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 6px var(--token-space-lg);
+  font-size: var(--token-space-lg);
 }
 
 .timer.large .timer-button {
-  padding: 12px 20px;
-  font-size: 16px;
+  padding: var(--token-space-lg) var(--token-space-2xl);
+  font-size: var(--token-space-xl);
 }
 
 .timer-button.start,
@@ -227,7 +227,7 @@
 .timer-button.resume:hover {
   background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(76, 175, 80, 0.3);
 }
 
 .timer-button.pause {
@@ -238,7 +238,7 @@
 .timer-button.pause:hover {
   background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(255, 152, 0, 0.3);
 }
 
 .timer-button.stop {
@@ -249,7 +249,7 @@
 .timer-button.stop:hover {
   background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(244, 67, 54, 0.3);
 }
 
 .timer-button.reset {
@@ -260,7 +260,7 @@
 .timer-button.reset:hover {
   background: linear-gradient(135deg, #757575 0%, #616161 100%);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(158, 158, 158, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(158, 158, 158, 0.3);
 }
 
 .timer-button:active {
@@ -272,12 +272,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--token-space-md);
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: var(--token-space-md);
+  height: var(--token-space-md);
   border-radius: 50%;
   transition: all 0.3s ease;
 }
@@ -310,7 +310,7 @@
     box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0);
+    box-shadow: 0 0 0 var(--token-space-sm) rgba(76, 175, 80, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
@@ -322,7 +322,7 @@
     box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0);
+    box-shadow: 0 0 0 var(--token-space-sm) rgba(255, 152, 0, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
@@ -334,7 +334,7 @@
     box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(244, 67, 54, 0);
+    box-shadow: 0 0 0 var(--token-space-sm) rgba(244, 67, 54, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
@@ -342,7 +342,7 @@
 }
 
 .status-text {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;

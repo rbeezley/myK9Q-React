@@ -40,17 +40,17 @@
 /* Premium Card with Orange Glow (for pending states) */
 .apple-card-pending {
   border-color: var(--pending-orange);
-  box-shadow: 0 0 0 2px var(--pending-orange), var(--pending-glow);
+  box-shadow: 0 0 0 var(--token-space-xs) var(--pending-orange), var(--pending-glow);
 }
 
 /* Enhanced Orange Glow for Outdoor Visibility */
 .entry-card.checkin-none {
-  box-shadow: 0 0 0 2px var(--pending-orange), var(--pending-glow);
+  box-shadow: 0 0 0 var(--token-space-xs) var(--pending-orange), var(--pending-glow);
   border-color: var(--pending-orange);
 }
 
 .entry-card.pending-entry {
-  box-shadow: 0 0 0 2px var(--pending-orange), var(--pending-glow);
+  box-shadow: 0 0 0 var(--token-space-xs) var(--pending-orange), var(--pending-glow);
   border-color: var(--pending-orange);
 }
 
@@ -68,14 +68,14 @@
   justify-content: center;
   font-weight: 700;
   font-size: 0.9375rem;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 122, 255, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s var(--apple-ease);
 }
 
 .apple-armband-badge:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.5);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.5);
 }
 
 /* Premium Tab System */
@@ -123,13 +123,13 @@
   cursor: pointer;
   transition: all 0.3s var(--apple-ease);
   min-height: var(--min-touch-target);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 122, 255, 0.3);
   font-family: var(--font-family);
 }
 
 .apple-button-primary:hover:not(:disabled) {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.4);
 }
 
 .apple-button-primary:active {
@@ -141,7 +141,7 @@
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 122, 255, 0.2);
 }
 
 .apple-button-secondary {
@@ -161,7 +161,7 @@
 .apple-button-secondary:hover {
   background: var(--muted);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
 }
 
 .apple-button-secondary:active {
@@ -397,7 +397,7 @@
   .apple-card-pending,
   .entry-card.checkin-none,
   .entry-card.pending-entry {
-    box-shadow: 0 0 0 2px var(--pending-orange);
+    box-shadow: 0 0 0 var(--token-space-xs) var(--pending-orange);
   }
 }
 
@@ -416,8 +416,8 @@
 
 /* Focus Styles */
 .apple-focus {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+  outline: var(--token-space-xs) solid var(--primary);
+  outline-offset: var(--token-space-xs);
   border-radius: inherit;
 }
 

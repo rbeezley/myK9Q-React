@@ -52,7 +52,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 /* Section badge (for Novice A & B) - matching DogCard */
@@ -67,7 +67,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .tv-entry-section-badge.section-a {

@@ -2,24 +2,24 @@
 
 .wireframe-container {
   max-width: 400px;
-  margin: 20px auto;
-  padding: 20px;
+  margin: var(--token-space-2xl) auto;
+  padding: var(--token-space-2xl);
   background: #1a1a1a;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  border-radius: 12px;
-  border: 2px solid #333;
+  border-radius: var(--token-space-lg);
+  border: var(--token-space-xs) solid #333;
 }
 
 .wireframe-header {
   text-align: center;
   margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #333;
+  padding-bottom: var(--token-space-2xl);
+  border-bottom: var(--token-space-xs) solid #333;
 }
 
 .wireframe-header h2 {
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--token-space-md) 0;
   color: #60a5fa;
 }
 
@@ -30,10 +30,10 @@
 }
 
 .wireframe-section {
-  margin-bottom: 24px;
-  padding: 16px;
+  margin-bottom: var(--token-space-3xl);
+  padding: var(--token-space-xl);
   border: 1px dashed #555;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   background: rgba(255, 255, 255, 0.02);
   box-sizing: border-box;
   width: 100%;
@@ -41,10 +41,10 @@
 }
 
 .wireframe-label {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   font-weight: 600;
   color: #3b82f6;
-  margin-bottom: 12px;
+  margin-bottom: var(--token-space-lg);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -54,10 +54,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg);
   background: rgba(40, 40, 40, 0.8);
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   font-size: 14px;
 }
 
@@ -69,13 +69,13 @@
 .wireframe-dog-info {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg) 0;
   /* NO background - this is the key! */
   background: transparent;
-  border: 2px dashed #ef4444;
-  border-radius: 8px;
-  padding: 12px;
+  border: var(--token-space-xs) dashed #ef4444;
+  border-radius: var(--token-space-md);
+  padding: var(--token-space-lg);
 }
 
 .wireframe-armband {
@@ -86,16 +86,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--token-space-3xl);
   font-weight: bold;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   flex-shrink: 0;
 }
 
 .wireframe-dog-details {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--token-space-xs);
   align-items: flex-start;
   justify-content: flex-start;
 }
@@ -124,28 +124,28 @@
 /* Timer Section */
 .wireframe-timer {
   text-align: center;
-  padding: 20px;
+  padding: var(--token-space-2xl);
   background: rgba(40, 40, 40, 0.8);
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
 }
 
 .wireframe-time {
   font-size: 48px;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-bottom: var(--token-space-xl);
   font-variant-numeric: tabular-nums;
 }
 
 .wireframe-timer-controls {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: var(--token-space-lg);
 }
 
 .wireframe-btn-reset, .wireframe-btn-start {
-  padding: 12px 24px;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   border: none;
-  border-radius: 24px;
+  border-radius: var(--token-space-3xl);
   font-weight: 600;
   cursor: pointer;
 }
@@ -164,19 +164,19 @@
 .wireframe-time-input {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg);
   background: rgba(40, 40, 40, 0.8);
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
 }
 
 .wireframe-element-btn {
   background: #10b981;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: var(--token-space-md) var(--token-space-lg);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   font-weight: 600;
   flex-shrink: 0;
   min-width: 60px;
@@ -187,9 +187,9 @@
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 8px 12px;
+  padding: var(--token-space-md) var(--token-space-lg);
   border-radius: 6px;
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   text-align: center;
   min-width: 0;
   width: 120px; /* Fixed width for multi-area */
@@ -202,7 +202,7 @@
 }
 
 .wireframe-max-time {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
   font-weight: 500;
@@ -211,17 +211,17 @@
 /* Result Buttons */
 .wireframe-result-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--token-space-md);
   flex-wrap: wrap;
 }
 
 .wireframe-result-btn {
   flex: 1;
-  padding: 12px 16px;
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: rgba(107, 114, 128, 0.8);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--token-space-md);
   font-weight: 600;
   cursor: pointer;
   min-width: 80px;
@@ -231,7 +231,7 @@
 .wireframe-counters {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: var(--token-space-md);
   width: 100%;
   box-sizing: border-box;
 }
@@ -240,9 +240,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
-  border-radius: 12px;
-  border: 2px dashed;
+  padding: var(--token-space-lg);
+  border-radius: var(--token-space-lg);
+  border: var(--token-space-xs) dashed;
   /* ALL should have DARK backgrounds */
   background: rgba(20, 20, 25, 0.95);
   box-sizing: border-box;
@@ -260,8 +260,8 @@
 .wireframe-counter-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--token-space-md);
+  margin-bottom: var(--token-space-md);
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
@@ -292,15 +292,15 @@
 }
 
 .wireframe-counter-value {
-  font-size: 20px;
+  font-size: var(--token-space-2xl);
   font-weight: bold;
   color: white;
-  min-width: 32px;
+  min-width: var(--token-space-4xl);
   text-align: center;
   background: rgba(0, 0, 0, 0.8);
-  padding: 4px 8px;
+  padding: var(--token-space-sm) var(--token-space-md);
   border-radius: 6px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.2);
   box-sizing: border-box;
 }
 
@@ -311,13 +311,13 @@
   text-align: center;
   word-break: break-word;
   line-height: 1.2;
-  margin-top: 4px;
+  margin-top: var(--token-space-sm);
 }
 
 /* Action Buttons */
 .wireframe-action-buttons {
   display: flex;
-  gap: 12px;
+  gap: var(--token-space-lg);
   justify-content: center;
   align-items: center;
 }
@@ -326,9 +326,9 @@
   background: #6b7280;
   color: white;
   border: none;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: var(--token-space-xl) var(--token-space-3xl);
+  border-radius: var(--token-space-lg);
+  font-size: var(--token-space-xl);
   font-weight: 600;
   cursor: pointer;
   min-width: 100px;
@@ -338,9 +338,9 @@
   background: #8b5cf6;
   color: white;
   border: none;
-  padding: 16px 32px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: var(--token-space-xl) var(--token-space-4xl);
+  border-radius: var(--token-space-lg);
+  font-size: var(--token-space-xl);
   font-weight: 600;
   cursor: pointer;
   min-width: 120px;
@@ -348,7 +348,7 @@
 
 /* Notes */
 .wireframe-note {
-  margin-top: 12px;
+  margin-top: var(--token-space-lg);
   font-size: 11px;
   color: #f87171;
   font-style: italic;
@@ -357,41 +357,41 @@
 
 .wireframe-footer {
   margin-top: 30px;
-  padding-top: 20px;
-  border-top: 2px solid #333;
+  padding-top: var(--token-space-2xl);
+  border-top: var(--token-space-xs) solid #333;
 }
 
 .wireframe-footer p {
-  margin: 0 0 12px 0;
+  margin: 0 0 var(--token-space-lg) 0;
   color: #60a5fa;
   font-weight: 600;
 }
 
 .wireframe-footer ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: var(--token-space-2xl);
   font-size: 14px;
   line-height: 1.6;
 }
 
 .wireframe-footer li {
-  margin-bottom: 4px;
+  margin-bottom: var(--token-space-sm);
 }
 
 /* Responsive */
 @media (max-width: 480px) {
   .wireframe-container {
     margin: 10px;
-    padding: 16px;
+    padding: var(--token-space-xl);
   }
 
   .wireframe-section {
-    padding: 12px;
+    padding: var(--token-space-lg);
   }
 
   .wireframe-counters {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: var(--token-space-md);
   }
 
   .wireframe-counter {
@@ -400,21 +400,21 @@
 
   .wireframe-action-buttons {
     flex-direction: column;
-    gap: 8px;
+    gap: var(--token-space-md);
   }
 
   .wireframe-cancel-btn,
   .wireframe-save-btn {
     width: 100%;
-    padding: 14px 24px;
+    padding: 14px var(--token-space-3xl);
   }
 
   .wireframe-time-input {
-    gap: 8px;
+    gap: var(--token-space-md);
   }
 
   .wireframe-element-btn {
-    padding: 6px 8px;
+    padding: 6px var(--token-space-md);
     font-size: 11px;
     min-width: 50px;
     max-width: 60px;
@@ -422,7 +422,7 @@
 
   .wireframe-time-field {
     width: 100px;
-    padding: 6px 8px;
+    padding: 6px var(--token-space-md);
     font-size: 14px;
   }
 
@@ -438,9 +438,9 @@
 
 @media (max-width: 380px) {
   .wireframe-counter-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
+    width: var(--token-space-4xl);
+    height: var(--token-space-4xl);
+    font-size: var(--token-space-xl);
   }
 
   .wireframe-counter-value {
@@ -454,7 +454,7 @@
   }
 
   .wireframe-element-btn {
-    padding: 4px 6px;
+    padding: var(--token-space-sm) 6px;
     font-size: 10px;
     min-width: 40px;
     max-width: 50px;
@@ -462,7 +462,7 @@
 
   .wireframe-time-field {
     width: 80px;
-    padding: 4px 6px;
+    padding: var(--token-space-sm) 6px;
     font-size: 13px;
   }
 

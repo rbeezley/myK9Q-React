@@ -1,10 +1,10 @@
 .competitor-card {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--token-space-lg);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: var(--token-space-xs) solid transparent;
 }
 
 /* Status color borders */
@@ -14,7 +14,7 @@
 
 .competitor-card.status-in-ring {
   border-color: #2196F3;
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(33, 150, 243, 0.2);
 }
 
 .competitor-card.status-qualified {
@@ -38,7 +38,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: var(--token-space-xl) var(--token-space-2xl);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
@@ -46,7 +46,7 @@
 .armband-section {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--token-space-2xl);
 }
 
 .armband-number {
@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
 }
 
 .position-indicator {
@@ -71,9 +71,9 @@
 
 /* Status Badges */
 .status-badge {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 6px var(--token-space-xl);
+  border-radius: var(--token-space-2xl);
+  font-size: var(--token-space-lg);
   font-weight: bold;
   letter-spacing: 0.5px;
 }
@@ -108,41 +108,41 @@
 
 /* Info Section */
 .competitor-info {
-  padding: 20px;
+  padding: var(--token-space-2xl);
 }
 
 .dog-info {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  margin-bottom: var(--token-space-2xl);
+  padding-bottom: var(--token-space-2xl);
   border-bottom: 1px solid #e0e0e0;
 }
 
 .dog-name {
-  font-size: 24px;
+  font-size: var(--token-space-3xl);
   font-weight: bold;
   color: #333;
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--token-space-md) 0;
 }
 
 .dog-breed {
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   color: #666;
   margin: 0;
 }
 
 .handler-info {
-  margin-bottom: 20px;
+  margin-bottom: var(--token-space-2xl);
 }
 
 .handler-info label,
 .additional-info label,
 .score-item label {
-  font-size: 12px;
+  font-size: var(--token-space-lg);
   color: #999;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--token-space-sm);
 }
 
 .handler-name {
@@ -155,9 +155,9 @@
 /* Additional Info */
 .additional-info {
   display: flex;
-  gap: 24px;
-  margin-bottom: 20px;
-  padding-top: 16px;
+  gap: var(--token-space-3xl);
+  margin-bottom: var(--token-space-2xl);
+  padding-top: var(--token-space-xl);
   border-top: 1px solid #e0e0e0;
 }
 
@@ -167,7 +167,7 @@
 
 .info-item p {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--token-space-xl);
   color: #333;
   font-weight: 500;
 }
@@ -175,11 +175,11 @@
 /* Score Summary */
 .score-summary {
   display: flex;
-  gap: 24px;
-  padding: 16px;
+  gap: var(--token-space-3xl);
+  padding: var(--token-space-xl);
   background: #f8f9fa;
-  border-radius: 8px;
-  margin-top: 16px;
+  border-radius: var(--token-space-md);
+  margin-top: var(--token-space-xl);
 }
 
 .score-item {
@@ -189,14 +189,14 @@
 
 .score-item p {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--token-space-2xl);
   color: #333;
   font-weight: bold;
 }
 
 .score-item .placement {
   color: #667eea;
-  font-size: 24px;
+  font-size: var(--token-space-3xl);
 }
 
 /* Responsive Design */
@@ -208,13 +208,13 @@
   }
   
   .dog-name {
-    font-size: 20px;
+    font-size: var(--token-space-2xl);
   }
   
   .additional-info,
   .score-summary {
     flex-direction: column;
-    gap: 12px;
+    gap: var(--token-space-lg);
   }
   
   .score-item {

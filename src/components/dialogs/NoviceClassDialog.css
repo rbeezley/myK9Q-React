@@ -20,7 +20,7 @@
   padding: 2rem;
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-2xl) 60px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
 }
 
@@ -64,7 +64,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border: 2px solid var(--border);
+  border: var(--token-space-xs) solid var(--border);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -135,7 +135,7 @@
 .dialog-button.continue:hover {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
 }
 
 /* Dark Mode Adjustments */

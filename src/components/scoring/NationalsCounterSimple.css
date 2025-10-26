@@ -1,55 +1,55 @@
 /* Simple Nationals Counter Styles - Flutter Style */
 
 .nationals-counter-simple {
-  padding: 16px;
+  padding: var(--token-space-xl);
   background: transparent;
-  border-radius: 12px;
+  border-radius: var(--token-space-lg);
   border: none;
-  margin: 0 16px 16px 16px;
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
 }
 
 .counters-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--token-space-lg);
 }
 
 .counter-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  border-radius: 16px;
+  padding: var(--token-space-2xl);
+  border-radius: var(--token-space-xl);
   background: rgba(20, 20, 25, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .counter-group.positive {
   border-color: rgba(34, 197, 94, 0.5);
   background: rgba(20, 25, 20, 0.95);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(34, 197, 94, 0.15);
 }
 
 .counter-group.negative {
   border-color: rgba(239, 68, 68, 0.5);
   background: rgba(25, 20, 20, 0.95);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.15);
 }
 
 .counter-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--token-space-xl);
 }
 
 .counter-btn {
   width: 64px;
   height: 64px;
-  border-radius: 32px;
-  border: 2px solid transparent;
-  font-size: 32px;
+  border-radius: var(--token-space-4xl);
+  border: var(--token-space-xs) solid transparent;
+  font-size: var(--token-space-4xl);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -57,7 +57,7 @@
   align-items: center;
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
 }
 
 .counter-btn:active {
@@ -84,7 +84,7 @@
   background: #10B981;
   color: white;
   border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.3);
 }
 
 .counter-group.positive .counter-btn.increment:hover {
@@ -95,7 +95,7 @@
   background: #EF4444;
   color: white;
   border-color: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(239, 68, 68, 0.3);
 }
 
 .counter-group.negative .counter-btn.increment:hover {
@@ -103,7 +103,7 @@
 }
 
 .counter-value {
-  font-size: 32px;
+  font-size: var(--token-space-4xl);
   font-weight: bold;
   color: white;
   min-width: 40px;
@@ -121,17 +121,17 @@
   color: rgba(255, 255, 255, 0.8);
   text-align: center;
   line-height: 1.2;
-  margin-bottom: 8px;
+  margin-bottom: var(--token-space-md);
 }
 
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .counters-grid {
-    gap: 8px;
+    gap: var(--token-space-md);
   }
 
   .counter-group {
-    padding: 16px 12px;
+    padding: var(--token-space-xl) var(--token-space-lg);
   }
 
   .counter-btn {
@@ -144,7 +144,7 @@
   .counter-value {
     font-size: 28px;
     min-width: 55px;
-    padding: 8px 14px;
+    padding: var(--token-space-md) 14px;
     border-radius: 10px;
   }
 
@@ -155,21 +155,21 @@
   }
 
   .counter-controls {
-    gap: 12px;
+    gap: var(--token-space-lg);
   }
 }
 
 /* Light theme support */
 .theme-light .nationals-counter-simple {
   background: rgba(248, 250, 252, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: var(--token-space-xs) solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
 }
 
 .theme-light .counter-group {
   background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: var(--token-space-xs) solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
 }
 
 .theme-light .counter-value {
@@ -204,7 +204,7 @@
   background: #10B981;
   color: white;
   border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.3);
 }
 
 .theme-light .counter-group.positive .counter-btn.increment:hover {
@@ -215,7 +215,7 @@
   background: #EF4444;
   color: white;
   border-color: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(239, 68, 68, 0.3);
 }
 
 .theme-light .counter-group.negative .counter-btn.increment:hover {

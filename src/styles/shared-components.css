@@ -17,8 +17,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: var(--token-space-3xl);
+  height: var(--token-space-3xl);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -162,7 +162,7 @@
   padding: 0.875rem;
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--token-space-xs) solid transparent;
   color: var(--muted-foreground);
   font-size: 0.875rem;
   font-weight: 500;
@@ -182,8 +182,8 @@
 }
 
 .status-tab .status-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
   flex-shrink: 0;
 }
 
@@ -209,8 +209,8 @@
 }
 
 .status-badge .status-icon {
-  width: 12px;
-  height: 12px;
+  width: var(--token-space-lg);
+  height: var(--token-space-lg);
   flex-shrink: 0;
   margin-right: 0.25rem;
   display: inline-block;
@@ -313,7 +313,7 @@
   padding: 0.75rem;
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--token-space-xs) solid transparent;
   color: var(--muted-foreground);
   font-size: 0.875rem;
   font-weight: 500;
@@ -456,7 +456,7 @@
   padding: 1.5rem;
   max-width: 400px;
   width: 100%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-2xl) 40px rgba(0, 0, 0, 0.2);
 }
 
 .reset-dialog h3 {
