@@ -368,14 +368,6 @@
   box-shadow: none;
 }
 
-.dialog-footer {
-  padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
 
 .cancel-button {
   background: #6b7280;
@@ -588,10 +580,6 @@
   border-color: #5855eb;
 }
 
-.theme-dark .dialog-footer {
-  background: #111827;
-  border-top-color: var(--token-text-secondary);
-}
 
 /* Warning Banner Styles */
 .warning-banner {

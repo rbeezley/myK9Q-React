@@ -11,7 +11,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useEntryStore } from '@/stores/entryStore';
 import { useAnnouncementStore } from '@/stores/announcementStore';
 import { X, Eye, EyeOff, Download } from 'lucide-react';
-import './StateInspector.css';
+import './shared-monitoring.css';
 
 interface StateChange {
   store: string;

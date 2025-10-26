@@ -1,17 +1,4 @@
 /* Novice Class Dialog Overlay */
-.dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(4px);
-}
 
 /* Dialog Container */
 .novice-class-dialog {
@@ -106,37 +93,10 @@
   justify-content: flex-end;
 }
 
-.dialog-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  min-width: 100px;
-}
 
-.dialog-button.cancel {
-  background: #f0f9ff;
-  color: var(--secondary-foreground);
-  border: 1px solid var(--border);
-}
 
-.dialog-button.cancel:hover {
-  background: #f9fafb;
-}
 
-.dialog-button.continue {
-  background: #6366f1;
-  color: var(--primary-foreground);
-}
 
-.dialog-button.continue:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
-}
 
 /* Dark Mode Adjustments */
 .theme-dark .novice-class-dialog {
@@ -148,43 +108,13 @@
   color: var(--foreground);
 }
 
-.theme-dark .dialog-option {
-  background: var(--background);
-  border-color: var(--border);
-}
 
-.theme-dark .dialog-option:hover {
-  background: var(--muted);
-  border-color: #6366f1;
-}
 
-.theme-dark .dialog-option span {
-  color: var(--foreground);
-}
 
-.theme-dark .dialog-option:has(input:checked) {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: #6366f1;
-}
 
-.theme-dark .dialog-option:has(input:checked) span {
-  color: var(--foreground);
-}
 
-.theme-dark .dialog-button.cancel {
-  background: var(--muted);
-  color: var(--foreground);
-  border-color: var(--border);
-}
 
-.theme-dark .dialog-button.cancel:hover {
-  background: var(--accent);
-}
 
-.theme-dark .dialog-button.continue {
-  background: #6366f1;
-  color: white;
-}
 
 /* Mobile Responsive */
 @media (max-width: 640px) {

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import './NationalsCounterSimple.css';
+import './shared-scoring.css';
 
 interface CounterProps {
   value: number;

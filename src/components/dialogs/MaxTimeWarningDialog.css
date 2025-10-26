@@ -12,9 +12,6 @@
   color: #d97706;
 }
 
-.dialog-title {
-  color: #92400e;
-}
 
 .warning-content {
   display: flex;
@@ -166,9 +163,6 @@
   border-bottom-color: #fef3c7;
 }
 
-.theme-dark .dialog-title {
-  color: #3b82f6;
-}
 
 .theme-dark .warning-icon {
   color: #3b82f6;

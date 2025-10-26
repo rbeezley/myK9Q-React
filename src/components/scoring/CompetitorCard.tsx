@@ -1,7 +1,7 @@
 import React from 'react';
 import { Entry } from '../../stores/entryStore';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
-import './CompetitorCard.css';
+import './shared-scoring.css';
 
 interface CompetitorCardProps {
   entry: Entry;

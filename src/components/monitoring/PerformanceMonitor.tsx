@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import developerModeService from '@/services/developerMode';
-import './PerformanceMonitor.css';
+import './shared-monitoring.css';
 
 export const PerformanceMonitor: React.FC = () => {
   const [fps, setFps] = useState(60);

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import './ResultChoiceChips.css';
+import './shared-scoring.css';
 
 type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
 // type AllResults = NationalsResult | 'NQ' | 'Withdrawn';

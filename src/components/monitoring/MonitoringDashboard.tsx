@@ -12,7 +12,7 @@ import { performanceMonitor } from '@/services/performanceMonitor';
 import { analyticsService } from '@/services/analyticsService';
 import { rageClickDetector } from '@/services/rageClickDetector';
 import { useSettingsStore } from '@/stores/settingsStore';
-import './MonitoringDashboard.css';
+import './shared-monitoring.css';
 
 export function MonitoringDashboard() {
   const { settings } = useSettingsStore();

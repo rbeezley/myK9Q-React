@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useTimerStore } from '../../stores/timerStore';
-import './Timer.css';
+import './shared-scoring.css';
 
 interface TimerProps {
   areaId?: string;

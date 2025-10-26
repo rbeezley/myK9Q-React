@@ -1,12 +1,6 @@
 /* Run Order Dialog Styles - Matches ClassStatusDialog pattern */
 
-.dialog-overlay {
-  pointer-events: auto;
-}
 
-.dialog-overlay .dialog-container {
-  pointer-events: auto;
-}
 
 .run-order-dialog {
   max-width: 600px;

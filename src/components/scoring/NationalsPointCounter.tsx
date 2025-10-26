@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import './NationalsPointCounter.css';
+import './shared-scoring.css';
 
 interface NationalsPointCounterProps {
   alertsCorrect: number;

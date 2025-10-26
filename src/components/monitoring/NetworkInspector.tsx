@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import developerModeService from '@/services/developerMode';
 import { X, Search, Filter, Download } from 'lucide-react';
-import './NetworkInspector.css';
+import './shared-monitoring.css';
 
 interface NetworkRequest {
   url: string;
