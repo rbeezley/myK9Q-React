@@ -46,30 +46,30 @@
 
 .device-tier-low .blur,
 .device-tier-low [class*='blur'] {
-  backdrop-filter: none !important;
-  filter: none !important;
+  backdrop-filter: none;
+  filter: none;
 }
 
 .device-tier-low .shadow,
 .device-tier-low [class*='shadow'] {
-  box-shadow: none !important;
-  text-shadow: none !important;
+  box-shadow: none;
+  text-shadow: none;
 }
 
 .device-tier-low .gradient {
-  background: var(--fallback-color, #f3f4f6) !important;
+  background: var(--fallback-color, #f3f4f6);
 }
 
 /* Simplify animations */
 .device-tier-low * {
-  animation-duration: 0.15s !important;
-  transition-duration: 0.15s !important;
+  animation-duration: 0.15s;
+  transition-duration: 0.15s;
 }
 
 /* Reduce complexity */
 .device-tier-low .complex-border {
-  border: 1px solid var(--border-color) !important;
-  border-radius: 4px !important;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
 }
 
 /* ==========================================================================
@@ -77,12 +77,12 @@
    ========================================================================== */
 
 .device-tier-medium .blur {
-  backdrop-filter: none !important;
+  backdrop-filter: none;
 }
 
 .device-tier-medium * {
-  animation-duration: 0.2s !important;
-  transition-duration: 0.2s !important;
+  animation-duration: 0.2s;
+  transition-duration: 0.2s;
 }
 
 /* ==========================================================================
@@ -119,12 +119,12 @@
 }
 
 .device-gpu-low * {
-  transform: none !important;
-  will-change: auto !important;
+  transform: none;
+  will-change: auto;
 }
 
 .device-gpu-low [class*='parallax'] {
-  transform: none !important;
+  transform: none;
 }
 
 .device-gpu-medium {
@@ -145,15 +145,15 @@
    ========================================================================== */
 
 .no-animations * {
-  animation: none !important;
-  transition: none !important;
+  animation: none;
+  transition: none;
 }
 
 .no-animations .fade-in,
 .no-animations .slide-in,
 .no-animations .scale-in {
-  opacity: 1 !important;
-  transform: none !important;
+  opacity: 1;
+  transform: none;
 }
 
 /* ==========================================================================
@@ -161,16 +161,16 @@
    ========================================================================== */
 
 .no-blur * {
-  backdrop-filter: none !important;
-  filter: none !important;
+  backdrop-filter: none;
+  filter: none;
 }
 
 .no-blur .glass-effect {
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .no-blur .frosted {
-  background: white !important;
+  background: white;
 }
 
 /* ==========================================================================
@@ -178,8 +178,8 @@
    ========================================================================== */
 
 .no-shadows * {
-  box-shadow: none !important;
-  text-shadow: none !important;
+  box-shadow: none;
+  text-shadow: none;
 }
 
 .no-shadows .card {
@@ -241,8 +241,8 @@
 }
 
 .perf-scroll-simple.scrolling * {
-  animation-play-state: paused !important;
-  transition: none !important;
+  animation-play-state: paused;
+  transition: none;
 }
 
 /* ==========================================================================
@@ -265,9 +265,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
   }
 }
 
@@ -277,11 +277,11 @@
 
 @media print {
   * {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+    animation: none;
+    transition: none;
+    transform: none;
+    box-shadow: none;
+    text-shadow: none;
   }
 }
 
@@ -295,7 +295,7 @@
   }
 
   .device-tier-low .gradient-dark {
-    background: var(--bg-dark, #1f2937) !important;
+    background: var(--bg-dark, #1f2937);
   }
 }
 
@@ -311,7 +311,7 @@
   }
 
   .mobile-simple * {
-    animation-duration: 0.15s !important;
+    animation-duration: 0.15s;
   }
 }
 
@@ -421,14 +421,14 @@
    ========================================================================== */
 
 .reduce-animations * {
-  animation-duration: calc(var(--animation-duration, 300ms) * 0.3) !important;
-  transition-duration: calc(var(--transition-duration, 150ms) * 0.3) !important;
-  animation-timing-function: linear !important;
-  transition-timing-function: linear !important;
+  animation-duration: calc(var(--animation-duration, 300ms) * 0.3);
+  transition-duration: calc(var(--transition-duration, 150ms) * 0.3);
+  animation-timing-function: linear;
+  transition-timing-function: linear;
 }
 
 .reduce-animations .decorative-animation {
-  animation: none !important;
+  animation: none;
 }
 
 /* ==========================================================================
@@ -504,8 +504,8 @@ img.loaded {
 
 @media (prefers-contrast: high) {
   * {
-    backdrop-filter: none !important;
-    opacity: 1 !important;
+    backdrop-filter: none;
+    opacity: 1;
   }
 }
 

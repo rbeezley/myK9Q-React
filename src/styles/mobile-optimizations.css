@@ -2,22 +2,22 @@
 
 /* Touch Target Size Improvements */
 .touch-optimized .passcode-input {
-  width: 60px !important;
-  height: 60px !important;
-  font-size: 1.5rem !important;
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
 }
 
 .touch-optimized .status-button {
-  min-width: 120px !important;
-  min-height: 44px !important;
-  padding: 0.75rem 1rem !important;
-  margin: 0.25rem 0 !important;
+  min-width: 120px;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0;
 }
 
 .touch-optimized .nav-button {
-  min-width: 68px !important;
-  min-height: 68px !important;
-  padding: 0.875rem 1.125rem !important;
+  min-width: 68px;
+  min-height: 68px;
+  padding: 0.875rem 1.125rem;
 }
 
 /* Outdoor Visibility Enhancements */
@@ -45,23 +45,23 @@
   .status-popup,
   .home-header,
   .bottom-nav {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: var(--background) !important;
-    border: 2px solid var(--border) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--background);
+    border: 2px solid var(--border);
   }
 }
 
 /* One-Handed Operation - Bottom Sheet Modals */
 .mobile-optimized .status-popup {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: auto !important;
-  transform: none !important;
-  border-radius: 20px 20px 0 0 !important;
-  animation: slideUpFromBottom 0.3s ease-out !important;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: auto;
+  transform: none;
+  border-radius: 20px 20px 0 0;
+  animation: slideUpFromBottom 0.3s ease-out;
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -139,13 +139,13 @@
 /* Battery Saving Mode */
 @media (prefers-reduced-motion: reduce) {
   * {
-    animation-duration: 0s !important;
-    transition-duration: 0.1s !important;
+    animation-duration: 0s;
+    transition-duration: 0.1s;
   }
   
   .trial-status-indicator,
   .position-badge {
-    animation: none !important;
+    animation: none;
   }
 }
 
@@ -155,47 +155,47 @@
 }
 
 .power-saving-mode * {
-  animation-duration: 0s !important;
-  transition-duration: 0s !important;
+  animation-duration: 0s;
+  transition-duration: 0s;
 }
 
 .power-saving-mode .backdrop-blur {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Improved Readability for Small Screens */
 @media (max-width: 390px) {
   .entry-name {
-    font-size: 1rem !important;
-    line-height: 1.3 !important;
+    font-size: 1rem;
+    line-height: 1.3;
   }
   
   .entry-breed {
-    font-size: 0.875rem !important;
+    font-size: 0.875rem;
   }
   
   .entry-handler {
-    font-size: 0.75rem !important;
+    font-size: 0.75rem;
   }
   
   .class-name {
-    font-size: 1.125rem !important;
-    font-weight: 650 !important;
+    font-size: 1.125rem;
+    font-weight: 650;
   }
   
   /* Larger armband display for quick identification */
   .armband-display {
-    width: 72px !important;
-    height: 72px !important;
-    font-size: 1.75rem !important;
-    font-weight: 800 !important;
+    width: 72px;
+    height: 72px;
+    font-size: 1.75rem;
+    font-weight: 800;
   }
   
   .armband-badge {
-    width: 3.25rem !important;
-    height: 3.25rem !important;
-    font-size: 1.125rem !important;
+    width: 3.25rem;
+    height: 3.25rem;
+    font-size: 1.125rem;
   }
 }
 
@@ -225,36 +225,36 @@
 
 /* Enhanced Status Colors for Outdoor Visibility */
 .status-button.checked-in {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-  border: 2px solid #1e40af !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 2px solid #1e40af;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .status-button.conflict {
-  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%) !important;
-  border: 2px solid #c2410c !important;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4) !important;
+  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  border: 2px solid #c2410c;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
 }
 
 .status-button.pulled {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
-  border: 2px solid #b91c1c !important;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  border: 2px solid #b91c1c;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
 }
 
 .status-button.at-gate {
-  background: linear-gradient(135deg, #0891b2 0%, #0284c7 100%) !important;
-  border: 2px solid #0369a1 !important;
-  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4) !important;
+  background: linear-gradient(135deg, #0891b2 0%, #0284c7 100%);
+  border: 2px solid #0369a1;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4);
 }
 
 /* Contextual Navigation for Different User Roles */
 .role-exhibitor .nav-container {
-  grid-template-columns: repeat(3, 1fr) !important;
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .role-exhibitor .nav-button.admin-only {
-  display: none !important;
+  display: none;
 }
 
 .role-secretary .nav-button.exhibitor-only {
@@ -352,21 +352,21 @@
 
 .emergency-mode .glass-morphism,
 .emergency-mode .backdrop-blur {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  background: var(--background) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--background);
 }
 
 .emergency-mode * {
-  animation: none !important;
-  transition: none !important;
-  box-shadow: none !important;
+  animation: none;
+  transition: none;
+  box-shadow: none;
 }
 
 .emergency-mode .armband-display,
 .emergency-mode .status-button {
-  border: 3px solid var(--border) !important;
-  font-weight: 900 !important;
+  border: 3px solid var(--border);
+  font-weight: 900;
 }
 
 /* Improved Loading States */
@@ -396,8 +396,8 @@
 
 /* Focus Management for Accessibility */
 .focus-visible {
-  outline: 3px solid var(--primary) !important;
-  outline-offset: 2px !important;
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .skip-link {
@@ -422,13 +422,13 @@
   .status-button,
   .nav-button,
   .passcode-input {
-    border-width: 2px !important;
-    border-color: currentColor !important;
+    border-width: 2px;
+    border-color: currentColor;
   }
   
   .armband-display,
   .armband-badge {
-    border: 3px solid white !important;
-    box-shadow: 0 0 0 2px var(--foreground) !important;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--foreground);
   }
 }

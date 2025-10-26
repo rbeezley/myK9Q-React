@@ -389,15 +389,15 @@
 /* ===== ACCESSIBILITY ===== */
 @media (prefers-reduced-motion: reduce) {
   * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
   }
 
   .apple-card-pending,
   .entry-card.checkin-none,
   .entry-card.pending-entry {
-    box-shadow: 0 0 0 2px var(--pending-orange) !important;
+    box-shadow: 0 0 0 2px var(--pending-orange);
   }
 }
 

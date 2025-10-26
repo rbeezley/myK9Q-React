@@ -198,7 +198,7 @@ button:disabled:active,
   .entry-card,
   .badge,
   .chip {
-    transition: none !important;
-    transform: none !important;
+    transition: none;
+    transform: none;
   }
 }
