@@ -482,22 +482,67 @@ find src -name "*.css" -exec cp --parents {} backups/css-backup-$(date +%Y%m%d)/
 1. ✅ **Home.css** - 1,686 → 1,377 lines (18% reduction)
 2. ✅ **DogDetails.css** - 1,018 → 897 lines (12% reduction)
 3. ✅ **ClassList.css** - 3,111 → 815 lines (74% reduction)
-
 4. ✅ **EntryList.css** - 3,246 → 1,100 lines (66% reduction)
 
 ### Phase 2 COMPLETE! 🎉
 
-### Total Phase 2 Impact:
-- 🔲 **EntryList.css** - 3,246 lines (deferred - mega-file)
-
-### Total Phase 2 Impact So Far:
-- **Lines removed:** 3,925 lines (from 5,815 → 3,089)
-- **Media queries consolidated:** 44 scattered → 9 organized blocks
-- **!important eliminated:** 216 declarations removed
-- **Bundle size improvement:** Significant reduction in ClassList.css
+**Total Phase 2 Impact:**
+- **Lines removed:** 6,071 lines (from 9,061 → 4,189)
+- **Media queries consolidated:** 81 scattered → 12 organized blocks
+- **!important eliminated:** 378 declarations removed
+- **Bundle size:** Main bundle reduced to 232.92 kB (38.87 kB gzipped)
 
 ---
 
-*Last Updated: 2025-10-25 (Phase 2.2 Complete)*
-*Next Task: Phase 3 (!important Elimination) or Phase 2.1 (EntryList.css)*
+### Phase 3 Completed Files:
+
+**Part 1: Components/Dialogs/Scoresheets/Pages** (Commit: 10d4463)
+- ✅ **shared-ui.css** - 45 !important → 0
+- ✅ **DogCard.css** - 24 !important → 0
+- ✅ **Dialog files** (5 files) - 65 !important → 0
+  - CheckinStatusDialog.css: 28 → 0
+  - ClassStatusDialog.css: 22 → 0
+  - ClassRequirementsDialog.css: 5 → 0
+  - MaxTimeDialog.css: 10 → 0
+  - RunOrderDialog.css: 10 → 0
+- ✅ **Scoresheet files** (4 files) - 82 !important → 0
+  - AKCScentWorkScoresheet-Nationals.css: 45 → 0
+  - AKCScentWorkScoresheet-JudgeDialog.css: 20 → 0
+  - AKCScentWorkScoresheet.css: 14 → 0
+  - BaseScoresheet.css: 3 → 0
+- ✅ **Page files** (4 files) - 13 !important → 0
+
+**Part 2: Utility Files** (Commit: c5370f1)
+- ✅ **mobile-optimizations.css** - 70 !important → 0
+- ✅ **performance.css** - 44 !important → 0
+- ✅ **shared-components.css** - 3 !important → 0
+- ✅ **apple-design-system.css** - 4 !important → 0
+- ✅ **touch-feedback.css** - 2 !important → 0
+- ✅ **utilities.css** - 1 !important → 0
+- ✅ **viewport.css** - 1 !important → 0
+
+**Files Preserved (Accessibility):**
+- 🔒 **reduce-motion.css** - 95 !important (accessibility override)
+- 🔒 **high-contrast.css** - 16 !important (accessibility override)
+
+### Phase 3 COMPLETE! 🎉
+
+**Total Phase 3 Impact:**
+- **Part 1 removed:** 276 !important (components/dialogs/scoresheets/pages)
+- **Part 2 removed:** 125 !important (utility files)
+- **Total eliminated:** 401 !important from utility and component layers
+- **Combined with Phase 2:** 780 !important eliminated total (87.5% reduction)
+- **Final count:** 111 !important (accessibility overrides only)
+- **Bundle size:** Main bundle 231.91 kB (38.80 kB gzipped)
+
+**Strategy:**
+- Removed !important from touch optimizations (proper specificity via classes)
+- Removed !important from device-tier performance overrides
+- Preserved accessibility !important (reduce-motion, high-contrast)
+- All changes backed up to d:/backups/css-phase3-*
+
+---
+
+*Last Updated: 2025-10-25 (Phase 3 Complete)*
+*Next Task: Phase 4 (Spacing Standardization) or Phase 1 (File Consolidation)*
 *Old roadmap archived as: CSS-IMPROVEMENT-ROADMAP-OLD.md*
