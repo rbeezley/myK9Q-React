@@ -86,7 +86,7 @@
   padding: var(--token-space-xl);
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: white;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   box-shadow: 0 -2px var(--token-space-md) rgba(0, 0, 0, 0.1);
   z-index: 100;
 }
@@ -136,7 +136,7 @@
   transform: translateX(-50%);
   width: 36px;
   height: var(--token-space-sm);
-  background: #d1d5db;
+  background: var(--border);
   border-radius: var(--token-space-xs);
   opacity: 0;
   transition: opacity 0.2s;
@@ -224,7 +224,7 @@
   height: 48px;
   border-radius: 50%;
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,7 +234,7 @@
 }
 
 .quick-actions .quick-action-button:hover {
-  background: #f3f4f6;
+  background: var(--input);
   transform: scale(1.1);
 }
 
@@ -319,16 +319,16 @@
 @media (prefers-color-scheme: dark) {
   .one-handed-mode .primary-actions {
     background: var(--card);
-    border-top-color: #374151;
+    border-top-color: var(--token-text-secondary);
   }
 
   .quick-actions .quick-action-button {
     background: var(--card);
-    border-color: #374151;
+    border-color: var(--token-text-secondary);
   }
 
   .quick-actions .quick-action-button:hover {
-    background: #374151;
+    background: var(--card);
   }
 }
 

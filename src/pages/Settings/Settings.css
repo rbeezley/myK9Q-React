@@ -456,46 +456,46 @@
 /* Light Mode (for users who switch) */
 .theme-light,
 .theme-light .settings-page {
-  background: #f3f4f6;
+  background: var(--input);
 }
 
 .theme-light,
 .theme-light .settings-header h1 {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light,
 .theme-light .settings-section h2 {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light,
 .theme-light .section-description {
-  color: #6b7280;
+  color: var(--token-text-tertiary);
 }
 
 .theme-light,
 .theme-light .subsection-title {
-  color: #6b7280;
+  color: var(--token-text-tertiary);
 }
 
 .theme-light,
 .theme-light .setting-item {
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.05);
 }
 
 .theme-light,
 .theme-light .setting-item:hover {
   background: #fafbfc;
-  border-color: #d1d5db;
+  border-color: var(--border);
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.08);
 }
 
 .theme-light,
 .theme-light .setting-item.indented {
-  background: #f3f4f6;
+  background: var(--input);
   border-left: var(--token-space-sm) solid var(--primary, #6366f1);
   margin-left: 1.5rem;
 }
@@ -514,19 +514,19 @@
 
 .theme-light,
 .theme-light .setting-info label {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light,
 .theme-light .setting-hint {
-  color: #6b7280;
+  color: var(--token-text-tertiary);
 }
 
 .theme-light,
 .theme-light .setting-item select {
   background: var(--muted);
   border: 1.5px solid #d1d5db;
-  color: #111827;
+  color: var(--foreground);
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -554,7 +554,7 @@
 .theme-light,
 .theme-light .toggle-slider {
   background: #e5e7eb;
-  border-color: #d1d5db;
+  border-color: var(--border);
 }
 
 .theme-light,
@@ -582,20 +582,20 @@
 .theme-light,
 .theme-light .performance-details {
   background: var(--muted);
-  border-color: #d1d5db;
+  border-color: var(--border);
 }
 
 .theme-light,
 .theme-light .setting-actions {
   background: var(--muted);
-  border-color: #d1d5db;
+  border-color: var(--border);
 }
 
 .theme-light,
 .theme-light .secondary-button {
   background: white;
-  border-color: #d1d5db;
-  color: #111827;
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 .theme-light,
@@ -631,12 +631,12 @@
 
 .theme-light,
 .theme-light .modal-content h3 {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light,
 .theme-light .modal-content p {
-  color: #6b7280;
+  color: var(--token-text-tertiary);
 }
 
 /* Responsive */
@@ -874,7 +874,7 @@
 
   .settings-section {
     box-shadow: none;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     page-break-inside: avoid;
   }
 }
@@ -902,7 +902,7 @@
 }
 
 .install-instructions-title {
-  color: #f9fafb;
+  color: var(--muted);
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
@@ -917,14 +917,14 @@
   margin: 0;
   font-size: 0.8rem;
   opacity: 0.8;
-  color: #d1d5db;
+  color: var(--border);
 }
 
 /* Light Mode - Install Instructions */
 .theme-light .install-instructions-box {
   background: #fef3c7;
-  border-left-color: #f59e0b;
-  color: #92400e;
+  border-left-color: var(--status-conflict);
+  color: var(--token-warning-contrast);
 }
 
 .theme-light .install-instructions-title {
@@ -932,7 +932,7 @@
 }
 
 .theme-light .install-instructions-text {
-  color: #92400e;
+  color: var(--token-warning-contrast);
 }
 
 .theme-light .install-instructions-hint {
@@ -942,9 +942,9 @@
 
 /* Notification Instructions Hint - adapts to theme */
 .notification-instructions-hint {
-  color: #d1d5db;
+  color: var(--border);
 }
 
 .theme-light .notification-instructions-hint {
-  color: #374151;
+  color: var(--token-text-secondary);
 }

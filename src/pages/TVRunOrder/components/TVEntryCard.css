@@ -113,7 +113,7 @@
 
 /* In-ring badge */
 .status-badge.in-ring-badge {
-  background: #3b82f6;
+  background: var(--primary);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 0.375rem;
@@ -165,7 +165,7 @@
 }
 
 .checkin-badge.checkin-1 {
-  background: #10b981; /* Dark Green - Checked In */
+  background: var(--token-success); /* Dark Green - Checked In */
   color: white;
 }
 
@@ -189,11 +189,11 @@
 }
 
 .theme-dark .checkin-badge.checkin-1 {
-  background: #10b981; /* Dark green for dark mode */
+  background: var(--token-success); /* Dark green for dark mode */
 }
 
 .theme-dark .checkin-badge.checkin-2 {
-  background: #3b82f6; /* Brighter yellow for dark mode */
+  background: var(--primary); /* Brighter yellow for dark mode */
 }
 
 .theme-dark .checkin-badge.checkin-3 {

@@ -16,13 +16,13 @@
 .migration-test-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
 .migration-test-header p {
   font-size: 1.125rem;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
 }
 
 /* Status Section */
@@ -37,7 +37,7 @@
 .status-section h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground);
   margin-bottom: 1.5rem;
 }
 
@@ -53,23 +53,23 @@
   padding: 1rem;
   background: #f8fafc;
   border-radius: 0.5rem;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   transition: all 0.3s ease;
 }
 
 .status-item.enabled {
-  border-color: #10b981;
-  background: #f0fdf4;
+  border-color: var(--token-success);
+  background: var(--status-qualified-bg);
 }
 
 .status-item.disabled {
-  border-color: #ef4444;
+  border-color: var(--token-error);
   background: var(--status-not-qualified-bg);
 }
 
 .status-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
@@ -77,12 +77,12 @@
 .status-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground);
 }
 
 .flutter-url {
   font-size: 0.875rem;
-  color: #6366f1;
+  color: var(--primary);
   word-break: break-all;
 }
 
@@ -98,7 +98,7 @@
 .test-section h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground);
   margin-bottom: 1.5rem;
 }
 
@@ -115,7 +115,7 @@
   padding: 1.5rem;
   background: var(--muted);
   border-radius: 1rem;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
 }
 
 .test-button {
@@ -140,12 +140,12 @@
 }
 
 .test-button.secondary {
-  background: #10b981;
+  background: var(--token-success);
   color: white;
 }
 
 .test-button.secondary:hover:not(:disabled) {
-  background: #059669;
+  background: var(--token-success-contrast);
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(16, 185, 129, 0.25);
 }
@@ -182,14 +182,14 @@
 .test-info h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1e40af;
+  color: var(--primary);
   margin-bottom: 0.5rem;
 }
 
 .test-info ul {
   margin: 0;
   padding-left: 1.5rem;
-  color: #1e40af;
+  color: var(--primary);
 }
 
 .test-info li {
@@ -209,7 +209,7 @@
 .results-section h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground);
   margin-bottom: 1.5rem;
 }
 
@@ -227,23 +227,23 @@
 }
 
 .result-item.success {
-  background: #f0fdf4;
-  border-color: #10b981;
+  background: var(--status-qualified-bg);
+  border-color: var(--token-success);
 }
 
 .result-item.failure {
   background: var(--status-not-qualified-bg);
-  border-color: #ef4444;
+  border-color: var(--token-error);
 }
 
 .result-item.v3 {
   border-left-width: 6px;
-  border-left-color: #6366f1;
+  border-left-color: var(--primary);
 }
 
 .result-item.legacy {
   border-left-width: 6px;
-  border-left-color: #f59e0b;
+  border-left-color: var(--status-conflict);
 }
 
 .result-header {
@@ -258,7 +258,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   font-family: monospace;
-  color: #1f2937;
+  color: var(--foreground);
 }
 
 .result-database {
@@ -270,17 +270,17 @@
 
 .result-database.v3 {
   background: #ede9fe;
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .result-database.legacy {
   background: #fef3c7;
-  color: #d97706;
+  color: var(--token-warning-contrast);
 }
 
 .result-database.unknown {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--input);
+  color: var(--token-text-tertiary);
 }
 
 .result-status {
@@ -290,21 +290,21 @@
 }
 
 .result-status.success {
-  color: #10b981;
+  color: var(--token-success);
 }
 
 .result-status.failure {
-  color: #ef4444;
+  color: var(--token-error);
 }
 
 .result-message {
-  color: #4b5563;
+  color: var(--muted-foreground);
   margin-bottom: 0.5rem;
   font-size: 0.9375rem;
 }
 
 .result-redirect {
-  background: #f3f4f6;
+  background: var(--input);
   padding: 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -312,7 +312,7 @@
 }
 
 .result-redirect a {
-  color: #6366f1;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 500;
 }
@@ -323,7 +323,7 @@
 
 .result-timestamp {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 /* Navigation Section */
@@ -338,9 +338,9 @@
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   background: white;
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -348,14 +348,14 @@
 
 .nav-button:hover {
   background: var(--muted);
-  border-color: #d1d5db;
+  border-color: var(--border);
   transform: translateY(-1px);
 }
 
 .nav-button.primary {
   background: #6366f1;
   color: white;
-  border-color: #6366f1;
+  border-color: var(--primary);
 }
 
 .nav-button.primary:hover {

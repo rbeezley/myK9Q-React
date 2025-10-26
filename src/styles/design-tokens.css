@@ -185,6 +185,10 @@
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-blur: blur(20px);
 
+  /* ===== SKELETON LOADERS ===== */
+  --skeleton-gradient: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  --skeleton-gradient-dark: linear-gradient(90deg, #2a2a2a 25%, #1a1a1a 50%, #2a2a2a 75%);
+
   /* ===== HOVER EFFECTS ===== */
   --token-hover-lift: translateY(-2px);
   --token-hover-scale: scale(1.05);
@@ -249,6 +253,9 @@
   /* Glass Morphism (Dark Mode) */
   --glass-bg: rgba(26, 29, 35, 0.9);
   --glass-border: rgba(74, 85, 104, 0.3);
+
+  /* Skeleton Loaders (Dark Mode) */
+  --skeleton-gradient: var(--skeleton-gradient-dark);
 
   /* Check-in Status Colors (same as light mode for consistency) */
   --status-none: #9ca3af;

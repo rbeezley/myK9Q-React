@@ -32,7 +32,7 @@
 .scoresheet-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--foreground);
 }
 
 .scoresheet-subtitle {
@@ -68,7 +68,7 @@
 }
 
 .scoresheet-btn-success:hover {
-  background: #059669;
+  background: var(--token-success-contrast);
 }
 
 .scoresheet-btn-danger {
@@ -86,28 +86,28 @@
 }
 
 .scoresheet-btn-secondary:hover {
-  background: #4b5563;
+  background: var(--muted-foreground);
 }
 
 /* Common Form Input Styles */
 .scoresheet-input {
   width: 100%;
   padding: 0.75rem;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-md);
   font-size: 1rem;
   transition: border-color 0.2s;
 }
 
 .scoresheet-input:focus {
-  border-color: #3b82f6;
+  border-color: var(--primary);
   outline: none;
 }
 
 .scoresheet-label {
   display: block;
   font-weight: 600;
-  color: #374151;
+  color: var(--token-text-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -124,12 +124,12 @@
 
 .scoresheet-timer.running {
   background: #dbeafe;
-  color: #1e40af;
+  color: var(--primary);
 }
 
 .scoresheet-timer.stopped {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--status-not-qualified-bg);
+  color: var(--token-error-contrast);
 }
 
 /* Common Result Badge Styles */
@@ -144,17 +144,17 @@
 
 .scoresheet-badge-q {
   background: #d1fae5;
-  color: #10b981;
+  color: var(--token-success);
 }
 
 .scoresheet-badge-nq {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--status-not-qualified-bg);
+  color: var(--token-error-contrast);
 }
 
 .scoresheet-badge-abs {
   background: var(--border);
-  color: #374151;
+  color: var(--token-text-secondary);
 }
 
 /* Common Grid Layouts */
@@ -201,7 +201,7 @@
 .scoresheet-section-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground);
   margin-bottom: 0.75rem;
 }
 
@@ -214,19 +214,19 @@
 
 .scoresheet-alert-info {
   background: #dbeafe;
-  color: #1e40af;
+  color: var(--primary);
   border-left: var(--token-space-sm) solid #3b82f6;
 }
 
 .scoresheet-alert-warning {
   background: var(--status-setup);
-  color: #92400e;
+  color: var(--token-warning-contrast);
   border-left: var(--token-space-sm) solid #fef3c7;
 }
 
 .scoresheet-alert-error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--status-not-qualified-bg);
+  color: var(--token-error-contrast);
   border-left: var(--token-space-sm) solid #ef4444;
 }
 
@@ -243,7 +243,7 @@
   width: 40px;
   height: 40px;
   border: var(--token-space-sm) solid #e5e7eb;
-  border-top-color: #3b82f6;
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

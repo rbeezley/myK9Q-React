@@ -182,7 +182,7 @@
 }
 
 .badge-success {
-  background: #10b981;
+  background: var(--token-success);
   color: white;
 }
 
@@ -302,19 +302,19 @@
 /* Entry Result Status Colors */
 .status-badge.qualified {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--token-success);
   border-color: rgba(16, 185, 129, 0.2);
 }
 
 .status-badge.not-qualified {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--token-error);
   border-color: rgba(239, 68, 68, 0.2);
 }
 
 .status-badge.excused {
   background: rgba(156, 163, 175, 0.1);
-  color: #6b7280;
+  color: var(--token-text-tertiary);
   border-color: rgba(156, 163, 175, 0.2);
 }
 
@@ -331,15 +331,15 @@
 }
 
 .text-success {
-  color: #10b981;
+  color: var(--token-success);
 }
 
 .text-warning {
-  color: #fef3c7;
+  color: var(--status-setup);
 }
 
 .text-danger {
-  color: #ef4444;
+  color: var(--token-error);
 }
 
 /* =================================================================

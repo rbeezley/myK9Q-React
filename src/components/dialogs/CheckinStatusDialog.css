@@ -48,7 +48,7 @@
 }
 
 .theme-dark .status-dialog-dog-name {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 .status-dialog-handler {
@@ -115,7 +115,7 @@
   align-items: center;
   padding: var(--token-space-xl);
   background: white;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-lg);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -199,17 +199,17 @@
 }
 
 .status-option.status-come-to-gate {
-  --status-color: #3b82f6;
+  --status-color: var(--primary);
   --status-color-rgb: 59, 130, 246;
 }
 
 .status-option.status-in-ring {
-  --status-color: #6366f1;
+  --status-color: var(--primary);
   --status-color-rgb: 99, 102, 241;
 }
 
 .status-option.status-completed {
-  --status-color: #059669;
+  --status-color: var(--token-success-contrast);
   --status-color-rgb: 5, 150, 105;
 }
 
@@ -251,7 +251,7 @@
 
 .status-option.status-completed .popup-icon {
   color: white;
-  background: #059669;
+  background: var(--token-success-contrast);
 }
 
 /* EntryList-style status grid with descriptions */
@@ -276,7 +276,7 @@
   align-items: center;
   padding: var(--token-space-lg);
   background: white;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -377,7 +377,7 @@
 
 .status-item.status-completed .status-icon {
   color: white;
-  background: #059669;
+  background: var(--token-success-contrast);
 }
 
 /* Light mode overrides for status-item - same as default */
@@ -414,11 +414,11 @@
 }
 
 .theme-dark .status-item .status-label {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 .theme-dark .status-item .status-description {
-  color: #fef3c7;
+  color: var(--status-setup);
 }
 
 /* Color variables for status-item - uses centralized design tokens */
@@ -448,16 +448,16 @@
 }
 
 .status-item.status-come-to-gate {
-  --status-color: #3b82f6;
+  --status-color: var(--primary);
   --status-color-rgb: 59, 130, 246;
 }
 
 .status-item.status-in-ring {
-  --status-color: #6366f1;
+  --status-color: var(--primary);
   --status-color-rgb: 99, 102, 241;
 }
 
 .status-item.status-completed {
-  --status-color: #059669;
+  --status-color: var(--token-success-contrast);
   --status-color-rgb: 5, 150, 105;
 }

@@ -5,11 +5,11 @@
 
 .warning-header {
   background: var(--status-setup);
-  border-bottom-color: #fef3c7;
+  border-bottom-color: var(--status-setup);
 }
 
 .warning-icon {
-  color: #d97706;
+  color: var(--token-warning-contrast);
 }
 
 
@@ -31,20 +31,20 @@
   background: var(--status-setup);
   border: 3px solid #fef3c7;
   border-radius: 50%;
-  color: #d97706;
+  color: var(--token-warning-contrast);
 }
 
 .warning-message h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #92400e;
+  color: var(--token-warning-contrast);
   margin: 0 0 0.5rem 0;
 }
 
 .class-info {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--foreground);
   margin: 0 0 1rem 0;
 }
 
@@ -97,17 +97,17 @@
 .secondary-action {
   background: var(--input);
   color: var(--token-text-tertiary);
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
 }
 
 .secondary-action:hover {
   background: var(--border);
   color: var(--token-text-secondary);
-  border-color: #d1d5db;
+  border-color: var(--border);
 }
 
 .secondary-action:active {
-  background: #d1d5db;
+  background: var(--border);
 }
 
 .button-icon {
@@ -159,42 +159,42 @@
 
 /* Dark mode support */
 .theme-dark .warning-header {
-  background: #451a03;
-  border-bottom-color: #fef3c7;
+  background: var(--token-warning-contrast);
+  border-bottom-color: var(--status-setup);
 }
 
 
 .theme-dark .warning-icon {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .warning-icon-large {
-  background: #451a03;
-  border-color: #fef3c7;
-  color: #3b82f6;
+  background: var(--token-warning-contrast);
+  border-color: var(--status-setup);
+  color: var(--primary);
 }
 
 .theme-dark .warning-message h3 {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .class-info {
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .warning-text {
-  color: #d1d5db;
+  color: var(--border);
 }
 
 .theme-dark .secondary-action {
-  background: #374151;
-  color: #d1d5db;
-  border-color: #4b5563;
+  background: var(--card);
+  color: var(--border);
+  border-color: var(--muted-foreground);
 }
 
 .theme-dark .secondary-action:hover {
-  background: #4b5563;
-  color: #f9fafb;
+  background: var(--muted-foreground);
+  color: var(--muted);
   border-color: var(--token-text-tertiary);
 }
 

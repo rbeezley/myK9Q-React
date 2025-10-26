@@ -78,7 +78,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--foreground);
   flex: 1;
 }
 
@@ -96,7 +96,7 @@
 
 .dialog-details {
   background: var(--muted);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: var(--token-space-lg);
   padding: 1rem;
   margin-top: 1rem;
@@ -139,12 +139,12 @@
   border-radius: var(--token-space-lg);
   padding: 1rem;
   margin-top: 1rem;
-  color: #10b981;
+  color: var(--token-success);
   font-weight: 500;
 }
 
 .success-note strong {
-  color: #10b981;
+  color: var(--token-success);
 }
 
 /* Dialog Actions */

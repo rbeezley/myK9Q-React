@@ -430,7 +430,7 @@
 
 .class-status-badge.setup {
   background: var(--status-setup, #fef3c7);
-  color: #92400e;
+  color: var(--token-warning-contrast);
 }
 
 .class-status-badge.briefing {

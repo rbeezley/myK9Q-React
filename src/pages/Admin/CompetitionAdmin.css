@@ -36,9 +36,9 @@
   /* Admin-specific colors */
   --admin-primary: #667eea;
   --admin-secondary: #764ba2;
-  --release-color: #10b981;
-  --embargo-color: #ef4444;
-  --auto-color: #3b82f6;
+  --release-color: var(--token-success);
+  --embargo-color: var(--token-error);
+  --auto-color: var(--primary);
 }
 
 .theme-dark {
@@ -354,7 +354,7 @@
 .release-card-btn .btn-icon {
   font-size: 2rem;
   line-height: 1;
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .release-card-btn .btn-content {
@@ -403,7 +403,7 @@
 }
 
 .auto-btn .btn-icon {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .embargo-btn {
@@ -418,7 +418,7 @@
 }
 
 .embargo-btn .btn-icon {
-  color: #ef4444;
+  color: var(--token-error);
 }
 
 .enable-checkin-btn {
@@ -433,7 +433,7 @@
 }
 
 .enable-checkin-btn .btn-icon {
-  color: #10b981;
+  color: var(--token-success);
 }
 
 .disable-checkin-btn {
@@ -448,7 +448,7 @@
 }
 
 .disable-checkin-btn .btn-icon {
-  color: #fef3c7;
+  color: var(--status-setup);
 }
 
 /* Disabled state for card buttons */
@@ -568,13 +568,13 @@
 
 .status-badge.checkin-enabled {
   background-color: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--token-success);
   border: 1px solid #10b981;
 }
 
 .status-badge.checkin-disabled {
   background-color: rgba(245, 158, 11, 0.1);
-  color: #fef3c7;
+  color: var(--status-setup);
   border: 1px solid #fef3c7;
 }
 

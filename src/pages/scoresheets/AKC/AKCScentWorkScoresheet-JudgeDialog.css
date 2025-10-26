@@ -108,7 +108,7 @@ body.dialog-open {
 .trial-class {
   font-size: var(--token-space-xl);
   font-weight: 600;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 /* Dialog Dog Card Container */
@@ -156,7 +156,7 @@ body.dialog-open {
 .armband-large {
   font-size: 36px;
   font-weight: bold;
-  color: #10B981;
+  color: var(--token-success);
   min-width: 80px;
   text-align: center;
 }
@@ -264,11 +264,11 @@ body.dialog-open {
 
 .score-value.result-excused,
 .item-value.result-excused {
-  color: #EF4444;
+  color: var(--token-error);
 }
 
 .item-value.result-nq {
-  color: #EF4444;
+  color: var(--token-error);
 }
 
 .item-value.result-withdrawn {
@@ -326,7 +326,7 @@ body.dialog-open {
 .time-container .time-value {
   font-size: 28px;
   font-weight: 900;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 /* Total time styling for multi-area searches */
@@ -339,13 +339,13 @@ body.dialog-open {
 .score-item.total-time .item-label {
   font-size: 13px;
   font-weight: 600;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 .score-item.total-time .time-value.total {
   font-size: var(--token-space-4xl);
   font-weight: 900;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 .item-value.positive {
@@ -353,7 +353,7 @@ body.dialog-open {
 }
 
 .item-value.negative {
-  color: #EF4444;
+  color: var(--token-error);
 }
 
 .total-points {
@@ -369,13 +369,13 @@ body.dialog-open {
 .total-label {
   font-size: 18px;
   font-weight: bold;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 .total-value {
   font-size: 28px;
   font-weight: bold;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 /* Dialog Actions */
@@ -407,12 +407,12 @@ body.dialog-open {
 }
 
 .dialog-btn.confirm {
-  background: #10B981;
+  background: var(--token-success);
   color: white;
 }
 
 .dialog-btn.confirm:hover {
-  background: #059669;
+  background: var(--token-success-contrast);
   transform: scale(1.02);
 }
 
@@ -506,7 +506,7 @@ body.dialog-open {
 .theme-light .judge-confirmation-dialog {
   background: white;
   border-color: rgba(0, 0, 0, 0.15);
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light .judge-confirmation-dialog .dialog-header {
@@ -515,7 +515,7 @@ body.dialog-open {
 }
 
 .theme-light .judge-confirmation-dialog .dialog-header h2 {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light .judge-confirmation-dialog .trial-info-line {
@@ -538,13 +538,13 @@ body.dialog-open {
 /* Fix DogCard text colors in light mode */
 .theme-light .dialog-dog-card .confirmation-dog-card h4,
 .theme-light .dialog-dog-card .confirmation-dog-card .dog-name {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light .dialog-dog-card .confirmation-dog-card p,
 .theme-light .dialog-dog-card .confirmation-dog-card .dog-breed,
 .theme-light .dialog-dog-card .confirmation-dog-card .dog-handler {
-  color: #4b5563;
+  color: var(--muted-foreground);
 }
 
 .theme-light .dialog-dog-card .confirmation-dog-card .armband {
@@ -552,7 +552,7 @@ body.dialog-open {
 }
 
 .theme-light .trial-class {
-  color: #059669;
+  color: var(--token-success-contrast);
 }
 
 .theme-light .dog-summary,
@@ -562,20 +562,20 @@ body.dialog-open {
 }
 
 .theme-light .dog-name-large {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light .dog-breed,
 .theme-light .handler-name {
-  color: #4b5563;
+  color: var(--muted-foreground);
 }
 
 .theme-light .score-label {
-  color: #374151;
+  color: var(--token-text-secondary);
 }
 
 .theme-light .score-value {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light .score-row {
@@ -583,7 +583,7 @@ body.dialog-open {
 }
 
 .theme-light .nationals-breakdown h3 {
-  color: #111827;
+  color: var(--foreground);
 }
 
 .theme-light .score-item {
@@ -592,18 +592,18 @@ body.dialog-open {
 }
 
 .theme-light .item-label {
-  color: #6b7280;
+  color: var(--token-text-tertiary);
 }
 
 .theme-light .total-points {
   background: rgba(16, 185, 129, 0.1);
-  border-color: #059669;
+  border-color: var(--token-success-contrast);
 }
 
 .theme-light .total-label {
-  color: #059669;
+  color: var(--token-success-contrast);
 }
 
 .theme-light .total-value {
-  color: #059669;
+  color: var(--token-success-contrast);
 }

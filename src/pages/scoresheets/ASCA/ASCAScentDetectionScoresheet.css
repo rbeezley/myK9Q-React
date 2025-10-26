@@ -20,14 +20,14 @@
 .area-scoring h3 {
   margin: 0 0 var(--token-space-2xl) 0;
   font-size: var(--token-space-2xl);
-  color: #333;
+  color: var(--token-text-secondary);
   border-bottom: var(--token-space-xs) solid #9C27B0;
   padding-bottom: var(--token-space-md);
 }
 
 .area-card {
   background: var(--muted);
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-md);
   padding: var(--token-space-xl);
   margin-bottom: var(--token-space-xl);
@@ -35,13 +35,13 @@
 }
 
 .area-card:hover {
-  border-color: #9C27B0;
+  border-color: var(--status-at-gate);
 }
 
 .area-header h4 {
   margin: 0 0 var(--token-space-lg) 0;
   font-size: var(--token-space-xl);
-  color: #333;
+  color: var(--token-text-secondary);
   font-weight: 600;
 }
 
@@ -59,7 +59,7 @@
 
 .time-input label {
   font-size: var(--token-space-lg);
-  color: #666;
+  color: var(--token-text-secondary);
   margin-bottom: var(--token-space-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -67,7 +67,7 @@
 
 .time-input input {
   padding: var(--token-space-lg);
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: 6px;
   font-size: 18px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -77,7 +77,7 @@
 
 .time-input input:focus {
   outline: none;
-  border-color: #9C27B0;
+  border-color: var(--status-at-gate);
 }
 
 .time-input input::placeholder {
@@ -96,7 +96,7 @@
   align-items: center;
   gap: var(--token-space-md);
   font-size: 14px;
-  color: #333;
+  color: var(--token-text-secondary);
   cursor: pointer;
   user-select: none;
 }
@@ -129,7 +129,7 @@
 .total-time-section p {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--token-text-secondary);
 }
 
 /* Qualifying Section */
@@ -144,7 +144,7 @@
 .qualifying-section label {
   display: block;
   font-size: 14px;
-  color: #666;
+  color: var(--token-text-secondary);
   margin-bottom: var(--token-space-lg);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -160,7 +160,7 @@
   padding: var(--token-space-xl);
   font-size: var(--token-space-2xl);
   font-weight: bold;
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   background: white;
   border-radius: var(--token-space-md);
   cursor: pointer;
@@ -174,7 +174,7 @@
 .qual-button.active {
   background: #9C27B0;
   color: white;
-  border-color: #9C27B0;
+  border-color: var(--status-at-gate);
 }
 
 .qual-button:nth-child(1).active {
@@ -184,7 +184,7 @@
 
 .qual-button:nth-child(2).active {
   background: #F44336;
-  border-color: #F44336;
+  border-color: var(--token-error);
 }
 
 .qual-button:nth-child(3).active {
@@ -216,7 +216,7 @@
 .reason-section label {
   display: block;
   font-size: 14px;
-  color: #666;
+  color: var(--token-text-secondary);
   margin-bottom: var(--token-space-md);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -225,7 +225,7 @@
 .reason-section textarea {
   width: 100%;
   padding: var(--token-space-lg);
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-md);
   font-size: var(--token-space-xl);
   resize: vertical;
@@ -235,7 +235,7 @@
 
 .reason-section textarea:focus {
   outline: none;
-  border-color: #9C27B0;
+  border-color: var(--status-at-gate);
 }
 
 /* Action Buttons */
@@ -253,7 +253,7 @@
 .nav-button {
   padding: 14px var(--token-space-3xl);
   font-size: var(--token-space-xl);
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   background: white;
   border-radius: var(--token-space-md);
   cursor: pointer;
@@ -262,7 +262,7 @@
 
 .nav-button:hover:not(:disabled) {
   background: var(--muted);
-  border-color: #9C27B0;
+  border-color: var(--status-at-gate);
 }
 
 .nav-button:disabled {
@@ -341,7 +341,7 @@
 
 .confirmation-dialog h2 {
   margin: 0 0 var(--token-space-3xl) 0;
-  color: #333;
+  color: var(--token-text-secondary);
 }
 
 .confirmation-details {
@@ -350,11 +350,11 @@
 
 .confirmation-details p {
   margin: var(--token-space-md) 0;
-  color: #666;
+  color: var(--token-text-secondary);
 }
 
 .confirmation-details strong {
-  color: #333;
+  color: var(--token-text-secondary);
 }
 
 .confirmation-buttons {
@@ -373,8 +373,8 @@
 
 .confirmation-buttons button:first-child {
   background: white;
-  border: var(--token-space-xs) solid #e0e0e0;
-  color: #666;
+  border: var(--token-space-xs) solid var(--border);
+  color: var(--token-text-secondary);
 }
 
 .confirmation-buttons button:first-child:hover {

@@ -315,7 +315,7 @@
 }
 
 .dog-card-action .status-badge.in-ring {
-  background: #3b82f6;
+  background: var(--primary);
   color: white;
 }
 

@@ -25,7 +25,7 @@
 
 .wireframe-header p {
   margin: 0;
-  color: #9ca3af;
+  color: var(--token-text-muted);
   font-size: 14px;
 }
 
@@ -43,7 +43,7 @@
 .wireframe-label {
   font-size: var(--token-space-lg);
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--primary);
   margin-bottom: var(--token-space-lg);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -81,7 +81,7 @@
 .wireframe-armband {
   width: 60px;
   height: 60px;
-  background: #3b82f6;
+  background: var(--primary);
   color: white;
   display: flex;
   align-items: center;
@@ -156,7 +156,7 @@
 }
 
 .wireframe-btn-start {
-  background: #10b981;
+  background: var(--token-success);
   color: white;
 }
 
@@ -171,7 +171,7 @@
 }
 
 .wireframe-element-btn {
-  background: #10b981;
+  background: var(--token-success);
   color: white;
   border: none;
   padding: var(--token-space-md) var(--token-space-lg);
@@ -250,11 +250,11 @@
 }
 
 .wireframe-counter.positive {
-  border-color: #10b981;
+  border-color: var(--token-success);
 }
 
 .wireframe-counter.negative {
-  border-color: #ef4444;
+  border-color: var(--token-error);
 }
 
 .wireframe-counter-controls {
@@ -284,7 +284,7 @@
 }
 
 .wireframe-counter-btn.increment.positive {
-  background: #10b981;
+  background: var(--token-success);
 }
 
 .wireframe-counter-btn.increment.negative {

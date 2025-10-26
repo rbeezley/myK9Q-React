@@ -319,12 +319,12 @@
 }
 
 .timer-display-large.warning {
-  color: #EF4444;
+  color: var(--token-error);
   animation: pulse 1s infinite;
 }
 
 .timer-display-large.expired {
-  color: #DC2626;
+  color: var(--token-error-contrast);
   animation: flash 0.5s infinite;
 }
 
@@ -368,7 +368,7 @@
   height: 64px;
   border-radius: var(--token-space-4xl);
   border: none;
-  background: #10B981;
+  background: var(--token-success);
   color: var(--scoresheet-badge-text);
   font-size: var(--token-space-2xl);
   font-weight: 600;
@@ -383,7 +383,7 @@
 }
 
 .timer-btn-start.stop {
-  background: #EF4444;
+  background: var(--token-error);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
@@ -420,7 +420,7 @@
   border-radius: var(--token-space-2xl);
   padding: var(--token-space-md) var(--token-space-lg);
   font-size: 14px;
-  color: #10B981;
+  color: var(--token-success);
 }
 
 .scoresheet-timer-card {
@@ -442,13 +442,13 @@
 .timer-warning.warning {
   background: rgba(239, 68, 68, 0.1);
   border: var(--token-space-xs) solid #EF4444;
-  color: #EF4444;
+  color: var(--token-error);
 }
 
 .timer-warning.expired {
   background: rgba(220, 38, 38, 0.2);
   border: var(--token-space-xs) solid #DC2626;
-  color: #DC2626;
+  color: var(--token-error-contrast);
   animation: flash 0.5s infinite;
 }
 
@@ -516,7 +516,7 @@
 
 .scoresheet-time-clear-button:hover {
   background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
+  color: var(--token-error);
 }
 
 .scoresheet-time-input.single-area {
@@ -525,7 +525,7 @@
 }
 
 .scoresheet-time-input:focus {
-  border-color: #10B981;
+  border-color: var(--token-success);
 }
 
 .scoresheet-time-input::placeholder {
@@ -627,7 +627,7 @@
 }
 
 .scoresheet-btn-save {
-  background: #10B981;
+  background: var(--token-success);
   color: var(--scoresheet-badge-text);
 }
 
@@ -637,7 +637,7 @@
 }
 
 .scoresheet-btn-save:hover {
-  background: #059669;
+  background: var(--token-success-contrast);
   transform: scale(1.02);
 }
 
@@ -740,7 +740,7 @@
 /* Light theme support */
 .theme-light .scoresheet-container {
   background: var(--muted);
-  color: #1f2937;
+  color: var(--foreground);
 }
 
 .theme-light .scoresheet {
@@ -763,7 +763,7 @@
 .theme-light .timer-warning.warning {
   background: rgba(239, 68, 68, 0.05);
   border: var(--token-space-xs) solid #EF4444;
-  color: #DC2626;
+  color: var(--token-error-contrast);
 }
 
 .theme-light .timer-warning.expired {
@@ -778,7 +778,7 @@
   border-radius: var(--token-space-lg);
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.5);
-  color: #EF4444;
+  color: var(--token-error);
   font-size: var(--token-space-xl);
   font-weight: 600;
   text-align: center;
@@ -793,7 +793,7 @@
 .theme-light .timer-expired-indicator {
   background: rgba(220, 38, 38, 0.15);
   border: 1px solid rgba(220, 38, 38, 0.4);
-  color: #DC2626;
+  color: var(--token-error-contrast);
 }
 
 @keyframes pulse-expired {

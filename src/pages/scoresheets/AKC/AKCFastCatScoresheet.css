@@ -20,7 +20,7 @@
 .time-section h3 {
   margin: 0 0 var(--token-space-2xl) 0;
   font-size: var(--token-space-2xl);
-  color: #333;
+  color: var(--token-text-secondary);
   border-bottom: var(--token-space-xs) solid #FF9800;
   padding-bottom: var(--token-space-md);
 }
@@ -34,7 +34,7 @@
 
 .time-input label {
   font-size: 14px;
-  color: #666;
+  color: var(--token-text-secondary);
   margin-bottom: var(--token-space-md);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -55,7 +55,7 @@
 
 .time-input input:focus {
   outline: none;
-  border-color: #FF9800;
+  border-color: var(--token-warning);
   background: white;
 }
 
@@ -85,7 +85,7 @@
 .result-card h3 {
   margin: 0 0 var(--token-space-lg) 0;
   font-size: var(--token-space-xl);
-  color: #666;
+  color: var(--token-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -110,7 +110,7 @@
 .qualifying-section label {
   display: block;
   font-size: 14px;
-  color: #666;
+  color: var(--token-text-secondary);
   margin-bottom: var(--token-space-lg);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -126,7 +126,7 @@
   padding: var(--token-space-xl);
   font-size: var(--token-space-2xl);
   font-weight: bold;
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   background: white;
   border-radius: var(--token-space-md);
   cursor: pointer;
@@ -140,7 +140,7 @@
 .qual-button.active {
   background: #FF9800;
   color: white;
-  border-color: #FF9800;
+  border-color: var(--token-warning);
 }
 
 .qual-button:nth-child(1).active {
@@ -150,7 +150,7 @@
 
 .qual-button:nth-child(2).active {
   background: #FF9800;
-  border-color: #FF9800;
+  border-color: var(--token-warning);
 }
 
 .qual-button:nth-child(3).active {
@@ -160,7 +160,7 @@
 
 .qual-button:nth-child(4).active {
   background: #F44336;
-  border-color: #F44336;
+  border-color: var(--token-error);
 }
 
 /* Reason Section */
@@ -187,7 +187,7 @@
 .reason-section label {
   display: block;
   font-size: 14px;
-  color: #666;
+  color: var(--token-text-secondary);
   margin-bottom: var(--token-space-md);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -196,7 +196,7 @@
 .reason-section textarea {
   width: 100%;
   padding: var(--token-space-lg);
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-md);
   font-size: var(--token-space-xl);
   resize: vertical;
@@ -206,7 +206,7 @@
 
 .reason-section textarea:focus {
   outline: none;
-  border-color: #FF9800;
+  border-color: var(--token-warning);
 }
 
 /* Action Buttons */
@@ -224,7 +224,7 @@
 .nav-button {
   padding: 14px var(--token-space-3xl);
   font-size: var(--token-space-xl);
-  border: var(--token-space-xs) solid #e0e0e0;
+  border: var(--token-space-xs) solid var(--border);
   background: white;
   border-radius: var(--token-space-md);
   cursor: pointer;
@@ -233,7 +233,7 @@
 
 .nav-button:hover:not(:disabled) {
   background: var(--muted);
-  border-color: #FF9800;
+  border-color: var(--token-warning);
 }
 
 .nav-button:disabled {
@@ -312,7 +312,7 @@
 
 .confirmation-dialog h2 {
   margin: 0 0 var(--token-space-3xl) 0;
-  color: #333;
+  color: var(--token-text-secondary);
 }
 
 .confirmation-details {
@@ -321,11 +321,11 @@
 
 .confirmation-details p {
   margin: var(--token-space-md) 0;
-  color: #666;
+  color: var(--token-text-secondary);
 }
 
 .confirmation-details strong {
-  color: #333;
+  color: var(--token-text-secondary);
 }
 
 .confirmation-buttons {
@@ -344,8 +344,8 @@
 
 .confirmation-buttons button:first-child {
   background: white;
-  border: var(--token-space-xs) solid #e0e0e0;
-  color: #666;
+  border: var(--token-space-xs) solid var(--border);
+  color: var(--token-text-secondary);
 }
 
 .confirmation-buttons button:first-child:hover {

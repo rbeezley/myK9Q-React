@@ -228,7 +228,7 @@
 
 .high-contrast .search-highlight {
   background-color: #ffff00;
-  color: #000000;
+  color: var(--token-text-primary);
   padding: 0.25rem;
 }
 
@@ -314,11 +314,11 @@
 .theme-dark .search-input {
   background-color: rgba(31, 41, 55, 0.8);
   border-color: rgba(75, 85, 99, 0.8);
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .search-input::placeholder {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .theme-dark .search-input:hover {
@@ -332,22 +332,22 @@
 }
 
 .theme-dark .search-icon {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .theme-dark .clear-search {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .theme-dark .clear-search:hover {
   background-color: rgba(55, 65, 81, 0.5);
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .category-select {
   background-color: rgba(31, 41, 55, 0.8);
   border-color: rgba(75, 85, 99, 0.8);
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .category-select:hover {
@@ -367,7 +367,7 @@
 }
 
 .theme-dark .results-header {
-  color: #9ca3af;
+  color: var(--token-text-muted);
   border-bottom-color: rgba(75, 85, 99, 0.5);
 }
 
@@ -384,23 +384,23 @@
 }
 
 .theme-dark .result-title {
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .result-description {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .theme-dark .result-arrow {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .theme-dark .no-results p:first-child {
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .no-results {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 /* High Contrast Mode */

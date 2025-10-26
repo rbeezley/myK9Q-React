@@ -92,7 +92,7 @@
   text-align: left;
   font-weight: bold;
   font-size: 10px;
-  color: #666;
+  color: var(--token-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -181,12 +181,12 @@
 }
 
 .qualified-text {
-  color: #10b981;
+  color: var(--token-success);
   font-weight: bold;
 }
 
 .nq-text {
-  color: #ef4444;
+  color: var(--token-error);
   font-weight: bold;
 }
 
@@ -207,7 +207,7 @@
   font-size: 11px;
   font-weight: normal;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border);
 }
 
 .footer-left {
@@ -236,13 +236,13 @@
 
   /* Ensure colors print */
   .qualified-text {
-    color: #10b981;
+    color: var(--token-success);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   .nq-text {
-    color: #ef4444;
+    color: var(--token-error);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

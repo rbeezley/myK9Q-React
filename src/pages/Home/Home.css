@@ -766,7 +766,7 @@
 
 .favorites-filter-btn.active:hover {
   background: #dc2626;
-  border-color: #dc2626;
+  border-color: var(--token-error-contrast);
 }
 
 .no-favorites {
@@ -990,7 +990,7 @@
 }
 
 .skeleton-text {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--token-space-sm);

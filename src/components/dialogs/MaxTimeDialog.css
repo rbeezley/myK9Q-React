@@ -157,7 +157,7 @@
 .time-input {
   width: 100%;
   padding: 1rem 3rem 1rem 3rem;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-lg);
   font-size: 1.125rem;
   font-weight: 500;
@@ -180,12 +180,12 @@
 }
 
 .time-input.error {
-  border-color: #ef4444;
+  border-color: var(--token-error);
   background: var(--status-not-qualified-bg);
 }
 
 .time-input.error:focus {
-  border-color: #ef4444;
+  border-color: var(--token-error);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #ef4444;
+  color: var(--token-error);
   font-size: 0.875rem;
   font-weight: 500;
 }
@@ -214,7 +214,7 @@
 .help-text p {
   margin: 0;
   font-size: 0.875rem;
-  color: #4b5563;
+  color: var(--muted-foreground);
   line-height: 1.5;
 }
 
@@ -269,7 +269,7 @@
 .dictated-time-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0c4a6e;
+  color: var(--primary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
@@ -287,14 +287,14 @@
 .notice-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: #d97706;
+  color: var(--token-warning-contrast);
   flex-shrink: 0;
 }
 
 .dictated-notice p {
   margin: 0;
   font-size: 0.875rem;
-  color: #92400e;
+  color: var(--token-warning-contrast);
   line-height: 1.5;
 }
 
@@ -316,7 +316,7 @@
 .time-preset-btn {
   padding: 0.5rem 0.75rem;
   background: var(--input);
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--token-space-md);
   font-size: 0.875rem;
   font-weight: 600;
@@ -331,13 +331,13 @@
 
 .time-preset-btn:hover {
   background: var(--border);
-  border-color: #9ca3af;
+  border-color: var(--token-text-muted);
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .time-preset-btn:active {
-  background: #d1d5db;
+  background: var(--border);
   transform: translateY(0);
   box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.1);
 }
@@ -363,7 +363,7 @@
 
 .time-preset-btn:disabled:hover {
   background: var(--input);
-  border-color: #d1d5db;
+  border-color: var(--border);
   transform: none;
   box-shadow: none;
 }
@@ -381,7 +381,7 @@
 }
 
 .cancel-button:hover {
-  background: #4b5563;
+  background: var(--muted-foreground);
 }
 
 .save-button {
@@ -489,7 +489,7 @@
 .theme-dark .time-input {
   background: var(--card);
   border-color: var(--token-text-secondary);
-  color: #f9fafb;
+  color: var(--muted);
 }
 
 .theme-dark .time-input:focus {
@@ -499,34 +499,34 @@
 
 .theme-dark .time-input.error {
   background: #451a1a;
-  border-color: #ef4444;
+  border-color: var(--token-error);
 }
 
 .theme-dark .clear-time-btn {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .theme-dark .clear-time-btn:hover {
-  background: #374151;
+  background: var(--card);
   color: #f3f4f6;
 }
 
 .theme-dark .clear-time-btn:active {
-  background: #4b5563;
+  background: var(--muted-foreground);
 }
 
 .theme-dark .help-text {
   background: #111827;
-  border-left-color: #6366f1;
+  border-left-color: var(--primary);
 }
 
 .theme-dark .help-text p {
-  color: #d1d5db;
+  color: var(--border);
 }
 
 .theme-dark .dictated-time-item {
   background: #1e3a8a;
-  border-color: #3b82f6;
+  border-color: var(--primary);
 }
 
 .theme-dark .dictated-time-icon {
@@ -542,26 +542,26 @@
 }
 
 .theme-dark .dictated-notice {
-  background: #451a03;
-  border-color: #fef3c7;
+  background: var(--token-warning-contrast);
+  border-color: var(--status-setup);
 }
 
 .theme-dark .dictated-notice p {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .notice-icon {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .time-preset-btn {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+  background: var(--card);
+  border-color: var(--muted-foreground);
+  color: var(--muted);
 }
 
 .theme-dark .time-preset-btn:hover {
-  background: #4b5563;
+  background: var(--muted-foreground);
   border-color: var(--token-text-tertiary);
 }
 
@@ -612,17 +612,17 @@
 
 .validation-message {
   background: var(--status-setup);
-  border-color: #fef3c7;
+  border-color: var(--status-setup);
 }
 
 .error-message {
   background: var(--status-not-qualified-bg);
-  border-color: #ef4444;
+  border-color: var(--token-error);
 }
 
 .success-message {
   background: #f0f9ff;
-  border-color: #10b981;
+  border-color: var(--token-success);
 }
 
 .message-content {
@@ -640,15 +640,15 @@
 }
 
 .validation-message .message-icon {
-  color: #d97706;
+  color: var(--token-warning-contrast);
 }
 
 .error-message .message-icon {
-  color: #ef4444;
+  color: var(--token-error);
 }
 
 .success-message .message-icon {
-  color: #10b981;
+  color: var(--token-success);
 }
 
 .message-content p {
@@ -658,7 +658,7 @@
 }
 
 .validation-message .message-content p {
-  color: #92400e;
+  color: var(--token-warning-contrast);
 }
 
 .error-message .message-content p {
@@ -666,7 +666,7 @@
 }
 
 .success-message .message-content p {
-  color: #10b981;
+  color: var(--token-success);
 }
 
 .warning-banner-content {
@@ -679,7 +679,7 @@
 .warning-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #d97706;
+  color: var(--token-warning-contrast);
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
@@ -690,7 +690,7 @@
 
 .warning-text p {
   margin: 0;
-  color: #92400e;
+  color: var(--token-warning-contrast);
   line-height: 1.5;
 }
 
@@ -704,35 +704,35 @@
 
 /* Dark mode support for warning banner */
 .theme-dark .warning-banner {
-  background: #451a03;
-  border-color: #fef3c7;
+  background: var(--token-warning-contrast);
+  border-color: var(--status-setup);
 }
 
 .theme-dark .warning-icon {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .warning-text p {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 /* Message Banners Dark Mode */
 .theme-dark .validation-message {
-  background: #451a03;
-  border-color: #fef3c7;
+  background: var(--token-warning-contrast);
+  border-color: var(--status-setup);
 }
 
 .theme-dark .validation-message .message-icon {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .validation-message .message-content p {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .theme-dark .error-message {
   background: #450a0a;
-  border-color: #ef4444;
+  border-color: var(--token-error);
 }
 
 .theme-dark .error-message .message-icon {
@@ -745,7 +745,7 @@
 
 .theme-dark .success-message {
   background: #022c22;
-  border-color: #10b981;
+  border-color: var(--token-success);
 }
 
 .theme-dark .success-message .message-icon {

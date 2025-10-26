@@ -10,7 +10,7 @@
 }
 
 .theme-dark .metrics-admin {
-  background: #0f172a;
+  background: var(--card);
 }
 
 /* Header */
@@ -35,7 +35,7 @@
 }
 
 .theme-dark .metrics-header h1 {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 .header-controls {
@@ -57,12 +57,12 @@
 .days-select {
   background: white;
   color: var(--foreground);
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
 }
 
 .theme-dark .days-select {
   background: var(--card);
-  color: #f1f5f9;
+  color: var(--secondary);
   border-color: #475569;
 }
 
@@ -89,7 +89,7 @@
   padding: var(--token-space-2xl);
   background: white;
   border-radius: var(--token-space-lg);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
@@ -114,17 +114,17 @@
 }
 
 .theme-dark .stat-label {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .stat-card.warning .stat-value {
-  color: #ef4444;
+  color: var(--token-error);
 }
 
 /* Loading and Empty States */
@@ -138,13 +138,13 @@
 
 .theme-dark .loading,
 .theme-dark .empty-state {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .error-message {
   padding: var(--token-space-2xl);
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--status-not-qualified-bg);
+  color: var(--token-error-contrast);
   border-radius: var(--token-space-md);
   text-align: center;
 }
@@ -160,7 +160,7 @@
   background: white;
   border-radius: var(--token-space-lg);
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
@@ -175,14 +175,14 @@
   font-size: 18px;
   font-weight: 600;
   background: var(--muted);
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   color: var(--foreground);
 }
 
 .theme-dark .sessions-list h2 {
-  background: #0f172a;
+  background: var(--card);
   border-bottom-color: #475569;
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 /* Sessions Table */
@@ -210,8 +210,8 @@
 }
 
 .theme-dark .table-header {
-  background: #0f172a;
-  color: #9ca3af;
+  background: var(--card);
+  color: var(--token-text-muted);
 }
 
 .table-row {
@@ -219,7 +219,7 @@
   grid-template-columns: 90px 160px 90px 100px 70px 70px 70px 70px;
   gap: var(--token-space-lg);
   padding: var(--token-space-lg) var(--token-space-xl);
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   font-size: 13px;
   cursor: pointer;
   transition: background 0.15s;
@@ -253,11 +253,11 @@
   background: var(--input);
   padding: var(--token-space-xs) 6px;
   border-radius: var(--token-space-sm);
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .theme-dark .col-id code {
-  background: #0f172a;
+  background: var(--card);
   color: #a5b4fc;
 }
 
@@ -291,7 +291,7 @@
 .session-detail {
   background: white;
   border-radius: var(--token-space-lg);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   max-height: 600px;
@@ -309,11 +309,11 @@
   align-items: center;
   padding: var(--token-space-xl);
   background: var(--muted);
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .theme-dark .detail-header {
-  background: #0f172a;
+  background: var(--card);
   border-bottom-color: #475569;
 }
 
@@ -325,7 +325,7 @@
 }
 
 .theme-dark .detail-header h2 {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 .close-btn {
@@ -342,7 +342,7 @@
 }
 
 .theme-dark .close-btn:hover {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 .detail-content {
@@ -365,7 +365,7 @@
 }
 
 .theme-dark .detail-section h3 {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 .detail-grid,
@@ -398,13 +398,13 @@
 
 .theme-dark .detail-item .label,
 .theme-dark .issue-item .label {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .detail-item code {
   font-family: monospace;
   font-size: 11px;
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .theme-dark .detail-item code {
@@ -417,7 +417,7 @@
 }
 
 .theme-dark .issue-item .value {
-  color: #f1f5f9;
+  color: var(--secondary);
 }
 
 /* Metrics Grid */
@@ -447,19 +447,19 @@
 }
 
 .theme-dark .metric-name {
-  color: #9ca3af;
+  color: var(--token-text-muted);
 }
 
 .metric-value {
   font-size: var(--token-space-xl);
   font-weight: 700;
-  color: #6366f1;
+  color: var(--primary);
 }
 
 /* JSON View */
 .json-view {
   background: var(--card);
-  color: #9ca3af;
+  color: var(--token-text-muted);
   padding: var(--token-space-lg);
   border-radius: 6px;
   font-size: 11px;
@@ -473,7 +473,7 @@
 }
 
 .theme-dark .json-view {
-  background: #0f172a;
+  background: var(--card);
 }
 
 /* Responsive */

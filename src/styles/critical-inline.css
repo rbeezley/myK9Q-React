@@ -20,7 +20,7 @@
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f172a;
+    --background: var(--card);
     --foreground: #f8fafc;
     --card: #1e293b;
     --card-foreground: #f8fafc;

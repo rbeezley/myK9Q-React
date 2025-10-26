@@ -29,7 +29,7 @@
   border: var(--token-space-xs) solid #d1d5db;
   border-radius: var(--token-space-lg);
   background: white;
-  color: #1f2937;
+  color: var(--foreground);
   font-size: 1.5rem;
   font-weight: 600;
   text-align: center;
@@ -47,8 +47,8 @@
 
 /* Success State - All inputs filled */
 .passcode-input.filled {
-  border-color: #10b981;
-  background: #f0fdf4;
+  border-color: var(--token-success);
+  background: var(--status-qualified-bg);
 }
 
 .passcode-inputs.all-filled .passcode-input {
@@ -57,7 +57,7 @@
 
 /* Error State */
 .passcode-input.error {
-  border-color: #ef4444;
+  border-color: var(--token-error);
   background: var(--status-not-qualified-bg);
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
@@ -91,7 +91,7 @@
 /* Reset Button */
 .reset-button {
   background: white;
-  border: var(--token-space-xs) solid #e5e7eb;
+  border: var(--token-space-xs) solid var(--border);
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -106,7 +106,7 @@
 
 .reset-button:hover {
   background: var(--muted);
-  border-color: #d1d5db;
+  border-color: var(--border);
   transform: rotate(90deg);
 }
 

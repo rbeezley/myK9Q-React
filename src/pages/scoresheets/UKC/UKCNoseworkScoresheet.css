@@ -238,7 +238,7 @@
 
 .theme-dark .result-chip.selected {
   background: var(--color-primary);
-  color: #1f2937;
+  color: var(--foreground);
 }
 
 /* Touch Feedback */

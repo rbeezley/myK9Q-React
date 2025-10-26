@@ -32,7 +32,7 @@ body {
   width: 50px;
   height: 50px;
   border: var(--token-space-sm) solid #e5e7eb;
-  border-top-color: #3b82f6;
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -71,7 +71,7 @@ body {
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--primary);
   color: white;
 }
 
@@ -97,7 +97,7 @@ body {
 
 /* Typography - Critical for content */
 h1, h2, h3, h4, h5, h6 {
-  color: #1f2937;
+  color: var(--foreground);
   font-weight: 700;
 }
 

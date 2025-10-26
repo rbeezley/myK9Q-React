@@ -15,7 +15,7 @@
   --background-tertiary: #e0e0e0;
 
   /* High contrast borders */
-  --border-color: #000000;
+  --border-color: var(--token-text-primary);
   --border-width: var(--token-space-xs);
   --border-style: solid;
 
@@ -475,7 +475,7 @@
   .high-contrast {
     --text-primary: #000000;
     --background-primary: #ffffff;
-    --border-color: #000000;
+    --border-color: var(--token-text-primary);
   }
 
   .high-contrast * {
