@@ -48,10 +48,10 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .counter-controls button {
@@ -88,11 +88,11 @@
   color: white;
   min-width: 40px;
   text-align: center;
-  background: transparent !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
 /* Excused Checkbox */
@@ -202,11 +202,11 @@
   .counter-value {
     font-size: 20px;
     min-width: 36px;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .control-group label {
@@ -234,19 +234,19 @@
 }
 
 .theme-dark .nationals-controls .counter-controls {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .theme-dark .counter-value {
-  background: transparent !important;
-  border: none !important;
-  color: white !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .theme-dark .control-group label {
@@ -274,21 +274,21 @@
 /* Animation for Point Updates */
 .counter-value {
   transition: all 0.3s ease;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .counter-value.updated {
-  background: transparent !important;
-  border: none !important;
-  color: #ffc107 !important;
+  background: transparent;
+  border: none;
+  color: #ffc107;
   transform: scale(1.1);
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Accessibility Improvements */
@@ -325,11 +325,11 @@
 
   .counter-value {
     display: inline;
-    border: none !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    border: none;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 
@@ -353,10 +353,10 @@
   .counter-value {
     font-size: 22px;
     min-width: 38px;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
 }

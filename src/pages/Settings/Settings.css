@@ -851,15 +851,15 @@
 }
 
 .modal-hint {
-  font-size: 0.8125rem !important;
-  color: var(--primary, #818cf8) !important;
+  font-size: 0.8125rem;
+  color: var(--primary, #818cf8);
   font-weight: 500;
-  margin-top: 0.5rem !important;
+  margin-top: 0.5rem;
 }
 
 .theme-light,
 .theme-light .modal-hint {
-  color: var(--primary, #6366f1) !important;
+  color: var(--primary, #6366f1);
 }
 
 /* Print Styles */

@@ -236,25 +236,25 @@
 
   /* Ensure colors print */
   .qualified-text {
-    color: #10b981 !important;
+    color: #10b981;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   .nq-text {
-    color: #ef4444 !important;
+    color: #ef4444;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   .print-table th {
-    background-color: #f0f0f0 !important;
+    background-color: #f0f0f0;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   .print-table tbody tr:nth-child(even) {
-    background-color: #fafafa !important;
+    background-color: #fafafa;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

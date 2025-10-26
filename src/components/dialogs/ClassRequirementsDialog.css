@@ -325,11 +325,11 @@
 }
 
 .theme-dark .dialog-title {
-  color: var(--token-text-white) !important;
+  color: var(--token-text-white);
 }
 
 .theme-dark .title-icon {
-  color: #6366f1 !important;
+  color: #6366f1;
 }
 
 .theme-dark .close-button {
@@ -376,13 +376,13 @@
 }
 
 .theme-dark .no-data-state h3 {
-  color: #f3f4f6 !important;
+  color: #f3f4f6;
 }
 
 .theme-dark .no-data-state p {
-  color: #d1d5db !important;
+  color: #d1d5db;
 }
 
 .theme-dark .no-data-icon {
-  color: var(--token-text-muted) !important;
+  color: var(--token-text-muted);
 }

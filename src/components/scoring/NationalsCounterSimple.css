@@ -2,9 +2,9 @@
 
 .nationals-counter-simple {
   padding: 16px;
-  background: transparent !important;
+  background: transparent;
   border-radius: 12px;
-  border: none !important;
+  border: none;
   margin: 0 16px 16px 16px;
 }
 
@@ -20,22 +20,22 @@
   align-items: center;
   padding: 20px;
   border-radius: 16px;
-  background: rgba(20, 20, 25, 0.95) !important;
-  border: 2px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(20, 20, 25, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .counter-group.positive {
-  border-color: rgba(34, 197, 94, 0.5) !important;
-  background: rgba(20, 25, 20, 0.95) !important;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(20, 25, 20, 0.95);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
 }
 
 .counter-group.negative {
-  border-color: rgba(239, 68, 68, 0.5) !important;
-  background: rgba(25, 20, 20, 0.95) !important;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(25, 20, 20, 0.95);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
 }
 
 .counter-controls {
@@ -108,11 +108,11 @@
   color: white;
   min-width: 40px;
   text-align: center;
-  background: transparent !important;
+  background: transparent;
   padding: 0;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .counter-label {
@@ -161,24 +161,24 @@
 
 /* Light theme support */
 .theme-light .nationals-counter-simple {
-  background: rgba(248, 250, 252, 0.95) !important;
-  border: 2px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  background: rgba(248, 250, 252, 0.95);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .theme-light .counter-group {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 2px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .theme-light .counter-value {
-  color: #111827 !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
+  color: #111827;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
 .theme-light .counter-label {
@@ -186,38 +186,38 @@
 }
 
 .theme-light .counter-btn.decrement {
-  background: rgba(107, 114, 128, 0.9) !important;
-  color: white !important;
-  border-color: rgba(107, 114, 128, 0.3) !important;
+  background: rgba(107, 114, 128, 0.9);
+  color: white;
+  border-color: rgba(107, 114, 128, 0.3);
 }
 
 .theme-light .counter-btn.decrement:hover:not(:disabled) {
-  background: rgba(107, 114, 128, 1) !important;
+  background: rgba(107, 114, 128, 1);
 }
 
 .theme-light .counter-btn.decrement:disabled {
-  background: rgba(107, 114, 128, 0.3) !important;
-  color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(107, 114, 128, 0.3);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .theme-light .counter-group.positive .counter-btn.increment {
-  background: #10B981 !important;
-  color: white !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+  background: #10B981;
+  color: white;
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .theme-light .counter-group.positive .counter-btn.increment:hover {
-  background: #16A34A !important;
+  background: #16A34A;
 }
 
 .theme-light .counter-group.negative .counter-btn.increment {
-  background: #EF4444 !important;
-  color: white !important;
-  border-color: rgba(239, 68, 68, 0.3) !important;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+  background: #EF4444;
+  color: white;
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .theme-light .counter-group.negative .counter-btn.increment:hover {
-  background: #DC2626 !important;
+  background: #DC2626;
 }

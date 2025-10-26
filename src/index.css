@@ -125,8 +125,8 @@ button, input, select, textarea {
 
 /* Global CSS Rehydration Prevention */
 h1, h2, h3, h4, h5, h6 {
-  text-transform: none !important;
-  text-align: left !important;
+  text-transform: none;
+  text-align: left;
 }
 
 /* Prevent flash of incorrectly styled content during hydration */
@@ -134,8 +134,8 @@ h1, h2, h3, h4, h5, h6 {
 .class-list-container[data-loaded="false"] *,
 .page-container[data-loaded="false"] *,
 .app-container[data-loaded="false"] * {
-  transition: none !important;
-  animation: none !important;
+  transition: none;
+  animation: none;
 }
 
 /* Enable transitions after hydration is complete */

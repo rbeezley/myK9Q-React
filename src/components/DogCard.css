@@ -260,29 +260,29 @@
 
 /* Status badge for EntryList page - CRITICAL: Match EntryList.css constraints exactly */
 .dog-card-action .status-badge {
-  padding: 0.25rem 0.5rem !important;
-  border-radius: 0.375rem !important;
-  font-size: 0.5rem !important; /* Smaller font to prevent overflow */
-  font-weight: 600 !important;
-  white-space: nowrap !important; /* Match EntryList.css - prevent wrapping */
-  cursor: pointer !important;
-  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.25rem !important;
-  line-height: 1.1 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.02em !important;
-  position: relative !important;
-  text-align: center !important;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.5rem; /* Smaller font to prevent overflow */
+  font-weight: 600;
+  white-space: nowrap; /* Match EntryList.css - prevent wrapping */
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  position: relative;
+  text-align: center;
   /* CRITICAL: Match EntryList.css constraints exactly */
-  max-width: 100px !important; /* Increased for better padding */
-  max-height: 28px !important; /* Smaller to fit content */
-  min-height: 24px !important; /* Smaller minimum */
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  box-sizing: border-box !important;
+  max-width: 100px; /* Increased for better padding */
+  max-height: 28px; /* Smaller to fit content */
+  min-height: 24px; /* Smaller minimum */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 /* Invisible touch area for better mobile tapping */
@@ -369,8 +369,8 @@
 
 /* Ensure SVG icons are properly sized */
 .dog-card-action .status-badge svg {
-  width: 0.625rem !important;
-  height: 0.625rem !important;
+  width: 0.625rem;
+  height: 0.625rem;
   flex-shrink: 0;
 }
 

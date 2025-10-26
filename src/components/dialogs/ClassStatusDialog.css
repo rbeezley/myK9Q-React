@@ -30,19 +30,19 @@
 }
 
 .status-item-selected {
-  background: rgba(var(--status-color-rgb, 59, 130, 246), 0.1) !important;
-  border-color: var(--status-color, #3b82f6) !important;
+  background: rgba(var(--status-color-rgb, 59, 130, 246), 0.1);
+  border-color: var(--status-color, #3b82f6);
   box-shadow: 0 0 0 1px var(--status-color, #3b82f6);
 }
 
 /* Fix text readability for selected items in dark mode */
 .status-item-selected .status-label {
-  color: var(--token-text-white) !important;
+  color: var(--token-text-white);
   font-weight: 700;
 }
 
 .status-item-selected .status-description {
-  color: #e5e7eb !important;
+  color: #e5e7eb;
 }
 
 .status-icon {
@@ -67,14 +67,14 @@
   display: block;
   font-weight: 600;
   font-size: 16px;
-  color: var(--token-text-white) !important;
+  color: var(--token-text-white);
   margin-bottom: 4px;
   line-height: 1.2;
 }
 
 .status-description {
   font-size: 14px;
-  color: var(--token-text-muted) !important;
+  color: var(--token-text-muted);
   line-height: 1.3;
 }
 
@@ -100,21 +100,21 @@
 }
 
 .theme-light .status-label {
-  color: #111827 !important;
+  color: #111827;
 }
 
 .theme-light .status-description {
-  color: var(--token-text-tertiary) !important;
+  color: var(--token-text-tertiary);
 }
 
 /* Light mode selected status text readability */
 .theme-light .status-item-selected .status-label {
-  color: #111827 !important;
+  color: #111827;
   font-weight: 700;
 }
 
 .theme-light .status-item-selected .status-description {
-  color: #475569 !important;
+  color: #475569;
 }
 
 /* Color variables for different statuses - semantic and intuitive colors */
@@ -210,13 +210,13 @@
 .time-status-title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--token-text-white) !important;
+  color: var(--token-text-white);
   margin: 0 0 4px 0;
 }
 
 .time-status-description {
   font-size: 14px;
-  color: var(--token-text-muted) !important;
+  color: var(--token-text-muted);
   margin: 0;
 }
 
@@ -228,7 +228,7 @@
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: var(--token-text-white) !important;
+  color: var(--token-text-white);
   margin-bottom: 8px;
 }
 
@@ -239,7 +239,7 @@
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(51, 65, 85, 0.8);
   border-radius: 8px;
-  color: var(--token-text-white) !important;
+  color: var(--token-text-white);
   transition: border-color 0.2s ease;
   margin-bottom: 12px;
 }
@@ -269,7 +269,7 @@
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 8px;
-  color: #3b82f6 !important;
+  color: #3b82f6;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -316,7 +316,7 @@
 .time-action-cancel {
   background: transparent;
   border: 1px solid rgba(156, 163, 175, 0.5);
-  color: var(--token-text-muted) !important;
+  color: var(--token-text-muted);
 }
 
 .time-action-cancel:hover {
@@ -327,7 +327,7 @@
 .time-action-submit {
   background: #3b82f6;
   border: 1px solid #3b82f6;
-  color: white !important;
+  color: white;
 }
 
 .time-action-submit:hover:not(:disabled) {
@@ -347,23 +347,23 @@
 }
 
 .theme-light .time-status-title {
-  color: #111827 !important;
+  color: #111827;
 }
 
 .theme-light .time-status-description {
-  color: var(--token-text-tertiary) !important;
+  color: var(--token-text-tertiary);
 }
 
 .theme-light .time-input-label {
-  color: #111827 !important;
+  color: #111827;
 }
 
 .theme-light .time-input {
   background: rgba(248, 250, 252, 0.9);
   border-color: rgba(226, 232, 240, 0.8);
-  color: #111827 !important;
+  color: #111827;
 }
 
 .theme-light .time-action-cancel {
-  color: var(--token-text-tertiary) !important;
+  color: var(--token-text-tertiary);
 }

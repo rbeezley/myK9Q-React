@@ -455,7 +455,7 @@
 .release-card-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  transform: none !important;
+  transform: none;
 }
 
 .sync-btn {

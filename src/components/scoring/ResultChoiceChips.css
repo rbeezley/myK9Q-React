@@ -152,7 +152,7 @@
   font-size: 16px;
   font-weight: 600;
   width: 100%;
-  text-align: center !important;
+  text-align: center;
 }
 
 .fault-counter {
@@ -208,7 +208,7 @@
   font-size: 16px;
   font-weight: 600;
   width: 100%;
-  text-align: center !important;
+  text-align: center;
 }
 
 .reason-choice-chips {
@@ -253,7 +253,7 @@
 .theme-light .reason-selection h3 {
   color: var(--token-text-secondary);
   width: 100%;
-  text-align: center !important;
+  text-align: center;
 }
 
 .theme-light .fault-btn-counter {

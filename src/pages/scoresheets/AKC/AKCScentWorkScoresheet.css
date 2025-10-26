@@ -40,20 +40,20 @@
 
 /* Ensure input has right padding for clear button */
 .time-input-wrapper .time-input {
-  padding-right: 32px !important;
+  padding-right: 32px;
   min-width: 200px; /* Increased to show full placeholder text */
 }
 
 .flutter-time-input-wrapper .flutter-time-input {
-  padding-right: 32px !important;
+  padding-right: 32px;
 }
 
 /* Container - Full height, scrollable, optimized for touch */
 .mobile-scoresheet {
   min-height: 100vh;
   overflow-y: auto;
-  background: #1a1a1a !important;
-  color: #ffffff !important;
+  background: #1a1a1a;
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
@@ -65,8 +65,8 @@
 
 .mobile-scoresheet.theme-light,
 .theme-light .mobile-scoresheet {
-  background: #f5f5f5 !important;
-  color: #000000 !important;
+  background: #f5f5f5;
+  color: #000000;
 }
 
 /* COMPACT HEADER - Maximum 60px height */
@@ -74,18 +74,18 @@
   height: 60px;
   min-height: 60px;
   max-height: 60px;
-  background: #2a2a2a !important;
+  background: #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  border-bottom: 1px solid #333 !important;
+  border-bottom: 1px solid #333;
 }
 
 .mobile-scoresheet.theme-light .mobile-header,
 .theme-light .mobile-scoresheet .mobile-header {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e0e0e0 !important;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .back-btn, .theme-btn {
@@ -215,16 +215,16 @@
 /* TIMER SECTION - More breathing room for mobile */
 .mobile-scoresheet .timer-section {
   flex: 0 0 auto;
-  background: #2a2a2a !important;
+  background: #2a2a2a;
   padding: 20px 20px 24px 20px;
-  border-bottom: 1px solid #444 !important;
+  border-bottom: 1px solid #444;
   margin: 8px 0;
 }
 
 .mobile-scoresheet.theme-light .timer-section,
 .theme-light .mobile-scoresheet .timer-section {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e0e0e0 !important;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .timer-display {

@@ -26,7 +26,7 @@ body.dialog-open {
 
 .judge-confirmation-dialog {
   background: #1a1a1a;
-  border-radius: 24px !important;
+  border-radius: 24px;
   padding: 16px;
   max-width: 450px;
   width: 100%;
@@ -35,8 +35,8 @@ body.dialog-open {
   overflow-x: hidden;
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  -webkit-border-radius: 24px !important;
-  -moz-border-radius: 24px !important;
+  -webkit-border-radius: 24px;
+  -moz-border-radius: 24px;
   /* Hide scrollbar but allow scrolling */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Internet Explorer and Edge */
@@ -48,7 +48,7 @@ body.dialog-open {
 .judge-confirmation-dialog .timer-display,
 .judge-confirmation-dialog .timer-display-large,
 .judge-confirmation-dialog .timer-controls-flutter {
-  display: none !important;
+  display: none;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -58,15 +58,15 @@ body.dialog-open {
 
 /* Dialog Header - More specific to override other dialog styles */
 .judge-confirmation-dialog .dialog-header {
-  display: block !important;
+  display: block;
   text-align: center;
   margin-bottom: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding: 16px;
   width: 100%;
-  flex-direction: column !important;
-  justify-content: center !important;
-  align-items: center !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   background: rgba(40, 40, 40, 0.6);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -78,20 +78,20 @@ body.dialog-open {
   font-weight: bold;
   color: white;
   margin: 0 auto 6px auto;
-  text-align: center !important;
+  text-align: center;
   width: 100%;
 }
 
 /* Simple trial information line - More specific selector */
 .judge-confirmation-dialog .trial-info-line {
-  display: block !important;
+  display: block;
   text-align: center;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
   width: 100%;
   margin: 0;
-  flex: none !important;
+  flex: none;
 }
 
 .trial-info {
@@ -122,23 +122,23 @@ body.dialog-open {
   margin: 0;
   cursor: default; /* Remove pointer cursor */
   padding: 12px; /* Reduce internal padding */
-  box-shadow: none !important; /* Remove elevation/shadow */
+  box-shadow: none; /* Remove elevation/shadow */
 }
 
 .dialog-dog-card .confirmation-dog-card:hover {
   transform: none; /* Remove hover effects */
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 /* Compact dog card content */
 .dialog-dog-card .dog-card-details h4 {
-  font-size: 16px !important;
-  margin-bottom: 2px !important;
+  font-size: 16px;
+  margin-bottom: 2px;
 }
 
 .dialog-dog-card .dog-card-details p {
-  font-size: 13px !important;
-  margin-bottom: 2px !important;
+  font-size: 13px;
+  margin-bottom: 2px;
 }
 
 /* Dog Summary (legacy - keeping for backwards compatibility) */
@@ -538,17 +538,17 @@ body.dialog-open {
 /* Fix DogCard text colors in light mode */
 .theme-light .dialog-dog-card .confirmation-dog-card h4,
 .theme-light .dialog-dog-card .confirmation-dog-card .dog-name {
-  color: #111827 !important;
+  color: #111827;
 }
 
 .theme-light .dialog-dog-card .confirmation-dog-card p,
 .theme-light .dialog-dog-card .confirmation-dog-card .dog-breed,
 .theme-light .dialog-dog-card .confirmation-dog-card .dog-handler {
-  color: #4b5563 !important;
+  color: #4b5563;
 }
 
 .theme-light .dialog-dog-card .confirmation-dog-card .armband {
-  color: #ffffff !important; /* Keep armband badge white text */
+  color: #ffffff; /* Keep armband badge white text */
 }
 
 .theme-light .trial-class {
