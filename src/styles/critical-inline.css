@@ -3,7 +3,7 @@
 
 :root {
   /* Core colors */
-  --background: #ffffff;
+  --background: var(--card);
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;

@@ -88,6 +88,6 @@
   }
 
   .theme-dark .shimmer {
-    background: #2a2a2a;
+    background: var(--muted);
   }
 }

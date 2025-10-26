@@ -322,12 +322,12 @@
 }
 
 .theme-dark .search-input:hover {
-  border-color: #6366f1;
+  border-color: var(--primary);
   background-color: rgba(31, 41, 55, 1);
 }
 
 .theme-dark .search-input:focus {
-  border-color: #6366f1;
+  border-color: var(--primary);
   background-color: rgba(31, 41, 55, 1);
 }
 
@@ -351,12 +351,12 @@
 }
 
 .theme-dark .category-select:hover {
-  border-color: #6366f1;
+  border-color: var(--primary);
   background-color: rgba(31, 41, 55, 1);
 }
 
 .theme-dark .category-select:focus {
-  border-color: #6366f1;
+  border-color: var(--primary);
   background-color: rgba(31, 41, 55, 1);
 }
 

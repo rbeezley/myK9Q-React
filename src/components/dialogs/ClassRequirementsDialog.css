@@ -20,7 +20,7 @@
 }
 
 .close-button:hover {
-  background: #f3f4f6;
+  background: var(--input);
   color: var(--token-text-secondary);
 }
 
@@ -56,7 +56,7 @@
 .class-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--foreground);
   margin: 0 0 0.5rem 0;
 }
 
@@ -70,7 +70,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  background: #6366f1;
+  background: var(--primary);
   color: white;
   border-radius: var(--token-space-lg);
   font-size: 0.75rem;
@@ -101,7 +101,7 @@
   text-align: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #f9fafb;
+  background: var(--muted);
   border-radius: var(--token-space-lg);
   border: 1px solid #e5e7eb;
 }
@@ -112,8 +112,8 @@
 }
 
 .requirement-item-clickable:hover {
-  background: #f3f4f6;
-  border-color: #6366f1;
+  background: var(--input);
+  border-color: var(--primary);
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.15);
 }
@@ -152,7 +152,7 @@
   display: block;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground);
   word-wrap: break-word;
 }
 
@@ -174,7 +174,7 @@
 .no-data-state h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -313,7 +313,7 @@
 
 .theme-dark .requirement-item-clickable:hover {
   background: #374151;
-  border-color: #6366f1;
+  border-color: var(--primary);
 }
 
 .theme-dark .requirement-item-clickable:active {

@@ -25,7 +25,7 @@
   :root {
     --text-primary: #000000;
     --text-secondary: #1a1a1a;
-    --background: #ffffff;
+    --background: var(--card);
     --border: #333333;
     --success-contrast: #0a5d00;
     --error-contrast: #b91c1c;

@@ -62,7 +62,7 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding: 1rem;
-  background: #f9fafb;
+  background: var(--muted);
   border-radius: 0.75rem;
   border-left: var(--token-space-sm) solid #6366f1;
 }

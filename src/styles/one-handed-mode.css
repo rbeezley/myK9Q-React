@@ -318,12 +318,12 @@
 
 @media (prefers-color-scheme: dark) {
   .one-handed-mode .primary-actions {
-    background: #1f2937;
+    background: var(--card);
     border-top-color: #374151;
   }
 
   .quick-actions .quick-action-button {
-    background: #1f2937;
+    background: var(--card);
     border-color: #374151;
   }
 

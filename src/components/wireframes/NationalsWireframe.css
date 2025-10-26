@@ -4,7 +4,7 @@
   max-width: 400px;
   margin: var(--token-space-2xl) auto;
   padding: var(--token-space-2xl);
-  background: #1a1a1a;
+  background: var(--background);
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   border-radius: var(--token-space-lg);
@@ -151,7 +151,7 @@
 }
 
 .wireframe-btn-reset {
-  background: #6b7280;
+  background: var(--muted-foreground);
   color: white;
 }
 
@@ -280,7 +280,7 @@
 }
 
 .wireframe-counter-btn.decrement {
-  background: #6b7280;
+  background: var(--muted-foreground);
 }
 
 .wireframe-counter-btn.increment.positive {
@@ -323,7 +323,7 @@
 }
 
 .wireframe-cancel-btn {
-  background: #6b7280;
+  background: var(--muted-foreground);
   color: white;
   border: none;
   padding: var(--token-space-xl) var(--token-space-3xl);

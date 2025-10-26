@@ -209,7 +209,7 @@
 
 /* Dark Mode */
 .theme-dark {
-  --color-background: #1f2937;
+  --color-background: var(--card);
   --color-text: #f9fafb;
   --color-text-secondary: #9ca3af;
   --color-border: #374151;

@@ -39,7 +39,7 @@
 }
 
 .passcode-input:focus {
-  border-color: #6366f1;
+  border-color: var(--primary);
   background: #fafafa;
   transform: scale(1.05);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -58,14 +58,14 @@
 /* Error State */
 .passcode-input.error {
   border-color: #ef4444;
-  background: #fef2f2;
+  background: var(--status-not-qualified-bg);
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
 .passcode-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #f3f4f6;
+  background: var(--input);
 }
 
 /* Filled Indicator Dots */
@@ -76,7 +76,7 @@
   transform: translateX(-50%);
   width: 7px;
   height: 7px;
-  background: #6366f1;
+  background: var(--primary);
   border-radius: 50%;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.2s ease;
@@ -98,14 +98,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: 0.75rem;
 }
 
 .reset-button:hover {
-  background: #f9fafb;
+  background: var(--muted);
   border-color: #d1d5db;
   transform: rotate(90deg);
 }

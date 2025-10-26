@@ -50,7 +50,7 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   text-align: center;
   transition: border-color 0.3s, background-color 0.3s;
-  background: #f8f9fa;
+  background: var(--muted);
 }
 
 .time-input input:focus {
@@ -134,7 +134,7 @@
 }
 
 .qual-button:hover {
-  background: #f5f5f5;
+  background: var(--muted);
 }
 
 .qual-button.active {
@@ -232,7 +232,7 @@
 }
 
 .nav-button:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: var(--muted);
   border-color: #FF9800;
 }
 
@@ -349,7 +349,7 @@
 }
 
 .confirmation-buttons button:first-child:hover {
-  background: #f5f5f5;
+  background: var(--muted);
 }
 
 .confirm-button {

@@ -60,7 +60,7 @@
 
 .dialog-option:hover {
   border-color: #6366f1;
-  background: #f9fafb;
+  background: var(--muted);
 }
 
 .dialog-option input[type="radio"] {

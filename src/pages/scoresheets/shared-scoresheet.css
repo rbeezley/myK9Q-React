@@ -37,7 +37,7 @@
 
 .scoresheet-subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
 
@@ -53,7 +53,7 @@
 }
 
 .scoresheet-btn-primary {
-  background: #3b82f6;
+  background: var(--status-briefing);
   color: white;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .scoresheet-btn-success {
-  background: #10b981;
+  background: var(--status-qualified);
   color: white;
 }
 
@@ -72,7 +72,7 @@
 }
 
 .scoresheet-btn-danger {
-  background: #ef4444;
+  background: var(--status-not-qualified);
   color: white;
 }
 
@@ -118,7 +118,7 @@
   font-family: 'Courier New', monospace;
   text-align: center;
   padding: 1rem;
-  background: #f3f4f6;
+  background: var(--input);
   border-radius: var(--token-space-md);
 }
 
@@ -153,7 +153,7 @@
 }
 
 .scoresheet-badge-abs {
-  background: #e5e7eb;
+  background: var(--border);
   color: #374151;
 }
 
@@ -219,7 +219,7 @@
 }
 
 .scoresheet-alert-warning {
-  background: #fef3c7;
+  background: var(--status-setup);
   color: #92400e;
   border-left: var(--token-space-sm) solid #fef3c7;
 }
@@ -236,7 +236,7 @@
   justify-content: center;
   align-items: center;
   min-height: 200px;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 .scoresheet-spinner {

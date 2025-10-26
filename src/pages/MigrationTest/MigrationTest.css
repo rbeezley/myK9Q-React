@@ -64,7 +64,7 @@
 
 .status-item.disabled {
   border-color: #ef4444;
-  background: #fef2f2;
+  background: var(--status-not-qualified-bg);
 }
 
 .status-label {
@@ -113,7 +113,7 @@
   gap: 1.5rem;
   margin-bottom: 1.5rem;
   padding: 1.5rem;
-  background: #f9fafb;
+  background: var(--muted);
   border-radius: 1rem;
   border: var(--token-space-xs) solid #e5e7eb;
 }
@@ -134,7 +134,7 @@
 }
 
 .test-button.primary:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--primary);
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.25);
 }
@@ -232,7 +232,7 @@
 }
 
 .result-item.failure {
-  background: #fef2f2;
+  background: var(--status-not-qualified-bg);
   border-color: #ef4444;
 }
 
@@ -347,7 +347,7 @@
 }
 
 .nav-button:hover {
-  background: #f9fafb;
+  background: var(--muted);
   border-color: #d1d5db;
   transform: translateY(-1px);
 }
@@ -359,7 +359,7 @@
 }
 
 .nav-button.primary:hover {
-  background: #4f46e5;
+  background: var(--primary);
   border-color: #4f46e5;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.25);
 }

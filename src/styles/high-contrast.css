@@ -53,7 +53,7 @@
   --background-primary: #000000;
   --background-secondary: #1a1a1a;
   --background-tertiary: #2d2d2d;
-  --border-color: #ffffff;
+  --border-color: white;
 
   /* Semantic colors for dark mode */
   --color-success: #00ff00;

@@ -25,7 +25,7 @@ body.dialog-open {
 
 
 .judge-confirmation-dialog {
-  background: #1a1a1a;
+  background: var(--background);
   border-radius: var(--token-space-3xl);
   padding: var(--token-space-xl);
   max-width: 450px;
@@ -548,7 +548,7 @@ body.dialog-open {
 }
 
 .theme-light .dialog-dog-card .confirmation-dog-card .armband {
-  color: #ffffff; /* Keep armband badge white text */
+  color: white; /* Keep armband badge white text */
 }
 
 .theme-light .trial-class {

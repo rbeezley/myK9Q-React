@@ -160,7 +160,7 @@
 }
 
 .checkin-badge.checkin-0 {
-  background: #6b7280; /* Grey - Not Checked In */
+  background: var(--muted-foreground); /* Grey - Not Checked In */
   color: white;
 }
 

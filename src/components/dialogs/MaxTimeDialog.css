@@ -14,7 +14,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  background: #10b981;
+  background: var(--status-qualified);
   color: white;
   border-radius: var(--token-space-lg);
   font-size: 0.75rem;
@@ -27,7 +27,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  background: #fef3c7;
+  background: var(--status-setup);
   color: white;
   border-radius: var(--token-space-lg);
   font-size: 0.75rem;
@@ -40,7 +40,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  background: #6b7280;
+  background: var(--muted-foreground);
   color: white;
   border-radius: var(--token-space-lg);
   font-size: 0.75rem;
@@ -145,12 +145,12 @@
 }
 
 .clear-time-btn:hover {
-  background: #f3f4f6;
+  background: var(--input);
   color: var(--token-text-secondary);
 }
 
 .clear-time-btn:active {
-  background: #e5e7eb;
+  background: var(--border);
   transform: scale(0.95);
 }
 
@@ -165,7 +165,7 @@
   letter-spacing: 0.1em;
   transition: all 0.2s;
   background: white;
-  color: #111827;
+  color: var(--foreground);
   text-align: center;
   min-height: 3rem;
   /* Prevent zoom on iOS */
@@ -175,13 +175,13 @@
 
 .time-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .time-input.error {
   border-color: #ef4444;
-  background: #fef2f2;
+  background: var(--status-not-qualified-bg);
 }
 
 .time-input.error:focus {
@@ -206,7 +206,7 @@
 
 .help-text {
   padding: 1rem;
-  background: #f3f4f6;
+  background: var(--input);
   border-radius: var(--token-space-md);
   border-left: var(--token-space-sm) solid #6366f1;
 }
@@ -278,7 +278,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #fef3c7;
+  background: var(--status-setup);
   border: 1px solid #fef3c7;
   border-radius: var(--token-space-md);
   border-left: var(--token-space-sm) solid #fef3c7;
@@ -315,7 +315,7 @@
 
 .time-preset-btn {
   padding: 0.5rem 0.75rem;
-  background: #f3f4f6;
+  background: var(--input);
   border: 1px solid #d1d5db;
   border-radius: var(--token-space-md);
   font-size: 0.875rem;
@@ -330,7 +330,7 @@
 }
 
 .time-preset-btn:hover {
-  background: #e5e7eb;
+  background: var(--border);
   border-color: #9ca3af;
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
@@ -343,8 +343,8 @@
 }
 
 .time-preset-btn.active {
-  background: #6366f1;
-  border-color: #6366f1;
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(99, 102, 241, 0.3);
 }
@@ -362,7 +362,7 @@
 }
 
 .time-preset-btn:disabled:hover {
-  background: #f3f4f6;
+  background: var(--input);
   border-color: #d1d5db;
   transform: none;
   box-shadow: none;
@@ -370,7 +370,7 @@
 
 
 .cancel-button {
-  background: #6b7280;
+  background: var(--muted-foreground);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -388,7 +388,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #6366f1;
+  background: var(--primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -399,7 +399,7 @@
 }
 
 .save-button:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--primary);
 }
 
 .save-button:disabled {
@@ -487,14 +487,14 @@
 }
 
 .theme-dark .time-input {
-  background: #1f2937;
+  background: var(--card);
   border-color: var(--token-text-secondary);
   color: #f9fafb;
 }
 
 .theme-dark .time-input:focus {
-  border-color: #6366f1;
-  background: #1f2937;
+  border-color: var(--primary);
+  background: var(--card);
 }
 
 .theme-dark .time-input.error {
@@ -530,7 +530,7 @@
 }
 
 .theme-dark .dictated-time-icon {
-  background: #3b82f6;
+  background: var(--status-briefing);
 }
 
 .theme-dark .dictated-time-content label {
@@ -566,12 +566,12 @@
 }
 
 .theme-dark .time-preset-btn:active {
-  background: #6b7280;
+  background: var(--muted-foreground);
 }
 
 .theme-dark .time-preset-btn.active {
-  background: #6366f1;
-  border-color: #6366f1;
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
 }
 
@@ -585,7 +585,7 @@
 .warning-banner {
   margin: 1rem 0;
   border-radius: var(--token-space-lg);
-  background: #fef3c7;
+  background: var(--status-setup);
   border: var(--token-space-xs) solid #fef3c7;
   overflow: hidden;
 }
@@ -611,12 +611,12 @@
 }
 
 .validation-message {
-  background: #fef3c7;
+  background: var(--status-setup);
   border-color: #fef3c7;
 }
 
 .error-message {
-  background: #fef2f2;
+  background: var(--status-not-qualified-bg);
   border-color: #ef4444;
 }
 

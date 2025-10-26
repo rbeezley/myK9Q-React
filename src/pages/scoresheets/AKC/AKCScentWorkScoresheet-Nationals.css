@@ -14,7 +14,7 @@
 
 /* Nationals Section */
 .nationals-section {
-  background: #f8f9fa;
+  background: var(--muted);
   border: var(--token-space-xs) solid #007bff;
   border-radius: var(--token-space-lg);
   margin: var(--token-space-xl) 0;
@@ -158,14 +158,14 @@
 .nationals-summary {
   margin-bottom: var(--token-space-xl);
   padding: var(--token-space-lg);
-  background: #f8f9fa;
+  background: var(--muted);
   border-radius: var(--token-space-md);
   border: 1px solid #dee2e6;
 }
 
 /* Enhanced Score Summary */
 .score-summary {
-  background: #f8f9fa;
+  background: var(--muted);
   padding: var(--token-space-xl);
   border-radius: var(--token-space-md);
   margin: var(--token-space-xl) 0;

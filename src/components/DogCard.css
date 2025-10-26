@@ -295,7 +295,7 @@
 
 /* Status badge colors - matching original EntryList styles */
 .dog-card-action .status-badge.none {
-  background: #6b7280;
+  background: var(--muted-foreground);
   color: white;
 }
 

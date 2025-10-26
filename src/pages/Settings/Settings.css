@@ -412,7 +412,7 @@
 }
 
 .modal-content {
-  background: #1f2937;
+  background: var(--card);
   border-radius: var(--token-space-xl);
   padding: var(--spacing-xl, 2rem);
   max-width: 500px;
@@ -524,7 +524,7 @@
 
 .theme-light,
 .theme-light .setting-item select {
-  background: #f9fafb;
+  background: var(--muted);
   border: 1.5px solid #d1d5db;
   color: #111827;
   appearance: none;
@@ -581,13 +581,13 @@
 
 .theme-light,
 .theme-light .performance-details {
-  background: #f9fafb;
+  background: var(--muted);
   border-color: #d1d5db;
 }
 
 .theme-light,
 .theme-light .setting-actions {
-  background: #f9fafb;
+  background: var(--muted);
   border-color: #d1d5db;
 }
 
@@ -600,7 +600,7 @@
 
 .theme-light,
 .theme-light .secondary-button:hover {
-  background: #f9fafb;
+  background: var(--muted);
   color: var(--primary, #6366f1);
   border-color: var(--primary, #6366f1);
 }

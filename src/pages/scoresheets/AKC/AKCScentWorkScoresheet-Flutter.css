@@ -739,7 +739,7 @@
 
 /* Light theme support */
 .theme-light .scoresheet-container {
-  background: #f5f5f5;
+  background: var(--muted);
   color: #1f2937;
 }
 

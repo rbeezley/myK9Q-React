@@ -26,7 +26,7 @@
 }
 
 .area-card {
-  background: #f8f9fa;
+  background: var(--muted);
   border: var(--token-space-xs) solid #e0e0e0;
   border-radius: var(--token-space-md);
   padding: var(--token-space-xl);
@@ -168,7 +168,7 @@
 }
 
 .qual-button:hover {
-  background: #f5f5f5;
+  background: var(--muted);
 }
 
 .qual-button.active {
@@ -261,7 +261,7 @@
 }
 
 .nav-button:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: var(--muted);
   border-color: #9C27B0;
 }
 
@@ -378,7 +378,7 @@
 }
 
 .confirmation-buttons button:first-child:hover {
-  background: #f5f5f5;
+  background: var(--muted);
 }
 
 .confirm-button {
