@@ -84,7 +84,7 @@
 
 /* Text contrast */
 .high-contrast {
-  color: var(--text-primary);
+  color: var(--foreground);
   background-color: var(--background-primary);
 }
 
@@ -94,19 +94,19 @@
 .high-contrast h4,
 .high-contrast h5,
 .high-contrast h6 {
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 700; /* Bolder for better visibility */
 }
 
 .high-contrast p,
 .high-contrast span,
 .high-contrast label {
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .high-contrast .text-secondary,
 .high-contrast .setting-hint {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 /* Links */
@@ -185,7 +185,7 @@
 .high-contrast select {
   border: var(--border-width) var(--border-style) var(--border-color);
   background-color: var(--background-primary);
-  color: var(--text-primary);
+  color: var(--foreground);
   min-height: 44px;
   font-weight: 500;
 }
@@ -391,7 +391,7 @@
 .high-contrast .tooltip {
   border: var(--border-width) var(--border-style) var(--border-color);
   background-color: var(--background-tertiary);
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 600;
 }
 

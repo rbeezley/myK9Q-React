@@ -22,6 +22,7 @@ import { exportPersonalData, clearAllData, getStorageUsage, formatBytes } from '
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
 import smartConfirmationService from '@/services/smartConfirmation';
 import { Download, CheckCircle2, AlertCircle, Database, Trash2, Volume2, User } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import './Settings.css';
 
 export function Settings() {
@@ -349,6 +350,17 @@ export function Settings() {
             <span className="toggle-slider"></span>
           </label>
         </div>
+      </CollapsibleSection>
+
+      {/* Theme Experiment Section */}
+      <CollapsibleSection
+        id="theme-section"
+        title="Theme"
+        description="Experimental: Test green vs blue primary color"
+        defaultExpanded={false}
+        badge={1}
+      >
+        <ThemeToggle />
       </CollapsibleSection>
 
       {/* Performance Section */}

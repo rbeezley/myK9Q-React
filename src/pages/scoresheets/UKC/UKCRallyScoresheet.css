@@ -399,7 +399,7 @@
 .confirmation-details p {
   margin: 0.75rem 0;
   font-size: 0.9375rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   line-height: 1.4;
 }
 

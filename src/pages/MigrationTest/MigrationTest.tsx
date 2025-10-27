@@ -10,7 +10,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   detectDatabaseWithValidation,
-  isMigrationModeEnabled,
   getMigrationStatus
 } from '../../services/databaseDetectionService';
 import { authenticatePasscode } from '../../services/authService';
@@ -225,7 +224,7 @@ export function MigrationTest() {
         <div className="results-section">
           <h2>Test Results</h2>
           <div className="results-list">
-            {testResults.map((result, index) => (
+            {testResults.map((result) => (
               <div
                 key={`${result.passcode}-${result.timestamp.getTime()}`}
                 className={`result-item ${result.success ? 'success' : 'failure'} ${result.database}`}

@@ -25,6 +25,7 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
   disabled = false,
   error = false,
   autoFocus = true,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   placeholder = 'Enter 5-char passcode'
 }) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);

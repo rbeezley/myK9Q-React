@@ -130,14 +130,14 @@
   border: none;
   border-radius: 0.25rem;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .actions-trigger:hover {
   background: var(--surface-variant);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .actions-trigger svg {
@@ -167,7 +167,7 @@
   border: none;
   border-radius: 0.375rem;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -193,7 +193,7 @@
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
   line-height: 1.4;
 }
 
@@ -203,7 +203,7 @@
 }
 
 .content-text {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -284,7 +284,7 @@
 }
 
 .author-name {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-weight: 500;
 }
 
@@ -551,7 +551,7 @@
 
 .filter-title {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .clear-filters-btn {
@@ -562,7 +562,7 @@
   border: 1px solid var(--text-tertiary);
   border-radius: 0.375rem;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -593,7 +593,7 @@
 .filter-label {
   display: block;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-bottom: 0.75rem;
 }
 
@@ -608,7 +608,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--surface);
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -684,7 +684,7 @@
 }
 
 .toggle-text {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -697,7 +697,7 @@
 }
 
 .summary-text {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -746,14 +746,14 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .author-badge {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -772,7 +772,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--surface);
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -792,7 +792,7 @@
   border: none;
   border-radius: 0.5rem;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -833,7 +833,7 @@
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
 }
 
@@ -849,7 +849,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--surface);
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.2s ease;
@@ -928,11 +928,11 @@
 
 .priority-label {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .priority-description {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -953,7 +953,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .preview-announcement {
@@ -967,11 +967,11 @@
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0 0 0.75rem 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .preview-content-text {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   line-height: 1.6;
   margin-bottom: 0.75rem;
   white-space: pre-wrap;
@@ -988,7 +988,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .preview-expiry {
@@ -1043,12 +1043,12 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .error-content p {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 /* Modal Footer */
@@ -1084,12 +1084,12 @@
 .btn-secondary {
   border-color: var(--border);
   background: var(--surface);
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  border-color: var(--text-secondary);
-  color: var(--text-primary);
+  border-color: var(--token-text-secondary);
+  color: var(--foreground);
 }
 
 .btn-primary {

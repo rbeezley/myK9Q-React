@@ -48,7 +48,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .unread-badge {
@@ -78,7 +78,7 @@
   border: none;
   border-radius: 0.5rem;
   background: var(--surface-variant);
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -153,7 +153,7 @@
   border-radius: 0.25rem;
   font-family: monospace;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .context-status {
@@ -204,7 +204,7 @@
   left: 0.75rem;
   width: 1rem;
   height: 1rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   z-index: 1;
 }
 
@@ -214,7 +214,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--surface);
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.2s ease;
@@ -225,7 +225,7 @@
 }
 
 .search-input::placeholder {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .clear-search-btn {
@@ -239,7 +239,7 @@
   border: none;
   border-radius: 0.25rem;
   background: var(--surface-variant);
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -302,7 +302,7 @@
   justify-content: center;
   padding: 3rem 1rem;
   gap: 1rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .loading-state svg {
@@ -319,7 +319,7 @@
   padding: 3rem 1rem;
   gap: 1rem;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .empty-icon {
@@ -332,7 +332,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .empty-state p {
@@ -386,7 +386,7 @@
   border-radius: 2rem;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   backdrop-filter: blur(10px);
   z-index: 5;
 }

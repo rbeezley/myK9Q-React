@@ -111,7 +111,7 @@
   gap: 0.5rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .header-icon {
@@ -122,7 +122,7 @@
 
 .header-subtitle {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   margin-top: 0.25rem;
 }
 
@@ -151,7 +151,7 @@
 .refresh-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   transition: transform 0.5s ease;
 }
 
@@ -183,7 +183,7 @@
 
 .instructions-panel h3 {
   margin: 0 0 1rem 0;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 600;
   font-size: 1.125rem;
 }
@@ -191,7 +191,7 @@
 .instructions-panel ol {
   margin: 0 0 1rem 0;
   padding-left: 1.5rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .instructions-panel li {
@@ -200,7 +200,7 @@
 }
 
 .instructions-panel li strong {
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .tip {
@@ -236,14 +236,14 @@
   gap: 0.5rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
 }
 
 .input-icon {
   width: 1rem;
   height: 1rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .admin-input {
@@ -254,7 +254,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   font-size: 1rem;
-  color: var(--text-primary);
+  color: var(--foreground);
   transition: all 0.2s ease;
 }
 
@@ -285,7 +285,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.875rem;
@@ -298,7 +298,7 @@
 
 .selection-count {
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   padding: 0.5rem 1rem;
   background-color: var(--muted);
   border-radius: 0.5rem;
@@ -366,12 +366,12 @@
 .release-card-btn .btn-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .release-card-btn .btn-description {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   line-height: 1.3;
 }
 
@@ -508,7 +508,7 @@
 
 .classes-header h2 {
   margin: 0;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 600;
   font-size: 1.25rem;
 }
@@ -524,7 +524,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 /* Status badges - smaller for top-right positioning */
@@ -704,7 +704,7 @@
 
 .class-meta {
   font-size: 0.8125rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-weight: 500;
   margin-top: 0.25rem;
 }
@@ -721,7 +721,7 @@
 .element-name {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   line-height: 1.4;
   flex: 1;
   word-break: break-word;
@@ -745,7 +745,7 @@
 
 .label {
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   text-transform: uppercase;
   font-size: 0.6875rem;
   letter-spacing: 0.5px;
@@ -753,7 +753,7 @@
 
 .value {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
 }
 
@@ -768,12 +768,12 @@
 .release-timestamp,
 .completion-timestamp {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-bottom: 0.25rem;
 }
 
 .release-admin {
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 /* Loading and error states */
@@ -784,7 +784,7 @@
   align-items: center;
   justify-content: center;
   min-height: 20rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .loading-spinner {
@@ -821,7 +821,7 @@
 .no-classes {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
 }
 
 .no-classes-icon {
@@ -938,7 +938,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .sync-progress-icon {
@@ -966,13 +966,13 @@
 .sync-step-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
 .sync-step-message {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   line-height: 1.5;
 }
 
@@ -1011,7 +1011,7 @@
 .sync-progress-text {
   text-align: center;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-weight: 500;
 }
 

@@ -19,7 +19,7 @@
 .search-icon {
   position: absolute;
   left: 1rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--token-text-secondary, #6b7280);
   pointer-events: none;
 }
 
@@ -30,13 +30,13 @@
   border: var(--token-space-xs) solid var(--border-color, #e5e7eb);
   border-radius: var(--token-space-lg);
   font-size: 1rem;
-  color: var(--text-primary, #111827);
+  color: var(--foreground);
   background-color: var(--background-primary, #ffffff);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-input::placeholder {
-  color: var(--text-secondary, #9ca3af);
+  color: var(--token-text-secondary, #9ca3af);
 }
 
 .search-input:hover {
@@ -61,7 +61,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--text-secondary, #6b7280);
+  color: var(--token-text-secondary, #6b7280);
   cursor: pointer;
   border-radius: 50%;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -69,7 +69,7 @@
 
 .clear-search:hover {
   background-color: var(--background-tertiary, #f3f4f6);
-  color: var(--text-primary, #111827);
+  color: var(--foreground);
 }
 
 .clear-search:focus {
@@ -89,7 +89,7 @@
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: var(--token-space-md);
   font-size: 0.875rem;
-  color: var(--text-primary, #111827);
+  color: var(--foreground);
   background-color: var(--background-primary, #ffffff);
   cursor: pointer;
   transition: border-color 0.2s ease;
@@ -140,7 +140,7 @@
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--token-text-secondary, #6b7280);
   border-bottom: 1px solid var(--border-color, #e5e7eb);
 }
 
@@ -190,13 +190,13 @@
 .result-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: var(--foreground);
   margin-bottom: 0.25rem;
 }
 
 .result-description {
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--token-text-secondary, #6b7280);
   margin-bottom: 0.25rem;
   line-height: 1.4;
 }
@@ -214,7 +214,7 @@
 .result-arrow {
   flex-shrink: 0;
   margin-left: 1rem;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--token-text-secondary, #9ca3af);
 }
 
 /* Search Highlight */
@@ -236,13 +236,13 @@
 .no-results {
   padding: 2rem 1rem;
   text-align: center;
-  color: var(--text-secondary, #6b7280);
+  color: var(--token-text-secondary, #6b7280);
 }
 
 .no-results p:first-child {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
@@ -430,5 +430,5 @@
   display: block;
   padding: 2rem;
   text-align: center;
-  color: var(--text-secondary, #6b7280);
+  color: var(--token-text-secondary, #6b7280);
 }

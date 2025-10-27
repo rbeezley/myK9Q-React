@@ -21,10 +21,9 @@ async function testConnection(url: string, key: string, label: string, isLegacy:
       : ['shows']; // V3 tables
 
     let connected = false;
-    let lastError: any = null;
 
     for (const table of tablesToTry) {
-      const { data, error } = await client
+      const { error } = await client
         .from(table)
         .select('count')
         .limit(1);
@@ -34,7 +33,6 @@ async function testConnection(url: string, key: string, label: string, isLegacy:
         connected = true;
         break;
       } else {
-        lastError = error;
         // Continue trying other table names
       }
     }

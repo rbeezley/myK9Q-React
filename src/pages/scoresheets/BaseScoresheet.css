@@ -275,7 +275,7 @@
 
 .breed {
   font-size: 1rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -539,7 +539,7 @@
 
 .qual-button:nth-child(3).active {
   background: var(--text-secondary);
-  border-color: var(--text-secondary);
+  border-color: var(--token-text-secondary);
   color: white;
 }
 
@@ -715,7 +715,7 @@
 .confirmation-details p {
   margin: 0.75rem 0;
   font-size: 0.9375rem;
-  color: var(--text-secondary);
+  color: var(--token-text-secondary);
   line-height: 1.4;
 }
 

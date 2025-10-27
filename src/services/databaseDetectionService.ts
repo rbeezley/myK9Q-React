@@ -37,6 +37,7 @@ export interface DetectionResult {
  * @param licenseKey The license key to check
  * @returns true if show exists in legacy database
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
   if (!supabaseLegacy) {
     console.log('Legacy database not configured');
@@ -72,6 +73,7 @@ async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
  * @param licenseKey The license key to check
  * @returns true if show exists in V3 database
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function checkV3Database(licenseKey: string): Promise<boolean> {
   try {
     // V3 database uses shows table with license_key field
@@ -103,16 +105,19 @@ async function checkV3Database(licenseKey: string): Promise<boolean> {
  * @param passcode The 5-character passcode
  * @returns The potential license key patterns to check
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function extractPotentialLicenseKeys(passcode: string): string[] {
   if (!passcode || passcode.length !== 5) {
     return [];
   }
 
   // Extract the 4-character segment from passcode (excluding role prefix)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const segment = passcode.substring(1);
 
   // For migration period, we need to check all possible license key formats
   // This is a simplified check - actual validation happens in authService
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const potentialKeys: string[] = [];
 
   // We'll need to fetch all shows and check against each license key

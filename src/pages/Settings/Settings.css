@@ -69,7 +69,7 @@
 .settings-header h1 {
   font-size: 2.25rem;
   font-weight: 700;
-  color: var(--text-primary, #f9fafb);
+  color: var(--foreground);
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -109,7 +109,7 @@
 .settings-section h2 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-primary, #f9fafb);
+  color: var(--foreground);
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -118,7 +118,7 @@
 
 .section-description {
   font-size: 0.875rem;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--token-text-secondary);
   margin: 0 0 1rem 0;
   font-weight: 400;
 }
@@ -126,7 +126,7 @@
 .subsection-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--token-text-secondary);
   margin: var(--spacing-lg, 1.5rem) 0 var(--spacing-sm, 0.5rem) 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -192,13 +192,13 @@
 .setting-info label {
   font-size: 0.95rem;
   font-weight: 500;
-  color: var(--text-primary, #f9fafb);
+  color: var(--foreground);
   cursor: pointer;
 }
 
 .setting-hint {
   font-size: 0.8125rem;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--token-text-secondary);
   line-height: 1.5;
   font-weight: 400;
 }
@@ -210,7 +210,7 @@
   border: 1.5px solid rgba(75, 85, 99, 0.8);
   border-radius: 10px;
   font-size: 0.875rem;
-  color: var(--text-primary, #f9fafb);
+  color: var(--foreground);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f9fafb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -342,7 +342,7 @@
 .secondary-button {
   padding: 0.75rem 1.5rem;
   background: rgba(31, 41, 55, 0.8);
-  color: var(--text-primary, #f9fafb);
+  color: var(--foreground);
   border: 1.5px solid rgba(75, 85, 99, 0.8);
   border-radius: 10px;
   font-size: 0.875rem;
@@ -436,13 +436,13 @@
 .modal-content h3 {
   font-size: 1.375rem;
   font-weight: 700;
-  color: var(--text-primary, #f9fafb);
+  color: var(--foreground);
   margin: 0 0 var(--spacing-md, 1rem) 0;
 }
 
 .modal-content p {
   font-size: 0.9375rem;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--token-text-secondary);
   margin: 0 0 var(--spacing-xl, 2rem) 0;
   line-height: 1.6;
 }
