@@ -122,9 +122,9 @@ export const ClassList: React.FC = () => {
       // Debug: log trial data to see available fields
       console.log('🔍 Trial data loaded:', trialData);
 
-      // Load classes for this trial using normalized tables
+      // Load classes with pre-calculated entry counts using view_class_summary
       const { data: classData, error: classError } = await supabase
-        .from('classes')
+        .from('view_class_summary')
         .select('*')
         .eq('trial_id', parseInt(trialId!))
         .order('class_order');
@@ -151,14 +151,14 @@ export const ClassList: React.FC = () => {
 
         // Load ALL entries for this trial using getClassEntries from entryService
         // This properly queries the results table separately and joins in JavaScript
-        const classIds = classData.map(c => c.id);
+        const classIds = classData.map(c => c.class_id);
         const allTrialEntries = await getClassEntries(classIds, showContext?.licenseKey || '');
 
         // Process classes with entry data
         const processedClasses = classData.map((cls: any) => {
           // Filter entries for this specific class using class_id
           const entryData = allTrialEntries.filter(entry =>
-            entry.classId === cls.id
+            entry.classId === cls.class_id
           );
 
           // Debug logging for Container Novice classes
@@ -221,7 +221,7 @@ export const ClassList: React.FC = () => {
           }
 
           return {
-            id: cls.id,
+            id: cls.class_id,
             element: cls.element,
             level: cls.level,
             section: cls.section,
@@ -233,12 +233,12 @@ export const ClassList: React.FC = () => {
             completed_count: completedCount,
             class_status: cls.class_status || 'none',
             is_completed: cls.is_completed || false,
-            is_favorite: currentFavorites.has(cls.id),
+            is_favorite: currentFavorites.has(cls.class_id),
             time_limit_seconds: cls.time_limit_seconds,
             time_limit_area2_seconds: cls.time_limit_area2_seconds,
             time_limit_area3_seconds: cls.time_limit_area3_seconds,
             area_count: cls.area_count,
-            // Parse time values from class_status_comment based on current status
+            // Parse time values from class_status_comment based on current status (not in view, but may be added later)
             briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
             break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
             start_time: cls.class_status === 'start_time' ? cls.class_status_comment : undefined,

@@ -228,54 +228,34 @@ export const Home: React.FC = () => {
 
       let processedTrials: TrialData[] = [];
 
-      // Process trials with counts - OPTIMIZED to reduce database queries
+      // Process trials with counts - OPTIMIZED using view_class_summary
       if (trialsData && trialsData.length > 0) {
         const trialIds = trialsData.map(t => t.id);
 
-        // Fetch all classes for all trials in ONE query
-        const { data: allClasses } = await supabase
-          .from('classes')
-          .select('id, trial_id, is_completed')
+        // Fetch pre-aggregated class data with entry counts in ONE query
+        const { data: classSummaries } = await supabase
+          .from('view_class_summary')
+          .select('*')
           .in('trial_id', trialIds);
 
-        // Group classes by trial_id
-        const classesByTrial = new Map<number, typeof allClasses>();
-        allClasses?.forEach(cls => {
+        // Group class summaries by trial_id
+        const classesByTrial = new Map<number, typeof classSummaries>();
+        classSummaries?.forEach(cls => {
           if (!classesByTrial.has(cls.trial_id)) {
             classesByTrial.set(cls.trial_id, []);
           }
           classesByTrial.get(cls.trial_id)!.push(cls);
         });
 
-        // Get all class IDs for entry counting
-        const allClassIds = allClasses?.map(c => c.id) || [];
-
-        // Fetch entry counts for all classes in ONE query
-        const { data: allEntries } = await supabase
-          .from('entries')
-          .select('id, class_id')
-          .in('class_id', allClassIds);
-
-        // Fetch scored results for all entries in ONE query
-        const entryIds = allEntries?.map(e => e.id) || [];
-        const { data: scoredResults } = entryIds.length > 0 ? await supabase
-          .from('results')
-          .select('entry_id')
-          .in('entry_id', entryIds)
-          .eq('is_scored', true) : { data: [] };
-
-        const scoredEntryIds = new Set(scoredResults?.map(r => r.entry_id) || []);
-
-        // Process trials with the data we already have
+        // Process trials using pre-calculated counts from view
         processedTrials = trialsData.map(trial => {
           const trialClasses = classesByTrial.get(trial.id) || [];
           const totalClasses = trialClasses.length;
           const completedClasses = trialClasses.filter(c => c.is_completed).length;
 
-          const classIds = trialClasses.map(c => c.id);
-          const trialEntries = allEntries?.filter(e => classIds.includes(e.class_id)) || [];
-          const totalEntries = trialEntries.length;
-          const completedEntries = trialEntries.filter(e => scoredEntryIds.has(e.id)).length;
+          // Sum pre-calculated entry counts from view
+          const totalEntries = trialClasses.reduce((sum, c) => sum + (c.total_entries || 0), 0);
+          const completedEntries = trialClasses.reduce((sum, c) => sum + (c.scored_entries || 0), 0);
 
           return {
             ...trial,

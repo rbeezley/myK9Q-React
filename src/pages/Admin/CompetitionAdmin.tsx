@@ -31,6 +31,9 @@ interface ClassInfo {
   results_released_by: string | null;
   class_completed_at: string | null;
   self_checkin: boolean;
+  // Entry counts from view_class_summary (available but not displayed yet)
+  total_entries?: number;
+  scored_entries?: number;
   // Legacy fields (deprecated)
   auto_release_results?: boolean;
   results_released?: boolean;
@@ -80,43 +83,33 @@ export const CompetitionAdmin: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      // Use view_class_summary for richer data with pre-aggregated counts
       const { data, error: fetchError } = await supabase
-        .from('classes')
-        .select(`
-          id,
-          element,
-          level,
-          section,
-          judge_name,
-          self_checkin_enabled,
-          trials!inner (
-            trial_date,
-            trial_number,
-            shows!inner (
-              license_key
-            )
-          )
-        `)
-        .eq('trials.shows.license_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
+        .from('view_class_summary')
+        .select('*')
+        .eq('license_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
         .order('element', { ascending: true });
 
       if (fetchError) throw fetchError;
 
-      // Flatten the nested structure from Supabase
+      // Map view columns to ClassInfo interface
       const flattenedClasses = (data || []).map((classData: any) => ({
-        id: classData.id,
+        id: classData.class_id,
         element: classData.element,
         level: classData.level,
         section: classData.section,
         judge_name: classData.judge_name,
-        trial_date: classData.trials?.trial_date || '',
-        trial_number: classData.trials?.trial_number || '',
+        trial_date: classData.trial_date || '',
+        trial_number: classData.trial_number?.toString() || '',
         release_mode: 'hidden' as ReleaseMode, // Default since field may not exist
         class_completed: classData.is_completed || false,
         results_released_at: null,
         results_released_by: null,
         class_completed_at: null,
-        self_checkin: classData.self_checkin_enabled || false
+        self_checkin: classData.self_checkin_enabled || false,
+        // Bonus: entry counts now available from view (not used in UI yet)
+        total_entries: classData.total_entries || 0,
+        scored_entries: classData.scored_entries || 0
       }));
 
       setClasses(flattenedClasses);

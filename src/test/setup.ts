@@ -2,7 +2,7 @@
  * Test setup file for Vitest
  */
 
-import { vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
 // Mock environment variables
@@ -73,17 +73,4 @@ window.addEventListener = vi.fn((event: string, handler: any) => {
     return;
   }
   return originalAddEventListener.call(window, event, handler);
-});
-
-// Reset mocks before each test
-beforeEach(() => {
-  vi.clearAllMocks();
-  localStorageMock.getItem.mockClear();
-  localStorageMock.setItem.mockClear();
-  localStorageMock.removeItem.mockClear();
-  localStorageMock.clear.mockClear();
-  sessionStorageMock.getItem.mockClear();
-  sessionStorageMock.setItem.mockClear();
-  sessionStorageMock.removeItem.mockClear();
-  sessionStorageMock.clear.mockClear();
 });

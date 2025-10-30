@@ -73,8 +73,17 @@ npm run setup        # Interactive Supabase environment setup
   - `warning_notes` (text): Custom warning message for display
   - `updated_at` (timestamp): Auto-updated via trigger when rules change
 
-**Key View**:
+**Key Views**:
 - `view_entry_class_join_normalized`: Pre-joined data for queries (entries + classes + trials + shows)
+- `view_trial_summary_normalized`: Trial summary with show context (trial info + show info)
+- `view_class_summary`: **Performance view** - Pre-aggregated entry counts and scoring statistics per class
+  - Eliminates: 3-4 separate queries per class list
+  - Returns: Class info + trial info + show info + 7 aggregated counts (total_entries, scored_entries, checked_in_count, at_gate_count, in_ring_count, qualified_count, nq_count)
+  - Use in: ClassList, Home dashboard, CompetitionAdmin pages
+- `view_entry_with_results`: **Performance view** - Entries pre-joined with results table
+  - Eliminates: Separate entries + results queries + JavaScript map/join logic
+  - Returns: All entry fields + all result fields + computed convenience fields
+  - Use in: entryService, entry lists, scoresheet data loading, dog details
 
 **Real-time Subscriptions**:
 - Use standard `id` field for all tables

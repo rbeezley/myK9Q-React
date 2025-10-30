@@ -75,9 +75,9 @@ export async function getClassEntries(
       throw new Error('Could not find class');
     }
 
-    // Query entries and results separately, then join in JavaScript
+    // Use view_entry_with_results for pre-joined data (entries + results in one query)
     const { data: viewData, error: viewError } = await supabase
-      .from('entries')
+      .from('view_entry_with_results')
       .select(`
         *,
         classes!inner (
@@ -95,7 +95,7 @@ export async function getClassEntries(
       `)
       .in('class_id', classIdArray)
       .eq('classes.trials.shows.license_key', licenseKey)
-      .order('armband_number', { ascending: true });
+      .order('armband_number', { ascending: true});
 
     if (viewError) {
       console.error('Error fetching class entries from view:', viewError);
@@ -104,38 +104,6 @@ export async function getClassEntries(
 
     if (!viewData || viewData.length === 0) {
       return [];
-    }
-
-    // Get all results for entries in this class
-    const entryIds = viewData.map(entry => entry.id);
-    const { data: resultsData, error: resultsError } = await supabase
-      .from('results')
-      .select(`
-        entry_id,
-        is_scored,
-        is_in_ring,
-        result_status,
-        search_time_seconds,
-        total_faults,
-        final_placement,
-        total_correct_finds,
-        total_incorrect_finds,
-        no_finish_count,
-        points_earned,
-        disqualification_reason
-      `)
-      .in('entry_id', entryIds);
-
-    if (resultsError) {
-      console.error('Error fetching results:', resultsError);
-    }
-
-    // Create a map of entry_id -> result for quick lookup
-    const resultsMap = new Map();
-    if (resultsData) {
-      resultsData.forEach(result => {
-        resultsMap.set(result.entry_id, result);
-      });
     }
 
     // Helper function to convert seconds to MM:SS format
@@ -153,24 +121,18 @@ export async function getClassEntries(
       return formatted;
     };
 
-    // Map database fields to Entry interface using normalized table structure
+    // Map view columns to Entry interface (results already pre-joined in view)
     const mappedEntries = viewData.map(row => {
-      const result = resultsMap.get(row.id); // Get result from our results map
-
       // Debug logging for specific entries
       if (row.id === 6714 || row.id === 6715) {
         console.log(`🐛 MAPPING ENTRY ${row.id} (${row.armband_number}):`, {
-          result: result,
-          resultIsScored: result?.is_scored,
-          finalIsScored: result?.is_scored || false
+          isScored: row.computed_is_scored,
+          resultStatus: row.result_status
         });
-        // Debug mapping completed
       }
 
-      // Determine unified status
-      // Use entry_status as single source of truth (migration 014)
-      const status = (row.entry_status as EntryStatus | undefined) ||
-                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'none' as EntryStatus);
+      // Determine unified status using computed_status from view
+      const status = row.computed_status as EntryStatus;
 
       return {
         id: row.id,
@@ -180,7 +142,7 @@ export async function getClassEntries(
         handler: row.handler_name,
         jumpHeight: '', // Not in normalized schema yet
         preferredTime: '', // Not in normalized schema yet
-        isScored: result?.is_scored || false,
+        isScored: row.computed_is_scored,
 
         // New unified status field
         status,
@@ -190,15 +152,15 @@ export async function getClassEntries(
         checkedIn: status !== 'none',
         checkinStatus: status,
 
-        resultText: result?.result_status || 'pending',
-        searchTime: result?.search_time_seconds?.toString() || '0.00',
-        faultCount: result?.total_faults || 0,
-        placement: result?.final_placement ?? undefined,
-        correctFinds: result?.total_correct_finds || 0,
-        incorrectFinds: result?.total_incorrect_finds || 0,
-        noFinishCount: result?.no_finish_count || 0,
-        totalPoints: result?.points_earned || 0,
-        nqReason: result?.disqualification_reason || undefined,
+        resultText: row.result_status || 'pending',
+        searchTime: row.search_time_seconds?.toString() || '0.00',
+        faultCount: row.total_faults || 0,
+        placement: row.final_placement ?? undefined,
+        correctFinds: row.total_correct_finds || 0,
+        incorrectFinds: row.total_incorrect_finds || 0,
+        noFinishCount: row.no_finish_count || 0,
+        totalPoints: row.points_earned || 0,
+        nqReason: row.disqualification_reason || undefined,
         excusedReason: row.excuse_reason || undefined,
         withdrawnReason: row.withdrawal_reason || undefined,
         classId: row.class_id,
