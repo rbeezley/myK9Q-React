@@ -1,6 +1,8 @@
 /* Import design tokens first - available everywhere */
 @import './styles/design-tokens.css';
 @import './styles/apple-design-system.css';
+@import './styles/shared-components.css';
+@import './styles/message-banner.css';
 @import './styles/page-container.css';
 @import './styles/utilities.css';
 @import './styles/touch-feedback.css';

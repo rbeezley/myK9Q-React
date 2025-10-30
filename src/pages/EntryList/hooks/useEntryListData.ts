@@ -117,13 +117,13 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
       // Fetch class data for both classes
       const { data: classDataA } = await supabase
         .from('classes')
-        .select('judge_name, self_checkin_enabled')
+        .select('judge_name, self_checkin_enabled, class_status')
         .eq('id', parseInt(classIdA))
         .single();
 
       const { data: classDataB } = await supabase
         .from('classes')
-        .select('judge_name')
+        .select('judge_name, class_status')
         .eq('id', parseInt(classIdB))
         .single();
 
@@ -141,6 +141,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
         actualClassIdA: parseInt(classIdA),
         actualClassIdB: parseInt(classIdB),
         selfCheckin: classDataA?.self_checkin_enabled ?? true,
+        classStatus: classDataA?.class_status || classDataB?.class_status || 'pending',  // Use Section A status, fallback to B, then default
         timeLimit: firstEntry.timeLimit,
         timeLimit2: firstEntry.timeLimit2,
         timeLimit3: firstEntry.timeLimit3,

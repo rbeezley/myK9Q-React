@@ -14,33 +14,20 @@
 
 /* ========== HEADER ========== */
 
+/* Header inherits from global .page-header in page-container.css */
 .entry-list-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1.25rem;
-  padding-top: var(--token-space-lg);
-  padding-bottom: var(--token-space-lg);
-  margin-left: -1rem;
-  margin-right: -1rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-}
-
-.entry-list-header .menu-button {
-  margin-top: 0.125rem;
+  justify-content: space-between;
+  gap: var(--token-space-xl);
 }
 
 .header-buttons {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;  /* Ensure buttons stay on the right */
+  flex-shrink: 0;     /* Prevent buttons from shrinking */
+  position: relative;
+  z-index: 200;  /* Higher than page-header (100) to ensure dropdown appears above tabs */
 }
 
 /* Back button */
@@ -78,18 +65,77 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Trial info */
-.trial-info {
-  flex: 1;
+/* Class/Trial info - Simplified for better mobile UX */
+.trial-info,
+.class-info {
+  flex: 0 1 auto;  /* Don't take all available space, just what's needed */
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  padding: 0 var(--token-space-md);
+  max-width: 100%;  /* Prevent overflow */
 }
 
-.trial-info h1 {
-  font-size: 1.125rem;
-  font-weight: 700;
+.trial-info h1,
+.class-info h1 {
+  font-size: 0.875rem;  /* Smaller for mobile */
+  font-weight: 590;
   color: var(--foreground);
-  margin: 0 0 0.25rem 0;
+  margin: 0;
   line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
+}
+
+.class-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-sm);
+  width: 100%;
+}
+
+/* Simplified subtitle - always visible */
+.class-subtitle {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.trial-info-simple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+  font-size: 0.8125rem;  /* Slightly larger for better readability */
+  color: var(--token-text-secondary);
+  margin-top: 2px;
+}
+
+.trial-date-text,
+.trial-number-text {
+  font-weight: 500;
+}
+
+.trial-separator {
+  color: var(--token-text-tertiary);
+}
+
+/* Status badge styling */
+.class-status-badge {
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  margin-left: var(--token-space-sm);
+  border-radius: var(--token-radius-sm);
+  font-weight: 600;
 }
 
 .trial-meta {
@@ -111,12 +157,39 @@
   color: var(--border);
 }
 
-/* Print dropdown */
-.print-dropdown-container {
+/* Trial details row */
+.trial-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+}
+
+.trial-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-xs);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--token-text-secondary);
+  background: transparent;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.trial-detail svg {
+  color: var(--token-text-secondary);
+  stroke: var(--token-text-secondary);
+  fill: none;
+  flex-shrink: 0;
+}
+
+/* Actions menu (3-dot menu) */
+.actions-menu-container {
   position: relative;
 }
 
-.print-dropdown-menu {
+.actions-dropdown-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
@@ -124,16 +197,18 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  min-width: 200px;
+  z-index: 10000;  /* Higher than header (100) and tabs */
+  min-width: 220px;  /* Increased width to prevent text wrapping */
+  max-width: calc(100vw - 2rem);  /* Prevent going off screen */
   overflow: hidden;
+  margin-right: 0.25rem;  /* Small margin from edge */
 }
 
 .theme-dark .print-dropdown-menu {
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
 }
 
-.print-menu-item {
+.action-menu-item {
   width: 100%;
   padding: 0.75rem 1rem;
   background: none;
@@ -145,18 +220,23 @@
   transition: background-color 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.75rem;
 }
 
-.print-menu-item:hover {
+.action-menu-item:hover {
   background: var(--muted);
 }
 
-.print-menu-item:active {
+.action-menu-item:active {
   background: var(--input);
 }
 
-.print-menu-separator {
+.action-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-divider {
   height: 1px;
   background: var(--border);
   margin: 0.25rem 0;
@@ -175,6 +255,9 @@
   border: 1px solid var(--border);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  position: static !important;  /* Override sticky position from shared-components.css */
+  top: auto !important;  /* Remove sticky top positioning */
+  z-index: auto !important;  /* Remove any z-index stacking context */
 }
 
 .status-tab {
@@ -340,16 +423,10 @@
   margin: 0 var(--token-space-lg) var(--token-space-lg);
 }
 
+/* Note: Base search-controls-header styles are now in shared-components.css */
 .search-controls-header {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0.75rem var(--token-space-lg);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--token-space-md);
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .search-controls-header:hover {
@@ -384,14 +461,7 @@
   text-align: center;
 }
 
-/* Collapsible search container */
-.search-sort-container {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--token-space-md);
-  margin-bottom: var(--token-space-lg);
-  overflow: hidden;
-}
+/* Note: Base search-sort-container styles are now in shared-components.css */
 
 .search-sort-content {
   max-height: 0;
@@ -533,13 +603,9 @@
   padding: 0 var(--token-space-lg) var(--token-space-lg);
 }
 
-.entries-grid {
-  display: grid;
-  gap: var(--token-space-lg);
-  grid-template-columns: 1fr;
-}
+/* Grid layout now handled by global .grid-responsive utility */
 
-.entries-grid.drag-mode {
+.drag-mode {
   display: block;
 }
 
@@ -718,7 +784,7 @@
 /* Check-in status colors */
 .checkin-status.not-checked-in {
   background: var(--token-status-none-bg);
-  color: var(--token-status-none);
+  color: #ffffff;  /* White text for readability on gray background */
 }
 
 .checkin-status.checked-in {
@@ -1000,19 +1066,24 @@
 /* ========== RESPONSIVE: TABLET (640px+) ========== */
 
 @media (min-width: 640px) {
-  .entry-list-header {
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+
+  /* Show trial details on tablet and up */
+  .trial-details-group {
+    display: flex;
+    gap: var(--token-space-lg);
+    align-items: center;
+    flex-wrap: wrap;
   }
 
-  .trial-info h1 {
-    font-size: 1.25rem;
+  .trial-info h1,
+  .class-info h1 {
+    font-size: 1rem;
   }
 
-  .entries-grid {
-    grid-template-columns: repeat(2, 1fr);
+  /* Keep header flexible on tablet - no absolute positioning needed */
+  .trial-info,
+  .class-info {
+    align-items: center;
   }
 
   .checkin-status.mobile-touch-target {
@@ -1042,17 +1113,6 @@
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
   }
 
-  .entry-list-header {
-    margin-left: -2rem;
-    margin-right: -2rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-
-  .trial-info h1 {
-    font-size: 1.5rem;
-  }
-
   .status-tabs {
     max-width: 600px;
     margin: 1rem auto;
@@ -1061,10 +1121,6 @@
   .mobile-search-container {
     max-width: 600px;
     margin: 1rem auto 0 auto;
-  }
-
-  .entries-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 
   .entry-card {

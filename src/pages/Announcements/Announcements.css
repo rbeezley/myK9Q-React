@@ -5,23 +5,9 @@
   padding-bottom: 2rem;
 }
 
-/* Header */
+/* Header - inherits from global .page-header in page-container.css */
 .announcements-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid var(--border);
-  padding: var(--token-space-lg) var(--token-space-3xl);
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  min-height: 56px;
-}
-
-.theme-dark .announcements-header {
-  background: rgba(26, 29, 35, 0.8);
 }
 
 .header-center {

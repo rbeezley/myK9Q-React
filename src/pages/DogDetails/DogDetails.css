@@ -14,26 +14,10 @@
   padding-bottom: 100px;
 }
 
-/* ========== HEADER WITH GLASS MORPHISM ========== */
+/* ========== HEADER - inherits from global .page-header ========== */
 
 .dog-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 64px;
-  padding: 0 var(--token-space-xl);
-  background: rgba(254, 254, 254, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.theme-dark .dog-header {
-  background: rgba(26, 29, 35, 0.8);
 }
 
 .dog-header h1 {

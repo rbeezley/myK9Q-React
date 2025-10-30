@@ -4,13 +4,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, HeaderTicker, TrialDateBadge, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, Target, User, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered } from 'lucide-react';
-import { parseOrganizationData } from '../../utils/organizationUtils';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
+import { parseOrganizationData } from '../../utils/organizationUtils';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { applyRunOrderPreset } from '../../services/runOrderService';
@@ -44,6 +44,16 @@ export const EntryList: React.FC = () => {
   const { prefetch } = usePrefetch();
   const { settings } = useSettingsStore();
 
+  // Simple date formatter
+  const formatTrialDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
   // Data management using shared hook
   const {
     entries,
@@ -67,11 +77,40 @@ export const EntryList: React.FC = () => {
 
   // Real-time subscriptions using shared hook
   const actualClassId = classInfo?.actualClassId;
-  const classIds = actualClassId ? [actualClassId] : [];
+  const classIds = useMemo(
+    () => actualClassId ? [actualClassId] : [],
+    [actualClassId]
+  );
+
+  // Callback to handle real-time entry updates
+  const handleEntryUpdate = useCallback((payload: any) => {
+    console.log('🔥 handleEntryUpdate called with payload:', payload);
+    // Update local entries immediately based on real-time changes
+    if (payload.eventType === 'UPDATE' && payload.new) {
+      console.log('🔥 Updating entry:', payload.new.id, 'to status:', payload.new.entry_status);
+      setLocalEntries(prev => {
+        const updated = prev.map(entry =>
+          entry.id === payload.new.id
+            ? {
+                ...entry,
+                checkedIn: payload.new.entry_status !== 'none',
+                status: payload.new.entry_status,
+                inRing: payload.new.in_ring || false,
+                isScored: payload.new.is_scored || false
+              }
+            : entry
+        );
+        console.log('🔥 Updated entries count:', updated.length);
+        return updated;
+      });
+    }
+  }, []);
+
   useEntryListSubscriptions({
     classIds,
     licenseKey: showContext?.licenseKey || '',
     onRefresh: refresh,
+    onEntryUpdate: handleEntryUpdate,
     enabled: classIds.length > 0
   });
 
@@ -262,24 +301,38 @@ export const EntryList: React.FC = () => {
 
     // Handle normal check-in status changes
     // Optimistic update: update local state immediately
+    // Create completely new object reference to ensure React detects the change
     setLocalEntries(prev => prev.map(entry =>
       entry.id === entryId
         ? {
             ...entry,
             checkedIn: status !== 'none',
-            checkinStatus: status,
+            status: status,
             inRing: false,
+            // Force new reference
+            _timestamp: Date.now()
           }
         : entry
     ));
 
-    // Sync with server (hook handles retry and rollback)
+    // Sync with server and WAIT for database write to complete
     try {
+      console.log('⏳ Waiting for database write to complete...');
       await handleStatusChangeHook(entryId, status);
+      console.log('✅ Database write confirmed - invalidating cache');
+      // Force refresh to invalidate cache and fetch latest data
+      // This ensures immediate page refresh shows the correct status
+      await refresh(true);
+      console.log('✅ Cache invalidated - safe to refresh now');
     } catch (error) {
       console.error('Status change failed:', error);
-      // Refresh to get correct state
-      refresh();
+      // Rollback optimistic update on error
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'none' }
+          : entry
+      ));
+      refresh(true);
     }
   };
 
@@ -354,6 +407,21 @@ export const EntryList: React.FC = () => {
     generateResultsSheet(reportClassInfo, localEntries);
     setShowPrintMenu(false);
   };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.actions-menu-container')) {
+        setShowPrintMenu(false);
+      }
+    };
+
+    if (showPrintMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showPrintMenu]);
 
   const getScoreSheetRoute = (entry: Entry): string => {
     return getScoresheetRoute({
@@ -606,8 +674,8 @@ export const EntryList: React.FC = () => {
   const statusBadge = getStatusBadge();
 
   return (
-    <div className={`entry-list-container page-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
-      <header className="entry-list-header">
+    <div className={`entry-list-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
+      <header className="page-header entry-list-header">
         <HamburgerMenu
           backNavigation={{
             label: "Back to Classes",
@@ -627,35 +695,16 @@ export const EntryList: React.FC = () => {
             )}
           </div>
           <div className="class-subtitle">
-            <div className="trial-info-row">
-              <div className="trial-details-group">
-                {classInfo?.trialDate && classInfo.trialDate !== '' && (
-                  <TrialDateBadge date={classInfo.trialDate} />
-                )}
-                {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
-                  <span className="trial-detail"><Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {classInfo.trialNumber}</span>
-                )}
-                {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
-                  <span className="trial-detail"><User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.judgeName}</span>
-                )}
-                {classInfo?.totalEntries !== undefined && (
-                  <span className="trial-detail"><ClipboardCheck size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.completedEntries || 0} of {classInfo.totalEntries} scored</span>
-                )}
-                {(classInfo?.timeLimit || classInfo?.timeLimit2 || classInfo?.timeLimit3) && (
-                  <span className="trial-detail time-limits">
-                    <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-                    {classInfo.areas && classInfo.areas > 1 ? (
-                      <>
-                        {classInfo.timeLimit && <span className="time-limit-badge">A1: {classInfo.timeLimit}</span>}
-                        {classInfo.timeLimit2 && <span className="time-limit-badge">A2: {classInfo.timeLimit2}</span>}
-                        {classInfo.timeLimit3 && <span className="time-limit-badge">A3: {classInfo.timeLimit3}</span>}
-                      </>
-                    ) : (
-                      <>{classInfo.timeLimit}</>
-                    )}
-                  </span>
-                )}
-              </div>
+            <div className="trial-info-simple">
+              {classInfo?.trialDate && classInfo.trialDate !== '' && (
+                <span className="trial-date-text">{formatTrialDate(classInfo.trialDate)}</span>
+              )}
+              {classInfo?.trialDate && classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
+                <span className="trial-separator">•</span>
+              )}
+              {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
+                <span className="trial-number-text">Trial {classInfo.trialNumber}</span>
+              )}
             </div>
           </div>
         </div>
@@ -677,39 +726,45 @@ export const EntryList: React.FC = () => {
             />
           )}
 
-          <div className="print-dropdown-container">
+          {/* Actions Menu (3-dot menu) */}
+          <div className="actions-menu-container">
             <button
-              className="icon-button"
+              className="icon-button actions-button"
               onClick={() => setShowPrintMenu(!showPrintMenu)}
-              title="Print Reports"
+              title="More Actions"
             >
-              <Printer className="h-5 w-5" />
+              <MoreVertical className="h-5 w-5" />
             </button>
 
             {showPrintMenu && (
-              <div className="print-dropdown-menu">
-                <button onClick={handlePrintCheckIn} className="print-menu-item">
-                  📄 Check-In Sheet
+              <div className="actions-dropdown-menu">
+                <button
+                  onClick={() => {
+                    setShowPrintMenu(false);
+                    handleRefresh();
+                  }}
+                  className="action-menu-item"
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'rotating' : ''}`} />
+                  Refresh
+                </button>
+                <div className="menu-divider" />
+                <button onClick={handlePrintCheckIn} className="action-menu-item">
+                  <Printer className="h-4 w-4" />
+                  Check-In Sheet
                 </button>
                 <button
                   onClick={handlePrintResults}
-                  className="print-menu-item"
+                  className="action-menu-item"
                   disabled={completedEntries.length === 0}
                 >
-                  📊 Results Sheet
+                  <ClipboardCheck className="h-4 w-4" />
+                  Results Sheet
                 </button>
               </div>
             )}
           </div>
-
-          <button
-            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </button>
         </div>
       </header>
 
@@ -723,7 +778,7 @@ export const EntryList: React.FC = () => {
       >
 
       {/* Search and Sort Header */}
-      <div className="search-controls-header">
+      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
         <button
           className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
           onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
@@ -873,7 +928,7 @@ export const EntryList: React.FC = () => {
               items={currentEntries.map(e => e.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className={`entries-grid ${isDragMode ? 'drag-mode' : ''}`}>
+              <div className={`grid-responsive ${isDragMode ? 'drag-mode' : ''}`}>
                 {currentEntries.map((entry) => (
                   <SortableEntryCard
                     key={entry.id}

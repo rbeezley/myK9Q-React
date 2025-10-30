@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { ArmbandBadge } from '../ui';
 import { usePermission } from '../../hooks/usePermission';
 import {
@@ -47,7 +48,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
     onClose();
   };
 
-  return (
+  const dialogContent = (
     <div className="dialog-overlay">
       <div className="dialog-container">
         <div className="dialog-header">
@@ -321,4 +322,6 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 };

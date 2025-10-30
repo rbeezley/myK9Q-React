@@ -7,10 +7,22 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem var(--token-space-lg);
+  margin: var(--token-space-lg);
+  margin-bottom: 0;
   background: var(--card);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-lg);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
   position: relative;
+}
+
+/* When search is collapsed, header should have rounded bottom corners */
+.search-controls-header.collapsed {
+  border-bottom-left-radius: var(--token-radius-lg);
+  border-bottom-right-radius: var(--token-radius-lg);
+  margin-bottom: var(--token-space-lg);
 }
 
 .search-toggle-icon {
@@ -40,7 +52,12 @@
 
 .search-sort-container {
   background: var(--card);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: var(--token-radius-lg);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin: 0 var(--token-space-lg) var(--token-space-lg) var(--token-space-lg);
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.2s ease;
 }
@@ -48,7 +65,8 @@
 .search-sort-container.collapsed {
   max-height: 0;
   opacity: 0;
-  border-bottom: none;
+  margin: 0 var(--token-space-lg);
+  border: none;
 }
 
 .search-sort-container.expanded {
@@ -108,15 +126,30 @@
 /* ========================
    Sort Controls
    ======================== */
+
+/* Higher specificity selectors to ensure proper cascade without !important */
+.search-sort-container .sort-controls,
 .sort-controls {
   display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: 0.5rem;
+  flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.sort-btn {
-  display: flex;
+.sort-controls::-webkit-scrollbar {
+  display: none;
+}
+
+/* Use button element selector for higher specificity */
+.sort-controls button.sort-btn,
+.sort-controls .sort-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.75rem;
@@ -126,19 +159,49 @@
   font-size: 0.75rem;
   color: var(--foreground);
   white-space: nowrap;
+  width: auto;
+  min-width: fit-content;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.sort-controls button.sort-btn:hover,
 .sort-btn:hover {
   background: var(--muted-hover);
   transform: translateY(-1px);
 }
 
+.sort-controls button.sort-btn.active,
 .sort-btn.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+}
+
+/* Desktop adjustments for search/sort */
+@media (min-width: 1024px) {
+  .search-controls-header {
+    padding: 0.75rem var(--token-space-3xl);
+    margin: var(--token-space-xl);
+    margin-bottom: 0;
+  }
+
+  .search-controls-header.collapsed {
+    margin-bottom: var(--token-space-xl);
+  }
+
+  .search-sort-container {
+    margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  }
+
+  .search-sort-container.collapsed {
+    margin: 0 var(--token-space-xl);
+  }
+
+  .search-sort-container.expanded {
+    max-height: 300px;
+    padding: 1rem 1.5rem;
+  }
 }
 
 /* ========================
@@ -201,6 +264,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: none;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .status-badge.disabled {
@@ -364,19 +429,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--card);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.75rem;
+  background: var(--secondary);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--foreground);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  color: var(--secondary-foreground);
+  flex-shrink: 0;
 }
 
 .icon-button:hover {
   background: var(--muted);
   transform: translateY(-1px);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
 }
 
 .icon-button:disabled {
@@ -387,6 +455,18 @@
 
 .icon-button.rotating {
   animation: spin 1s linear infinite;
+}
+
+/* Dark mode icon button visibility */
+.theme-dark .icon-button {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.theme-dark .icon-button:hover {
+  background: var(--secondary);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
 /* ========================
@@ -511,4 +591,65 @@
 
 .reset-dialog-confirm:hover {
   background: var(--destructive-hover);
+}
+
+/* ========================
+   Dropdown Menus
+   ======================== */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
+  z-index: 9999;  /* Very high z-index to appear above all content including tabs */
+  min-width: 220px;  /* Increased width to prevent text wrapping */
+  max-width: calc(100vw - 2rem);  /* Prevent going off screen */
+  overflow: hidden;
+  margin-right: 0.5rem;  /* Small margin from edge */
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition: background 0.2s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: var(--muted);
+}
+
+.dropdown-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdown-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.dropdown-icon.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, MoreHorizontal, Clock, Users } from 'lucide-react';
+import { Heart, MoreHorizontal, Clock, Users, UserCheck } from 'lucide-react';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
 
@@ -120,7 +120,10 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           {/* Class name and judge grouped together */}
           <div className="class-title-section">
             <h3 className="class-name">{classEntry.class_name}</h3>
-            <p className="class-judge">Judge: {classEntry.judge_name}</p>
+            <p className="class-judge">
+              <UserCheck />
+              Judge: {classEntry.judge_name}
+            </p>
             <div className="class-time-limits">
               <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
               <span className="time-limit-label">Max Time:</span>
@@ -155,7 +158,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           {hasPermission('canManageClasses') ? (
             <div
               className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
-              style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+              style={{ pointerEvents: 'auto' }}
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -175,7 +178,10 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                   <div className="status-badge-content">
                     <span className="status-text">{formattedStatus.label}</span>
                     {formattedStatus.time && (
-                      <span className="status-time">{formattedStatus.time}</span>
+                      <>
+                        {' '}
+                        <span className="status-time">{formattedStatus.time}</span>
+                      </>
                     )}
                   </div>
                 );
@@ -189,7 +195,10 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                   <div className="status-badge-content">
                     <span className="status-text">{formattedStatus.label}</span>
                     {formattedStatus.time && (
-                      <span className="status-time">{formattedStatus.time}</span>
+                      <>
+                        {' '}
+                        <span className="status-time">{formattedStatus.time}</span>
+                      </>
                     )}
                   </div>
                 );

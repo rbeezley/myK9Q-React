@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -6,9 +6,10 @@ import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorStat
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, Calendar, Target, User, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered, MoreVertical, Printer, ClipboardCheck } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
+import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { useEntryListData, useEntryListActions, useEntryListFilters, useEntryListSubscriptions } from './hooks';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import './EntryList.css';
@@ -41,6 +42,19 @@ export const CombinedEntryList: React.FC = () => {
     hasError
   } = useEntryListActions(refresh);
 
+  // Local UI state (must be declared before useEntryListFilters)
+  const [localEntries, setLocalEntries] = useState<Entry[]>([]);
+  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband'>('section-armband');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
+  const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
+  const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
+  const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+
   // Filters using shared hook (with section filter enabled)
   const {
     activeTab,
@@ -52,35 +66,63 @@ export const CombinedEntryList: React.FC = () => {
     filteredEntries,
     entryCounts
   } = useEntryListFilters({
-    entries,
+    entries: localEntries,
     supportManualSort: false,
     supportSectionFilter: true
   });
 
   // Real-time subscriptions using shared hook
-  const classIds = classIdA && classIdB ? [parseInt(classIdA), parseInt(classIdB)] : [];
+  const classIds = useMemo(
+    () => classIdA && classIdB ? [parseInt(classIdA), parseInt(classIdB)] : [],
+    [classIdA, classIdB]
+  );
+
+  // Callback to handle real-time entry updates
+  const handleEntryUpdate = useCallback((payload: any) => {
+    console.log('🔥🔥🔥 CombinedEntryList handleEntryUpdate CALLED');
+    console.log('🔥 payload:', payload);
+    console.log('🔥 payload.eventType:', payload.eventType);
+    console.log('🔥 payload.new:', payload.new);
+
+    // Update local entries immediately based on real-time changes
+    if (payload.eventType === 'UPDATE' && payload.new) {
+      console.log('🔥 Updating entry ID:', payload.new.id, 'to status:', payload.new.entry_status);
+      setLocalEntries(prev => {
+        const updated = prev.map(entry =>
+          entry.id === payload.new.id
+            ? {
+                ...entry,
+                checkedIn: payload.new.entry_status !== 'none',
+                status: payload.new.entry_status,
+                inRing: payload.new.in_ring || false,
+                isScored: payload.new.is_scored || false
+              }
+            : entry
+        );
+        console.log('🔥 Updated entries, found entry?', updated.some(e => e.id === payload.new.id));
+        return updated;
+      });
+      console.log('🔥 State update completed');
+    } else {
+      console.log('🔥 Skipping update - conditions not met');
+    }
+  }, []);
+
   useEntryListSubscriptions({
     classIds,
     licenseKey: showContext?.licenseKey || '',
     onRefresh: refresh,
+    onEntryUpdate: handleEntryUpdate,
     enabled: classIds.length > 0
   });
 
-  // Local UI state
-  const [localEntries, setLocalEntries] = useState<Entry[]>([]);
-  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband'>('section-armband');
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
-  const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
-  const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
-  const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
-  const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
-  const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
-  // Sync local entries with fetched data
+  // Sync local entries with fetched data whenever entries updates
+  // Using useEffect here is intentional for syncing external data
   useEffect(() => {
-    setLocalEntries(entries);
+    if (entries.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLocalEntries(entries);
+    }
   }, [entries]);
 
   // Initial load animation
@@ -88,6 +130,21 @@ export const CombinedEntryList: React.FC = () => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.actions-menu-container')) {
+        setShowActionsMenu(false);
+      }
+    };
+
+    if (showActionsMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showActionsMenu]);
 
   // Date formatting helper
   const formatTrialDate = (dateStr: string) => {
@@ -275,19 +332,37 @@ export const CombinedEntryList: React.FC = () => {
 
     // Handle normal check-in status changes
     // Optimistic update: update local state immediately
+    // Create completely new object reference to ensure React detects the change
     setLocalEntries(prev => prev.map(entry =>
       entry.id === entryId
-        ? { ...entry, status: newStatus }
+        ? {
+            ...entry,
+            checkedIn: newStatus !== 'none',
+            status: newStatus,
+            // Force new reference
+            _timestamp: Date.now()
+          }
         : entry
     ));
 
-    // Sync with server (hook handles rollback on error)
+    // Sync with server and WAIT for database write to complete
     try {
+      console.log('⏳ Waiting for database write to complete...');
       await handleStatusChangeHook(entryId, newStatus);
+      console.log('✅ Database write confirmed - invalidating cache');
+      // Force refresh to invalidate cache and fetch latest data
+      // This ensures immediate page refresh shows the correct status
+      await refresh(true);
+      console.log('✅ Cache invalidated - safe to refresh now');
     } catch (error) {
       console.error('Status change failed:', error);
-      // Refresh to get correct state
-      refresh();
+      // Rollback optimistic update on error
+      setLocalEntries(prev => prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'none' }
+          : entry
+      ));
+      refresh(true);
     }
   };
 
@@ -345,6 +420,91 @@ export const CombinedEntryList: React.FC = () => {
     }
   };
 
+  // Helper function to get status badge based on class status
+  const getStatusBadge = () => {
+    const status = classInfo?.classStatus;
+
+    if (status === 'in_progress') {
+      return { text: 'IN PROGRESS', className: 'status-in-progress' };
+    } else if (status === 'briefing') {
+      return { text: 'BRIEFING NOW', className: 'status-briefing' };
+    } else if (status === 'start_time') {
+      return { text: 'UPCOMING', className: 'status-upcoming' };
+    } else if (status === 'setup') {
+      return { text: 'UPCOMING', className: 'status-upcoming' };
+    }
+    return null;
+  };
+
+  const statusBadge = getStatusBadge();
+
+  // Print report handlers
+  const handlePrintCheckIn = () => {
+    if (!classInfo) return;
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} A & B Combined`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'A & B',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type
+    };
+
+    generateCheckInSheet(reportClassInfo, entries);
+    setShowActionsMenu(false);
+  };
+
+  const handlePrintResultsSectionA = () => {
+    if (!classInfo) return;
+
+    // Filter entries for Section A only
+    const sectionAEntries = entries.filter(entry => entry.section === 'A');
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} Section A`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'A',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type
+    };
+
+    generateResultsSheet(reportClassInfo, sectionAEntries);
+    setShowActionsMenu(false);
+  };
+
+  const handlePrintResultsSectionB = () => {
+    if (!classInfo) return;
+
+    // Filter entries for Section B only
+    const sectionBEntries = entries.filter(entry => entry.section === 'B');
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} Section B`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'B',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeNameB || classInfo.judgeName || 'TBD',  // Use judgeNameB for Section B
+      organization: orgData.organization,
+      activityType: orgData.activity_type
+    };
+
+    generateResultsSheet(reportClassInfo, sectionBEntries);
+    setShowActionsMenu(false);
+  };
+
   // Loading state
   if (!entries.length && !fetchError) {
     return (
@@ -373,8 +533,8 @@ export const CombinedEntryList: React.FC = () => {
   }
 
   return (
-    <div className={`entry-list-container app-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
-      <header className="entry-list-header">
+    <div className={`entry-list-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
+      <header className="page-header entry-list-header">
         <HamburgerMenu
           backNavigation={{
             label: "Back to Classes",
@@ -383,43 +543,32 @@ export const CombinedEntryList: React.FC = () => {
           currentPage="entries"
         />
         <div className="class-info">
-          <h1>
-            {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-          </h1>
+          <div className="class-title-row">
+            <h1>
+              {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+            </h1>
+            {/* Show status badge */}
+            {statusBadge && (
+              <span className={`class-status-badge ${statusBadge.className}`}>
+                {statusBadge.text}
+              </span>
+            )}
+            {/* Show Section A/B indicator */}
+            {classInfo?.judgeNameB && classInfo.judgeNameB !== classInfo.judgeName && (
+              <span className="class-status-badge sections-badge">Section A & B</span>
+            )}
+          </div>
           <div className="class-subtitle">
-            <div className="trial-info-row">
-              <div className="trial-details-group">
-                {classInfo?.trialDate && classInfo.trialDate !== '' && (
-                  <span className="trial-detail">
-                    <Calendar size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {formatTrialDate(classInfo.trialDate)}
-                  </span>
-                )}
-                {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
-                  <span className="trial-detail"><Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {classInfo.trialNumber}</span>
-                )}
-                {classInfo?.judgeName && classInfo.judgeName !== 'No Judge Assigned' && classInfo.judgeName !== '' && (
-                  <span className="trial-detail"><User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> {classInfo.judgeName}</span>
-                )}
-                {classInfo?.judgeNameB && classInfo.judgeNameB !== classInfo.judgeName && classInfo.judgeNameB !== 'No Judge Assigned' && (
-                  <span className="trial-detail judge-warning">⚠️ Section B: {classInfo.judgeNameB}</span>
-                )}
-                {(classInfo?.timeLimit || classInfo?.timeLimit2 || classInfo?.timeLimit3) && (
-                  <span className="trial-detail time-limits">
-                    <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-                    {classInfo.areas && classInfo.areas > 1 ? (
-                      // Multi-area: show all time limits
-                      <>
-                        {classInfo.timeLimit && <span className="time-limit-badge">A1: {classInfo.timeLimit}</span>}
-                        {classInfo.timeLimit2 && <span className="time-limit-badge">A2: {classInfo.timeLimit2}</span>}
-                        {classInfo.timeLimit3 && <span className="time-limit-badge">A3: {classInfo.timeLimit3}</span>}
-                      </>
-                    ) : (
-                      // Single area: just show the time
-                      <>{classInfo.timeLimit}</>
-                    )}
-                  </span>
-                )}
-              </div>
+            <div className="trial-info-simple">
+              {classInfo?.trialDate && classInfo.trialDate !== '' && (
+                <span className="trial-date-text">{formatTrialDate(classInfo.trialDate)}</span>
+              )}
+              {classInfo?.trialDate && classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
+                <span className="trial-separator">•</span>
+              )}
+              {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
+                <span className="trial-number-text">Trial {classInfo.trialNumber}</span>
+              )}
             </div>
           </div>
         </div>
@@ -443,21 +592,60 @@ export const CombinedEntryList: React.FC = () => {
             />
           )}
 
-          <button
-            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
-            onClick={() => refresh()}
-            disabled={isRefreshing}
-            title="Refresh"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </button>
+          {/* Actions Menu (3-dot menu) */}
+          <div className="actions-menu-container">
+            <button
+              className="icon-button actions-button"
+              onClick={() => setShowActionsMenu(!showActionsMenu)}
+              title="More Actions"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </button>
+
+            {showActionsMenu && (
+              <div className="actions-dropdown-menu">
+                <button
+                  onClick={() => {
+                    setShowActionsMenu(false);
+                    refresh();
+                  }}
+                  className="action-menu-item"
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'rotating' : ''}`} />
+                  Refresh
+                </button>
+                <div className="menu-divider" />
+                <button onClick={handlePrintCheckIn} className="action-menu-item">
+                  <Printer className="h-4 w-4" />
+                  Check-In Sheet (A & B)
+                </button>
+                <button
+                  onClick={handlePrintResultsSectionA}
+                  className="action-menu-item"
+                  disabled={completedEntries.filter(e => e.section === 'A').length === 0}
+                >
+                  <ClipboardCheck className="h-4 w-4" />
+                  Results - Section A
+                </button>
+                <button
+                  onClick={handlePrintResultsSectionB}
+                  className="action-menu-item"
+                  disabled={completedEntries.filter(e => e.section === 'B').length === 0}
+                >
+                  <ClipboardCheck className="h-4 w-4" />
+                  Results - Section B
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       <HeaderTicker />
 
       {/* Search and Sort Header */}
-      <div className="search-controls-header">
+      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
         <button
           className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
           onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
@@ -596,7 +784,7 @@ export const CombinedEntryList: React.FC = () => {
             <p>{activeTab === 'pending' ? 'All entries have been scored.' : 'No entries have been scored yet.'}</p>
           </div>
         ) : (
-          <div className="entries-grid">
+          <div className="grid-responsive">
             {currentEntries.map((entry) => (
               <DogCard
                 key={entry.id}

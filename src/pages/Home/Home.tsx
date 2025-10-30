@@ -11,7 +11,7 @@ import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndic
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown, ArrowUp } from 'lucide-react';
+import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown, ArrowUp, MoreVertical } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -51,6 +51,7 @@ export const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
   const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
   // Use stale-while-revalidate for instant loading from cache
   const {
@@ -89,6 +90,21 @@ export const Home: React.FC = () => {
 
   // Calculate number of columns based on viewport width
   const [columnCount, setColumnCount] = useState(1);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setShowHeaderMenu(false);
+      }
+    };
+
+    if (showHeaderMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showHeaderMenu]);
 
   useEffect(() => {
     const updateColumns = () => {
@@ -401,32 +417,51 @@ export const Home: React.FC = () => {
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 105, // Estimated height of each ROW (card height + gap)
+    estimateSize: () => 120, // Estimated height of each ROW (card min-height 85px + padding + gap)
     overscan: 5, // Render 5 extra rows above/below viewport for smoother scrolling
   });
 
   return (
     <div className="home-container">
       {/* Enhanced Header with Glass Morphism */}
-      <header className="home-header">
+      <header className="page-header home-header">
         <HamburgerMenu currentPage="home" />
 
         <div className="header-center">
           <h1>Home</h1>
+          <p className="header-subtitle">myK9Q - Queue & Qualify</p>
         </div>
 
         <div className="header-buttons">
           {/* Background refresh indicator */}
           {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
 
-          <button
-            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </button>
+          <div className="dropdown-container">
+            <button
+              className="icon-button"
+              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+              aria-label="More options"
+              title="More options"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </button>
+
+            {showHeaderMenu && (
+              <div className="dropdown-menu" style={{ right: 0, minWidth: '180px' }}>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setShowHeaderMenu(false);
+                    handleRefresh();
+                  }}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`dropdown-icon ${isRefreshing ? 'rotating' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -518,7 +553,7 @@ export const Home: React.FC = () => {
       </div>
 
       {/* Search Controls Header */}
-      <div className="search-controls-header">
+      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
         <button
           className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
           onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}

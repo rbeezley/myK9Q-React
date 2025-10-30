@@ -260,8 +260,6 @@
   grid-template-columns: 1fr;
   gap: 10px;
   padding: 0.75rem 1rem 1rem 1rem;
-  max-height: calc(90vh - 120px);
-  overflow-y: auto;
 }
 
 @media (min-width: 640px) {
@@ -272,15 +270,16 @@
 }
 
 .status-item {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  grid-template-rows: auto auto;
   padding: var(--token-space-lg);
   background: white;
   border: var(--token-space-xs) solid var(--border);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  gap: 10px;
+  gap: var(--token-space-sm) var(--token-space-lg);
   min-height: 68px;
   position: relative;
   user-select: none;
@@ -303,6 +302,8 @@
 }
 
 .status-item .status-icon {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -320,23 +321,27 @@
 }
 
 .status-item .status-content {
-  flex: 1;
-  min-width: 0;
+  display: contents;  /* Allow label and description to be direct grid children */
 }
 
 .status-item .status-label {
-  display: block;
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
   font-weight: 600;
   font-size: 14px;
   color: var(--foreground);
-  margin-bottom: var(--token-space-xs);
   line-height: 1.2;
 }
 
 .status-item .status-description {
+  grid-column: 1 / -1;  /* Span both columns */
+  grid-row: 2;
   font-size: var(--token-space-lg);
   color: var(--muted-foreground);
   line-height: 1.3;
+  padding-left: 0;
 }
 
 /* Solid colored icon backgrounds for status items - matching badges exactly */
@@ -414,11 +419,11 @@
 }
 
 .theme-dark .status-item .status-label {
-  color: var(--secondary);
+  color: var(--token-text-white);
 }
 
 .theme-dark .status-item .status-description {
-  color: var(--status-setup);
+  color: var(--token-text-muted);
 }
 
 /* Color variables for status-item - uses centralized design tokens */

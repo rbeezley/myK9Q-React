@@ -22,8 +22,8 @@
   box-shadow: var(--token-shadow-xl);
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
-  overflow: hidden;
+  max-height: calc(100vh - 2rem);
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -36,6 +36,7 @@
   padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--muted);
+  flex-shrink: 0;
 }
 
 .theme-dark .dialog-header {
@@ -55,9 +56,9 @@
 
 /* Dialog Content */
 .dialog-content {
-  flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
+  max-height: calc(100vh - 200px);
 }
 
 /* Dialog Footer */
@@ -125,6 +126,93 @@
   color: var(--foreground);
 }
 
+/* ========================
+   Dialog Action Buttons
+   ======================== */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--muted);
+}
+
+/* Cancel/Secondary Action Button */
+.cancel-button,
+.dialog-action-cancel {
+  background: var(--muted-foreground);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--token-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--token-transition-fast);
+}
+
+.cancel-button:hover,
+.dialog-action-cancel:hover {
+  background: var(--muted-foreground);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Save/Primary Action Button */
+.save-button,
+.dialog-action-submit,
+.dialog-action-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--token-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--token-transition-fast);
+}
+
+.save-button:hover,
+.dialog-action-submit:hover,
+.dialog-action-primary:hover {
+  background: var(--primary);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.save-button:disabled,
+.dialog-action-submit:disabled,
+.dialog-action-primary:disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+/* Danger/Delete Action Button */
+.delete-button,
+.dialog-action-danger {
+  background: var(--destructive);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--token-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--token-transition-fast);
+}
+
+.delete-button:hover,
+.dialog-action-danger:hover {
+  background: var(--destructive);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .dialog-container {
@@ -135,5 +223,19 @@
 
   .dialog-content {
     padding: 1rem;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-button,
+  .save-button,
+  .delete-button,
+  .dialog-action-cancel,
+  .dialog-action-submit,
+  .dialog-action-primary,
+  .dialog-action-danger {
+    width: 100%;
   }
 }

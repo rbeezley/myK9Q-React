@@ -211,11 +211,11 @@
   letter-spacing: 0.025em;
 }
 
-/* Action button - absolute positioned in upper right */
+/* Action button - absolute positioned in bottom right */
 .dog-card-action {
   position: absolute;
-  top: 0;
-  right: 0;
+  bottom: var(--token-space-md);
+  right: var(--token-space-md);
 }
 
 /* Favorite button for Home page */
@@ -245,7 +245,27 @@
 }
 
 .dog-card-action .favorite-button.favorited {
-  color: var(--error);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+.theme-dark .dog-card-action .favorite-button.favorited {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.15);
+  border-color: #ff6b6b;
+}
+
+.dog-card-action .favorite-button.favorited:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.theme-dark .dog-card-action .favorite-button.favorited:hover {
+  background: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
 }
 
 .dog-card-action .favorite-icon {
@@ -295,7 +315,12 @@
 
 /* Status badge colors - matching original EntryList styles */
 .dog-card-action .status-badge.none {
-  background: var(--muted-foreground);
+  background: var(--status-none-bg);
+  color: white;
+}
+
+.theme-dark .dog-card-action .status-badge.none {
+  background: var(--status-none-bg);
   color: white;
 }
 

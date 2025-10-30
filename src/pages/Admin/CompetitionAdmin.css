@@ -85,19 +85,17 @@
 }
 
 /* Header styling - consistent with other pages */
+/* Header - inherits from global .page-header in page-container.css */
 .admin-header {
-  background-color: var(--card);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  padding: 0;
 }
 
 .header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: var(--token-space-lg) var(--token-space-xl);
+  width: 100%;
 }
 
 .header-info {

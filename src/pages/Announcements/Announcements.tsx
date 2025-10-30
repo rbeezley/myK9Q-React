@@ -107,7 +107,7 @@ export const Announcements: React.FC = () => {
   return (
     <div className="announcements-container app-container">
       {/* Header with Hamburger Menu, Title, and Actions */}
-      <header className="announcements-header">
+      <header className="page-header announcements-header">
         <HamburgerMenu currentPage="announcements" />
 
         <div className="header-center">

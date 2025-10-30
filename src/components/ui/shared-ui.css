@@ -1510,7 +1510,12 @@
 
 /* Check-in status: none (not checked in) */
 .status-badge.none {
-  background: #9ca3af;
+  background: var(--status-none-bg);
+  color: #ffffff;
+}
+
+.theme-dark .status-badge.none {
+  background: var(--status-none-bg);
   color: #ffffff;
 }
 
@@ -5805,3 +5810,229 @@
   }
 }
 
+/* ========================
+   Form Input Components
+   ======================== */
+
+/* Base input field styles */
+.input-field,
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-md);
+  font-size: 1rem;
+  font-weight: 400;
+  background: var(--input);
+  color: var(--foreground);
+  transition: all var(--token-transition-fast);
+  font-family: inherit;
+}
+
+.input-field:focus,
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: var(--background);
+}
+
+.input-field:disabled,
+.form-input:disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Input states */
+.input-field.error,
+.form-input.error {
+  border-color: var(--destructive);
+  background: var(--destructive-bg, rgba(239, 68, 68, 0.05));
+}
+
+.input-field.error:focus,
+.form-input.error:focus {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-field.success,
+.form-input.success {
+  border-color: var(--success);
+  background: var(--success-bg, rgba(34, 197, 94, 0.05));
+}
+
+.input-field.success:focus,
+.form-input.success:focus {
+  border-color: var(--success);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Input wrapper for icons */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .input-field {
+  padding-left: 2.5rem;
+}
+
+.input-wrapper.has-icon-right .input-field {
+  padding-right: 2.5rem;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-icon-right {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Form labels */
+.form-label,
+.input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.form-label.required::after,
+.input-label.required::after {
+  content: " *";
+  color: var(--destructive);
+}
+
+/* Help text */
+.form-help-text,
+.input-help-text {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+.form-error-text,
+.input-error-text {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--destructive);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Textarea specific */
+textarea.input-field,
+textarea.form-input {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Select specific */
+select.input-field,
+select.form-input {
+  cursor: pointer;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L2 5h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+/* ========================
+   Icon Box Utility
+   ======================== */
+
+.icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--token-radius-md);
+  flex-shrink: 0;
+  transition: all var(--token-transition-fast);
+}
+
+/* Size variants */
+.icon-box.sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.875rem;
+}
+
+.icon-box.md {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.icon-box.lg {
+  width: 48px;
+  height: 48px;
+  font-size: 1.25rem;
+}
+
+/* Color variants */
+.icon-box.primary {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+}
+
+.icon-box.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success);
+}
+
+.icon-box.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+.icon-box.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--destructive);
+}
+
+.icon-box.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--info);
+}
+
+.icon-box.muted {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* Dark mode adjustments */
+.theme-dark .input-field,
+.theme-dark .form-input {
+  background: var(--input-dark, #1f2937);
+  border-color: var(--border-dark, #374151);
+  color: var(--foreground-dark, #f3f4f6);
+}
+
+.theme-dark .input-field:focus,
+.theme-dark .form-input:focus {
+  background: var(--background-dark, #111827);
+  border-color: var(--primary-dark, #6366f1);
+}
+
+.theme-dark select.input-field,
+.theme-dark select.form-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L2 5h8z'/%3E%3C/svg%3E");
+}

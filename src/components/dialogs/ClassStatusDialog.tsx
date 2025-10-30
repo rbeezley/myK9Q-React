@@ -414,7 +414,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
                     style={{ '--status-color': `var(${status.colorVar})` } as React.CSSProperties}
                   >
                     <div className="status-icon">
-                      <IconComponent className="h-5 w-5" />
+                      <IconComponent />
                     </div>
                     <div className="status-content">
                       <label className="status-label">{status.label}</label>

@@ -256,19 +256,19 @@ export function Settings() {
   };
 
   return (
-    <div className="settings-container page-container">
-      <div className="settings-content">
-        <div className="settings-header">
-          <HamburgerMenu currentPage="settings" />
-          <h1>Settings</h1>
-          <button
-            className="reset-all-btn"
-            onClick={() => setShowResetConfirm(true)}
-          >
-            Reset All
-          </button>
-        </div>
+    <div className="settings-container">
+      <header className="page-header settings-header">
+        <HamburgerMenu currentPage="settings" />
+        <h1>Settings</h1>
+        <button
+          className="reset-all-btn"
+          onClick={() => setShowResetConfirm(true)}
+        >
+          Reset All
+        </button>
+      </header>
 
+      <div className="settings-content">
       {/* Search Settings */}
       <SettingsSearch
         settings={searchableSettings}

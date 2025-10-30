@@ -7,6 +7,7 @@ interface UseEntryListSubscriptionsOptions {
   classIds: number[];
   licenseKey: string;
   onRefresh: (forceRefresh?: boolean) => void;
+  onEntryUpdate?: (payload: any) => void;
   enabled?: boolean;
 }
 
@@ -18,6 +19,7 @@ export const useEntryListSubscriptions = ({
   classIds,
   licenseKey,
   onRefresh,
+  onEntryUpdate,
   enabled = true
 }: UseEntryListSubscriptionsOptions) => {
   useEffect(() => {
@@ -28,9 +30,22 @@ export const useEntryListSubscriptions = ({
 
     // Subscribe to each class's entry updates
     classIds.forEach(classId => {
-      const cleanup = subscribeToEntryUpdates(classId, licenseKey, () => {
-        console.log(`Entry update detected for class ${classId}`);
-        onRefresh(true); // Force refresh to bypass cache
+      const cleanup = subscribeToEntryUpdates(classId, licenseKey, (payload) => {
+        console.log(`🔔 Entry update detected for class ${classId}`, payload);
+        console.log('🔔 onEntryUpdate exists?', !!onEntryUpdate);
+        console.log('🔔 typeof onEntryUpdate:', typeof onEntryUpdate);
+
+        // If we have an onEntryUpdate callback, use it to update local state directly
+        // This provides instant UI updates from real-time changes
+        if (onEntryUpdate) {
+          console.log('🔔 Calling onEntryUpdate with payload...');
+          onEntryUpdate(payload);
+          console.log('🔔 onEntryUpdate completed');
+        } else {
+          console.log('🔔 No onEntryUpdate callback, falling back to refresh');
+          // Fallback: refresh without forcing cache bypass
+          onRefresh(false);
+        }
       });
       if (cleanup) {
         entryCleanupFunctions.push(cleanup);
@@ -53,7 +68,8 @@ export const useEntryListSubscriptions = ({
           const resultClassId = (payload.new as any)?.class_id || (payload.old as any)?.class_id;
           if (classIds.includes(resultClassId)) {
             console.log(`Results change detected for class ${resultClassId}:`, payload);
-            onRefresh(true); // Force refresh to bypass cache
+            // Don't force refresh - let the store/state management handle updates
+            // onRefresh(true); // REMOVED: This was causing unnecessary full page refreshes
           }
         }
       )
@@ -64,5 +80,5 @@ export const useEntryListSubscriptions = ({
       entryCleanupFunctions.forEach(cleanup => cleanup());
       resultsChannel.unsubscribe();
     };
-  }, [classIds, licenseKey, onRefresh, enabled]);
+  }, [classIds, licenseKey, onRefresh, onEntryUpdate, enabled]);
 };

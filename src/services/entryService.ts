@@ -4,6 +4,7 @@ import { QueuedScore } from '../stores/offlineQueueStore';
 import { recalculatePlacementsForClass } from './placementService';
 import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
+import { syncManager } from './syncManager';
 
 /**
  * Service for managing entries and scores
@@ -137,23 +138,6 @@ export async function getClassEntries(
       });
     }
 
-
-    // Helper function to normalize text-based status values
-    const normalizeStatusText = (statusText: string | null | undefined): 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' => {
-      if (!statusText) return 'none';
-
-      const status = statusText.toLowerCase().trim();
-      switch (status) {
-        case 'none': return 'none';
-        case 'checked-in': return 'checked-in';
-        case 'at-gate': return 'at-gate';
-        case 'come-to-gate': return 'come-to-gate';
-        case 'conflict': return 'conflict';
-        case 'pulled': return 'pulled';
-        default: return 'none';
-      }
-    };
-
     // Helper function to convert seconds to MM:SS format
     const secondsToTimeString = (seconds?: number | null): string => {
       if (!seconds || seconds === 0) return '';
@@ -184,10 +168,9 @@ export async function getClassEntries(
       }
 
       // Determine unified status
-      // Priority: Use entry_status if available, fallback to old fields for backward compatibility
+      // Use entry_status as single source of truth (migration 014)
       const status = (row.entry_status as EntryStatus | undefined) ||
-                     (result?.is_in_ring ? 'in-ring' as EntryStatus :
-                      normalizeStatusText(row.check_in_status_text));
+                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'none' as EntryStatus);
 
       return {
         id: row.id,
@@ -833,65 +816,60 @@ export function subscribeToEntryUpdates(
   licenseKey: string,
   onUpdate: (payload: any) => void
 ) {
-  // Import syncManager dynamically to avoid circular dependencies
-  import('./syncManager').then(({ syncManager }) => {
-    const key = `entries:${actualClassId}`;
+  // Use the syncManager imported at the top of this file (no dynamic import needed)
+  const key = `entries:${actualClassId}`;
 
-    console.log('🔌 Setting up subscription via syncManager for class_id:', actualClassId);
-    console.log('🔍 Using correct column name: class_id (matching the main query)');
-    console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
+  console.log('🔌 Setting up subscription via syncManager for class_id:', actualClassId);
+  console.log('🔍 Using correct column name: class_id (matching the main query)');
+  console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
 
-    return syncManager.subscribeToUpdates(
-      key,
-      'entries',
-      `class_id=eq.${actualClassId}`,
-      (payload) => {
-        console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
-        console.log('🔄 Event type:', payload.eventType);
-        console.log('🔄 Table:', payload.table);
-        console.log('🔄 Schema:', payload.schema);
-        console.log('🔄 Timestamp:', new Date().toISOString());
-        console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
+  syncManager.subscribeToUpdates(
+    key,
+    'entries',
+    `class_id=eq.${actualClassId}`,
+    (payload) => {
+      console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
+      console.log('🔄 Event type:', payload.eventType);
+      console.log('🔄 Table:', payload.table);
+      console.log('🔄 Schema:', payload.schema);
+      console.log('🔄 Timestamp:', new Date().toISOString());
+      console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
 
-        if (payload.new) {
-          console.log('📈 NEW record data:', JSON.stringify(payload.new, null, 2));
-        }
-        if (payload.old) {
-          console.log('📉 OLD record data:', JSON.stringify(payload.old, null, 2));
-        }
-
-        // Log specific field changes for in_ring updates
-        if (payload.new && payload.old) {
-          console.log('📊 FIELD CHANGES DETECTED:');
-          const oldData = payload.old as any;
-          const newData = payload.new as any;
-          console.log('  🎯 in_ring changed:', oldData.in_ring, '->', newData.in_ring);
-          console.log('  🆔 entry_id:', newData.id);
-          console.log('  🏷️ armband:', newData.armband);
-          console.log('  📂 class_id:', newData.class_id);
-
-          // Check if this is specifically an in_ring change
-          if (oldData.in_ring !== newData.in_ring) {
-            console.log('🎯 THIS IS AN IN_RING STATUS CHANGE!');
-            console.log(`  Dog #${newData.armband} (ID: ${newData.id}) is now ${newData.in_ring ? 'IN RING' : 'NOT IN RING'}`);
-          }
-        }
-
-        console.log('✅ About to call onUpdate callback...');
-        onUpdate(payload);
-        console.log('✅ onUpdate callback completed');
-        console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
+      if (payload.new) {
+        console.log('📈 NEW record data:', JSON.stringify(payload.new, null, 2));
       }
-    );
-  });
+      if (payload.old) {
+        console.log('📉 OLD record data:', JSON.stringify(payload.old, null, 2));
+      }
 
-  // Return unsubscribe function that imports syncManager
+      // Log specific field changes for in_ring updates
+      if (payload.new && payload.old) {
+        console.log('📊 FIELD CHANGES DETECTED:');
+        const oldData = payload.old as any;
+        const newData = payload.new as any;
+        console.log('  🎯 in_ring changed:', oldData.in_ring, '->', newData.in_ring);
+        console.log('  🆔 entry_id:', newData.id);
+        console.log('  🏷️ armband:', newData.armband);
+        console.log('  📂 class_id:', newData.class_id);
+
+        // Check if this is specifically an in_ring change
+        if (oldData.in_ring !== newData.in_ring) {
+          console.log('🎯 THIS IS AN IN_RING STATUS CHANGE!');
+          console.log(`  Dog #${newData.armband} (ID: ${newData.id}) is now ${newData.in_ring ? 'IN RING' : 'NOT IN RING'}`);
+        }
+      }
+
+      console.log('✅ About to call onUpdate callback...');
+      onUpdate(payload);
+      console.log('✅ onUpdate callback completed');
+      console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
+    }
+  );
+
+  // Return unsubscribe function
   return () => {
-    import('./syncManager').then(({ syncManager }) => {
-      const key = `entries:${actualClassId}`;
-      console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
-      syncManager.unsubscribe(key);
-    });
+    console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
+    syncManager.unsubscribe(key);
   };
 }
 
@@ -933,6 +911,10 @@ export async function updateEntryCheckinStatus(
       .single();
 
     console.log('🔍 Verified updated status:', verifyData);
+
+    // Small delay to ensure write has propagated (fixes immediate refresh race condition)
+    await new Promise(resolve => setTimeout(resolve, 100));
+    console.log('✅ Write propagation complete - safe to refresh');
 
     return true;
   } catch (error) {

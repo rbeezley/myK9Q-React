@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { ArrowLeft, RefreshCw, Target } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Target, MoreVertical } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
@@ -325,9 +325,25 @@ export const ClassList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'class_order' | 'element_level' | 'level_element'>('class_order');
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
   // Prevent FOUC by adding 'loaded' class after mount
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setShowHeaderMenu(false);
+      }
+    };
+
+    if (showHeaderMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showHeaderMenu]);
 
   // Trigger loaded animation after initial render
   useEffect(() => {
@@ -1199,9 +1215,9 @@ export const ClassList: React.FC = () => {
   }
 
   return (
-    <div className={`class-list-container page-container ${isLoaded ? 'loaded' : ''}`} data-loaded={isLoaded}>
+    <div className={`class-list-container ${isLoaded ? 'loaded' : ''}`} data-loaded={isLoaded}>
       {/* Enhanced Header with Trial Info */}
-      <header className="class-list-header">
+      <header className="page-header class-list-header">
         <HamburgerMenu
           currentPage="entries"
           backNavigation={{
@@ -1232,14 +1248,32 @@ export const ClassList: React.FC = () => {
           {/* Background refresh indicator */}
           {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
 
-          <button
-            className={`icon-button ${isRefreshing ? 'rotating' : ''}`}
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </button>
+          <div className="dropdown-container">
+            <button
+              className="icon-button"
+              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+              aria-label="More options"
+              title="More options"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </button>
+
+            {showHeaderMenu && (
+              <div className="dropdown-menu" style={{ right: 0, minWidth: '180px' }}>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setShowHeaderMenu(false);
+                    handleRefresh();
+                  }}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`dropdown-icon ${isRefreshing ? 'rotating' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -1270,7 +1304,7 @@ export const ClassList: React.FC = () => {
       />
 
       {/* Enhanced Classes List Section */}
-      <div className="class-list">
+      <div className="grid-responsive">
         {filteredClasses.map((classEntry) => (
           <ClassCard
             key={classEntry.id}

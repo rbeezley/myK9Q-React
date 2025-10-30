@@ -1,102 +1,179 @@
-/* Class Status Dialog Styles - Matches ClassRequirementsDialog */
+/* Class Status Dialog Styles - Matches CheckinStatusDialog */
 
 .status-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--token-space-lg);
-  margin-top: var(--token-space-2xl);
+  gap: 10px;
+  padding: 0.75rem 1rem 1rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .status-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--token-space-lg);
+  }
 }
 
 .status-item {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: auto auto;
   padding: var(--token-space-xl);
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(51, 65, 85, 0.6);
-  border-radius: var(--token-space-lg);
+  background: white;
+  border: var(--token-space-xs) solid var(--border);
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  gap: var(--token-space-sm) var(--token-space-lg);
+  min-height: 80px;
   position: relative;
-  min-height: 60px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
+  user-select: none;
 }
 
 .status-item:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: var(--status-color, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
+  border-color: var(--status-color, var(--primary));
+}
+
+.status-item:active {
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease-out;
+}
+
+.status-item:focus {
+  outline: none;
+  box-shadow: 0 0 0 var(--token-space-xs) var(--status-color, var(--primary));
 }
 
 .status-item-selected {
-  background: rgba(var(--status-color-rgb, 59, 130, 246), 0.1);
-  border-color: var(--status-color, #3b82f6);
-  box-shadow: 0 0 0 1px var(--status-color, #3b82f6);
+  background: var(--muted);
+  border-color: var(--status-color, var(--primary));
 }
 
-/* Fix text readability for selected items in dark mode */
 .status-item-selected .status-label {
-  color: var(--token-text-white);
+  color: var(--foreground);
   font-weight: 700;
 }
 
 .status-item-selected .status-description {
-  color: #e5e7eb;
+  color: var(--token-text-secondary);
 }
 
 .status-icon {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--token-space-md);
-  background: rgba(var(--status-color-rgb, 59, 130, 246), 0.1);
-  color: var(--status-color, #3b82f6);
-  margin-right: var(--token-space-xl);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--token-space-lg);
+  color: white;
   flex-shrink: 0;
 }
 
+.status-icon svg {
+  width: var(--token-space-2xl);
+  height: var(--token-space-2xl);
+  color: inherit;
+  stroke: currentColor;
+}
+
 .status-content {
-  flex: 1;
-  min-width: 0;
+  display: contents;  /* Allow label and description to be direct grid children */
 }
 
 .status-label {
-  display: block;
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
   font-weight: 600;
-  font-size: var(--token-space-xl);
-  color: var(--token-text-white);
-  margin-bottom: var(--token-space-sm);
+  font-size: 1rem;
+  color: var(--foreground);
   line-height: 1.2;
+  margin: 0;
 }
 
 .status-description {
-  font-size: 14px;
-  color: var(--token-text-muted);
+  grid-column: 1 / -1;  /* Span both columns */
+  grid-row: 2;
+  font-size: var(--token-space-lg);
+  color: var(--muted-foreground);
   line-height: 1.3;
+  padding-left: 0;
+  margin: 0;
 }
 
 .status-selected-indicator {
   position: absolute;
   top: var(--token-space-lg);
   right: var(--token-space-lg);
-  color: var(--status-color, #3b82f6);
-  opacity: 0.8;
+  color: var(--status-color, var(--primary));
+  opacity: 0.9;
 }
 
-/* Light mode overrides */
+/* Solid colored icon backgrounds - matching CheckinStatusDialog exactly */
+.status-item[style*="--status-setup"] .status-icon {
+  background: #fbbf24;  /* Amber/yellow for setup */
+}
+
+.status-item[style*="--status-briefing"] .status-icon {
+  background: var(--status-briefing);  /* Blue for briefing */
+}
+
+.status-item[style*="--status-break"] .status-icon {
+  background: #14b8a6;  /* Teal for break */
+}
+
+.status-item[style*="--status-start-time"] .status-icon {
+  background: #8b5cf6;  /* Purple for start time */
+}
+
+.status-item[style*="--status-in-progress"] .status-icon {
+  background: var(--primary);  /* Primary blue for in progress */
+}
+
+.status-item[style*="--status-completed"] .status-icon {
+  background: var(--token-success-contrast);  /* Green for completed */
+}
+
+/* Color variables for different statuses */
+.status-item[style*="--status-setup"] {
+  --status-color: #fbbf24;
+}
+
+.status-item[style*="--status-briefing"] {
+  --status-color: var(--status-briefing);
+}
+
+.status-item[style*="--status-break"] {
+  --status-color: #14b8a6;
+}
+
+.status-item[style*="--status-start-time"] {
+  --status-color: #8b5cf6;
+}
+
+.status-item[style*="--status-in-progress"] {
+  --status-color: var(--primary);
+}
+
+.status-item[style*="--status-completed"] {
+  --status-color: var(--token-success-contrast);
+}
+
+/* Light mode overrides - same as default */
 .theme-light .status-item {
-  background: rgba(248, 250, 252, 0.9);
-  border-color: rgba(226, 232, 240, 0.6);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.06);
+  background: white;
+  border-color: #e5e7eb;
 }
 
 .theme-light .status-item:hover {
-  background: rgba(241, 245, 249, 0.95);
-  border-color: var(--status-color, #3b82f6);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
+  border-color: var(--status-color, var(--primary));
 }
 
 .theme-light .status-label {
@@ -104,69 +181,31 @@
 }
 
 .theme-light .status-description {
-  color: var(--token-text-tertiary);
+  color: var(--muted-foreground);
 }
 
-/* Light mode selected status text readability */
-.theme-light .status-item-selected .status-label {
-  color: var(--foreground);
-  font-weight: 700;
+/* Dark mode overrides */
+.theme-dark .status-item {
+  background: var(--card);
+  border-color: #334155;
 }
 
-.theme-light .status-item-selected .status-description {
-  color: #475569;
+.theme-dark .status-item:hover {
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
+  border-color: var(--status-color, var(--primary));
 }
 
-/* Color variables for different statuses - semantic and intuitive colors */
-.status-item[style*="--status-setup"] {
-  --status-color-rgb: 254, 243, 199; /* Blue-gray */
-  --status-color: var(--status-setup);
+.theme-dark .status-label {
+  color: var(--token-text-white);
 }
 
-.status-item[style*="--status-briefing"] {
-  --status-color-rgb: 59, 130, 246; /* Sky blue */
-  --status-color: var(--primary);
-}
-
-.status-item[style*="--status-break"] {
-  --status-color-rgb: 20, 184, 166; /* Teal */
-  --status-color: #14b8a6;
-}
-
-.status-item[style*="--status-start-time"] {
-  --status-color-rgb: 139, 92, 246; /* Violet */
-  --status-color: #8b5cf6;
-}
-
-.status-item[style*="--status-in-progress"] {
-  --status-color-rgb: 99, 102, 241; /* Indigo */
-  --status-color: var(--primary);
-}
-
-.status-item[style*="--status-completed"] {
-  --status-color-rgb: 16, 185, 129; /* Green */
-  --status-color: var(--token-success);
-}
-
-/* Responsive design - match requirements dialog with 2 columns */
-@media (min-width: 640px) {
-  .status-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--token-space-xl);
-  }
-}
-
-/* Focus styles for accessibility */
-.status-item:focus {
-  outline: none;
-  box-shadow: 0 0 0 var(--token-space-xs) var(--status-color, #3b82f6);
+.theme-dark .status-description {
+  color: var(--token-text-muted);
 }
 
 /* Animation for status change */
-.status-item {
-  animation: statusFadeIn 0.3s ease-out;
-}
-
 @keyframes statusFadeIn {
   from {
     opacity: 0;
@@ -190,8 +229,8 @@
   gap: var(--token-space-xl);
   margin-bottom: var(--token-space-3xl);
   padding: var(--token-space-xl);
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: var(--muted);
+  border: 2px solid var(--border);
   border-radius: var(--token-space-lg);
 }
 
@@ -202,21 +241,21 @@
   width: 48px;
   height: 48px;
   border-radius: var(--token-space-lg);
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--card);
   color: var(--primary);
   flex-shrink: 0;
 }
 
 .time-status-title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--token-text-white);
-  margin: 0 0 var(--token-space-sm) 0;
+  color: var(--foreground);
+  margin: 0 0 var(--token-space-xs) 0;
 }
 
 .time-status-description {
-  font-size: 14px;
-  color: var(--token-text-muted);
+  font-size: 0.875rem;
+  color: var(--token-text-secondary);
   margin: 0;
 }
 
@@ -226,9 +265,9 @@
 
 .time-input-label {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--token-text-white);
+  color: var(--foreground);
   margin-bottom: var(--token-space-md);
 }
 
@@ -236,10 +275,10 @@
   width: 100%;
   padding: var(--token-space-lg) var(--token-space-xl);
   font-size: var(--token-space-xl);
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.8);
+  background: var(--input);
+  border: 2px solid var(--border);
   border-radius: var(--token-space-md);
-  color: var(--token-text-white);
+  color: var(--foreground);
   transition: border-color 0.2s ease;
   margin-bottom: var(--token-space-lg);
 }
@@ -247,7 +286,7 @@
 .time-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 1px #3b82f6;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
 }
 
 .time-input::placeholder {
@@ -263,11 +302,11 @@
 
 .time-quick-button {
   flex: 1;
-  padding: 10px var(--token-space-xl);
-  font-size: 14px;
+  padding: var(--token-space-lg) var(--token-space-xl);
+  font-size: 0.875rem;
   font-weight: 600;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: var(--muted);
+  border: 2px solid var(--border);
   border-radius: var(--token-space-md);
   color: var(--primary);
   cursor: pointer;
@@ -276,25 +315,15 @@
 }
 
 .time-quick-button:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: var(--primary);
+  color: white;
   border-color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(59, 130, 246, 0.2);
+  box-shadow: var(--token-shadow-sm);
 }
 
 .time-quick-button:active {
   transform: translateY(0);
-}
-
-/* Light mode quick buttons */
-.theme-light .time-quick-button {
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.theme-light .time-quick-button:hover {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: var(--primary);
 }
 
 .time-actions {
@@ -305,7 +334,7 @@
 
 .time-action-button {
   padding: var(--token-space-lg) var(--token-space-3xl);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--token-space-md);
   cursor: pointer;
@@ -314,56 +343,29 @@
 }
 
 .time-action-cancel {
-  background: transparent;
-  border: 1px solid rgba(156, 163, 175, 0.5);
-  color: var(--token-text-muted);
+  background: var(--muted);
+  border: 2px solid var(--border);
+  color: var(--foreground);
 }
 
 .time-action-cancel:hover {
-  background: rgba(156, 163, 175, 0.1);
-  border-color: var(--token-text-muted);
+  background: var(--card);
+  border-color: var(--foreground);
 }
 
 .time-action-submit {
   background: var(--primary);
-  border: 1px solid #3b82f6;
+  border: 2px solid var(--primary);
   color: white;
 }
 
 .time-action-submit:hover:not(:disabled) {
-  background: #2563eb;
-  border-color: #2563eb;
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--token-shadow-sm);
 }
 
 .time-action-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Light mode overrides for time input */
-.theme-light .time-status-header {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(226, 232, 240, 0.8);
-}
-
-.theme-light .time-status-title {
-  color: var(--foreground);
-}
-
-.theme-light .time-status-description {
-  color: var(--token-text-tertiary);
-}
-
-.theme-light .time-input-label {
-  color: var(--foreground);
-}
-
-.theme-light .time-input {
-  background: rgba(248, 250, 252, 0.9);
-  border-color: rgba(226, 232, 240, 0.8);
-  color: var(--foreground);
-}
-
-.theme-light .time-action-cancel {
-  color: var(--token-text-tertiary);
 }

@@ -6,6 +6,81 @@
  */
 
 /* =================================================================
+   Responsive Grid Utilities - GLOBAL
+   ================================================================= */
+
+/* Standard responsive card grid - 1/2/3 columns */
+.grid-responsive {
+  display: grid;
+  gap: var(--token-space-lg);
+  grid-template-columns: 1fr;
+}
+
+/* Standard responsive card grid - 1/2/4 columns */
+.grid-responsive-4 {
+  display: grid;
+  gap: var(--token-space-lg);
+  grid-template-columns: 1fr;
+}
+
+/* Auto-fill grid with minimum item width */
+.grid-auto-fill {
+  display: grid;
+  gap: var(--token-space-lg);
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+/* Fixed 2 column grid */
+.grid-cols-2 {
+  display: grid;
+  gap: var(--token-space-lg);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Fixed 3 column grid */
+.grid-cols-3 {
+  display: grid;
+  gap: var(--token-space-lg);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Gap variations */
+.grid-gap-sm { gap: var(--token-space-sm); }
+.grid-gap-md { gap: var(--token-space-md); }
+.grid-gap-lg { gap: var(--token-space-lg); }
+.grid-gap-xl { gap: var(--token-space-xl); }
+.grid-gap-2xl { gap: var(--token-space-2xl); }
+
+/* Tablet breakpoint (640px+) */
+@media (min-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--token-space-xl);
+  }
+
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop breakpoint (1024px+) */
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--token-space-2xl);
+  }
+
+  .grid-responsive-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Allow desktop override for 2 columns */
+  .grid-responsive.desktop-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* =================================================================
    Container Utilities
    ================================================================= */
 

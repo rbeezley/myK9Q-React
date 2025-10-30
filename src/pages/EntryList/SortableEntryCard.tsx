@@ -197,7 +197,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
             <div
               className={`status-badge checkin-status ${
                 entry.inRing ? 'in-ring' :
-                (entry.checkinStatus || 'none').toLowerCase().replace(' ', '-')
+                (entry.status || 'none').toLowerCase().replace(' ', '-')
               } ${
                 (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true)) ? 'disabled' : ''
               }`}

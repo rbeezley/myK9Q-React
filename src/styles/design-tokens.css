@@ -257,9 +257,9 @@
   /* Skeleton Loaders (Dark Mode) */
   --skeleton-gradient: var(--skeleton-gradient-dark);
 
-  /* Check-in Status Colors (same as light mode for consistency) */
-  --status-none: #9ca3af;
-  --status-none-bg: #9ca3af;
+  /* Check-in Status Colors (darker backgrounds for better dark mode visibility) */
+  --status-none: #6b7280;
+  --status-none-bg: #6b7280;
 
   --status-checked-in: #10b981;
   --status-checked-in-bg: #10b981;

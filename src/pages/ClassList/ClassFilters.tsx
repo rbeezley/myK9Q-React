@@ -68,7 +68,7 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
   return (
     <>
       {/* Search and Sort Header */}
-      <div className="search-controls-header">
+      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
         <button
           className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
           onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}

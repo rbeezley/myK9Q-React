@@ -266,7 +266,7 @@ export const DogDetails: React.FC = () => {
     <div className={`dog-details-container app-container ${isLoaded ? 'loaded' : ''}`}>
       
       {/* Header with outdoor-ready contrast */}
-      <header className="dog-header">
+      <header className="page-header dog-header">
         <HamburgerMenu 
           backNavigation={{
             label: "Back",

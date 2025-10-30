@@ -149,7 +149,7 @@ export const useTVData = ({
               trial_number,
               element,
               level,
-              check_in_status_text
+              entry_status
             `)
             .eq('license_key', licenseKey)
             .in('class_id', transformedClasses.map(c => parseInt(c.id)))
@@ -188,7 +188,7 @@ export const useTVData = ({
               result_status: entry.result_status || undefined,
               section: entry.section || undefined,
               sort_order: entry.exhibitor_order?.toString() || entry.armband.toString(),
-              checkin_status: mapCheckinStatus(entry.check_in_status_text)
+              checkin_status: mapCheckinStatus(entry.entry_status)
             });
           });
 

@@ -287,11 +287,11 @@
 }
 
 .theme-dark .class-title {
-  color: var(--muted);
+  color: var(--foreground);
 }
 
 .theme-dark .entry-count {
-  color: var(--token-text-muted);
+  color: var(--token-text-secondary);
 }
 
 .theme-dark .requirement-item {

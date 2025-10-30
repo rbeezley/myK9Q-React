@@ -740,7 +740,7 @@ export const CompetitionAdmin: React.FC = () => {
   return (
     <div className="competition-admin app-container">
       {/* Header with hamburger menu */}
-      <div className="admin-header">
+      <header className="page-header admin-header">
         <div className="header-content">
           <HamburgerMenu currentPage="admin" />
           <div className="header-info">
@@ -760,7 +760,7 @@ export const CompetitionAdmin: React.FC = () => {
             <RefreshCw className={`refresh-icon ${loading ? 'spinning' : ''}`} />
           </button>
         </div>
-      </div>
+      </header>
 
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
       <HeaderTicker />

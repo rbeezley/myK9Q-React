@@ -15,9 +15,9 @@
 
 .settings-content {
   flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--token-space-lg) var(--token-space-3xl);
+  padding: var(--token-space-xl) var(--token-space-3xl);
   padding-bottom: 4rem;
 }
 
@@ -47,28 +47,17 @@
   scrollbar-color: rgba(99, 102, 241, 0.6) rgba(31, 41, 55, 0.5);
 }
 
-/* Header */
+/* Header - inherits from global .page-header in page-container.css */
 .settings-header {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl, 2.5rem);
-  padding-bottom: 0;
-  border-bottom: none;
-  gap: 1rem;
-}
-
-.settings-header .menu-button {
-  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
 .settings-header h1 {
   flex: 1;
-}
-
-.settings-header h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 590;
   color: var(--foreground);
   margin: 0;
   letter-spacing: -0.02em;

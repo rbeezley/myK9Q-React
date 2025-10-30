@@ -14,26 +14,50 @@
  */
 
 /* Base container - full width at all screen sizes for consistency */
+/* Mobile-first: Base styles are for mobile (no media query) */
 .page-container {
   width: 100%;
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  padding: var(--token-space-lg) var(--token-space-3xl);
+  padding: var(--token-space-lg) var(--token-space-lg);  /* 12px horizontal on mobile */
   padding-bottom: 4rem;
-}
-
-/* Mobile - slightly reduced padding */
-@media (max-width: 640px) {
-  .page-container {
-    padding: var(--token-space-lg) var(--token-space-xl);
-  }
 }
 
 /* Desktop - increased padding but NO max-width constraint (full width everywhere) */
 @media (min-width: 1024px) {
   .page-container {
-    padding: var(--token-space-lg) var(--token-space-4xl);
+    padding: var(--token-space-lg) var(--token-space-3xl);  /* 24px horizontal on desktop */
+  }
+}
+
+/**
+ * Global Page Header - Sticky header pattern for all pages
+ * Ensures consistent header styling across Home, ClassList, EntryList, etc.
+ * Compact design with reduced vertical spacing for better screen utilization
+ */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;  /* Increased to ensure dropdowns inside header appear above other content */
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--border);
+  padding: var(--token-space-sm) var(--token-space-lg);  /* 12px horizontal on mobile */
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-xl);
+  min-height: 44px;
+}
+
+.theme-dark .page-header {
+  background: rgba(26, 29, 35, 0.8);
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .page-header {
+    padding: var(--token-space-sm) var(--token-space-3xl);  /* 24px horizontal on desktop */
   }
 }
 
@@ -54,36 +78,26 @@
   flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
-  padding: var(--token-space-lg) var(--token-space-3xl);
+  padding: var(--token-space-lg) var(--token-space-lg);  /* 12px horizontal on mobile */
   padding-bottom: 4rem;
-}
-
-@media (max-width: 640px) {
-  .page-container-scroll .page-content {
-    padding: var(--token-space-lg) var(--token-space-xl);
-  }
 }
 
 @media (min-width: 1024px) {
   .page-container-scroll .page-content {
-    padding: var(--token-space-lg) var(--token-space-4xl);
+    padding: var(--token-space-lg) var(--token-space-3xl);  /* 24px horizontal on desktop */
   }
 }
 
 /**
- * Responsive Breakpoint Summary:
+ * Responsive Breakpoint Summary (Mobile-First):
  *
- * Mobile (< 640px):
- *   - Full width, var(--token-space-xl) horizontal padding
- *   - Maximize space on small screens
- *
- * Tablet (640px - 1023px):
- *   - Full width, var(--token-space-3xl) horizontal padding
- *   - PRIMARY USER GROUP - judges/stewards use iPads/Android tablets
- *   - No max-width constraint - use full tablet screen
+ * Mobile (< 1024px):
+ *   - Full width, var(--token-space-lg) horizontal padding (12px)
+ *   - Maximize space on small screens and tablets
+ *   - Tablets (PRIMARY USER GROUP - judges/stewards) get same 12px padding
  *
  * Desktop (1024px+):
- *   - Full width, var(--token-space-4xl) horizontal padding
+ *   - Full width, var(--token-space-3xl) horizontal padding (24px)
  *   - NO max-width constraint for consistency across all screen sizes
  *   - Individual components use responsive grids to handle wide screens
  */
