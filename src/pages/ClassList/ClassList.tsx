@@ -149,46 +149,39 @@ export const ClassList: React.FC = () => {
           completed_classes: classData.filter(c => c.is_completed === true).length
         };
 
-        // Load ALL entries for this trial using normalized tables
-        const { data: allTrialEntries, error: trialEntriesError } = await supabase
-          .from('entries')
-          .select(`
-            *,
-            classes!inner (
-              element,
-              level,
-              section,
-              trial_id
-            ),
-            results (
-              is_in_ring,
-              is_scored
-            )
-          `)
-          .eq('classes.trial_id', parseInt(trialId!))
-          .order('armband_number', { ascending: true });
-
-        if (trialEntriesError) {
-          console.error('Error loading trial entries:', trialEntriesError);
-        }
+        // Load ALL entries for this trial using getClassEntries from entryService
+        // This properly queries the results table separately and joins in JavaScript
+        const classIds = classData.map(c => c.id);
+        const allTrialEntries = await getClassEntries(classIds, showContext?.licenseKey || '');
 
         // Process classes with entry data
         const processedClasses = classData.map((cls: any) => {
           // Filter entries for this specific class using class_id
-          const entryData = (allTrialEntries || []).filter(entry =>
-            entry.class_id === cls.id
+          const entryData = allTrialEntries.filter(entry =>
+            entry.classId === cls.id
           );
 
+          // Debug logging for Container Novice classes
+          if (cls.element === 'Container' && cls.level === 'Novice') {
+            console.log(`📋 Raw entry data for ${cls.element} ${cls.level} ${cls.section}:`,
+              entryData.map(e => ({
+                armband: e.armband,
+                isScored: e.isScored,
+                status: e.status
+              }))
+            );
+          }
+
           // Process dog entries with custom status priority sorting
-          const dogs = (entryData || []).map(entry => ({
+          const dogs = entryData.map(entry => ({
             id: entry.id,
-            armband: entry.armband_number,
-            call_name: entry.dog_call_name,
-            breed: entry.dog_breed,
-            handler: entry.handler_name,
-            in_ring: entry.results?.[0]?.is_in_ring || false,
-            checkin_status: entry.check_in_status || 0,
-            is_scored: entry.results?.[0]?.is_scored || false
+            armband: entry.armband,
+            call_name: entry.callName,
+            breed: entry.breed,
+            handler: entry.handler,
+            in_ring: entry.status === 'in-ring',
+            checkin_status: entry.status === 'checked-in' ? 1 : entry.status === 'conflict' ? 2 : entry.status === 'pulled' ? 3 : entry.status === 'at-gate' ? 4 : 0,
+            is_scored: entry.isScored
           })).sort((a, b) => {
             // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
             const getStatusPriority = (dog: typeof a) => {
@@ -220,6 +213,12 @@ export const ClassList: React.FC = () => {
           // Construct class name from element, level, and section (hide section if it's a dash)
           const sectionPart = cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
           const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
+
+          // Debug logging for class card counts
+          if (cls.element === 'Container' && cls.level === 'Novice') {
+            console.log(`📊 ${className} - Total: ${entryCount}, Completed: ${completedCount}, Remaining: ${entryCount - completedCount}`);
+            console.log('Dogs with is_scored:', dogs.filter(d => d.is_scored).map(d => ({ armband: d.armband, is_scored: d.is_scored })));
+          }
 
           return {
             id: cls.id,

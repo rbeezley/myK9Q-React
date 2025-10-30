@@ -35,12 +35,7 @@ export interface TrialQueue {
   trial_date: string;
   trial_number: number;
   trial_type: string;
-  total_class_count: number;
-  completed_class_count: number;
-  pending_class_count: number;
-  total_entry_count: number;
-  completed_entry_count: number;
-  pending_entry_count: number;
+  // NOTE: Counter fields removed in migration 016 - calculate on-demand
   planned_start_time: string | null;
   actual_start_time: string | null;
   actual_end_time: string | null;
@@ -67,14 +62,8 @@ export interface ClassQueue {
   is_completed: boolean;
   class_status: number;
   class_status_comment: string;
-  total_entry_count: number;
-  pending_entry_count: number;
-  completed_entry_count: number;
-  absent_entry_count: number;
-  qualified_entry_count: number;
-  nq_entry_count: number;
-  excused_entry_count: number;
-  in_progress_count: number;
+  // NOTE: Counter fields removed in migration 016 - calculate on-demand
+  // See ClassList.tsx and useTVData.ts for examples
   pre_entry_fee: number;
   day_of_show_fee: number;
   access_class_id: number | null;
@@ -96,10 +85,7 @@ export interface EntryQueue {
   is_paid: boolean;
   entry_fee: number;
   entry_type: number;
-  is_qualified: boolean;
-  is_absent: boolean;
-  is_excused: boolean;
-  is_withdrawn: boolean;
+  // NOTE: Result status booleans removed in migration 015 - use results.result_status instead
   has_health_issues: boolean;
   payment_method: string | null;
   withdrawal_reason: string | null;

@@ -60,6 +60,7 @@ export const useTVData = ({
     const fetchData = async () => {
       try {
         // Fetch classes with multiple statuses (in-progress and upcoming)
+        // NOTE: Removed total_entry_count and completed_entry_count - we calculate these from actual entry data
         const { data: classes, error: classError } = await supabase
           .from('classes')
           .select(`
@@ -68,8 +69,6 @@ export const useTVData = ({
             level,
             section,
             judge_name,
-            total_entry_count,
-            completed_entry_count,
             class_status,
             trials!inner (
               trial_date,
@@ -95,7 +94,7 @@ export const useTVData = ({
           'setup': 4
         };
 
-        // Transform and sort classes by priority, then by start time
+        // Transform classes (counts will be calculated from entry data below)
         const transformedClasses: ClassInfo[] = (classes || [])
           .map((cls: any) => ({
             id: cls.id.toString(),
@@ -105,8 +104,8 @@ export const useTVData = ({
             level: cls.level,
             class_name: `${cls.element} ${cls.level || ''}`.trim(),
             judge_name: cls.judge_name,
-            entry_total_count: cls.total_entry_count,
-            entry_completed_count: cls.completed_entry_count,
+            entry_total_count: 0,  // Will be calculated from actual entries
+            entry_completed_count: 0,  // Will be calculated from actual entries
             class_status: cls.class_status,
             start_time: cls.trials.planned_start_time
           }))
@@ -170,13 +169,17 @@ export const useTVData = ({
             return statusMap[statusText.toLowerCase()] ?? 0;
           };
 
-          // Group entries by class
+          // Group entries by class AND calculate counts
           const grouped: Record<string, EntryInfo[]> = {};
+          const countsPerClass = new Map<string, {total: number, completed: number}>();
+
           (entries || []).forEach((entry: any) => {
             const key = `${entry.trial_date}-${entry.trial_number}-${entry.element}-${entry.level}`;
             if (!grouped[key]) {
               grouped[key] = [];
+              countsPerClass.set(key, {total: 0, completed: 0});
             }
+
             grouped[key].push({
               id: entry.id.toString(),
               armband: entry.armband.toString(),
@@ -190,6 +193,21 @@ export const useTVData = ({
               sort_order: entry.exhibitor_order?.toString() || entry.armband.toString(),
               checkin_status: mapCheckinStatus(entry.entry_status)
             });
+
+            // Calculate counts from actual entry data
+            const counts = countsPerClass.get(key)!;
+            counts.total += 1;
+            if (entry.is_scored) {
+              counts.completed += 1;
+            }
+          });
+
+          // Update class counts with calculated values
+          transformedClasses.forEach(cls => {
+            const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
+            const counts = countsPerClass.get(key) || {total: 0, completed: 0};
+            cls.entry_total_count = counts.total;
+            cls.entry_completed_count = counts.completed;
           });
 
           setEntriesByClass(grouped);
