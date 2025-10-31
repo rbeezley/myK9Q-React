@@ -4639,6 +4639,11 @@
   }
 }
 
+/* Light Theme */
+.theme-light .section-title {
+  color: var(--foreground);
+}
+
 /* Dark Theme */
 .theme-dark .collapsible-section {
   background-color: rgba(31, 41, 55, 0.95);
