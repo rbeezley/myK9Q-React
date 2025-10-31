@@ -4419,7 +4419,7 @@
 }
 
 .collapsible-section:focus-within {
-  outline: var(--token-space-xs) solid var(--focus-color, #6366f1);
+  outline: var(--token-space-xs) solid var(--primary);
   outline-offset: var(--token-space-xs);
 }
 
@@ -4529,7 +4529,7 @@
 }
 
 .expand-button:focus {
-  outline: var(--token-space-xs) solid var(--focus-color, #6366f1);
+  outline: var(--token-space-xs) solid var(--primary);
   outline-offset: var(--token-space-xs);
 }
 
@@ -4597,7 +4597,7 @@
 }
 
 .high-contrast .section-header:focus {
-  outline: 3px solid var(--focus-color, #0066cc);
+  outline: 3px solid var(--primary);
   outline-offset: var(--token-space-xs);
 }
 
@@ -4677,12 +4677,12 @@
 
 /* Accessibility - Focus Visible */
 .section-header:focus-visible {
-  outline: 3px solid var(--focus-color, #6366f1);
+  outline: 3px solid var(--primary);
   outline-offset: var(--token-space-xs);
 }
 
 .expand-button:focus-visible {
-  outline: 3px solid var(--focus-color, #6366f1);
+  outline: 3px solid var(--primary);
   outline-offset: var(--token-space-xs);
 }
 
