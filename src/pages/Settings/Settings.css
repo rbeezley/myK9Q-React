@@ -171,7 +171,7 @@
 
 .setting-item.indented:hover {
   background: rgba(31, 41, 55, 0.85);
-  border-left-color: #818cf8;
+  border-left-color: var(--primary);
 }
 
 .setting-info {
@@ -504,7 +504,7 @@
 .theme-light,
 .theme-light .setting-item.indented:hover {
   background: #e5e7eb;
-  border-left-color: #818cf8;
+  border-left-color: var(--primary);
 }
 
 .theme-light,

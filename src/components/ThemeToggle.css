@@ -143,14 +143,14 @@
 .theme-notice {
   margin-top: var(--token-space-3xl);
   padding: var(--token-space-xl);
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid #10b981;
+  background: var(--muted);
+  border: 1px solid var(--primary);
   border-radius: 8px;
 }
 
 .theme-notice strong {
   display: block;
-  color: #059669;
+  color: var(--primary);
   margin-bottom: var(--token-space-md);
   font-size: 0.875rem;
 }
@@ -189,6 +189,6 @@
 }
 
 .theme-dark .theme-notice {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #059669;
+  background: var(--muted);
+  border-color: var(--primary);
 }
