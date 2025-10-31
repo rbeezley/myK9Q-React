@@ -99,8 +99,13 @@ function AppWithAuth() {
 
   // Initialize device detection and performance monitoring
   useEffect(() => {
-    // Initialize user settings (theme, font size, density, etc.)
-    initializeSettings();
+    // Prevent double initialization in React StrictMode
+    let cancelled = false;
+
+    if (!cancelled) {
+      // Initialize user settings (theme, font size, density, etc.)
+      initializeSettings();
+    }
 
     // Apply device-specific CSS classes
     applyDeviceClasses();
@@ -139,6 +144,7 @@ function AppWithAuth() {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
+      cancelled = true;
       stopMonitoring();
       notificationIntegration.destroy();
       window.removeEventListener('beforeunload', handleBeforeUnload);

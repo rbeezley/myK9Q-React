@@ -63,13 +63,26 @@ export const useEntryListSubscriptions = ({
           schema: 'public',
           table: 'results'
         },
-        (payload) => {
-          // Check if the result belongs to any of our classes
-          const resultClassId = (payload.new as any)?.class_id || (payload.old as any)?.class_id;
-          if (classIds.includes(resultClassId)) {
-            console.log(`Results change detected for class ${resultClassId}:`, payload);
-            // Don't force refresh - let the store/state management handle updates
-            // onRefresh(true); // REMOVED: This was causing unnecessary full page refreshes
+        async (payload) => {
+          // Results table doesn't have class_id, need to look up via entry_id
+          const entryId = (payload.new as any)?.entry_id || (payload.old as any)?.entry_id;
+
+          if (!entryId) {
+            console.warn('Results change detected but no entry_id found:', payload);
+            return;
+          }
+
+          // Fetch the entry to get its class_id
+          const { data: entry } = await supabase
+            .from('entries')
+            .select('class_id')
+            .eq('id', entryId)
+            .single();
+
+          if (entry && classIds.includes(entry.class_id)) {
+            console.log(`✅ Results change detected for entry ${entryId} in class ${entry.class_id}:`, payload.eventType);
+            // Refresh to update entry status when scores are saved
+            onRefresh(false); // Use false to avoid cache bypass
           }
         }
       )

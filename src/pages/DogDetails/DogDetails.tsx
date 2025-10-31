@@ -27,7 +27,8 @@ import {
 import './DogDetails.css';
 
 interface ClassEntry {
-  id: number;
+  id: number; // Entry ID (for status updates)
+  class_id: number; // Class ID (for navigation)
   class_name: string;
   class_type: string;
   trial_name: string;
@@ -130,11 +131,12 @@ export const DogDetails: React.FC = () => {
         // Process all classes - map entry status from unified status field
         setClasses(data.map((entry) => {
           // Use unified entry_status field
-          const statusText = entry.entry_status || 'none';
-          const check_in_status: ClassEntry['check_in_status'] = statusText === 'in-ring' ? 'none' : statusText as CheckinStatus;
+          const statusText = entry.entry_status || 'no-status';
+          const check_in_status: ClassEntry['check_in_status'] = statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
 
           return {
-            id: entry.id,
+            id: entry.id, // Entry ID (used for status updates)
+            class_id: entry.class_id, // Class ID (used for navigation)
             class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : 'Unknown Class',
             class_type: entry.element || 'Unknown',
             trial_name: `Trial ${entry.trial_number || ''}`,
@@ -143,7 +145,7 @@ export const DogDetails: React.FC = () => {
             fault_count: entry.total_faults || null,
             result_text: entry.result_status,
             is_scored: entry.is_scored || false,
-            checked_in: check_in_status !== 'none',
+            checked_in: check_in_status !== 'no-status',
             check_in_status,
             position: entry.final_placement || undefined,
             // Map additional fields
@@ -178,7 +180,7 @@ export const DogDetails: React.FC = () => {
         c.id === classId
           ? {
               ...c,
-              checked_in: status !== 'none',
+              checked_in: status !== 'no-status',
               check_in_status: status,
               // Keep result_text unchanged - it's for scoring results only
             }
@@ -197,8 +199,13 @@ export const DogDetails: React.FC = () => {
     }
   };
 
-  const _handleGoToGate = (classId: number) => {
-    navigate(`/scoresheet/${classId}`);
+  const handleClassCardClick = (entry: ClassEntry) => {
+    hapticFeedback.impact('medium');
+
+    // Navigate to the entry list for this class using class_id
+    // Note: We don't need to check for combined Novice A/B classes here
+    // since we're navigating from a specific dog's perspective
+    navigate(`/class/${entry.class_id}/entries`);
   };
 
   const handleOpenPopup = (event: React.MouseEvent<HTMLButtonElement>, classId: number) => {
@@ -263,7 +270,7 @@ export const DogDetails: React.FC = () => {
   }
 
   return (
-    <div className={`dog-details-container app-container ${isLoaded ? 'loaded' : ''}`}>
+    <div className={`dog-details-container ${isLoaded ? 'loaded' : ''}`}>
       
       {/* Header with outdoor-ready contrast */}
       <header className="page-header dog-header">
@@ -287,7 +294,7 @@ export const DogDetails: React.FC = () => {
       <div className="dog-info-card">
         <div className="dog-info-content">
           {/* Extra Prominent Armband for Outdoor Visibility */}
-          <ArmbandBadge number={dogInfo.armband} className="armband-display" />
+          <ArmbandBadge number={dogInfo.armband} />
 
           {/* Dog Information */}
           <div className="dog-details">
@@ -299,22 +306,35 @@ export const DogDetails: React.FC = () => {
       </div>
       
       <p className="results-notice">
-        Results below are preliminary
+        All Results are preliminary
       </p>
 
       {/* Class Entry Cards with Status Indicators */}
       <div className="classes-section">
         <h3 className="classes-header">Class Entries</h3>
-        
+
+        <div className="classes-grid">
         {classes.map((entry) => {
           const statusColor = getStatusColor(entry);
           const isScored = entry.is_scored;
-          
+          const isQualified = statusColor === 'qualified';
+          const isNQ = statusColor === 'not-qualified';
+
           return (
-            <div key={entry.id} className={`class-card ${statusColor}`} style={{ position: 'relative' }}>
+            <div
+              key={entry.id}
+              className={`class-card ${statusColor} clickable`}
+              style={{ position: 'relative', cursor: 'pointer' }}
+              onClick={() => handleClassCardClick(entry)}
+            >
               {/* Status Button - positioned absolute, aligned with position badge */}
               <button
-                onClick={(e) => !isScored && handleOpenPopup(e, entry.id)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card click when clicking status button
+                  if (!isScored) {
+                    handleOpenPopup(e, entry.id);
+                  }
+                }}
                 disabled={isScored}
                 className={`status-button ${statusColor}`}
                 style={{
@@ -326,21 +346,40 @@ export const DogDetails: React.FC = () => {
                   height: '36px'
                 }}
               >
-                {/* Check-in status icons - matching dialog */}
-                {entry.check_in_status === 'checked-in' && <Check className="status-icon h-4 w-4" />}
-                {entry.check_in_status === 'conflict' && <AlertTriangle className="status-icon h-4 w-4" />}
-                {entry.check_in_status === 'pulled' && <XCircle className="status-icon h-4 w-4" />}
-                {entry.check_in_status === 'at-gate' && <Star className="status-icon h-4 w-4" />}
-                {entry.check_in_status === 'none' && !isScored && <Circle className="status-icon h-4 w-4" />}
-
-                {/* Result status icons */}
-                {statusColor === 'qualified' && <ThumbsUp />}
-                {statusColor === 'not-qualified' && <XCircle />}
-
-                {getStatusLabel(entry)}
+                {/* Show actual result status for scored dogs */}
+                {isScored ? (
+                  <>
+                    {isQualified ? (
+                      <>
+                        <ThumbsUp className="h-4 w-4" />
+                        Qualified
+                      </>
+                    ) : isNQ ? (
+                      <>
+                        <XCircle className="h-4 w-4" />
+                        Not Qualified
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4" />
+                        {getStatusLabel(entry)}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Check-in status icons - matching dialog */}
+                    {entry.check_in_status === 'checked-in' && <Check className="status-icon h-4 w-4" />}
+                    {entry.check_in_status === 'conflict' && <AlertTriangle className="status-icon h-4 w-4" />}
+                    {entry.check_in_status === 'pulled' && <XCircle className="status-icon h-4 w-4" />}
+                    {entry.check_in_status === 'at-gate' && <Star className="status-icon h-4 w-4" />}
+                    {entry.check_in_status === 'no-status' && <Circle className="status-icon h-4 w-4" />}
+                    {getStatusLabel(entry)}
+                  </>
+                )}
               </button>
 
-              <div className="class-content" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div className="class-content">
                 {/* Top row: Position Badge + Class Name */}
                 <div style={{
                   display: 'flex',
@@ -348,9 +387,9 @@ export const DogDetails: React.FC = () => {
                   gap: '0.75rem',
                   paddingRight: '120px'
                 }}>
-                  {/* Position Badge */}
+                  {/* Position Badge - only show for qualified dogs with valid placement */}
                   <div className="class-position" style={{ flexShrink: 0 }}>
-                    {entry.position ? (
+                    {entry.position && entry.position !== 9996 && isQualified ? (
                       <div className="position-badge">
                         <Trophy />
                         <span className="position-number">{entry.position}</span>
@@ -377,16 +416,7 @@ export const DogDetails: React.FC = () => {
                 </div>
 
                 {/* Second row: Metadata */}
-                <div className="class-meta-details" style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '1rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--text-secondary)',
-                  paddingLeft: '60px'
-                }}>
+                <div className="class-meta-details">
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                     <TrialDateBadge date={entry.trial_date} />
                   </span>
@@ -406,10 +436,7 @@ export const DogDetails: React.FC = () => {
 
                 {/* Performance Stats - only show if dog has completed the class */}
                 {entry.is_scored && (
-                  <div className="class-stats" style={{
-                    marginTop: '0.25rem',
-                    paddingLeft: '60px'
-                  }}>
+                  <div className="class-stats">
                     <div className="stat-item">
                       <Clock />
                       <span className="stat-value">
@@ -428,6 +455,7 @@ export const DogDetails: React.FC = () => {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Status Management Dialog */}

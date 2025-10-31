@@ -219,8 +219,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                   role={onSetMaxTime ? "button" : undefined}
                   tabIndex={onSetMaxTime ? 0 : undefined}
                 >
-                  <div className="requirement-icon">
-                    <Clock className="h-5 w-5" />
+                  <div className="requirement-icon" style={{ background: '#3b82f6' }}>
+                    <Clock size={20} />
                   </div>
                   <div className="requirement-content">
                     <label>Max Time</label>
@@ -230,8 +230,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
                 {/* Hides */}
                 <div className="requirement-item">
-                  <div className="requirement-icon">
-                    <Target className="h-5 w-5" />
+                  <div className="requirement-icon" style={{ background: '#06b6d4' }}>
+                    <Target size={20} />
                   </div>
                   <div className="requirement-content">
                     <label>Hides</label>
@@ -241,8 +241,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
                 {/* Distractions */}
                 <div className="requirement-item">
-                  <div className="requirement-icon">
-                    <AlertTriangle className="h-5 w-5" />
+                  <div className="requirement-icon" style={{ background: '#f59e0b' }}>
+                    <AlertTriangle size={20} />
                   </div>
                   <div className="requirement-content">
                     <label>Distractions</label>
@@ -252,8 +252,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
                 {/* Required Calls (AKC) or Final Response (UKC) */}
                 <div className="requirement-item">
-                  <div className="requirement-icon">
-                    <Speech className="h-5 w-5" />
+                  <div className="requirement-icon" style={{ background: '#8b5cf6' }}>
+                    <Speech size={20} />
                   </div>
                   <div className="requirement-content">
                     <label>
@@ -270,8 +270,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                 {/* Height */}
                 {requirements.height && requirements.height !== '-' && (
                   <div className="requirement-item">
-                    <div className="requirement-icon">
-                      <Ruler className="h-5 w-5" />
+                    <div className="requirement-icon" style={{ background: '#ec4899' }}>
+                      <Ruler size={20} />
                     </div>
                     <div className="requirement-content">
                       <label>Max Height</label>
@@ -285,8 +285,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                   classData.element === 'Buried' ||
                   (classData.element === 'Handler Discrimination' && classData.level === 'Novice A')) && (
                   <div className="requirement-item">
-                    <div className="requirement-icon">
-                      <Package className="h-5 w-5" />
+                    <div className="requirement-icon" style={{ background: '#14b8a6' }}>
+                      <Package size={20} />
                     </div>
                     <div className="requirement-content">
                       <label>Arrangement</label>
@@ -300,8 +300,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                 {/* Area Size */}
                 {requirements.area_size && requirements.area_size !== '-' && (
                   <div className="requirement-item">
-                    <div className="requirement-icon">
-                      <MapPin className="h-5 w-5" />
+                    <div className="requirement-icon" style={{ background: '#10b981' }}>
+                      <MapPin size={20} />
                     </div>
                     <div className="requirement-content">
                       <label>Area Size</label>
@@ -313,8 +313,8 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
                 {/* Area Count */}
                 {requirements.area_count > 1 && (
                   <div className="requirement-item">
-                    <div className="requirement-icon">
-                      <MapPin className="h-5 w-5" />
+                    <div className="requirement-icon" style={{ background: '#10b981' }}>
+                      <MapPin size={20} />
                     </div>
                     <div className="requirement-content">
                       <label>Areas</label>

@@ -15,7 +15,7 @@ export const useEntryListActions = (_onRefresh: () => void) => {
    * Update entry check-in status with optimistic updates
    */
   const handleStatusChange = useCallback(
-    async (entryId: number, newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
+    async (entryId: number, newStatus: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
       await update({
         optimisticData: { entryId, status: newStatus },
         serverUpdate: async () => {
@@ -97,7 +97,7 @@ export const useEntryListActions = (_onRefresh: () => void) => {
    * Batch status update (for future use)
    */
   const handleBatchStatusUpdate = useCallback(
-    async (entryIds: number[], newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
+    async (entryIds: number[], newStatus: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
       try {
         await Promise.all(
           entryIds.map((id) => updateEntryCheckinStatus(id, newStatus))

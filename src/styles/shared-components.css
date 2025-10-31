@@ -516,6 +516,21 @@
   background: var(--muted);
 }
 
+/* Dark mode reset menu */
+.theme-dark .reset-menu {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .reset-option {
+  color: var(--foreground);
+}
+
+.theme-dark .reset-option:hover {
+  background: var(--muted);
+}
+
 /* ========================
    Dialog Overlays
    ======================== */

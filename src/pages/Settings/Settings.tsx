@@ -356,7 +356,7 @@ export function Settings() {
       <CollapsibleSection
         id="theme-section"
         title="Theme"
-        description="Experimental: Test green vs blue primary color"
+        description="Experimental: Choose your primary accent color (Blue, Green, or Orange)"
         defaultExpanded={false}
         badge={1}
       >

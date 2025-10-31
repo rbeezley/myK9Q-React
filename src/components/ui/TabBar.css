@@ -1,0 +1,144 @@
+/* ===== TAB BAR - Standardized Component ===== */
+/* iOS-style segmented control with theme-aware colors */
+
+.tab-bar {
+  margin: 0 auto var(--token-space-lg);
+  max-width: 600px;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--token-space-md);
+  padding: var(--token-space-xs);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 0.125rem;
+  width: auto;
+  box-sizing: border-box;
+}
+
+.tab-bar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md); /* Increased from xs (2px) to md (8px) */
+  padding: var(--token-space-md) var(--token-space-lg);
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 400; /* Reduced from 500 to 400 */
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-height: 44px; /* iOS minimum touch target */
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.tab-bar-button.active {
+  background: var(--card);
+  color: var(--primary); /* Theme-aware: blue/green/orange */
+  box-shadow: var(--token-shadow-sm);
+  font-weight: 500; /* Reduced from 600 to 500 */
+}
+
+.tab-bar-button:not(.active):hover {
+  color: var(--foreground);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.theme-dark .tab-bar-button:not(.active):hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-bar-button:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+/* Tab icon */
+.tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Tab text */
+.tab-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tab count badge */
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.375rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  min-width: 1.25rem;
+  height: 1.125rem;
+  line-height: 1;
+}
+
+.tab-bar-button.active .tab-count {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.theme-dark .tab-count {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.theme-dark .tab-bar-button.active .tab-count {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Desktop - wider spacing */
+@media (min-width: 640px) {
+  .tab-bar {
+    padding: var(--token-space-sm);
+  }
+
+  .tab-bar-button {
+    padding: var(--token-space-md) var(--token-space-2xl);
+    font-size: 0.875rem;
+  }
+}
+
+/* Accessibility - reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tab-bar-button {
+    transition: none;
+  }
+}
+
+/* ===== VARIANT: Full Width (no max-width, stretch to container) ===== */
+.tab-bar.full-width {
+  max-width: none;
+  margin-left: var(--token-space-lg);
+  margin-right: var(--token-space-lg);
+}
+
+/* ===== VARIANT: Compact (smaller padding, better for mobile) ===== */
+.tab-bar.compact {
+  padding: var(--token-space-xs);
+}
+
+.tab-bar.compact .tab-bar-button {
+  padding: var(--token-space-sm) var(--token-space-lg);
+  font-size: 0.75rem;
+  min-height: 40px;
+}

@@ -149,7 +149,7 @@ export async function getClassEntries(
 
         // Deprecated fields (backward compatibility)
         inRing: status === 'in-ring',
-        checkedIn: status !== 'none',
+        checkedIn: status !== 'no-status',
         checkinStatus: status,
 
         resultText: row.result_status || 'pending',
@@ -234,7 +234,7 @@ export async function getTrialEntries(
 
       // Determine status
       const status = (row.entry_status as EntryStatus | undefined) ||
-                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'none' as EntryStatus);
+                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'no-status' as EntryStatus);
 
       return {
         id: row.id,
@@ -251,7 +251,7 @@ export async function getTrialEntries(
 
         // Deprecated fields (backward compatibility)
         inRing: status === 'in-ring',
-        checkedIn: status !== 'none',
+        checkedIn: status !== 'no-status',
         checkinStatus: status,
 
         resultText: row.result_text,
@@ -622,7 +622,7 @@ export async function markInRing(
 
   try {
     // Update the unified entry_status field
-    const newStatus: EntryStatus = inRing ? 'in-ring' : 'none';
+    const newStatus: EntryStatus = inRing ? 'in-ring' : 'no-status';
 
     const { error } = await supabase
       .from('entries')
@@ -980,7 +980,7 @@ export async function getEntriesByArmband(
 
       // Determine status
       const status = (row.entry_status as EntryStatus | undefined) ||
-                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'none' as EntryStatus);
+                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'no-status' as EntryStatus);
 
       return {
         id: row.id,
@@ -997,7 +997,7 @@ export async function getEntriesByArmband(
 
         // Deprecated fields (backward compatibility)
         inRing: status === 'in-ring',
-        checkedIn: status !== 'none',
+        checkedIn: status !== 'no-status',
         checkinStatus: status,
 
         resultText: row.result_text,

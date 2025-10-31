@@ -340,6 +340,33 @@ function applyHighContrast(enabled: boolean) {
 }
 
 /**
+ * Apply theme color (blue/green/orange)
+ */
+function applyThemeColor(themeColor: 'blue' | 'green' | 'orange') {
+  // Remove any existing theme CSS links
+  const greenLink = document.getElementById('green-theme-link');
+  const orangeLink = document.getElementById('orange-theme-link');
+  if (greenLink) greenLink.remove();
+  if (orangeLink) orangeLink.remove();
+
+  // Apply selected theme color
+  if (themeColor === 'green') {
+    const link = document.createElement('link');
+    link.id = 'green-theme-link';
+    link.rel = 'stylesheet';
+    link.href = '/src/styles/green-theme.css';
+    document.head.appendChild(link);
+  } else if (themeColor === 'orange') {
+    const link = document.createElement('link');
+    link.id = 'orange-theme-link';
+    link.rel = 'stylesheet';
+    link.href = '/src/styles/orange-theme.css';
+    document.head.appendChild(link);
+  }
+  // Blue theme is default, no additional CSS needed
+}
+
+/**
  * Initialize settings on app load
  */
 export function initializeSettings() {
@@ -349,4 +376,10 @@ export function initializeSettings() {
   applyDensity(settings.density);
   applyReduceMotion(settings.reduceMotion);
   applyHighContrast(settings.highContrast);
+
+  // Apply theme color (blue/green/orange) from localStorage
+  const savedThemeColor = localStorage.getItem('myK9Q_themeColor') as 'blue' | 'green' | 'orange' | null;
+  if (savedThemeColor) {
+    applyThemeColor(savedThemeColor);
+  }
 }

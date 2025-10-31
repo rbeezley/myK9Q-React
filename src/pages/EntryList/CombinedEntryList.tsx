@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState, TabBar, Tab } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
@@ -12,6 +12,7 @@ import { applyRunOrderPreset } from '../../services/runOrderService';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { useEntryListData, useEntryListActions, useEntryListFilters, useEntryListSubscriptions } from './hooks';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
+import { formatTrialDate } from '../../utils/dateUtils';
 import './EntryList.css';
 
 export const CombinedEntryList: React.FC = () => {
@@ -146,22 +147,6 @@ export const CombinedEntryList: React.FC = () => {
     }
   }, [showActionsMenu]);
 
-  // Date formatting helper
-  const formatTrialDate = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    const dayName = days[date.getDay()];
-    const monthName = months[date.getMonth()];
-    const dayNumber = date.getDate();
-    const yearNumber = date.getFullYear();
-
-    return `${dayName}, ${monthName} ${dayNumber}, ${yearNumber}`;
-  };
-
   // Apply section filter and sort
   const sectionFilteredEntries = sectionFilter === 'all'
     ? filteredEntries
@@ -194,6 +179,41 @@ export const CombinedEntryList: React.FC = () => {
   const pendingEntries = sortedEntries.filter(e => !e.isScored);
   const completedEntries = sortedEntries.filter(e => e.isScored);
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+
+  // Prepare section tabs
+  const sectionTabs: Tab[] = useMemo(() => [
+    {
+      id: 'all',
+      label: 'All Sections',
+      count: entries.length
+    },
+    {
+      id: 'A',
+      label: 'Section A',
+      count: entries.filter(e => e.section === 'A').length
+    },
+    {
+      id: 'B',
+      label: 'Section B',
+      count: entries.filter(e => e.section === 'B').length
+    }
+  ], [entries]);
+
+  // Prepare status tabs
+  const statusTabs: Tab[] = useMemo(() => [
+    {
+      id: 'pending',
+      label: 'Pending',
+      icon: <Clock size={16} />,
+      count: entryCounts.pending
+    },
+    {
+      id: 'completed',
+      label: 'Completed',
+      icon: <CheckCircle size={16} />,
+      count: entryCounts.completed
+    }
+  ], [entryCounts]);
 
   // Reset score handlers
   const handleResetMenuClick = (e: React.MouseEvent, entryId: number) => {
@@ -291,7 +311,7 @@ export const CombinedEntryList: React.FC = () => {
     setActiveStatusPopup(entryId);
   };
 
-  const handleStatusChange = async (entryId: number, newStatus: 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed') => {
+  const handleStatusChange = async (entryId: number, newStatus: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed') => {
     // Close popup first
     setActiveStatusPopup(null);
 
@@ -337,7 +357,7 @@ export const CombinedEntryList: React.FC = () => {
       entry.id === entryId
         ? {
             ...entry,
-            checkedIn: newStatus !== 'none',
+            checkedIn: newStatus !== 'no-status',
             status: newStatus,
             // Force new reference
             _timestamp: Date.now()
@@ -359,7 +379,7 @@ export const CombinedEntryList: React.FC = () => {
       // Rollback optimistic update on error
       setLocalEntries(prev => prev.map(entry =>
         entry.id === entryId
-          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'none' }
+          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'no-status' }
           : entry
       ));
       refresh(true);
@@ -738,44 +758,19 @@ export const CombinedEntryList: React.FC = () => {
       </div>
 
       {/* Section Filter Tabs */}
-      <div className="section-filter-tabs">
-        <button
-          className={`section-tab ${sectionFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setSectionFilter('all')}
-        >
-          All Sections ({entries.length})
-        </button>
-        <button
-          className={`section-tab ${sectionFilter === 'A' ? 'active' : ''}`}
-          onClick={() => setSectionFilter('A')}
-        >
-          Section A ({entries.filter(e => e.section === 'A').length})
-        </button>
-        <button
-          className={`section-tab ${sectionFilter === 'B' ? 'active' : ''}`}
-          onClick={() => setSectionFilter('B')}
-        >
-          Section B ({entries.filter(e => e.section === 'B').length})
-        </button>
-      </div>
+      <TabBar
+        tabs={sectionTabs}
+        activeTab={sectionFilter}
+        onTabChange={(tabId) => setSectionFilter(tabId as 'all' | 'A' | 'B')}
+        className="full-width"
+      />
 
       {/* Status Tabs */}
-      <div className="status-tabs">
-        <button
-          className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          <Clock className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-          Pending ({entryCounts.pending})
-        </button>
-        <button
-          className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('completed')}
-        >
-          <CheckCircle className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-          Completed ({entryCounts.completed})
-        </button>
-      </div>
+      <TabBar
+        tabs={statusTabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as 'pending' | 'completed')}
+      />
 
       <div className="entry-list-content">
         {currentEntries.length === 0 ? (
@@ -807,12 +802,12 @@ export const CombinedEntryList: React.FC = () => {
                       return 'scored'; // Fallback to generic scored
                     })()
                   ) :
-                  entry.status === 'in-ring' ? 'none' :
+                  entry.status === 'in-ring' ? 'no-status' :
                   (entry.status === 'checked-in' ? 'checked-in' :
                    entry.status === 'conflict' ? 'conflict' :
                    entry.status === 'pulled' ? 'pulled' :
                    entry.status === 'at-gate' ? 'at-gate' :
-                   entry.status === 'completed' ? 'completed' : 'none')
+                   entry.status === 'completed' ? 'completed' : 'no-status')
                 }
                 sectionBadge={entry.section as 'A' | 'B' | null}
                 resultBadges={
@@ -823,8 +818,13 @@ export const CombinedEntryList: React.FC = () => {
                         {/* Header Row: Placement, Time, and Result badges */}
                         <div className="nationals-header-row">
                           {entry.placement && (
-                            <span className="placement-badge">
-                              {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                            <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
+                              {entry.placement <= 4 && (
+                                <span className="placement-badge-icon">
+                                  {entry.placement === 1 ? '🥇' : entry.placement === 2 ? '🥈' : entry.placement === 3 ? '🥉' : '🎖️'}
+                                </span>
+                              )}
+                              <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
                             </span>
                           )}
                           <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
@@ -881,11 +881,16 @@ export const CombinedEntryList: React.FC = () => {
                                                    resultLower.includes('ex') || resultLower.includes('excused') ||
                                                    resultLower.includes('wd') || resultLower.includes('withdrawn');
 
-                            // Show placement only if qualified (placement exists and result is qualified)
-                            if (entry.placement && !isNonQualifying && entry.placement < 100) {
+                            // Show placement badge for all qualified placements
+                            if (entry.placement && !isNonQualifying) {
                               return (
-                                <span className="placement-badge">
-                                  {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                                <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
+                                  {entry.placement <= 4 && (
+                                    <span className="placement-badge-icon">
+                                      {entry.placement === 1 ? '🥇' : entry.placement === 2 ? '🥈' : entry.placement === 3 ? '🥉' : '🎖️'}
+                                    </span>
+                                  )}
+                                  <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
                                 </span>
                               );
                             }
@@ -944,12 +949,12 @@ export const CombinedEntryList: React.FC = () => {
                         const iconSize = 14;
                         const iconStyle = { width: `${iconSize}px`, height: `${iconSize}px`, flexShrink: 0, marginRight: '0.375rem', display: 'inline-block', verticalAlign: 'middle' };
 
-                        const status = entry.status || 'none';
+                        const status = entry.status || 'no-status';
                         const textStyle = { textTransform: 'none' as const, fontSize: '0.6875rem' };
                         switch(status) {
                           case 'in-ring': return <><span className="status-icon" style={{ fontSize: '11px', marginRight: '0.375rem' }}>▶</span><span style={textStyle}>In Ring</span></>;
                           case 'completed': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Completed</span></>;
-                          case 'none': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
+                          case 'no-status': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
                           case 'checked-in': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Checked-in</span></>;
                           case 'conflict': return <><AlertTriangle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Conflict</span></>;
                           case 'pulled': return <><XCircle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Pulled</span></>;

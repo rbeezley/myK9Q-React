@@ -4,13 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh, TabBar, Tab } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
 import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
+import { formatTrialDate } from '../../utils/dateUtils';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { applyRunOrderPreset } from '../../services/runOrderService';
@@ -43,16 +44,6 @@ export const EntryList: React.FC = () => {
   const { hasPermission } = usePermission();
   const { prefetch } = usePrefetch();
   const { settings } = useSettingsStore();
-
-  // Simple date formatter
-  const formatTrialDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    } catch {
-      return dateStr;
-    }
-  };
 
   // Data management using shared hook
   const {
@@ -93,7 +84,7 @@ export const EntryList: React.FC = () => {
           entry.id === payload.new.id
             ? {
                 ...entry,
-                checkedIn: payload.new.entry_status !== 'none',
+                checkedIn: payload.new.entry_status !== 'no-status',
                 status: payload.new.entry_status,
                 inRing: payload.new.in_ring || false,
                 isScored: payload.new.is_scored || false
@@ -306,7 +297,7 @@ export const EntryList: React.FC = () => {
       entry.id === entryId
         ? {
             ...entry,
-            checkedIn: status !== 'none',
+            checkedIn: status !== 'no-status',
             status: status,
             inRing: false,
             // Force new reference
@@ -329,7 +320,7 @@ export const EntryList: React.FC = () => {
       // Rollback optimistic update on error
       setLocalEntries(prev => prev.map(entry =>
         entry.id === entryId
-          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'none' }
+          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'no-status' }
           : entry
       ));
       refresh(true);
@@ -489,10 +480,22 @@ export const EntryList: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const calculatedTop = rect.bottom + 5;
+    const calculatedLeft = rect.left - 100;
+
+    console.log('🔍 Reset menu click:', {
+      entryId,
+      buttonRect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right },
+      calculatedPosition: { top: calculatedTop, left: calculatedLeft },
+      scrollY: window.scrollY,
+      scrollX: window.scrollX,
+      pathname: window.location.pathname
+    });
+
     setResetMenuPosition({
-      top: rect.bottom + 5,
-      left: rect.left - 100
+      top: calculatedTop,
+      left: calculatedLeft
     });
     setActiveResetMenu(entryId);
   };
@@ -587,6 +590,22 @@ export const EntryList: React.FC = () => {
   const completedEntries = useMemo(() => filteredEntries.filter(e => e.isScored), [filteredEntries]);
 
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+
+  // Prepare status tabs for TabBar component
+  const statusTabs: Tab[] = useMemo(() => [
+    {
+      id: 'pending',
+      label: 'Pending',
+      icon: <Clock size={16} />,
+      count: pendingEntries.length
+    },
+    {
+      id: 'completed',
+      label: 'Completed',
+      icon: <CheckCircle size={16} />,
+      count: completedEntries.length
+    }
+  ], [pendingEntries.length, completedEntries.length]);
 
   // Prefetch scoresheet data when hovering/touching entry card
   const handleEntryPrefetch = useCallback((entry: Entry) => {
@@ -895,22 +914,11 @@ export const EntryList: React.FC = () => {
         )}
       </div>
 
-      <div className="status-tabs">
-        <button
-          className={`status-tab ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          <Clock className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-          Pending ({pendingEntries.length})
-        </button>
-        <button
-          className={`status-tab ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('completed')}
-        >
-          <CheckCircle className="status-icon" size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-          Completed ({completedEntries.length})
-        </button>
-      </div>
+      <TabBar
+        tabs={statusTabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+      />
 
       <div className="entry-list-content">
         {currentEntries.length === 0 ? (

@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { ArrowLeft, RefreshCw, Target, MoreVertical } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
@@ -31,7 +31,7 @@ interface ClassEntry {
   judge_name: string;
   entry_count: number;
   completed_count: number;
-  class_status: 'none' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
+  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
   is_completed?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;
@@ -231,7 +231,7 @@ export const ClassList: React.FC = () => {
             judge_name: cls.judge_name || 'TBA',
             entry_count: entryCount,
             completed_count: completedCount,
-            class_status: cls.class_status || 'none',
+            class_status: cls.class_status || 'no-status',
             is_completed: cls.is_completed || false,
             is_favorite: currentFavorites.has(cls.class_id),
             time_limit_seconds: cls.time_limit_seconds,
@@ -1327,15 +1327,31 @@ export const ClassList: React.FC = () => {
       {/* Navigation Menu Popup */}
       {activePopup !== null && (
         <div className="popup-overlay" onClick={() => setActivePopup(null)}>
-          <div className="popup-container">
+          <div className="popup-container" onClick={(e) => e.stopPropagation()}>
             <div className="popup-content">
-              <h3>Class Options</h3>
-              <div className="menu-options">
+              <h3>
+                <div className="popup-header-content">
+                  <div className="popup-title">Class Options</div>
+                  <div className="popup-subtitle">
+                    {classes.find(c => c.id === activePopup)?.class_name || ''}
+                  </div>
+                </div>
                 <button
-                  className="menu-option"
+                  className="popup-close-button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Find the class data for the requirements dialog
+                    setActivePopup(null);
+                  }}
+                  aria-label="Close"
+                >
+                  <X size={20} />
+                </button>
+              </h3>
+              <div className="class-options-grid">
+                <button
+                  className="class-option-item"
+                  onClick={(e) => {
+                    e.stopPropagation();
                     const classData = classes.find(c => c.id === activePopup);
                     if (classData) {
                       setSelectedClassForRequirements(classData);
@@ -1344,57 +1360,65 @@ export const ClassList: React.FC = () => {
                     setActivePopup(null);
                   }}
                 >
-                  <span className="menu-icon">📋</span>
-                  <span className="menu-label">Requirements</span>
+                  <div className="class-option-icon" style={{ background: '#3b82f6' }}>
+                    <ClipboardList size={20} />
+                  </div>
+                  <div className="class-option-label">Requirements</div>
+                  <div className="class-option-description">View class rules and requirements</div>
                 </button>
+
                 <button
-                  className="menu-option"
+                  className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Find the class data for the max time dialog
                     const classData = classes.find(c => c.id === activePopup);
                     if (classData) {
                       setSelectedClassForMaxTime(classData);
                       setMaxTimeDialogOpen(true);
-                      setShowMaxTimeWarning(false); // No warning for manual access
+                      setShowMaxTimeWarning(false);
                     }
                     setActivePopup(null);
                   }}
                 >
-                  <span className="menu-icon">🕐</span>
-                  <span className="menu-label">Set Max Time</span>
+                  <div className="class-option-icon" style={{ background: '#8b5cf6' }}>
+                    <Clock size={20} />
+                  </div>
+                  <div className="class-option-label">Set Max Time</div>
+                  <div className="class-option-description">Configure maximum time limits</div>
                 </button>
+
                 <button
-                  className="menu-option"
+                  className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Navigate to class settings
                     console.log('Navigate to class settings for class', activePopup);
                     setActivePopup(null);
                   }}
                 >
-                  <span className="menu-icon">⚙️</span>
-                  <span className="menu-label">Settings</span>
+                  <div className="class-option-icon" style={{ background: '#64748b' }}>
+                    <Settings size={20} />
+                  </div>
+                  <div className="class-option-label">Settings</div>
+                  <div className="class-option-description">Configure class settings</div>
                 </button>
+
                 <button
-                  className="menu-option"
+                  className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Navigate to class statistics
                     console.log('Navigate to class statistics for class', activePopup);
                     setActivePopup(null);
                   }}
                 >
-                  <span className="menu-icon">📈</span>
-                  <span className="menu-label">Statistics</span>
+                  <div className="class-option-icon" style={{ background: '#10b981' }}>
+                    <BarChart3 size={20} />
+                  </div>
+                  <div className="class-option-label">Statistics</div>
+                  <div className="class-option-description">View class performance data</div>
                 </button>
 
-                {/* Divider */}
-                <div className="menu-divider"></div>
-
-                {/* Print Reports */}
                 <button
-                  className="menu-option"
+                  className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (activePopup !== null) {
@@ -1402,11 +1426,15 @@ export const ClassList: React.FC = () => {
                     }
                   }}
                 >
-                  <span className="menu-icon">📄</span>
-                  <span className="menu-label">Check-In Sheet</span>
+                  <div className="class-option-icon" style={{ background: '#f59e0b' }}>
+                    <FileText size={20} />
+                  </div>
+                  <div className="class-option-label">Check-In Sheet</div>
+                  <div className="class-option-description">Print check-in roster</div>
                 </button>
+
                 <button
-                  className="menu-option"
+                  className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (activePopup !== null) {
@@ -1414,8 +1442,11 @@ export const ClassList: React.FC = () => {
                     }
                   }}
                 >
-                  <span className="menu-icon">📊</span>
-                  <span className="menu-label">Results Sheet</span>
+                  <div className="class-option-icon" style={{ background: '#ec4899' }}>
+                    <Award size={20} />
+                  </div>
+                  <div className="class-option-label">Results Sheet</div>
+                  <div className="class-option-description">Print results report</div>
                 </button>
               </div>
             </div>

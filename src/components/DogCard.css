@@ -211,11 +211,12 @@
   letter-spacing: 0.025em;
 }
 
-/* Action button - absolute positioned in bottom right */
+/* Action button - absolute positioned in top right */
 .dog-card-action {
   position: absolute;
-  bottom: var(--token-space-md);
+  top: var(--token-space-md);
   right: var(--token-space-md);
+  z-index: 10;
 }
 
 /* Favorite button for Home page */
@@ -314,13 +315,13 @@
 }
 
 /* Status badge colors - matching original EntryList styles */
-.dog-card-action .status-badge.none {
-  background: var(--status-none-bg);
+.dog-card-action .status-badge.no-status {
+  background: var(--status-no-status-bg);
   color: white;
 }
 
-.theme-dark .dog-card-action .status-badge.none {
-  background: var(--status-none-bg);
+.theme-dark .dog-card-action .status-badge.no-status {
+  background: var(--status-no-status-bg);
   color: white;
 }
 

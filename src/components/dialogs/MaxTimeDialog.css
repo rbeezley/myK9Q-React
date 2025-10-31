@@ -3,6 +3,11 @@
   max-width: 600px;
 }
 
+/* Override dialog-footer to right-align buttons */
+.max-time-dialog .dialog-footer {
+  justify-content: flex-end;
+}
+
 .time-range-info {
   display: flex;
   align-items: center;
@@ -370,9 +375,9 @@
 
 
 .cancel-button {
-  background: var(--muted-foreground);
-  color: white;
-  border: none;
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid var(--border);
   padding: 0.75rem 1.5rem;
   border-radius: var(--token-space-md);
   font-weight: 500;
@@ -382,6 +387,7 @@
 
 .cancel-button:hover {
   background: var(--muted-foreground);
+  color: white;
 }
 
 .save-button {
@@ -482,6 +488,21 @@
 }
 
 /* Dark mode support */
+.theme-dark .range-badge {
+  background: var(--status-qualified);
+  color: white;
+}
+
+.theme-dark .areas-badge {
+  background: #f59e0b;
+  color: white;
+}
+
+.theme-dark .dictated-badge {
+  background: #6b7280;
+  color: white;
+}
+
 .theme-dark .time-input-label {
   color: #f3f4f6;
 }
@@ -489,7 +510,7 @@
 .theme-dark .time-input {
   background: var(--card);
   border-color: var(--token-text-secondary);
-  color: var(--muted);
+  color: #f3f4f6;
 }
 
 .theme-dark .time-input:focus {
@@ -555,9 +576,9 @@
 }
 
 .theme-dark .time-preset-btn {
-  background: var(--card);
-  border-color: var(--muted-foreground);
-  color: var(--muted);
+  background: #1f2937;
+  border-color: #4b5563;
+  color: #e5e7eb;
 }
 
 .theme-dark .time-preset-btn:hover {
@@ -578,6 +599,18 @@
 .theme-dark .time-preset-btn.active:hover {
   background: #5855eb;
   border-color: #5855eb;
+}
+
+.theme-dark .cancel-button {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-color: #4b5563;
+}
+
+.theme-dark .cancel-button:hover {
+  background: #374151;
+  color: #f3f4f6;
+  border-color: #6b7280;
 }
 
 

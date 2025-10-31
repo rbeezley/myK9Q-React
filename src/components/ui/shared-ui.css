@@ -86,8 +86,8 @@
 
 /* Enhanced armband badge for better outdoor visibility - Square design */
 .armband-badge {
-  background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple) 100%);
-  color: white;
+  background: var(--primary); /* Solid theme color instead of gradient */
+  color: var(--primary-foreground);
   border-radius: 1rem;
   width: 3.5rem;
   height: 3.5rem;
@@ -4469,6 +4469,7 @@
 .header-text {
   flex: 1;
   min-width: 0;
+  text-align: left; /* Force left alignment */
 }
 
 .section-title {
@@ -4479,6 +4480,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-align: left;
 }
 
 .section-badge {
@@ -4500,6 +4502,7 @@
   font-size: 0.875rem;
   color: var(--token-text-secondary, #6b7280);
   line-height: 1.4;
+  text-align: left;
 }
 
 /* Expand Button */
@@ -4652,11 +4655,11 @@
 }
 
 .theme-dark .section-title {
-  color: var(--muted);
+  color: var(--foreground); /* Better contrast - use full foreground color */
 }
 
 .theme-dark .section-description {
-  color: var(--token-text-muted);
+  color: var(--muted-foreground); /* Better contrast than token-text-muted */
 }
 
 .theme-dark .section-icon {

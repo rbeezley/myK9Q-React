@@ -139,21 +139,7 @@ input[type="radio"]:checked {
 
 /* ===== TESTING UTILITIES ===== */
 
-/* Add this class to body to see green theme info */
-body.green-theme-debug::before {
-  content: '🟢 GREEN THEME ACTIVE';
-  position: fixed;
-  top: 0;
-  right: 0;
-  background: #10b981;
-  color: white;
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: bold;
-  z-index: 99999;
-  border-bottom-left-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
+/* Debug badge removed - use Settings page to verify theme selection */
 
 /* ===== COLOR COMPARISON GUIDE ===== */
 

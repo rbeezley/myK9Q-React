@@ -2,53 +2,58 @@ import { useState, useEffect, useCallback } from 'react';
 import './ThemeToggle.css';
 
 /**
- * ThemeToggle - Developer tool for testing green theme
+ * ThemeToggle - Theme accent color selector
  *
- * This component lets you toggle between blue (original) and green theme
- * without editing code. Perfect for A/B comparison.
+ * This component lets you choose between three primary colors:
+ * - Blue (original Apple system color)
+ * - Green (matches landing page aesthetic)
+ * - Orange (energetic & sporty)
  *
  * Usage: Add <ThemeToggle /> anywhere in your app (e.g., Settings page)
  */
+
+type ThemeColor = 'blue' | 'green' | 'orange';
+
 export function ThemeToggle() {
-  const [isGreenTheme, setIsGreenTheme] = useState(() => {
+  const [activeTheme, setActiveTheme] = useState<ThemeColor>(() => {
     // Initialize from localStorage
-    const saved = localStorage.getItem('myK9Q_greenTheme');
-    return saved === 'true';
+    const saved = localStorage.getItem('myK9Q_themeColor');
+    return (saved as ThemeColor) || 'blue';
   });
 
-  const applyTheme = useCallback((enabled: boolean) => {
-    if (enabled) {
-      // Dynamically import green theme CSS
+  const applyTheme = useCallback((theme: ThemeColor) => {
+    // Remove all theme CSS links
+    const greenLink = document.getElementById('green-theme-link');
+    const orangeLink = document.getElementById('orange-theme-link');
+    if (greenLink) greenLink.remove();
+    if (orangeLink) orangeLink.remove();
+
+    // Apply selected theme
+    if (theme === 'green') {
       const link = document.createElement('link');
       link.id = 'green-theme-link';
       link.rel = 'stylesheet';
       link.href = '/src/styles/green-theme.css';
       document.head.appendChild(link);
-
-      // Add debug class to body
-      document.body.classList.add('green-theme-debug');
-    } else {
-      // Remove green theme CSS
-      const link = document.getElementById('green-theme-link');
-      if (link) {
-        link.remove();
-      }
-
-      // Remove debug class
-      document.body.classList.remove('green-theme-debug');
+    } else if (theme === 'orange') {
+      const link = document.createElement('link');
+      link.id = 'orange-theme-link';
+      link.rel = 'stylesheet';
+      link.href = '/src/styles/orange-theme.css';
+      document.head.appendChild(link);
     }
+    // Blue theme is default, no additional CSS needed
   }, []);
 
   useEffect(() => {
     // Apply theme based on current state
-    applyTheme(isGreenTheme);
-  }, [applyTheme, isGreenTheme]);
+    applyTheme(activeTheme);
+  }, [applyTheme, activeTheme]);
 
-  const toggleTheme = () => {
-    const newValue = !isGreenTheme;
-    setIsGreenTheme(newValue);
-    localStorage.setItem('myK9Q_greenTheme', String(newValue));
-    applyTheme(newValue);
+  const switchTheme = (theme: ThemeColor) => {
+    setActiveTheme(theme);
+    localStorage.setItem('myK9Q_themeColor', theme);
+    applyTheme(theme);
 
     // Force full page reload to ensure all styles apply
     setTimeout(() => {
@@ -70,43 +75,70 @@ export function ThemeToggle() {
         </p>
 
         <div className="theme-toggle-controls">
+          {/* Blue Theme */}
           <button
-            className={`theme-option ${!isGreenTheme ? 'active' : ''}`}
-            onClick={() => !isGreenTheme || toggleTheme()}
+            className={`theme-option ${activeTheme === 'blue' ? 'active' : ''}`}
+            onClick={() => switchTheme('blue')}
           >
             <div className="theme-color-preview" style={{ background: '#007AFF' }}></div>
             <div className="theme-option-content">
               <strong>Original Blue</strong>
               <span>Apple system color</span>
             </div>
-            {!isGreenTheme && <span className="active-indicator">✓ Active</span>}
+            {activeTheme === 'blue' && <span className="active-indicator">✓ Active</span>}
           </button>
 
+          {/* Green Theme */}
           <button
-            className={`theme-option ${isGreenTheme ? 'active' : ''}`}
-            onClick={() => isGreenTheme || toggleTheme()}
+            className={`theme-option ${activeTheme === 'green' ? 'active' : ''}`}
+            onClick={() => switchTheme('green')}
           >
             <div className="theme-color-preview" style={{ background: '#10b981' }}></div>
             <div className="theme-option-content">
               <strong>Emerald Green</strong>
               <span>Landing page match</span>
             </div>
-            {isGreenTheme && <span className="active-indicator">✓ Active</span>}
+            {activeTheme === 'green' && <span className="active-indicator">✓ Active</span>}
+          </button>
+
+          {/* Orange Theme */}
+          <button
+            className={`theme-option ${activeTheme === 'orange' ? 'active' : ''}`}
+            onClick={() => switchTheme('orange')}
+          >
+            <div className="theme-color-preview" style={{ background: '#f97316' }}></div>
+            <div className="theme-option-content">
+              <strong>Vibrant Orange</strong>
+              <span>Energetic & sporty</span>
+            </div>
+            {activeTheme === 'orange' && <span className="active-indicator">✓ Active</span>}
           </button>
         </div>
 
         <div className="theme-toggle-footer">
           <button
             className="theme-toggle-button"
-            onClick={toggleTheme}
+            onClick={() => {
+              const themes: ThemeColor[] = ['blue', 'green', 'orange'];
+              const currentIndex = themes.indexOf(activeTheme);
+              const nextTheme = themes[(currentIndex + 1) % themes.length];
+              switchTheme(nextTheme);
+            }}
           >
-            Switch to {isGreenTheme ? 'Blue' : 'Green'} Theme
+            Switch to {activeTheme === 'blue' ? 'Green' : activeTheme === 'green' ? 'Orange' : 'Blue'} Theme
           </button>
         </div>
 
-        {isGreenTheme && (
+        {activeTheme === 'green' && (
           <div className="theme-notice">
             <strong>🟢 Green Theme Active</strong>
+            <p>Navigate through the app to see all changes. Check buttons, badges, and status colors.</p>
+          </div>
+        )}
+
+        {activeTheme === 'orange' && (
+          <div className="theme-notice" style={{ background: 'rgba(249, 115, 22, 0.1)', borderColor: '#f97316' }}>
+            <strong>🟠 Orange Theme Active</strong>
             <p>Navigate through the app to see all changes. Check buttons, badges, and status colors.</p>
           </div>
         )}

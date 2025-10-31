@@ -1,33 +1,33 @@
 /* Mobile-Optimized Scoresheet - React Implementation */
 
-/* CSS Variables for theming */
+/* CSS Variables for theming - now using global design tokens */
 :root {
-  --scoresheet-bg: #1a1a1a;
-  --scoresheet-text: white;
-  --scoresheet-text-secondary: rgba(255, 255, 255, 0.7);
-  --scoresheet-text-tertiary: rgba(255, 255, 255, 0.6);
-  --scoresheet-text-placeholder: rgba(255, 255, 255, 0.5);
-  --scoresheet-card-bg: rgba(40, 40, 40, 0.8);
-  --scoresheet-card-border: rgba(255, 255, 255, 0.1);
-  --scoresheet-header-bg: rgba(30, 30, 30, 0.95);
-  --scoresheet-input-bg: rgba(60, 60, 60, 0.8);
-  --scoresheet-input-border: rgba(255, 255, 255, 0.2);
-  --scoresheet-badge-text: white;
+  --scoresheet-bg: var(--background);
+  --scoresheet-text: var(--foreground);
+  --scoresheet-text-secondary: var(--token-text-secondary);
+  --scoresheet-text-tertiary: var(--token-text-tertiary);
+  --scoresheet-text-placeholder: var(--token-text-placeholder);
+  --scoresheet-card-bg: var(--muted);
+  --scoresheet-card-border: var(--border);
+  --scoresheet-header-bg: var(--muted);
+  --scoresheet-input-bg: var(--input);
+  --scoresheet-input-border: var(--border);
+  --scoresheet-badge-text: var(--primary-foreground);
   --scoresheet-hover-overlay: rgba(255, 255, 255, 0.1);
 }
 
 .theme-light {
-  --scoresheet-bg: #f5f5f5;
-  --scoresheet-text: #111827;
-  --scoresheet-text-secondary: #4b5563;
-  --scoresheet-text-tertiary: #6b7280;
-  --scoresheet-text-placeholder: #9ca3af;
-  --scoresheet-card-bg: rgba(255, 255, 255, 0.95);
-  --scoresheet-card-border: rgba(0, 0, 0, 0.15);
-  --scoresheet-header-bg: rgba(255, 255, 255, 0.95);
-  --scoresheet-input-bg: rgba(248, 250, 252, 0.8);
-  --scoresheet-input-border: rgba(0, 0, 0, 0.2);
-  --scoresheet-badge-text: white;
+  --scoresheet-bg: var(--background);
+  --scoresheet-text: var(--foreground);
+  --scoresheet-text-secondary: var(--token-text-secondary);
+  --scoresheet-text-tertiary: var(--token-text-tertiary);
+  --scoresheet-text-placeholder: var(--token-text-placeholder);
+  --scoresheet-card-bg: var(--muted);
+  --scoresheet-card-border: var(--border);
+  --scoresheet-header-bg: var(--muted);
+  --scoresheet-input-bg: var(--input);
+  --scoresheet-input-border: var(--border);
+  --scoresheet-badge-text: var(--primary-foreground);
   --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
 }
 
@@ -60,6 +60,7 @@
   justify-content: space-between;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--scoresheet-card-border);
+  border-radius: var(--token-space-lg);
   position: relative;
   z-index: 10;
 }
@@ -172,7 +173,7 @@
 /* Compact Dog Info Card */
 .scoresheet-dog-card-compact {
   background: transparent;
-  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
   padding: var(--token-space-lg) var(--token-space-xl);
   border-radius: var(--token-space-lg);
   border: none;
@@ -184,7 +185,7 @@
 
 /* Clean Dog Info - No Background */
 .scoresheet-dog-info-clean {
-  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
   padding: var(--token-space-lg) 0;
   display: flex;
   align-items: flex-start;
@@ -195,7 +196,7 @@
 }
 
 .scoresheet-dog-info-card {
-  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
   padding: var(--token-space-xl);
   display: flex;
   align-items: flex-start;
@@ -307,6 +308,7 @@
   border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
+  position: relative; /* For absolute positioning of reset button */
 }
 
 .timer-display-large {
@@ -341,17 +343,38 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--token-space-md);
   margin-bottom: var(--token-space-md);
 }
 
-.timer-btn-pause, .timer-btn-reset {
+/* Reset button - positioned in top-right corner */
+.timer-btn-reset {
+  position: absolute;
+  top: var(--token-space-lg);
+  right: var(--token-space-lg);
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: none;
+  background: #6b7280; /* Neutral gray - clearly secondary (works in both themes) */
+  color: white;
+  font-size: var(--token-space-xl);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.timer-btn-pause {
   width: 56px;
   height: 56px;
   border-radius: 28px;
   border: none;
-  background: rgba(124, 58, 237, 0.8);
-  color: var(--scoresheet-badge-text);
+  background: #6b7280;
+  color: white;
   font-size: var(--token-space-2xl);
   cursor: pointer;
   transition: all 0.2s;
@@ -359,18 +382,18 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(124, 58, 237, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
 }
 
 .timer-btn-start {
-  width: 160px;
-  min-width: 160px;
-  height: 64px;
-  border-radius: var(--token-space-4xl);
+  width: 200px; /* Increased from 160px */
+  min-width: 200px;
+  height: 72px; /* Increased from 64px */
+  border-radius: 36px; /* Match new height */
   border: none;
-  background: var(--token-success);
-  color: var(--scoresheet-badge-text);
-  font-size: var(--token-space-2xl);
+  background: var(--primary); /* Theme-aware: blue/green/orange */
+  color: white;
+  font-size: 1.375rem; /* Slightly larger text */
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -379,35 +402,44 @@
   justify-content: center;
   gap: var(--token-space-md);
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(16, 185, 129, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.25);
 }
 
 .timer-btn-start.stop {
-  background: var(--token-error);
+  background: var(--token-error); /* Keep red for stop */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
-.timer-btn-pause:hover, .timer-btn-reset:hover {
-  background: rgba(124, 58, 237, 1);
+.timer-btn-pause:hover:not(:disabled), .timer-btn-reset:hover:not(:disabled) {
+  background: #6b7280;
+  filter: brightness(1.15);
   transform: scale(1.05);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(124, 58, 237, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
-.timer-btn-pause:active, .timer-btn-reset:active {
+.timer-btn-pause:active:not(:disabled), .timer-btn-reset:active:not(:disabled) {
   transform: scale(0.95);
 }
 
-.timer-btn-start:hover {
+.timer-btn-pause:disabled, .timer-btn-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.timer-btn-start:hover:not(.stop) {
+  background: var(--primary);
+  filter: brightness(1.1);
   transform: scale(1.05);
-  box-shadow: 0 6px var(--token-space-xl) rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px var(--token-space-xl) rgba(0, 0, 0, 0.3);
 }
 
 .timer-btn-start:active {
   transform: scale(0.95);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.3);
 }
 
 .timer-btn-start.stop:hover {
+  filter: brightness(1.1);
+  transform: scale(1.05);
   box-shadow: 0 6px var(--token-space-xl) rgba(239, 68, 68, 0.4);
 }
 
@@ -487,16 +519,33 @@
 
 .scoresheet-time-input {
   background: var(--scoresheet-input-bg);
-  border: 1px solid var(--scoresheet-input-border);
-  border-radius: var(--token-space-md);
-  padding: 10px 36px 10px var(--token-space-lg); /* Add right padding for clear button */
+  border: 2px solid var(--scoresheet-input-border);
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl); /* Increased padding for better touch target */
   color: var(--scoresheet-text);
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 500;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
   min-width: 0;
-  width: 160px;
+  width: 180px;
+  min-height: 48px; /* Better touch target height */
   text-align: center;
+}
+
+/* Empty state - more subtle appearance */
+.scoresheet-time-input:placeholder-shown {
+  background: var(--muted);
+  border-color: var(--border);
+  font-weight: 400;
+}
+
+/* Filled state - more prominent */
+.scoresheet-time-input:not(:placeholder-shown) {
+  background: var(--scoresheet-input-bg);
+  border-color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .scoresheet-time-clear-button {
@@ -525,11 +574,15 @@
 }
 
 .scoresheet-time-input:focus {
-  border-color: var(--token-success);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  background: var(--scoresheet-input-bg);
 }
 
 .scoresheet-time-input::placeholder {
-  color: var(--scoresheet-text-placeholder);
+  color: var(--scoresheet-text-secondary);
+  font-weight: 400;
+  font-size: 15px;
 }
 
 .max-time {
@@ -627,8 +680,8 @@
 }
 
 .scoresheet-btn-save {
-  background: var(--token-success);
-  color: var(--scoresheet-badge-text);
+  background: var(--primary); /* Theme-aware color (blue/green/orange) */
+  color: white;
 }
 
 .scoresheet-btn-cancel:hover {
@@ -637,22 +690,23 @@
 }
 
 .scoresheet-btn-save:hover {
-  background: var(--token-success-contrast);
+  background: var(--primary);
+  filter: brightness(1.1);
   transform: scale(1.02);
 }
 
 .scoresheet-btn-save:disabled {
-  background: rgba(16, 185, 129, 0.4);
+  background: var(--primary);
   cursor: not-allowed;
   transform: none;
-  opacity: 0.6;
-  color: var(--scoresheet-badge-text);
+  opacity: 0.4;
+  color: white;
 }
 
 .theme-light .scoresheet-btn-save:disabled {
-  background: rgba(16, 185, 129, 0.3);
-  color: var(--scoresheet-badge-text);
-  opacity: 0.7;
+  background: var(--primary);
+  color: white;
+  opacity: 0.4;
 }
 
 /* Mobile responsive adjustments */
@@ -673,7 +727,7 @@
 
   .scoresheet-dog-card-compact,
   .scoresheet-dog-info-clean {
-    margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
+    margin: var(--token-space-lg) var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
     padding: 10px 0;
     gap: 10px;
   }
@@ -690,9 +744,10 @@
   }
 
   .scoresheet-time-input {
-    width: 140px;
-    padding: var(--token-space-md) 36px var(--token-space-md) var(--token-space-lg); /* Add right padding for clear button */
-    font-size: 14px;
+    width: 160px;
+    padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg); /* Maintain touch target on mobile */
+    font-size: 15px;
+    min-height: 44px; /* Mobile touch target standard */
   }
 
   .scoresheet-time-input.single-area {
@@ -739,12 +794,12 @@
 
 /* Light theme support */
 .theme-light .scoresheet-container {
-  background: var(--muted);
+  background: var(--background);
   color: var(--foreground);
 }
 
 .theme-light .scoresheet {
-  background: white;
+  background: var(--background);
 }
 
 /* Light mode - all text colors now handled by CSS variables above */
@@ -810,6 +865,6 @@
 /* Light theme responsive backgrounds */
 @media (min-width: 1400px) {
   .theme-light .scoresheet-container {
-    background: #e5e7eb;
+    background: var(--background);
   }
 }

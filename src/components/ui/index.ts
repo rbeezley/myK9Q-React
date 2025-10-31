@@ -16,6 +16,8 @@ export { SearchSortControls } from './SearchSortControls';
 export type { SearchSortControlsProps, SortOption } from './SearchSortControls';
 export { FilterTabs } from './FilterTabs';
 export type { FilterTabsProps, FilterTab } from './FilterTabs';
+export { TabBar } from './TabBar';
+export type { Tab } from './TabBar';
 export { SyncIndicator, GlobalSyncIndicator } from './SyncIndicator';
 export type { SyncIndicatorProps } from './SyncIndicator';
 export { RefreshIndicator } from './RefreshIndicator';

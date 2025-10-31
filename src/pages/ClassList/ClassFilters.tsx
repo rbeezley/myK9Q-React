@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Search, X, ArrowUpDown, ChevronDown, Clock, Heart, CheckCircle } from 'lucide-react';
+import { TabBar, Tab } from '../../components/ui';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 
 interface ClassEntry {
@@ -12,7 +13,7 @@ interface ClassEntry {
   judge_name: string;
   entry_count: number;
   completed_count: number;
-  class_status: 'none' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
+  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
   is_completed?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;
@@ -65,6 +66,33 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
   filteredClasses,
   hapticFeedback,
 }) => {
+  // Prepare tabs for TabBar component
+  const tabs: Tab[] = useMemo(() => [
+    {
+      id: 'pending',
+      label: 'Pending',
+      icon: <Clock className="tab-icon" size={16} />,
+      count: classes.filter(c => getClassDisplayStatus(c) !== 'completed').length
+    },
+    {
+      id: 'favorites',
+      label: 'Favorites',
+      icon: <Heart className="tab-icon" size={16} />,
+      count: classes.filter(c => c.is_favorite).length
+    },
+    {
+      id: 'completed',
+      label: 'Completed',
+      icon: <CheckCircle className="tab-icon" size={16} />,
+      count: classes.filter(c => getClassDisplayStatus(c) === 'completed').length
+    }
+  ], [classes]);
+
+  const handleTabChange = (tabId: string) => {
+    hapticFeedback.light();
+    setCombinedFilter(tabId as 'pending' | 'favorites' | 'completed');
+  };
+
   return (
     <>
       {/* Search and Sort Header */}
@@ -139,44 +167,11 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
       </div>
 
       {/* Combined Class Filter Tabs */}
-      <div className="status-tabs">
-        <button
-          className={`tab-button ${combinedFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.light();
-            setCombinedFilter('pending');
-          }}
-        >
-          <Clock className="tab-icon" />
-          <span className="tab-text">
-            Pending ({classes.filter(c => getClassDisplayStatus(c) !== 'completed').length})
-          </span>
-        </button>
-        <button
-          className={`tab-button ${combinedFilter === 'favorites' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.light();
-            setCombinedFilter('favorites');
-          }}
-        >
-          <Heart className="tab-icon" />
-          <span className="tab-text">
-            Favorites ({classes.filter(c => c.is_favorite).length})
-          </span>
-        </button>
-        <button
-          className={`tab-button ${combinedFilter === 'completed' ? 'active' : ''}`}
-          onClick={() => {
-            hapticFeedback.light();
-            setCombinedFilter('completed');
-          }}
-        >
-          <CheckCircle className="tab-icon" />
-          <span className="tab-text">
-            Completed ({classes.filter(c => getClassDisplayStatus(c) === 'completed').length})
-          </span>
-        </button>
-      </div>
+      <TabBar
+        tabs={tabs}
+        activeTab={combinedFilter}
+        onTabChange={handleTabChange}
+      />
     </>
   );
 };

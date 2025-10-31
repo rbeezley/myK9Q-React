@@ -16,7 +16,7 @@ import {
 import './shared-dialog.css';
 import './CheckinStatusDialog.css';
 
-export type CheckinStatus = 'none' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed';
+export type CheckinStatus = 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed';
 
 interface CheckinStatusDialogProps {
   isOpen: boolean;
@@ -75,14 +75,14 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
         <div className="dialog-content">
           <div className={showDescriptions ? "status-grid" : "status-options-grid"}>
             <div
-              className={showDescriptions ? "status-item status-none" : "status-option status-none"}
-              onMouseDown={() => handleStatusSelect('none')}
+              className={showDescriptions ? "status-item status-no-status" : "status-option status-no-status"}
+              onMouseDown={() => handleStatusSelect('no-status')}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleStatusSelect('none');
+                  handleStatusSelect('no-status');
                 }
               }}
             >
@@ -92,14 +92,14 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
                     <Circle />
                   </div>
                   <div className="status-content">
-                    <label className="status-label">Not Checked-in</label>
+                    <label className="status-label">No Status</label>
                     <div className="status-description">Dog has not checked in yet</div>
                   </div>
                 </>
               ) : (
                 <>
                   <span className="popup-icon">⚪</span>
-                  <span className="status-text">Not Checked In</span>
+                  <span className="status-text">No Status</span>
                 </>
               )}
             </div>

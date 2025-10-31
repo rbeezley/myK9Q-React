@@ -85,13 +85,13 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
               return 'scored'; // Fallback to generic scored
             })()
           ) :
-          entry.status === 'in-ring' ? 'none' : // In-ring will be shown in status badge
+          entry.status === 'in-ring' ? 'no-status' : // In-ring will be shown in status badge
           (entry.status === 'checked-in' ? 'checked-in' :
            entry.status === 'conflict' ? 'conflict' :
            entry.status === 'pulled' ? 'pulled' :
            entry.status === 'at-gate' ? 'at-gate' :
            entry.status === 'come-to-gate' ? 'come-to-gate' :
-           entry.status === 'completed' ? 'completed' : 'none')
+           entry.status === 'completed' ? 'completed' : 'no-status')
         }
         resultBadges={
           entry.isScored ? (
@@ -101,8 +101,13 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                 {/* Header Row: Placement, Time, and Result badges */}
                 <div className="nationals-header-row">
                   {entry.placement && (
-                    <span className="placement-badge">
-                      {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                    <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
+                      {entry.placement <= 4 && (
+                        <span className="placement-badge-icon">
+                          {entry.placement === 1 ? '🥇' : entry.placement === 2 ? '🥈' : entry.placement === 3 ? '🥉' : '🎖️'}
+                        </span>
+                      )}
+                      <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
                     </span>
                   )}
                   <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
@@ -159,11 +164,16 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                                            resultLower.includes('ex') || resultLower.includes('excused') ||
                                            resultLower.includes('wd') || resultLower.includes('withdrawn');
 
-                    // Show placement only if qualified (placement exists and result is qualified)
-                    if (entry.placement && !isNonQualifying && entry.placement < 100) {
+                    // Show placement badge for all qualified placements
+                    if (entry.placement && !isNonQualifying) {
                       return (
-                        <span className="placement-badge">
-                          {entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}
+                        <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
+                          {entry.placement <= 4 && (
+                            <span className="placement-badge-icon">
+                              {entry.placement === 1 ? '🥇' : entry.placement === 2 ? '🥈' : entry.placement === 3 ? '🥉' : '🎖️'}
+                            </span>
+                          )}
+                          <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
                         </span>
                       );
                     }
@@ -225,12 +235,12 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                 const iconSize = 14;
                 const iconStyle = { width: `${iconSize}px`, height: `${iconSize}px`, flexShrink: 0, marginRight: '0.375rem', display: 'inline-block', verticalAlign: 'middle' };
 
-                const status = entry.status || 'none';
+                const status = entry.status || 'no-status';
                 const textStyle = { textTransform: 'none' as const, fontSize: '0.6875rem' };
                 switch(status) {
                   case 'in-ring': return <><span className="status-icon" style={{ fontSize: '11px', marginRight: '0.375rem' }}>▶</span><span style={textStyle}>In Ring</span></>;
                   case 'completed': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Completed</span></>;
-                  case 'none': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
+                  case 'no-status': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
                   case 'checked-in': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Checked-in</span></>;
                   case 'conflict': return <><AlertTriangle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Conflict</span></>;
                   case 'pulled': return <><XCircle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Pulled</span></>;

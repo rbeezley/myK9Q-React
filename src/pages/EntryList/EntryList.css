@@ -514,13 +514,15 @@
 .sort-controls {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-lg);
+  gap: var(--token-space-xl);
 }
 
 .sort-group {
   display: flex;
-  flex-direction: column;
-  gap: var(--token-space-sm);
+  flex-direction: row;
+  align-items: center;
+  gap: var(--token-space-md);
+  flex-wrap: wrap;
 }
 
 .sort-label {
@@ -529,12 +531,55 @@
   color: var(--token-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  flex-shrink: 0;
 }
 
 .sort-buttons {
   display: flex;
   gap: var(--token-space-sm);
   flex-wrap: wrap;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-md);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--token-space-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sort-btn:hover {
+  background: var(--input);
+  border-color: var(--primary);
+}
+
+.sort-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.sort-btn.sort-btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.sort-btn.sort-btn-primary:hover {
+  background: var(--token-primary-hover);
+}
+
+.sort-btn.loading {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .sort-button {
@@ -969,17 +1014,69 @@
   line-height: 1;
 }
 
-.placement-badge {
+/* Subtle faults badge for completed cards - smaller and less prominent */
+.faults-badge-subtle {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.625rem;
-  background: var(--token-warning-contrast);
-  color: white;
+  background: var(--muted);
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem; /* Smaller than other badges */
+  font-weight: 500; /* Less bold */
+  color: var(--token-text-secondary); /* More subtle color */
+  line-height: 1;
+}
+
+/* Container for regular scoresheet results - adds spacing between badges */
+.regular-scoresheet-single-line {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md); /* 8px spacing between badges */
+  flex-wrap: wrap;
+}
+
+.placement-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1;
-  text-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.2);
+}
+
+.placement-badge-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.placement-badge.place-1 {
+  color: var(--token-placement-1);
+}
+
+.placement-badge.place-2 {
+  color: var(--token-placement-2);
+}
+
+.placement-badge.place-3 {
+  color: var(--token-placement-3);
+}
+
+.placement-badge.place-4 {
+  color: var(--token-placement-4);
+}
+
+.placement-badge.place-5 {
+  color: var(--token-placement-4);
+}
+
+/* Dark mode placement badge - add border like time and faults badges */
+.theme-dark .placement-badge {
+  background: var(--muted);
+  border: 1px solid var(--border);
 }
 
 /* Dark mode badge adjustments */
@@ -1004,6 +1101,12 @@
   background: var(--muted);
   border-color: var(--border);
   color: var(--foreground);
+}
+
+.theme-dark .faults-badge-subtle {
+  background: var(--muted);
+  border-color: var(--border);
+  color: var(--token-text-secondary);
 }
 
 /* ========== DRAG AND DROP ========== */
@@ -1153,4 +1256,34 @@
     animation-duration: 0.01ms;
     transition-duration: 0.01ms;
   }
+}
+
+/* ========== ENTRY LIST SPECIFIC OVERRIDES ========== */
+
+/* Ensure reset button is in top-right corner on entry list page */
+.entry-list-container .dog-card .dog-card-content .dog-card-action {
+  position: absolute;
+  top: var(--token-space-md);
+  bottom: auto;
+  right: var(--token-space-md);
+}
+
+/* Reset menu styling for entry list */
+.entry-list-container .reset-menu {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.entry-list-container .reset-option {
+  color: var(--foreground);
+}
+
+.entry-list-container .reset-option:hover {
+  background: var(--muted);
+}
+
+/* Dark mode - stronger shadow */
+.theme-dark .entry-list-container .reset-menu {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }

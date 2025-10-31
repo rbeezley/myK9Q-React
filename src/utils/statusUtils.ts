@@ -6,7 +6,7 @@
  */
 
 // Type definitions
-export type ClassStatus = 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed' | 'none';
+export type ClassStatus = 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed' | 'no-status';
 export type EntryCheckInStatus = 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'pending';
 export type EntryResultStatus = 'qualified' | 'not-qualified' | 'excused' | 'pending';
 
@@ -63,8 +63,8 @@ export function getClassDisplayStatus(classEntry: ClassEntry): 'not-started' | '
     return 'in-progress';
   }
 
-  // PRIORITY 3: Only use automatic detection if class_status is 'none' or other basic statuses
-  if (classEntry.class_status === 'none' ||
+  // PRIORITY 3: Only use automatic detection if class_status is 'no-status' or other basic statuses
+  if (classEntry.class_status === 'no-status' ||
       classEntry.class_status === 'setup' ||
       classEntry.class_status === 'briefing' ||
       classEntry.class_status === 'break' ||
@@ -114,9 +114,9 @@ export function getClassStatusColor(
         if (isCompleted) return 'completed';
         if (hasDogsInRing) return 'in-progress';
         if (classEntry.completed_count > 0) return 'in-progress';
-        return 'none';
+        return 'no-status';
       }
-      return 'none';
+      return 'no-status';
   }
 }
 
@@ -221,7 +221,7 @@ export function getEntryStatusLabel(entry: DogEntry): string {
     }
   }
 
-  return 'Not Checked In';
+  return 'No Status';
 }
 
 /**

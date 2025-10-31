@@ -14,10 +14,8 @@ interface ResultChoiceChipsProps {
   selectedResult: NationalsResult | null;
   onResultChange: (result: NationalsResult) => void;
   showNQ?: boolean;
-  showWD?: boolean;
   showEX?: boolean;
   onNQClick?: () => void;
-  onWDClick?: () => void;
   onEXClick?: () => void;
   _showEX?: boolean;
   _onEXClick?: () => void;
@@ -29,8 +27,6 @@ interface ResultChoiceChipsProps {
   onNQReasonChange?: (reason: string) => void;
   excusedReason?: string;
   onExcusedReasonChange?: (reason: string) => void;
-  withdrawnReason?: string;
-  onWithdrawnReasonChange?: (reason: string) => void;
   isNationalsMode?: boolean; // Hide faults counter in nationals mode
 }
 
@@ -38,10 +34,8 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
   selectedResult,
   onResultChange,
   showNQ = false,
-  showWD = false,
   _showEX = true,
   onNQClick,
-  onWDClick,
   _onEXClick,
   selectedResultInternal,
   faultCount = 0,
@@ -50,8 +44,6 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
   onNQReasonChange,
   excusedReason = 'Dog Eliminated in Area',
   onExcusedReasonChange,
-  withdrawnReason = 'In Season',
-  onWithdrawnReasonChange,
   isNationalsMode = false
 }) => {
   // NQ Reason options
@@ -72,15 +64,9 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
     'Other'
   ];
 
-  // Withdrawn Reason options
-  const withdrawnReasons = [
-    'In Season',
-    'Judge Change'
-  ];
-
   return (
     <div className="result-choice-chips-container">
-      {/* Main result choice chips - ordered: Qualified, NQ, Absent, Excused, Withdrawn */}
+      {/* Main result choice chips - ordered: Qualified, NQ, Absent, Excused */}
       <div className="result-choice-chips">
         {/* Qualified */}
         <button
@@ -123,18 +109,6 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
         >
           Excused
         </button>
-
-        {/* Withdrawn - only show for regular shows */}
-        {showWD && (
-          <button
-            className={`choice-chip warning ${
-              selectedResultInternal === 'WD' ? 'selected' : ''
-            }`}
-            onClick={onWDClick}
-          >
-            Withdrawn
-        </button>
-        )}
       </div>
 
       {/* Fault Counter - show when Qualified is selected (but not in nationals mode) */}
@@ -192,26 +166,6 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
                   excusedReason === reason ? 'selected' : ''
                 } ${reason === 'Dog Eliminated in Area' ? 'primary' : 'secondary'}`}
                 onClick={() => onExcusedReasonChange(reason)}
-              >
-                {reason}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Withdrawn Reason Selection - show when Withdrawn is selected */}
-      {(selectedResultInternal === 'WD' || selectedResultInternal === 'Withdrawn') && onWithdrawnReasonChange && (
-        <div className="reason-selection">
-          <h3>Withdrawn Reason</h3>
-          <div className="reason-choice-chips">
-            {withdrawnReasons.map((reason) => (
-              <button
-                key={reason}
-                className={`choice-chip small ${
-                  withdrawnReason === reason ? 'selected' : ''
-                } ${reason === 'In Season' ? 'primary' : 'secondary'}`}
-                onClick={() => onWithdrawnReasonChange(reason)}
               >
                 {reason}
               </button>

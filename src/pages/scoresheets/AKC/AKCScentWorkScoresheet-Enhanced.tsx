@@ -22,14 +22,13 @@ import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 // import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
-import { HamburgerMenu, SyncIndicator } from '../../../components/ui';
+import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
 import { DogCard } from '../../../components/DogCard';
 import { X } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import '../BaseScoresheet.css';
-import './AKCScentWorkScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
 import './AKCScentWorkScoresheet-Flutter.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
@@ -92,7 +91,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const [areas, setAreas] = useState<AreaScore[]>([]);
   const [qualifying, setQualifying] = useState<QualifyingResult | NationalsResult | ''>('');
   const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
-  const [withdrawnReason, setWithdrawnReason] = useState<string>('In Season');
   const [totalTime, setTotalTime] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -411,7 +409,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         { value: 'Q', label: 'Qualified' },
         { value: 'NQ', label: 'Not Qualified' },
         { value: 'EX', label: 'Excused' },
-        { value: 'WD', label: 'Withdrawn' },
         { value: 'DQ', label: 'Disqualified' },
         { value: 'ABS', label: 'Absent' }
       ];
@@ -437,9 +434,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     // Get the appropriate reason based on the result type
     const getFinalReason = () => {
       if (finalQualifying === 'Q' || finalQualifying === 'Qualified') return undefined;
-      if (finalQualifying === 'WD' || finalQualifying === 'Withdrawn') {
-        return withdrawnReason;
-      }
       return nonQualifyingReason;
     };
     const finalReason = getFinalReason();
@@ -995,294 +989,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   };
 
-  // Show demo mode when no real data is available
+  // Redirect to entry list if no entry data exists
   if (!currentEntry) {
-    // Create sample entry for demo
-    const sampleEntry = {
-      id: parseInt(entryId || '1'),
-      armband: 173,
-      callName: "Dog 74",
-      breed: "Dutch Shepherd",
-      handler: "Person 74",
-      element: "Container",
-      level: "Master",
-      section: "A",
-      className: "Container Master",
-      timeLimit: "02:00",
-      timeLimit2: "",
-      timeLimit3: "",
-      areas: 1
-    };
-
-    // Initialize sample areas if not already set
-    if (areas.length === 0) {
-      const sampleAreas = initializeAreas(sampleEntry.element, sampleEntry.level);
-      setAreas(sampleAreas);
-    }
-
-    // Demo mode UI - same as main component but with sample data
-    // For Qualified scores, all area times must be completed; for other results, times are optional
-    const allAreasScored = qualifying !== 'Q' || areas.every(area => area.time && area.time !== '');
-    const isResultSelected = qualifying !== '';
-    const isNQReasonRequired = (qualifying === 'NQ' || qualifying === 'EX' || qualifying === 'WD') && nonQualifyingReason === '';
-
-    return (
-      <div className="scoresheet-container app-container">
-        <div className="scoresheet">
-        {/* Demo Mode Banner */}
-        <div style={{
-          backgroundColor: '#ff6b35',
-          color: 'white',
-          padding: '8px',
-          textAlign: 'center',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          marginBottom: '8px'
-        }}>
-          🚧 DEMO MODE - Sample Data 🚧
-        </div>
-
-        {/* Header */}
-        <header className="mobile-header">
-          <HamburgerMenu
-            backNavigation={{
-              label: "Back to Entry List",
-              action: handleNavigateWithRingCleanup
-            }}
-            currentPage="entries"
-          />
-          <h1>AKC Nationals</h1>
-        </header>
-
-        {/* Trial Info - Compact */}
-        <div className="scoresheet-trial-info">
-          <span>{trialDate || '10/11/2025'}</span>
-          <span className="separator">•</span>
-          <span>Trial {trialNumber || '1'}</span>
-          <span className="separator">•</span>
-          <span>{sampleEntry.element} {sampleEntry.level}</span>
-        </div>
-
-        {/* Dog Info Card - Production Styling */}
-        <div className="scoresheet-dog-info-card">
-          <div className="scoresheet-armband">
-            {sampleEntry.armband}
-          </div>
-          <div className="scoresheet-dog-details">
-            <div className="scoresheet-dog-name">{sampleEntry.callName}</div>
-            <div className="scoresheet-dog-breed">{sampleEntry.breed}</div>
-            <div className="scoresheet-dog-handler">Handler: {sampleEntry.handler}</div>
-          </div>
-        </div>
-
-        {/* Timer Section */}
-        <div className="timer-section">
-          <div className="timer-display">
-            <div className={`timer-time ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
-              {formatStopwatchTime(stopwatchTime)}
-            </div>
-            <div className="timer-countdown-display">
-              {stopwatchTime > 0 ? (
-                <>Remaining: {getRemainingTime()}</>
-              ) : (
-                <>Max Time: {getMaxTimeForArea(currentAreaIndex || 0, sampleEntry)}</>
-              )}
-            </div>
-            {getTimerWarningMessage() && (
-              <div className="timer-warning">{getTimerWarningMessage()}</div>
-            )}
-
-            <div className="timer-controls">
-              {isStopwatchRunning ? (
-                // Timer is running - show Stop button
-                <>
-                  <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-                  <button
-                    className="timer-btn-main stop"
-                    onClick={stopStopwatch}
-                  >
-                    ⏸ Stop
-                  </button>
-                </>
-              ) : stopwatchTime > 0 ? (
-                // Timer is stopped with time recorded
-                (() => {
-                  // Check if time has expired (reached max time)
-                  const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
-                  const hasExpired = maxTimeStr ? (() => {
-                    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-                    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-                    return stopwatchTime >= maxTimeMs;
-                  })() : false;
-
-                  if (hasExpired) {
-                    // Time expired - show appropriate button based on current area
-                    const isLastArea = currentAreaIndex >= areas.length - 1;
-                    return (
-                      <>
-                        <div className="timer-expired-indicator">⏱ Time Expired</div>
-                        {!isLastArea && areas.length > 1 && (
-                          <button
-                            className="timer-btn-main"
-                            onClick={recordTimeAndMoveToNextArea}
-                            title="Record time and move to next area"
-                          >
-                            ✓ Next Area
-                          </button>
-                        )}
-                        <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-                      </>
-                    );
-                  } else {
-                    // Timer paused but not expired - show Resume and appropriate button
-                    const isLastArea = currentAreaIndex >= areas.length - 1;
-                    return (
-                      <>
-                        <button
-                          className="timer-btn-secondary"
-                          onClick={startStopwatch}
-                          title="Continue timing current area"
-                        >
-                          ↻ Resume
-                        </button>
-                        {!isLastArea && areas.length > 1 && (
-                          <button
-                            className="timer-btn-main"
-                            onClick={recordTimeAndMoveToNextArea}
-                            title="Record time and move to next area"
-                          >
-                            ✓ Next Area
-                          </button>
-                        )}
-                        <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-                      </>
-                    );
-                  }
-                })()
-              ) : (
-                // Timer is at zero - show Start button
-                <>
-                  <button className="timer-btn-secondary" onClick={resetStopwatch}>⟲</button>
-                  <button
-                    className="timer-btn-main start"
-                    onClick={startStopwatch}
-                  >
-                    ▶ Start
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Time Input */}
-        <div className="time-inputs">
-          {areas.map((area, index) => (
-            <div key={area.areaName} className="time-input-group">
-              {areas.length > 1 && (
-                <div className={`area-badge ${area.time ? 'completed' : 'pending'}`}>
-                  Area {index + 1}
-                </div>
-              )}
-              <div className="time-input-wrapper">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Type: 12345 or 1:23.45"
-                  value={area.time}
-                  onChange={(e) => handleSmartTimeInput(index, e.target.value)}
-                  onBlur={(e) => handleTimeInputBlur(index, e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  className={`time-input ${areas.length > 1 ? 'multi-area' : 'single-area'}`}
-                />
-                {area.time && (
-                  <button
-                    type="button"
-                    className="time-clear-button"
-                    onClick={() => clearTimeInput(index)}
-                    title="Clear time"
-                  >
-                    <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                  </button>
-                )}
-              </div>
-              <span className="max-time">Max: {getMaxTimeForArea(index, sampleEntry)}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Result Buttons */}
-        <ResultChoiceChips
-          selectedResult={
-            qualifying === 'Qualified' ? 'Qualified' :
-            qualifying === 'Absent' ? 'Absent' :
-            qualifying === 'Excused' ? 'Excused' :
-            null
-          }
-          onResultChange={(result) => {
-            if (result === 'Qualified') {
-              setQualifying('Qualified');
-            } else if (result === 'Absent') {
-              setQualifying('Absent');
-              setNonQualifyingReason('Absent');
-            } else if (result === 'Excused') {
-              setQualifying('Excused');
-              setNonQualifyingReason('Excused');
-            }
-          }}
-          showNQ={true}
-          showWD={true}
-          showEX={true}
-          onNQClick={() => {
-            setQualifying('NQ');
-            setNonQualifyingReason('Incorrect Call');
-          }}
-          onWDClick={() => {
-            setQualifying('WD');
-            setNonQualifyingReason('In Season');
-          }}
-          onEXClick={() => {
-            setQualifying('EX');
-            setNonQualifyingReason('Dog Eliminated');
-          }}
-          isNationalsMode={isNationalsMode}
-        />
-
-        {/* Nationals Counters */}
-        {isNationalsMode && (
-          <NationalsCounterSimple
-            alertsCorrect={alertsCorrect}
-            onAlertsCorrectChange={setAlertsCorrect}
-            alertsIncorrect={alertsIncorrect}
-            onAlertsIncorrectChange={setAlertsIncorrect}
-            finishCallErrors={finishCallErrors}
-            onFinishCallErrorsChange={setFinishCallErrors}
-            faults={faultCount}
-            onFaultsChange={setFaultCount}
-          />
-        )}
-
-        {/* Action Buttons */}
-        <div className="action-buttons-section">
-          <button
-            className="cancel-btn"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </button>
-          <button
-            className="save-btn"
-            onClick={() => {
-              alert('Demo mode - Score would be saved!');
-            }}
-            disabled={!allAreasScored || !isResultSelected || isNQReasonRequired}
-          >
-            Save Score
-          </button>
-        </div>
-        </div>
-      </div>
-    );
+    navigate(`/class/${classId}/entries`);
+    return null;
   }
 
   return (
@@ -1314,9 +1024,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
       {/* Dog Info Card - Production Styling */}
       <div className="scoresheet-dog-info-card">
-        <div className="scoresheet-armband">
-          {currentEntry.armband}
-        </div>
+        <ArmbandBadge number={currentEntry.armband} />
         <div className="scoresheet-dog-details">
           <div className="scoresheet-dog-name">{currentEntry.callName}</div>
           <div className="scoresheet-dog-breed">{currentEntry.breed}</div>
@@ -1327,6 +1035,16 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
       {/* Flutter-style Timer Section */}
       <div className="scoresheet-timer-card">
+        {/* Reset button - always in top-right corner */}
+        <button
+          className="timer-btn-reset"
+          onClick={resetStopwatch}
+          disabled={isStopwatchRunning}
+          title={isStopwatchRunning ? "Reset disabled while timer is running" : "Reset timer"}
+        >
+          ⟲
+        </button>
+
         <div className={`timer-display-large ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
           {formatStopwatchTime(stopwatchTime)}
         </div>
@@ -1339,16 +1057,13 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         </div>
         <div className="timer-controls-flutter">
           {isStopwatchRunning ? (
-            // Timer is running - show Stop button
-            <>
-              <button
-                className="timer-btn-start stop"
-                onClick={stopStopwatch}
-              >
-                Stop
-              </button>
-              <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
-            </>
+            // Timer is running - show Stop button (centered)
+            <button
+              className="timer-btn-start stop"
+              onClick={stopStopwatch}
+            >
+              Stop
+            </button>
           ) : stopwatchTime > 0 ? (
             // Timer is stopped with time recorded
             (() => {
@@ -1375,7 +1090,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                         Next Area
                       </button>
                     )}
-                    <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
                   </>
                 );
               } else {
@@ -1399,22 +1113,18 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                         Next Area
                       </button>
                     )}
-                    <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
                   </>
                 );
               }
             })()
           ) : (
-            // Timer is at zero - show Start button
-            <>
-              <button
-                className="timer-btn-start start"
-                onClick={startStopwatch}
-              >
-                Start
-              </button>
-              <button className="timer-btn-reset" onClick={resetStopwatch}>⟲</button>
-            </>
+            // Timer is at zero - show Start button (centered)
+            <button
+              className="timer-btn-start start"
+              onClick={startStopwatch}
+            >
+              Start
+            </button>
           )}
         </div>
       </div>
@@ -1494,15 +1204,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
             }
           }}
           showNQ={!isNationalsMode}
-          showWD={!isNationalsMode}
           showEX={true}
           onNQClick={() => {
             setQualifying('NQ');
             setNonQualifyingReason('Incorrect Call');
-          }}
-          onWDClick={() => {
-            setQualifying('WD');
-            setWithdrawnReason('In Season');
           }}
           onEXClick={() => {
             setQualifying('EX');
@@ -1516,8 +1221,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           onNQReasonChange={setNonQualifyingReason}
           excusedReason={nonQualifyingReason}
           onExcusedReasonChange={setNonQualifyingReason}
-          withdrawnReason={withdrawnReason}
-          onWithdrawnReasonChange={setWithdrawnReason}
           isNationalsMode={isNationalsMode}
         />
 
@@ -1605,8 +1308,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                     {qualifying === 'Q' ? 'Qualified' :
                      qualifying === 'NQ' ? 'NQ' :
                      qualifying === 'ABS' || qualifying === 'Absent' ? 'Absent' :
-                     qualifying === 'E' || qualifying === 'EX' || qualifying === 'Excused' ? 'Excused' :
-                     qualifying === 'WD' || qualifying === 'Withdrawn' ? 'Withdrawn' : qualifying}
+                     qualifying === 'E' || qualifying === 'EX' || qualifying === 'Excused' ? 'Excused' : qualifying}
                   </span>
                 </div>
 
@@ -1644,13 +1346,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                   <div className="score-item">
                     <span className="item-label">{qualifying === 'EX' ? 'Excused' : 'NQ'} Reason</span>
                     <span className="item-value">{nonQualifyingReason}</span>
-                  </div>
-                )}
-
-                {!isNationalsMode && withdrawnReason && qualifying === 'WD' && (
-                  <div className="score-item">
-                    <span className="item-label">Withdrawn Reason</span>
-                    <span className="item-value">{withdrawnReason}</span>
                   </div>
                 )}
               </div>

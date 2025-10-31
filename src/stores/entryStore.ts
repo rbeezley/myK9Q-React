@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 
 // Entry status type - single source of truth
 export type EntryStatus =
-  | 'none'           // Not checked in
+  | 'no-status'      // Not checked in
   | 'checked-in'     // Checked in
   | 'at-gate'        // Called to gate
   | 'come-to-gate'   // Being called to gate

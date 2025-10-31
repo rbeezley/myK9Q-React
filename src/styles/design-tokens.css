@@ -31,9 +31,9 @@
 
   /* ===== STATUS COLORS ===== */
   /* Check-in Status Colors */
-  --status-none: #9ca3af;
-  --status-none-bg: #9ca3af;
-  --status-none-text: #ffffff;
+  --status-no-status: #9ca3af;
+  --status-no-status-bg: #9ca3af;
+  --status-no-status-text: #ffffff;
 
   --status-checked-in: #10b981;
   --status-checked-in-bg: #10b981;
@@ -111,10 +111,11 @@
   --token-warning-contrast: #c2410c;
   --token-error-contrast: #dc2626;
 
-  /* Placement Colors */
-  --token-placement-1: #ffd700; /* Gold */
-  --token-placement-2: #c0c0c0; /* Silver */
-  --token-placement-3: #cd7f32; /* Bronze */
+  /* Placement Colors (for emoji badges) */
+  --token-placement-1: #3b82f6; /* Blue */
+  --token-placement-2: #dc2626; /* Red */
+  --token-placement-3: #f59e0b; /* Yellow/Gold */
+  --token-placement-4: #6b7280; /* Gray */
 
   /* Result Status Colors */
   --token-result-qualified: #10b981;
@@ -131,8 +132,8 @@
   --token-text-white: #ffffff;
 
   /* Legacy Token Names (backwards compatibility) */
-  --token-status-none: var(--status-none);
-  --token-status-none-bg: var(--status-none-bg);
+  --token-status-no-status: var(--status-no-status);
+  --token-status-no-status-bg: var(--status-no-status-bg);
   --token-status-checked-in: var(--status-checked-in);
   --token-status-checked-in-bg: var(--status-checked-in-bg);
   --token-status-at-gate: var(--status-at-gate);
@@ -258,8 +259,8 @@
   --skeleton-gradient: var(--skeleton-gradient-dark);
 
   /* Check-in Status Colors (darker backgrounds for better dark mode visibility) */
-  --status-none: #6b7280;
-  --status-none-bg: #6b7280;
+  --status-no-status: #6b7280;
+  --status-no-status-bg: #6b7280;
 
   --status-checked-in: #10b981;
   --status-checked-in-bg: #10b981;
@@ -317,8 +318,8 @@
   --token-hover-shadow-lg: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
 
   /* Legacy tokens (Dark Mode) */
-  --token-status-none: var(--status-none);
-  --token-status-none-bg: var(--status-none-bg);
+  --token-status-no-status: var(--status-no-status);
+  --token-status-no-status-bg: var(--status-no-status-bg);
   --token-status-checked-in: var(--status-checked-in);
   --token-status-checked-in-bg: var(--status-checked-in-bg);
   --token-status-at-gate: var(--status-at-gate);
