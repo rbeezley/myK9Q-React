@@ -70,7 +70,7 @@
 }
 
 .action-btn:hover {
-  background: var(--primary-subtle);
+  background: var(--muted);
   color: var(--primary);
 }
 
@@ -90,7 +90,8 @@
 }
 
 .action-btn.primary:hover {
-  background: var(--primary-dark);
+  background: var(--primary);
+  filter: brightness(0.9);
 }
 
 .action-btn svg {
@@ -409,9 +410,7 @@
   --text-primary: white;
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-tertiary: rgba(255, 255, 255, 0.5);
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --primary-subtle: rgba(59, 130, 246, 0.1);
+  /* Use global theme colors instead of hardcoded blue */
   --danger: #ef4444;
   --danger-subtle: rgba(239, 68, 68, 0.1);
   --success: #10b981;
@@ -429,9 +428,7 @@
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --primary-subtle: rgba(59, 130, 246, 0.1);
+  /* Use global theme colors instead of hardcoded blue */
   --danger: #ef4444;
   --danger-subtle: rgba(239, 68, 68, 0.1);
   --success: #10b981;
