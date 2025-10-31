@@ -622,18 +622,22 @@
 .filter-option.active {
   border-color: var(--primary);
   background: var(--primary);
-  color: white;
+  color: white !important;
+  font-weight: 600;
 }
 
 .filter-option.urgent.active {
   background: var(--danger);
   border-color: var(--danger);
+  color: white !important;
+  font-weight: 600;
 }
 
 .filter-option.high.active {
   background: var(--warning);
   border-color: var(--warning);
-  color: black;
+  color: #78350f !important;
+  font-weight: 600;
 }
 
 /* Filter Toggle */

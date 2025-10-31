@@ -81,7 +81,11 @@
 
 .action-btn.active {
   background: var(--primary);
-  color: white;
+  color: white !important;
+}
+
+.action-btn.active svg {
+  color: white !important;
 }
 
 .action-btn.primary {
