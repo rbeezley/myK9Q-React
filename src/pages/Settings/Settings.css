@@ -32,19 +32,19 @@
 }
 
 .settings-content::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.6);
+  background: color-mix(in srgb, var(--primary) 60%, transparent);
   border-radius: 10px;
   border: var(--token-space-xs) solid rgba(31, 41, 55, 0.5);
 }
 
 .settings-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.8);
+  background: color-mix(in srgb, var(--primary) 80%, transparent);
 }
 
 /* Firefox scrollbar */
 .settings-content {
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.6) rgba(31, 41, 55, 0.5);
+  scrollbar-color: color-mix(in srgb, var(--primary) 60%, transparent) rgba(31, 41, 55, 0.5);
 }
 
 /* Header - inherits from global .page-header in page-container.css */
@@ -152,7 +152,7 @@
   background: rgba(31, 41, 55, 0.7);
   margin-left: 1.5rem;
   margin-right: 0;
-  border-left: var(--token-space-sm) solid var(--primary, #6366f1);
+  border-left: var(--token-space-sm) solid var(--primary);
   position: relative;
 }
 
@@ -165,7 +165,7 @@
   transform: translateY(-50%);
   width: 6px;
   height: 6px;
-  background: var(--primary, #6366f1);
+  background: var(--primary);
   border-radius: 50%;
 } */
 
@@ -218,14 +218,14 @@
 }
 
 .setting-item select:hover {
-  border-color: var(--primary, #6366f1);
+  border-color: var(--primary);
   background: rgba(31, 41, 55, 1);
 }
 
 .setting-item select:focus {
   outline: none;
-  border-color: var(--primary, #6366f1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
   background: rgba(31, 41, 55, 1);
 }
 
@@ -271,8 +271,8 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: var(--primary, #6366f1);
-  border-color: var(--primary, #6366f1);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -285,11 +285,11 @@
 }
 
 .toggle-switch input:focus + .toggle-slider {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .toggle-switch:hover .toggle-slider {
-  border-color: var(--primary, #6366f1);
+  border-color: var(--primary);
 }
 
 /* Link Button */
@@ -348,7 +348,7 @@
 
 .secondary-button:hover {
   background: rgba(55, 65, 81, 0.9);
-  border-color: var(--primary, #6366f1);
+  border-color: var(--primary);
   color: var(--primary, #818cf8);
   transform: translateY(-1px);
 }
@@ -491,14 +491,14 @@
 .theme-light,
 .theme-light .setting-item.indented {
   background: var(--input);
-  border-left: var(--token-space-sm) solid var(--primary, #6366f1);
+  border-left: var(--token-space-sm) solid var(--primary);
   margin-left: 1.5rem;
 }
 
 /* Removed blue dot indicator for light mode */
 /* .theme-light,
 .theme-light .setting-item.indented::before {
-  background: var(--primary, #6366f1);
+  background: var(--primary);
 } */
 
 .theme-light,
@@ -535,15 +535,15 @@
 .theme-light,
 .theme-light .setting-item select:hover {
   background: white;
-  border-color: var(--primary, #6366f1);
+  border-color: var(--primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .theme-light,
 .theme-light .setting-item select:focus {
   background: white;
-  border-color: var(--primary, #6366f1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .theme-light,
@@ -560,13 +560,13 @@
 
 .theme-light,
 .theme-light .toggle-switch input:checked + .toggle-slider {
-  background: var(--primary, #6366f1);
-  border-color: var(--primary, #6366f1);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .theme-light,
 .theme-light .link-button {
-  color: var(--primary, #6366f1);
+  color: var(--primary);
 }
 
 .theme-light,
@@ -596,8 +596,8 @@
 .theme-light,
 .theme-light .secondary-button:hover {
   background: var(--muted);
-  color: var(--primary, #6366f1);
-  border-color: var(--primary, #6366f1);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 .theme-light,
@@ -823,8 +823,8 @@
 }
 
 .toast-info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border: 1.5px solid #2563eb;
+  background: var(--primary);
+  border: 1.5px solid var(--primary);
 }
 
 .toast-action {
@@ -854,7 +854,7 @@
 
 .theme-light,
 .theme-light .modal-hint {
-  color: var(--primary, #6366f1);
+  color: var(--primary);
 }
 
 /* Print Styles */
