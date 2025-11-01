@@ -423,59 +423,32 @@ export async function submitScore(
     // Entry scoring status is tracked in the results table via is_scored and is_in_ring columns
     // No need to update the entries table as it doesn't have these columns
 
-    // Get the class_id and license_key to recalculate placements
+    // OPTIMIZATION: Run placement calculation and class completion checks in background
+    // This allows the save to complete quickly (~100ms) while background tasks run
+    // Users can navigate away immediately without waiting for these operations
+
+    // Get class_id for background processing - use optimized view query
     const { data: entryData } = await supabase
-      .from('entries')
-      .select(`
-        class_id,
-        classes!inner(
-          trials!inner(
-            shows!inner(
-              license_key
-            )
-          )
-        )
-      `)
+      .from('view_entry_class_join_normalized')
+      .select('class_id, license_key, show_id')
       .eq('id', entryId)
       .single();
 
     if (entryData) {
-      const licenseKey = (entryData as any).classes.trials.shows.license_key;
-      console.log('🔄 Starting placement recalculation for entry', entryId, 'in class', entryData.class_id);
+      // Fire and forget - check class completion in background
+      // Placement calculation will happen automatically when class is marked "completed"
+      (async () => {
+        try {
+          await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
+          console.log('✅ [Background] Class completion checked');
+        } catch (error) {
+          console.error('⚠️ [Background] Failed to check class completion:', error);
+        }
+      })();
 
-      // Determine if this is a Nationals competition
-      // Check show type via license key
-      const { data: showData } = await supabase
-        .from('shows')
-        .select('show_type')
-        .eq('license_key', licenseKey)
-        .single();
-
-      const isNationals = showData?.show_type?.toLowerCase().includes('national') || false;
-      console.log('🏆 Competition type:', isNationals ? 'NATIONALS' : 'REGULAR');
-
-      // Recalculate placements for the entire class
-      try {
-        await recalculatePlacementsForClass(
-          entryData.class_id,
-          licenseKey,
-          isNationals
-        );
-        console.log('✅ Placements recalculated for class', entryData.class_id);
-      } catch (placementError) {
-        // Don't fail the score submission if placement calculation fails
-        console.error('⚠️ Failed to recalculate placements:', placementError);
-      }
-
-      // Check if all entries in class are completed
-      // Pass pairedClassId if provided (from combined Novice A & B view)
-      try {
-        await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
-      } catch (completionError) {
-        console.error('⚠️ Failed to check class completion:', completionError);
-      }
+      console.log('✅ Score saved - background task running');
     } else {
-      console.warn('⚠️ Could not fetch entry data for placement calculation');
+      console.warn('⚠️ Could not fetch entry data for background processing');
     }
 
     console.log('✅ Score submitted successfully');
@@ -561,6 +534,40 @@ async function updateSingleClassCompletion(classId: number): Promise<void> {
       console.error('❌ Error code:', updateError.code);
     } else {
       console.log('✅ Class', classId, 'marked as completed');
+
+      // Recalculate placements now that class is complete
+      try {
+        console.log('🏆 Calculating final placements for completed class', classId);
+
+        // Get show_id and license_key for this class
+        const { data: classData } = await supabase
+          .from('classes')
+          .select(`
+            id,
+            trial_id,
+            trials!inner (
+              show_id,
+              shows!inner (
+                license_key,
+                show_type
+              )
+            )
+          `)
+          .eq('id', classId)
+          .single();
+
+        if (classData && classData.trials) {
+          const trial = classData.trials as any;
+          const show = trial.shows;
+          const licenseKey = show.license_key;
+          const isNationals = show.show_type?.toLowerCase().includes('national') || false;
+
+          await recalculatePlacementsForClass(classId, licenseKey, isNationals);
+          console.log('✅ Final placements calculated for class', classId);
+        }
+      } catch (placementError) {
+        console.error('⚠️ Failed to calculate final placements:', placementError);
+      }
     }
   } else if (scoredCount > 0 && scoredCount < totalCount) {
     // If some entries are scored (but not all), mark class as in_progress

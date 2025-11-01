@@ -71,3 +71,47 @@ export async function getEntryPlacement(
     return null;
   }
 }
+
+/**
+ * Manually recalculate placements for a class (triggered by user)
+ * Used by judges/admins to refresh placements mid-class if needed
+ */
+export async function manuallyRecalculatePlacements(
+  classId: number
+): Promise<void> {
+  try {
+    console.log('🔄 Manual placement recalculation requested for class', classId);
+
+    // Get class data including show info
+    const { data: classData, error: classError } = await supabase
+      .from('classes')
+      .select(`
+        id,
+        trial_id,
+        trials!inner (
+          show_id,
+          shows!inner (
+            license_key,
+            show_type
+          )
+        )
+      `)
+      .eq('id', classId)
+      .single();
+
+    if (classError || !classData) {
+      throw new Error(`Failed to fetch class data: ${classError?.message}`);
+    }
+
+    const trial = classData.trials as any;
+    const show = trial.shows;
+    const licenseKey = show.license_key;
+    const isNationals = show.show_type?.toLowerCase().includes('national') || false;
+
+    await recalculatePlacementsForClass(classId, licenseKey, isNationals);
+    console.log('✅ Manual placement recalculation completed for class', classId);
+  } catch (error) {
+    console.error('Error in manual placement recalculation:', error);
+    throw error;
+  }
+}

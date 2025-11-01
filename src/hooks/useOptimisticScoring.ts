@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useOptimisticUpdate } from './useOptimisticUpdate';
 import { submitScore } from '../services/entryService';
-import { recalculatePlacementsForClass } from '../services/placementService';
 import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
@@ -143,19 +142,8 @@ export function useOptimisticScoring() {
         await submitScore(entryId, scoreData, pairedClassId);
         console.log('✅ Score successfully synced with server');
 
-        // Recalculate placements after score is saved
-        if (classId) {
-          console.log('📊 Recalculating placements for class:', classId);
-          try {
-            // Recalculate for both the main class and paired class if applicable
-            const classesToRecalculate = pairedClassId ? [classId, pairedClassId] : [classId];
-            await recalculatePlacementsForClass(classesToRecalculate, '', false);
-            console.log('✅ Placements recalculated successfully');
-          } catch (placementError) {
-            console.error('⚠️ Failed to recalculate placements:', placementError);
-            // Don't fail the whole submission if placement calc fails
-          }
-        }
+        // NOTE: Placement calculation is now handled inside submitScore() in the background
+        // This allows the save to complete quickly without blocking the user
 
         return { entryId, scoreData };
       },

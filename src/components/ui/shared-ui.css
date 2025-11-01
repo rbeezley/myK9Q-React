@@ -1089,6 +1089,8 @@
   margin: var(--token-space-md) var(--token-space-xl) 0;
   border-radius: var(--token-radius-lg);
   box-shadow: var(--token-shadow-sm);
+  position: relative;
+  z-index: 50; /* Below page-header (z-index: 100) and dropdown menus (z-index: 10000) */
 }
 
 .header-ticker-background {

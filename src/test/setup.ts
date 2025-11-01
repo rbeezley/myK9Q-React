@@ -66,11 +66,11 @@ Object.defineProperty(window, 'sessionStorage', {
 });
 
 // Mock window.addEventListener for online/offline events
-const originalAddEventListener = window.addEventListener;
+const originalAddEventListener = window.addEventListener.bind(window);
 window.addEventListener = vi.fn((event: string, handler: any) => {
   if (event === 'online' || event === 'offline') {
     // Mock implementation for network events
     return;
   }
-  return originalAddEventListener.call(window, event, handler);
-});
+  return originalAddEventListener(event as any, handler);
+}) as any;

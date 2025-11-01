@@ -16,6 +16,8 @@ import { metricsApiService } from './services/metricsApiService';
 import { useSettingsStore } from './stores/settingsStore';
 import { useOneHandedMode } from './hooks/useOneHandedMode';
 import { useAutoLogout } from './hooks/useAutoLogout';
+import { usePushNotificationAutoSwitch } from './hooks/usePushNotificationAutoSwitch';
+import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
 
 // Import unified container system
@@ -91,11 +93,16 @@ const PerformanceMetricsAdmin = React.lazy(() =>
 
 // Component that needs to be inside AuthProvider to use auth context
 function AppWithAuth() {
+  const { showContext } = useAuth();
+
   // Apply one-handed mode globally
   useOneHandedMode();
 
   // Apply auto-logout timer
   const autoLogout = useAutoLogout();
+
+  // Auto-switch push notification subscription when license key changes
+  usePushNotificationAutoSwitch(showContext?.licenseKey);
 
   // Initialize device detection and performance monitoring
   useEffect(() => {

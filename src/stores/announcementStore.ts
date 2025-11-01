@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 import { serviceWorkerManager } from '../utils/serviceWorkerUtils';
-import { pushNotificationService } from '../utils/pushNotificationService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface Announcement {
@@ -75,7 +74,6 @@ interface AnnouncementState {
   // Utility
   getFilteredAnnouncements: () => Announcement[];
   updateLastVisit: () => void;
-  triggerNotification: (announcement: Announcement) => void;
   reset: () => void;
 }
 
@@ -345,13 +343,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             unreadCount: state.unreadCount + 1
           }));
 
-          // Send push notification for new announcement
-          try {
-            await pushNotificationService.sendAnnouncementNotification(data);
-          } catch (pushError) {
-            console.warn('Failed to send push notification:', pushError);
-            // Don't throw error - announcement was created successfully
-          }
+          // Push notification is now handled by database trigger (Migration 019)
+          // No need to send manually from client
 
         } catch (error) {
           console.error('Error creating announcement:', error);
@@ -532,10 +525,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                   unreadCount: state.unreadCount + 1
                 }));
 
-                // Trigger notification if urgent
-                if (payload.new.priority === 'urgent') {
-                  get().triggerNotification(newAnnouncement);
-                }
+                // Push notification is handled by database trigger (Migration 019)
+                // Real-time subscription only updates UI state
               }
             )
             .on('postgres_changes',
@@ -643,29 +634,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         const now = new Date().toISOString();
         set({ lastVisit: now });
         localStorage.setItem('announcements_last_visit', now);
-      },
-
-      triggerNotification: (announcement: Announcement) => {
-        // Check if notifications are enabled and permission granted
-        if ('Notification' in window && Notification.permission === 'granted') {
-          const notificationPrefs = JSON.parse(
-            localStorage.getItem('notification_preferences') || '{}'
-          );
-
-          if (notificationPrefs.enabled && notificationPrefs[announcement.priority] !== false) {
-            const { currentShowName } = get();
-
-            new Notification(
-              `${currentShowName || 'myK9Q'} - ${announcement.priority === 'urgent' ? '🚨 URGENT' : '📢'}`,
-              {
-                body: announcement.title,
-                icon: '/icon-192x192.png',
-                tag: `announcement-${announcement.id}`,
-                requireInteraction: announcement.priority === 'urgent'
-              }
-            );
-          }
-        }
       },
 
       reset: () => {

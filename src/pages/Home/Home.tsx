@@ -196,6 +196,12 @@ export const Home: React.FC = () => {
 
   const fetchDashboardData = useCallback(async (): Promise<{ entries: EntryData[]; trials: TrialData[] }> => {
     try {
+      // Guard: Don't fetch if showContext is not ready yet
+      if (!showContext?.showId || !showContext?.licenseKey) {
+        logger.log('⏸️ Skipping fetch - showContext not ready yet');
+        return { entries: [], trials: [] };
+      }
+
       logger.log('🔍 Show context:', showContext);
       logger.log('🔍 Show ID:', showContext?.showId);
       logger.log('🔍 License key:', showContext?.licenseKey);
@@ -306,15 +312,15 @@ export const Home: React.FC = () => {
     await refresh();
   }, [refresh, hapticFeedback]);
 
-  const toggleFavorite = useCallback((armband: number) => {
+  const toggleFavorite = useCallback(async (armband: number) => {
     logger.log('🐕 toggleFavorite called for armband:', armband);
     hapticFeedback.light();
-    
+
     // Update the favoriteDogs set for localStorage persistence
     setFavoriteDogs(prev => {
       const newFavorites = new Set(prev);
       const wasAlreadyFavorite = newFavorites.has(armband);
-      
+
       if (wasAlreadyFavorite) {
         newFavorites.delete(armband);
         logger.log('🐕 Removing from dog favorites:', armband);
@@ -323,6 +329,19 @@ export const Home: React.FC = () => {
         logger.log('🐕 Adding to dog favorites:', armband);
       }
       logger.log('🐕 New dog favorites set:', Array.from(newFavorites));
+
+      // Sync with push notifications (async, non-blocking)
+      import('@/services/pushNotificationService').then(async ({ default: PushNotificationService }) => {
+        const isSubscribed = await PushNotificationService.isSubscribed();
+        if (isSubscribed) {
+          const favoriteArray = Array.from(newFavorites);
+          await PushNotificationService.updateFavoriteArmbands(favoriteArray);
+          logger.log('🔔 Push notifications updated with favorites:', favoriteArray);
+        }
+      }).catch(error => {
+        logger.error('🔔 Failed to update push notification favorites:', error);
+      });
+
       return newFavorites;
     });
   }, [hapticFeedback]);
@@ -393,7 +412,6 @@ export const Home: React.FC = () => {
   const rowCount = Math.ceil(filteredEntries.length / columnCount);
 
   // Virtual scrolling setup - virtualize ROWS, not individual items
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual intentionally returns functions that cannot be memoized
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,

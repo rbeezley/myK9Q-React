@@ -27,7 +27,7 @@
   margin-left: auto;  /* Ensure buttons stay on the right */
   flex-shrink: 0;     /* Prevent buttons from shrinking */
   position: relative;
-  z-index: 200;  /* Higher than page-header (100) to ensure dropdown appears above tabs */
+  z-index: 300;  /* Higher than announcement banner (50) and page-header (100) */
 }
 
 /* Back button */
@@ -131,11 +131,28 @@
 
 /* Status badge styling */
 .class-status-badge {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.625rem;
   padding: 0.125rem 0.375rem;
-  margin-left: var(--token-space-sm);
   border-radius: var(--token-radius-sm);
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.class-status-badge.status-in-progress {
+  background: var(--status-in-progress, #6366f1);
+  color: white;
+}
+
+.class-status-badge.status-briefing {
+  background: var(--status-briefing, #3b82f6);
+  color: white;
+}
+
+.class-status-badge.status-upcoming {
+  background: var(--status-start-time, #8b5cf6);
+  color: white;
 }
 
 .trial-meta {
@@ -197,7 +214,7 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
-  z-index: 10000;  /* Higher than header (100) and tabs */
+  z-index: 1;  /* Inherits stacking context from parent .header-buttons (z-index: 300) */
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);  /* Prevent going off screen */
   overflow: hidden;

@@ -39,7 +39,7 @@
 .page-header {
   position: sticky;
   top: 0;
-  z-index: 100;  /* Increased to ensure dropdowns inside header appear above other content */
+  z-index: 1000;  /* High z-index to ensure header and its dropdowns appear above announcement banner (z-index: 50) */
   backdrop-filter: blur(20px);
   background: rgba(255, 255, 255, 0.8);
   border-bottom: 1px solid var(--border);

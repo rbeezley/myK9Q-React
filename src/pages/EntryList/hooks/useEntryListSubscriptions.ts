@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { subscribeToEntryUpdates } from '../../../services/entryService';
 import type { RealtimeChannel as _RealtimeChannel } from '@supabase/supabase-js';
@@ -22,6 +22,9 @@ export const useEntryListSubscriptions = ({
   onEntryUpdate,
   enabled = true
 }: UseEntryListSubscriptionsOptions) => {
+  // Debounce timer for result updates
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (!enabled || classIds.length === 0 || !licenseKey) return;
 
@@ -81,8 +84,21 @@ export const useEntryListSubscriptions = ({
 
           if (entry && classIds.includes(entry.class_id)) {
             console.log(`✅ Results change detected for entry ${entryId} in class ${entry.class_id}:`, payload.eventType);
-            // Refresh to update entry status when scores are saved
-            onRefresh(false); // Use false to avoid cache bypass
+
+            // Debounce refresh to avoid multiple rapid refreshes when placement recalculation
+            // updates multiple results at once
+            if (refreshTimerRef.current) {
+              clearTimeout(refreshTimerRef.current);
+            }
+
+            refreshTimerRef.current = setTimeout(() => {
+              console.log('🔄 Debounced refresh triggered');
+              // Refresh to update entry status when scores are saved
+              // IMPORTANT: Use true to force cache bypass so we get fresh data immediately
+              // This ensures the UI updates right away instead of showing stale cached data
+              onRefresh(true);
+              refreshTimerRef.current = null;
+            }, 300); // Wait 300ms after last update before refreshing
           }
         }
       )
@@ -92,6 +108,12 @@ export const useEntryListSubscriptions = ({
     return () => {
       entryCleanupFunctions.forEach(cleanup => cleanup());
       resultsChannel.unsubscribe();
+
+      // Clear any pending refresh timer
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
     };
   }, [classIds, licenseKey, onRefresh, onEntryUpdate, enabled]);
 };

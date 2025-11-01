@@ -8,9 +8,6 @@
  * - Maintains compatibility with regular shows
  */
 
-/* eslint-disable react-hooks/immutability -- Timer functionality requires Date.now() and state management in async functions */
-/* eslint-disable react-hooks/purity -- Timer functionality requires Date.now() which is intentionally impure */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
@@ -97,6 +94,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const [faultCount, setFaultCount] = useState(0);
   const [trialDate, setTrialDate] = useState<string>('');
   const [trialNumber, setTrialNumber] = useState<string>('');
+  const [isLoadingEntry, setIsLoadingEntry] = useState(true); // Track loading state
   const [_darkMode, _setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -928,6 +926,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const loadEntries = async () => {
     if (!classId || !showContext?.licenseKey) return;
 
+    setIsLoadingEntry(true); // Start loading
     try {
       // First get class information including trial date
       const { data: classInfo, error: classError } = await supabase
@@ -986,12 +985,32 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading entries:', error);
+    } finally {
+      setIsLoadingEntry(false); // Done loading (success or error)
     }
   };
 
-  // Redirect to entry list if no entry data exists
+  // Redirect to entry list if no entry data exists AFTER loading completes
+  useEffect(() => {
+    if (!isLoadingEntry && !currentEntry) {
+      console.log('⚠️ No current entry found after loading, redirecting to entry list');
+      navigate(`/class/${classId}/entries`);
+    }
+  }, [isLoadingEntry, currentEntry, classId, navigate]);
+
+  // Show loading state while entry is being loaded
+  if (isLoadingEntry) {
+    return (
+      <div className="scoresheet-container">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  // Show nothing if no entry after loading (will redirect)
   if (!currentEntry) {
-    navigate(`/class/${classId}/entries`);
     return null;
   }
 

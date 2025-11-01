@@ -15,6 +15,7 @@ import { formatTrialDate } from '../../utils/dateUtils';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { updateExhibitorOrder, markInRing } from '../../services/entryService';
 import { applyRunOrderPreset } from '../../services/runOrderService';
+import { manuallyRecalculatePlacements } from '../../services/placementService';
 import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
 import { Entry } from '../../stores/entryStore';
 import { useEntryListData, useEntryListActions, useEntryListSubscriptions } from './hooks';
@@ -124,6 +125,7 @@ export const EntryList: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   const [showPrintMenu, setShowPrintMenu] = useState(false);
+  const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
 
   // Sync local entries with fetched data
   useEffect(() => {
@@ -356,6 +358,25 @@ export const EntryList: React.FC = () => {
   // Refresh handler
   const handleRefresh = async () => {
     await refresh();
+  };
+
+  // Manual placement recalculation handler
+  const handleRecalculatePlacements = async () => {
+    if (!classId) return;
+
+    setIsRecalculatingPlacements(true);
+    try {
+      await manuallyRecalculatePlacements(Number(classId));
+      // Refresh to show updated placements
+      await refresh();
+      console.log('✅ Placements recalculated and refreshed');
+    } catch (error) {
+      console.error('❌ Failed to recalculate placements:', error);
+      alert('Failed to recalculate placements. Please try again.');
+    } finally {
+      setIsRecalculatingPlacements(false);
+      setShowPrintMenu(false);
+    }
   };
 
   // Print report handlers
@@ -707,11 +728,6 @@ export const EntryList: React.FC = () => {
             <h1>
               {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
             </h1>
-            {statusBadge && (
-              <span className={`class-status-badge ${statusBadge.className}`}>
-                {statusBadge.text}
-              </span>
-            )}
           </div>
           <div className="class-subtitle">
             <div className="trial-info-simple">
@@ -723,6 +739,14 @@ export const EntryList: React.FC = () => {
               )}
               {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
                 <span className="trial-number-text">Trial {classInfo.trialNumber}</span>
+              )}
+              {statusBadge && (
+                <>
+                  <span className="trial-separator">•</span>
+                  <span className={`class-status-badge ${statusBadge.className}`}>
+                    {statusBadge.text}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -768,6 +792,16 @@ export const EntryList: React.FC = () => {
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'rotating' : ''}`} />
                   Refresh
                 </button>
+                {hasPermission('canManageClasses') && (
+                  <button
+                    onClick={handleRecalculatePlacements}
+                    className="action-menu-item"
+                    disabled={isRecalculatingPlacements}
+                  >
+                    <Trophy className={`h-4 w-4 ${isRecalculatingPlacements ? 'rotating' : ''}`} />
+                    Recalculate Placements
+                  </button>
+                )}
                 <div className="menu-divider" />
                 <button onClick={handlePrintCheckIn} className="action-menu-item">
                   <Printer className="h-4 w-4" />

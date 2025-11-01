@@ -21,8 +21,10 @@ import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { exportPersonalData, clearAllData, getStorageUsage, formatBytes } from '@/services/dataExportService';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
 import smartConfirmationService from '@/services/smartConfirmation';
-import { Download, CheckCircle2, AlertCircle, Database, Trash2, Volume2, User } from 'lucide-react';
+import { Download, CheckCircle2, AlertCircle, Database, Trash2, Volume2, User, Bell, BellOff } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import PushNotificationService from '@/services/pushNotificationService';
+import { useAuth } from '@/contexts/AuthContext';
 import './Settings.css';
 
 export function Settings() {
@@ -39,6 +41,11 @@ export function Settings() {
   const searchableSettings = useSearchableSettings();
   const { isActive: isDNDActive, setFor: setDNDFor, disable: disableDND } = useDNDToggle();
   const { isInstalled, canInstall, promptInstall, getInstallInstructions } = usePWAInstall();
+  const { showContext, role } = useAuth();
+
+  // Push notification state
+  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   // Available voices for selection
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -90,6 +97,11 @@ export function Settings() {
       volume: settings.voiceVolume,
     });
   }, [settings.voiceAnnouncements, settings.voiceLanguage, settings.voiceName, settings.voiceRate, settings.voicePitch, settings.voiceVolume, availableVoices]);
+
+  // Check push notification subscription status on mount
+  useEffect(() => {
+    PushNotificationService.isSubscribed().then(setIsPushSubscribed);
+  }, []);
 
   // Show toast message
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -253,6 +265,67 @@ export function Settings() {
     const newConfig = { ...quietHoursConfig, allowUrgent };
     setQuietHoursConfigState(newConfig);
     notificationService.setQuietHours(newConfig);
+  };
+
+  // Push notification handlers
+  const handlePushToggle = async () => {
+    if (isPushSubscribed) {
+      // Unsubscribe
+      setIsSubscribing(true);
+      try {
+        const success = await PushNotificationService.unsubscribe();
+        if (success) {
+          setIsPushSubscribed(false);
+          showToast('Push notifications disabled', 'info');
+        } else {
+          showToast('Failed to disable push notifications', 'error');
+        }
+      } catch (error) {
+        console.error('[Settings] Unsubscribe error:', error);
+        showToast('Failed to disable push notifications', 'error');
+      } finally {
+        setIsSubscribing(false);
+      }
+    } else {
+      // Subscribe
+      const licenseKey = showContext?.licenseKey;
+      if (!licenseKey || !role) {
+        showToast('Please log in to enable push notifications', 'error');
+        return;
+      }
+
+      setIsSubscribing(true);
+      try {
+        // Get favorite armbands from localStorage
+        const favoritesKey = `dog_favorites_${licenseKey}`;
+        const savedFavorites = localStorage.getItem(favoritesKey);
+        let favoriteArmbands: number[] = [];
+
+        if (savedFavorites) {
+          try {
+            const parsed = JSON.parse(savedFavorites);
+            if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
+              favoriteArmbands = parsed;
+            }
+          } catch (error) {
+            console.error('[Settings] Error parsing favorites:', error);
+          }
+        }
+
+        const success = await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
+        if (success) {
+          setIsPushSubscribed(true);
+          showToast('Push notifications enabled! You\'ll be notified when your favorited dogs are up next.', 'success');
+        } else {
+          showToast('Failed to enable push notifications. Please check browser permissions.', 'error');
+        }
+      } catch (error) {
+        console.error('[Settings] Subscribe error:', error);
+        showToast('Failed to enable push notifications', 'error');
+      } finally {
+        setIsSubscribing(false);
+      }
+    }
   };
 
   return (
@@ -704,6 +777,44 @@ export function Settings() {
                     </button>
                   </>
                 )}
+              </div>
+            </div>
+
+            {/* Push Notifications Toggle */}
+            <div className="setting-item indented" style={{ backgroundColor: isPushSubscribed ? '#10b98114' : '#f9731614', borderLeft: '3px solid', borderColor: isPushSubscribed ? '#22c55e' : '#f97316', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
+              <div className="setting-info" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  {isPushSubscribed ? <Bell size={20} color="#22c55e" /> : <BellOff size={20} color="#f97316" style={{ width: '20px', height: '20px', flexShrink: 0 }} />}
+                  <label style={{ fontWeight: 600, fontSize: '1rem', color: isPushSubscribed ? '#22c55e' : '#f97316' }}>
+                    {isPushSubscribed ? 'Push Notifications Active' : 'Push Notifications Disabled'}
+                  </label>
+                </div>
+                <span className="setting-hint notification-instructions-hint" style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                  {isPushSubscribed
+                    ? 'You\'ll receive push notifications when your favorited dogs (❤️) are up next to compete (2-3 dogs away). You\'ll also receive announcements from the show organizer.'
+                    : 'Enable push notifications to get notified when your favorited dogs (❤️) are up next and receive important announcements.'
+                  }
+                </span>
+                <button
+                  className={isPushSubscribed ? 'secondary-button' : 'primary-button'}
+                  onClick={handlePushToggle}
+                  disabled={isSubscribing}
+                  style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                >
+                  {isSubscribing ? (
+                    <>Processing...</>
+                  ) : isPushSubscribed ? (
+                    <>
+                      <BellOff size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                      Disable Push Notifications
+                    </>
+                  ) : (
+                    <>
+                      <Bell size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                      Enable Push Notifications
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
