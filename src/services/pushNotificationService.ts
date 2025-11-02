@@ -18,6 +18,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const PUSH_USER_ID_KEY = 'push_user_id'; // Browser-unique ID
@@ -31,12 +32,21 @@ interface PushSubscriptionData {
   license_key: string;
   user_agent: string;
   notification_preferences: {
-    announcements: boolean;
-    up_soon: boolean;
-    results: boolean;
-    spam_limit: number;
-    favorite_armbands: number[];
+    announcements: boolean; // Show organizer announcements
+    up_soon: boolean; // Notify when favorited dog is up soon (uses dogs_ahead)
+    spam_limit: number; // Max announcements per hour
+    favorite_armbands: number[]; // Which dogs to get notifications for
+    dogs_ahead: number; // How many dogs ahead to notify (1-5)
   };
+}
+
+export interface BrowserCompatibility {
+  supported: boolean;
+  reason?: string;
+  browserName?: string;
+  browserVersion?: string;
+  platform?: string;
+  recommendations?: string[];
 }
 
 export class PushNotificationService {
@@ -60,10 +70,135 @@ export class PushNotificationService {
   }
 
   /**
-   * Check if push notifications are supported
+   * Check if push notifications are supported (simple boolean check)
    */
   static isSupported(): boolean {
     return 'serviceWorker' in navigator && 'PushManager' in window;
+  }
+
+  /**
+   * Get detailed browser compatibility information
+   * Returns detailed information about browser support and recommendations
+   */
+  static getBrowserCompatibility(): BrowserCompatibility {
+    const ua = navigator.userAgent;
+    const platform = navigator.platform;
+
+    // Detect browser and version
+    let browserName = 'Unknown';
+    let browserVersion = 'Unknown';
+
+    // Chrome/Edge (Chromium-based)
+    if (ua.includes('Chrome') && !ua.includes('Edg')) {
+      browserName = 'Chrome';
+      const match = ua.match(/Chrome\/(\d+)/);
+      browserVersion = match ? match[1] : 'Unknown';
+    } else if (ua.includes('Edg')) {
+      browserName = 'Edge';
+      const match = ua.match(/Edg\/(\d+)/);
+      browserVersion = match ? match[1] : 'Unknown';
+    }
+    // Firefox
+    else if (ua.includes('Firefox')) {
+      browserName = 'Firefox';
+      const match = ua.match(/Firefox\/(\d+)/);
+      browserVersion = match ? match[1] : 'Unknown';
+    }
+    // Safari
+    else if (ua.includes('Safari') && !ua.includes('Chrome')) {
+      browserName = 'Safari';
+      const match = ua.match(/Version\/(\d+)/);
+      browserVersion = match ? match[1] : 'Unknown';
+    }
+    // Opera
+    else if (ua.includes('OPR')) {
+      browserName = 'Opera';
+      const match = ua.match(/OPR\/(\d+)/);
+      browserVersion = match ? match[1] : 'Unknown';
+    }
+
+    // Check Service Workers
+    if (!('serviceWorker' in navigator)) {
+      return {
+        supported: false,
+        reason: 'Service Workers are not supported',
+        browserName,
+        browserVersion,
+        platform,
+        recommendations: [
+          'Update your browser to the latest version',
+          'Try using Chrome, Firefox, or Edge',
+          'Push notifications require a modern browser'
+        ]
+      };
+    }
+
+    // Check Push Manager
+    if (!('PushManager' in window)) {
+      return {
+        supported: false,
+        reason: 'Push notifications are not supported',
+        browserName,
+        browserVersion,
+        platform,
+        recommendations: [
+          'Update your browser to the latest version',
+          'Try using Chrome, Firefox, or Edge',
+          'Push notifications require a modern browser'
+        ]
+      };
+    }
+
+    // iOS Safari version check
+    const iOS = /iPad|iPhone|iPod/.test(ua);
+    if (iOS) {
+      // Extract iOS version (format: "OS 16_4" or "OS 16_4_1")
+      const iOSMatch = ua.match(/OS (\d+)_(\d+)/);
+      if (iOSMatch) {
+        const majorVersion = parseInt(iOSMatch[1]);
+        const minorVersion = parseInt(iOSMatch[2]);
+
+        // Push notifications require iOS 16.4+
+        if (majorVersion < 16 || (majorVersion === 16 && minorVersion < 4)) {
+          return {
+            supported: false,
+            reason: `iOS ${majorVersion}.${minorVersion} does not support push notifications`,
+            browserName: 'Safari (iOS)',
+            browserVersion: `${majorVersion}.${minorVersion}`,
+            platform: 'iOS',
+            recommendations: [
+              'Update your iPhone/iPad to iOS 16.4 or later',
+              'Go to Settings → General → Software Update',
+              'Push notifications are only available on iOS 16.4+'
+            ]
+          };
+        }
+      }
+    }
+
+    // Check for secure context (HTTPS required)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      return {
+        supported: false,
+        reason: 'Push notifications require a secure connection (HTTPS)',
+        browserName,
+        browserVersion,
+        platform,
+        recommendations: [
+          'Access the site using HTTPS',
+          'Push notifications only work on secure connections',
+          'Contact your administrator if you see this message'
+        ]
+      };
+    }
+
+    // All checks passed!
+    return {
+      supported: true,
+      browserName,
+      browserVersion,
+      platform
+    };
   }
 
   /**
@@ -162,9 +297,9 @@ export class PushNotificationService {
         notification_preferences: {
           announcements: true,
           up_soon: true,
-          results: false,
           spam_limit: 10,
-          favorite_armbands: favoriteArmbands
+          favorite_armbands: favoriteArmbands,
+          dogs_ahead: useSettingsStore.getState().settings.notifyYourTurnLeadDogs
         }
       };
 
@@ -256,9 +391,9 @@ export class PushNotificationService {
           notification_preferences: {
             announcements: true,
             up_soon: true,
-            results: false,
             spam_limit: 10,
-            favorite_armbands: favoriteArmbands
+            favorite_armbands: favoriteArmbands,
+            dogs_ahead: useSettingsStore.getState().settings.notifyYourTurnLeadDogs
           }
         })
         .eq('endpoint', subscription.endpoint);
@@ -309,9 +444,9 @@ export class PushNotificationService {
           notification_preferences: {
             announcements: true,
             up_soon: true,
-            results: false,
             spam_limit: 10,
-            favorite_armbands: favoriteArmbands
+            favorite_armbands: favoriteArmbands,
+            dogs_ahead: useSettingsStore.getState().settings.notifyYourTurnLeadDogs
           },
           updated_at: new Date().toISOString()
         })

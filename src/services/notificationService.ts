@@ -183,25 +183,10 @@ class NotificationService {
   /**
    * Check if a specific notification type is enabled
    */
-  private isNotificationTypeEnabled(type: NotificationType): boolean {
-    const { settings } = useSettingsStore.getState();
-
-    switch (type) {
-      case 'class_starting':
-        return settings.notifyClassStarting;
-      case 'your_turn':
-        return settings.notifyYourTurn;
-      case 'results_posted':
-        return settings.notifyResults;
-      case 'sync_error':
-        return settings.notifySyncErrors;
-      case 'announcement':
-      case 'urgent_announcement':
-      case 'system_update':
-        return true; // Always enabled for important notifications
-      default:
-        return true;
-    }
+  private isNotificationTypeEnabled(_type: NotificationType): boolean {
+    // In-app notifications are always enabled
+    // (Previously had user-configurable toggles, but those have been removed for simplicity)
+    return true;
   }
 
   /**

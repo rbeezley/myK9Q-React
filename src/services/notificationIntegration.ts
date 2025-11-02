@@ -202,13 +202,7 @@ class NotificationIntegration {
    * NOTE: We check if the entire class is complete, not individual entries
    */
   private async onEntryScored(entry: Entry, _previousState: Entry): Promise<void> {
-    const { settings } = useSettingsStore.getState();
-
-    // Check if user wants results notifications
-    if (!settings.notifyResults) {
-      return;
-    }
-
+    // Always check if class is complete (in-app notification only)
     console.log(`📱 Entry scored: ${entry.callName} (#${entry.armband})`);
 
     // Check if all entries in this class are now scored
@@ -257,10 +251,6 @@ class NotificationIntegration {
   private async onEntryInRing(entry: Entry): Promise<void> {
     const { settings } = useSettingsStore.getState();
 
-    if (!settings.notifyYourTurn) {
-      return;
-    }
-
     console.log(`📱 Entry in ring: ${entry.callName} (#${entry.armband})`);
 
     // Get the unscored entries in order
@@ -303,10 +293,8 @@ class NotificationIntegration {
    * Called when the current entry changes (e.g., user navigates to a scoresheet)
    */
   private async onCurrentEntryChanged(current: Entry, _previous: Entry | null): Promise<void> {
-    const { settings } = useSettingsStore.getState();
-
     // If current entry is not yet scored and is marked "in ring", might be their turn
-    if (!current.isScored && current.inRing && settings.notifyYourTurn) {
+    if (!current.isScored && current.inRing) {
       console.log(`📱 Current entry changed to: ${current.callName} (#${current.armband})`);
       // Could send a notification here if appropriate
     }
@@ -337,12 +325,6 @@ class NotificationIntegration {
    * Schedule a notification for class starting soon
    */
   private scheduleClassStartWarning(classId: number): void {
-    const { settings } = useSettingsStore.getState();
-
-    if (!settings.notifyClassStarting) {
-      return;
-    }
-
     const classSchedule = this.classSchedules.get(classId);
     if (!classSchedule || classSchedule.warningScheduled) {
       return;
@@ -379,12 +361,6 @@ class NotificationIntegration {
    * Called periodically to catch classes that were registered after their warning time
    */
   private async checkClassStartWarnings(): Promise<void> {
-    const { settings } = useSettingsStore.getState();
-
-    if (!settings.notifyClassStarting) {
-      return;
-    }
-
     const now = new Date();
 
     this.classSchedules.forEach(async (classSchedule) => {
@@ -449,12 +425,7 @@ class NotificationIntegration {
    * Call this from your sync/network error handlers
    */
   async notifySyncError(errorMessage: string, operation: string, retryable = true): Promise<void> {
-    const { settings } = useSettingsStore.getState();
-
-    if (!settings.notifySyncErrors) {
-      return;
-    }
-
+    // In-app notification only
     await notifySyncError(errorMessage, operation, retryable);
   }
 

@@ -16,64 +16,79 @@ export function Landing() {
 
   return (
     <div className="landing-page">
-      {/* Hero Section */}
+      {/* Hero Section with Side-by-Side Layout */}
       <section className="hero-section">
         <div className="hero-container">
-          <div className="hero-content">
-            {/* Logo */}
-            <div className="hero-logo-container">
-              <div className="hero-logo-image">
+          <div className="hero-layout">
+            {/* Left Side - Phone Mockup */}
+            <div className="hero-visual">
+              <div className="screenshot-wrapper">
                 <img
-                  src="/myK9Q-logo-white.png"
-                  alt="myK9Q Logo"
-                  className="hero-logo"
+                  src="/screenshots/home-page.png"
+                  alt="myK9Q App Home Page"
+                  className="screenshot-image"
                 />
+                <div className="screenshot-overlay"></div>
               </div>
-              <h1 className="hero-brand">myK9Q</h1>
             </div>
 
-            {/* Queue and Qualify Messaging */}
-            <h2 className="hero-title">
-              <span className="hero-queue">Queue</span>
-              <span className="hero-and">&</span>
-              <span className="hero-qualify">Qualify</span>
-            </h2>
-
-            <p className="hero-tagline">
-              Manage run orders and score results in real-time
-            </p>
-
-            <p className="hero-description">
-              The complete scoring solution for AKC and UKC trials. Built for judges,
-              stewards, and exhibitors who demand precision and reliability.
-            </p>
-
-            <div className="hero-actions">
-              <button onClick={handleGetStarted} className="btn-primary">
-                Get Started
-                <ChevronRight className="btn-icon" />
-              </button>
-            </div>
-
-            {/* Nationals Badge */}
-            <div className="hero-nationals-badge">
-              <Trophy className="nationals-badge-icon" />
-              <span>Used at the 2025 AKC Scent Work Nationals</span>
-            </div>
-
-            {/* Feature Highlights */}
-            <div className="hero-features">
-              <div className="hero-feature">
-                <UserCheck className="hero-feature-icon" />
-                <span>Exhibitor Self Check-in</span>
+            {/* Right Side - Content */}
+            <div className="hero-content">
+              {/* Logo */}
+              <div className="hero-logo-container">
+                <div className="hero-logo-image">
+                  <img
+                    src="/myK9Q-logo-white.png"
+                    alt="myK9Q Logo"
+                    className="hero-logo"
+                  />
+                </div>
+                <h1 className="hero-brand">myK9Q</h1>
               </div>
-              <div className="hero-feature">
-                <Zap className="hero-feature-icon" />
-                <span>Auto-Calculate Results</span>
+
+              {/* Queue and Qualify Messaging */}
+              <h2 className="hero-title">
+                <span className="hero-queue">Queue</span>
+                <span className="hero-and">&</span>
+                <span className="hero-qualify">Qualify</span>
+              </h2>
+
+              <p className="hero-tagline">
+                Manage run order and score at ring side
+              </p>
+
+              <p className="hero-description">
+                The complete scoring solution for AKC and UKC trials. Built for judges,
+                stewards, and exhibitors who demand precision and reliability.
+              </p>
+
+              <div className="hero-actions">
+                <button onClick={handleGetStarted} className="btn-primary">
+                  Get Started
+                  <ChevronRight className="btn-icon" />
+                </button>
               </div>
-              <div className="hero-feature">
-                <Cloud className="hero-feature-icon" />
-                <span>Real-time Sync</span>
+
+              {/* Nationals Badge */}
+              <div className="hero-nationals-badge">
+                <Trophy className="nationals-badge-icon" />
+                <span>Used at the 2025 AKC Scent Work Nationals</span>
+              </div>
+
+              {/* Feature Highlights */}
+              <div className="hero-features">
+                <div className="hero-feature">
+                  <UserCheck className="hero-feature-icon" />
+                  <span>Exhibitor Self Check-in</span>
+                </div>
+                <div className="hero-feature">
+                  <Zap className="hero-feature-icon" />
+                  <span>Auto-Calculate Results</span>
+                </div>
+                <div className="hero-feature">
+                  <Cloud className="hero-feature-icon" />
+                  <span>Real-time Sync</span>
+                </div>
               </div>
             </div>
           </div>

@@ -1,196 +1,119 @@
-# myK9Q Documentation Index
+# myK9Q Documentation
 
-**Last Updated:** 2025-10-25
+Complete documentation for the myK9Q React application.
 
-This directory contains comprehensive technical documentation for the myK9Q React application.
+## 📁 Documentation Structure
 
----
+### [push-notifications/](push-notifications/) ⭐ NEW
+Complete push notification system implementation and production readiness.
+- **Start here**: [PUSH_NOTIFICATION_COMPLETE.md](push-notifications/PUSH_NOTIFICATION_COMPLETE.md)
+- Production status, testing, security fixes
+- Browser compatibility, retry system
+- PWA notifications, rate limiting
 
-## 📊 Data Model Documentation
+### [performance/](performance/)
+Performance optimization documentation and monitoring.
+- Critical path optimizations
+- Metrics and dashboards
+- Home page optimizations
+- Performance phases implementation
 
-> **💡 New!** Interactive Mermaid diagrams available! See [ARCHITECTURE_DIAGRAM_MERMAID.md](./ARCHITECTURE_DIAGRAM_MERMAID.md)
+### [implementation-phases/](implementation-phases/)
+Historical phase-by-phase implementation summaries.
+- Phase 1-9 completion summaries
+- EntryList refactoring
+- Settings implementation
+- Feature rollout documentation
 
-### [DATABASE_ERD.md](./DATABASE_ERD.md)
-**Entity Relationship Diagram & Schema Reference**
+### [migrations/](migrations/)
+Database migration plans and guides.
+- Migration planning and testing
+- Notification triggers
+- Feedback changes
 
-Complete visual and textual representation of the PostgreSQL database schema hosted on Supabase.
+### [architecture/](architecture/)
+System architecture and design decisions.
+- Prefetching implementation
+- Sequential prefetch
+- Refactoring plans
+- Design patterns
 
-**Now includes:** Interactive Mermaid ERD (renders automatically on GitHub!)
+### [features/](features/)
+Feature-specific implementation guides.
+- Haptic feedback
+- User experience enhancements
 
-**Contents:**
-- Visual ERD showing all tables and relationships
-- Multi-tenant architecture (license_key isolation)
-- Foreign key constraints and indexes
-- Real-time subscription setup
-- Migration history
-- RLS policies
+### [accessibility/](accessibility/)
+Accessibility audits and improvements.
+- Touch target audits
+- WCAG compliance
 
-**Use this for:**
-- Understanding table relationships
-- Planning new features that require schema changes
-- Debugging data integrity issues
-- Onboarding new developers
+### [guides/](guides/)
+How-to guides and tutorials.
+- Flutter auto-login
+- Developer guides
 
-**Key Sections:**
-- Core schema (shows → trials → classes → entries → results)
-- Supporting tables (nationals, announcements, class requirements)
-- Relationship diagrams (1:N, 1:1 mappings)
-- Constraint reference (CHECK, UNIQUE, FK)
+### [testing/](testing/)
+Testing documentation and status.
+- Test status reports
+- Theme testing
+- Component testing
 
----
+### [mockups/](mockups/)
+HTML mockups and prototypes.
+- Placement ribbon mockup
+- UI component prototypes
 
-### [TYPE_MAPPING.md](./TYPE_MAPPING.md)
-**TypeScript Interface ↔ PostgreSQL Schema Mapping**
+## 🚀 Quick Start for New Developers
 
-Detailed mapping between TypeScript interfaces in the codebase and database tables.
+1. **Project Overview**: Read [../README.md](../README.md) in project root
+2. **Claude Instructions**: See [../CLAUDE.md](../CLAUDE.md) for AI coding guidelines
+3. **Push Notifications**: [push-notifications/PUSH_NOTIFICATION_COMPLETE.md](push-notifications/PUSH_NOTIFICATION_COMPLETE.md)
+4. **Database Schema**: [database-schema.md](database-schema.md)
+5. **Architecture**: [ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md)
 
-**Contents:**
-- Entry interface breakdown (54 fields mapped)
-- Service layer interfaces (ResultData, ClassData)
-- Data transformation functions
-- Type validation rules
-- Common pitfalls and solutions
+## 📋 Active Work
 
-**Use this for:**
-- Writing new service functions
-- Understanding data transformations
-- Debugging type mismatches
-- Validating data before DB writes
+Current development focuses:
+- **CSS Improvements**: [../CSS-IMPROVEMENT-ROADMAP.md](../CSS-IMPROVEMENT-ROADMAP.md) (in root)
+- **Push Notifications**: Phases 4-10 remaining (see [push-notifications/](push-notifications/))
 
-**Key Transformations:**
-- `snake_case` (DB) ↔ `camelCase` (TS)
-- Time format: `numeric seconds` ↔ `MM:SS string`
-- Status enums: DB constraints ↔ TS union types
-- Multi-area spreading: Object ↔ Multiple columns
+## 🗂️ Root Directory Files
 
----
+Only essential files remain in project root:
+- `README.md` - Main project documentation
+- `CLAUDE.md` - Claude Code AI instructions
+- `CSS-IMPROVEMENT-ROADMAP.md` - Active CSS consolidation work
 
-### [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md) ⭐
-**Three-Tier Architecture Flow Documentation**
+All other documentation has been organized into this `docs/` folder.
 
-Visual documentation of the data flow through Stores → Services → Database.
+## 📊 Database Documentation
 
-**⚡ Interactive Mermaid Version:** [ARCHITECTURE_DIAGRAM_MERMAID.md](./ARCHITECTURE_DIAGRAM_MERMAID.md) - Recommended for viewing on GitHub!
+- [database-schema.md](database-schema.md) - Complete schema reference
+- [database-relationships-diagram.md](database-relationships-diagram.md) - Visual relationships
+- [DATABASE_ERD.md](DATABASE_ERD.md) - Entity relationship diagram
+- [database-setup.md](database-setup.md) - Setup instructions
+- [DATABASE_CLEANUP_COMPLETE.md](DATABASE_CLEANUP_COMPLETE.md) - Cleanup history
 
-**Contents:**
-- Architectural overview
-- Detailed flow diagrams (entry fetch, score submission, real-time updates)
-- Store inventory (6 Zustand stores)
-- Service inventory (6 core services)
-- Transformation pipeline
-- Architectural rules (DOs and DON'Ts)
+## 🎨 Design System
 
-**Use this for:**
-- Understanding request/response flow
-- Implementing new features correctly
-- Debugging state management issues
-- Code review reference
+- [design-system-components.md](design-system-components.md) - Component library
+- [CSS_ARCHITECTURE.md](CSS_ARCHITECTURE.md) - CSS patterns
+- [COMPONENT_TESTING.md](COMPONENT_TESTING.md) - Testing matrix
 
-**Key Flows:**
-1. **Entry Management:** Component → Service → DB → Store → Re-render
-2. **Score Submission:** Scoresheet → Service → DB → Placement calc → Real-time broadcast
-3. **Real-time Updates:** Device A → DB → Broadcast → Devices B & C
+## 🔗 External Resources
 
----
+- [Supabase Documentation](https://supabase.com/docs)
+- [React Documentation](https://react.dev)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+- [Vite Documentation](https://vitejs.dev)
+- [Zustand Documentation](https://github.com/pmndrs/zustand)
 
-## 🎯 Quick Reference Guide
+## 📝 Contributing
 
-### When to use each document:
-
-| Scenario | Document |
-|----------|----------|
-| "What columns exist in the `entries` table?" | [DATABASE_ERD.md](./DATABASE_ERD.md#database-tables) |
-| "How do I map `armband_number` to TypeScript?" | [TYPE_MAPPING.md](./TYPE_MAPPING.md#1-entries-table) |
-| "Should I call Supabase from my component?" | [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md#-dont) |
-| "How are placements calculated after scoring?" | [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md#2-score-submission-flow) |
-| "What's the relationship between entries and results?" | [DATABASE_ERD.md](./DATABASE_ERD.md#key-relationships) |
-| "How do I convert MM:SS to seconds?" | [TYPE_MAPPING.md](./TYPE_MAPPING.md#1-time-conversion-seconds--mmss) |
-| "Which store manages entry data?" | [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md#-store-inventory) |
-| "How does real-time sync work?" | [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md#3-real-time-subscription-flow) |
-
----
-
-## 🏗️ Architecture Summary
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     myK9Q Architecture                          │
-└─────────────────────────────────────────────────────────────────┘
-
-📱 UI Layer (React Components)
-    ↕ hooks (useEntryStore, useScoringStore)
-🗂️ State Layer (Zustand Stores)
-    ↕ service calls
-🛠️ Service Layer (Business Logic)
-    ↕ Supabase client (REST + Realtime)
-🗄️ Database Layer (PostgreSQL)
-    ↕ RLS + Real-time triggers
-📡 Real-time Broadcast (All clients)
-```
-
-**Design Principles:**
-1. **Three-tier separation** - UI never talks directly to DB
-2. **Multi-tenant isolation** - Every query filters by `license_key`
-3. **Real-time first** - All state changes broadcast instantly
-4. **Type safety** - TypeScript strict mode, validated transforms
-5. **Offline-ready** - Queue mechanism for network failures
-
----
-
-## 📋 Other Documentation
-
-### Documentation Guides
-- [MERMAID_GUIDE.md](./MERMAID_GUIDE.md) - **NEW!** How to view and edit Mermaid diagrams
-
-### Development Guides
-- [../CLAUDE.md](../CLAUDE.md) - Main development guide, tech stack, rules
-- [CSS_ARCHITECTURE.md](./CSS_ARCHITECTURE.md) - CSS design system and patterns
-- [COMPONENT_TESTING.md](./COMPONENT_TESTING.md) - Testing strategies
-
-### Style Guides
-- [style-guides/design-system.md](./style-guides/design-system.md) - Design tokens, colors, spacing
-
-### Migration Guides
-- [../supabase/migrations/](../supabase/migrations/) - Database schema evolution
-
----
-
-## 🤝 Contributing
-
-When adding new features:
-
-1. **Check the ERD** - Understand existing relationships
-2. **Review type mappings** - Follow established transformation patterns
-3. **Follow architecture** - Always use services, never bypass stores
-4. **Update documentation** - Keep these docs in sync with code changes
-
----
-
-## 📞 Getting Help
-
-**For Questions About:**
-- **Database schema** → See [DATABASE_ERD.md](./DATABASE_ERD.md)
-- **TypeScript types** → See [TYPE_MAPPING.md](./TYPE_MAPPING.md)
-- **Data flow** → See [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md)
-- **Development rules** → See [../CLAUDE.md](../CLAUDE.md)
-
-**Common Tasks:**
-```bash
-# View schema in browser
-npm run supabase:studio
-
-# Check types
-npm run typecheck
-
-# Test local changes
-npm run dev
-
-# Run tests
-npm test
-```
-
----
-
-**Generated:** 2025-10-25 by Claude Code
-**Maintained by:** Project contributors
-**Status:** ✅ Complete & current
+When adding new documentation:
+1. Choose the appropriate subfolder
+2. Use clear, descriptive filenames
+3. Add a summary to this README
+4. Update relevant index files
+5. Keep active work docs in project root only when necessary

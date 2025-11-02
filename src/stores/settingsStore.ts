@@ -45,11 +45,7 @@ export interface AppSettings {
   enableNotifications: boolean;
   notificationSound: boolean;
   showBadges: boolean;
-  notifyClassStarting: boolean;
-  notifyYourTurn: boolean;
   notifyYourTurnLeadDogs: 1 | 2 | 3 | 4 | 5; // How many dogs ahead to notify
-  notifyResults: boolean;
-  notifySyncErrors: boolean;
 
   // Scoring
   voiceAnnouncements: boolean;
@@ -134,11 +130,7 @@ const defaultSettings: AppSettings = {
   enableNotifications: true,
   notificationSound: true,
   showBadges: true,
-  notifyClassStarting: true,
-  notifyYourTurn: true,
-  notifyYourTurnLeadDogs: 2, // Default: notify when 2 dogs ahead
-  notifyResults: true,
-  notifySyncErrors: true,
+  notifyYourTurnLeadDogs: 3, // Default: notify when 3 dogs ahead
 
   // Scoring
   voiceAnnouncements: false,

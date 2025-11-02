@@ -13,6 +13,8 @@ import PushNotificationService from '@/services/pushNotificationService';
 
 export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
   const previousLicenseKey = useRef<string | undefined>(undefined);
+  const switchInProgress = useRef(false);
+  const switchDebounce = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleShowSwitch = async () => {
@@ -26,9 +28,6 @@ export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
         return;
       }
 
-      // Update the ref
-      previousLicenseKey.current = licenseKey;
-
       // Check if user is subscribed to push notifications
       const isSubscribed = await PushNotificationService.isSubscribed();
 
@@ -37,34 +36,65 @@ export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
         return;
       }
 
-      // Get favorite dogs for this show from localStorage
-      const favoritesKey = `dog_favorites_${licenseKey}`;
-      const savedFavorites = localStorage.getItem(favoritesKey);
-      let favoriteArmbands: number[] = [];
-
-      if (savedFavorites) {
-        try {
-          const parsed = JSON.parse(savedFavorites);
-          if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
-            favoriteArmbands = parsed;
-          }
-        } catch (error) {
-          console.error('[Push Auto-Switch] Error parsing favorites:', error);
-        }
+      // Prevent concurrent switches (mutex lock)
+      if (switchInProgress.current) {
+        console.log('[Push Auto-Switch] Switch already in progress - skipping');
+        return;
       }
 
-      // Switch subscription to new show
-      console.log('[Push Auto-Switch] Switching to show:', licenseKey);
-      const success = await PushNotificationService.switchToShow(licenseKey, favoriteArmbands);
+      switchInProgress.current = true;
 
-      if (success) {
-        console.log('[Push Auto-Switch] ✓ Successfully switched to show:', licenseKey);
-      } else {
-        console.error('[Push Auto-Switch] Failed to switch to show:', licenseKey);
+      try {
+        // Update the ref
+        previousLicenseKey.current = licenseKey;
+
+        // Get favorite dogs for this show from localStorage
+        const favoritesKey = `dog_favorites_${licenseKey}`;
+        const savedFavorites = localStorage.getItem(favoritesKey);
+        let favoriteArmbands: number[] = [];
+
+        if (savedFavorites) {
+          try {
+            const parsed = JSON.parse(savedFavorites);
+            if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
+              favoriteArmbands = parsed;
+            }
+          } catch (error) {
+            console.error('[Push Auto-Switch] Error parsing favorites:', error);
+          }
+        }
+
+        // Switch subscription to new show
+        console.log('[Push Auto-Switch] Switching to show:', licenseKey);
+        const success = await PushNotificationService.switchToShow(licenseKey, favoriteArmbands);
+
+        if (success) {
+          console.log('[Push Auto-Switch] ✓ Successfully switched to show:', licenseKey);
+        } else {
+          console.error('[Push Auto-Switch] Failed to switch to show:', licenseKey);
+        }
+      } finally {
+        // Always release the lock
+        switchInProgress.current = false;
       }
     };
 
-    handleShowSwitch();
+    // Clear any pending debounce
+    if (switchDebounce.current) {
+      clearTimeout(switchDebounce.current);
+    }
+
+    // Debounce the switch (300ms delay to allow for rapid changes)
+    switchDebounce.current = setTimeout(() => {
+      handleShowSwitch();
+    }, 300);
+
+    // Cleanup on unmount
+    return () => {
+      if (switchDebounce.current) {
+        clearTimeout(switchDebounce.current);
+      }
+    };
   }, [licenseKey]);
 
   // Note: Favorite changes are handled directly in toggleFavorite() in Home.tsx

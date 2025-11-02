@@ -1,15 +1,21 @@
-/* Modern Login Screen - Teal/Cyan Theme with Frosted Glass Design */
+/* Modern Login Screen - Dark with Green Accents (Matches Landing Page) */
+/* Updated: 2025-11-01 - Typography sizing adjustments */
 
 /* Color Variables */
 :root {
-  --login-gradient-start: #0ea5e9;
-  --login-gradient-mid: #8b5cf6;
-  --login-gradient-end: #3b82f6;
-  --glass-bg: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --teal-glow: rgba(14, 165, 233, 0.4);
+  --login-dark-bg: #0a0a0a;
+  --login-dark-elevated: #111111;
+  --login-border: #1a1a1a;
+  --login-border-strong: #2a2a2a;
+  --login-text-primary: #e8e8e8;
+  --login-text-secondary: #a0a0a0;
+  --accent-green: #10b981;
+  --accent-green-hover: #059669;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --green-glow: rgba(16, 185, 129, 0.3);
   --success-glow: rgba(16, 185, 129, 0.4);
-  --error-color: var(--token-error);
+  --error-color: #ef4444;
 }
 
 .login-container {
@@ -23,8 +29,25 @@
 .login-background {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #3b82f6 100%);
+  background: var(--login-dark-bg);
   z-index: 0;
+}
+
+/* Subtle green glow effect like landing page */
+.login-background::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
 }
 
 .login-content {
@@ -36,10 +59,10 @@
   justify-content: center;
   min-height: 100vh;
   padding: 2rem;
-  color: white;
+  color: var(--login-text-primary);
 }
 
-/* Logo Section with Glow Effect */
+/* Logo Section - Matches Landing Page */
 .logo-container {
   display: flex;
   flex-direction: column;
@@ -49,50 +72,78 @@
 }
 
 .logo-image {
+  width: 130px;
+  height: 130px;
   margin-bottom: 0.75rem;
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 var(--token-space-sm) var(--token-space-2xl) rgba(14, 165, 233, 0.4));
+  background: var(--glass-bg);
+  border: 1px solid var(--login-border-strong);
+  border-radius: 2rem;
+  padding: 1.25rem;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.15);
 }
 
 .logo-img {
-  width: 130px;
-  height: auto;
-  max-height: 130px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  animation: subtlePulse 3s ease-in-out infinite;
 }
 
-/* Enhanced Typography */
-.app-title {
-  font-size: 3.5rem;
-  font-weight: 400;
+/* Enhanced Typography (higher specificity for login page) */
+.login-container .app-title {
+  font-size: 3rem;
+  font-weight: 600;
   margin: 0.25rem 0 0.5rem 0;
   letter-spacing: -0.5px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   animation: fadeIn 0.6s ease-out 0.15s both;
 }
 
-.tagline {
-  font-size: 1.15rem;
-  opacity: 0.95;
+.login-container .tagline {
+  font-size: 2.5rem;
+  font-weight: 600;
   margin: 0.5rem 0;
-  font-weight: 300;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.05em;
   animation: fadeIn 0.6s ease-out 0.2s both;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-/* Frosted Glass Passcode Card */
+.tagline-queue {
+  color: var(--login-text-primary);
+  font-size: 2.5rem;
+  letter-spacing: 0.05em;
+}
+
+.tagline-and {
+  color: var(--login-text-secondary);
+  font-size: 1.875rem;
+  font-weight: 300;
+  opacity: 0.5;
+}
+
+.tagline-qualify {
+  background: linear-gradient(135deg, var(--accent-green) 0%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* Frosted Glass Passcode Card - Dark Theme */
 .passcode-card {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--login-border-strong);
   border-radius: var(--token-space-3xl);
   padding: 2rem 2rem;
-  box-shadow: 0 var(--token-space-lg) 48px rgba(0, 0, 0, 0.2), 0 var(--token-space-sm) var(--token-space-xl) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-lg) 48px rgba(0, 0, 0, 0.4), 0 var(--token-space-sm) var(--token-space-xl) rgba(0, 0, 0, 0.2);
   animation: fadeInScale 0.6s ease-out 0.35s both;
 }
 
@@ -105,7 +156,7 @@
   margin-bottom: 1.5rem;
   opacity: 1;
   font-weight: 500;
-  text-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  color: var(--accent-green);
 }
 
 .passcode-input-container {
@@ -127,34 +178,34 @@
   position: relative;
 }
 
-/* Enhanced Passcode Inputs */
+/* Enhanced Passcode Inputs - Dark Theme */
 .passcode-input {
   width: 60px;
   height: 60px;
-  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.5);
+  border: var(--token-space-xs) solid var(--login-border-strong);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--login-dark-elevated);
   backdrop-filter: blur(10px);
-  color: white;
+  color: var(--login-text-primary);
   font-size: 1.5rem;
   font-weight: 600;
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
-  box-shadow: inset 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.3);
 }
 
 .passcode-input:focus {
-  border-color: rgba(14, 165, 233, 0.8);
-  background: rgba(255, 255, 255, 0.18);
+  border-color: var(--accent-green);
+  background: var(--login-dark-bg);
   transform: scale(1.05);
-  box-shadow: 0 0 0 3px var(--teal-glow);
+  box-shadow: 0 0 0 3px var(--green-glow);
 }
 
 /* Success State - All inputs filled */
 .passcode-input.filled {
-  border-color: rgba(16, 185, 129, 0.6);
-  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--accent-green);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .passcode-inputs.all-filled .passcode-input {
@@ -173,48 +224,30 @@
   cursor: not-allowed;
 }
 
-/* Filled Indicator Dots */
-.input-dot {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
-  background: rgba(14, 165, 233, 0.8);
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.3s ease, transform 0.2s ease;
-}
-
-.input-wrapper:has(.passcode-input:not(:placeholder-shown)) .input-dot,
-.input-wrapper:has(.passcode-input:not([value=""])) .input-dot {
-  opacity: 1;
-  transform: translateX(-50%) scale(1.2);
-}
+/* Filled Indicator Dots - REMOVED (redundant visual feedback) */
 
 /* Reset Button */
 .reset-button {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--login-border-strong);
   border-radius: 50%;
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--login-text-secondary);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: 0.75rem;
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg);
 }
 
 .reset-button:hover {
-  border-color: rgba(14, 165, 233, 0.8);
-  color: white;
-  background: rgba(14, 165, 233, 0.2);
+  border-color: var(--accent-green);
+  color: var(--login-text-primary);
+  background: rgba(16, 185, 129, 0.1);
   transform: scale(1.1);
 }
 
@@ -238,7 +271,7 @@
 
 /* Messages */
 .error-message {
-  color: #fecaca;
+  color: #fca5a5;
   font-size: 0.9rem;
   margin-top: 1rem;
   font-weight: 400;
@@ -246,7 +279,7 @@
 }
 
 .loading-message {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--login-text-secondary);
   font-size: 0.9rem;
   margin-top: 1rem;
   font-weight: 400;
@@ -264,7 +297,7 @@
 
 .info-text {
   font-size: 0.9rem;
-  opacity: 0.9;
+  color: var(--login-text-secondary);
   margin: 0.5rem 0;
   line-height: 1.4;
   font-weight: 300;
@@ -273,34 +306,34 @@
 .website-link {
   font-size: 0.9rem;
   margin: 0.75rem 0 0 0;
-  opacity: 0.85;
+  color: var(--login-text-secondary);
   font-weight: 400;
-  transition: opacity 0.2s ease;
+  transition: color 0.2s ease;
   cursor: pointer;
 }
 
 .website-link:hover {
-  opacity: 1;
+  color: var(--accent-green);
   text-decoration: underline;
 }
 
 .requirements {
   font-size: 0.8rem;
-  opacity: 0.75;
+  color: var(--login-text-secondary);
   line-height: 1.5;
   margin-top: 1.5rem;
   font-weight: 300;
 }
 
-/* Modern Help Button */
+/* Modern Help Button - Dark Theme */
 .help-button {
   position: fixed;
   bottom: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.08);
-  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: var(--glass-bg);
+  border: var(--token-space-xs) solid var(--login-border-strong);
+  color: var(--login-text-primary);
   padding: 0.75rem 2rem;
   border-radius: 30px;
   font-size: 1rem;
@@ -316,10 +349,10 @@
 }
 
 .help-button:hover {
-  background: rgba(20, 184, 166, 0.2);
-  border-color: rgba(20, 184, 166, 0.8);
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--accent-green);
   transform: translateX(-50%) translateY(-3px);
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(16, 185, 129, 0.2);
 }
 
 .help-button:active {
@@ -329,7 +362,7 @@
 .help-icon {
   width: var(--token-space-2xl);
   height: var(--token-space-2xl);
-  border: var(--token-space-xs) solid white;
+  border: var(--token-space-xs) solid var(--login-text-primary);
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -415,13 +448,17 @@
 
 /* Responsive Design - Mobile First */
 @media (max-width: 640px) {
-  .app-title {
+  .login-container .app-title {
     font-size: 3rem;
   }
 
+  .login-container .tagline {
+    font-size: 2.5rem;
+  }
+
   .logo-img {
-    width: 110px;
-    max-height: 110px;
+    width: 130px;
+    max-height: 130px;
   }
 
   .passcode-card {
@@ -451,8 +488,12 @@
     gap: 0.5rem;
   }
 
-  .app-title {
-    font-size: 2.75rem;
+  .login-container .app-title {
+    font-size: 3rem;
+  }
+
+  .login-container .tagline {
+    font-size: 2.5rem;
   }
 
   .passcode-card {
@@ -473,21 +514,20 @@
   }
 
   .logo-img {
-    width: 140px;
-    max-height: 140px;
+    width: 130px;
+    max-height: 130px;
   }
 
-  .app-title {
-    font-size: 4rem;
+  .login-container .app-title {
+    font-size: 3rem;
+  }
+
+  .login-container .tagline {
+    font-size: 2.5rem;
   }
 }
 
-/* Dark mode override - ensure consistent blue-teal theme */
-@media (prefers-color-scheme: dark) {
-  .login-background {
-    background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #3b82f6 100%);
-  }
-}
+/* Dark mode is the default - no additional overrides needed */
 
 /* Safe area for iOS notch/home indicator */
 @supports (padding: max(0px)) {

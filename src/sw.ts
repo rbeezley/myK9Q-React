@@ -35,7 +35,7 @@ registerRoute(
 // =============================================
 
 interface PushPayload {
-  type: 'announcement' | 'up_soon' | 'result';
+  type: 'announcement' | 'up_soon' | 'result' | 'class_started';
   title: string;
   body: string;
   license_key: string;
@@ -46,6 +46,59 @@ interface PushPayload {
   class_id?: string;
   entry_id?: string;
   url?: string;
+  class_name?: string; // For class_started notifications
+  class_status?: string; // For class_started notifications
+  message_id?: string; // Optional unique message ID for duplicate detection
+}
+
+// =============================================
+// DUPLICATE DETECTION
+// =============================================
+
+// In-memory cache for recent message IDs (lasts for service worker lifetime)
+const recentMessageIds = new Set<string>();
+const MESSAGE_ID_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+
+/**
+ * Generate a message ID from payload if not provided
+ * Used to detect duplicate notifications
+ */
+function generateMessageId(payload: PushPayload): string {
+  if (payload.message_id) {
+    return payload.message_id;
+  }
+
+  // Generate deterministic ID based on payload contents
+  const parts = [
+    payload.type,
+    payload.license_key,
+    payload.armband_number?.toString() || '',
+    payload.entry_id || '',
+    payload.title,
+  ];
+
+  return parts.join('-');
+}
+
+/**
+ * Check if a message ID was recently seen
+ * Returns true if this is a duplicate
+ */
+function isDuplicateMessage(messageId: string): boolean {
+  if (recentMessageIds.has(messageId)) {
+    console.log('[Service Worker] 🚫 Duplicate message detected:', messageId);
+    return true;
+  }
+
+  // Add to cache
+  recentMessageIds.add(messageId);
+
+  // Remove from cache after expiry time
+  setTimeout(() => {
+    recentMessageIds.delete(messageId);
+  }, MESSAGE_ID_EXPIRY_MS);
+
+  return false;
 }
 
 /**
@@ -64,15 +117,23 @@ self.addEventListener('push', (event: PushEvent) => {
     const payload: PushPayload = event.data.json();
     console.log('[Service Worker] Push payload:', payload);
 
+    // Check for duplicate messages
+    const messageId = generateMessageId(payload);
+    if (isDuplicateMessage(messageId)) {
+      console.log('[Service Worker] Skipping duplicate notification');
+      return;
+    }
+
     // Build notification options
     // For announcements, use priority to determine requireInteraction
     const isUrgentAnnouncement = payload.type === 'announcement' && payload.priority === 'urgent';
+    const isClassStarted = payload.type === 'class_started';
 
     const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
       body: payload.body,
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
-      vibrate: isUrgentAnnouncement ? [200, 100, 200] : [100], // More prominent vibration for urgent
+      vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100], // More prominent vibration for urgent/class started
       data: {
         url: payload.url || '/',
         type: payload.type,
@@ -80,9 +141,13 @@ self.addEventListener('push', (event: PushEvent) => {
         entry_id: payload.entry_id,
         armband_number: payload.armband_number,
         priority: payload.priority,
+        class_id: payload.class_id,
+        class_name: payload.class_name,
       },
-      requireInteraction: payload.type === 'up_soon' || isUrgentAnnouncement, // Up-soon and urgent announcements require interaction
-      tag: payload.type === 'announcement' ? `announcement-${Date.now()}` : `up-soon-${payload.armband_number}`,
+      requireInteraction: payload.type === 'up_soon' || isUrgentAnnouncement || isClassStarted, // Up-soon, urgent announcements, and class started require interaction
+      tag: payload.type === 'announcement' ? `announcement-${Date.now()}` :
+           payload.type === 'class_started' ? `class-started-${payload.class_id}` :
+           `up-soon-${payload.armband_number}`,
     };
 
     // Add action buttons based on notification type
@@ -94,6 +159,11 @@ self.addEventListener('push', (event: PushEvent) => {
     } else if (payload.type === 'announcement') {
       options.actions = [
         { action: 'view', title: 'View Details', icon: '/icon-192x192.png' },
+        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+      ];
+    } else if (payload.type === 'class_started') {
+      options.actions = [
+        { action: 'view', title: 'View Class', icon: '/icon-192x192.png' },
         { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
       ];
     }

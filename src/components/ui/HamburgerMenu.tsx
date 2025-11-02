@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video } from 'lucide-react';
 import './shared-ui.css';
 
 /**
@@ -192,6 +192,32 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               )}
 
               <div className="menu-divider"></div>
+
+              {/* Help Section */}
+              <a
+                href="https://myk9t.com/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="menu-item"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BookOpen className="menu-icon" />
+                <span>User Guide</span>
+              </a>
+
+              <a
+                href="https://www.youtube.com/watch?v=WRaKZnFPtmI&list=PL6PN3duVGm8-WDKvOobppaZC7Mc_13Xdj"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="menu-item"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Video className="menu-icon" />
+                <span>Video Tutorials</span>
+              </a>
+
+              <div className="menu-divider"></div>
+
               {/* Theme Toggle */}
               <button
                 className="menu-item"
@@ -200,7 +226,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span className="menu-icon">{darkMode ? '☀️' : '🌙'}</span>
                 <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
-              
+
               {/* Logout */}
               <button
                 className="menu-item logout"

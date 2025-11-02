@@ -7,6 +7,7 @@ import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { OfflineIndicator, DeviceDebugPanel, DeviceTierToast, AutoLogoutWarning } from './components/ui';
 import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { applyDeviceClasses, startPerformanceMonitoring } from './utils/deviceDetection';
 import developerModeService from './services/developerMode';
 import { initializeSettings } from './stores/settingsStore';
@@ -160,6 +161,9 @@ function AppWithAuth() {
 
   return (
     <>
+      {/* PWA Install Banner - Smart banner that auto-hides when installed */}
+      <PWAInstallBanner />
+
       {/* Auto-logout warning modal */}
       {autoLogout.showWarning && (
         <AutoLogoutWarning

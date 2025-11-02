@@ -65,16 +65,18 @@ serve(async (req) => {
 
     console.log(`[Auth Debug] isFromTrigger: ${isFromTrigger}`)
 
-    // For non-trigger requests, validate JWT (for future direct API calls)
+    // For non-trigger requests, reject immediately (no direct API calls allowed)
     if (!isFromTrigger) {
       const authHeader = req.headers.get('authorization')
       console.log(`[Auth Debug] Authorization header exists: ${!!authHeader}`)
-      if (!authHeader) {
-        return new Response(
-          JSON.stringify({ error: 'Missing authentication' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
+      console.log(`[Auth Rejection] Request rejected - invalid or missing trigger secret`)
+      return new Response(
+        JSON.stringify({
+          error: 'Unauthorized - Invalid or missing trigger secret',
+          message: 'This endpoint only accepts requests from database triggers with valid shared secret'
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Initialize Supabase client with service role key

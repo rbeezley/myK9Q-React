@@ -245,7 +245,11 @@ export const Login: React.FC = () => {
           </div>
 
           <h1 className="app-title">myK9Q</h1>
-          <p className="tagline">Queue and Qualify</p>
+          <div className="tagline">
+            <span className="tagline-queue">Queue</span>
+            <span className="tagline-and"> & </span>
+            <span className="tagline-qualify">Qualify</span>
+          </div>
         </div>
 
         {/* Passcode Input Section - Frosted Glass Card */}
@@ -272,7 +276,6 @@ export const Login: React.FC = () => {
                       autoCapitalize="characters"
                       aria-label={`Passcode digit ${index + 1}`}
                     />
-                    <div className="input-dot" />
                   </div>
                 ))}
               </div>

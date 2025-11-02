@@ -4,15 +4,16 @@ import './ThemeToggle.css';
 /**
  * ThemeToggle - Theme accent color selector
  *
- * This component lets you choose between three primary colors:
+ * This component lets you choose between four primary colors:
  * - Blue (original Apple system color)
  * - Green (matches landing page aesthetic)
  * - Orange (energetic & sporty)
+ * - Purple (sophisticated & calming - popular with older female users)
  *
  * Usage: Add <ThemeToggle /> anywhere in your app (e.g., Settings page)
  */
 
-type ThemeColor = 'blue' | 'green' | 'orange';
+type ThemeColor = 'blue' | 'green' | 'orange' | 'purple';
 
 export function ThemeToggle() {
   const [activeTheme, setActiveTheme] = useState<ThemeColor>(() => {
@@ -25,8 +26,10 @@ export function ThemeToggle() {
     // Remove all theme CSS links
     const greenLink = document.getElementById('green-theme-link');
     const orangeLink = document.getElementById('orange-theme-link');
+    const purpleLink = document.getElementById('purple-theme-link');
     if (greenLink) greenLink.remove();
     if (orangeLink) orangeLink.remove();
+    if (purpleLink) purpleLink.remove();
 
     // Apply selected theme
     if (theme === 'green') {
@@ -40,6 +43,12 @@ export function ThemeToggle() {
       link.id = 'orange-theme-link';
       link.rel = 'stylesheet';
       link.href = '/src/styles/orange-theme.css';
+      document.head.appendChild(link);
+    } else if (theme === 'purple') {
+      const link = document.createElement('link');
+      link.id = 'purple-theme-link';
+      link.rel = 'stylesheet';
+      link.href = '/src/styles/purple-theme.css';
       document.head.appendChild(link);
     }
     // Blue theme is default, no additional CSS needed
@@ -65,13 +74,12 @@ export function ThemeToggle() {
     <div className="theme-toggle-container">
       <div className="theme-toggle-card">
         <div className="theme-toggle-header">
-          <h3>🎨 Theme Experiment</h3>
-          <span className="theme-toggle-badge">Developer Tool</span>
+          <h3>🎨 Theme Colors</h3>
+          <span className="theme-toggle-badge">Personalize</span>
         </div>
 
         <p className="theme-toggle-description">
-          Toggle between the original blue primary color and the new emerald green
-          to match the landing page aesthetic.
+          Choose your favorite accent color to personalize your myK9Q experience.
         </p>
 
         <div className="theme-toggle-controls">
@@ -113,19 +121,32 @@ export function ThemeToggle() {
             </div>
             {activeTheme === 'orange' && <span className="active-indicator">✓ Active</span>}
           </button>
+
+          {/* Purple Theme */}
+          <button
+            className={`theme-option ${activeTheme === 'purple' ? 'active' : ''}`}
+            onClick={() => switchTheme('purple')}
+          >
+            <div className="theme-color-preview" style={{ background: '#8b5cf6' }}></div>
+            <div className="theme-option-content">
+              <strong>Rich Purple</strong>
+              <span>Sophisticated & calming</span>
+            </div>
+            {activeTheme === 'purple' && <span className="active-indicator">✓ Active</span>}
+          </button>
         </div>
 
         <div className="theme-toggle-footer">
           <button
             className="theme-toggle-button"
             onClick={() => {
-              const themes: ThemeColor[] = ['blue', 'green', 'orange'];
+              const themes: ThemeColor[] = ['blue', 'green', 'orange', 'purple'];
               const currentIndex = themes.indexOf(activeTheme);
               const nextTheme = themes[(currentIndex + 1) % themes.length];
               switchTheme(nextTheme);
             }}
           >
-            Switch to {activeTheme === 'blue' ? 'Green' : activeTheme === 'green' ? 'Orange' : 'Blue'} Theme
+            Switch to {activeTheme === 'blue' ? 'Green' : activeTheme === 'green' ? 'Orange' : activeTheme === 'orange' ? 'Purple' : 'Blue'} Theme
           </button>
         </div>
 
@@ -139,6 +160,13 @@ export function ThemeToggle() {
         {activeTheme === 'orange' && (
           <div className="theme-notice" style={{ background: 'rgba(249, 115, 22, 0.1)', borderColor: '#f97316' }}>
             <strong>🟠 Orange Theme Active</strong>
+            <p>Navigate through the app to see all changes. Check buttons, badges, and status colors.</p>
+          </div>
+        )}
+
+        {activeTheme === 'purple' && (
+          <div className="theme-notice" style={{ background: 'rgba(139, 92, 246, 0.1)', borderColor: '#8b5cf6' }}>
+            <strong>🟣 Purple Theme Active</strong>
             <p>Navigate through the app to see all changes. Check buttons, badges, and status colors.</p>
           </div>
         )}

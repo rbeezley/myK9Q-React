@@ -118,11 +118,7 @@ export async function generateSmartDefaults(
     enableNotifications: true,
     notificationSound: context.deviceTier !== 'low',
     showBadges: true,
-    notifyClassStarting: true,
-    notifyYourTurn: true,
-    notifyYourTurnLeadDogs: 2,
-    notifyResults: true,
-    notifySyncErrors: true,
+    notifyYourTurnLeadDogs: 3,
 
     // Accessibility
     highContrast: window.matchMedia('(prefers-contrast: high)').matches,

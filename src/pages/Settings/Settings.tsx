@@ -15,13 +15,10 @@ import {
   useSearchableSettings
 } from '@/components/ui';
 import { clearAllCaches, clearScrollPositions, undoCacheClear, canUndoCacheClear } from '@/utils/cacheManager';
-import { useDNDToggle } from '@/hooks/useNotifications';
-import { notificationService } from '@/services/notificationService';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { exportPersonalData, clearAllData, getStorageUsage, formatBytes } from '@/services/dataExportService';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
 import smartConfirmationService from '@/services/smartConfirmation';
-import { Download, CheckCircle2, AlertCircle, Database, Trash2, Volume2, User, Bell, BellOff } from 'lucide-react';
+import { Download, AlertCircle, Database, Trash2, Volume2, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PushNotificationService from '@/services/pushNotificationService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,13 +36,13 @@ export function Settings() {
   const [storageUsage, setStorageUsage] = useState<{ estimated: number; quota: number; percentUsed: number; localStorageSize: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchableSettings = useSearchableSettings();
-  const { isActive: isDNDActive, setFor: setDNDFor, disable: disableDND } = useDNDToggle();
-  const { isInstalled, canInstall, promptInstall, getInstallInstructions } = usePWAInstall();
   const { showContext, role } = useAuth();
 
   // Push notification state
-  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
+  const [_isPushSubscribed, setIsPushSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [browserCompatibility, setBrowserCompatibility] = useState<ReturnType<typeof PushNotificationService.getBrowserCompatibility> | null>(null);
+  const [permissionState, setPermissionState] = useState<NotificationPermission>('default');
 
   // Available voices for selection
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -64,15 +61,6 @@ export function Settings() {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
   }, []);
-
-  // Quiet hours state
-  const [quietHoursConfig, setQuietHoursConfigState] = useState(() => {
-    const stored = localStorage.getItem('notification_quiet_hours');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-    return { enabled: false, startTime: '22:00', endTime: '08:00', allowUrgent: true };
-  });
 
   // Load storage usage on mount
   useEffect(() => {
@@ -98,9 +86,11 @@ export function Settings() {
     });
   }, [settings.voiceAnnouncements, settings.voiceLanguage, settings.voiceName, settings.voiceRate, settings.voicePitch, settings.voiceVolume, availableVoices]);
 
-  // Check push notification subscription status on mount
+  // Check push notification subscription status and browser compatibility on mount
   useEffect(() => {
     PushNotificationService.isSubscribed().then(setIsPushSubscribed);
+    PushNotificationService.getPermissionState().then(setPermissionState);
+    setBrowserCompatibility(PushNotificationService.getBrowserCompatibility());
   }, []);
 
   // Show toast message
@@ -228,103 +218,6 @@ export function Settings() {
     } catch (error) {
       showToast('Failed to clear scroll positions', 'error');
       console.error('Clear scroll error:', error);
-    }
-  };
-
-  // DND handlers
-  const handleDNDToggle = () => {
-    if (isDNDActive) {
-      disableDND();
-      showToast('Do Not Disturb disabled', 'info');
-    } else {
-      setDNDFor(60); // 1 hour default
-      showToast('Do Not Disturb enabled for 1 hour', 'info');
-    }
-  };
-
-  const handleDNDDurationChange = (minutes: number) => {
-    setDNDFor(minutes);
-    showToast(`Do Not Disturb enabled for ${minutes} minutes`, 'info');
-  };
-
-  // Quiet hours handlers
-  const handleQuietHoursToggle = (enabled: boolean) => {
-    const newConfig = { ...quietHoursConfig, enabled };
-    setQuietHoursConfigState(newConfig);
-    notificationService.setQuietHours(newConfig);
-    showToast(enabled ? 'Quiet hours enabled' : 'Quiet hours disabled', 'info');
-  };
-
-  const handleQuietHoursChange = (startTime: string, endTime: string) => {
-    const newConfig = { ...quietHoursConfig, startTime, endTime };
-    setQuietHoursConfigState(newConfig);
-    notificationService.setQuietHours(newConfig);
-  };
-
-  const handleQuietHoursAllowUrgent = (allowUrgent: boolean) => {
-    const newConfig = { ...quietHoursConfig, allowUrgent };
-    setQuietHoursConfigState(newConfig);
-    notificationService.setQuietHours(newConfig);
-  };
-
-  // Push notification handlers
-  const handlePushToggle = async () => {
-    if (isPushSubscribed) {
-      // Unsubscribe
-      setIsSubscribing(true);
-      try {
-        const success = await PushNotificationService.unsubscribe();
-        if (success) {
-          setIsPushSubscribed(false);
-          showToast('Push notifications disabled', 'info');
-        } else {
-          showToast('Failed to disable push notifications', 'error');
-        }
-      } catch (error) {
-        console.error('[Settings] Unsubscribe error:', error);
-        showToast('Failed to disable push notifications', 'error');
-      } finally {
-        setIsSubscribing(false);
-      }
-    } else {
-      // Subscribe
-      const licenseKey = showContext?.licenseKey;
-      if (!licenseKey || !role) {
-        showToast('Please log in to enable push notifications', 'error');
-        return;
-      }
-
-      setIsSubscribing(true);
-      try {
-        // Get favorite armbands from localStorage
-        const favoritesKey = `dog_favorites_${licenseKey}`;
-        const savedFavorites = localStorage.getItem(favoritesKey);
-        let favoriteArmbands: number[] = [];
-
-        if (savedFavorites) {
-          try {
-            const parsed = JSON.parse(savedFavorites);
-            if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
-              favoriteArmbands = parsed;
-            }
-          } catch (error) {
-            console.error('[Settings] Error parsing favorites:', error);
-          }
-        }
-
-        const success = await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
-        if (success) {
-          setIsPushSubscribed(true);
-          showToast('Push notifications enabled! You\'ll be notified when your favorited dogs are up next.', 'success');
-        } else {
-          showToast('Failed to enable push notifications. Please check browser permissions.', 'error');
-        }
-      } catch (error) {
-        console.error('[Settings] Subscribe error:', error);
-        showToast('Failed to enable push notifications', 'error');
-      } finally {
-        setIsSubscribing(false);
-      }
     }
   };
 
@@ -703,20 +596,88 @@ export function Settings() {
         title="Notifications"
         description="Manage alerts and reminders"
         defaultExpanded={false}
-        badge={8}
+        badge={2}
       >
 
         <div className="setting-item">
           <div className="setting-info">
             <label htmlFor="enableNotifications">Enable Notifications</label>
-            <span className="setting-hint">Show push notifications</span>
+            <span className="setting-hint">Get notified when your favorited dogs (❤️) are up next and receive important announcements</span>
           </div>
           <label className="toggle-switch">
             <input
               id="enableNotifications"
               type="checkbox"
               checked={settings.enableNotifications}
-              onChange={(e) => updateSettings({ enableNotifications: e.target.checked })}
+              onChange={async (e) => {
+                const enabled = e.target.checked;
+                updateSettings({ enableNotifications: enabled });
+
+                // Automatically subscribe/unsubscribe to push notifications
+                if (enabled) {
+                  // Subscribe to push notifications
+                  const licenseKey = showContext?.licenseKey;
+                  if (!licenseKey || !role) {
+                    showToast('Please log in to enable push notifications', 'error');
+                    updateSettings({ enableNotifications: false });
+                    return;
+                  }
+
+                  setIsSubscribing(true);
+                  try {
+                    // Get favorite armbands from localStorage
+                    const favoritesKey = `dog_favorites_${licenseKey}`;
+                    const savedFavorites = localStorage.getItem(favoritesKey);
+                    let favoriteArmbands: number[] = [];
+
+                    if (savedFavorites) {
+                      try {
+                        const parsed = JSON.parse(savedFavorites);
+                        if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
+                          favoriteArmbands = parsed;
+                        }
+                      } catch (error) {
+                        console.error('[Settings] Error parsing favorites:', error);
+                      }
+                    }
+
+                    const success = await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
+                    if (success) {
+                      setIsPushSubscribed(true);
+                      showToast('Push notifications enabled!', 'success');
+                    } else {
+                      showToast('Failed to enable push notifications. Please check browser permissions.', 'error');
+                      updateSettings({ enableNotifications: false });
+                    }
+                  } catch (error) {
+                    console.error('[Settings] Subscribe error:', error);
+                    showToast('Failed to enable push notifications', 'error');
+                    updateSettings({ enableNotifications: false });
+                  } finally {
+                    setIsSubscribing(false);
+                  }
+                } else {
+                  // Unsubscribe from push notifications
+                  setIsSubscribing(true);
+                  try {
+                    const success = await PushNotificationService.unsubscribe();
+                    if (success) {
+                      setIsPushSubscribed(false);
+                      showToast('Push notifications disabled', 'info');
+                    } else {
+                      showToast('Failed to disable push notifications', 'error');
+                      updateSettings({ enableNotifications: true });
+                    }
+                  } catch (error) {
+                    console.error('[Settings] Unsubscribe error:', error);
+                    showToast('Failed to disable push notifications', 'error');
+                    updateSettings({ enableNotifications: true });
+                  } finally {
+                    setIsSubscribing(false);
+                  }
+                }
+              }}
+              disabled={isSubscribing}
             />
             <span className="toggle-slider"></span>
           </label>
@@ -724,98 +685,94 @@ export function Settings() {
 
         {settings.enableNotifications && (
           <>
-            {/* PWA Installation Status */}
-            <div className="setting-item indented" style={{ backgroundColor: isInstalled ? '#10b98114' : '#f9731614', borderLeft: '3px solid', borderColor: isInstalled ? '#22c55e' : '#f97316', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
-              <div className="setting-info" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  {isInstalled ? <CheckCircle2 size={20} color="#22c55e" /> : <AlertCircle size={20} color="#f97316"  style={{ width: '20px', height: '20px', flexShrink: 0 }} />}
-                  <label style={{ fontWeight: 600, fontSize: '1rem', color: isInstalled ? '#22c55e' : '#f97316' }}>
-                    {isInstalled ? 'App Installed' : 'App Not Installed'}
-                  </label>
-                </div>
-                <span className="setting-hint notification-instructions-hint" style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                  {isInstalled
-                    ? 'You\'ll receive notifications for your favorited dogs (❤️) when they\'re up next'
-                    : 'Install the app and favorite your dogs (❤️) to receive notifications when they\'re up next'
-                  }
-                </span>
-                {!isInstalled && canInstall && (
-                  <button
-                    className="primary-button"
-                    onClick={promptInstall}
-                    style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-                  >
-                    <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                    Install App
-                  </button>
-                )}
-                {!isInstalled && !canInstall && (
-                  <>
-                    <div className="install-instructions-box">
-                      <strong className="install-instructions-title">Manual Installation Required</strong>
-                      <p className="install-instructions-text">To receive notifications, install this app through your browser's menu.</p>
-                      <p className="install-instructions-hint">Click the button below for step-by-step instructions.</p>
+
+            {/* Browser Compatibility Warning */}
+            {browserCompatibility && !browserCompatibility.supported && (
+              <div className="setting-item indented" style={{ backgroundColor: '#ef444414', borderLeft: '3px solid #ef4444', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
+                <div className="setting-info" style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <AlertCircle size={20} color="#ef4444" />
+                    <label style={{ fontWeight: 600, fontSize: '1rem', color: '#ef4444' }}>
+                      Push Notifications Not Available
+                    </label>
+                  </div>
+                  <div style={{ fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '0.75rem' }}>
+                    <p style={{ marginBottom: '0.5rem' }}>
+                      <strong>Reason:</strong> {browserCompatibility.reason}
+                    </p>
+                    {browserCompatibility.browserName && browserCompatibility.browserVersion && (
+                      <p style={{ marginBottom: '0.5rem', color: 'var(--token-text-muted)' }}>
+                        <strong>Your Browser:</strong> {browserCompatibility.browserName} {browserCompatibility.browserVersion} on {browserCompatibility.platform}
+                      </p>
+                    )}
+                  </div>
+                  {browserCompatibility.recommendations && browserCompatibility.recommendations.length > 0 && (
+                    <div style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
+                      <strong style={{ display: 'block', marginBottom: '0.5rem' }}>What you can do:</strong>
+                      <ul style={{ paddingLeft: '1.5rem', margin: 0 }}>
+                        {browserCompatibility.recommendations.map((rec, idx) => (
+                          <li key={idx} style={{ marginBottom: '0.25rem' }}>{rec}</li>
+                        ))}
+                      </ul>
                     </div>
-                    <button
-                      className="primary-button"
-                      onClick={async () => {
-                        const userAgent = navigator.userAgent.toLowerCase();
-                        let instructions = getInstallInstructions();
-
-                        if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-                          instructions = '1. Click the three dots menu (⋮) in the top-right corner\n2. Select "Save and Share" → "Install app"\n   OR look for an install icon (⊕) in the address bar\n3. Click "Install" in the popup\n\nOnce installed, favorite your dogs (❤️) to receive notifications when they\'re up next!';
-                        } else if (userAgent.includes('edg')) {
-                          instructions = '1. Click the three dots menu (...) in the top-right corner\n2. Select "Apps" → "Install myK9Q"\n   OR look for an install icon in the address bar\n3. Click "Install" in the popup\n\nOnce installed, favorite your dogs (❤️) to receive notifications when they\'re up next!';
-                        }
-
-                        alert(`📱 Install myK9Q for Notifications\n\n${instructions}`);
-                      }}
-                      style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem', width: '100%', justifyContent: 'center' }}
-                    >
-                      <Download size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                      How to Install
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Push Notifications Toggle */}
-            <div className="setting-item indented" style={{ backgroundColor: isPushSubscribed ? '#10b98114' : '#f9731614', borderLeft: '3px solid', borderColor: isPushSubscribed ? '#22c55e' : '#f97316', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
-              <div className="setting-info" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  {isPushSubscribed ? <Bell size={20} color="#22c55e" /> : <BellOff size={20} color="#f97316" style={{ width: '20px', height: '20px', flexShrink: 0 }} />}
-                  <label style={{ fontWeight: 600, fontSize: '1rem', color: isPushSubscribed ? '#22c55e' : '#f97316' }}>
-                    {isPushSubscribed ? 'Push Notifications Active' : 'Push Notifications Disabled'}
-                  </label>
-                </div>
-                <span className="setting-hint notification-instructions-hint" style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                  {isPushSubscribed
-                    ? 'You\'ll receive push notifications when your favorited dogs (❤️) are up next to compete (2-3 dogs away). You\'ll also receive announcements from the show organizer.'
-                    : 'Enable push notifications to get notified when your favorited dogs (❤️) are up next and receive important announcements.'
-                  }
-                </span>
-                <button
-                  className={isPushSubscribed ? 'secondary-button' : 'primary-button'}
-                  onClick={handlePushToggle}
-                  disabled={isSubscribing}
-                  style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-                >
-                  {isSubscribing ? (
-                    <>Processing...</>
-                  ) : isPushSubscribed ? (
-                    <>
-                      <BellOff size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                      Disable Push Notifications
-                    </>
-                  ) : (
-                    <>
-                      <Bell size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                      Enable Push Notifications
-                    </>
                   )}
-                </button>
+                </div>
               </div>
+            )}
+
+            {/* Permission Denied Warning */}
+            {permissionState === 'denied' && browserCompatibility?.supported && (
+              <div className="setting-item indented" style={{ backgroundColor: '#f9731614', borderLeft: '3px solid #f97316', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
+                <div className="setting-info" style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <AlertCircle size={20} color="#f97316" />
+                    <label style={{ fontWeight: 600, fontSize: '1rem', color: '#f97316' }}>
+                      Notifications Blocked
+                    </label>
+                  </div>
+                  <div style={{ fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '0.75rem' }}>
+                    <p style={{ marginBottom: '0.5rem' }}>
+                      You previously blocked notifications for this site. To enable push notifications, you'll need to update your browser settings.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
+                    <strong style={{ display: 'block', marginBottom: '0.5rem' }}>How to fix this:</strong>
+                    <ul style={{ paddingLeft: '1.5rem', margin: 0 }}>
+                      <li style={{ marginBottom: '0.25rem' }}>
+                        <strong>Chrome/Edge:</strong> Click the lock icon (🔒) in the address bar → Site settings → Notifications → Allow
+                      </li>
+                      <li style={{ marginBottom: '0.25rem' }}>
+                        <strong>Firefox:</strong> Click the lock icon (🔒) in the address bar → Permissions → Notifications → Allow
+                      </li>
+                      <li style={{ marginBottom: '0.25rem' }}>
+                        <strong>Safari:</strong> Safari menu → Settings → Websites → Notifications → Find this site → Allow
+                      </li>
+                      <li style={{ marginBottom: '0.25rem' }}>
+                        After allowing, refresh this page and try again
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Dogs Ahead Setting - Simplified */}
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label htmlFor="notifyYourTurnLeadDogs">Notify me when my dog is...</label>
+                <span className="setting-hint">Get notified at the right time to prepare</span>
+              </div>
+              <select
+                id="notifyYourTurnLeadDogs"
+                value={settings.notifyYourTurnLeadDogs}
+                onChange={(e) => updateSettings({ notifyYourTurnLeadDogs: parseInt(e.target.value) as any })}
+              >
+                <option value="1">Next in the ring</option>
+                <option value="2">2nd in line</option>
+                <option value="3">3rd in line (default)</option>
+                <option value="4">4th in line</option>
+                <option value="5">5th in line</option>
+              </select>
             </div>
 
             <div className="setting-item indented">
@@ -833,205 +790,6 @@ export function Settings() {
                 <span className="toggle-slider"></span>
               </label>
             </div>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="showBadges">Badge Counter</label>
-                <span className="setting-hint">Show number on app icon</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="showBadges"
-                  type="checkbox"
-                  checked={settings.showBadges}
-                  onChange={(e) => updateSettings({ showBadges: e.target.checked })}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <h3 className="subsection-title">Notify Me About</h3>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="notifyClassStarting">Class Starting Soon</label>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="notifyClassStarting"
-                  type="checkbox"
-                  checked={settings.notifyClassStarting}
-                  onChange={(e) => updateSettings({ notifyClassStarting: e.target.checked })}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="notifyYourTurn">Your Turn to Compete</label>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="notifyYourTurn"
-                  type="checkbox"
-                  checked={settings.notifyYourTurn}
-                  onChange={(e) => updateSettings({ notifyYourTurn: e.target.checked })}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            {settings.notifyYourTurn && (
-              <div className="setting-item indented">
-                <div className="setting-info">
-                  <label htmlFor="notifyYourTurnLeadDogs">Notify When Dogs Ahead</label>
-                  <span className="setting-hint">How many dogs before you to get notified</span>
-                </div>
-                <select
-                  id="notifyYourTurnLeadDogs"
-                  value={settings.notifyYourTurnLeadDogs}
-                  onChange={(e) => updateSettings({ notifyYourTurnLeadDogs: parseInt(e.target.value) as any })}
-                >
-                  <option value="1">1 dog ahead (default)</option>
-                  <option value="2">2 dogs ahead</option>
-                  <option value="3">3 dogs ahead</option>
-                  <option value="4">4 dogs ahead</option>
-                  <option value="5">5 dogs ahead</option>
-                </select>
-              </div>
-            )}
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="notifyResults">Results Posted</label>
-                <span className="setting-hint">When entire class is complete with placements</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="notifyResults"
-                  type="checkbox"
-                  checked={settings.notifyResults}
-                  onChange={(e) => updateSettings({ notifyResults: e.target.checked })}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="notifySyncErrors">Sync Errors</label>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="notifySyncErrors"
-                  type="checkbox"
-                  checked={settings.notifySyncErrors}
-                  onChange={(e) => updateSettings({ notifySyncErrors: e.target.checked })}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <h3 className="subsection-title">Do Not Disturb</h3>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="dnd-toggle">Do Not Disturb</label>
-                <span className="setting-hint">Temporarily silence all notifications</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="dnd-toggle"
-                  type="checkbox"
-                  checked={isDNDActive}
-                  onChange={handleDNDToggle}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            {isDNDActive && (
-              <div className="setting-item indented">
-                <div className="setting-info">
-                  <label htmlFor="dnd-duration">Duration</label>
-                  <span className="setting-hint">Automatically disable DND after</span>
-                </div>
-                <select
-                  id="dnd-duration"
-                  onChange={(e) => handleDNDDurationChange(parseInt(e.target.value))}
-                  defaultValue="60"
-                >
-                  <option value="30">30 Minutes</option>
-                  <option value="60">1 Hour</option>
-                  <option value="120">2 Hours</option>
-                  <option value="240">4 Hours</option>
-                  <option value="480">8 Hours</option>
-                </select>
-              </div>
-            )}
-
-            <h3 className="subsection-title">Quiet Hours</h3>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label htmlFor="quiet-hours-toggle">Enable Quiet Hours</label>
-                <span className="setting-hint">Schedule when to silence notifications</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  id="quiet-hours-toggle"
-                  type="checkbox"
-                  checked={quietHoursConfig.enabled}
-                  onChange={(e) => handleQuietHoursToggle(e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            {quietHoursConfig.enabled && (
-              <>
-                <div className="setting-item indented">
-                  <div className="setting-info">
-                    <label htmlFor="quiet-hours-start">Start Time</label>
-                  </div>
-                  <input
-                    id="quiet-hours-start"
-                    type="time"
-                    value={quietHoursConfig.startTime}
-                    onChange={(e) => handleQuietHoursChange(e.target.value, quietHoursConfig.endTime)}
-                  />
-                </div>
-
-                <div className="setting-item indented">
-                  <div className="setting-info">
-                    <label htmlFor="quiet-hours-end">End Time</label>
-                  </div>
-                  <input
-                    id="quiet-hours-end"
-                    type="time"
-                    value={quietHoursConfig.endTime}
-                    onChange={(e) => handleQuietHoursChange(quietHoursConfig.startTime, e.target.value)}
-                  />
-                </div>
-
-                <div className="setting-item indented">
-                  <div className="setting-info">
-                    <label htmlFor="quiet-hours-allow-urgent">Allow Urgent Notifications</label>
-                    <span className="setting-hint">Still show urgent alerts during quiet hours</span>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      id="quiet-hours-allow-urgent"
-                      type="checkbox"
-                      checked={quietHoursConfig.allowUrgent}
-                      onChange={(e) => handleQuietHoursAllowUrgent(e.target.checked)}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-              </>
-            )}
           </>
         )}
       </CollapsibleSection>

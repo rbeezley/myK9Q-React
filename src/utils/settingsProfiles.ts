@@ -54,10 +54,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       // Notifications - essential only
       enableNotifications: true,
       notificationSound: false,
-      notifyClassStarting: false,
-      notifyYourTurn: false,
-      notifyResults: false,
-      notifySyncErrors: true,
+      notifyYourTurnLeadDogs: 3,
 
       // Scoring - quick and efficient
       voiceAnnouncements: false,
@@ -101,11 +98,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       // Notifications - all enabled
       enableNotifications: true,
       notificationSound: true,
-      notifyClassStarting: true,
-      notifyYourTurn: true,
-      notifyYourTurnLeadDogs: 2,
-      notifyResults: true,
-      notifySyncErrors: true,
+      notifyYourTurnLeadDogs: 3,
 
       // Scoring - not typically used
       voiceAnnouncements: false,
@@ -149,10 +142,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       // Notifications - results only
       enableNotifications: true,
       notificationSound: false,
-      notifyClassStarting: false,
-      notifyYourTurn: false,
-      notifyResults: true,
-      notifySyncErrors: false,
+      notifyYourTurnLeadDogs: 3,
 
       // Scoring - disabled
       voiceAnnouncements: false,
@@ -196,11 +186,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       // Notifications - all types
       enableNotifications: true,
       notificationSound: true,
-      notifyClassStarting: true,
-      notifyYourTurn: true,
-      notifyYourTurnLeadDogs: 2,
-      notifyResults: true,
-      notifySyncErrors: true,
+      notifyYourTurnLeadDogs: 3,
 
       // Scoring - full control
       voiceAnnouncements: false,
