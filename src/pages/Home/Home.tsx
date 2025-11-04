@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from '../../utils/logger';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -7,11 +7,12 @@ import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
 import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FloatingActionButton, InstallPrompt } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FloatingActionButton, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
+import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { RefreshCw, Heart, Calendar, Users2, ChevronDown, Search, X, ArrowUpDown, ArrowUp, MoreVertical } from 'lucide-react';
+import { RefreshCw, Heart, Calendar, Users2, ArrowUp, MoreVertical } from 'lucide-react';
 import './Home.css';
 
 interface EntryData {
@@ -408,6 +409,27 @@ export const Home: React.FC = () => {
   // Get filtered entries for virtualization
   const filteredEntries = getFilteredEntries();
 
+  // Prepare filter tabs for TabBar component
+  const filterTabs: Tab[] = useMemo(() => [
+    {
+      id: 'all',
+      label: 'All Dogs',
+      count: entries.length
+    },
+    {
+      id: 'favorites',
+      label: 'Favorites',
+      count: entries.filter(e => e.is_favorite).length
+    }
+  ], [entries]);
+
+  // Prepare sort options for SearchSortControls component
+  const sortOptions: SortOption[] = useMemo(() => [
+    { value: 'armband', label: 'Armband' },
+    { value: 'name', label: 'Dog' },
+    { value: 'handler', label: 'Handler' }
+  ], []);
+
   // Calculate row count based on columns
   const rowCount = Math.ceil(filteredEntries.length / columnCount);
 
@@ -484,7 +506,7 @@ export const Home: React.FC = () => {
       <PullToRefresh
         onRefresh={handleRefresh}
         enabled={settings.pullToRefresh}
-        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+        threshold={80}
       >
       <div className="home-scrollable-content">
       {/* Enhanced Active Trials Section */}
@@ -550,87 +572,28 @@ export const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Controls Header */}
-      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
-        <button
-          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
-          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
-          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </button>
+      {/* Search and Sort Controls */}
+      <SearchSortControls
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search dog name, breed, handler..."
+        sortOptions={sortOptions}
+        sortOrder={sortBy}
+        onSortChange={(value) => setSortBy(value as 'armband' | 'name' | 'handler')}
+        isCollapsed={isSearchCollapsed}
+        onToggleCollapse={() => setIsSearchCollapsed(!isSearchCollapsed)}
+        resultsLabel={`${getFilteredEntries().length} of ${entries.length} dogs`}
+      />
 
-        <span className="search-controls-label">
-          {searchTerm ? `Found ${getFilteredEntries().length} of ${entries.length} dogs` : 'Search, Sort & Favorites'}
-        </span>
-      </div>
-
-      {/* Search Results Summary */}
-      {searchTerm && (
-        <div className="search-results-header">
-          <div className="search-results-summary">
-            {getFilteredEntries().length} of {entries.length} dogs
-          </div>
-        </div>
-      )}
-
-      {/* Collapsible Search and Sort Container */}
-      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
-        <div className="search-input-wrapper">
-          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-          <input
-            type="text"
-            placeholder="Search dog name, breed, handler..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input-full"
-          />
-          {searchTerm && (
-            <button
-              className="clear-search-btn"
-              onClick={() => setSearchTerm('')}
-            >
-              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            </button>
-          )}
-        </div>
-
-        <div className="sort-controls">
-          <button
-            className={`sort-btn ${sortBy === 'armband' ? 'active' : ''}`}
-            onClick={() => setSortBy('armband')}
-          >
-            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            Armband
-          </button>
-          <button
-            className={`sort-btn ${sortBy === 'name' ? 'active' : ''}`}
-            onClick={() => setSortBy('name')}
-          >
-            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            Dog
-          </button>
-          <button
-            className={`sort-btn ${sortBy === 'handler' ? 'active' : ''}`}
-            onClick={() => setSortBy('handler')}
-          >
-            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            Handler
-          </button>
-          <button
-            className={`sort-btn favorites-btn ${filterBy === 'favorites' ? 'active' : ''}`}
-            onClick={() => {
-              hapticFeedback.light();
-              setFilterBy(filterBy === 'favorites' ? 'all' : 'favorites');
-            }}
-            title="Favorites"
-            aria-label="Favorites"
-          >
-            <Heart size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-          </button>
-        </div>
-      </div>
+      {/* Tab Bar for All Dogs / Favorites */}
+      <TabBar
+        tabs={filterTabs}
+        activeTab={filterBy}
+        onTabChange={(tabId) => {
+          hapticFeedback.light();
+          setFilterBy(tabId as 'all' | 'favorites');
+        }}
+      />
 
       {/* Enhanced Entry List Section */}
       <div className="entry-list">
@@ -668,34 +631,11 @@ export const Home: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="entry-list-header">
-              <h3 className="entry-list-title">
-                <span className="entry-count">
-                  Dogs Entered: {filteredEntries.length}
-                  {filteredEntries.length !== entries.length && ` (of ${entries.length} total)`}
-                </span>
-              </h3>
-              <button
-                className={`favorites-filter-btn ${filterBy === 'favorites' ? 'active' : ''}`}
-                onClick={() => {
-                  hapticFeedback.light();
-                  setFilterBy(filterBy === 'favorites' ? 'all' : 'favorites');
-                }}
-                title={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
-                aria-label={filterBy === 'favorites' ? 'Show all dogs' : 'Show only favorites'}
-              >
-                <Heart size={18} fill={filterBy === 'favorites' ? 'currentColor' : 'none'}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                {filterBy === 'favorites' ? 'All Dogs' : 'Favorites'}
-              </button>
-            </div>
-
             {/* Virtual Scrolling Container */}
             <div
               ref={parentRef}
               className="entry-grid-virtual"
               style={{
-                flex: 1,
-                overflow: 'auto',
                 contain: 'strict',
               }}
             >

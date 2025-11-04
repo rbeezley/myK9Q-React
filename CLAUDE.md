@@ -292,6 +292,13 @@ npm run setup        # Interactive Supabase environment setup
 - Services for async operations
 - React Query could be integrated for server state (currently using manual fetching)
 
+### Settings & User Preferences
+- **Auto-Cleanup**: Data older than 30 days is automatically cleaned up daily (no user setting required)
+- **WiFi Detection**: Use `useConnectionWarning` hook to detect cellular vs WiFi and show appropriate warnings
+- **Auto-Save**: Always enabled with 3 drafts per entry (no user setting needed)
+- **Auto-Logout**: Simplified to "Keep me logged in" toggle (24h vs 8h timeout)
+- **Removed Settings**: Storage limit, sync frequency, pull sensitivity, max drafts, image quality - these are now automatic/hardcoded for simplicity
+
 ### Testing Strategy
 - Unit tests: auth utilities ([src/utils/auth.test.ts](src/utils/auth.test.ts))
 - Store tests: [src/stores/entryStore.test.ts](src/stores/entryStore.test.ts)

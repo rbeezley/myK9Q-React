@@ -7,7 +7,6 @@
 
 import { useState, useEffect } from 'react';
 import { getDeviceTier } from '@/utils/deviceDetection';
-import { useSettingsStore } from '@/stores/settingsStore';
 
 export type ImageQuality = 'low' | 'medium' | 'high' | 'original';
 export type ImageFormat = 'webp' | 'jpeg' | 'png' | 'avif';
@@ -74,26 +73,11 @@ export interface OptimizedImageData {
  * Get quality setting from user preferences or device tier
  */
 async function getImageQuality(): Promise<ImageQuality> {
-  const settings = useSettingsStore.getState().settings;
-
-  // Check user's manual quality setting
-  switch (settings.imageQuality) {
-    case 'low':
-      return 'low';
-    case 'medium':
-      return 'medium';
-    case 'high':
-      return 'high';
-    case 'original':
-      return 'original';
-    default: {
-      // Auto-detect based on device tier
-      const tier = await getDeviceTier();
-      if (tier === 'low') return 'low';
-      if (tier === 'medium') return 'medium';
-      return 'high';
-    }
-  }
+  // Auto-detect based on device tier
+  const tier = await getDeviceTier();
+  if (tier === 'low') return 'low';
+  if (tier === 'medium') return 'medium';
+  return 'high';
 }
 
 /**

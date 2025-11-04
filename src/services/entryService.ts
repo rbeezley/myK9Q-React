@@ -5,6 +5,7 @@ import { recalculatePlacementsForClass } from './placementService';
 import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
 import { syncManager } from './syncManager';
+import { localStateManager } from './localStateManager';
 
 /**
  * Service for managing entries and scores
@@ -126,13 +127,14 @@ export async function getClassEntries(
       // Debug logging for specific entries
       if (row.id === 6714 || row.id === 6715) {
         console.log(`🐛 MAPPING ENTRY ${row.id} (${row.armband_number}):`, {
-          isScored: row.computed_is_scored,
+          isScored: row.is_scored,
+          entryStatus: row.entry_status,
           resultStatus: row.result_status
         });
       }
 
-      // Determine unified status using computed_status from view
-      const status = row.computed_status as EntryStatus;
+      // Determine unified status using entry_status from view
+      const status = (row.entry_status as EntryStatus) || 'no-status';
 
       return {
         id: row.id,
@@ -142,7 +144,7 @@ export async function getClassEntries(
         handler: row.handler_name,
         jumpHeight: '', // Not in normalized schema yet
         preferredTime: '', // Not in normalized schema yet
-        isScored: row.computed_is_scored,
+        isScored: row.is_scored || false,
 
         // New unified status field
         status,
@@ -179,7 +181,20 @@ export async function getClassEntries(
       };
     });
 
-    return mappedEntries;
+    // 🚀 LOCAL-FIRST: Apply server data to LocalStateManager
+    // This updates the base state while preserving any pending local changes
+    await localStateManager.applyServerUpdate(mappedEntries);
+
+    // 🚀 LOCAL-FIRST: Return merged state (DB + pending changes)
+    // For single class queries, get the merged entries from LocalStateManager
+    // For multi-class queries, we'll still return all entries but they've been cached
+    const mergedEntries = classIdArray.length === 1
+      ? localStateManager.getEntries(primaryClassId)
+      : mappedEntries; // Multi-class: return all for now (TODO: enhance for multi-class)
+
+    console.log(`📊 [LOCAL-FIRST] Returning ${mergedEntries.length} entries (${localStateManager.getStats().pendingChanges} pending changes)`);
+
+    return mergedEntries;
   } catch (error) {
     console.error('Error in getClassEntries:', error);
     throw error;
@@ -209,9 +224,6 @@ export async function getTrialEntries(
               license_key
             )
           )
-        ),
-        results (
-          *
         )
       `)
       .eq('classes.trials.shows.license_key', licenseKey)
@@ -274,6 +286,7 @@ export async function getTrialEntries(
 /**
  * Submit a score for an entry
  * @param pairedClassId - Optional paired class ID for combined Novice A & B view (updates both classes' status)
+ * @param classId - Optional class ID to avoid database lookup (performance optimization)
  */
 export async function submitScore(
   entryId: number,
@@ -297,7 +310,8 @@ export async function submitScore(
     element?: string;
     level?: string;
   },
-  pairedClassId?: number  // Optional paired class ID for combined Novice A & B view
+  pairedClassId?: number,  // Optional paired class ID for combined Novice A & B view
+  classId?: number  // Optional class ID to avoid database lookup (performance optimization)
 ): Promise<boolean> {
   console.log('🎯 submitScore CALLED for entry:', entryId, 'with data:', scoreData);
   try {
@@ -315,12 +329,13 @@ export async function submitScore(
       resultStatus = 'withdrawn';
     }
 
-    // First, insert the score into the results table
+    // Prepare score data for entries table
+    // NOTE: After migration 039, scores are stored directly in entries table (not results)
     // Only mark as scored if we have a valid result status (not 'pending')
     const isActuallyScored = resultStatus !== 'pending';
 
-    const resultData: Partial<ResultData> = {
-      entry_id: entryId,
+    const scoreUpdateData: Partial<ResultData> = {
+      entry_id: entryId, // Kept for interface compatibility, but we update by ID
       result_status: resultStatus,
       search_time_seconds: scoreData.searchTime ? convertTimeToSeconds(scoreData.searchTime) : 0,
       is_scored: isActuallyScored,
@@ -330,25 +345,25 @@ export async function submitScore(
 
     // Add optional fields if they exist
     if (scoreData.faultCount !== undefined) {
-      resultData.total_faults = scoreData.faultCount;
+      scoreUpdateData.total_faults = scoreData.faultCount;
     }
     if (scoreData.nonQualifyingReason) {
-      resultData.disqualification_reason = scoreData.nonQualifyingReason;
+      scoreUpdateData.disqualification_reason = scoreData.nonQualifyingReason;
     }
     if (scoreData.points !== undefined) {
-      resultData.points_earned = scoreData.points;
+      scoreUpdateData.points_earned = scoreData.points;
     }
     if (scoreData.score !== undefined) {
-      resultData.total_score = parseFloat(scoreData.score.toString());
+      scoreUpdateData.total_score = parseFloat(scoreData.score.toString());
     }
     if (scoreData.correctCount !== undefined) {
-      resultData.total_correct_finds = scoreData.correctCount;
+      scoreUpdateData.total_correct_finds = scoreData.correctCount;
     }
     if (scoreData.incorrectCount !== undefined) {
-      resultData.total_incorrect_finds = scoreData.incorrectCount;
+      scoreUpdateData.total_incorrect_finds = scoreData.incorrectCount;
     }
     if (scoreData.finishCallErrors !== undefined) {
-      resultData.no_finish_count = scoreData.finishCallErrors;
+      scoreUpdateData.no_finish_count = scoreData.finishCallErrors;
     }
 
     // Handle AKC Scent Work area times
@@ -361,7 +376,7 @@ export async function submitScore(
 
       // Area 1 is always used
       if (areaTimeSeconds[0] !== undefined) {
-        resultData.area1_time_seconds = areaTimeSeconds[0];
+        scoreUpdateData.area1_time_seconds = areaTimeSeconds[0];
       }
 
       // Area 2 is for Interior Excellent, Interior Master, and Handler Discrimination Master
@@ -369,86 +384,107 @@ export async function submitScore(
                        (element.toLowerCase() === 'handler discrimination' && level.toLowerCase() === 'master');
 
       if (useArea2 && areaTimeSeconds[1] !== undefined) {
-        resultData.area2_time_seconds = areaTimeSeconds[1];
+        scoreUpdateData.area2_time_seconds = areaTimeSeconds[1];
       }
 
       // Area 3 is only for Interior Master
       const useArea3 = element.toLowerCase() === 'interior' && level.toLowerCase() === 'master';
 
       if (useArea3 && areaTimeSeconds[2] !== undefined) {
-        resultData.area3_time_seconds = areaTimeSeconds[2];
+        scoreUpdateData.area3_time_seconds = areaTimeSeconds[2];
       }
 
       // Calculate total search time as sum of all applicable areas
       let totalTime = 0;
-      if (resultData.area1_time_seconds) totalTime += resultData.area1_time_seconds;
-      if (resultData.area2_time_seconds) totalTime += resultData.area2_time_seconds;
-      if (resultData.area3_time_seconds) totalTime += resultData.area3_time_seconds;
+      if (scoreUpdateData.area1_time_seconds) totalTime += scoreUpdateData.area1_time_seconds;
+      if (scoreUpdateData.area2_time_seconds) totalTime += scoreUpdateData.area2_time_seconds;
+      if (scoreUpdateData.area3_time_seconds) totalTime += scoreUpdateData.area3_time_seconds;
 
       // Update the total search time
-      resultData.search_time_seconds = totalTime;
+      scoreUpdateData.search_time_seconds = totalTime;
     }
 
-    console.log('📝 Upserting result:', resultData);
-    console.log('🔍 Result status being saved:', resultData.result_status);
+    console.log('📝 Updating entry with score:', scoreUpdateData);
+    console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
     console.log('🔍 Entry ID:', entryId);
 
-    // Use upsert to update existing or insert new
-    const { error: resultError, data: upsertedData } = await supabase
-      .from('results')
-      .upsert(resultData, {
-        onConflict: 'entry_id',
-        ignoreDuplicates: false
-      })
+    // Remove entry_id from update data (we filter by id instead)
+    const { entry_id, ...updateFields } = scoreUpdateData;
+
+    // Update entries table directly with score data AND entry_status
+    // After migration 039, this is a SINGLE write instead of two separate writes!
+    const updateData = {
+      ...updateFields,
+      entry_status: isActuallyScored ? ('completed' as const) : ('in-ring' as const)
+    };
+
+    const { error: updateError, data: updatedData } = await supabase
+      .from('entries')
+      .update(updateData)
+      .eq('id', entryId)
       .select();
 
-    if (resultError) {
-      console.error('❌ Results table error:', {
-        error: resultError,
-        errorMessage: resultError.message,
-        errorCode: resultError.code,
-        errorDetails: resultError.details,
-        errorHint: resultError.hint,
+    if (updateError) {
+      console.error('❌ Entries table update error:', {
+        error: updateError,
+        errorMessage: updateError.message,
+        errorCode: updateError.code,
+        errorDetails: updateError.details,
+        errorHint: updateError.hint,
         entryId,
-        resultData
+        updateData
       });
-      throw resultError;
+      throw updateError;
     }
 
-    console.log('✅ Result upserted successfully:', upsertedData);
-    if (upsertedData && upsertedData[0]) {
-      console.log('🔍 Saved result_status in database:', upsertedData[0].result_status);
+    console.log('✅ Entry updated with score successfully:', updatedData);
+    if (updatedData && updatedData[0]) {
+      console.log('🔍 Saved result_status in database:', updatedData[0].result_status);
+      console.log('🔍 Saved entry_status in database:', updatedData[0].entry_status);
     }
-
-    // Entry scoring status is tracked in the results table via is_scored and is_in_ring columns
-    // No need to update the entries table as it doesn't have these columns
 
     // OPTIMIZATION: Run placement calculation and class completion checks in background
     // This allows the save to complete quickly (~100ms) while background tasks run
     // Users can navigate away immediately without waiting for these operations
 
-    // Get class_id for background processing - use optimized view query
-    const { data: entryData } = await supabase
-      .from('view_entry_class_join_normalized')
-      .select('class_id, license_key, show_id')
-      .eq('id', entryId)
-      .single();
-
-    if (entryData) {
+    // Use provided classId if available, otherwise query database
+    if (classId) {
+      console.log('✅ Using provided class_id:', classId);
       // Fire and forget - check class completion in background
-      // Placement calculation will happen automatically when class is marked "completed"
       (async () => {
         try {
-          await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
+          await checkAndUpdateClassCompletion(classId, pairedClassId);
           console.log('✅ [Background] Class completion checked');
         } catch (error) {
           console.error('⚠️ [Background] Failed to check class completion:', error);
         }
       })();
-
       console.log('✅ Score saved - background task running');
     } else {
-      console.warn('⚠️ Could not fetch entry data for background processing');
+      // Fallback: Query database for class_id (backward compatibility)
+      console.log('⚠️ No classId provided, querying database (slower path)');
+      const { data: entryData } = await supabase
+        .from('view_entry_class_join_normalized')
+        .select('class_id, license_key, show_id')
+        .eq('id', entryId)
+        .single();
+
+      if (entryData) {
+        // Fire and forget - check class completion in background
+        // Placement calculation will happen automatically when class is marked "completed"
+        (async () => {
+          try {
+            await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
+            console.log('✅ [Background] Class completion checked');
+          } catch (error) {
+            console.error('⚠️ [Background] Failed to check class completion:', error);
+          }
+        })();
+
+        console.log('✅ Score saved - background task running');
+      } else {
+        console.warn('⚠️ Could not fetch entry data for background processing');
+      }
     }
 
     console.log('✅ Score submitted successfully');
@@ -457,6 +493,27 @@ export async function submitScore(
     console.error('Error in submitScore:', error);
     throw error;
   }
+}
+
+/**
+ * Helper function to determine if we should check class completion
+ * Only check on first dog (to mark as in_progress) and last dog (to mark as completed)
+ *
+ * @param scoredCount - Number of dogs scored
+ * @param totalCount - Total number of dogs in class
+ * @returns true if we should check completion, false to skip
+ */
+function shouldCheckCompletion(scoredCount: number, totalCount: number): boolean {
+  if (scoredCount === 1) {
+    console.log('✅ First dog scored - checking to mark class as in_progress');
+    return true;
+  }
+  if (scoredCount === totalCount) {
+    console.log('✅ All dogs scored - checking to mark class as completed');
+    return true;
+  }
+  console.log(`⏭️ Skipping completion check (${scoredCount}/${totalCount} - not first or last)`);
+  return false;
 }
 
 /**
@@ -499,22 +556,27 @@ async function updateSingleClassCompletion(classId: number): Promise<void> {
 
   const entryIds = entries.map(e => e.id);
 
-  // Check how many entries have results
-  const { data: results, error: resultsError } = await supabase
-    .from('results')
-    .select('entry_id, is_scored')
-    .in('entry_id', entryIds)
+  // Check how many entries are scored (results merged into entries table)
+  const { data: scoredEntries, error: resultsError } = await supabase
+    .from('entries')
+    .select('id, is_scored')
+    .in('id', entryIds)
     .eq('is_scored', true);
 
   if (resultsError) {
-    console.error('Error fetching results:', resultsError);
+    console.error('Error fetching scored entries:', resultsError);
     return;
   }
 
-  const scoredCount = results?.length || 0;
+  const scoredCount = scoredEntries?.length || 0;
   const totalCount = entries.length;
 
   console.log(`📊 Class ${classId}: ${scoredCount}/${totalCount} entries scored`);
+
+  // Check if we should skip this update (optimization: only check first and last dog)
+  if (!shouldCheckCompletion(scoredCount, totalCount)) {
+    return; // Skip unnecessary update
+  }
 
   // If all entries are scored, mark class as completed
   if (scoredCount === totalCount && totalCount > 0) {
@@ -620,15 +682,41 @@ export async function submitBatchScores(
 
 /**
  * Mark an entry as being in the ring
+ * IMPORTANT: Does not overwrite 'completed' status - only changes 'no-status' <-> 'in-ring'
  */
 export async function markInRing(
   entryId: number,
   inRing: boolean = true
 ): Promise<boolean> {
-  console.log(`🔄 markInRing called: entryId=${entryId}, inRing=${inRing}`);
-
   try {
-    // Update the unified entry_status field
+    // When removing from ring (inRing=false), check if entry is already scored
+    // If scored, don't change status back to 'no-status' - keep it as 'completed'
+    if (!inRing) {
+      // Check if entry has a score (results merged into entries table)
+      const { data: entry } = await supabase
+        .from('entries')
+        .select('is_scored')
+        .eq('id', entryId)
+        .maybeSingle();
+
+      if (entry?.is_scored) {
+        console.log(`⏭️ Entry ${entryId} is already scored - keeping status as 'completed'`);
+        // Update to completed status instead of no-status
+        const { error } = await supabase
+          .from('entries')
+          .update({ entry_status: 'completed' })
+          .eq('id', entryId)
+          .select();
+
+        if (error) {
+          console.error('❌ markInRing database error:', error);
+          throw error;
+        }
+        return true;
+      }
+    }
+
+    // Normal behavior: toggle between 'no-status' and 'in-ring'
     const newStatus: EntryStatus = inRing ? 'in-ring' : 'no-status';
 
     const { error } = await supabase
@@ -641,8 +729,6 @@ export async function markInRing(
       console.error('❌ markInRing database error:', error);
       throw error;
     }
-
-    console.log(`✅ markInRing successful: entry ${entryId} set to ${newStatus}`);
 
     return true;
   } catch (error) {
@@ -659,54 +745,38 @@ export async function markEntryCompleted(entryId: number): Promise<boolean> {
   console.log(`🔄 markEntryCompleted called: entryId=${entryId}`);
 
   try {
-    // Check if entry is already scored with actual data
-    const { data: existingResult, error: checkError } = await supabase
-      .from('results')
-      .select('id, entry_id, is_scored')
-      .eq('entry_id', entryId)
+    // Check if entry is already scored with actual data (results merged into entries table)
+    const { data: existingEntry, error: checkError } = await supabase
+      .from('entries')
+      .select('id, is_scored')
+      .eq('id', entryId)
       .single();
 
     if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('❌ Error checking existing result:', checkError);
+      console.error('❌ Error checking existing entry:', checkError);
       throw checkError;
     }
 
-    if (existingResult && existingResult.is_scored) {
+    if (existingEntry && existingEntry.is_scored) {
       console.warn('⚠️ Entry is already scored - skipping manual completion');
       return true; // Don't overwrite existing score
     }
 
-    // Update the unified entry_status field to 'completed'
+    // Update the entry with completed status and score flag
     const { error: statusError } = await supabase
       .from('entries')
-      .update({ entry_status: 'completed' })
+      .update({
+        entry_status: 'completed',
+        is_scored: true,
+        result_status: 'manual_complete',
+        scoring_completed_at: new Date().toISOString()
+      })
       .eq('id', entryId)
       .select();
 
     if (statusError) {
       console.error('❌ markEntryCompleted database error:', statusError);
       throw statusError;
-    }
-
-    // Also create/update result record for consistency
-    if (existingResult) {
-      await supabase
-        .from('results')
-        .update({
-          is_scored: true,
-          result_status: 'manual_complete',
-          scoring_completed_at: new Date().toISOString()
-        })
-        .eq('entry_id', entryId);
-    } else {
-      await supabase
-        .from('results')
-        .insert({
-          entry_id: entryId,
-          is_scored: true,
-          result_status: 'manual_complete',
-          scoring_completed_at: new Date().toISOString()
-        });
     }
 
     console.log(`✅ markEntryCompleted successful: entry ${entryId} set to completed`)
@@ -778,7 +848,7 @@ export async function getClassInfo(
 
 /**
  * Subscribe to real-time entry updates
- * Uses syncManager to respect user settings for realTimeSync
+ * Real-time sync is always enabled for multi-user trials
  */
 export function subscribeToEntryUpdates(
   actualClassId: number,
@@ -904,11 +974,25 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       .eq('id', entryId)
       .single();
 
-    // Delete the result record to reset the score (scoring data lives in results table)
+    // Reset score fields in the entries table (results merged into entries)
     const { error } = await supabase
-      .from('results')
-      .delete()
-      .eq('entry_id', entryId);
+      .from('entries')
+      .update({
+        is_scored: false,
+        result_status: 'pending',
+        entry_status: 'no-status', // Reset entry status when score is cleared
+        search_time_seconds: 0,
+        total_correct_finds: 0,
+        total_incorrect_finds: 0,
+        total_faults: 0,
+        final_placement: 0,
+        total_score: 0,
+        points_earned: 0,
+        scoring_completed_at: null,
+        ring_entry_time: null,
+        ring_exit_time: null
+      })
+      .eq('id', entryId);
 
     if (error) {
       console.error('❌ Database error resetting score:', {
@@ -922,7 +1006,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       throw new Error(`Database reset failed: ${error.message || error.code || 'Unknown database error'}`);
     }
 
-    console.log('✅ Score reset successfully - deleted result record for entry', entryId);
+    console.log('✅ Score reset successfully - reset score fields for entry', entryId);
 
     // Check if class should be marked as incomplete
     if (entryData?.class_id) {
@@ -963,9 +1047,6 @@ export async function getEntriesByArmband(
               license_key
             )
           )
-        ),
-        results (
-          *
         )
       `)
       .eq('classes.trials.shows.license_key', licenseKey)

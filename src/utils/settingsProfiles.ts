@@ -35,31 +35,22 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       reduceMotion: true,
 
       // Performance - prioritize speed
-      performanceMode: 'high',
-      imageQuality: 'medium',
       enableAnimations: false,
       enableBlur: false,
       enableShadows: false,
 
       // Mobile - optimized for tablets
-      oneHandedMode: false,
       hapticFeedback: true,
       pullToRefresh: true,
-
-      // Sync - immediate updates
-      realTimeSync: true,
-      syncFrequency: 'immediate',
-      wifiOnlySync: false,
 
       // Notifications - essential only
       enableNotifications: true,
       notificationSound: false,
+      voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
       // Scoring - quick and efficient
       voiceAnnouncements: false,
-      autoSaveFrequency: '30s',
-      confirmationPrompts: 'smart',
 
       // Security - balanced
       autoLogout: 480, // 8 hours
@@ -79,34 +70,25 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       reduceMotion: false,
 
       // Performance - balanced
-      performanceMode: 'auto',
-      imageQuality: 'high',
       enableAnimations: null, // auto-detect
       enableBlur: null,
       enableShadows: null,
 
       // Mobile - optimized
-      oneHandedMode: false,
       hapticFeedback: true,
       pullToRefresh: true,
-
-      // Sync - preserve battery
-      realTimeSync: true,
-      syncFrequency: '5s',
-      wifiOnlySync: true,
 
       // Notifications - all enabled
       enableNotifications: true,
       notificationSound: true,
+      voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
       // Scoring - not typically used
       voiceAnnouncements: false,
-      autoSaveFrequency: '1m',
-      confirmationPrompts: 'always',
 
-      // Security - longer sessions
-      autoLogout: 720, // 12 hours
+      // Security - standard
+      autoLogout: 480, // 8 hours
     },
   },
 
@@ -123,34 +105,25 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       reduceMotion: false,
 
       // Performance - balance quality and speed
-      performanceMode: 'auto',
-      imageQuality: 'high',
       enableAnimations: null,
       enableBlur: null,
       enableShadows: null,
 
       // Mobile - standard
-      oneHandedMode: false,
       hapticFeedback: false,
       pullToRefresh: true,
-
-      // Sync - less frequent
-      realTimeSync: true,
-      syncFrequency: '30s',
-      wifiOnlySync: false,
 
       // Notifications - results only
       enableNotifications: true,
       notificationSound: false,
+      voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
       // Scoring - disabled
       voiceAnnouncements: false,
-      autoSaveFrequency: '5m',
-      confirmationPrompts: 'always',
 
-      // Security - shorter sessions
-      autoLogout: 240, // 4 hours
+      // Security - standard
+      autoLogout: 480, // 8 hours
     },
   },
 
@@ -167,34 +140,25 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       reduceMotion: false,
 
       // Performance - all features on
-      performanceMode: 'high',
-      imageQuality: 'high',
       enableAnimations: true,
       enableBlur: true,
       enableShadows: true,
 
       // Mobile - full features
-      oneHandedMode: false,
       hapticFeedback: true,
       pullToRefresh: true,
-
-      // Sync - immediate
-      realTimeSync: true,
-      syncFrequency: 'immediate',
-      wifiOnlySync: false,
 
       // Notifications - all types
       enableNotifications: true,
       notificationSound: true,
+      voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
       // Scoring - full control
       voiceAnnouncements: false,
-      autoSaveFrequency: '30s',
-      confirmationPrompts: 'smart',
 
-      // Security - extended
-      autoLogout: 1440, // 24 hours
+      // Security - standard
+      autoLogout: 480, // 8 hours
 
       // Advanced - enabled
       developerMode: true,

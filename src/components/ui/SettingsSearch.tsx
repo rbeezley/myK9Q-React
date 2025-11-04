@@ -337,8 +337,6 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
       { id: 'highContrast', title: 'High Contrast', description: 'Increase color contrast for visibility', category: 'Display', sectionId: 'display-section', keywords: ['accessibility', 'contrast', 'visibility'] },
 
       // Performance settings
-      { id: 'performanceMode', title: 'Performance Mode', description: 'Auto adapts to your device', category: 'Performance', sectionId: 'performance-section', keywords: ['speed', 'optimization', 'device'] },
-      { id: 'imageQuality', title: 'Image Quality', description: 'Lower quality saves data', category: 'Performance', sectionId: 'performance-section', keywords: ['images', 'data', 'quality'] },
 
       // Mobile settings
       { id: 'oneHandedMode', title: 'One-Handed Mode', description: 'Optimize for thumb reach', category: 'Mobile', sectionId: 'mobile-section', keywords: ['accessibility', 'thumb', 'reachability'] },
@@ -347,17 +345,10 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
       { id: 'pullSensitivity', title: 'Pull Sensitivity', description: 'How far to pull', category: 'Mobile', sectionId: 'mobile-section', keywords: ['swipe', 'sensitivity'] },
       { id: 'hapticFeedback', title: 'Haptic Feedback', description: 'Vibration on touch', category: 'Mobile', sectionId: 'mobile-section', keywords: ['vibration', 'touch', 'feedback'] },
 
-      // Data & Sync settings
-      { id: 'realTimeSync', title: 'Real-Time Sync', description: 'Instant updates from server', category: 'Data & Sync', sectionId: 'sync-section', keywords: ['sync', 'updates', 'realtime'] },
-      { id: 'syncFrequency', title: 'Sync Frequency', description: 'How often to check for updates', category: 'Data & Sync', sectionId: 'sync-section', keywords: ['sync', 'frequency', 'interval'] },
-      { id: 'wifiOnlySync', title: 'WiFi Only Sync', description: 'Don\'t sync on cellular data', category: 'Data & Sync', sectionId: 'sync-section', keywords: ['wifi', 'cellular', 'data'] },
-      { id: 'autoDownloadShows', title: 'Auto-Download Shows', description: 'Pre-download for offline use', category: 'Data & Sync', sectionId: 'sync-section', keywords: ['download', 'offline', 'shows'] },
-      { id: 'storageLimit', title: 'Storage Limit', description: 'Maximum offline storage', category: 'Data & Sync', sectionId: 'sync-section', keywords: ['storage', 'limit', 'space'] },
-      { id: 'autoCleanup', title: 'Auto-Cleanup Old Data', description: 'Remove old cached data automatically', category: 'Data & Sync', sectionId: 'sync-section', keywords: ['cleanup', 'cache', 'storage'] },
-
       // Notification settings
       { id: 'enableNotifications', title: 'Enable Notifications', description: 'Show push notifications', category: 'Notifications', sectionId: 'notifications-section', keywords: ['notifications', 'push', 'alerts'] },
       { id: 'notificationSound', title: 'Sound', description: 'Play sound with notifications', category: 'Notifications', sectionId: 'notifications-section', keywords: ['sound', 'audio', 'alerts'] },
+      { id: 'voiceNotifications', title: 'Voice Announcements', description: 'Speak notifications aloud', category: 'Notifications', sectionId: 'notifications-section', keywords: ['voice', 'speak', 'announce', 'audio', 'tts', 'text-to-speech'] },
       { id: 'showBadges', title: 'Badge Counter', description: 'Show number on app icon', category: 'Notifications', sectionId: 'notifications-section', keywords: ['badge', 'count', 'icon'] },
       { id: 'notifyClassStarting', title: 'Class Starting Soon', description: 'Notify when class is about to start', category: 'Notifications', sectionId: 'notifications-section', keywords: ['class', 'starting', 'alerts'] },
       { id: 'notifyYourTurn', title: 'Your Turn to Compete', description: 'Notify when it\'s your turn', category: 'Notifications', sectionId: 'notifications-section', keywords: ['turn', 'compete', 'alerts'] },
@@ -367,11 +358,8 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
 
       // Scoring settings
       { id: 'voiceAnnouncements', title: 'Voice Announcements', description: 'Speak timer warnings aloud', category: 'Scoring', sectionId: 'scoring-section', keywords: ['voice', 'audio', 'timer'] },
-      { id: 'autoSaveFrequency', title: 'Auto-Save Frequency', description: 'How often to save progress', category: 'Scoring', sectionId: 'scoring-section', keywords: ['save', 'autosave', 'frequency'] },
-      { id: 'confirmationPrompts', title: 'Confirmation Prompts', description: 'When to ask "Are you sure?"', category: 'Scoring', sectionId: 'scoring-section', keywords: ['confirm', 'prompts', 'dialog'] },
 
       // Privacy & Security settings
-      { id: 'autoLogout', title: 'Auto-Logout', description: 'Log out after inactivity', category: 'Privacy & Security', sectionId: 'privacy-section', keywords: ['logout', 'security', 'timeout'] },
       { id: 'rememberMe', title: 'Remember Me', description: 'Stay logged in on this device', category: 'Privacy & Security', sectionId: 'privacy-section', keywords: ['remember', 'login', 'session'] },
       { id: 'biometricLogin', title: 'Biometric Login', description: 'Use fingerprint/face ID', category: 'Privacy & Security', sectionId: 'privacy-section', keywords: ['biometric', 'fingerprint', 'face'] },
 

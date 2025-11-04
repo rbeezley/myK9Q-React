@@ -10,13 +10,12 @@
 import React, { useState, useEffect } from 'react';
 import { performanceMonitor } from '@/services/performanceMonitor';
 import { analyticsService } from '@/services/analyticsService';
-import { rageClickDetector } from '@/services/rageClickDetector';
 import { useSettingsStore } from '@/stores/settingsStore';
 import './shared-monitoring.css';
 
 export function MonitoringDashboard() {
   const { settings } = useSettingsStore();
-  const [activeTab, setActiveTab] = useState<'performance' | 'analytics' | 'rage'>('performance');
+  const [activeTab, setActiveTab] = useState<'performance' | 'analytics'>('performance');
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Only show if developer mode enabled
@@ -62,18 +61,11 @@ export function MonitoringDashboard() {
         >
           📊 Analytics
         </button>
-        <button
-          className={`tab ${activeTab === 'rage' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rage')}
-        >
-          😠 Rage Patterns
-        </button>
       </div>
 
       <div className="monitoring-content">
         {activeTab === 'performance' && <PerformancePanel />}
         {activeTab === 'analytics' && <AnalyticsPanel />}
-        {activeTab === 'rage' && <RagePanel />}
       </div>
     </div>
   );
@@ -317,94 +309,3 @@ function AnalyticsPanel() {
   );
 }
 
-/**
- * Rage Click Patterns Panel
- */
-function RagePanel() {
-  const [stats, setStats] = useState<any>(null);
-  const [patterns, setPatterns] = useState<any[]>([]);
-
-  useEffect(() => {
-    const updateRage = () => {
-      setStats(rageClickDetector.getStatistics());
-      setPatterns(rageClickDetector.getHighConfidenceRageEvents());
-    };
-
-    updateRage();
-    const interval = setInterval(updateRage, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="rage-panel">
-      {stats && (
-        <>
-          <div className="rage-summary">
-            <h3>Rage Pattern Summary</h3>
-            <div className="summary-grid">
-              <div className="summary-item">
-                <div className="label">Total Patterns</div>
-                <div className="value">{stats.totalPatterns}</div>
-              </div>
-              <div className="summary-item warning">
-                <div className="label">High Confidence</div>
-                <div className="value">{stats.highConfidenceCount}</div>
-              </div>
-              <div className="summary-item">
-                <div className="label">Avg Confidence</div>
-                <div className="value">
-                  {(stats.avgConfidence * 100).toFixed(0)}%
-                </div>
-              </div>
-            </div>
-
-            <div className="pattern-breakdown">
-              <h4>Pattern Types</h4>
-              <div className="breakdown-grid">
-                <div className="breakdown-item">
-                  <div className="label">Rapid Clicks</div>
-                  <div className="value">{stats.byType.rapid_clicks}</div>
-                </div>
-                <div className="breakdown-item">
-                  <div className="label">Rapid Taps</div>
-                  <div className="value">{stats.byType.rapid_taps}</div>
-                </div>
-                <div className="breakdown-item">
-                  <div className="label">Keyboard Mashing</div>
-                  <div className="value">{stats.byType.keyboard_mashing}</div>
-                </div>
-                <div className="breakdown-item">
-                  <div className="label">Scroll Thrashing</div>
-                  <div className="value">{stats.byType.scroll_thrashing}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {patterns.length > 0 && (
-            <div className="patterns-list">
-              <h3>High-Confidence Rage Events</h3>
-              <div className="patterns-table">
-                {patterns.slice(-10).reverse().map((p, i) => (
-                  <div key={i} className="pattern-item">
-                    <div className="pattern-type">{p.type}</div>
-                    <div className="pattern-details">
-                      <span className="count">{p.count} actions</span>
-                      <span className="duration">{p.duration.toFixed(0)}ms</span>
-                      <span className="confidence">
-                        {(p.confidence * 100).toFixed(0)}% confidence
-                      </span>
-                    </div>
-                    <div className="pattern-time">
-                      {new Date(p.timestamp).toLocaleTimeString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}

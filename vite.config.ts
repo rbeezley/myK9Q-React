@@ -96,7 +96,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt', // Changed from 'autoUpdate' to 'prompt' to prevent auto-reload in dev
       devOptions: {
-        enabled: true
+        enabled: false // Disabled to prevent dev-sw.js import errors
       },
       manifest: {
         name: 'myK9Q Ring Scoring',

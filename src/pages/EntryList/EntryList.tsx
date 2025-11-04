@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -8,7 +9,7 @@ import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorStat
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, GripVertical, ChevronDown, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical } from 'lucide-react';
+import { Clock, CheckCircle, GripVertical, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { formatTrialDate } from '../../utils/dateUtils';
@@ -57,6 +58,8 @@ export const EntryList: React.FC = () => {
     classId
   });
 
+  // No forced refresh needed - LocalStateManager ensures we always have correct merged state
+
   // Actions using shared hook
   const {
     handleStatusChange: handleStatusChangeHook,
@@ -77,26 +80,15 @@ export const EntryList: React.FC = () => {
   // Callback to handle real-time entry updates
   const handleEntryUpdate = useCallback((payload: any) => {
     console.log('🔥 handleEntryUpdate called with payload:', payload);
-    // Update local entries immediately based on real-time changes
-    if (payload.eventType === 'UPDATE' && payload.new) {
-      console.log('🔥 Updating entry:', payload.new.id, 'to status:', payload.new.entry_status);
-      setLocalEntries(prev => {
-        const updated = prev.map(entry =>
-          entry.id === payload.new.id
-            ? {
-                ...entry,
-                checkedIn: payload.new.entry_status !== 'no-status',
-                status: payload.new.entry_status,
-                inRing: payload.new.in_ring || false,
-                isScored: payload.new.is_scored || false
-              }
-            : entry
-        );
-        console.log('🔥 Updated entries count:', updated.length);
-        return updated;
-      });
+
+    // For local-first architecture, we need to refresh from entryService
+    // which will merge server updates with pending local changes
+    if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+      console.log('🔥 Real-time update detected, refreshing from entryService (will merge with pending changes)');
+      // Use refresh which goes through entryService -> localStateManager
+      refresh();
     }
-  }, []);
+  }, [refresh]);
 
   useEntryListSubscriptions({
     classIds,
@@ -127,7 +119,7 @@ export const EntryList: React.FC = () => {
   const [showPrintMenu, setShowPrintMenu] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
 
-  // Sync local entries with fetched data
+  // Sync local entries with fetched data - now simple since LocalStateManager handles merging
   useEffect(() => {
     setLocalEntries(entries);
   }, [entries]);
@@ -266,11 +258,13 @@ export const EntryList: React.FC = () => {
           : entry
       ));
 
+      // Sync with server in background (silently fails if offline)
       try {
         await handleMarkInRing(entryId);
+        // Real-time subscription will trigger automatic refresh
       } catch (error) {
-        console.error('Mark in-ring failed:', error);
-        refresh();
+        console.error('Failed to mark in-ring in background:', error);
+        // Don't show error to user - offline-first means this is transparent
       }
       return;
     }
@@ -283,11 +277,13 @@ export const EntryList: React.FC = () => {
           : entry
       ));
 
+      // Sync with server in background (silently fails if offline)
       try {
         await handleMarkCompleted(entryId);
+        // Real-time subscription will trigger automatic refresh
       } catch (error) {
-        console.error('Mark completed failed:', error);
-        refresh();
+        console.error('Failed to mark completed in background:', error);
+        // Don't show error to user - offline-first means this is transparent
       }
       return;
     }
@@ -308,24 +304,20 @@ export const EntryList: React.FC = () => {
         : entry
     ));
 
-    // Sync with server and WAIT for database write to complete
+    // Sync with server in background (silently fails if offline)
     try {
-      console.log('⏳ Waiting for database write to complete...');
       await handleStatusChangeHook(entryId, status);
-      console.log('✅ Database write confirmed - invalidating cache');
-      // Force refresh to invalidate cache and fetch latest data
-      // This ensures immediate page refresh shows the correct status
-      await refresh(true);
-      console.log('✅ Cache invalidated - safe to refresh now');
+
+      // Note: NO manual refresh needed here!
+      // The real-time subscription will fire when database is updated,
+      // which clears the pending change in localStateManager,
+      // which notifies listeners in useEntryListData.ts (line 194-200),
+      // which triggers an automatic refresh.
+      // This is the local-first architecture working correctly.
     } catch (error) {
-      console.error('Status change failed:', error);
-      // Rollback optimistic update on error
-      setLocalEntries(prev => prev.map(entry =>
-        entry.id === entryId
-          ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'no-status' }
-          : entry
-      ));
-      refresh(true);
+      console.error('Failed to update status in background:', error);
+      // Don't show error to user - offline-first means this is transparent
+      // The optimistic update already happened, sync will retry when online
     }
   };
 
@@ -501,22 +493,12 @@ export const EntryList: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const calculatedTop = rect.bottom + 5;
-    const calculatedLeft = rect.left - 100;
-
-    console.log('🔍 Reset menu click:', {
-      entryId,
-      buttonRect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right },
-      calculatedPosition: { top: calculatedTop, left: calculatedLeft },
-      scrollY: window.scrollY,
-      scrollX: window.scrollX,
-      pathname: window.location.pathname
-    });
+    const button = e.currentTarget as HTMLElement;
+    const rect = button.getBoundingClientRect();
 
     setResetMenuPosition({
-      top: calculatedTop,
-      left: calculatedLeft
+      top: rect.bottom + 4,
+      left: rect.left
     });
     setActiveResetMenu(entryId);
   };
@@ -530,29 +512,41 @@ export const EntryList: React.FC = () => {
   const confirmResetScore = async () => {
     if (!resetConfirmDialog.entry) return;
 
+    // Update local state IMMEDIATELY (optimistic update - works offline)
+    setLocalEntries(prev => prev.map(entry =>
+      entry.id === resetConfirmDialog.entry!.id
+        ? {
+            ...entry,
+            isScored: false,
+            status: 'no-status', // Reset status badge to "No Status"
+            checkinStatus: 'no-status',
+            checkedIn: false,
+            resultText: '',
+            searchTime: '',
+            faultCount: 0,
+            placement: undefined,
+            inRing: false
+          }
+        : entry
+    ));
+
+    // Switch to pending tab to show the reset entry
+    setActiveTab('pending');
+
+    // Sync with server in background (silently fails if offline)
     try {
       await handleResetScoreHook(resetConfirmDialog.entry.id);
 
-      // Update local state to move entry back to pending
-      setLocalEntries(prev => prev.map(entry =>
-        entry.id === resetConfirmDialog.entry!.id
-          ? {
-              ...entry,
-              isScored: false,
-              resultText: '',
-              searchTime: '',
-              faultCount: 0,
-              placement: undefined,
-              inRing: false
-            }
-          : entry
-      ));
-
-      // Switch to pending tab to show the reset entry
-      setActiveTab('pending');
+      // Note: NO manual refresh needed here!
+      // The real-time subscription will fire when database is updated,
+      // which clears the pending change in localStateManager,
+      // which notifies listeners in useEntryListData.ts (line 194-200),
+      // which triggers an automatic refresh.
+      // This is the local-first architecture working correctly.
     } catch (error) {
-      console.error('Failed to reset score:', error);
-      alert(`Failed to reset score: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to reset score in background:', error);
+      // Don't show error to user - offline-first means this is transparent
+      // The optimistic update already happened, sync will retry when online
     }
 
     setResetConfirmDialog({ show: false, entry: null });
@@ -728,6 +722,14 @@ export const EntryList: React.FC = () => {
             <h1>
               {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
             </h1>
+            {statusBadge && (
+              <>
+                <span className="trial-separator">•</span>
+                <span className={`class-status-badge ${statusBadge.className}`}>
+                  {statusBadge.text}
+                </span>
+              </>
+            )}
           </div>
           <div className="class-subtitle">
             <div className="trial-info-simple">
@@ -739,14 +741,6 @@ export const EntryList: React.FC = () => {
               )}
               {classInfo?.trialNumber && classInfo.trialNumber !== '' && classInfo.trialNumber !== '0' && (
                 <span className="trial-number-text">Trial {classInfo.trialNumber}</span>
-              )}
-              {statusBadge && (
-                <>
-                  <span className="trial-separator">•</span>
-                  <span className={`class-status-badge ${statusBadge.className}`}>
-                    {statusBadge.text}
-                  </span>
-                </>
               )}
             </div>
           </div>
@@ -827,7 +821,7 @@ export const EntryList: React.FC = () => {
       <PullToRefresh
         onRefresh={handleRefresh}
         enabled={settings.pullToRefresh}
-        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+        threshold={80}
       >
 
       {/* Search and Sort Header */}
@@ -973,7 +967,7 @@ export const EntryList: React.FC = () => {
               <div className={`grid-responsive ${isDragMode ? 'drag-mode' : ''}`}>
                 {currentEntries.map((entry) => (
                   <SortableEntryCard
-                    key={entry.id}
+                    key={`${entry.id}-${entry.status}-${entry.isScored}`}
                     entry={entry}
                     isDragMode={isDragMode}
                     showContext={showContext}
@@ -1039,15 +1033,15 @@ export const EntryList: React.FC = () => {
         </div>
       )}
 
-      {/* Reset Menu Popup */}
-      {activeResetMenu !== null && resetMenuPosition && (
+      {/* Reset Menu Popup - Rendered via Portal to avoid CSS transform issues */}
+      {activeResetMenu !== null && resetMenuPosition && createPortal(
         <div
           className="reset-menu"
           style={{
             position: 'fixed',
-            top: resetMenuPosition.top,
-            left: resetMenuPosition.left,
-            zIndex: 1000
+            top: `${resetMenuPosition.top}px`,
+            left: `${resetMenuPosition.left}px`,
+            zIndex: 10000
           }}
         >
           <div className="reset-menu-content">
@@ -1061,31 +1055,36 @@ export const EntryList: React.FC = () => {
               🔄 Reset Score
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Reset Confirmation Dialog */}
       {resetConfirmDialog.show && resetConfirmDialog.entry && (
-        <div className="reset-dialog-overlay">
-          <div className="reset-dialog">
-            <h3>Reset Score</h3>
-            <p>
-              Are you sure you want to reset the score for <strong>{resetConfirmDialog.entry.callName}</strong> ({resetConfirmDialog.entry.armband})?
-            </p>
-            <p className="reset-dialog-warning">
-              This will remove their current score and move them back to the pending list.
-            </p>
-            <div className="reset-dialog-buttons">
+        <div className="dialog-overlay">
+          <div className="dialog-container reset-dialog-container">
+            <div className="dialog-header">
+              <h3 className="dialog-title">Reset Score</h3>
+            </div>
+            <div className="dialog-content">
+              <p>
+                Are you sure you want to reset the score for <strong>{resetConfirmDialog.entry.callName}</strong> ({resetConfirmDialog.entry.armband})?
+              </p>
+              <p className="reset-dialog-warning">
+                This will remove their current score and move them back to the pending list.
+              </p>
+            </div>
+            <div className="dialog-footer">
               <button
-                className="reset-dialog-cancel"
+                className="dialog-button dialog-button-secondary"
                 onClick={cancelResetScore}
-                >
+              >
                 Cancel
               </button>
               <button
-                className="reset-dialog-confirm"
+                className="dialog-button dialog-button-primary reset-dialog-confirm"
                 onClick={confirmResetScore}
-                >
+              >
                 Reset Score
               </button>
             </div>

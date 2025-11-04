@@ -157,7 +157,6 @@ export function validateSettings(settings: any): settings is AppSettings {
     'theme',
     'fontSize',
     'density',
-    'performanceMode',
   ];
 
   for (const field of requiredFields) {

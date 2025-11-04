@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import './shared-ui.css';
 
@@ -38,11 +37,10 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   className = '',
   visible = true,
 }) => {
-  const { settings } = useSettingsStore();
   const haptic = useHapticFeedback();
 
-  // Don't render if one-handed mode is disabled or FAB is hidden
-  if (!settings.oneHandedMode || !visible) {
+  // Don't render if FAB is hidden
+  if (!visible) {
     return null;
   }
 
@@ -53,7 +51,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
   return (
     <button
-      className={`floating-action-button hand-${settings.handPreference} ${className}`}
+      className={`floating-action-button ${className}`}
       onClick={handleClick}
       aria-label={ariaLabel}
       type="button"

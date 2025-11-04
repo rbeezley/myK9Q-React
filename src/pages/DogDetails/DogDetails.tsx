@@ -5,11 +5,13 @@ import { usePermission } from '../../hooks/usePermission';
 import { supabase } from '../../lib/supabase';
 // Updated field mappings for unified view
 import { updateEntryCheckinStatus } from '../../services/entryService';
+import { getVisibleResultFields, getAvailabilityMessage } from '../../services/resultVisibilityService';
 import { Button, HamburgerMenu, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
+import type { VisibleResultFields, VisibilityTiming } from '../../types/visibility';
 import {
   ArrowLeft,
   RefreshCw,
@@ -46,6 +48,16 @@ interface ClassEntry {
   section?: string;
   trial_number?: number;
   judge_name?: string;
+  // Visibility control fields
+  trial_id?: number;
+  is_completed?: boolean;
+  results_released_at?: string | null;
+  visibleFields?: VisibleResultFields;
+  // For showing availability messages
+  placementTiming?: VisibilityTiming;
+  qualificationTiming?: VisibilityTiming;
+  timeTiming?: VisibilityTiming;
+  faultsTiming?: VisibilityTiming;
 }
 
 interface DogInfo {
@@ -59,7 +71,7 @@ export const DogDetails: React.FC = () => {
   const { armband } = useParams<{ armband: string }>();
   const navigate = useNavigate();
   const { showContext, role: _role } = useAuth();
-  const { hasPermission: _hasPermission, isExhibitor: _isExhibitor } = usePermission();
+  const { hasPermission: _hasPermission, isExhibitor: _isExhibitor, currentRole } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
@@ -128,34 +140,53 @@ export const DogDetails: React.FC = () => {
           handler: firstEntry.handler_name
         });
 
-        // Process all classes - map entry status from unified status field
-        setClasses(data.map((entry) => {
-          // Use unified entry_status field
-          const statusText = entry.entry_status || 'no-status';
-          const check_in_status: ClassEntry['check_in_status'] = statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
+        // Process all classes - map entry status and fetch visibility settings
+        const classesWithVisibility = await Promise.all(
+          data.map(async (entry) => {
+            // Use unified entry_status field
+            const statusText = entry.entry_status || 'no-status';
+            const check_in_status: ClassEntry['check_in_status'] = statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
 
-          return {
-            id: entry.id, // Entry ID (used for status updates)
-            class_id: entry.class_id, // Class ID (used for navigation)
-            class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : 'Unknown Class',
-            class_type: entry.element || 'Unknown',
-            trial_name: `Trial ${entry.trial_number || ''}`,
-            trial_date: entry.trial_date,
-            search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
-            fault_count: entry.total_faults || null,
-            result_text: entry.result_status,
-            is_scored: entry.is_scored || false,
-            checked_in: check_in_status !== 'no-status',
-            check_in_status,
-            position: entry.final_placement || undefined,
-            // Map additional fields
-            element: entry.element,
-            level: entry.level,
-            section: entry.section,
-            trial_number: entry.trial_number,
-            judge_name: entry.judge_name
-          };
-        }));
+            // Fetch visibility settings for this class (role-based)
+            const visibleFields = await getVisibleResultFields(
+              entry.class_id,
+              entry.trial_id,
+              showContext!.licenseKey,
+              currentRole || 'exhibitor',
+              entry.is_completed || false,
+              entry.results_released_at || null
+            );
+
+            return {
+              id: entry.id, // Entry ID (used for status updates)
+              class_id: entry.class_id, // Class ID (used for navigation)
+              class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : 'Unknown Class',
+              class_type: entry.element || 'Unknown',
+              trial_name: `Trial ${entry.trial_number || ''}`,
+              trial_date: entry.trial_date,
+              search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
+              fault_count: entry.total_faults || null,
+              result_text: entry.result_status,
+              is_scored: entry.is_scored || false,
+              checked_in: check_in_status !== 'no-status',
+              check_in_status,
+              position: entry.final_placement || undefined,
+              // Map additional fields
+              element: entry.element,
+              level: entry.level,
+              section: entry.section,
+              trial_number: entry.trial_number,
+              judge_name: entry.judge_name,
+              // Visibility fields
+              trial_id: entry.trial_id,
+              is_completed: entry.is_completed || false,
+              results_released_at: entry.results_released_at || null,
+              visibleFields
+            };
+          })
+        );
+
+        setClasses(classesWithVisibility);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -346,23 +377,33 @@ export const DogDetails: React.FC = () => {
                   height: '36px'
                 }}
               >
-                {/* Show actual result status for scored dogs */}
+                {/* Show actual result status for scored dogs - respect visibility */}
                 {isScored ? (
                   <>
-                    {isQualified ? (
+                    {/* Only show qualification status if visible */}
+                    {entry.visibleFields?.showQualification ? (
                       <>
-                        <ThumbsUp className="h-4 w-4" />
-                        Qualified
-                      </>
-                    ) : isNQ ? (
-                      <>
-                        <XCircle className="h-4 w-4" />
-                        Not Qualified
+                        {isQualified ? (
+                          <>
+                            <ThumbsUp className="h-4 w-4" />
+                            Qualified
+                          </>
+                        ) : isNQ ? (
+                          <>
+                            <XCircle className="h-4 w-4" />
+                            Not Qualified
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4" />
+                            {getStatusLabel(entry)}
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
-                        <Check className="h-4 w-4" />
-                        {getStatusLabel(entry)}
+                        <Circle className="h-4 w-4" />
+                        Results Pending
                       </>
                     )}
                   </>
@@ -387,9 +428,12 @@ export const DogDetails: React.FC = () => {
                   gap: '0.75rem',
                   paddingRight: '120px'
                 }}>
-                  {/* Position Badge - only show for qualified dogs with valid placement */}
+                  {/* Position Badge - only show if placement visible and dog qualified with valid placement */}
                   <div className="class-position" style={{ flexShrink: 0 }}>
-                    {entry.position && entry.position !== 9996 && isQualified ? (
+                    {entry.visibleFields?.showPlacement &&
+                     entry.position &&
+                     entry.position !== 9996 &&
+                     isQualified ? (
                       <div className="position-badge">
                         <Trophy />
                         <span className="position-number">{entry.position}</span>
@@ -434,21 +478,42 @@ export const DogDetails: React.FC = () => {
                   )}
                 </div>
 
-                {/* Performance Stats - only show if dog has completed the class */}
+                {/* Performance Stats - respect visibility settings */}
                 {entry.is_scored && (
                   <div className="class-stats">
-                    <div className="stat-item">
-                      <Clock />
-                      <span className="stat-value">
-                        {formatTime(entry.search_time)}
-                      </span>
-                    </div>
-                    <div className="stat-item">
-                      <AlertTriangle />
-                      <span className="stat-value">
-                        {entry.fault_count || 0} faults
-                      </span>
-                    </div>
+                    {/* Time - show if visible, otherwise show availability message */}
+                    {entry.visibleFields?.showTime ? (
+                      <div className="stat-item">
+                        <Clock />
+                        <span className="stat-value">
+                          {formatTime(entry.search_time)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="stat-item dimmed">
+                        <Clock />
+                        <span className="stat-value">
+                          ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.timeTiming || 'class_complete')}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Faults - show if visible, otherwise show availability message */}
+                    {entry.visibleFields?.showFaults ? (
+                      <div className="stat-item">
+                        <AlertTriangle />
+                        <span className="stat-value">
+                          {entry.fault_count || 0} faults
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="stat-item dimmed">
+                        <AlertTriangle />
+                        <span className="stat-value">
+                          ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.faultsTiming || 'class_complete')}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

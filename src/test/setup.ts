@@ -37,9 +37,10 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock navigator.onLine
+// Mock navigator.onLine (make it configurable so tests can override it)
 Object.defineProperty(navigator, 'onLine', {
   writable: true,
+  configurable: true,
   value: true,
 });
 
@@ -74,3 +75,30 @@ window.addEventListener = vi.fn((event: string, handler: any) => {
   }
   return originalAddEventListener(event as any, handler);
 }) as any;
+
+// Mock IndexedDB for local-first storage
+const indexedDBMock = {
+  open: vi.fn(() => {
+    const request: any = {
+      result: null,
+      error: null as Error | null,
+      onsuccess: null as any,
+      onerror: null as any,
+      onupgradeneeded: null as any,
+    };
+    // Immediately fail to prevent actual DB operations in tests
+    setTimeout(() => {
+      if (request.onerror) {
+        request.error = new Error('IndexedDB not available in test environment');
+        (request.onerror as any)({ target: request });
+      }
+    }, 0);
+    return request;
+  }),
+  deleteDatabase: vi.fn(),
+};
+
+Object.defineProperty(window, 'indexedDB', {
+  writable: true,
+  value: indexedDBMock,
+});

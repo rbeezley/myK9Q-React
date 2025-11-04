@@ -4,6 +4,7 @@ import { submitScore } from '../services/entryService';
 import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
+import { localStateManager } from '../services/localStateManager';
 
 /**
  * Specialized hook for optimistic score submissions
@@ -95,7 +96,7 @@ export function useOptimisticScoring() {
     // This makes the UI feel instant
     const optimisticResult = scoreData.resultText as any; // Type assertion for flexible result text
 
-    // Mark as scored in local store
+    // Mark as scored in local store (legacy)
     markAsScored(entryId, optimisticResult);
 
     // Add to scoring session for local tracking
@@ -111,6 +112,31 @@ export function useOptimisticScoring() {
       faults: scoreData.faultCount, // Map faultCount to faults for Score interface
       finishCallErrors: scoreData.finishCallErrors,
     });
+
+    // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
+    // This creates a pending change that will be merged with database queries
+    try {
+      console.log('🔄 Attempting to update LocalStateManager for entry:', entryId);
+      await localStateManager.updateEntry(
+        entryId,
+        {
+          isScored: true,
+          status: 'completed',
+          resultText: scoreData.resultText,
+          searchTime: scoreData.searchTime,
+          faultCount: scoreData.faultCount,
+          correctFinds: scoreData.correctCount,
+          incorrectFinds: scoreData.incorrectCount,
+          // Add other score fields as needed
+        },
+        'score'
+      );
+      console.log('✅ LocalStateManager updated with pending score');
+    } catch (error) {
+      // Entry not loaded in LocalStateManager yet - this is expected on first score
+      console.error('❌ Could not update LocalStateManager:', error);
+      console.log('📝 Entry will update after page refresh when data is fetched');
+    }
 
     console.log('✅ Local state updated optimistically');
 
@@ -139,8 +165,26 @@ export function useOptimisticScoring() {
 
         // Submit to server
         console.log('📡 Submitting score to server...');
-        await submitScore(entryId, scoreData, pairedClassId);
+        await submitScore(entryId, scoreData, pairedClassId, classId);
         console.log('✅ Score successfully synced with server');
+
+        // 🚀 LOCAL-FIRST: DO NOT clear pending change immediately!
+        // The pending change will be cleared when the real-time update confirms
+        // the database has been updated. This prevents a race condition where we
+        // clear the pending change before the database update propagates.
+        console.log('⏳ Waiting for real-time update to confirm database update...');
+
+        // Safety fallback: Clear pending change after 5 seconds even without real-time confirmation
+        // This handles edge cases like:
+        // - Connection drops right after successful API response
+        // - Real-time subscription not connected
+        // - Database update confirmed but real-time event lost
+        setTimeout(async () => {
+          if (localStateManager.hasPendingChange(entryId)) {
+            console.log('⏰ Timeout reached - clearing pending change as fallback');
+            await localStateManager.clearPendingChange(entryId);
+          }
+        }, 5000);
 
         // NOTE: Placement calculation is now handled inside submitScore() in the background
         // This allows the save to complete quickly without blocking the user

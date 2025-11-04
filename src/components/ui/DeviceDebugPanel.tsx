@@ -211,10 +211,6 @@ export function DeviceDebugPanel({
                   <td>{settings.shadows ? '✅' : '❌'}</td>
                 </tr>
                 <tr>
-                  <td>Real-time Sync:</td>
-                  <td>{settings.realTimeSync ? '✅' : '❌'}</td>
-                </tr>
-                <tr>
                   <td>Virtual Scroll @:</td>
                   <td>{settings.virtualScrollThreshold} items</td>
                 </tr>

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon } from 'lucide-react';
 import './shared-ui.css';
 
 /**
@@ -186,7 +186,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     onClick={() => handleMenuItemClick(() => navigate(`/admin/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
                   >
                     <Shield className="menu-icon" />
-                    <span>Competition Admin</span>
+                    <span>Results Control</span>
                   </button>
                 </>
               )}
@@ -223,7 +223,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 className="menu-item"
                 onClick={() => handleMenuItemClick(toggleTheme)}
               >
-                <span className="menu-icon">{darkMode ? '☀️' : '🌙'}</span>
+                {darkMode ? <Sun className="menu-icon" /> : <Moon className="menu-icon" />}
                 <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
 

@@ -18,6 +18,7 @@ import { Entry } from '../../stores/entryStore';
 import { getClassEntries } from '../../services/entryService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
+import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 
@@ -258,10 +259,9 @@ export const ClassList: React.FC = () => {
             return a.element.localeCompare(b.element);
           }
 
-          // Tertiary sort: level (custom order for common levels)
-          const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
-          const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
-          const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+          // Tertiary sort: level (standard progression: Novice -> Advanced -> Excellent -> Master)
+          const aLevelOrder = getLevelSortOrder(a.level);
+          const bLevelOrder = getLevelSortOrder(b.level);
 
           if (aLevelOrder !== bLevelOrder) {
             return aLevelOrder - bLevelOrder;
@@ -605,8 +605,7 @@ export const ClassList: React.FC = () => {
           .from('entries')
           .select(`
             *,
-            classes!inner (element, level, section, trial_id),
-            results (is_in_ring, is_scored)
+            classes!inner (element, level, section, trial_id)
           `)
           .eq('class_id', classId)
           .order('armband_number', { ascending: true });
@@ -660,9 +659,9 @@ export const ClassList: React.FC = () => {
   const _setDogInRingStatus = async (dogId: number, inRing: boolean) => {
     try {
       const { error } = await supabase
-        .from('results')
+        .from('entries')
         .update({ is_in_ring: inRing })
-        .eq('entry_id', dogId);
+        .eq('id', dogId);
 
       if (error) {
         console.error('Error updating dog ring status:', error);
@@ -1128,14 +1127,13 @@ export const ClassList: React.FC = () => {
           return a.section.localeCompare(b.section);
 
         case 'element_level':
-          // Sort by element first, then level
+          // Sort by element first, then level (standard progression)
           if (a.element !== b.element) {
             return a.element.localeCompare(b.element);
           }
           if (a.level !== b.level) {
-            const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
-            const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
-            const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            const aLevelOrder = getLevelSortOrder(a.level);
+            const bLevelOrder = getLevelSortOrder(b.level);
             if (aLevelOrder !== bLevelOrder) {
               return aLevelOrder - bLevelOrder;
             }
@@ -1144,11 +1142,10 @@ export const ClassList: React.FC = () => {
           return a.section.localeCompare(b.section);
 
         case 'level_element':
-          // Sort by level first, then element
+          // Sort by level first (standard progression), then element
           if (a.level !== b.level) {
-            const levelOrder = { 'novice': 1, 'advanced': 2, 'excellent': 3, 'master': 4, 'masters': 4 };
-            const aLevelOrder = levelOrder[a.level.toLowerCase() as keyof typeof levelOrder] || 999;
-            const bLevelOrder = levelOrder[b.level.toLowerCase() as keyof typeof levelOrder] || 999;
+            const aLevelOrder = getLevelSortOrder(a.level);
+            const bLevelOrder = getLevelSortOrder(b.level);
             if (aLevelOrder !== bLevelOrder) {
               return aLevelOrder - bLevelOrder;
             }
@@ -1284,7 +1281,7 @@ export const ClassList: React.FC = () => {
       <PullToRefresh
         onRefresh={handleRefresh}
         enabled={settings.pullToRefresh}
-        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+        threshold={80}
       >
 
       {/* Search, Sort, and Filter Controls */}

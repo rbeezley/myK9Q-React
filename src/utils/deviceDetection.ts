@@ -41,9 +41,6 @@ export interface PerformanceSettings {
   /** Use virtual scrolling for lists over this size */
   virtualScrollThreshold: number;
 
-  /** Enable real-time sync */
-  realTimeSync: boolean;
-
   /** Prefetch aggressiveness (0-1) */
   prefetchLevel: number;
 
@@ -139,25 +136,20 @@ export async function detectDeviceCapabilities(): Promise<DeviceCapabilities> {
 
 /**
  * Get performance settings based on device capabilities
- * Respects user's manual performanceMode override from settings
+ * Auto-detects optimal settings based on device tier
  */
 export async function getPerformanceSettings(): Promise<PerformanceSettings> {
   if (performanceSettings) {
     return performanceSettings;
   }
 
-  // Check if user has manual performance mode override
-  const userSettings = getUserPerformanceMode();
   const capabilities = await detectDeviceCapabilities();
-
-  // Override tier if user has manual setting
-  const effectiveTier = userSettings || capabilities.tier;
+  const effectiveTier = capabilities.tier;
 
   // Default settings for high-end devices
   let settings: PerformanceSettings = {
     animations: true,
     virtualScrollThreshold: 50,
-    realTimeSync: true,
     prefetchLevel: 1,
     imageQuality: 1,
     blurEffects: true,
@@ -187,7 +179,6 @@ export async function getPerformanceSettings(): Promise<PerformanceSettings> {
       ...settings,
       animations: !capabilities.batterySaving,
       virtualScrollThreshold: 20,
-      realTimeSync: false,
       prefetchLevel: 0.3,
       imageQuality: 0.7,
       blurEffects: false,
@@ -203,7 +194,6 @@ export async function getPerformanceSettings(): Promise<PerformanceSettings> {
     settings.animations = false;
     settings.blurEffects = false;
     settings.shadows = false;
-    settings.realTimeSync = false;
   }
 
   performanceSettings = settings;

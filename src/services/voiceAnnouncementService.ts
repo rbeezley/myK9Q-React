@@ -48,6 +48,7 @@ class VoiceAnnouncementService {
   private queue: SpeechSynthesisUtterance[] = [];
   private currentUtterance: SpeechSynthesisUtterance | null = null;
   private isEnabled: boolean = false;
+  private isScoringActive: boolean = false; // Track if actively timing a scoresheet
   private defaultConfig: VoiceConfig = {
     voice: null,
     lang: 'en-US',
@@ -78,26 +79,32 @@ class VoiceAnnouncementService {
 
     this.voices = this.synthesis.getVoices();
 
-    // Set default voice - prefer Google UK English Male, fallback to first en-US voice
+    // Set default voice - prefer clear, neutral US English voices
     if (!this.defaultConfig.voice && this.voices.length > 0) {
-      // Try to find Google UK English Male first
-      let defaultVoice = this.voices.find(v =>
+      let defaultVoice;
+
+      // Priority 1: Google US English (most consistent across browsers)
+      defaultVoice = this.voices.find(v =>
         v.name.toLowerCase().includes('google') &&
-        v.name.toLowerCase().includes('uk') &&
-        v.name.toLowerCase().includes('male')
+        v.lang.startsWith('en-US')
       );
 
-      // Fallback to any Google UK voice
+      // Priority 2: Microsoft US English (common on Windows)
       if (!defaultVoice) {
         defaultVoice = this.voices.find(v =>
-          v.name.toLowerCase().includes('google') &&
-          v.lang.startsWith('en-GB')
+          v.name.toLowerCase().includes('microsoft') &&
+          v.lang.startsWith('en-US')
         );
       }
 
-      // Fallback to first en-US voice
+      // Priority 3: Any US English voice
       if (!defaultVoice) {
         defaultVoice = this.voices.find(v => v.lang === 'en-US');
+      }
+
+      // Priority 4: Any English voice (UK, AU, etc.)
+      if (!defaultVoice) {
+        defaultVoice = this.voices.find(v => v.lang.startsWith('en-'));
       }
 
       // Last resort: first available voice
@@ -164,6 +171,22 @@ class VoiceAnnouncementService {
    */
   public isSupported(): boolean {
     return this.synthesis !== null;
+  }
+
+  /**
+   * Set whether scoring is currently active (timer running)
+   * When scoring is active, push notification voice announcements are suppressed
+   */
+  public setScoringActive(active: boolean): void {
+    this.isScoringActive = active;
+    console.log(`[VoiceService] Scoring active: ${active}`);
+  }
+
+  /**
+   * Check if scoring is currently active
+   */
+  public isScoringInProgress(): boolean {
+    return this.isScoringActive;
   }
 
   /**

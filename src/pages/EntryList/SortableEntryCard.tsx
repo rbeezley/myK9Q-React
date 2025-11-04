@@ -252,8 +252,16 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
             </div>
           ) : (
             <button
-              className="reset-button"
-              onClick={(e) => handleResetMenuClick(e, entry.id)}
+              className="reset-button reset-menu-button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                handleResetMenuClick(e, entry.id);
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
               title="Reset score"
             >
               ⋯

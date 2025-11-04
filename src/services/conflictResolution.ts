@@ -198,11 +198,8 @@ export async function resolveConflict(
 
   // Update database based on conflict type
   try {
-    if (conflict.type === 'score') {
-      await supabase.from('results').upsert(dataToSave);
-    } else if (conflict.type === 'status' || conflict.type === 'entry_data') {
-      await supabase.from('entries').update(dataToSave).eq('id', conflict.entryId);
-    }
+    // All conflict types now update entries table (results table merged into entries)
+    await supabase.from('entries').update(dataToSave).eq('id', conflict.entryId);
 
     console.log(`✅ Resolved conflict ${conflictId} with action: ${resolution.action}`);
   } catch (error) {

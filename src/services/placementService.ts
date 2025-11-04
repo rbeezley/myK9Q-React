@@ -56,9 +56,9 @@ export async function getEntryPlacement(
 ): Promise<number | null> {
   try {
     const { data, error } = await supabase
-      .from('results')
+      .from('entries')
       .select('final_placement')
-      .eq('entry_id', entryId)
+      .eq('id', entryId)
       .single();
 
     if (error || !data) {

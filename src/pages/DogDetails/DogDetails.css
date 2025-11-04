@@ -903,6 +903,19 @@
   }
 }
 
+/* ========== RESULT VISIBILITY: DIMMED STATE ========== */
+
+/* Style for hidden result fields showing availability message */
+.stat-item.dimmed {
+  opacity: 0.5;
+}
+
+.stat-item.dimmed .stat-value {
+  color: var(--muted-foreground);
+  font-style: italic;
+  font-size: 0.8125rem;
+}
+
 /* ========== ACCESSIBILITY: HIGH CONTRAST ========== */
 
 @media (prefers-contrast: high), (min-resolution: 2dppx) {

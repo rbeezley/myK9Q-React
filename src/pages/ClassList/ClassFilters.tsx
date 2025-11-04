@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { Search, X, ArrowUpDown, ChevronDown, Clock, Heart, CheckCircle } from 'lucide-react';
-import { TabBar, Tab } from '../../components/ui';
+import { Clock, Heart, CheckCircle } from 'lucide-react';
+import { TabBar, Tab, SearchSortControls } from '../../components/ui';
+import type { SortOption } from '../../components/ui';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 
 interface ClassEntry {
@@ -88,6 +89,13 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
     }
   ], [classes]);
 
+  // Prepare sort options for SearchSortControls component
+  const sortOptions: SortOption[] = useMemo(() => [
+    { value: 'class_order', label: 'Class Order' },
+    { value: 'element_level', label: 'Element' },
+    { value: 'level_element', label: 'Level' }
+  ], []);
+
   const handleTabChange = (tabId: string) => {
     hapticFeedback.light();
     setCombinedFilter(tabId as 'pending' | 'favorites' | 'completed');
@@ -95,76 +103,18 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
 
   return (
     <>
-      {/* Search and Sort Header */}
-      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
-        <button
-          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
-          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
-          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </button>
-
-        <span className="search-controls-label">
-          {searchTerm ? `Found ${filteredClasses.length} of ${classes.length} classes` : 'Search & Sort'}
-        </span>
-      </div>
-
-      {/* Search Results Summary */}
-      {searchTerm && (
-        <div className="search-results-header">
-          <div className="search-results-summary">
-            {filteredClasses.length} of {classes.length} classes
-          </div>
-        </div>
-      )}
-
-      {/* Collapsible Search and Sort Container */}
-      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
-        <div className="search-input-wrapper">
-          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-          <input
-            type="text"
-            placeholder="Search class name, element, level, judge..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input-full"
-          />
-          {searchTerm && (
-            <button
-              className="clear-search-btn"
-              onClick={() => setSearchTerm('')}
-            >
-              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            </button>
-          )}
-        </div>
-
-        <div className="sort-controls">
-          <button
-            className={`sort-btn ${sortOrder === 'class_order' ? 'active' : ''}`}
-            onClick={() => setSortOrder('class_order')}
-          >
-            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            Class Order
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'element_level' ? 'active' : ''}`}
-            onClick={() => setSortOrder('element_level')}
-          >
-            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            Element
-          </button>
-          <button
-            className={`sort-btn ${sortOrder === 'level_element' ? 'active' : ''}`}
-            onClick={() => setSortOrder('level_element')}
-          >
-            <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            Level
-          </button>
-        </div>
-      </div>
+      {/* Search and Sort Controls */}
+      <SearchSortControls
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search class name, element, level, judge..."
+        sortOptions={sortOptions}
+        sortOrder={sortOrder}
+        onSortChange={(value) => setSortOrder(value as 'class_order' | 'element_level' | 'level_element')}
+        isCollapsed={isSearchCollapsed}
+        onToggleCollapse={() => setIsSearchCollapsed(!isSearchCollapsed)}
+        resultsLabel={`${filteredClasses.length} of ${classes.length} classes`}
+      />
 
       {/* Combined Class Filter Tabs */}
       <TabBar

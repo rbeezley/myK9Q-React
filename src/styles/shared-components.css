@@ -84,7 +84,9 @@
 
 .search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--muted-foreground);
   pointer-events: none;
 }
@@ -500,16 +502,23 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 999;
+  z-index: 10000 !important; /* Must be above all page elements including announcement banner */
   min-width: 150px;
 }
 
 .reset-option {
+  width: 100%;
   padding: 0.75rem 1rem;
-  cursor: pointer;
-  font-size: 0.875rem;
+  background: none;
+  border: none;
+  text-align: left;
   color: var(--foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
   transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .reset-option:hover {
@@ -534,78 +543,27 @@
 /* ========================
    Dialog Overlays
    ======================== */
-.reset-dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.reset-dialog {
-  background: var(--card);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 var(--token-space-2xl) 40px rgba(0, 0, 0, 0.2);
-}
-
-.reset-dialog h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--foreground);
-}
-
-.reset-dialog p {
-  color: var(--foreground);
-  margin-bottom: 0.75rem;
-  font-size: 0.875rem;
+/* Reset Dialog - Now uses shared dialog classes from shared-dialog.css */
+/* Only specific overrides needed here */
+.reset-dialog-container {
+  max-width: 450px;
 }
 
 .reset-dialog-warning {
   color: var(--destructive);
   font-size: 0.8125rem;
-  margin-bottom: 1.25rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
 }
 
-.reset-dialog-buttons {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-.reset-dialog-cancel,
+/* Override primary button to use theme color instead of default */
 .reset-dialog-confirm {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.reset-dialog-cancel {
-  background: var(--muted);
-  color: var(--foreground);
-}
-
-.reset-dialog-cancel:hover {
-  background: var(--muted-hover);
-}
-
-.reset-dialog-confirm {
-  background: var(--destructive);
-  color: white;
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
 }
 
 .reset-dialog-confirm:hover {
-  background: var(--destructive-hover);
+  opacity: 0.9 !important;
 }
 
 /* ========================

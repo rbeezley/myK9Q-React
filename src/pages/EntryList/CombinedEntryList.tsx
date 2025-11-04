@@ -33,6 +33,13 @@ export const CombinedEntryList: React.FC = () => {
     classIdB
   });
 
+  // Force fresh fetch on mount to avoid stale cache issues after scoring
+  // This ensures we always see the latest scores after navigating back from scoresheet or page refresh
+  useEffect(() => {
+    console.log('🔄 CombinedEntryList mounted - forcing cache refresh to get latest scores');
+    refresh(true); // Force cache invalidation on mount
+  }, [refresh]); // Run when refresh function changes (effectively once per mount)
+
   // Actions using shared hook
   const {
     handleStatusChange: handleStatusChangeHook,
@@ -83,31 +90,15 @@ export const CombinedEntryList: React.FC = () => {
     console.log('🔥🔥🔥 CombinedEntryList handleEntryUpdate CALLED');
     console.log('🔥 payload:', payload);
     console.log('🔥 payload.eventType:', payload.eventType);
-    console.log('🔥 payload.new:', payload.new);
 
-    // Update local entries immediately based on real-time changes
-    if (payload.eventType === 'UPDATE' && payload.new) {
-      console.log('🔥 Updating entry ID:', payload.new.id, 'to status:', payload.new.entry_status);
-      setLocalEntries(prev => {
-        const updated = prev.map(entry =>
-          entry.id === payload.new.id
-            ? {
-                ...entry,
-                checkedIn: payload.new.entry_status !== 'none',
-                status: payload.new.entry_status,
-                inRing: payload.new.in_ring || false,
-                isScored: payload.new.is_scored || false
-              }
-            : entry
-        );
-        console.log('🔥 Updated entries, found entry?', updated.some(e => e.id === payload.new.id));
-        return updated;
-      });
-      console.log('🔥 State update completed');
-    } else {
-      console.log('🔥 Skipping update - conditions not met');
+    // For local-first architecture, we need to refresh from entryService
+    // which will merge server updates with pending local changes
+    if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+      console.log('🔥 Real-time update detected, refreshing from entryService (will merge with pending changes)');
+      // Use refresh which goes through entryService -> localStateManager
+      refresh();
     }
-  }, []);
+  }, [refresh]);
 
   useEntryListSubscriptions({
     classIds,
@@ -117,13 +108,9 @@ export const CombinedEntryList: React.FC = () => {
     enabled: classIds.length > 0
   });
 
-  // Sync local entries with fetched data whenever entries updates
-  // Using useEffect here is intentional for syncing external data
+  // Sync local entries with fetched data - now simple since LocalStateManager handles merging
   useEffect(() => {
-    if (entries.length > 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocalEntries(entries);
-    }
+    setLocalEntries(entries);
   }, [entries]);
 
   // Initial load animation
@@ -153,6 +140,14 @@ export const CombinedEntryList: React.FC = () => {
     : filteredEntries.filter(e => e.section === sectionFilter);
 
   const sortedEntries = [...sectionFilteredEntries].sort((a, b) => {
+    // ALWAYS sort "in-ring" entries to the top first
+    const aInRing = a.status === 'in-ring';
+    const bInRing = b.status === 'in-ring';
+
+    if (aInRing && !bInRing) return -1; // a goes first
+    if (!aInRing && bInRing) return 1;  // b goes first
+
+    // If both or neither are in-ring, use the selected sort order
     if (sortOrder === 'section-armband') {
       // Sort by section first, then armband
       if (a.section && b.section && a.section !== b.section) {
@@ -569,13 +564,19 @@ export const CombinedEntryList: React.FC = () => {
             </h1>
             {/* Show status badge */}
             {statusBadge && (
-              <span className={`class-status-badge ${statusBadge.className}`}>
-                {statusBadge.text}
-              </span>
+              <>
+                <span className="trial-separator">•</span>
+                <span className={`class-status-badge ${statusBadge.className}`}>
+                  {statusBadge.text}
+                </span>
+              </>
             )}
             {/* Show Section A/B indicator */}
             {classInfo?.judgeNameB && classInfo.judgeNameB !== classInfo.judgeName && (
-              <span className="class-status-badge sections-badge">Section A & B</span>
+              <>
+                <span className="trial-separator">•</span>
+                <span className="class-status-badge sections-badge">Section A & B</span>
+              </>
             )}
           </div>
           <div className="class-subtitle">
@@ -782,7 +783,7 @@ export const CombinedEntryList: React.FC = () => {
           <div className="grid-responsive">
             {currentEntries.map((entry) => (
               <DogCard
-                key={entry.id}
+                key={`${entry.id}-${entry.status}-${entry.isScored}`}
                 armband={entry.armband}
                 callName={entry.callName}
                 breed={entry.breed}

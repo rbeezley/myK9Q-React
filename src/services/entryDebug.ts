@@ -16,35 +16,12 @@ export async function debugMarkInRing(entryId: number, inRing: boolean = true): 
   console.log(`🧪 Debug: Manually updating entry ${entryId} is_in_ring to:`, inRing);
 
   try {
-    // Use the same logic as the main markInRing function
-    const { data: existingResult } = await supabase
-      .from('results')
-      .select('id')
-      .eq('entry_id', entryId)
-      .single();
-
-    let data, error;
-    if (existingResult) {
-      const result = await supabase
-        .from('results')
-        .update({ is_in_ring: inRing })
-        .eq('entry_id', entryId)
-        .select('id, entry_id, is_in_ring');
-      data = result.data;
-      error = result.error;
-    } else {
-      const result = await supabase
-        .from('results')
-        .insert({
-          entry_id: entryId,
-          is_in_ring: inRing,
-          is_scored: false,
-          result_status: 'pending'
-        })
-        .select('id, entry_id, is_in_ring');
-      data = result.data;
-      error = result.error;
-    }
+    // Direct update to entries table (results table no longer exists)
+    const { data, error } = await supabase
+      .from('entries')
+      .update({ is_in_ring: inRing })
+      .eq('id', entryId)
+      .select('id, is_in_ring');
 
     if (error) {
       console.error('🧪 Debug update error:', error);
@@ -52,9 +29,8 @@ export async function debugMarkInRing(entryId: number, inRing: boolean = true): 
     }
 
     console.log('🧪 Debug update successful:', data);
-    console.log('🧪 Updated result details:', {
-      resultId: data?.[0]?.id,
-      entryId: data?.[0]?.entry_id,
+    console.log('🧪 Updated entry details:', {
+      entryId: data?.[0]?.id,
       inRing: data?.[0]?.is_in_ring
     });
     console.log('🧪 Now watch for real-time subscription payload in other tabs...');

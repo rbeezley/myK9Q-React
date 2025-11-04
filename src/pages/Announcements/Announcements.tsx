@@ -239,7 +239,7 @@ export const Announcements: React.FC = () => {
       <PullToRefresh
         onRefresh={handleRefresh}
         enabled={settings.pullToRefresh}
-        threshold={settings.pullSensitivity === 'easy' ? 60 : settings.pullSensitivity === 'firm' ? 100 : 80}
+        threshold={80}
       >
       <div className="announcements-content">
         {error && (

@@ -11,7 +11,6 @@
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { submitScore } from './entryService';
 
@@ -83,7 +82,7 @@ class SyncManager {
 
   /**
    * Subscribe to real-time updates for a resource
-   * Respects user settings for realTimeSync
+   * Real-time sync is always enabled for multi-user trials
    */
   subscribeToUpdates(
     key: string,
@@ -91,14 +90,6 @@ class SyncManager {
     filter: string,
     callback: (payload: any) => void
   ): () => void {
-    const settings = useSettingsStore.getState().settings;
-
-    // If real-time sync is disabled, return a no-op unsubscribe
-    if (!settings.realTimeSync) {
-      console.log(`⏸️ Real-time sync disabled, skipping subscription for ${key}`);
-      return () => {};
-    }
-
     // Check if already subscribed
     if (this.subscriptions.has(key)) {
       console.warn(`Already subscribed to ${key}, unsubscribing old subscription`);
@@ -188,28 +179,16 @@ class SyncManager {
   }
 
   /**
-   * Start batch sync based on user settings
+   * Start batch sync - now a no-op since real-time sync is always enabled
    */
   private startBatchSync() {
-    const settings = useSettingsStore.getState().settings;
-
-    // Clear existing interval
+    // Clear existing interval if any
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = null;
     }
 
-    // Don't start batch sync if manual or immediate
-    if (settings.syncFrequency === 'manual' || settings.syncFrequency === 'immediate') {
-      return;
-    }
-
-    const intervalMs = settings.syncFrequency === '5s' ? 5000 : 30000;
-
-    console.log(`⏱️ Starting batch sync with ${settings.syncFrequency} interval`);
-    this.syncInterval = setInterval(() => {
-      this.processSyncQueue();
-    }, intervalMs);
+    // Real-time sync is always enabled - no batch sync needed
   }
 
   /**
@@ -219,12 +198,8 @@ class SyncManager {
     this.syncQueue.push(operation);
     this.updateState({ pendingChanges: this.syncQueue.length });
 
-    const settings = useSettingsStore.getState().settings;
-
-    // If immediate sync, process right away
-    if (settings.syncFrequency === 'immediate') {
-      this.processSyncQueue();
-    }
+    // Real-time sync is always enabled - process right away
+    this.processSyncQueue();
   }
 
   /**
@@ -339,26 +314,11 @@ class SyncManager {
 
   /**
    * Check if WiFi-only sync is enabled and we're on cellular
+   * Note: WiFi-only setting removed - warnings handled by useConnectionWarning hook
    */
   isWiFiOnlyAndCellular(): boolean {
-    const settings = useSettingsStore.getState().settings;
-
-    if (!settings.wifiOnlySync) {
-      return false;
-    }
-
-    // Check connection type using Network Information API
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-
-    if (!connection) {
-      // Can't determine connection type, allow sync
-      return false;
-    }
-
-    const type = connection.effectiveType || connection.type;
-
-    // Assume cellular if not wifi or ethernet
-    return type !== 'wifi' && type !== 'ethernet' && type !== '4g';
+    // Always return false - WiFi warnings are now handled by useConnectionWarning hook
+    return false;
   }
 
   /**

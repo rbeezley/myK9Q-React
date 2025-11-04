@@ -20,51 +20,31 @@ export interface AppSettings {
   density: 'compact' | 'comfortable' | 'spacious';
 
   // Performance
-  performanceMode: 'auto' | 'low' | 'medium' | 'high';
-  imageQuality: 'low' | 'medium' | 'high' | 'original';
   enableAnimations: boolean | null; // null = auto-detect
   enableBlur: boolean | null; // null = auto-detect
   enableShadows: boolean | null; // null = auto-detect
 
   // Mobile
-  oneHandedMode: boolean;
-  handPreference: 'left' | 'right' | 'auto';
   pullToRefresh: boolean;
-  pullSensitivity: 'easy' | 'normal' | 'firm';
   hapticFeedback: boolean;
-
-  // Data & Sync
-  realTimeSync: boolean;
-  syncFrequency: 'immediate' | '5s' | '30s' | 'manual';
-  wifiOnlySync: boolean;
-  autoDownloadShows: boolean;
-  storageLimit: 100 | 500 | 1000 | -1; // MB, -1 = unlimited
-  autoCleanup: boolean;
 
   // Notifications
   enableNotifications: boolean;
   notificationSound: boolean;
+  voiceNotifications: boolean; // Speak push notifications aloud (your turn, results, etc.)
   showBadges: boolean;
   notifyYourTurnLeadDogs: 1 | 2 | 3 | 4 | 5; // How many dogs ahead to notify
 
   // Scoring
   voiceAnnouncements: boolean;
-  voiceLanguage: string; // Language code (e.g., 'en-US', 'es-ES')
-  voiceName: string; // Specific voice name (e.g., 'Microsoft David - English (United States)')
-  voiceRate: number; // 0.5 to 2.0
-  voicePitch: number; // 0 to 2.0
-  voiceVolume: number; // 0 to 1.0
+  voiceName: string; // Voice name to use (empty = browser default)
+  voiceRate: number; // 0.5 to 2.0 (speed)
   announceTimerCountdown: boolean; // Announce 30s, 10s, 5s, etc.
   announceRunNumber: boolean; // Announce armband number and dog name
   announceResults: boolean; // Announce qualification/placement
-  autoSaveFrequency: 'immediate' | '10s' | '30s' | '1m' | '5m';
-  autoSaveEnabled: boolean;
-  maxDraftsPerEntry: number; // How many auto-save drafts to keep
-  confirmationPrompts: 'always' | 'smart' | 'never'; // smart = bypass for experienced users
-  bypassConfirmationsAfter: number; // Number of successful actions before bypassing
 
   // Privacy & Security
-  autoLogout: 240 | 480 | 720 | 1440; // minutes, 240 = 4h, 480 = 8h (default), 720 = 12h, 1440 = 24h
+  autoLogout: 480; // minutes, fixed at 8 hours
 
   // Developer Tools
   developerMode: boolean;
@@ -105,48 +85,28 @@ const defaultSettings: AppSettings = {
   density: 'comfortable',
 
   // Performance
-  performanceMode: 'auto',
-  imageQuality: 'high',
   enableAnimations: null,
   enableBlur: null,
   enableShadows: null,
 
   // Mobile
-  oneHandedMode: false,
-  handPreference: 'auto',
   pullToRefresh: true,
-  pullSensitivity: 'normal',
   hapticFeedback: true,
-
-  // Data & Sync
-  realTimeSync: true,
-  syncFrequency: 'immediate',
-  wifiOnlySync: false,
-  autoDownloadShows: false,
-  storageLimit: 500,
-  autoCleanup: true,
 
   // Notifications
   enableNotifications: true,
   notificationSound: true,
+  voiceNotifications: false, // Default: disabled (users must opt-in)
   showBadges: true,
   notifyYourTurnLeadDogs: 3, // Default: notify when 3 dogs ahead
 
   // Scoring
   voiceAnnouncements: false,
-  voiceLanguage: 'en-GB',
-  voiceName: 'Google UK English Male', // Default to Google UK English Male
+  voiceName: '', // Empty = browser default
   voiceRate: 1.0,
-  voicePitch: 1.0,
-  voiceVolume: 1.0,
   announceTimerCountdown: true,
   announceRunNumber: true,
   announceResults: true,
-  autoSaveFrequency: '10s',
-  autoSaveEnabled: true,
-  maxDraftsPerEntry: 3,
-  confirmationPrompts: 'smart',
-  bypassConfirmationsAfter: 10,
 
   // Privacy & Security
   autoLogout: 480, // Default: 8 hours (typical trial length)
@@ -163,7 +123,7 @@ const defaultSettings: AppSettings = {
   devLogPerformanceMarks: false,
   consoleLogging: 'errors',
   enableBetaFeatures: false,
-  enablePerformanceMonitoring: false, // Disabled by default to minimize database costs
+  enablePerformanceMonitoring: true, // Auto-enabled to help improve the app
 };
 
 export const useSettingsStore = create<SettingsState>()(

@@ -224,3 +224,127 @@ export function undoCacheClear(): boolean {
 export function canUndoCacheClear(): boolean {
   return undoData !== null;
 }
+
+/**
+ * Auto-cleanup old cached data (older than 30 days)
+ * This runs automatically in the background to prevent storage bloat
+ */
+export async function autoCleanupOldData(): Promise<{ cleaned: number; errors: number }> {
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const cutoffTime = Date.now() - THIRTY_DAYS_MS;
+  let cleaned = 0;
+  let errors = 0;
+
+  try {
+    // Clean localStorage entries with timestamps
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+
+      // Skip auth, settings, and favorites
+      if (
+        key.includes('myK9Q_auth') ||
+        key.includes('myK9Q_settings') ||
+        key.includes('dog_favorites')
+      ) {
+        continue;
+      }
+
+      try {
+        const value = localStorage.getItem(key);
+        if (!value) continue;
+
+        // Try to parse as JSON and check for timestamp
+        const data = JSON.parse(value);
+        if (data && typeof data === 'object') {
+          const timestamp =
+            data.timestamp || data.lastUpdated || data.createdAt || data.updatedAt;
+
+          if (timestamp && new Date(timestamp).getTime() < cutoffTime) {
+            localStorage.removeItem(key);
+            cleaned++;
+            logger.log(`Auto-cleanup: Removed old data for key: ${key}`);
+          }
+        }
+      } catch {
+        // Not JSON or no timestamp - skip
+      }
+    }
+
+    // Clean IndexedDB entries (if we can access them)
+    if ('indexedDB' in window) {
+      try {
+        const databases = await indexedDB.databases();
+        for (const db of databases) {
+          const dbName = db.name;
+          if (!dbName) continue;
+
+          // Skip auth and system databases
+          if (
+            dbName.includes('auth') ||
+            dbName.includes('firebase') ||
+            dbName.includes('workbox')
+          ) {
+            continue;
+          }
+
+          // Check database modification time if available
+          // Note: Most browsers don't expose this, so this is best-effort
+          // In practice, IndexedDB cleanup would need to be done per-database
+          // with knowledge of the schema
+        }
+      } catch (error) {
+        logger.warn('Could not auto-cleanup IndexedDB:', error);
+        errors++;
+      }
+    }
+
+    // Clean service worker caches older than 30 days
+    if ('caches' in window) {
+      try {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          // Check if cache name has a timestamp
+          const match = cacheName.match(/(\d{13})/); // Unix timestamp in ms
+          if (match) {
+            const cacheTime = parseInt(match[1], 10);
+            if (cacheTime < cutoffTime) {
+              await caches.delete(cacheName);
+              cleaned++;
+              logger.log(`Auto-cleanup: Deleted old cache: ${cacheName}`);
+            }
+          }
+        }
+      } catch (error) {
+        logger.warn('Could not auto-cleanup caches:', error);
+        errors++;
+      }
+    }
+
+    if (cleaned > 0) {
+      logger.log(`Auto-cleanup completed: ${cleaned} items removed`);
+    }
+
+    return { cleaned, errors };
+  } catch (error) {
+    logger.error('Auto-cleanup failed:', error);
+    return { cleaned, errors: errors + 1 };
+  }
+}
+
+/**
+ * Schedule auto-cleanup to run periodically
+ * Call this once during app initialization
+ */
+export function scheduleAutoCleanup(): void {
+  // Run immediately on startup
+  autoCleanupOldData();
+
+  // Run daily
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  setInterval(() => {
+    autoCleanupOldData();
+  }, ONE_DAY_MS);
+
+  logger.log('Auto-cleanup scheduled (runs daily)');
+}

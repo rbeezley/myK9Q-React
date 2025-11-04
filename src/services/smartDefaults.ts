@@ -86,7 +86,6 @@ export async function generateSmartDefaults(
 
   const defaults: Partial<AppSettings> = {
     // Performance Mode - default to auto
-    performanceMode: 'auto',
 
     // Animations - based on device tier
     enableAnimations: perfSettings.animations,
@@ -95,19 +94,6 @@ export async function generateSmartDefaults(
     // Visual Effects
     enableBlur: perfSettings.blurEffects,
     enableShadows: perfSettings.shadows,
-
-    // Image Quality - based on device and connection
-    imageQuality: getImageQualityDefault(context),
-
-    // Sync Settings
-    realTimeSync: getRealTimeSyncDefault(context),
-    wifiOnlySync: context.connectionType === 'cellular',
-    syncFrequency: getSyncFrequencyDefault(context),
-    autoDownloadShows: context.deviceTier === 'high' && context.connectionQuality === 'fast',
-
-    // Storage Settings
-    storageLimit: getStorageLimitDefault(context),
-    autoCleanup: true,
 
     // Display Settings
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
@@ -125,17 +111,12 @@ export async function generateSmartDefaults(
 
     // Scoring
     voiceAnnouncements: false,
-    autoSaveFrequency: getAutoSaveFrequencyDefault(context),
-    confirmationPrompts: 'smart' as const,
 
     // Privacy & Security
     autoLogout: 480, // Default: 8 hours
 
     // Mobile
-    oneHandedMode: false,
-    handPreference: 'auto' as const,
     pullToRefresh: true,
-    pullSensitivity: 'normal' as const,
     hapticFeedback: context.deviceTier !== 'low' && 'vibrate' in navigator,
 
     // Advanced
@@ -156,7 +137,7 @@ export async function generateSmartDefaults(
 /**
  * Get image quality default based on context
  */
-function getImageQualityDefault(context: SmartDefaultsContext): 'low' | 'medium' | 'high' | 'original' {
+function _getImageQualityDefault(context: SmartDefaultsContext): 'low' | 'medium' | 'high' | 'original' {
   // If on cellular with slow connection, use low quality
   if (context.connectionType === 'cellular' && context.connectionQuality === 'slow') {
     return 'low';
@@ -177,36 +158,9 @@ function getImageQualityDefault(context: SmartDefaultsContext): 'low' | 'medium'
 }
 
 /**
- * Get real-time sync default based on context
- */
-function getRealTimeSyncDefault(context: SmartDefaultsContext): boolean {
-  // Disable on low-end devices to save resources
-  if (context.deviceTier === 'low') {
-    return false;
-  }
-
-  // Disable on slow connections
-  if (context.connectionQuality === 'slow') {
-    return false;
-  }
-
-  // Disable if battery is low and not charging
-  if (
-    context.batteryLevel !== undefined &&
-    context.batteryLevel < 0.2 &&
-    context.isCharging === false
-  ) {
-    return false;
-  }
-
-  // Enable by default for good conditions
-  return true;
-}
-
-/**
  * Get sync frequency default based on context
  */
-function getSyncFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '5s' | '30s' | 'manual' {
+function _getSyncFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '5s' | '30s' | 'manual' {
   // Low-end devices: 30 second intervals
   if (context.deviceTier === 'low') {
     return '30s';
@@ -229,7 +183,7 @@ function getSyncFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '
 /**
  * Get storage limit default based on context
  */
-function getStorageLimitDefault(context: SmartDefaultsContext): 100 | 500 | 1000 | -1 {
+function _getStorageLimitDefault(context: SmartDefaultsContext): 100 | 500 | 1000 | -1 {
   // Low-end devices: 100MB
   if (context.deviceTier === 'low') {
     return 100;
@@ -247,7 +201,7 @@ function getStorageLimitDefault(context: SmartDefaultsContext): 100 | 500 | 1000
 /**
  * Get auto-save frequency default based on context
  */
-function getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '10s' | '30s' | '1m' | '5m' {
+function _getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '10s' | '30s' | '1m' | '5m' {
   // High-end devices with good connection: immediate
   if (context.deviceTier === 'high' && context.connectionQuality === 'fast') {
     return 'immediate';
@@ -269,11 +223,10 @@ function getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate'
 function getRoleBasedDefaults(role?: string): Partial<AppSettings> {
   const defaults: Partial<AppSettings> = {};
 
-  // Judges typically want immediate sync and voice announcements
+  // Judges typically want voice announcements and notifications
   if (role === 'judge') {
     defaults.voiceAnnouncements = true;
     defaults.notificationSound = true;
-    defaults.syncFrequency = 'immediate';
   }
 
   // Stewards may prefer quieter notifications
@@ -285,7 +238,6 @@ function getRoleBasedDefaults(role?: string): Partial<AppSettings> {
   // Exhibitors get simpler interface
   if (role === 'exhibitor') {
     defaults.density = 'comfortable';
-    defaults.confirmationPrompts = 'always';
   }
 
   return defaults;
@@ -333,14 +285,10 @@ export async function getRecommendedSettings(
   switch (scenario) {
     case 'battery-saver':
       return {
-        performanceMode: 'low',
         enableAnimations: false,
         reduceMotion: true,
         enableBlur: false,
         enableShadows: false,
-        realTimeSync: false,
-        syncFrequency: 'manual',
-        imageQuality: 'low',
         notificationSound: false,
         hapticFeedback: false,
         voiceAnnouncements: false,
@@ -348,28 +296,17 @@ export async function getRecommendedSettings(
 
     case 'performance':
       return {
-        performanceMode: 'high',
         enableAnimations: true,
         reduceMotion: false,
         enableBlur: true,
         enableShadows: true,
-        realTimeSync: true,
-        syncFrequency: 'immediate',
-        imageQuality: 'high',
         notificationSound: true,
         hapticFeedback: true,
         density: 'spacious',
       };
 
     case 'data-saver':
-      return {
-        imageQuality: 'low',
-        wifiOnlySync: true,
-        realTimeSync: false,
-        syncFrequency: 'manual',
-        autoDownloadShows: false,
-        storageLimit: 100,
-      };
+      return {};
 
     case 'balanced':
     default:
@@ -397,22 +334,9 @@ export async function validateSettings(
     recommendations.enableAnimations = false;
   }
 
-  // Check if real-time sync is enabled on slow connection
-  if (context.connectionQuality === 'slow' && settings.realTimeSync) {
-    warnings.push('Real-time sync may be slow on this connection');
-    recommendations.realTimeSync = false;
-  }
-
-  // Check if high image quality is used on cellular
-  if (context.connectionType === 'cellular' && settings.imageQuality === 'high') {
-    warnings.push('High image quality may use significant data on cellular');
-    recommendations.imageQuality = 'medium';
-  }
-
-  // Check if sync is not WiFi-only on cellular
-  if (context.connectionType === 'cellular' && !settings.wifiOnlySync) {
-    warnings.push('Syncing on cellular may use significant data');
-    recommendations.wifiOnlySync = true;
+  // Check if sync is on cellular
+  if (context.connectionType === 'cellular') {
+    warnings.push('Syncing on cellular may use significant data - consider using WiFi when possible');
   }
 
   // Check if blur effects are enabled on low-end GPU
@@ -466,18 +390,6 @@ export async function getOptimizationSuggestions(
       category = 'Performance';
       impact = 'high';
       suggestion = `Disabling ${setting.replace('enable', '').toLowerCase()} will improve performance`;
-    } else if (setting === 'imageQuality') {
-      category = 'Data Usage';
-      impact = 'medium';
-      suggestion = 'Reducing image quality will save data and improve loading times';
-    } else if (setting === 'realTimeSync') {
-      category = 'Sync';
-      impact = 'medium';
-      suggestion = 'Disabling real-time sync will reduce battery and data usage';
-    } else if (setting === 'wifiOnlySync') {
-      category = 'Data Usage';
-      impact = 'high';
-      suggestion = 'Enabling WiFi-only sync will prevent cellular data usage';
     }
 
     suggestions.push({

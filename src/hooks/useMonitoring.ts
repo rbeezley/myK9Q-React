@@ -2,14 +2,13 @@
 /**
  * useMonitoring Hook
  *
- * Integrates performance monitoring, analytics, and rage detection
+ * Integrates performance monitoring and analytics
  * into React components with minimal boilerplate.
  */
 
 import { useEffect, useCallback, useRef } from 'react';
 import { performanceMonitor } from '@/services/performanceMonitor';
 import { analyticsService } from '@/services/analyticsService';
-import { rageClickDetector } from '@/services/rageClickDetector';
 
 /**
  * Track component render performance
@@ -152,28 +151,6 @@ export function usePerformanceMeasure() {
   return { mark, measure };
 }
 
-/**
- * Monitor rage clicks on specific elements
- */
-export function useRageClickMonitoring() {
-  const getRagePatterns = useCallback(() => {
-    return rageClickDetector.getRagePatterns();
-  }, []);
-
-  const getHighConfidenceRage = useCallback(() => {
-    return rageClickDetector.getHighConfidenceRageEvents();
-  }, []);
-
-  const getStats = useCallback(() => {
-    return rageClickDetector.getStatistics();
-  }, []);
-
-  return {
-    getRagePatterns,
-    getHighConfidenceRage,
-    getStats,
-  };
-}
 
 /**
  * Enable/disable monitoring on component mount/unmount
@@ -182,7 +159,6 @@ export function useMonitoringControl(enabled = true): void {
   useEffect(() => {
     performanceMonitor.setEnabled(enabled);
     analyticsService.setEnabled(enabled);
-    rageClickDetector.setEnabled(enabled);
 
     return () => {
       // Don't disable on unmount - monitoring should continue
@@ -278,7 +254,6 @@ export function useMonitoring(componentName: string) {
   const { track } = useActionTracking(componentName);
   const { trackEvent, trackTiming } = useEventTracking();
   const { mark, measure } = usePerformanceMeasure();
-  const rageMonitoring = useRageClickMonitoring();
   const { getSession } = useAnalyticsSession();
 
   return {
@@ -287,7 +262,6 @@ export function useMonitoring(componentName: string) {
     trackTiming,
     mark,
     measure,
-    rageMonitoring,
     getSession,
   };
 }

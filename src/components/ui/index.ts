@@ -41,8 +41,6 @@ export { StickyHeader, StickySectionHeader } from './StickyHeader';
 export type { StickyHeaderProps, StickySectionHeaderProps } from './StickyHeader';
 export { DeviceDebugPanel } from './DeviceDebugPanel';
 export type { DeviceDebugPanelProps } from './DeviceDebugPanel';
-export { PerformanceSettingsPanel } from './PerformanceSettingsPanel';
-export type { PerformanceSettingsPanelProps } from './PerformanceSettingsPanel';
 export { DeviceTierToast } from './DeviceTierToast';
 export type { DeviceTierToastProps } from './DeviceTierToast';
 export { CollapsibleSection, CollapsibleSectionGroup } from './CollapsibleSection';

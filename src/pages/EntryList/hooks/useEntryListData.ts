@@ -4,6 +4,7 @@ import { useStaleWhileRevalidate } from '../../../hooks/useStaleWhileRevalidate'
 import { getClassEntries } from '../../../services/entryService';
 import { Entry } from '../../../stores/entryStore';
 import { supabase } from '../../../lib/supabase';
+import { localStateManager } from '../../../services/localStateManager';
 
 export interface ClassInfo {
   className: string;
@@ -77,7 +78,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
       ).length;
 
       classInfoData = {
-        className: `${firstEntry.element} ${firstEntry.level}${firstEntry.section ? ` ${firstEntry.section}` : ''}`,
+        className: `${firstEntry.element} ${firstEntry.level}${firstEntry.section && firstEntry.section !== '-' ? ` ${firstEntry.section}` : ''}`,
         element: firstEntry.element || '',
         level: firstEntry.level || '',
         section: firstEntry.section || '',
@@ -185,6 +186,17 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refresh]);
+
+  // Subscribe to LocalStateManager changes
+  // When scoring updates local state, this triggers a refresh to show the new data
+  useEffect(() => {
+    const unsubscribe = localStateManager.subscribe(() => {
+      console.log('🔄 LocalStateManager changed, forcing cache bypass');
+      refresh(true); // Force bypass cache to get fresh merged data
+    });
+
+    return () => unsubscribe();
   }, [refresh]);
 
   return {

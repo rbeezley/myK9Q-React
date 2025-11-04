@@ -6,6 +6,7 @@
  */
 
 import { useSettingsStore } from '@/stores/settingsStore';
+import voiceAnnouncementService from './voiceAnnouncementService';
 
 export type NotificationType =
   | 'class_starting'
@@ -378,6 +379,12 @@ class NotificationService {
         navigator.vibrate(vibrationPattern);
       }
 
+      // Voice announcement if enabled (use voiceNotifications for push notifications)
+      // Suppress voice notifications if actively scoring to prevent interrupting timer announcements
+      if (settings.voiceNotifications && !payload.silent && !voiceAnnouncementService.isScoringInProgress()) {
+        this.announceNotification(payload);
+      }
+
       // Create notification options
       const options: NotificationOptions = {
         body: payload.body,
@@ -563,6 +570,86 @@ class NotificationService {
         return [100]; // Single short pulse
       default:
         return [150]; // Single medium pulse
+    }
+  }
+
+  /**
+   * Announce notification using voice synthesis
+   */
+  private announceNotification(payload: NotificationPayload): void {
+    try {
+      // Create concise voice announcement based on notification type
+      let text = '';
+
+      switch (payload.type) {
+        case 'your_turn': {
+          // Extract dog name and armband from data or title
+          const dogName = payload.data?.callName || '';
+          const armband = payload.data?.armbandNumber || '';
+          const dogsAhead = payload.data?.dogsAhead || 1;
+
+          if (dogsAhead === 1) {
+            text = dogName ? `${dogName}, number ${armband}, you're up next` : 'You\'re up next';
+          } else {
+            text = dogName ? `${dogName}, number ${armband}, you're ${dogsAhead} dogs away` : `You're ${dogsAhead} dogs away`;
+          }
+          break;
+        }
+
+        case 'results_posted': {
+          const dogName = payload.data?.callName as string || '';
+          const placement = payload.data?.placement as number | undefined;
+          const qualified = payload.data?.qualified as boolean | undefined;
+
+          if (placement && typeof placement === 'number' && placement <= 4) {
+            const ordinals = ['', 'first', 'second', 'third', 'fourth'];
+            text = `${dogName}, ${ordinals[placement]} place`;
+            if (qualified) {
+              text += ', qualified';
+            }
+          } else {
+            text = dogName ? `Results posted for ${dogName}` : 'Results posted';
+          }
+          break;
+        }
+
+        case 'class_starting': {
+          const className = payload.data?.className || '';
+          text = className ? `${className} starting soon` : 'Class starting soon';
+          break;
+        }
+
+        case 'announcement':
+        case 'urgent_announcement': {
+          // For announcements, just announce the title (body might be too long)
+          text = payload.title.replace(/🚨/g, '').replace(/URGENT:/g, 'Urgent announcement,');
+          break;
+        }
+
+        case 'system_update': {
+          text = 'App update available';
+          break;
+        }
+
+        case 'sync_error': {
+          text = 'Sync error occurred';
+          break;
+        }
+
+        default:
+          // For unknown types, use title
+          text = payload.title;
+      }
+
+      if (text) {
+        voiceAnnouncementService.announce({
+          text,
+          priority: payload.priority === 'urgent' ? 'high' : 'normal',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to announce notification:', error);
+      // Don't throw - voice announcement failure shouldn't break notifications
     }
   }
 

@@ -20,6 +20,8 @@ import { useAutoLogout } from './hooks/useAutoLogout';
 import { usePushNotificationAutoSwitch } from './hooks/usePushNotificationAutoSwitch';
 import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
+import { scheduleAutoCleanup } from './utils/cacheManager';
+import { localStateManager } from './services/localStateManager';
 
 // Import unified container system
 import './styles/containers.css';
@@ -91,6 +93,11 @@ const PerformanceMetricsAdmin = React.lazy(() =>
     default: module.PerformanceMetricsAdmin
   }))
 );
+const AuditLog = React.lazy(() =>
+  import('./pages/Admin/AuditLog').then(module => ({
+    default: module.default
+  }))
+);
 
 // Component that needs to be inside AuthProvider to use auth context
 function AppWithAuth() {
@@ -113,6 +120,12 @@ function AppWithAuth() {
     if (!cancelled) {
       // Initialize user settings (theme, font size, density, etc.)
       initializeSettings();
+
+      // 🚀 LOCAL-FIRST: Initialize local state manager
+      // This loads persisted entries and pending changes from IndexedDB
+      localStateManager.initialize().catch((error) => {
+        console.error('❌ Failed to initialize local state manager:', error);
+      });
     }
 
     // Apply device-specific CSS classes
@@ -133,6 +146,28 @@ function AppWithAuth() {
 
     // Initialize developer tools
     developerModeService.initialize();
+
+    // Schedule auto-cleanup of old cached data (runs daily)
+    scheduleAutoCleanup();
+
+    // 🚀 LOCAL-FIRST: Schedule garbage collection for failed pending changes
+    // Runs daily to clean up old failed changes (7+ days old)
+    const runGarbageCollection = async () => {
+      try {
+        const result = await localStateManager.garbageCollect();
+        if (result.discarded > 0) {
+          console.log(`🗑️ Garbage collection: discarded ${result.discarded} old failed changes`);
+        }
+      } catch (error) {
+        console.error('❌ Failed to run garbage collection:', error);
+      }
+    };
+
+    // Run immediately on startup
+    runGarbageCollection();
+
+    // Run daily (every 24 hours)
+    const gcInterval = setInterval(runGarbageCollection, 24 * 60 * 60 * 1000);
 
     // Send performance report on page unload (if monitoring enabled and has problems)
     const handleBeforeUnload = async () => {
@@ -155,6 +190,7 @@ function AppWithAuth() {
       cancelled = true;
       stopMonitoring();
       notificationIntegration.destroy();
+      clearInterval(gcInterval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
@@ -378,6 +414,16 @@ function AppWithAuth() {
               <ProtectedRoute>
                 <Suspense fallback={<PageLoader message="Loading Performance Metrics..." />}>
                   <PerformanceMetricsAdmin />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/:licenseKey/audit-log"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading Audit Log..." />}>
+                  <AuditLog />
                 </Suspense>
               </ProtectedRoute>
             }

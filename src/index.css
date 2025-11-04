@@ -2,6 +2,7 @@
 @import './styles/design-tokens.css';
 @import './styles/apple-design-system.css';
 @import './styles/shared-components.css';
+@import './components/dialogs/shared-dialog.css';
 @import './styles/message-banner.css';
 @import './styles/page-container.css';
 @import './styles/utilities.css';

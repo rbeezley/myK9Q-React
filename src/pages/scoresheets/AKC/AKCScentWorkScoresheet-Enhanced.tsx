@@ -493,7 +493,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           }
         }
 
-        // Remove from ring and navigate
+        // Remove from ring before navigating back
+
         if (currentEntry?.id) {
           try {
             await markInRing(currentEntry.id, false);
@@ -767,17 +768,29 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     const remainingMs = maxTimeMs - stopwatchTime;
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
-    // Announce at exactly 30 seconds remaining (only once)
-    if (remainingSeconds === 30 && !has30SecondAnnouncedRef.current) {
+    // Announce when crossing the 30-second threshold (prevents race condition)
+    // Trigger when: 29 < remaining <= 30 seconds
+    if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
+      console.log('[VoiceAnnouncement] Triggering 30-second warning');
       voiceAnnouncementService.announceTimeRemaining(30);
       has30SecondAnnouncedRef.current = true;
     }
 
-    // Reset flag if we're not at 30 seconds (in case timer is reset/restarted)
-    if (remainingSeconds !== 30 && has30SecondAnnouncedRef.current) {
+    // Reset flag if we're above 30 seconds (in case timer is reset/restarted)
+    if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
   }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, currentAreaIndex]);
+
+  // Set scoring active state to suppress push notification voices while timing
+  useEffect(() => {
+    voiceAnnouncementService.setScoringActive(isStopwatchRunning);
+
+    // Cleanup: ensure scoring state is cleared when component unmounts
+    return () => {
+      voiceAnnouncementService.setScoringActive(false);
+    };
+  }, [isStopwatchRunning]);
 
   const handleAreaUpdate = (index: number, field: keyof AreaScore, value: any) => {
     setAreas(prev => prev.map((area, i) =>
@@ -997,6 +1010,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       navigate(`/class/${classId}/entries`);
     }
   }, [isLoadingEntry, currentEntry, classId, navigate]);
+
 
   // Show loading state while entry is being loaded
   if (isLoadingEntry) {

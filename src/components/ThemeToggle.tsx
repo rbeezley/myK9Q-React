@@ -91,7 +91,6 @@ export function ThemeToggle() {
             <div className="theme-color-preview" style={{ background: '#007AFF' }}></div>
             <div className="theme-option-content">
               <strong>Original Blue</strong>
-              <span>Apple system color</span>
             </div>
             {activeTheme === 'blue' && <span className="active-indicator">✓ Active</span>}
           </button>
@@ -104,7 +103,6 @@ export function ThemeToggle() {
             <div className="theme-color-preview" style={{ background: '#10b981' }}></div>
             <div className="theme-option-content">
               <strong>Emerald Green</strong>
-              <span>Landing page match</span>
             </div>
             {activeTheme === 'green' && <span className="active-indicator">✓ Active</span>}
           </button>
@@ -117,7 +115,6 @@ export function ThemeToggle() {
             <div className="theme-color-preview" style={{ background: '#f97316' }}></div>
             <div className="theme-option-content">
               <strong>Vibrant Orange</strong>
-              <span>Energetic & sporty</span>
             </div>
             {activeTheme === 'orange' && <span className="active-indicator">✓ Active</span>}
           </button>
@@ -130,23 +127,8 @@ export function ThemeToggle() {
             <div className="theme-color-preview" style={{ background: '#8b5cf6' }}></div>
             <div className="theme-option-content">
               <strong>Rich Purple</strong>
-              <span>Sophisticated & calming</span>
             </div>
             {activeTheme === 'purple' && <span className="active-indicator">✓ Active</span>}
-          </button>
-        </div>
-
-        <div className="theme-toggle-footer">
-          <button
-            className="theme-toggle-button"
-            onClick={() => {
-              const themes: ThemeColor[] = ['blue', 'green', 'orange', 'purple'];
-              const currentIndex = themes.indexOf(activeTheme);
-              const nextTheme = themes[(currentIndex + 1) % themes.length];
-              switchTheme(nextTheme);
-            }}
-          >
-            Switch to {activeTheme === 'blue' ? 'Green' : activeTheme === 'green' ? 'Orange' : activeTheme === 'orange' ? 'Purple' : 'Blue'} Theme
           </button>
         </div>
 

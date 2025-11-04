@@ -232,11 +232,7 @@ async function mergeSettings(
 ): Promise<AppSettings> {
   // Device-specific settings that should prefer local
   const deviceSpecificKeys: (keyof AppSettings)[] = [
-    'oneHandedMode',
-    'handPreference',
     'hapticFeedback',
-    'performanceMode', // Auto-detected per device
-    'imageQuality',
     'enableAnimations',
     'enableBlur',
     'enableShadows',

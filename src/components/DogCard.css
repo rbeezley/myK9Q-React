@@ -149,11 +149,11 @@
 }
 
 .section-badge.section-a {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #6b7280; /* Medium gray - slightly lighter */
 }
 
 .section-badge.section-b {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: #4b5563; /* Darker gray */
 }
 
 /* Dog details - center column */

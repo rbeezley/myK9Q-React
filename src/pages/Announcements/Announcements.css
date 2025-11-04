@@ -190,14 +190,7 @@
   align-items: center;
 }
 
-.search-icon {
-  position: absolute;
-  left: 0.75rem;
-  width: 1rem;
-  height: 1rem;
-  color: var(--token-text-secondary);
-  z-index: 1;
-}
+/* .search-icon is defined in shared-components.css */
 
 .search-input {
   width: 100%;

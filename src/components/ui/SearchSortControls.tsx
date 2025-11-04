@@ -8,6 +8,7 @@ export interface SortOption {
   icon?: React.ReactNode;
 }
 
+
 export interface SearchSortControlsProps {
   /** Current search term */
   searchTerm: string;
@@ -67,7 +68,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({
     <div className={`search-sort-controls-wrapper ${className}`.trim()}>
       {/* Collapse Toggle Header */}
       {onToggleCollapse && (
-        <div className="search-controls-header">
+        <div className={`search-controls-header ${isCollapsed ? 'collapsed' : ''}`}>
           <button
             className={`search-controls-toggle ${isCollapsed ? 'collapsed' : 'expanded'}`}
             onClick={onToggleCollapse}
