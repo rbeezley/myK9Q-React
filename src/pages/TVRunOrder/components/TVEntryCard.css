@@ -25,13 +25,13 @@
 }
 
 .tv-entry-card.in-ring {
-  background: rgba(59, 130, 246, 0.15); /* Blue highlight */
-  border-left: 3px solid #3b82f6;
+  background: var(--primary-subtle);
+  border-left: 3px solid var(--primary);
   animation: pulse 2s ease-in-out infinite;
 }
 
 .theme-dark .tv-entry-card.in-ring {
-  background: rgba(59, 130, 246, 0.2);
+  background: var(--primary-subtle);
 }
 
 @keyframes pulse {
@@ -44,7 +44,7 @@
   flex-shrink: 0;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -71,11 +71,11 @@
 }
 
 .tv-entry-section-badge.section-a {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: var(--primary);
 }
 
 .tv-entry-section-badge.section-b {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: var(--token-accent);
 }
 
 /* Entry info */
@@ -170,38 +170,18 @@
 }
 
 .checkin-badge.checkin-2 {
-  background: #fef3c7; /* Yellow - Conflict */
+  background: var(--token-warning-contrast);
   color: white;
 }
 
 .checkin-badge.checkin-3 {
-  background: #ef4444; /* Red - Pulled */
+  background: var(--token-error-contrast);
   color: white;
 }
 
 .checkin-badge.checkin-4 {
-  background: #8b5cf6; /* Teal - At Gate */
+  background: var(--token-accent);
   color: white;
-}
-
-.theme-dark .checkin-badge.checkin-0 {
-  background: #9ca3af; /* Light grey for dark mode */
-}
-
-.theme-dark .checkin-badge.checkin-1 {
-  background: var(--token-success); /* Dark green for dark mode */
-}
-
-.theme-dark .checkin-badge.checkin-2 {
-  background: var(--primary); /* Brighter yellow for dark mode */
-}
-
-.theme-dark .checkin-badge.checkin-3 {
-  background: #f87171; /* Brighter red for dark mode */
-}
-
-.theme-dark .checkin-badge.checkin-4 {
-  background: #8b5cf6; /* Teal stays same */
 }
 
 /* Placement badge */
