@@ -130,50 +130,67 @@ export const useTVData = ({
         setInProgressClasses(transformedClasses);
 
         // Fetch entries for all in-progress classes
+        // NOTE: Split into batches to avoid URL length limits with .in() clause
+        let entries: any[] = [];
         if (transformedClasses.length > 0) {
-          const { data: entries, error: entryError } = await supabase
-            .from('view_entry_class_join_normalized')
-            .select(`
-              id,
-              armband,
-              call_name,
-              breed,
-              handler,
-              is_scored,
-              is_in_ring,
-              result_status,
-              section,
-              exhibitor_order,
-              trial_date,
-              trial_number,
-              element,
-              level,
-              entry_status
-            `)
-            .eq('license_key', licenseKey)
-            .in('class_id', transformedClasses.map(c => parseInt(c.id)))
-            .order('exhibitor_order');
+          const classIds = transformedClasses.map(c => parseInt(c.id));
+          const batchSize = 10; // Safe batch size for URL length
 
-          if (entryError) throw entryError;
+          // Process in batches
+          for (let i = 0; i < classIds.length; i += batchSize) {
+            const batchIds = classIds.slice(i, i + batchSize);
 
-          // Helper to map check-in status text to numeric codes
-          const mapCheckinStatus = (statusText: string | null): number => {
-            if (!statusText) return 0;
-            const statusMap: Record<string, number> = {
-              'none': 0,
-              'checked-in': 1,
-              'conflict': 2,
-              'pulled': 3,
-              'at-gate': 4
-            };
-            return statusMap[statusText.toLowerCase()] ?? 0;
+            const { data: batchEntries, error: entryError } = await supabase
+              .from('view_entry_class_join_normalized')
+              .select(`
+                id,
+                armband,
+                call_name,
+                breed,
+                handler,
+                is_scored,
+                is_in_ring,
+                result_status,
+                section,
+                exhibitor_order,
+                trial_date,
+                trial_number,
+                element,
+                level,
+                entry_status
+              `)
+              .eq('license_key', licenseKey)
+              .in('class_id', batchIds)
+              .order('exhibitor_order');
+
+            if (entryError) throw entryError;
+
+            if (batchEntries) {
+              entries = [...entries, ...batchEntries];
+            }
+          }
+
+        }
+
+        // Helper to map check-in status text to numeric codes
+        const mapCheckinStatus = (statusText: string | null): number => {
+          if (!statusText) return 0;
+          const statusMap: Record<string, number> = {
+            'none': 0,
+            'checked-in': 1,
+            'conflict': 2,
+            'pulled': 3,
+            'at-gate': 4
           };
+          return statusMap[statusText.toLowerCase()] ?? 0;
+        };
 
-          // Group entries by class AND calculate counts
-          const grouped: Record<string, EntryInfo[]> = {};
-          const countsPerClass = new Map<string, {total: number, completed: number}>();
+        // Group entries by class AND calculate counts
+        const grouped: Record<string, EntryInfo[]> = {};
+        const countsPerClass = new Map<string, {total: number, completed: number}>();
 
-          (entries || []).forEach((entry: any) => {
+        if (entries.length > 0) {
+          entries.forEach((entry: any) => {
             const key = `${entry.trial_date}-${entry.trial_number}-${entry.element}-${entry.level}`;
             if (!grouped[key]) {
               grouped[key] = [];
@@ -201,19 +218,17 @@ export const useTVData = ({
               counts.completed += 1;
             }
           });
-
-          // Update class counts with calculated values
-          transformedClasses.forEach(cls => {
-            const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
-            const counts = countsPerClass.get(key) || {total: 0, completed: 0};
-            cls.entry_total_count = counts.total;
-            cls.entry_completed_count = counts.completed;
-          });
-
-          setEntriesByClass(grouped);
-        } else {
-          setEntriesByClass({});
         }
+
+        // Update class counts with calculated values
+        transformedClasses.forEach(cls => {
+          const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
+          const counts = countsPerClass.get(key) || {total: 0, completed: 0};
+          cls.entry_total_count = counts.total;
+          cls.entry_completed_count = counts.completed;
+        });
+
+        setEntriesByClass(grouped);
 
         setIsConnected(true);
         setError(null);
