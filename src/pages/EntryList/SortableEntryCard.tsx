@@ -262,6 +262,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
               onMouseDown={(e) => {
                 e.stopPropagation();
               }}
+              aria-label="More options"
               title="Reset score"
             >
               ⋯

@@ -37,8 +37,8 @@ import { MigrationTest } from './pages/MigrationTest/MigrationTest'; // Migratio
 const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ default: module.Home })));
 const DogDetails = React.lazy(() => import('./pages/DogDetails/DogDetails').then(module => ({ default: module.DogDetails })));
 const ClassList = React.lazy(() => import('./pages/ClassList/ClassList').then(module => ({ default: module.ClassList })));
-const EntryList = React.lazy(() => import('./pages/EntryList/EntryList').then(module => ({ default: module.EntryList })));
-const CombinedEntryList = React.lazy(() => import('./pages/EntryList/CombinedEntryList').then(module => ({ default: module.CombinedEntryList })));
+const EntryList = React.lazy(() => import('./pages/EntryList/EntryList'));
+const CombinedEntryList = React.lazy(() => import('./pages/EntryList/CombinedEntryList'));
 const Announcements = React.lazy(() => import('./pages/Announcements/Announcements').then(module => ({ default: module.Announcements })));
 const TVRunOrder = React.lazy(() => import('./pages/TVRunOrder/TVRunOrder').then(module => ({ default: module.TVRunOrder })));
 const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));

@@ -27,6 +27,8 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
     user: { id: '1', email: 'test@test.com' },
     showContext: { licenseKey: 'test-key', showId: 1 },
+    role: 'admin',
+    canAccess: vi.fn(() => true),
     loading: false
   })),
   AuthProvider: ({ children }: any) => children
