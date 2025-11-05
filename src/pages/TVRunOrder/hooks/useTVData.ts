@@ -144,10 +144,10 @@ export const useTVData = ({
               .from('view_entry_class_join_normalized')
               .select(`
                 id,
-                armband,
-                call_name,
-                breed,
-                handler,
+                armband_number,
+                dog_call_name,
+                dog_breed,
+                handler_name,
                 is_scored,
                 is_in_ring,
                 result_status,
@@ -199,15 +199,15 @@ export const useTVData = ({
 
             grouped[key].push({
               id: entry.id.toString(),
-              armband: entry.armband.toString(),
-              dog_name: entry.call_name,
-              breed: entry.breed || undefined,
-              handler_name: entry.handler,
+              armband: entry.armband_number.toString(),
+              dog_name: entry.dog_call_name,
+              breed: entry.dog_breed || undefined,
+              handler_name: entry.handler_name,
               status: entry.is_in_ring ? 'in_ring' :
                       entry.is_scored ? 'completed' : 'pending',
               result_status: entry.result_status || undefined,
               section: entry.section || undefined,
-              sort_order: entry.exhibitor_order?.toString() || entry.armband.toString(),
+              sort_order: entry.exhibitor_order?.toString() || entry.armband_number.toString(),
               checkin_status: mapCheckinStatus(entry.entry_status)
             });
 
