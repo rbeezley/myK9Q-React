@@ -7,6 +7,7 @@ export interface ClassInfo {
   trial_number: number;
   element_type: string;
   level?: string;
+  section?: string;
   class_name?: string;
   judge_name?: string;
   entry_total_count?: number;
@@ -102,6 +103,7 @@ export const useTVData = ({
             trial_number: cls.trials.trial_number,
             element_type: cls.element,
             level: cls.level,
+            section: cls.section,
             class_name: `${cls.element} ${cls.level || ''}`.trim(),
             judge_name: cls.judge_name,
             entry_total_count: 0,  // Will be calculated from actual entries
@@ -228,7 +230,82 @@ export const useTVData = ({
           cls.entry_completed_count = counts.completed;
         });
 
-        setEntriesByClass(grouped);
+        // Combine Novice A & B classes (similar to CombinedEntryList)
+        const combinedClasses: ClassInfo[] = [];
+        const combinedEntries: Record<string, EntryInfo[]> = {};
+        const processedNovice = new Set<string>();
+
+        transformedClasses.forEach(cls => {
+          // Check if this is a Novice class with section
+          const isNovice = cls.level?.toLowerCase().includes('novice');
+          const section = cls.section;
+          const hasSection = section === 'A' || section === 'B';
+
+          if (isNovice && hasSection) {
+            // Create a key without section for grouping
+            const baseKey = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-Novice`;
+
+            if (processedNovice.has(baseKey)) {
+              // Already processed this Novice class, skip
+              return;
+            }
+
+            // Find both A and B sections
+            const sectionA = transformedClasses.find(c =>
+              c.trial_date === cls.trial_date &&
+              c.trial_number === cls.trial_number &&
+              c.element_type === cls.element_type &&
+              c.level?.toLowerCase().includes('novice') &&
+              c.section === 'A'
+            );
+            const sectionB = transformedClasses.find(c =>
+              c.trial_date === cls.trial_date &&
+              c.trial_number === cls.trial_number &&
+              c.element_type === cls.element_type &&
+              c.level?.toLowerCase().includes('novice') &&
+              c.section === 'B'
+            );
+
+            // Combine if both sections exist
+            if (sectionA && sectionB) {
+              processedNovice.add(baseKey);
+
+              // Create combined class info
+              const combinedClass: ClassInfo = {
+                ...cls,
+                id: `${sectionA.id}-${sectionB.id}`, // Combined ID
+                class_name: `${cls.element_type} Novice A & B`,
+                level: 'Novice',
+                section: undefined, // Remove section indicator
+                entry_total_count: (sectionA.entry_total_count || 0) + (sectionB.entry_total_count || 0),
+                entry_completed_count: (sectionA.entry_completed_count || 0) + (sectionB.entry_completed_count || 0)
+              };
+
+              combinedClasses.push(combinedClass);
+
+              // Combine entries from both sections
+              const keyA = `${sectionA.trial_date}-${sectionA.trial_number}-${sectionA.element_type}-${sectionA.level}`;
+              const keyB = `${sectionB.trial_date}-${sectionB.trial_number}-${sectionB.element_type}-${sectionB.level}`;
+              const entriesA = grouped[keyA] || [];
+              const entriesB = grouped[keyB] || [];
+
+              combinedEntries[baseKey] = [...entriesA, ...entriesB];
+            } else {
+              // Only one section exists, treat as regular class
+              combinedClasses.push(cls);
+              const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
+              combinedEntries[key] = grouped[key] || [];
+            }
+          } else {
+            // Non-Novice class, add as-is
+            combinedClasses.push(cls);
+            const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
+            combinedEntries[key] = grouped[key] || [];
+          }
+        });
+
+        setInProgressClasses(combinedClasses);
+        setEntriesByClass(combinedEntries);
 
         setIsConnected(true);
         setError(null);

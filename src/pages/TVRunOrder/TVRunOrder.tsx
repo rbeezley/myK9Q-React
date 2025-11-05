@@ -103,13 +103,17 @@ export const TVRunOrder: React.FC = () => {
 
       {/* 2x2 grid of in-progress classes */}
       <div className="tv-runorder-grid">
-        {visibleClasses.map((classInfo) => (
-          <ClassRunOrder
-            key={classInfo.id}
-            classInfo={classInfo}
-            entries={entriesByClass?.[`${classInfo.trial_date}-${classInfo.trial_number}-${classInfo.element_type}-${classInfo.level}`] || []}
-          />
-        ))}
+        {visibleClasses.map((classInfo) => {
+          // Build the lookup key - for combined Novice A & B, use "Novice" without section
+          const lookupKey = `${classInfo.trial_date}-${classInfo.trial_number}-${classInfo.element_type}-${classInfo.level}`;
+          return (
+            <ClassRunOrder
+              key={classInfo.id}
+              classInfo={classInfo}
+              entries={entriesByClass?.[lookupKey] || []}
+            />
+          );
+        })}
       </div>
 
       {/* Page indicator if rotating */}
