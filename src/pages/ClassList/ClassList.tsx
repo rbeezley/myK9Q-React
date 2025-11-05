@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -21,48 +20,7 @@ import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
-
-interface ClassEntry {
-  id: number;
-  element: string;
-  level: string;
-  section: string;
-  class_name: string;
-  class_order: number;
-  judge_name: string;
-  entry_count: number;
-  completed_count: number;
-  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
-  is_completed?: boolean;
-  is_favorite: boolean;
-  time_limit_seconds?: number;
-  time_limit_area2_seconds?: number;
-  time_limit_area3_seconds?: number;
-  area_count?: number;
-  start_time?: string;
-  briefing_time?: string;
-  break_until?: string;
-  pairedClassId?: number; // For combined Novice A & B classes
-  dogs: {
-    id: number;
-    armband: number;
-    call_name: string;
-    breed: string;
-    handler: string;
-    in_ring: boolean;
-    checkin_status: number;
-    is_scored: boolean;
-  }[];
-}
-
-interface TrialInfo {
-  trial_name: string;
-  trial_date: string;
-  trial_number: number;
-  total_classes: number;
-  pending_classes: number;
-  completed_classes: number;
-}
+import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
 
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
@@ -73,241 +31,22 @@ export const ClassList: React.FC = () => {
   const { prefetch } = usePrefetch();
   const { settings } = useSettingsStore();
 
-  // Local state for data (synced from cache)
+  // Use React Query for data fetching
+  const {
+    trialInfo: trialInfoData,
+    classes: classesData,
+    isLoading,
+    isRefreshing,
+    error: fetchError,
+    refetch
+  } = useClassListData(trialId, showContext?.showId, showContext?.licenseKey);
+
+  // Local state for data (synced from React Query)
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
     console.log('🔄 Initializing favoriteClasses state');
     return new Set();
   });
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
-
-  // Fetch function that can access state
-  const fetchClassListData = useCallback(async (): Promise<{ trialInfo: TrialInfo | null; classes: ClassEntry[] }> => {
-    console.log('🔄 Starting fetchClassListData function');
-    console.log('🔍 Show context:', showContext);
-    console.log('🔍 Trial ID:', trialId);
-
-    // Load favorites first to ensure they're available when processing classes
-    let currentFavorites = new Set<number>();
-    try {
-      const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
-      console.log('🔍 Loading favorites with key:', favoritesKey);
-      const savedFavorites = localStorage.getItem(favoritesKey);
-      console.log('💾 Raw localStorage value:', savedFavorites);
-      if (savedFavorites) {
-        const favoriteIds = JSON.parse(savedFavorites) as number[];
-        currentFavorites = new Set(favoriteIds);
-        setFavoriteClasses(currentFavorites);
-        console.log('✅ Loaded favorites:', Array.from(currentFavorites));
-      } else {
-        console.log('📭 No favorites found in localStorage');
-      }
-      setFavoritesLoaded(true);
-    } catch (error) {
-      console.error('Error loading favorites from localStorage in fetchClassListData:', error);
-    }
-
-    try {
-      // Load trial info using normalized table
-      const { data: trialData, error: trialError } = await supabase
-        .from('trials')
-        .select('*')
-        .eq('show_id', showContext?.showId)
-        .eq('id', parseInt(trialId!))
-        .single();
-
-      if (trialError) {
-        console.error('Error loading trial:', trialError);
-        return { trialInfo: null, classes: [] };
-      }
-
-      // Debug: log trial data to see available fields
-      console.log('🔍 Trial data loaded:', trialData);
-
-      // Load classes with pre-calculated entry counts using view_class_summary
-      const { data: classData, error: classError } = await supabase
-        .from('view_class_summary')
-        .select('*')
-        .eq('trial_id', parseInt(trialId!))
-        .order('class_order');
-
-      if (classError) {
-        console.error('Error loading classes:', classError);
-        return { trialInfo: null, classes: [] };
-      }
-
-      // Debug: log class data to see what's loaded
-      console.log('🔍 Class data loaded:', classData);
-      console.log('🔍 Class data count:', classData?.length || 0);
-
-      if (trialData && classData) {
-        // Build trial info
-        const trialInfo: TrialInfo = {
-          trial_name: trialData.trial_name,
-          trial_date: trialData.trial_date,
-          trial_number: trialData.trial_number || trialData.trialid,
-          total_classes: classData.length,
-          pending_classes: classData.filter(c => c.is_completed !== true).length,
-          completed_classes: classData.filter(c => c.is_completed === true).length
-        };
-
-        // Load ALL entries for this trial using getClassEntries from entryService
-        // This properly queries the results table separately and joins in JavaScript
-        const classIds = classData.map(c => c.class_id);
-        const allTrialEntries = await getClassEntries(classIds, showContext?.licenseKey || '');
-
-        // Process classes with entry data
-        const processedClasses = classData.map((cls: any) => {
-          // Filter entries for this specific class using class_id
-          const entryData = allTrialEntries.filter(entry =>
-            entry.classId === cls.class_id
-          );
-
-          // Debug logging for Container Novice classes
-          if (cls.element === 'Container' && cls.level === 'Novice') {
-            console.log(`📋 Raw entry data for ${cls.element} ${cls.level} ${cls.section}:`,
-              entryData.map(e => ({
-                armband: e.armband,
-                isScored: e.isScored,
-                status: e.status
-              }))
-            );
-          }
-
-          // Process dog entries with custom status priority sorting
-          const dogs = entryData.map(entry => ({
-            id: entry.id,
-            armband: entry.armband,
-            call_name: entry.callName,
-            breed: entry.breed,
-            handler: entry.handler,
-            in_ring: entry.status === 'in-ring',
-            checkin_status: entry.status === 'checked-in' ? 1 : entry.status === 'conflict' ? 2 : entry.status === 'pulled' ? 3 : entry.status === 'at-gate' ? 4 : 0,
-            is_scored: entry.isScored
-          })).sort((a, b) => {
-            // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
-            const getStatusPriority = (dog: typeof a) => {
-              if (dog.is_scored) return 7; // Completed (last)
-              if (dog.in_ring) return 1; // In-ring (first)
-              if (dog.checkin_status === 4) return 2; // At gate
-              if (dog.checkin_status === 1) return 3; // Checked-in
-              if (dog.checkin_status === 2) return 4; // Conflict
-              if (dog.checkin_status === 0) return 5; // Not checked-in (pending)
-              if (dog.checkin_status === 3) return 6; // Pulled
-              return 8; // Unknown status
-            };
-
-            const priorityA = getStatusPriority(a);
-            const priorityB = getStatusPriority(b);
-
-            if (priorityA !== priorityB) {
-              return priorityA - priorityB;
-            }
-
-            // Secondary sort by armband number
-            return a.armband - b.armband;
-          });
-
-          // Count totals
-          const entryCount = dogs.length;
-          const completedCount = dogs.filter(dog => dog.is_scored).length;
-
-          // Construct class name from element, level, and section (hide section if it's a dash)
-          const sectionPart = cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
-          const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
-
-          // Debug logging for class card counts
-          if (cls.element === 'Container' && cls.level === 'Novice') {
-            console.log(`📊 ${className} - Total: ${entryCount}, Completed: ${completedCount}, Remaining: ${entryCount - completedCount}`);
-            console.log('Dogs with is_scored:', dogs.filter(d => d.is_scored).map(d => ({ armband: d.armband, is_scored: d.is_scored })));
-          }
-
-          return {
-            id: cls.class_id,
-            element: cls.element,
-            level: cls.level,
-            section: cls.section,
-            class_name: className,
-            class_order: cls.class_order || 999, // Default high value for classes without order
-            class_type: cls.class_type,
-            judge_name: cls.judge_name || 'TBA',
-            entry_count: entryCount,
-            completed_count: completedCount,
-            class_status: cls.class_status || 'no-status',
-            is_completed: cls.is_completed || false,
-            is_favorite: currentFavorites.has(cls.class_id),
-            time_limit_seconds: cls.time_limit_seconds,
-            time_limit_area2_seconds: cls.time_limit_area2_seconds,
-            time_limit_area3_seconds: cls.time_limit_area3_seconds,
-            area_count: cls.area_count,
-            // Parse time values from class_status_comment based on current status (not in view, but may be added later)
-            briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
-            break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
-            start_time: cls.class_status === 'start_time' ? cls.class_status_comment : undefined,
-            dogs: dogs
-          };
-        });
-
-        // Sort classes by class_order first, then element, level, section
-        const sortedClasses = processedClasses.sort((a, b) => {
-          // Primary sort: class_order (ascending)
-          if (a.class_order !== b.class_order) {
-            return a.class_order - b.class_order;
-          }
-
-          // Secondary sort: element (alphabetical)
-          if (a.element !== b.element) {
-            return a.element.localeCompare(b.element);
-          }
-
-          // Tertiary sort: level (standard progression: Novice -> Advanced -> Excellent -> Master)
-          const aLevelOrder = getLevelSortOrder(a.level);
-          const bLevelOrder = getLevelSortOrder(b.level);
-
-          if (aLevelOrder !== bLevelOrder) {
-            return aLevelOrder - bLevelOrder;
-          }
-
-          // If same level order, sort alphabetically
-          if (a.level !== b.level) {
-            return a.level.localeCompare(b.level);
-          }
-
-          // Quaternary sort: section (alphabetical)
-          return a.section.localeCompare(b.section);
-        });
-
-        return { trialInfo, classes: sortedClasses };
-      }
-
-      return { trialInfo: null, classes: [] };
-    } catch (error) {
-      console.error('Error:', error);
-      return { trialInfo: null, classes: [] };
-    }
-  }, [showContext, trialId]);
-
-  // Use stale-while-revalidate for instant loading from cache
-  const {
-    data: cachedData,
-    isStale: _isStale,
-    isRefreshing,
-    error: fetchError,
-    refresh
-  } = useStaleWhileRevalidate<{
-    trialInfo: TrialInfo | null;
-    classes: ClassEntry[];
-  }>(
-    `class-list-trial-${trialId}`,
-    fetchClassListData,
-    {
-      ttl: 60000, // 1 minute cache
-      fetchOnMount: true,
-      refetchOnFocus: true,
-      refetchOnReconnect: true
-    }
-  );
-
-  // Local state for data (synced from cache)
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
@@ -352,14 +91,17 @@ export const ClassList: React.FC = () => {
 
   // Time input states for status dialog
 
-  // Sync cached data with local state
+  // Sync React Query data with local state
   useEffect(() => {
-    if (cachedData) {
+    if (trialInfoData) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing immutable cache data to mutable local state for real-time updates
-      setTrialInfo(cachedData.trialInfo);
-      setClasses(cachedData.classes);
+      setTrialInfo(trialInfoData);
     }
-  }, [cachedData]);
+    if (classesData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing immutable cache data to mutable local state for real-time updates
+      setClasses(classesData);
+    }
+  }, [trialInfoData, classesData]);
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -441,10 +183,10 @@ export const ClassList: React.FC = () => {
     }
   }, [activePopup]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
-    await refresh();
-  };
+    await refetch();
+  }, [refetch, hapticFeedback]);
 
   // Print report handlers
   const handleGenerateCheckIn = async (classId: number) => {
@@ -544,7 +286,7 @@ export const ClassList: React.FC = () => {
           } else {
             // For other changes (INSERT, DELETE), do full refresh
             console.log('🔄 Real-time: Full refresh needed for:', payload.eventType);
-            refresh();
+            refetch();
           }
         }
       )
@@ -553,7 +295,7 @@ export const ClassList: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [trialId, showContext?.licenseKey, refresh]);
+  }, [trialId, showContext?.licenseKey, refetch]);
 
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
@@ -748,14 +490,14 @@ export const ClassList: React.FC = () => {
         console.error('❌ Update data:', updateData);
         console.error('❌ Class IDs:', idsToUpdate);
         // Revert on error
-        await refresh();
+        await refetch();
       } else {
         console.log('✅ Successfully updated class status with time');
         console.log('✅ Class IDs:', idsToUpdate);
       }
     } catch (error) {
       console.error('Exception updating class status:', error);
-      await refresh();
+      await refetch();
     }
   };
 
@@ -801,7 +543,7 @@ export const ClassList: React.FC = () => {
         console.error('❌ Class IDs:', idsToUpdate);
         console.error('❌ Full error object:', JSON.stringify(error, null, 2));
         // Revert on error
-        await refresh();
+        await refetch();
       } else {
         console.log('✅ Successfully updated class status');
         console.log('✅ Class IDs:', idsToUpdate);
@@ -812,7 +554,7 @@ export const ClassList: React.FC = () => {
       }
     } catch (error) {
       console.error('💥 Exception updating class status:', error);
-      await refresh();
+      await refetch();
     }
   };
 
@@ -1164,8 +906,8 @@ export const ClassList: React.FC = () => {
     return filtered;
   }, [classes, combinedFilter, searchTerm, sortOrder, groupNoviceClasses]);
 
-  // Show loading skeleton only if no cached data exists
-  if (!cachedData && !fetchError) {
+  // Show loading skeleton only if actively loading and no data exists
+  if (isLoading && !trialInfo && classes.length === 0) {
     return (
       <div className="class-list-container">
         <div className="flex items-center justify-center h-64">
@@ -1491,7 +1233,7 @@ export const ClassList: React.FC = () => {
         }}
         onTimeUpdate={() => {
           // Refresh class data after time update
-          refresh();
+          refetch();
         }}
       />
 

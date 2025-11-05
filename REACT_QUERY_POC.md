@@ -493,6 +493,191 @@ Provides:
 
 ---
 
+## ClassList.tsx Migration (Phase 3)
+
+**Date**: 2025-11-05
+**Status**: ✅ Complete
+**Component**: ClassList.tsx
+**Result**: Successfully migrated class list data fetching to React Query
+
+### Key Changes
+
+1. **Removed ~200 lines** of manual fetch logic from component (fetchClassListData callback)
+2. **Created centralized hooks** - `src/pages/ClassList/hooks/useClassListData.ts`
+3. **Preserved localStorage favorites** - Favorites still managed separately (not in React Query)
+4. **Maintained real-time updates** - Supabase subscriptions continue to work
+5. **Simplified refresh** - One-line `refetch()` instead of manual cache invalidation
+
+### Before (Manual Fetching)
+
+```typescript
+// 200+ lines of fetchClassListData callback
+const fetchClassListData = useCallback(async (): Promise<{ trialInfo: TrialInfo | null; classes: ClassEntry[] }> => {
+  // Load favorites from localStorage
+  let currentFavorites = new Set<number>();
+  const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
+  // ... 20 lines of favorites loading ...
+
+  // Load trial info
+  const { data: trialData, error: trialError } = await supabase
+    .from('trials')
+    .select('*')
+    .eq('show_id', showContext?.showId)
+    .eq('id', parseInt(trialId!))
+    .single();
+
+  // Load classes
+  const { data: classData, error: classError } = await supabase
+    .from('view_class_summary')
+    .select('*')
+    .eq('trial_id', parseInt(trialId!))
+    .order('class_order');
+
+  // Load ALL entries for this trial
+  const classIds = classData.map(c => c.class_id);
+  const allTrialEntries = await getClassEntries(classIds, showContext?.licenseKey || '');
+
+  // Process classes with entry data (~80 lines of processing)
+  const processedClasses = classData.map((cls: any) => {
+    const entryData = allTrialEntries.filter(entry => entry.classId === cls.class_id);
+    const dogs = entryData.map(entry => ({ /* ... */ })).sort(/* custom sort */);
+    // ... 60+ lines of processing ...
+    return { /* processed class */ };
+  });
+
+  // Sort classes (~30 lines of sorting logic)
+  const sortedClasses = processedClasses.sort(/* ... */);
+
+  return { trialInfo, classes: sortedClasses };
+}, [showContext, trialId]);
+
+// Use stale-while-revalidate
+const {
+  data: cachedData,
+  isStale: _isStale,
+  isRefreshing,
+  error: fetchError,
+  refresh
+} = useStaleWhileRevalidate<{ trialInfo: TrialInfo | null; classes: ClassEntry[] }>(
+  `class-list-trial-${trialId}`,
+  fetchClassListData,
+  { ttl: 60000, fetchOnMount: true, refetchOnFocus: true, refetchOnReconnect: true }
+);
+
+// Sync cached data with local state
+useEffect(() => {
+  if (cachedData) {
+    setTrialInfo(cachedData.trialInfo);
+    setClasses(cachedData.classes);
+  }
+}, [cachedData]);
+```
+
+### After (React Query)
+
+```typescript
+// Use React Query for data fetching (single hook call)
+const {
+  trialInfo: trialInfoData,
+  classes: classesData,
+  isLoading,
+  isRefreshing,
+  error: fetchError,
+  refetch
+} = useClassListData(trialId, showContext?.showId, showContext?.licenseKey);
+
+// Sync React Query data with local state (for real-time updates)
+useEffect(() => {
+  if (trialInfoData) {
+    setTrialInfo(trialInfoData);
+  }
+  if (classesData) {
+    setClasses(classesData);
+  }
+}, [trialInfoData, classesData]);
+
+// Simplified refresh
+const handleRefresh = useCallback(async () => {
+  hapticFeedback.medium();
+  await refetch();
+}, [refetch, hapticFeedback]);
+```
+
+### Hook Implementation
+
+**File**: `src/pages/ClassList/hooks/useClassListData.ts` (NEW - 292 lines)
+
+```typescript
+/**
+ * Hook to fetch trial information
+ */
+export function useTrialInfo(trialId: string | undefined, showId: string | number | undefined) {
+  return useQuery({
+    queryKey: classListKeys.trialInfo(trialId || ''),
+    queryFn: () => fetchTrialInfo(trialId, showId),
+    enabled: !!trialId && !!showId,
+    staleTime: 5 * 60 * 1000, // 5 minutes (trial info rarely changes)
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+  });
+}
+
+/**
+ * Hook to fetch classes with entries
+ */
+export function useClasses(trialId: string | undefined, licenseKey: string | undefined) {
+  return useQuery({
+    queryKey: classListKeys.classes(trialId || ''),
+    queryFn: () => fetchClasses(trialId, licenseKey),
+    enabled: !!trialId && !!licenseKey,
+    staleTime: 1 * 60 * 1000, // 1 minute (classes change frequently)
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
+  });
+}
+
+/**
+ * Helper hook that combines all class list data fetching
+ */
+export function useClassListData(
+  trialId: string | undefined,
+  showId: string | number | undefined,
+  licenseKey: string | undefined
+) {
+  const trialInfoQuery = useTrialInfo(trialId, showId);
+  const classesQuery = useClasses(trialId, licenseKey);
+
+  return {
+    trialInfo: trialInfoQuery.data || null,
+    classes: classesQuery.data || [],
+    isLoading: trialInfoQuery.isLoading || classesQuery.isLoading,
+    isRefreshing: trialInfoQuery.isFetching || classesQuery.isFetching,
+    error: trialInfoQuery.error || classesQuery.error,
+    refetch: () => {
+      trialInfoQuery.refetch();
+      classesQuery.refetch();
+    },
+  };
+}
+```
+
+### Testing Results
+
+- ✅ TypeScript compilation passed
+- ✅ Production build successful (ClassList chunk: 51.42 KB)
+- ✅ Real-time subscriptions still work (class status updates)
+- ✅ Favorites still managed via localStorage
+- ✅ Class grouping (Novice A&B) still works
+- ✅ All sorting and filtering preserved
+
+### Benefits
+
+1. **Cleaner Component** - Removed 200+ lines of manual fetch logic
+2. **Better Caching** - 1 minute stale time for classes, 5 minutes for trial info
+3. **Type Safety** - All types defined in hooks file
+4. **Easier Testing** - Data fetching logic isolated in hooks
+5. **Consistent Pattern** - Matches CompetitionAdmin and Home migrations
+
+---
+
 ## Home.tsx Migration (Phase 2)
 
 **Date**: 2025-11-05
@@ -570,18 +755,27 @@ const {
 ## Files Changed
 
 ### New Files
-- `src/pages/Admin/hooks/useCompetitionAdminData.ts` - React Query hooks for CompetitionAdmin
-- `src/pages/Home/hooks/useHomeDashboardData.ts` - React Query hooks for Home dashboard
+- `src/pages/Admin/hooks/useCompetitionAdminData.ts` - React Query hooks for CompetitionAdmin (191 lines)
+- `src/pages/Home/hooks/useHomeDashboardData.ts` - React Query hooks for Home dashboard (243 lines)
+- `src/pages/ClassList/hooks/useClassListData.ts` - React Query hooks for ClassList (292 lines)
 - `REACT_QUERY_POC.md` - This document
 
 ### Modified Files
 - `src/App.tsx` - Added QueryClientProvider
 - `src/pages/Admin/CompetitionAdmin.tsx` - Migrated to React Query
 - `src/pages/Home/Home.tsx` - Migrated to React Query (removed useStaleWhileRevalidate)
+- `src/pages/ClassList/ClassList.tsx` - Migrated to React Query (removed fetchClassListData callback)
 
 ---
 
-**Status**: ✅ Migration pattern validated across 2 components
-**Next Step**: Migrate ClassList.tsx or DogDetails.tsx
-**Recommendation**: Continue with gradual migration
+## Overall Progress
+
+**Components Migrated**: 3 of 6 (50%)
+**Lines of Manual Fetch Code Removed**: ~455 lines
+**Lines of Centralized Hooks Added**: ~726 lines (reusable across codebase)
+**Net Impact**: Better organization, automatic caching, consistent patterns
+
+**Status**: ✅ Migration pattern validated across 3 major components
+**Next Step**: Migrate DogDetails.tsx, PerformanceMetricsAdmin.tsx, or AuditLog.tsx
+**Recommendation**: Continue with gradual migration - proven pattern working well
 
