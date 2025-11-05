@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { supabase } from '../../../lib/supabase';
 import { subscribeToEntryUpdates } from '../../../services/entryService';
 import { localStateManager } from '../../../services/localStateManager';
 import type { RealtimeChannel as _RealtimeChannel } from '@supabase/supabase-js';

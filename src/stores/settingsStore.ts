@@ -28,6 +28,9 @@ export interface AppSettings {
   pullToRefresh: boolean;
   hapticFeedback: boolean;
 
+  // Offline
+  autoDownloadOnLogin: boolean;
+
   // Notifications
   enableNotifications: boolean;
   notificationSound: boolean;
@@ -92,6 +95,9 @@ const defaultSettings: AppSettings = {
   // Mobile
   pullToRefresh: true,
   hapticFeedback: true,
+
+  // Offline
+  autoDownloadOnLogin: true, // Default: enabled for seamless offline experience
 
   // Notifications
   enableNotifications: true,

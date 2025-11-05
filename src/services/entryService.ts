@@ -409,7 +409,7 @@ export async function submitScore(
     console.log('🔍 Entry ID:', entryId);
 
     // Remove entry_id from update data (we filter by id instead)
-    const { entry_id, ...updateFields } = scoreUpdateData;
+    const { entry_id: _entry_id, ...updateFields } = scoreUpdateData;
 
     // Update entries table directly with score data AND entry_status
     // After migration 039, this is a SINGLE write instead of two separate writes!

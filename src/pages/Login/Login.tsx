@@ -6,6 +6,8 @@ import { detectDatabaseWithValidation, isMigrationModeEnabled } from '../../serv
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
+import { autoDownloadShow } from '../../services/autoDownloadService';
+import { useSettingsStore } from '../../stores/settingsStore';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -105,6 +107,36 @@ export const Login: React.FC = () => {
     inputRefs.current[0]?.focus();
   };
 
+  /**
+   * Trigger auto-download of show data for offline use
+   * Runs in background, non-blocking
+   */
+  const triggerAutoDownload = (licenseKey: string) => {
+    console.log('📥 [AUTO-DOWNLOAD] Starting background download...');
+
+    // Start background download (don't await - non-blocking)
+    autoDownloadShow(licenseKey, (progress) => {
+      console.log(
+        `📥 [AUTO-DOWNLOAD] Progress: ${progress.current}/${progress.total} classes - ${progress.className}`
+      );
+    }).then(result => {
+      // Download complete
+      if (result.success) {
+        console.log(
+          `✅ [AUTO-DOWNLOAD] Complete: ${result.total} classes cached and ready for offline use`
+        );
+      } else if (result.downloaded > 0) {
+        console.warn(
+          `⚠️ [AUTO-DOWNLOAD] Partial success: ${result.downloaded}/${result.total} classes cached`
+        );
+      } else {
+        console.error('❌ [AUTO-DOWNLOAD] Failed to cache any classes');
+      }
+    }).catch(error => {
+      console.error('[AUTO-DOWNLOAD] Unexpected error:', error);
+    });
+  };
+
   const handleSubmitWithPasscode = async (passcodeArray: string[]) => {
     const fullPasscode = passcodeArray.join('');
 
@@ -160,10 +192,21 @@ export const Login: React.FC = () => {
           // Already validated, use the show data directly
           clearRateLimit('login');
           hapticFeedback.success();
-          login(fullPasscode, {
+          const showDataWithType = {
             ...detectionResult.showData,
             showType: detectionResult.showData.competition_type || detectionResult.showData.show_type
-          });
+          };
+          login(fullPasscode, showDataWithType);
+
+          // 🚀 AUTO-DOWNLOAD: Start background download for offline use
+          // Only for staff roles (not exhibitors)
+          const role = fullPasscode.charAt(0).toLowerCase();
+          const { settings } = useSettingsStore.getState();
+
+          if (settings.autoDownloadOnLogin && role !== 'e') {
+            triggerAutoDownload(showDataWithType.licenseKey);
+          }
+
           navigate('/home');
           return;
         }
@@ -179,10 +222,21 @@ export const Login: React.FC = () => {
       // ✅ Login successful - clear rate limit tracking
       clearRateLimit('login');
       hapticFeedback.success();
-      login(fullPasscode, {
+      const showDataWithType = {
         ...showData,
         showType: showData.competition_type
-      });
+      };
+      login(fullPasscode, showDataWithType);
+
+      // 🚀 AUTO-DOWNLOAD: Start background download for offline use
+      // Only for staff roles (not exhibitors)
+      const role = fullPasscode.charAt(0).toLowerCase();
+      const { settings } = useSettingsStore.getState();
+
+      if (settings.autoDownloadOnLogin && role !== 'e') {
+        triggerAutoDownload(showDataWithType.licenseKey);
+      }
+
       navigate('/home');
     } catch (err) {
       console.error('Login error:', err);
