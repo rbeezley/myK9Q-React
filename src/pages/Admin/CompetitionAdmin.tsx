@@ -26,35 +26,15 @@ import type { VisibilityPreset } from '../../types/visibility';
 import { RefreshCw, Settings, User, UserCheck, UserX, Eye, History, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getLevelSortOrder } from '../../lib/utils';
+import { useCompetitionAdminData } from './hooks/useCompetitionAdminData';
 import './CompetitionAdmin.css';
-
-interface ClassInfo {
-  id: number;
-  trial_id: number;
-  element: string;
-  level: string;
-  section: string;
-  judge_name: string;
-  trial_date: string;
-  trial_number: string;
-  class_completed: boolean;
-  results_released_at: string | null;
-  results_released_by: string | null;
-  class_completed_at: string | null;
-  self_checkin: boolean;
-  // Entry counts from view_class_summary (available but not displayed yet)
-  total_entries?: number;
-  scored_entries?: number;
-  // Visibility preset from class_result_visibility_overrides
-  visibility_preset?: VisibilityPreset;
-}
 
 export const CompetitionAdmin: React.FC = () => {
   const { licenseKey } = useParams<{ licenseKey: string }>();
   const navigate = useNavigate();
-  const [classes, setClasses] = useState<ClassInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // ✨ React Query: Replace manual state management with automatic caching
+  const { showInfo, classes, trials, isLoading, error: queryError, refetch } = useCompetitionAdminData(licenseKey);
   const [adminName, setAdminName] = useState<string>(() => {
     // Load saved admin name from localStorage
     return localStorage.getItem('myk9q_admin_name') || '';
@@ -62,19 +42,10 @@ export const CompetitionAdmin: React.FC = () => {
   const adminNameRef = useRef<string>(adminName); // Track current admin name
   const [selectedClasses, setSelectedClasses] = useState<Set<number>>(new Set());
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-  const [showInfo, setShowInfo] = useState<{ showName: string; organization: string } | null>(null);
 
   // Visibility control state
   const [showVisibilityPreset, setShowVisibilityPreset] = useState<VisibilityPreset>('standard');
   const [visibilitySectionExpanded, setVisibilitySectionExpanded] = useState(false);
-  const [trials, setTrials] = useState<Array<{
-    trial_id: number;
-    trial_date: string;
-    trial_number: number;
-    judges: string[];
-    class_count: number;
-    visibility_preset?: VisibilityPreset;
-  }>>([]);
   const [trialVisibilitySettings, setTrialVisibilitySettings] = useState<Map<number, VisibilityPreset>>(new Map());
 
   // Self check-in cascade state
@@ -144,156 +115,6 @@ export const CompetitionAdmin: React.FC = () => {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showHeaderMenu]);
-
-  // Fetch show information
-  const fetchShowInfo = async () => {
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('shows')
-        .select('show_name, organization')
-        .eq('license_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      if (data) {
-        setShowInfo({
-          showName: data.show_name || 'Competition',
-          organization: data.organization || ''
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching show info:', err);
-    }
-  };
-
-  // Fetch class information
-  const fetchClasses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Use view_class_summary for richer data with pre-aggregated counts
-      const { data, error: fetchError } = await supabase
-        .from('view_class_summary')
-        .select('*')
-        .eq('license_key', licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604')
-        .order('element', { ascending: true });
-
-      if (fetchError) throw fetchError;
-
-      // Fetch visibility overrides for all classes
-      const classIds = (data || []).map((classData: any) => classData.class_id);
-      const { data: visibilityData } = await supabase
-        .from('class_result_visibility_overrides')
-        .select('class_id, preset_name')
-        .in('class_id', classIds);
-
-      // Create map of class_id to preset_name
-      const visibilityMap = new Map<number, VisibilityPreset>();
-      (visibilityData || []).forEach((override: any) => {
-        visibilityMap.set(override.class_id, override.preset_name);
-      });
-
-      // Map view columns to ClassInfo interface
-      const flattenedClasses = (data || []).map((classData: any) => ({
-        id: classData.class_id,
-        trial_id: classData.trial_id,
-        element: classData.element,
-        level: classData.level,
-        section: classData.section,
-        judge_name: classData.judge_name,
-        trial_date: classData.trial_date || '',
-        trial_number: classData.trial_number?.toString() || '',
-        class_completed: classData.is_completed || false,
-        results_released_at: null,
-        results_released_by: null,
-        class_completed_at: null,
-        self_checkin: classData.self_checkin_enabled || false,
-        // Entry counts from view_class_summary
-        total_entries: classData.total_entries || 0,
-        scored_entries: classData.scored_entries || 0,
-        // Visibility preset from overrides table
-        visibility_preset: visibilityMap.get(classData.class_id) || 'standard'
-      }));
-
-      // Sort classes by trial date, trial number, element, level, section
-      flattenedClasses.sort((a, b) => {
-        // 1. Sort by trial date
-        if (a.trial_date !== b.trial_date) {
-          return a.trial_date.localeCompare(b.trial_date);
-        }
-        // 2. Sort by trial number
-        const trialNumA = parseInt(a.trial_number) || 0;
-        const trialNumB = parseInt(b.trial_number) || 0;
-        if (trialNumA !== trialNumB) {
-          return trialNumA - trialNumB;
-        }
-        // 3. Sort by element
-        if (a.element !== b.element) {
-          return a.element.localeCompare(b.element);
-        }
-        // 4. Sort by level (standard progression: Novice -> Advanced -> Excellent -> Master)
-        const levelOrderA = getLevelSortOrder(a.level);
-        const levelOrderB = getLevelSortOrder(b.level);
-        if (levelOrderA !== levelOrderB) {
-          return levelOrderA - levelOrderB;
-        }
-        // 5. Sort by section
-        return a.section.localeCompare(b.section);
-      });
-
-      setClasses(flattenedClasses);
-
-      // Extract unique trials with their metadata
-      const trialsMap = new Map<number, {
-        trial_id: number;
-        trial_date: string;
-        trial_number: number;
-        judges: Set<string>;
-        class_count: number;
-      }>();
-
-      flattenedClasses.forEach((classData: ClassInfo) => {
-        if (!trialsMap.has(classData.trial_id)) {
-          trialsMap.set(classData.trial_id, {
-            trial_id: classData.trial_id,
-            trial_date: classData.trial_date,
-            trial_number: parseInt(classData.trial_number) || 0,
-            judges: new Set([classData.judge_name]),
-            class_count: 1
-          });
-        } else {
-          const trial = trialsMap.get(classData.trial_id)!;
-          trial.judges.add(classData.judge_name);
-          trial.class_count++;
-        }
-      });
-
-      setTrials(Array.from(trialsMap.values())
-        .map(trial => ({
-          ...trial,
-          judges: Array.from(trial.judges).sort() // Convert Set to sorted array
-        }))
-        .sort((a, b) => {
-          // Sort by date, then by trial number
-          if (a.trial_date !== b.trial_date) {
-            return a.trial_date.localeCompare(b.trial_date);
-          }
-          return a.trial_number - b.trial_number;
-        }));
-    } catch (err) {
-      console.error('Error fetching classes:', err);
-      setError('Failed to load class information');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchShowInfo();
-    fetchClasses();
-  }, [licenseKey]);
 
   /**
    * Helper function to check if admin name is provided
@@ -398,7 +219,7 @@ export const CompetitionAdmin: React.FC = () => {
       await Promise.all(updates);
 
       setSelectedClasses(new Set());
-      await fetchClasses();
+      await refetch(); // ✨ React Query: automatic refetch with caching
 
       setSuccessDialog({
         isOpen: true,
@@ -503,7 +324,7 @@ export const CompetitionAdmin: React.FC = () => {
       await Promise.all(updates);
 
       setSelectedClasses(new Set());
-      await fetchClasses();
+      await refetch(); // ✨ React Query: automatic refetch with caching
 
       setSuccessDialog({
         isOpen: true,
@@ -541,7 +362,7 @@ export const CompetitionAdmin: React.FC = () => {
       await Promise.all(updates);
 
       setSelectedClasses(new Set());
-      await fetchClasses();
+      await refetch(); // ✨ React Query: automatic refetch with caching
 
       setSuccessDialog({
         isOpen: true,
@@ -696,7 +517,7 @@ export const CompetitionAdmin: React.FC = () => {
       );
 
       setSelectedClasses(new Set());
-      await fetchClasses(); // Refresh UI to show updated visibility badges
+      await refetch(); // ✨ React Query: automatic refetch with caching // Refresh UI to show updated visibility badges
 
       setSuccessDialog({
         isOpen: true,
@@ -855,7 +676,7 @@ export const CompetitionAdmin: React.FC = () => {
       setSelectedClasses(new Set());
 
       // Refresh class data to show updated badges
-      await fetchClasses();
+      await refetch(); // ✨ React Query: automatic refetch with caching
 
       setSuccessDialog({
         isOpen: true,
@@ -874,7 +695,7 @@ export const CompetitionAdmin: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="admin-container">
         <div className="loading-state">
@@ -885,13 +706,13 @@ export const CompetitionAdmin: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (queryError) {
     return (
       <div className="admin-container">
         <div className="error-state">
           <div className="error-icon">⚠️</div>
-          <div>Error: {error}</div>
-          <button onClick={fetchClasses} className="retry-button">
+          <div>Error: {(queryError as Error).message || 'Failed to load data'}</div>
+          <button onClick={() => refetch()} className="retry-button">
             Retry
           </button>
         </div>
@@ -937,11 +758,11 @@ export const CompetitionAdmin: React.FC = () => {
                   className="dropdown-item"
                   onClick={() => {
                     setShowHeaderMenu(false);
-                    fetchClasses();
+                    refetch(); // ✨ React Query: trigger refetch
                   }}
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  <RefreshCw className={`dropdown-icon ${loading ? 'rotating' : ''}`} />
+                  <RefreshCw className={`dropdown-icon ${isLoading ? 'rotating' : ''}`} />
                   <span>Refresh</span>
                 </button>
                 <button

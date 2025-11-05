@@ -29,12 +29,13 @@ A modern, production-ready Progressive Web App (PWA) for professional dog show r
 
 ## Tech Stack
 
-- **Frontend**: React 18.3.1 + TypeScript 5.2.2
-- **State Management**: Zustand 5.0.4
-- **Database**: Supabase (PostgreSQL + Real-time)
-- **Styling**: TailwindCSS with custom components
-- **Build**: Vite 5.3.4 with PWA plugin
-- **Testing**: Vitest + React Testing Library
+- **Frontend**: React 19.2.0 + TypeScript 5.9.3
+- **State Management**: Zustand 5.0.8
+- **Routing**: React Router DOM 7.9.5
+- **Database**: Supabase 2.79.0 (PostgreSQL + Real-time)
+- **Styling**: Semantic CSS with design tokens (CSS variables)
+- **Build**: Vite 7.2.0 with PWA plugin
+- **Testing**: Vitest 4.0.7 + React Testing Library + Playwright
 
 ## Quick Start
 
@@ -80,20 +81,20 @@ A modern, production-ready Progressive Web App (PWA) for professional dog show r
 
 3. **Database Setup:**
    ```sql
-   -- Core tables (see database documentation for complete schema)
-   CREATE TABLE tbl_show_queue (
+   -- Core normalized tables (see database documentation for complete schema)
+   CREATE TABLE shows (
      id SERIAL PRIMARY KEY,
-     mobile_app_lic_key TEXT NOT NULL,
+     license_key TEXT NOT NULL,
      show_name TEXT NOT NULL,
      club_name TEXT NOT NULL,
      show_date DATE NOT NULL,
      -- ... additional fields
    );
-   
-   CREATE TABLE tbl_entry_queue (
+
+   CREATE TABLE entries (
      id SERIAL PRIMARY KEY,
-     mobile_app_lic_key TEXT NOT NULL,
-     armband INTEGER NOT NULL,
+     license_key TEXT NOT NULL,
+     armband_number INTEGER NOT NULL,
      call_name TEXT NOT NULL,
      -- ... additional fields
    );
@@ -160,10 +161,13 @@ Routes are automatically determined by:
 ## Database Schema
 
 ### Core Tables
-- `tbl_show_queue`: Show/trial information
-- `tbl_class_queue`: Class definitions and settings
-- `tbl_entry_queue`: Dog entries and scoring data
-- `view_entry_class_join_distinct`: Optimized view for queries
+- `shows`: Show/trial information with license key isolation
+- `trials`: Trial instances linked to shows
+- `classes`: Class definitions with configurable rules
+- `entries`: Dog entries with handler and scoring data
+- `results`: Scoring results with placement calculations
+- `view_entry_class_join_normalized`: Pre-joined entry/class data for queries
+- `view_class_summary`: Pre-aggregated class statistics for performance
 
 ### Key Features
 - **License key filtering**: Multi-tenant architecture
