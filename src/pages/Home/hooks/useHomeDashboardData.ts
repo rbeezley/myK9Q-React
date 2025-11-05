@@ -10,9 +10,12 @@
  * - Query invalidation helpers
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { logger } from '../../../utils/logger';
+import { subscriptionCleanup } from '../../../services/subscriptionCleanup';
+import { debounce } from 'lodash';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -219,14 +222,77 @@ export function useEntries(licenseKey: string | undefined) {
 }
 
 /**
- * Helper hook that combines all dashboard data fetching
+ * Helper hook that combines all dashboard data fetching with real-time updates
  */
 export function useHomeDashboardData(
   licenseKey: string | undefined,
   showId: string | number | undefined
 ) {
+  const queryClient = useQueryClient();
   const trialsQuery = useTrials(showId);
   const entriesQuery = useEntries(licenseKey);
+
+  // Convert showId to number for consistent usage
+  const numericShowId = typeof showId === 'string' ? parseInt(showId, 10) : showId;
+
+  // Set up real-time subscription with debounced invalidation
+  useEffect(() => {
+    if (!licenseKey || !numericShowId) return;
+
+    logger.log('📡 Setting up real-time subscription for Home dashboard');
+
+    // Debounced invalidation (3 second delay after last change)
+    // This batches rapid scoring events into a single refetch
+    const invalidateTrialsDebounced = debounce(() => {
+      logger.log('🔄 Refetching trial counts after entry changes...');
+      queryClient.invalidateQueries({
+        queryKey: homeDashboardKeys.trials(numericShowId)
+      });
+    }, 3000);
+
+    // Subscribe to entries table changes
+    const channel = supabase
+      .channel(`home-entries-${licenseKey}`)
+      .on('postgres_changes', {
+        event: '*',  // INSERT, UPDATE, DELETE
+        schema: 'public',
+        table: 'entries',
+        filter: `license_key=eq.${licenseKey}`
+      }, (payload) => {
+        logger.log('📡 Entry changed:', payload.eventType);
+
+        // Only invalidate if scoring-related fields changed
+        if (payload.eventType === 'UPDATE') {
+          const oldEntry = payload.old as any;
+          const newEntry = payload.new as any;
+
+          // Check if is_scored changed (this affects trial counts)
+          if (oldEntry.is_scored !== newEntry.is_scored) {
+            logger.log('📊 Score status changed, invalidating trials...');
+            invalidateTrialsDebounced();
+          }
+        } else if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+          // INSERT or DELETE always affects counts
+          logger.log('📊 Entry added/removed, invalidating trials...');
+          invalidateTrialsDebounced();
+        }
+      })
+      .subscribe();
+
+    // Register subscription for monitoring
+    subscriptionCleanup.register(
+      `home-entries-${licenseKey}`,
+      'entry',
+      licenseKey
+    );
+
+    return () => {
+      logger.log('🧹 Cleaning up Home dashboard subscription');
+      invalidateTrialsDebounced.cancel(); // Cancel pending debounce
+      supabase.removeChannel(channel);
+      subscriptionCleanup.unregister(`home-entries-${licenseKey}`);
+    };
+  }, [licenseKey, numericShowId, queryClient]);
 
   return {
     trials: trialsQuery.data || [],
