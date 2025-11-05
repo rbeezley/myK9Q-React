@@ -13,6 +13,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { submitScore } from './entryService';
+import { subscriptionCleanup } from './subscriptionCleanup';
 
 export type SyncStatus = 'synced' | 'syncing' | 'paused' | 'error' | 'offline';
 
@@ -98,6 +99,10 @@ class SyncManager {
 
     console.log(`🔌 Creating subscription: ${key}`);
 
+    // Extract license key from filter (format: "license_key=eq.VALUE" or "class_id=eq.VALUE")
+    const licenseKeyMatch = filter.match(/license_key=eq\.([^&]+)/);
+    const licenseKey = licenseKeyMatch ? licenseKeyMatch[1] : undefined;
+
     const channel = supabase
       .channel(key)
       .on(
@@ -124,6 +129,13 @@ class SyncManager {
 
     this.subscriptions.set(key, { channel, key, callback });
 
+    // Register with subscription cleanup monitor
+    subscriptionCleanup.register(
+      key,
+      'sync', // Use 'sync' type for syncManager subscriptions
+      licenseKey
+    );
+
     // Return unsubscribe function
     return () => this.unsubscribe(key);
   }
@@ -137,6 +149,9 @@ class SyncManager {
       console.log(`🔌 Unsubscribing from ${key}`);
       subscription.channel.unsubscribe();
       this.subscriptions.delete(key);
+
+      // Unregister from subscription cleanup monitor
+      subscriptionCleanup.unregister(key);
     }
   }
 
@@ -147,6 +162,8 @@ class SyncManager {
     console.log(`🔌 Unsubscribing from all ${this.subscriptions.size} subscriptions`);
     this.subscriptions.forEach((sub) => {
       sub.channel.unsubscribe();
+      // Unregister from subscription cleanup monitor
+      subscriptionCleanup.unregister(sub.key);
     });
     this.subscriptions.clear();
   }
