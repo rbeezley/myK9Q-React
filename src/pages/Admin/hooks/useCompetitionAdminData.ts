@@ -251,7 +251,7 @@ export function useBulkSelfCheckinMutation() {
 
       await Promise.all(updates);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       // Invalidate classes query to refetch data
       // This will automatically update the UI with new data
       queryClient.invalidateQueries({

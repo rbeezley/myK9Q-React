@@ -25,7 +25,7 @@ import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
 import { localStateManager } from './services/localStateManager';
 import { subscriptionCleanup } from './services/subscriptionCleanup';
-import { memoryLeakDetector } from './utils/memoryLeakDetector';
+// memoryLeakDetector auto-starts via its module initialization (dev mode only)
 
 // Import unified container system
 import './styles/containers.css';

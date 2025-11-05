@@ -5,7 +5,7 @@
  * Only visible in development mode.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { subscriptionCleanup, SubscriptionInfo } from '../../services/subscriptionCleanup';
 import { memoryLeakDetector } from '../../utils/memoryLeakDetector';
 import { Activity, AlertTriangle, CheckCircle, RefreshCw, Trash2, X, Database } from 'lucide-react';
@@ -18,11 +18,6 @@ export const SubscriptionMonitor: React.FC = () => {
   const [leakCheck, setLeakCheck] = useState<any>(null);
   const [memoryStats, setMemoryStats] = useState<any>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-
-  // Only show in development
-  if (import.meta.env.PROD) {
-    return null;
-  }
 
   // Refresh data
   const refreshData = () => {
@@ -48,6 +43,15 @@ export const SubscriptionMonitor: React.FC = () => {
     }
   }, [isOpen]);
 
+  // Compute current time once per render for age calculations
+  // eslint-disable-next-line react-hooks/purity
+  const now = useMemo(() => Date.now(), [subscriptions]);
+
+  // Only show in development - check AFTER all hooks
+  if (import.meta.env.PROD) {
+    return null;
+  }
+
   const handleCleanupAll = () => {
     const count = subscriptionCleanup.cleanupAll();
     alert(`Cleaned up ${count} subscriptions`);
@@ -56,13 +60,14 @@ export const SubscriptionMonitor: React.FC = () => {
 
   const handleCleanupStale = () => {
     // Clean up subscriptions older than 5 minutes
+    const currentTime = Date.now();
     const count = subscriptions.filter(s => {
-      const ageMinutes = (Date.now() - s.createdAt.getTime()) / 60000;
+      const ageMinutes = (currentTime - s.createdAt.getTime()) / 60000;
       return ageMinutes > 5;
     }).length;
 
     subscriptions.forEach(s => {
-      const ageMinutes = (Date.now() - s.createdAt.getTime()) / 60000;
+      const ageMinutes = (currentTime - s.createdAt.getTime()) / 60000;
       if (ageMinutes > 5) {
         subscriptionCleanup.unregister(s.key);
       }
@@ -224,7 +229,7 @@ export const SubscriptionMonitor: React.FC = () => {
           ) : (
             <div className="subscription-items">
               {subscriptions.map(sub => {
-                const ageMinutes = Math.round((Date.now() - sub.createdAt.getTime()) / 60000);
+                const ageMinutes = Math.round((now - sub.createdAt.getTime()) / 60000);
                 const isOld = ageMinutes > 30;
 
                 return (

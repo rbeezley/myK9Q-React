@@ -661,7 +661,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       cleanup: () => {
         // Explicit cleanup method for component unmount
         // Only disables realtime, doesn't clear data (for navigation)
-        const { realtimeChannel, currentLicenseKey } = get();
+        const { realtimeChannel } = get();
 
         if (realtimeChannel) {
           console.log('🧹 Cleaning up announcement subscriptions');

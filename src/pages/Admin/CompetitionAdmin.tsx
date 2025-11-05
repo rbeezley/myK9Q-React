@@ -25,7 +25,6 @@ import { PRESET_CONFIGS } from '../../types/visibility';
 import type { VisibilityPreset } from '../../types/visibility';
 import { RefreshCw, Settings, User, UserCheck, UserX, Eye, History, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getLevelSortOrder } from '../../lib/utils';
 import { useCompetitionAdminData } from './hooks/useCompetitionAdminData';
 import './CompetitionAdmin.css';
 
