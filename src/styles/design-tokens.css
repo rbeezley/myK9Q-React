@@ -56,24 +56,24 @@
   --status-pulled-text: #ffffff;
 
   /* Class Status Colors */
-  --status-setup: #fef3c7;
-  --status-setup-bg: #fef3c7;
-  --status-setup-text: #92400e;
+  --status-setup: var(--token-warning-contrast);
+  --status-setup-bg: var(--token-warning-contrast);
+  --status-setup-text: #ffffff;
 
-  --status-briefing: #3b82f6;
-  --status-briefing-bg: #3b82f6;
+  --status-briefing: var(--primary);
+  --status-briefing-bg: var(--primary);
   --status-briefing-text: #ffffff;
 
-  --status-break: #14b8a6;
-  --status-break-bg: #14b8a6;
+  --status-break: var(--token-accent);
+  --status-break-bg: var(--token-accent);
   --status-break-text: #ffffff;
 
-  --status-start-time: #8b5cf6;
-  --status-start-time-bg: #8b5cf6;
+  --status-start-time: var(--primary);
+  --status-start-time-bg: var(--primary);
   --status-start-time-text: #ffffff;
 
-  --status-in-progress: #6366f1;
-  --status-in-progress-bg: #6366f1;
+  --status-in-progress: var(--primary);
+  --status-in-progress-bg: var(--primary);
   --status-in-progress-text: #ffffff;
 
   --status-completed: #10b981;
@@ -277,12 +277,12 @@
   --status-pulled: #ef4444;
   --status-pulled-bg: #ef4444;
 
-  /* Class Status Colors (enhanced for dark mode visibility) */
-  --status-setup: #3b82f6;
-  --status-briefing: #3b82f6;
-  --status-break: #14b8a6;
-  --status-start-time: #8b5cf6;
-  --status-in-progress: #60a5fa;
+  /* Class Status Colors (dark mode uses same theme colors) */
+  --status-setup: var(--token-warning-contrast);
+  --status-briefing: var(--primary);
+  --status-break: var(--token-accent);
+  --status-start-time: var(--primary);
+  --status-in-progress: var(--primary);
   --status-completed: #10b981;
 
   /* Result Status Colors */
