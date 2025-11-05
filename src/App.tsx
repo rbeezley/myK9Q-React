@@ -6,7 +6,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { OfflineIndicator, DeviceDebugPanel, DeviceTierToast, AutoLogoutWarning } from './components/ui';
+import { OfflineIndicator, DeviceTierToast, AutoLogoutWarning } from './components/ui';
 import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
 import { SubscriptionMonitor } from './components/debug/SubscriptionMonitor';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
@@ -255,7 +255,6 @@ function AppWithAuth() {
       )}
       <OfflineIndicator />
       <DeviceTierToast />
-      <DeviceDebugPanel position="bottom-right" />
       <MonitoringDashboard />
 
       {/* Developer Tools (only in development mode) */}
