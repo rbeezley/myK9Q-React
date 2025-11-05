@@ -56,7 +56,7 @@ interface AnnouncementState {
 
   // Actions
   setLicenseKey: (licenseKey: string, showName?: string) => void;
-  fetchAnnouncements: (licenseKey?: string) => Promise<void>;
+  fetchAnnouncements: (licenseKey?: string, forceRefresh?: boolean) => Promise<void>;
   createAnnouncement: (announcement: Omit<Announcement, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   updateAnnouncement: (id: number, updates: Partial<Announcement>) => Promise<void>;
   deleteAnnouncement: (id: number) => Promise<void>;
@@ -75,6 +75,7 @@ interface AnnouncementState {
   getFilteredAnnouncements: () => Announcement[];
   updateLastVisit: () => void;
   reset: () => void;
+  cleanup: () => void; // NEW: Explicit cleanup for component unmount
 }
 
 // Generate user identifier for read tracking
@@ -655,6 +656,23 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         localStorage.removeItem('current_show_license');
         localStorage.removeItem('current_show_name');
         localStorage.removeItem('announcements_last_visit');
+      },
+
+      cleanup: () => {
+        // Explicit cleanup method for component unmount
+        // Only disables realtime, doesn't clear data (for navigation)
+        const { realtimeChannel, currentLicenseKey } = get();
+
+        if (realtimeChannel) {
+          console.log('🧹 Cleaning up announcement subscriptions');
+          get().disableRealtime();
+        }
+
+        // Clear initialization lock if stuck
+        if (get().isInitializing) {
+          console.log('🧹 Clearing stuck initialization lock');
+          set({ isInitializing: false });
+        }
       }
     }),
     {

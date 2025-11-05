@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
@@ -7,6 +7,7 @@ import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { OfflineIndicator, DeviceDebugPanel, DeviceTierToast, AutoLogoutWarning } from './components/ui';
 import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
+import { SubscriptionMonitor } from './components/debug/SubscriptionMonitor';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { applyDeviceClasses, startPerformanceMonitoring } from './utils/deviceDetection';
 import developerModeService from './services/developerMode';
@@ -22,6 +23,8 @@ import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
 import { localStateManager } from './services/localStateManager';
+import { subscriptionCleanup } from './services/subscriptionCleanup';
+import { memoryLeakDetector } from './utils/memoryLeakDetector';
 
 // Import unified container system
 import './styles/containers.css';
@@ -99,6 +102,23 @@ const AuditLog = React.lazy(() =>
   }))
 );
 
+// Hook to handle route changes and cleanup subscriptions
+function useRouteChangeCleanup() {
+  const location = useLocation();
+  const previousLocation = React.useRef(location.pathname);
+
+  useEffect(() => {
+    const fromRoute = previousLocation.current;
+    const toRoute = location.pathname;
+
+    if (fromRoute !== toRoute) {
+      // Clean up stale subscriptions on route change
+      subscriptionCleanup.cleanupOnRouteChange(fromRoute, toRoute);
+      previousLocation.current = toRoute;
+    }
+  }, [location.pathname]);
+}
+
 // Component that needs to be inside AuthProvider to use auth context
 function AppWithAuth() {
   const { showContext } = useAuth();
@@ -111,6 +131,9 @@ function AppWithAuth() {
 
   // Auto-switch push notification subscription when license key changes
   usePushNotificationAutoSwitch(showContext?.licenseKey);
+
+  // Clean up subscriptions on route changes
+  useRouteChangeCleanup();
 
   // Initialize device detection and performance monitoring
   useEffect(() => {
@@ -169,6 +192,12 @@ function AppWithAuth() {
     // Run daily (every 24 hours)
     const gcInterval = setInterval(runGarbageCollection, 24 * 60 * 60 * 1000);
 
+    // 🧹 Start auto-cleanup for subscriptions (checks every 30 minutes)
+    const stopAutoCleanup = subscriptionCleanup.startAutoCleanup(30);
+
+    // 🔍 Start memory leak detection (development only, auto-starts via memoryLeakDetector.ts)
+    // The detector will warn in console if memory grows abnormally
+
     // Send performance report on page unload (if monitoring enabled and has problems)
     const handleBeforeUnload = async () => {
       const { settings } = useSettingsStore.getState();
@@ -189,8 +218,10 @@ function AppWithAuth() {
     return () => {
       cancelled = true;
       stopMonitoring();
+      stopAutoCleanup();
       notificationIntegration.destroy();
       clearInterval(gcInterval);
+      subscriptionCleanup.cleanupAll(); // Final cleanup on app unmount
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
@@ -218,6 +249,7 @@ function AppWithAuth() {
       <PerformanceMonitor />
       <NetworkInspector />
       <StateInspector />
+      <SubscriptionMonitor />
 
       <Routes>
           <Route path="/login" element={<Login />} />

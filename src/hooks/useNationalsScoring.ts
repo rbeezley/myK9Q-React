@@ -102,12 +102,12 @@ export const useNationalsScoring = (options: UseNationalsScoringOptions): UseNat
     initializeStore(licenseKey);
 
     return () => {
-      // Cleanup on unmount
-      if (!enableRealtime) {
-        disableRealtime();
-      }
+      // ALWAYS cleanup on unmount to prevent memory leaks
+      // This is critical for long-lived apps where components mount/unmount frequently
+      console.log('🧹 useNationalsScoring: Cleaning up subscriptions on unmount');
+      disableRealtime();
     };
-  }, [licenseKey, enableRealtime, initializeStore, disableRealtime]);
+  }, [licenseKey, initializeStore, disableRealtime]);
 
   // Enable/disable real-time based on option
   useEffect(() => {
