@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
-import { useStaleWhileRevalidate } from '../../hooks/useStaleWhileRevalidate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
 import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FloatingActionButton, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
@@ -13,31 +12,9 @@ import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, Heart, Calendar, Users2, ArrowUp, MoreVertical } from 'lucide-react';
+import { useHomeDashboardData } from './hooks/useHomeDashboardData';
+import type { EntryData, TrialData } from './hooks/useHomeDashboardData';
 import './Home.css';
-
-interface EntryData {
-  id: number;
-  armband: number;
-  call_name: string;
-  breed: string;
-  handler: string;
-  is_favorite?: boolean;
-  class_name?: string;
-  is_scored?: boolean;
-}
-
-interface TrialData {
-  id: number;
-  show_id: number;
-  trial_name: string;
-  trial_date: string;
-  trial_number: number;
-  trial_type: string;
-  classes_completed: number;
-  classes_total: number;
-  entries_completed: number;
-  entries_total: number;
-}
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -47,6 +24,16 @@ export const Home: React.FC = () => {
   const { prefetch } = usePrefetch();
   const { settings } = useSettingsStore();
 
+  // ✨ React Query: Replace useStaleWhileRevalidate with automatic caching
+  const {
+    trials: trialsData,
+    entries: entriesData,
+    isLoading,
+    isRefreshing,
+    error: fetchError,
+    refetch
+  } = useHomeDashboardData(showContext?.licenseKey, showContext?.showId);
+
   // Search, sort, and filter state
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,34 +41,11 @@ export const Home: React.FC = () => {
   const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
-  // Use stale-while-revalidate for instant loading from cache
-  const {
-    data: cachedData,
-    isStale: _isStale,
-    isRefreshing,
-    error: fetchError,
-    refresh
-  } = useStaleWhileRevalidate<{
-    entries: EntryData[];
-    trials: TrialData[];
-  }>(
-    `home-dashboard-${showContext?.licenseKey}`,
-    async () => {
-      return await fetchDashboardData();
-    },
-    {
-      ttl: 60000, // 1 minute cache
-      fetchOnMount: true,
-      refetchOnFocus: true,
-      refetchOnReconnect: true
-    }
-  );
-
-  // Local state for data (synced from cache)
-  const [entries, setEntries] = useState<EntryData[]>([]);
-  const [trials, setTrials] = useState<TrialData[]>([]);
+  // Local state for favorites and entries with favorites applied
   const [favoriteDogs, setFavoriteDogs] = useState<Set<number>>(new Set());
   const [dogFavoritesLoaded, setDogFavoritesLoaded] = useState(false);
+  const [entries, setEntries] = useState<EntryData[]>([]);
+  const [trials, setTrials] = useState<TrialData[]>([]);
 
   // Virtual scrolling ref
   const parentRef = useRef<HTMLDivElement>(null);
@@ -124,20 +88,19 @@ export const Home: React.FC = () => {
     return () => window.removeEventListener('resize', updateColumns);
   }, []);
 
-  // Sync cached data with local state
+  // ✨ React Query: Sync query data with local state and apply favorites
   useEffect(() => {
-    if (cachedData) {
-      setTrials(cachedData.trials);
+    // Update trials directly from query
+    setTrials(trialsData);
 
-      // Apply favorites to entries before setting state
-      const entriesWithFavorites = cachedData.entries.map(entry => ({
-        ...entry,
-        is_favorite: favoriteDogs.has(entry.armband)
-      }));
+    // Apply favorites to entries before setting state
+    const entriesWithFavorites = entriesData.map(entry => ({
+      ...entry,
+      is_favorite: favoriteDogs.has(entry.armband)
+    }));
 
-      setEntries(entriesWithFavorites);
-    }
-  }, [cachedData, favoriteDogs]);
+    setEntries(entriesWithFavorites);
+  }, [trialsData, entriesData, favoriteDogs]);
 
   // Load dog favorites from localStorage
   useEffect(() => {
@@ -195,123 +158,11 @@ export const Home: React.FC = () => {
     }
   }, [favoriteDogs, showContext?.licenseKey, dogFavoritesLoaded]);
 
-  const fetchDashboardData = useCallback(async (): Promise<{ entries: EntryData[]; trials: TrialData[] }> => {
-    try {
-      // Guard: Don't fetch if showContext is not ready yet
-      if (!showContext?.showId || !showContext?.licenseKey) {
-        logger.log('⏸️ Skipping fetch - showContext not ready yet');
-        return { entries: [], trials: [] };
-      }
-
-      logger.log('🔍 Show context:', showContext);
-      logger.log('🔍 Show ID:', showContext?.showId);
-      logger.log('🔍 License key:', showContext?.licenseKey);
-
-      // Load trials with progress
-      const { data: trialsData, error: trialsError } = await supabase
-        .from('trials')
-        .select('*')
-        .eq('show_id', showContext?.showId);
-
-      if (trialsError) {
-        logger.error('❌ Error loading trials:', trialsError);
-        logger.error('❌ Show ID used:', showContext?.showId);
-        logger.error('❌ License key:', showContext?.licenseKey);
-      } else {
-        logger.log('✅ Trials data loaded:', trialsData);
-        logger.log('✅ Number of trials found:', trialsData?.length || 0);
-      }
-
-      // Load entries from the normalized view
-      const { data: entriesData, error: entriesError } = await supabase
-        .from('view_entry_class_join_normalized')
-        .select('*')
-        .eq('license_key', showContext?.licenseKey)
-        .order('armband_number', { ascending: true });
-
-      if (entriesError) {
-        logger.error('Error loading entries:', entriesError);
-      }
-
-      let processedTrials: TrialData[] = [];
-
-      // Process trials with counts - OPTIMIZED using view_class_summary
-      if (trialsData && trialsData.length > 0) {
-        const trialIds = trialsData.map(t => t.id);
-
-        // Fetch pre-aggregated class data with entry counts in ONE query
-        const { data: classSummaries } = await supabase
-          .from('view_class_summary')
-          .select('*')
-          .in('trial_id', trialIds);
-
-        // Group class summaries by trial_id
-        const classesByTrial = new Map<number, typeof classSummaries>();
-        classSummaries?.forEach(cls => {
-          if (!classesByTrial.has(cls.trial_id)) {
-            classesByTrial.set(cls.trial_id, []);
-          }
-          classesByTrial.get(cls.trial_id)!.push(cls);
-        });
-
-        // Process trials using pre-calculated counts from view
-        processedTrials = trialsData.map(trial => {
-          const trialClasses = classesByTrial.get(trial.id) || [];
-          const totalClasses = trialClasses.length;
-          const completedClasses = trialClasses.filter(c => c.is_completed).length;
-
-          // Sum pre-calculated entry counts from view
-          const totalEntries = trialClasses.reduce((sum, c) => sum + (c.total_entries || 0), 0);
-          const completedEntries = trialClasses.reduce((sum, c) => sum + (c.scored_entries || 0), 0);
-
-          return {
-            ...trial,
-            classes_completed: completedClasses,
-            classes_total: totalClasses,
-            entries_completed: completedEntries,
-            entries_total: totalEntries
-          };
-        });
-      }
-
-      // Process entries - get unique dogs by armband
-      let processedEntries: EntryData[] = [];
-      if (entriesData) {
-        const uniqueDogs = new Map<number, EntryData>();
-
-        entriesData.forEach(entry => {
-          if (!uniqueDogs.has(entry.armband_number)) {
-            uniqueDogs.set(entry.armband_number, {
-              id: entry.id,
-              armband: entry.armband_number,
-              call_name: entry.dog_call_name,
-              breed: entry.dog_breed,
-              handler: entry.handler_name,
-              is_favorite: false, // Will be updated by useEffect after favorites load
-              class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : undefined,
-              is_scored: entry.is_scored
-            });
-          }
-        });
-
-        processedEntries = Array.from(uniqueDogs.values());
-        logger.log('🐕 Processed entries with armbands:', processedEntries.map(e => e.armband));
-        logger.log('🐕 Entries with favorites:', processedEntries.map(e => `${e.armband}:${e.is_favorite}`));
-      }
-
-      return { entries: processedEntries, trials: processedTrials };
-    } catch (error) {
-      logger.error('Error loading dashboard data:', error);
-      return { entries: [], trials: [] };
-    }
-  }, [showContext?.showId, showContext?.licenseKey]);
-
-  // Data is loaded via useStaleWhileRevalidate hook - no manual loading needed
-
+  // ✨ React Query: Simplified refresh handler
   const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
-    await refresh();
-  }, [refresh, hapticFeedback]);
+    await refetch();
+  }, [refetch, hapticFeedback]);
 
   const toggleFavorite = useCallback(async (armband: number) => {
     logger.log('🐕 toggleFavorite called for armband:', armband);
@@ -599,11 +450,11 @@ export const Home: React.FC = () => {
       <div className="entry-list">
         {fetchError ? (
           <ErrorState
-            message={`Failed to load dashboard: ${fetchError.message || 'Please check your connection and try again.'}`}
+            message={`Failed to load dashboard: ${(fetchError as Error).message || 'Please check your connection and try again.'}`}
             onRetry={handleRefresh}
             isRetrying={isRefreshing}
           />
-        ) : !cachedData ? (
+        ) : isLoading ? (
           <div className="loading-skeleton">
             <div className="skeleton-header">
               <div className="skeleton-text skeleton-title"></div>

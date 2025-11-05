@@ -403,7 +403,7 @@ Provides:
 ### High-Priority Candidates (Read-Heavy, Not Offline-Critical)
 
 1. ✅ **CompetitionAdmin.tsx** - DONE (proof of concept)
-2. **Home.tsx** - Dashboard with trial cards (~120 lines of fetch logic)
+2. ✅ **Home.tsx** - DONE (~110 lines of fetch logic removed)
 3. **ClassList.tsx** - Class list with aggregated data (~80 lines)
 4. **DogDetails.tsx** - Dog details page (~60 lines)
 5. **PerformanceMetricsAdmin.tsx** - Metrics dashboard (~90 lines)
@@ -417,17 +417,18 @@ Provides:
 
 ### Estimated Migration Effort
 
-| Component | Lines Removed | Lines Added | Time Estimate |
-|-----------|---------------|-------------|---------------|
-| CompetitionAdmin | 145 | 50 (hook) | 2 hours (DONE) |
-| Home | 120 | 40 | 1.5 hours |
-| ClassList | 80 | 30 | 1 hour |
-| DogDetails | 60 | 25 | 45 min |
-| PerformanceMetricsAdmin | 90 | 35 | 1 hour |
-| AuditLog | 70 | 30 | 1 hour |
-| **Total** | **565 lines** | **210 lines** | **~8 hours** |
+| Component | Lines Removed | Lines Added | Time Estimate | Status |
+|-----------|---------------|-------------|---------------|---------|
+| CompetitionAdmin | 145 | 50 (hook) | 2 hours | ✅ DONE |
+| Home | 110 | 45 (hook) | 1.5 hours | ✅ DONE |
+| ClassList | 80 | 30 | 1 hour | Pending |
+| DogDetails | 60 | 25 | 45 min | Pending |
+| PerformanceMetricsAdmin | 90 | 35 | 1 hour | Pending |
+| AuditLog | 70 | 30 | 1 hour | Pending |
+| **Total** | **555 lines** | **215 lines** | **~8 hours** | **25% Complete** |
 
-**Net reduction**: ~355 lines of manual fetching code
+**Net reduction**: ~340 lines of manual fetching code
+**Completed**: ~255 lines removed, ~95 lines added (2 components)
 
 ---
 
@@ -492,19 +493,95 @@ Provides:
 
 ---
 
+## Home.tsx Migration (Phase 2)
+
+**Date**: 2025-11-05
+**Status**: ✅ Complete
+**Component**: Home.tsx
+**Result**: Successfully migrated dashboard data fetching to React Query
+
+### What Changed
+
+**Before** (Manual caching with useStaleWhileRevalidate):
+```typescript
+const {
+  data: cachedData,
+  isRefreshing,
+  error: fetchError,
+  refresh
+} = useStaleWhileRevalidate<{
+  entries: EntryData[];
+  trials: TrialData[];
+}>(
+  `home-dashboard-${showContext?.licenseKey}`,
+  async () => {
+    return await fetchDashboardData(); // ~110 lines of manual fetching
+  },
+  {
+    ttl: 60000,
+    fetchOnMount: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true
+  }
+);
+
+const fetchDashboardData = useCallback(async () => {
+  // ... 110 lines of manual fetching and processing ...
+}, [showContext?.showId, showContext?.licenseKey]);
+```
+
+**After** (React Query):
+```typescript
+const {
+  trials: trialsData,
+  entries: entriesData,
+  isLoading,
+  isRefreshing,
+  error: fetchError,
+  refetch
+} = useHomeDashboardData(showContext?.licenseKey, showContext?.showId);
+```
+
+### Key Changes
+
+1. **Removed custom caching hook** - Replaced `useStaleWhileRevalidate` with React Query
+2. **Created centralized hooks** - `src/pages/Home/hooks/useHomeDashboardData.ts`
+3. **Eliminated ~110 lines** of manual fetch logic from component
+4. **Simplified refresh** - One-line `refetch()` instead of manual cache invalidation
+5. **Better type safety** - Proper TypeScript types for showId (string | number)
+
+### Benefits Demonstrated
+
+- **Simpler code** - Component is much cleaner without fetch logic
+- **Automatic caching** - React Query handles stale/cache times
+- **Better DX** - No need to manage custom cache keys
+- **Consistent pattern** - Same approach as CompetitionAdmin
+
+### Testing Results
+
+- ✅ TypeScript compilation passed
+- ✅ Production build successful (Home chunk: 16.52 KB)
+- ✅ Manual testing confirmed dashboard loads correctly
+- ✅ Favorites functionality still works (localStorage-based)
+- ✅ Virtual scrolling unaffected
+
+---
+
 ## Files Changed
 
 ### New Files
-- `src/pages/Admin/hooks/useCompetitionAdminData.ts` - React Query hooks
+- `src/pages/Admin/hooks/useCompetitionAdminData.ts` - React Query hooks for CompetitionAdmin
+- `src/pages/Home/hooks/useHomeDashboardData.ts` - React Query hooks for Home dashboard
 - `REACT_QUERY_POC.md` - This document
 
 ### Modified Files
 - `src/App.tsx` - Added QueryClientProvider
 - `src/pages/Admin/CompetitionAdmin.tsx` - Migrated to React Query
+- `src/pages/Home/Home.tsx` - Migrated to React Query (removed useStaleWhileRevalidate)
 
 ---
 
-**Status**: ✅ Proof of concept successful
-**Next Step**: Migrate Home.tsx to validate pattern
-**Recommendation**: Proceed with gradual migration
+**Status**: ✅ Migration pattern validated across 2 components
+**Next Step**: Migrate ClassList.tsx or DogDetails.tsx
+**Recommendation**: Continue with gradual migration
 
