@@ -129,7 +129,7 @@ export const useTVData = ({
             return (a.element_type || '').localeCompare(b.element_type || '');
           });
 
-        setInProgressClasses(transformedClasses);
+        // Note: Don't set inProgressClasses yet - we'll combine Novice A & B first
 
         // Fetch entries for all in-progress classes
         // NOTE: Split into batches to avoid URL length limits with .in() clause
