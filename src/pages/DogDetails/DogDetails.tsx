@@ -2,16 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { supabase } from '../../lib/supabase';
-// Updated field mappings for unified view
 import { updateEntryCheckinStatus } from '../../services/entryService';
-import { getVisibleResultFields, getAvailabilityMessage } from '../../services/resultVisibilityService';
+import { getAvailabilityMessage } from '../../services/resultVisibilityService';
 import { Button, HamburgerMenu, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
-import type { VisibleResultFields, VisibilityTiming } from '../../types/visibility';
+import { useDogDetailsData, ClassEntry, DogInfo } from './hooks/useDogDetailsData';
 import {
   ArrowLeft,
   RefreshCw,
@@ -28,62 +26,34 @@ import {
 } from 'lucide-react';
 import './DogDetails.css';
 
-interface ClassEntry {
-  id: number; // Entry ID (for status updates)
-  class_id: number; // Class ID (for navigation)
-  class_name: string;
-  class_type: string;
-  trial_name: string;
-  trial_date: string;
-  search_time: string | null;
-  fault_count: number | null;
-  result_text: string | null;
-  is_scored: boolean;
-  checked_in: boolean;
-  check_in_status?: CheckinStatus;
-  position?: number;
-  // Additional fields that might contain element/level/section info
-  element?: string;
-  level?: string;
-  section?: string;
-  trial_number?: number;
-  judge_name?: string;
-  // Visibility control fields
-  trial_id?: number;
-  is_completed?: boolean;
-  results_released_at?: string | null;
-  visibleFields?: VisibleResultFields;
-  // For showing availability messages
-  placementTiming?: VisibilityTiming;
-  qualificationTiming?: VisibilityTiming;
-  timeTiming?: VisibilityTiming;
-  faultsTiming?: VisibilityTiming;
-}
-
-interface DogInfo {
-  armband: number;
-  call_name: string;
-  breed: string;
-  handler: string;
-}
-
 export const DogDetails: React.FC = () => {
   const { armband } = useParams<{ armband: string }>();
   const navigate = useNavigate();
   const { showContext, role: _role } = useAuth();
   const { hasPermission: _hasPermission, isExhibitor: _isExhibitor, currentRole } = usePermission();
   const hapticFeedback = useHapticFeedback();
+
+  // Use React Query for data fetching
+  const {
+    data,
+    isLoading,
+    error: _fetchError,
+    refetch
+  } = useDogDetailsData(armband, showContext?.licenseKey, currentRole);
+
+  // Local state for UI management
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [activePopup, setActivePopup] = useState<number | null>(null);
 
+  // Sync React Query data with local state
   useEffect(() => {
-    if (armband && showContext) {
-      loadDogDetails();
+    if (data) {
+      setDogInfo(data.dogInfo);
+      setClasses(data.classes);
     }
-  }, [armband, showContext]);
+  }, [data]);
 
   // Set loaded class after data loads to prevent CSS rehydration issues
   useEffect(() => {
@@ -114,86 +84,6 @@ export const DogDetails: React.FC = () => {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [activePopup]);
-
-  const loadDogDetails = async () => {
-    setIsLoading(true);
-    try {
-      // Query the view which now includes entry_status field
-      const { data, error } = await supabase
-        .from('view_entry_class_join_normalized')
-        .select('*')
-        .eq('license_key', showContext?.licenseKey)
-        .eq('armband_number', parseInt(armband!));
-
-      if (error) {
-        console.error('Error loading dog details:', error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        // Set dog info from first record
-        const firstEntry = data[0];
-        setDogInfo({
-          armband: firstEntry.armband_number,
-          call_name: firstEntry.dog_call_name,
-          breed: firstEntry.dog_breed,
-          handler: firstEntry.handler_name
-        });
-
-        // Process all classes - map entry status and fetch visibility settings
-        const classesWithVisibility = await Promise.all(
-          data.map(async (entry) => {
-            // Use unified entry_status field
-            const statusText = entry.entry_status || 'no-status';
-            const check_in_status: ClassEntry['check_in_status'] = statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
-
-            // Fetch visibility settings for this class (role-based)
-            const visibleFields = await getVisibleResultFields(
-              entry.class_id,
-              entry.trial_id,
-              showContext!.licenseKey,
-              currentRole || 'exhibitor',
-              entry.is_completed || false,
-              entry.results_released_at || null
-            );
-
-            return {
-              id: entry.id, // Entry ID (used for status updates)
-              class_id: entry.class_id, // Class ID (used for navigation)
-              class_name: entry.element && entry.level ? `${entry.element} ${entry.level}` : 'Unknown Class',
-              class_type: entry.element || 'Unknown',
-              trial_name: `Trial ${entry.trial_number || ''}`,
-              trial_date: entry.trial_date,
-              search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
-              fault_count: entry.total_faults || null,
-              result_text: entry.result_status,
-              is_scored: entry.is_scored || false,
-              checked_in: check_in_status !== 'no-status',
-              check_in_status,
-              position: entry.final_placement || undefined,
-              // Map additional fields
-              element: entry.element,
-              level: entry.level,
-              section: entry.section,
-              trial_number: entry.trial_number,
-              judge_name: entry.judge_name,
-              // Visibility fields
-              trial_id: entry.trial_id,
-              is_completed: entry.is_completed || false,
-              results_released_at: entry.results_released_at || null,
-              visibleFields
-            };
-          })
-        );
-
-        setClasses(classesWithVisibility);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleStatusChange = async (classId: number, status: CheckinStatus) => {
     try {
@@ -226,7 +116,7 @@ export const DogDetails: React.FC = () => {
     } catch (error) {
       console.error('Error:', error);
       // Reload to get correct state
-      await loadDogDetails();
+      await refetch();
     }
   };
 
@@ -315,7 +205,7 @@ export const DogDetails: React.FC = () => {
         <h1>{dogInfo.call_name}</h1>
         
         <div className="header-actions">
-          <button className="refresh-button" onClick={loadDogDetails}>
+          <button className="refresh-button" onClick={() => refetch()}>
             <RefreshCw className="h-5 w-5" />
           </button>
         </div>

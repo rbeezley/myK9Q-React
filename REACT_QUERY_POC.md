@@ -758,6 +758,7 @@ const {
 - `src/pages/Admin/hooks/useCompetitionAdminData.ts` - React Query hooks for CompetitionAdmin (191 lines)
 - `src/pages/Home/hooks/useHomeDashboardData.ts` - React Query hooks for Home dashboard (243 lines)
 - `src/pages/ClassList/hooks/useClassListData.ts` - React Query hooks for ClassList (292 lines)
+- `src/pages/DogDetails/hooks/useDogDetailsData.ts` - React Query hooks for DogDetails (197 lines)
 - `REACT_QUERY_POC.md` - This document
 
 ### Modified Files
@@ -765,17 +766,176 @@ const {
 - `src/pages/Admin/CompetitionAdmin.tsx` - Migrated to React Query
 - `src/pages/Home/Home.tsx` - Migrated to React Query (removed useStaleWhileRevalidate)
 - `src/pages/ClassList/ClassList.tsx` - Migrated to React Query (removed fetchClassListData callback)
+- `src/pages/DogDetails/DogDetails.tsx` - Migrated to React Query (removed loadDogDetails function)
+
+---
+
+## DogDetails.tsx Migration (Phase 4)
+
+**Date**: 2025-11-05
+**Status**: ✅ Complete
+**Lines Removed**: ~78 lines of manual fetch logic
+**Lines Added**: ~197 lines (hooks file with types and query functions)
+
+### What Was Migrated
+
+The [DogDetails.tsx](src/pages/DogDetails/DogDetails.tsx) page displays all class entries for a specific dog (by armband number), including:
+- Dog information (call name, breed, handler)
+- List of all class entries
+- Role-based visibility settings for results (placement, time, faults, qualification)
+- Check-in status management
+
+### Before: Manual Data Fetching
+
+**Problems**:
+- 78 lines of complex fetch logic mixed with component UI code
+- Manual state management for `dogInfo`, `classes`, `isLoading`
+- No caching - refetch on every mount and manual refresh
+- Visibility settings fetched in component (tight coupling)
+- Type definitions duplicated in component file
+
+**Code Pattern**:
+```typescript
+// Component had internal types
+interface ClassEntry { /* ... */ }
+interface DogInfo { /* ... */ }
+
+// Manual state
+const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
+const [classes, setClasses] = useState<ClassEntry[]>([]);
+const [isLoading, setIsLoading] = useState(true);
+
+// 78 lines of fetch logic
+const loadDogDetails = async () => {
+  setIsLoading(true);
+  try {
+    const { data, error } = await supabase
+      .from('view_entry_class_join_normalized')
+      .select('*')
+      .eq('license_key', licenseKey)
+      .eq('armband_number', parseInt(armband));
+
+    // ... 50+ lines of data processing and visibility fetching ...
+
+    setDogInfo(/* processed data */);
+    setClasses(/* processed entries */);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (armband && showContext) {
+    loadDogDetails();
+  }
+}, [armband, showContext]);
+```
+
+### After: React Query Hooks
+
+**File**: [src/pages/DogDetails/hooks/useDogDetailsData.ts](src/pages/DogDetails/hooks/useDogDetailsData.ts)
+
+**Improvements**:
+- ✅ Centralized data fetching logic (197 lines, but reusable)
+- ✅ Exported TypeScript types (`ClassEntry`, `DogInfo`, `DogDetailsData`)
+- ✅ Automatic caching (1 min stale time for frequently changing results)
+- ✅ Role-based visibility logic encapsulated in hooks
+- ✅ Proper type safety with `UserRole | null | undefined`
+- ✅ Query keys for easy cache invalidation
+
+**Code Pattern**:
+```typescript
+// Component imports hook and types
+import { useDogDetailsData, ClassEntry, DogInfo } from './hooks/useDogDetailsData';
+
+// Single hook call replaces 78 lines
+const {
+  data,
+  isLoading,
+  error,
+  refetch
+} = useDogDetailsData(armband, showContext?.licenseKey, currentRole);
+
+// Sync to local state (for UI management)
+useEffect(() => {
+  if (data) {
+    setDogInfo(data.dogInfo);
+    setClasses(data.classes);
+  }
+}, [data]);
+```
+
+### Technical Challenges Solved
+
+1. **UserRole Type Safety**:
+   - `currentRole` from `usePermission` is `UserRole | null`
+   - Updated hook signature to accept `UserRole | null | undefined`
+   - Properly typed `getVisibleResultFields` call with type assertion
+
+2. **Visibility Settings Integration**:
+   - Each class entry needs role-based visibility settings
+   - Solved with `Promise.all` for parallel fetches
+   - Visibility logic stays in service, hooks coordinate data flow
+
+3. **Check-in Status Mapping**:
+   - Database field `entry_status` mapped to `CheckinStatus` type
+   - Special case: 'in-ring' status mapped to 'no-status' for exhibitors
+   - Proper type narrowing with type assertions
+
+### Query Configuration
+
+```typescript
+export function useDogDetailsData(
+  armband: string | undefined,
+  licenseKey: string | undefined,
+  currentRole: UserRole | null | undefined
+) {
+  return useQuery({
+    queryKey: dogDetailsKeys.details(armband || '', licenseKey || ''),
+    queryFn: () => fetchDogDetails(armband, licenseKey, currentRole),
+    enabled: !!armband && !!licenseKey,
+    staleTime: 1 * 60 * 1000,  // 1 minute (class results change frequently)
+    gcTime: 5 * 60 * 1000,      // 5 minutes cache
+  });
+}
+```
+
+**Why 1 minute stale time?**
+DogDetails shows live class results that change during trials. Shorter stale time ensures exhibitors see up-to-date placements, times, and qualification status.
+
+### Files Changed
+
+**New Files**:
+- `src/pages/DogDetails/hooks/useDogDetailsData.ts` - React Query hooks for DogDetails (197 lines)
+
+**Modified Files**:
+- `src/pages/DogDetails/DogDetails.tsx`:
+  - Removed `loadDogDetails` function (~78 lines)
+  - Removed internal type definitions (moved to hooks file)
+  - Added React Query hook integration
+  - Updated refresh button to use `refetch()`
+  - Updated error handling to use `refetch()`
+
+### Impact
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Lines in component | ~547 (includes 78 fetch logic) | ~469 | **-78 lines** |
+| Type definitions | Duplicated in component | Exported from hooks | **Reusable** |
+| Caching | None | 1 min stale, 5 min cache | **Automatic** |
+| Visibility fetching | Mixed in component | Encapsulated in hook | **Better separation** |
+| Role type safety | Not type-safe | Proper `UserRole \| null` handling | **Type-safe** |
 
 ---
 
 ## Overall Progress
 
-**Components Migrated**: 3 of 6 (50%)
-**Lines of Manual Fetch Code Removed**: ~455 lines
-**Lines of Centralized Hooks Added**: ~726 lines (reusable across codebase)
+**Components Migrated**: 4 of 6 (67%)
+**Lines of Manual Fetch Code Removed**: ~533 lines
+**Lines of Centralized Hooks Added**: ~923 lines (reusable across codebase)
 **Net Impact**: Better organization, automatic caching, consistent patterns
 
-**Status**: ✅ Migration pattern validated across 3 major components
-**Next Step**: Migrate DogDetails.tsx, PerformanceMetricsAdmin.tsx, or AuditLog.tsx
-**Recommendation**: Continue with gradual migration - proven pattern working well
+**Status**: ✅ Migration pattern validated across 4 major components
+**Next Step**: Migrate PerformanceMetricsAdmin.tsx or AuditLog.tsx
+**Recommendation**: Continue with gradual migration - proven pattern working consistently
 
