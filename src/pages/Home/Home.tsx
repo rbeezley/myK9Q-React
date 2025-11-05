@@ -6,12 +6,12 @@ import { usePermission } from '../../hooks/usePermission';
 import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FloatingActionButton, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
+import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
 import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { RefreshCw, Heart, Calendar, Users2, ArrowUp, MoreVertical } from 'lucide-react';
+import { RefreshCw, Heart, Calendar, Users2, MoreVertical } from 'lucide-react';
 import { useHomeDashboardData } from './hooks/useHomeDashboardData';
 import type { EntryData, TrialData } from './hooks/useHomeDashboardData';
 import './Home.css';
@@ -577,13 +577,6 @@ export const Home: React.FC = () => {
       </div>
       </div>
       </PullToRefresh>
-
-      {/* Floating Action Button - Scroll to Top */}
-      <FloatingActionButton
-        icon={<ArrowUp />}
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        ariaLabel="Scroll to top"
-      />
     </div>
   );
 };
