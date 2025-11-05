@@ -105,7 +105,7 @@ export const Announcements: React.FC = () => {
   const showContextBanner = currentShowName || currentLicenseKey;
 
   return (
-    <div className="announcements-container app-container">
+    <div className="announcements-container">
       {/* Header with Hamburger Menu, Title, and Actions */}
       <header className="page-header announcements-header">
         <HamburgerMenu currentPage="announcements" />
