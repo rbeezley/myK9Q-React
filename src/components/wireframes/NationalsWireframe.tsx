@@ -1,6 +1,11 @@
 /**
  * Wireframe for Nationals Scoresheet Layout
- * Shows the exact design we want to achieve
+ *
+ * STATUS: Dormant (No current nationals scheduled)
+ * LAST USED: 2024
+ *
+ * Shows the exact design we want to achieve for nationals scoring interface.
+ * Retained as reference for future nationals implementation.
  */
 
 import React from 'react';

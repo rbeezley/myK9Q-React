@@ -1,10 +1,20 @@
 /**
- * AKC Scent Work Master National 2025 - Scoring Service
+ * AKC Scent Work Master National - Scoring Service
+ *
+ * STATUS: Dormant (No current nationals scheduled)
+ * LAST USED: 2024
+ *
+ * ⚠️ IMPORTANT: This code is retained for future nationals events.
+ * If AKC announces a new nationals, review scoring rules for changes:
+ * - Qualification criteria (currently top 100)
+ * - Scoring formula (alerts, faults, timing)
+ * - Advancement rules (Day 1 → Day 2 → Day 3)
+ * - Element requirements per day
  *
  * Handles all scoring calculations, database operations, and business logic
  * for the Nationals scoring system according to AKC rules.
  *
- * Key Rules:
+ * Key Rules (2024 Version):
  * - Correct alert: +10 points
  * - Incorrect alert: -5 points
  * - Fault: -2 points

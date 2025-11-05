@@ -1,6 +1,13 @@
--- AKC Scent Work Master National 2025 - Scoring Database Schema (Fixed)
+-- AKC Scent Work Master National - Scoring Database Schema (Fixed)
 -- Migration: 001_nationals_scoring_fixed
 -- Created: 2025-01-15
+--
+-- STATUS: Dormant (No current nationals scheduled)
+-- LAST USED: 2024
+--
+-- ⚠️ IMPORTANT: Database schema retained for future nationals events.
+-- This is the corrected version with proper column names.
+--
 -- Description: Complete scoring system for single group of 200 exhibitors (Fixed column names)
 
 BEGIN;

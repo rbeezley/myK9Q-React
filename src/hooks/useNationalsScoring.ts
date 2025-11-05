@@ -1,6 +1,9 @@
 /**
  * useNationalsScoring Hook
  *
+ * STATUS: Dormant (No current nationals scheduled)
+ * LAST USED: 2024
+ *
  * React hook for components to interact with the AKC Nationals scoring system.
  * Provides easy access to scoring functions, leaderboards, and real-time updates.
  */

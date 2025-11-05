@@ -1,6 +1,12 @@
 /**
  * AKC Nationals Scoring Store
  *
+ * STATUS: Dormant (No current nationals scheduled)
+ * LAST USED: 2024
+ *
+ * ⚠️ IMPORTANT: Retained for future nationals events.
+ * Code is ready to use if AKC announces another nationals.
+ *
  * Zustand store for managing Nationals scoring state, leaderboards,
  * and real-time updates across components.
  */
