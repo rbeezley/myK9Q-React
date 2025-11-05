@@ -1082,14 +1082,158 @@ Administrators list rarely changes, so it gets longer cache times (5/10 min). Au
 
 ---
 
+## Phase 6: PerformanceMetricsAdmin Migration (FINAL)
+
+**Date**: 2025-11-05
+**Component**: [src/pages/Admin/PerformanceMetricsAdmin.tsx](src/pages/Admin/PerformanceMetricsAdmin.tsx)
+**Status**: ✅ Complete
+
+### What Changed
+
+**Before** (Manual Data Fetching):
+```typescript
+const [sessions, setSessions] = useState<SessionSummaryRecord[]>([]);
+const [loading, setLoading] = useState(true);
+const [stats, setStats] = useState<any>(null);
+
+useEffect(() => {
+  const loadMetrics = async () => {
+    if (!showContext?.licenseKey) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const [sessionData, statsData] = await Promise.all([
+      metricsApiService.getShowMetrics(showContext.licenseKey, selectedDays),
+      metricsApiService.getVenueStats(showContext.licenseKey, selectedDays),
+    ]);
+    setSessions(sessionData);
+    setStats(statsData);
+    setLoading(false);
+  };
+  loadMetrics();
+}, [showContext?.licenseKey, selectedDays]);
+```
+
+**After** (React Query):
+```typescript
+import { usePerformanceMetricsData } from './hooks/usePerformanceMetricsData';
+
+const {
+  sessions,
+  stats,
+  isLoading: loading,
+} = usePerformanceMetricsData(showContext?.licenseKey, selectedDays);
+```
+
+### Benefits Achieved
+
+- ✅ Two parallel queries with automatic caching
+- ✅ Automatic refetch when `selectedDays` changes (via query key)
+- ✅ Proper caching (2 min stale time for both queries)
+- ✅ Combined loading states
+- ✅ Type-safe error handling for service response types
+- ✅ Query keys for easy cache invalidation
+
+**Code Pattern**:
+```typescript
+// Use React Query for data fetching
+const {
+  sessions,
+  stats,
+  isLoading: loading,
+} = usePerformanceMetricsData(showContext?.licenseKey, selectedDays);
+
+// CSV export still uses service directly (write operation)
+const csv = await metricsApiService.exportMetricsAsCSV(
+  showContext.licenseKey,
+  selectedDays
+);
+```
+
+### Technical Details
+
+**Two Parallel Queries**:
+1. **Session Metrics**: Individual session summaries
+   - Query key includes `selectedDays` for automatic refetch
+   - 2 minute stale time (metrics update occasionally)
+   - 5 minute cache time
+
+2. **Venue Stats**: Aggregated statistics
+   - Query key includes `selectedDays` for automatic refetch
+   - 2 minute stale time (stats update occasionally)
+   - 5 minute cache time
+
+**Query Configuration**:
+```typescript
+export function usePerformanceMetricsData(
+  licenseKey: string | undefined,
+  days: number
+) {
+  const sessionsQuery = useSessions(licenseKey, days);
+  const statsQuery = useStats(licenseKey, days);
+
+  return {
+    sessions: sessionsQuery.data || [],
+    stats: statsQuery.data || null,
+    isLoading: sessionsQuery.isLoading || statsQuery.isLoading,
+    isRefreshing: sessionsQuery.isFetching || statsQuery.isFetching,
+    error: sessionsQuery.error || statsQuery.error,
+    refetch: () => {
+      sessionsQuery.refetch();
+      statsQuery.refetch();
+    },
+  };
+}
+```
+
+**Type Safety Fix**:
+The `getVenueStats` service returns `{}` (empty object) on error, but our hook expects `VenueStats | null`. Added type handling:
+```typescript
+// Service returns {} on error, convert to null for consistency
+if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+  return null;
+}
+return data as VenueStats;
+```
+
+### Files Changed
+
+**New Files**:
+- `src/pages/Admin/hooks/usePerformanceMetricsData.ts` - React Query hooks for PerformanceMetrics (145 lines)
+
+**Modified Files**:
+- `src/pages/Admin/PerformanceMetricsAdmin.tsx`:
+  - Removed `loadMetrics` function (~20 lines)
+  - Removed manual state management (sessions, loading, stats)
+  - Removed useEffect for data fetching
+  - Added React Query hook integration
+  - Updated import from `react` (removed `useEffect`)
+
+### Impact
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Lines in component | ~278 (includes 20 fetch logic) | ~258 | **-20 lines** |
+| State variables | 3 (sessions, loading, stats) | 0 (all from hook) | **-3 state vars** |
+| Caching | None (refetch on every day change) | 2 min stale time | **Automatic** |
+| Day filter changes | Trigger useEffect → full refetch | Automatic via query key | **Smarter** |
+| Error handling | Manual try/catch in useEffect | Centralized in hooks | **Cleaner** |
+| Type safety | Service returns `{}` on error | Hook converts to `null` | **Safer** |
+
+**Why Two Parallel Queries?**
+Session metrics and venue stats can be fetched concurrently. React Query automatically runs both queries in parallel (like `Promise.all`), but with better error handling, loading states, and individual caching strategies.
+
+---
+
 ## Overall Progress
 
-**Components Migrated**: 5 of 6 (83%)
-**Lines of Manual Fetch Code Removed**: ~561 lines
-**Lines of Centralized Hooks Added**: ~1,054 lines (reusable across codebase)
+**Components Migrated**: 6 of 6 (100%) ✅ **COMPLETE**
+**Lines of Manual Fetch Code Removed**: ~581 lines
+**Lines of Centralized Hooks Added**: ~1,199 lines (reusable across codebase)
 **Net Impact**: Better organization, automatic caching, consistent patterns
 
-**Status**: ✅ Migration pattern validated across 5 major components
-**Next Step**: Migrate PerformanceMetricsAdmin.tsx (final component)
-**Recommendation**: Continue with final migration - pattern proven robust
+**Status**: ✅ Migration complete across all 6 read-heavy components
+**Result**: All major data-fetching pages now use React Query with consistent patterns
+**Recommendation**: Migration successful - ready for production
 

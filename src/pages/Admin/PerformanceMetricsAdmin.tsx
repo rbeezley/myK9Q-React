@@ -5,42 +5,25 @@
  * Only accessible by admins - shows data for their logged-in show context
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { metricsApiService, SessionSummaryRecord } from '@/services/metricsApiService';
+import { usePerformanceMetricsData } from './hooks/usePerformanceMetricsData';
 import { HamburgerMenu } from '@/components/ui';
 import './PerformanceMetricsAdmin.css';
 
 export function PerformanceMetricsAdmin() {
   const { showContext } = useAuth();
 
-  const [sessions, setSessions] = useState<SessionSummaryRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
   const [selectedSession, setSelectedSession] = useState<SessionSummaryRecord | null>(null);
-  const [stats, setStats] = useState<any>(null);
 
-  // Load metrics for current show
-  useEffect(() => {
-    const loadMetrics = async () => {
-      if (!showContext?.licenseKey) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      const [sessionData, statsData] = await Promise.all([
-        metricsApiService.getShowMetrics(showContext.licenseKey, selectedDays),
-        metricsApiService.getVenueStats(showContext.licenseKey, selectedDays),
-      ]);
-
-      setSessions(sessionData);
-      setStats(statsData);
-      setLoading(false);
-    };
-
-    loadMetrics();
-  }, [showContext?.licenseKey, selectedDays]);
+  // Use React Query for data fetching
+  const {
+    sessions,
+    stats,
+    isLoading: loading,
+  } = usePerformanceMetricsData(showContext?.licenseKey, selectedDays);
 
   if (!showContext?.licenseKey) {
     return <div className="error-message">Not authorized</div>;
