@@ -759,6 +759,7 @@ const {
 - `src/pages/Home/hooks/useHomeDashboardData.ts` - React Query hooks for Home dashboard (243 lines)
 - `src/pages/ClassList/hooks/useClassListData.ts` - React Query hooks for ClassList (292 lines)
 - `src/pages/DogDetails/hooks/useDogDetailsData.ts` - React Query hooks for DogDetails (197 lines)
+- `src/pages/Admin/hooks/useAuditLogData.ts` - React Query hooks for AuditLog (131 lines)
 - `REACT_QUERY_POC.md` - This document
 
 ### Modified Files
@@ -767,6 +768,7 @@ const {
 - `src/pages/Home/Home.tsx` - Migrated to React Query (removed useStaleWhileRevalidate)
 - `src/pages/ClassList/ClassList.tsx` - Migrated to React Query (removed fetchClassListData callback)
 - `src/pages/DogDetails/DogDetails.tsx` - Migrated to React Query (removed loadDogDetails function)
+- `src/pages/Admin/AuditLog.tsx` - Migrated to React Query (removed loadAuditLog/loadAdministrators functions)
 
 ---
 
@@ -928,14 +930,166 @@ DogDetails shows live class results that change during trials. Shorter stale tim
 
 ---
 
+## AuditLog.tsx Migration (Phase 5)
+
+**Date**: 2025-11-05
+**Status**: ✅ Complete
+**Lines Removed**: ~28 lines of manual fetch logic
+**Lines Added**: ~131 lines (hooks file with query functions)
+
+### What Was Migrated
+
+The [AuditLog.tsx](src/pages/Admin/AuditLog.tsx) page displays a searchable, filterable history of all competition admin changes including:
+- Visibility settings changes
+- Self check-in configuration changes
+- Filterable by scope (show/trial/class level), administrator, and date range
+- Configurable result limit (50-500 entries)
+
+### Before: Manual Data Fetching
+
+**Problems**:
+- 28 lines of manual fetch logic (two separate functions)
+- Manual state management for `entries`, `administrators`, `loading`, `error`
+- useEffect dependencies cause refetches on filter/limit changes
+- No caching - refetch audit log on every filter change
+- Duplicated error handling logic
+
+**Code Pattern**:
+```typescript
+const [entries, setEntries] = useState<AuditLogEntry[]>([]);
+const [administrators, setAdministrators] = useState<string[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+
+// Load data on mount and when filters change
+useEffect(() => {
+  loadAuditLog();
+  loadAdministrators();
+}, [licenseKey, filters, limit]);
+
+const loadAuditLog = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    const data = await fetchAuditLog(licenseKey || 'default', filters, limit);
+    setEntries(data);
+  } catch (err) {
+    console.error('Error loading audit log:', err);
+    setError('Failed to load audit log');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const loadAdministrators = async () => {
+  try {
+    const admins = await getUniqueAdministrators(licenseKey || 'default');
+    setAdministrators(admins);
+  } catch (err) {
+    console.error('Error loading administrators:', err);
+  }
+};
+```
+
+### After: React Query Hooks
+
+**File**: [src/pages/Admin/hooks/useAuditLogData.ts](src/pages/Admin/hooks/useAuditLogData.ts)
+
+**Improvements**:
+- ✅ Centralized data fetching logic (131 lines, reusable)
+- ✅ Two separate queries with independent caching strategies
+- ✅ Automatic refetch when filters or limit change (via query key)
+- ✅ Proper caching (1 min for entries, 5 min for administrators)
+- ✅ Combined loading and error states
+- ✅ Query keys for easy cache invalidation
+
+**Code Pattern**:
+```typescript
+// Use React Query for data fetching
+const {
+  entries,
+  administrators,
+  isLoading: loading,
+  error: queryError,
+  refetch
+} = useAuditLogData(licenseKey, filters, limit);
+
+// Convert error to string for UI display
+const error = queryError ? (queryError as Error).message || 'Failed to load audit log' : null;
+```
+
+### Technical Details
+
+**Two Independent Queries**:
+1. **Audit Log Entries**: Cached separately per filter/limit combination
+   - Query key includes filters and limit for automatic refetch
+   - 1 minute stale time (audit log changes occasionally)
+   - 5 minute cache time
+
+2. **Administrators List**: Cached independently (rarely changes)
+   - 5 minute stale time
+   - 10 minute cache time
+
+**Query Configuration**:
+```typescript
+export function useAuditLogData(
+  licenseKey: string | undefined,
+  filters: AuditLogFilters,
+  limit: number
+) {
+  const entriesQuery = useAuditLogEntries(licenseKey, filters, limit);
+  const administratorsQuery = useAdministrators(licenseKey);
+
+  return {
+    entries: entriesQuery.data || [],
+    administrators: administratorsQuery.data || [],
+    isLoading: entriesQuery.isLoading || administratorsQuery.isLoading,
+    isRefreshing: entriesQuery.isFetching || administratorsQuery.isFetching,
+    error: entriesQuery.error || administratorsQuery.error,
+    refetch: () => {
+      entriesQuery.refetch();
+      administratorsQuery.refetch();
+    },
+  };
+}
+```
+
+### Files Changed
+
+**New Files**:
+- `src/pages/Admin/hooks/useAuditLogData.ts` - React Query hooks for AuditLog (131 lines)
+
+**Modified Files**:
+- `src/pages/Admin/AuditLog.tsx`:
+  - Removed `loadAuditLog` and `loadAdministrators` functions (~28 lines)
+  - Removed manual state management (loading, error, entries, administrators)
+  - Removed useEffect for data fetching
+  - Added React Query hook integration
+  - Updated error handling to use `refetch()`
+
+### Impact
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Lines in component | ~314 (includes 28 fetch logic) | ~286 | **-28 lines** |
+| State variables | 4 (entries, administrators, loading, error) | 0 (all from hook) | **-4 state vars** |
+| Caching | None (refetch on every filter change) | 1 min stale (entries), 5 min (admins) | **Automatic** |
+| Filter changes | Trigger useEffect → full refetch | Automatic via query key | **Smarter** |
+| Error handling | Manual try/catch in 2 places | Centralized in hooks | **Cleaner** |
+
+**Why Two Separate Queries?**
+Administrators list rarely changes, so it gets longer cache times (5/10 min). Audit log entries change more frequently and depend on filters, so they get shorter cache times (1/5 min) and include filters in the query key.
+
+---
+
 ## Overall Progress
 
-**Components Migrated**: 4 of 6 (67%)
-**Lines of Manual Fetch Code Removed**: ~533 lines
-**Lines of Centralized Hooks Added**: ~923 lines (reusable across codebase)
+**Components Migrated**: 5 of 6 (83%)
+**Lines of Manual Fetch Code Removed**: ~561 lines
+**Lines of Centralized Hooks Added**: ~1,054 lines (reusable across codebase)
 **Net Impact**: Better organization, automatic caching, consistent patterns
 
-**Status**: ✅ Migration pattern validated across 4 major components
-**Next Step**: Migrate PerformanceMetricsAdmin.tsx or AuditLog.tsx
-**Recommendation**: Continue with gradual migration - proven pattern working consistently
+**Status**: ✅ Migration pattern validated across 5 major components
+**Next Step**: Migrate PerformanceMetricsAdmin.tsx (final component)
+**Recommendation**: Continue with final migration - pattern proven robust
 

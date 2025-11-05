@@ -5,16 +5,14 @@
  * including visibility settings and self check-in configuration changes.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { usePermission } from '@/hooks/usePermission';
 import {
-  fetchAuditLog,
-  getUniqueAdministrators,
   formatAuditEntry,
-  type AuditLogEntry,
   type AuditLogFilters,
 } from '@/services/auditLogService';
+import { useAuditLogData } from './hooks/useAuditLogData';
 import { HamburgerMenu, HeaderTicker } from '@/components/ui';
 import { Clock, Filter, X, User, Calendar, Settings } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -23,44 +21,23 @@ import './AuditLog.css';
 const AuditLog: React.FC = () => {
   const { licenseKey } = useParams<{ licenseKey: string }>();
   const { isAdmin } = usePermission();
-  const [entries, setEntries] = useState<AuditLogEntry[]>([]);
-  const [administrators, setAdministrators] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<AuditLogFilters>({});
   const [limit, setLimit] = useState(100);
 
-  // Load data
-  useEffect(() => {
-    loadAuditLog();
-    loadAdministrators();
-  }, [licenseKey, filters, limit]);
+  // Use React Query for data fetching
+  const {
+    entries,
+    administrators,
+    isLoading: loading,
+    error: queryError,
+    refetch
+  } = useAuditLogData(licenseKey, filters, limit);
 
-  const loadAuditLog = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchAuditLog(licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604', filters, limit);
-      setEntries(data);
-    } catch (err) {
-      console.error('Error loading audit log:', err);
-      setError('Failed to load audit log');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAdministrators = async () => {
-    try {
-      const admins = await getUniqueAdministrators(licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604');
-      setAdministrators(admins);
-    } catch (err) {
-      console.error('Error loading administrators:', err);
-    }
-  };
+  // Convert error to string for UI display
+  const error = queryError ? (queryError as Error).message || 'Failed to load audit log' : null;
 
   const handleFilterChange = (key: keyof AuditLogFilters, value: string) => {
     setFilters(prev => ({
@@ -214,7 +191,7 @@ const AuditLog: React.FC = () => {
       {error && (
         <div className="audit-log-error">
           <p>{error}</p>
-          <button onClick={loadAuditLog}>Try Again</button>
+          <button onClick={() => refetch()}>Try Again</button>
         </div>
       )}
 
