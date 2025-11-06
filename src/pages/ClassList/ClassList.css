@@ -338,7 +338,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);
+  background: var(--primary-subtle);
   opacity: 0;
   transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -349,7 +349,7 @@
 
 .class-card:hover {
   box-shadow: var(--token-shadow-md);
-  border-color: rgba(0, 122, 255, 0.2);
+  border-color: var(--primary);
 }
 
 .theme-dark .class-card:hover {
@@ -589,28 +589,28 @@
 }
 
 .favorite-button.favorited {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
+  color: var(--token-error-contrast);
+  background: var(--danger-subtle);
+  border-color: var(--token-error-contrast);
 }
 
 .theme-dark .favorite-button.favorited {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.15);
-  border-color: #ff6b6b;
+  color: var(--token-error-contrast);
+  background: var(--danger-subtle);
+  border-color: var(--token-error-contrast);
 }
 
 .favorite-button.favorited:hover {
-  background: #ef4444;
+  background: var(--token-error-contrast);
   color: white;
-  border-color: #ef4444;
+  border-color: var(--token-error-contrast);
   transform: scale(1.05);
 }
 
 .theme-dark .favorite-button.favorited:hover {
-  background: #ff6b6b;
+  background: var(--token-error-contrast);
   color: white;
-  border-color: #ff6b6b;
+  border-color: var(--token-error-contrast);
 }
 
 .favorite-icon {
