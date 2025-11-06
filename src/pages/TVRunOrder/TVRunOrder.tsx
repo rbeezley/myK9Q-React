@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { HeaderTicker, HamburgerMenu } from '../../components/ui';
 import { useTVData } from './hooks/useTVData';
 import { ClassRunOrder } from './components/ClassRunOrder';
@@ -21,11 +22,23 @@ export const TVRunOrder: React.FC = () => {
     pollingInterval: 30000
   });
 
+  // Calculate total pages
+  const totalPages = Math.ceil(inProgressClasses.length / 4);
+
   // Reset page when class count changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(0);
   }, [inProgressClasses.length]);
+
+  // Navigation handlers
+  const goToPreviousPage = useCallback(() => {
+    setCurrentPage(prev => (prev === 0 ? totalPages - 1 : prev - 1));
+  }, [totalPages]);
+
+  const goToNextPage = useCallback(() => {
+    setCurrentPage(prev => (prev + 1) % totalPages);
+  }, [totalPages]);
 
   // Auto-rotation if more than 4 classes in progress
   useEffect(() => {
@@ -34,14 +47,11 @@ export const TVRunOrder: React.FC = () => {
     }
 
     const interval = setInterval(() => {
-      setCurrentPage(prev => {
-        const totalPages = Math.ceil(inProgressClasses.length / 4);
-        return (prev + 1) % totalPages;
-      });
+      goToNextPage();
     }, 45000); // 45 seconds per page
 
     return () => clearInterval(interval);
-  }, [inProgressClasses.length]);
+  }, [inProgressClasses.length, goToNextPage]);
 
   // Debug logging
   useEffect(() => {
@@ -116,10 +126,26 @@ export const TVRunOrder: React.FC = () => {
         })}
       </div>
 
-      {/* Page indicator if rotating */}
+      {/* Page navigation if rotating */}
       {inProgressClasses.length > 4 && (
         <div className="tv-runorder-pagination">
-          Page {currentPage + 1} of {Math.ceil(inProgressClasses.length / 4)}
+          <button
+            className="pagination-nav-btn"
+            onClick={goToPreviousPage}
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <span className="pagination-info">
+            Page {currentPage + 1} of {totalPages}
+          </span>
+          <button
+            className="pagination-nav-btn"
+            onClick={goToNextPage}
+            aria-label="Next page"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
       )}
     </div>
