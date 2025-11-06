@@ -156,6 +156,10 @@
   --token-text-muted: #9ca3af;
   --token-text-white: #ffffff;
 
+  /* In Ring: Blue (active competing) */
+  --checkin-in-ring: #3b82f6;
+  --checkin-in-ring-text: #ffffff;
+
   /* Legacy Token Names (backwards compatibility) */
   --token-status-no-status: var(--status-no-status);
   --token-status-no-status-bg: var(--status-no-status-bg);
@@ -163,8 +167,8 @@
   --token-status-checked-in-bg: var(--status-checked-in-bg);
   --token-status-at-gate: var(--status-at-gate);
   --token-status-at-gate-bg: var(--status-at-gate-bg);
-  --token-status-in-ring: var(--status-conflict);
-  --token-status-in-ring-bg: var(--status-conflict-bg);
+  --token-status-in-ring: var(--checkin-in-ring);
+  --token-status-in-ring-bg: var(--checkin-in-ring);
   --token-status-conflict: var(--status-conflict);
   --token-status-conflict-bg: var(--status-conflict-bg);
   --token-status-pulled: var(--status-pulled);
@@ -384,6 +388,10 @@
   --token-hover-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
   --token-hover-shadow-lg: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
 
+  /* In Ring: Bright Blue (dark mode) */
+  --checkin-in-ring: #60a5fa;
+  --checkin-in-ring-text: #1a1a1a;
+
   /* Legacy tokens (Dark Mode) */
   --token-status-no-status: var(--status-no-status);
   --token-status-no-status-bg: var(--status-no-status-bg);
@@ -391,8 +399,8 @@
   --token-status-checked-in-bg: var(--status-checked-in-bg);
   --token-status-at-gate: var(--status-at-gate);
   --token-status-at-gate-bg: var(--status-at-gate-bg);
-  --token-status-in-ring: var(--status-conflict);
-  --token-status-in-ring-bg: var(--status-conflict-bg);
+  --token-status-in-ring: var(--checkin-in-ring);
+  --token-status-in-ring-bg: var(--checkin-in-ring);
   --token-status-conflict: var(--status-conflict);
   --token-status-conflict-bg: var(--status-conflict-bg);
   --token-status-pulled: var(--status-pulled);

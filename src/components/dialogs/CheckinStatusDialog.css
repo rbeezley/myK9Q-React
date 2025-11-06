@@ -245,8 +245,8 @@
 }
 
 .status-option.status-in-ring .popup-icon {
-  color: white;
-  background: var(--primary);
+  background: var(--checkin-in-ring);
+  color: var(--checkin-in-ring-text);
 }
 
 .status-option.status-completed .popup-icon {
@@ -376,8 +376,8 @@
 }
 
 .status-item.status-in-ring .status-icon {
-  background: var(--status-in-progress);
-  color: var(--status-in-progress-text);
+  background: var(--checkin-in-ring);
+  color: var(--checkin-in-ring-text);
 }
 
 .status-item.status-completed .status-icon {

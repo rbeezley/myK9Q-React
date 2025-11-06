@@ -323,8 +323,8 @@
 }
 
 .dog-card-action .status-badge.in-ring {
-  background: var(--status-in-progress);
-  color: var(--status-in-progress-text);
+  background: var(--checkin-in-ring);
+  color: var(--checkin-in-ring-text);
 }
 
 .dog-card-action .status-badge.conflict {
