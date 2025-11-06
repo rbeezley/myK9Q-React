@@ -160,28 +160,28 @@
 }
 
 .checkin-badge.checkin-0 {
-  background: var(--muted-foreground); /* Grey - Not Checked In */
-  color: white;
+  background: var(--checkin-none);
+  color: var(--checkin-none-text);
 }
 
 .checkin-badge.checkin-1 {
-  background: var(--token-success); /* Dark Green - Checked In */
-  color: white;
+  background: var(--checkin-checked-in);
+  color: var(--checkin-checked-in-text);
 }
 
 .checkin-badge.checkin-2 {
-  background: var(--token-warning-contrast);
-  color: white;
+  background: var(--checkin-conflict);
+  color: var(--checkin-conflict-text);
 }
 
 .checkin-badge.checkin-3 {
-  background: var(--token-error-contrast);
-  color: white;
+  background: var(--checkin-pulled);
+  color: var(--checkin-pulled-text);
 }
 
 .checkin-badge.checkin-4 {
-  background: var(--token-accent);
-  color: white;
+  background: var(--checkin-at-gate);
+  color: var(--checkin-at-gate-text);
 }
 
 /* Placement badge */

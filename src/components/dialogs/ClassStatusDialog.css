@@ -114,34 +114,34 @@
   opacity: 0.9;
 }
 
-/* Solid colored icon backgrounds - matching CheckinStatusDialog exactly */
+/* Solid colored icon backgrounds - using standardized design tokens */
 .status-item[style*="--status-setup"] .status-icon {
-  background: #fbbf24;  /* Amber/yellow for setup */
+  background: var(--status-setup);
 }
 
 .status-item[style*="--status-briefing"] .status-icon {
-  background: var(--status-briefing);  /* Blue for briefing */
+  background: var(--status-briefing);
 }
 
 .status-item[style*="--status-break"] .status-icon {
-  background: #14b8a6;  /* Teal for break */
+  background: var(--status-break);
 }
 
 .status-item[style*="--status-start-time"] .status-icon {
-  background: #8b5cf6;  /* Purple for start time */
+  background: var(--status-start-time);
 }
 
 .status-item[style*="--status-in-progress"] .status-icon {
-  background: var(--primary);  /* Primary blue for in progress */
+  background: var(--status-in-progress);
 }
 
 .status-item[style*="--status-completed"] .status-icon {
-  background: var(--token-success-contrast);  /* Green for completed */
+  background: var(--status-completed);
 }
 
 /* Color variables for different statuses */
 .status-item[style*="--status-setup"] {
-  --status-color: #fbbf24;
+  --status-color: var(--status-setup);
 }
 
 .status-item[style*="--status-briefing"] {
@@ -149,19 +149,19 @@
 }
 
 .status-item[style*="--status-break"] {
-  --status-color: #14b8a6;
+  --status-color: var(--status-break);
 }
 
 .status-item[style*="--status-start-time"] {
-  --status-color: #8b5cf6;
+  --status-color: var(--status-start-time);
 }
 
 .status-item[style*="--status-in-progress"] {
-  --status-color: var(--primary);
+  --status-color: var(--status-in-progress);
 }
 
 .status-item[style*="--status-completed"] {
-  --status-color: var(--token-success-contrast);
+  --status-color: var(--status-completed);
 }
 
 /* Light mode overrides - same as default */

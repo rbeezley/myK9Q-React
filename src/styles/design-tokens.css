@@ -68,8 +68,8 @@
   --status-break: #8b5cf6;
   --status-break-text: #ffffff;
 
-  /* Start Time: Blue (primary) */
-  --status-start-time: var(--primary);
+  /* Start Time: Purple (distinct from In Progress) */
+  --status-start-time: #6610f2;
   --status-start-time-text: #ffffff;
 
   /* In Progress: Blue (primary) */
@@ -83,6 +83,27 @@
   /* None/Pending: Light gray */
   --status-none: #f3f4f6;
   --status-none-text: #6b7280;
+
+  /* Check-in Status Colors - Light Mode (Traffic Light System) */
+  /* None: Gray (no action taken) */
+  --checkin-none: #6b7280;
+  --checkin-none-text: #ffffff;
+
+  /* Checked In: Green (ready to compete) */
+  --checkin-checked-in: #10b981;
+  --checkin-checked-in-text: #ffffff;
+
+  /* Conflict: Orange (warning - needs attention) */
+  --checkin-conflict: #f97316;
+  --checkin-conflict-text: #ffffff;
+
+  /* Pulled: Red (stopped - withdrawn) */
+  --checkin-pulled: #dc3545;
+  --checkin-pulled-text: #ffffff;
+
+  /* At Gate: Purple (final waiting stage) */
+  --checkin-at-gate: #6f42c1;
+  --checkin-at-gate-text: #ffffff;
 
   /* Result Status Colors */
   --status-qualified: #10b981;
@@ -294,8 +315,8 @@
   --status-break: #a78bfa;
   --status-break-text: #1a1a1a;
 
-  /* Start Time: Bright blue (primary) */
-  --status-start-time: #60a5fa;
+  /* Start Time: Bright purple (distinct from In Progress) */
+  --status-start-time: #8b7cff;
   --status-start-time-text: #1a1a1a;
 
   /* In Progress: Bright blue (primary) */
@@ -309,6 +330,27 @@
   /* None/Pending: Dark gray with light text */
   --status-none: #374151;
   --status-none-text: #9ca3af;
+
+  /* Check-in Status Colors - Dark Mode */
+  /* None: Gray with light text */
+  --checkin-none: #4b5563;
+  --checkin-none-text: #d1d5db;
+
+  /* Checked In: Bright green with dark text */
+  --checkin-checked-in: #34d399;
+  --checkin-checked-in-text: #1a1a1a;
+
+  /* Conflict: Bright orange with dark text */
+  --checkin-conflict: #fb923c;
+  --checkin-conflict-text: #1a1a1a;
+
+  /* Pulled: Bright red with white text (good contrast) */
+  --checkin-pulled: #ef4444;
+  --checkin-pulled-text: #ffffff;
+
+  /* At Gate: Bright purple with dark text */
+  --checkin-at-gate: #a78bfa;
+  --checkin-at-gate-text: #1a1a1a;
 
   /* Result Status Colors */
   --status-qualified: #10b981;

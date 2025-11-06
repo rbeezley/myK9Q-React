@@ -1,23 +1,5 @@
 /* DogCard Component - Consistent layout for Home and EntryList pages */
-
-/* Status color variables for check-in badges - using standardized colors */
-:root {
-  --status-checked-in: #10b981;
-  --status-at-gate: #8b5cf6;
-  --status-come-to-gate: #3b82f6;
-  --status-conflict: #f59e0b;
-  --status-pulled: #ef4444;
-  --status-done: #10b981;
-}
-
-.theme-dark {
-  --status-checked-in: #10b981;
-  --status-at-gate: #8b5cf6;
-  --status-come-to-gate: #3b82f6;
-  --status-conflict: #f59e0b;
-  --status-pulled: #ef4444;
-  --status-done: #10b981;
-}
+/* NOTE: Check-in status colors are now defined in design-tokens.css */
 
 .dog-card {
   background: rgba(255, 255, 255, 0.8);
@@ -67,27 +49,27 @@
 
 /* Status border indicators */
 .dog-card.checked-in {
-  border-left: 3px solid var(--status-checked-in);
+  border-left: 3px solid var(--checkin-checked-in);
 }
 
 .dog-card.conflict {
-  border-left: 3px solid var(--status-conflict);
+  border-left: 3px solid var(--checkin-conflict);
 }
 
 .dog-card.pulled {
-  border-left: 3px solid var(--status-pulled);
+  border-left: 3px solid var(--checkin-pulled);
 }
 
 .dog-card.at-gate {
-  border-left: 3px solid var(--status-at-gate);
+  border-left: 3px solid var(--checkin-at-gate);
 }
 
 .dog-card.come-to-gate {
-  border-left: 3px solid var(--status-come-to-gate);
+  border-left: 3px solid var(--checkin-at-gate);
 }
 
 .dog-card.scored {
-  border-left: 3px solid var(--status-done);
+  border-left: 3px solid var(--status-completed);
 }
 
 .dog-card.placement-1 {
@@ -326,33 +308,33 @@
 }
 
 .dog-card-action .status-badge.checked-in {
-  background: var(--status-checked-in, #10b981);
-  color: white;
+  background: var(--checkin-checked-in);
+  color: var(--checkin-checked-in-text);
 }
 
 .dog-card-action .status-badge.at-gate {
-  background: var(--status-at-gate, #8b5cf6);
-  color: white;
+  background: var(--checkin-at-gate);
+  color: var(--checkin-at-gate-text);
 }
 
 .dog-card-action .status-badge.come-to-gate {
-  background: var(--status-come-to-gate, #3b82f6);
-  color: white;
+  background: var(--checkin-at-gate);
+  color: var(--checkin-at-gate-text);
 }
 
 .dog-card-action .status-badge.in-ring {
-  background: var(--primary);
-  color: white;
+  background: var(--status-in-progress);
+  color: var(--status-in-progress-text);
 }
 
 .dog-card-action .status-badge.conflict {
-  background: var(--status-conflict, #f59e0b);
-  color: white;
+  background: var(--checkin-conflict);
+  color: var(--checkin-conflict-text);
 }
 
 .dog-card-action .status-badge.pulled {
-  background: var(--status-pulled, #ef4444);
-  color: white;
+  background: var(--checkin-pulled);
+  color: var(--checkin-pulled-text);
 }
 
 .dog-card-action .status-badge.disabled {
