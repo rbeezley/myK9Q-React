@@ -55,30 +55,34 @@
   --status-pulled-bg: #ef4444;
   --status-pulled-text: #ffffff;
 
-  /* Class Status Colors */
-  --status-setup: var(--token-warning-contrast);
-  --status-setup-bg: var(--token-warning-contrast);
+  /* Class Status Colors - Light Mode */
+  /* Setup: Orange/amber (warning state) */
+  --status-setup: #f97316;
   --status-setup-text: #ffffff;
 
+  /* Briefing: Blue (primary) */
   --status-briefing: var(--primary);
-  --status-briefing-bg: var(--primary);
   --status-briefing-text: #ffffff;
 
-  --status-break: var(--token-accent);
-  --status-break-bg: var(--token-accent);
+  /* Break: Purple (accent) */
+  --status-break: #8b5cf6;
   --status-break-text: #ffffff;
 
+  /* Start Time: Blue (primary) */
   --status-start-time: var(--primary);
-  --status-start-time-bg: var(--primary);
   --status-start-time-text: #ffffff;
 
+  /* In Progress: Blue (primary) */
   --status-in-progress: var(--primary);
-  --status-in-progress-bg: var(--primary);
   --status-in-progress-text: #ffffff;
 
+  /* Completed: Green (success) */
   --status-completed: #10b981;
-  --status-completed-bg: #10b981;
   --status-completed-text: #ffffff;
+
+  /* None/Pending: Light gray */
+  --status-none: #f3f4f6;
+  --status-none-text: #6b7280;
 
   /* Result Status Colors */
   --status-qualified: #10b981;
@@ -277,13 +281,34 @@
   --status-pulled: #ef4444;
   --status-pulled-bg: #ef4444;
 
-  /* Class Status Colors (dark mode uses same theme colors) */
-  --status-setup: var(--token-warning-contrast);
-  --status-briefing: var(--primary);
-  --status-break: var(--token-accent);
-  --status-start-time: var(--primary);
-  --status-in-progress: var(--primary);
-  --status-completed: #10b981;
+  /* Class Status Colors - Dark Mode */
+  /* Setup: Bright orange (good contrast on dark) */
+  --status-setup: #fb923c;
+  --status-setup-text: #1a1a1a;
+
+  /* Briefing: Bright blue (primary, darker text for contrast) */
+  --status-briefing: #60a5fa;
+  --status-briefing-text: #1a1a1a;
+
+  /* Break: Bright purple */
+  --status-break: #a78bfa;
+  --status-break-text: #1a1a1a;
+
+  /* Start Time: Bright blue (primary) */
+  --status-start-time: #60a5fa;
+  --status-start-time-text: #1a1a1a;
+
+  /* In Progress: Bright blue (primary) */
+  --status-in-progress: #60a5fa;
+  --status-in-progress-text: #1a1a1a;
+
+  /* Completed: Bright green */
+  --status-completed: #34d399;
+  --status-completed-text: #1a1a1a;
+
+  /* None/Pending: Dark gray with light text */
+  --status-none: #374151;
+  --status-none-text: #9ca3af;
 
   /* Result Status Colors */
   --status-qualified: #10b981;

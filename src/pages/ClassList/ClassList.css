@@ -468,38 +468,38 @@
 .class-status-badge.none,
 .class-status-badge.pending {
   background: var(--status-none);
-  color: var(--token-text-secondary);
+  color: var(--status-none-text);
 }
 
 .class-status-badge.setup {
   background: var(--status-setup);
-  color: var(--token-warning-contrast);
+  color: var(--status-setup-text);
 }
 
 .class-status-badge.briefing {
   background: var(--status-briefing);
-  color: white;
+  color: var(--status-briefing-text);
 }
 
 .class-status-badge.break {
   background: var(--status-break);
-  color: white;
+  color: var(--status-break-text);
 }
 
 .class-status-badge.start-time {
   background: var(--status-start-time);
-  color: white;
+  color: var(--status-start-time-text);
 }
 
 .class-status-badge.in-progress {
   background: var(--status-in-progress);
-  color: white;
+  color: var(--status-in-progress-text);
   animation: subtlePulse 2s ease-in-out infinite;
 }
 
 .class-status-badge.completed {
   background: var(--status-completed);
-  color: white;
+  color: var(--status-completed-text);
 }
 
 .action-icon-button {

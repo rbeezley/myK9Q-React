@@ -51,8 +51,8 @@
 }
 
 .status-in-progress {
-  background: var(--token-success);
-  color: white;
+  background: var(--status-in-progress);
+  color: var(--status-in-progress-text);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -62,18 +62,18 @@
 }
 
 .status-briefing {
-  background: var(--token-warning-contrast);
-  color: white;
+  background: var(--status-briefing);
+  color: var(--status-briefing-text);
 }
 
 .status-starts {
-  background: var(--primary);
-  color: white;
+  background: var(--status-start-time);
+  color: var(--status-start-time-text);
 }
 
 .status-upcoming {
-  background: var(--muted-foreground);
-  color: white;
+  background: var(--status-setup);
+  color: var(--status-setup-text);
 }
 
 .class-runorder-meta {
