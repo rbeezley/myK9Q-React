@@ -1,10 +1,10 @@
 -- =====================================================
--- Migration 044: Personalize Notification Messages
+-- Migration 044: Update Notification Icon Branding
 -- =====================================================
--- Purpose: Update notification messages to be more personal
--- Changes:
--- - Update message format to "[handler], [dog_name]'s turn is coming up soon."
--- - Previous format: "[dog_name] (#[armband]) is [X] dogs away in [class]"
+-- Purpose: Keep original notification message format
+-- Note: This migration maintains the original message format while
+--       the service worker (src/sw.ts) now uses myK9Q branded logo
+-- Message format: "[dog_name] (#[armband]) is [X] dogs away in [class]"
 -- =====================================================
 
 -- Update the notify_up_soon function with personalized message format
@@ -60,12 +60,12 @@ BEGIN
     LOOP
       v_dogs_ahead := v_dogs_ahead + 1;
 
-      -- Build notification payload with personalized message
+      -- Build notification payload
       v_payload := jsonb_build_object(
         'type', 'up_soon',
         'license_key', scored_entry.license_key,
         'title', 'You''re Up Soon!',
-        'body', next_entry.handler || ', ' || next_entry.call_name || '''s turn is coming up soon.',
+        'body', next_entry.call_name || ' (#' || next_entry.armband_number || ') is ' || v_dogs_ahead || ' dogs away in ' || v_class_name,
         'url', '/entries',
         'armband_number', next_entry.armband_number,
         'dog_name', next_entry.call_name,
@@ -99,7 +99,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 COMMENT ON FUNCTION notify_up_soon() IS
-'Sends personalized push notifications when entries are up soon.
-Message format: "[handler], [dog_name]''s turn is coming up soon."
+'Sends push notifications when entries are up soon.
+Message format: "[dog_name] (#[armband]) is [X] dogs away in [class]"
 Uses COALESCE(NULLIF(exhibitor_order, 0), armband_number) for correct run order.
 Calls send-push-notification Edge Function using pg_net.http_post().';
