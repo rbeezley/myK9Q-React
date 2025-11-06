@@ -768,6 +768,7 @@ export const EntryList: React.FC = () => {
             <button
               className="icon-button actions-button"
               onClick={() => setShowPrintMenu(!showPrintMenu)}
+              aria-label="Actions menu"
               title="More Actions"
             >
               <MoreVertical className="h-5 w-5" />
@@ -1085,7 +1086,7 @@ export const EntryList: React.FC = () => {
                 className="dialog-button dialog-button-primary reset-dialog-confirm"
                 onClick={confirmResetScore}
               >
-                Reset Score
+                Confirm
               </button>
             </div>
           </div>
@@ -1119,3 +1120,5 @@ export const EntryList: React.FC = () => {
     </div>
   );
 };
+
+export default EntryList;

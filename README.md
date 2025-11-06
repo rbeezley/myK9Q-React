@@ -30,12 +30,13 @@ A modern, production-ready Progressive Web App (PWA) for professional dog show r
 ## Tech Stack
 
 - **Frontend**: React 19.2.0 + TypeScript 5.9.3
-- **State Management**: Zustand 5.0.8
+- **State Management**: Zustand 5.0.8 with devtools middleware
 - **Routing**: React Router DOM 7.9.5
-- **Database**: Supabase 2.79.0 (PostgreSQL + Real-time)
-- **Styling**: Semantic CSS with design tokens (CSS variables)
+- **Database**: Supabase 2.79.0 (PostgreSQL + Real-time subscriptions)
+- **Styling**: Semantic CSS with design tokens (no utility-first framework)
 - **Build**: Vite 7.2.0 with PWA plugin
 - **Testing**: Vitest 4.0.7 + React Testing Library + Playwright
+- **UI Components**: Lucide React icons, @dnd-kit for drag-and-drop
 
 ## Quick Start
 
@@ -48,7 +49,7 @@ A modern, production-ready Progressive Web App (PWA) for professional dog show r
 1. **Clone and install dependencies:**
    ```bash
    git clone https://github.com/rbeezley/myK9Q-React.git
-   cd myK9Q-React-new
+   cd myK9Q-React
    npm install
    ```
 
@@ -80,25 +81,62 @@ A modern, production-ready Progressive Web App (PWA) for professional dog show r
    - Paste them into `.env.local`
 
 3. **Database Setup:**
+
+   The application uses a normalized database schema. For the complete database setup, run the migrations in `supabase/migrations/` in order. Key tables include:
+
    ```sql
-   -- Core normalized tables (see database documentation for complete schema)
+   -- Core normalized tables
    CREATE TABLE shows (
      id SERIAL PRIMARY KEY,
      license_key TEXT NOT NULL,
      show_name TEXT NOT NULL,
      club_name TEXT NOT NULL,
      show_date DATE NOT NULL,
+     competition_type TEXT DEFAULT 'Regular'
+     -- ... additional fields
+   );
+
+   CREATE TABLE trials (
+     id SERIAL PRIMARY KEY,
+     show_id INTEGER REFERENCES shows(id),
+     trial_name TEXT NOT NULL,
+     trial_number INTEGER,
+     trial_date DATE
+     -- ... additional fields
+   );
+
+   CREATE TABLE classes (
+     id SERIAL PRIMARY KEY,
+     trial_id INTEGER REFERENCES trials(id),
+     element TEXT NOT NULL,
+     level TEXT NOT NULL,
+     self_checkin_enabled BOOLEAN DEFAULT true
      -- ... additional fields
    );
 
    CREATE TABLE entries (
      id SERIAL PRIMARY KEY,
-     license_key TEXT NOT NULL,
+     class_id INTEGER REFERENCES classes(id),
      armband_number INTEGER NOT NULL,
-     call_name TEXT NOT NULL,
+     dog_call_name TEXT NOT NULL,
+     handler_name TEXT NOT NULL,
+     check_in_status INTEGER DEFAULT 0
+     -- ... additional fields
+   );
+
+   CREATE TABLE results (
+     id SERIAL PRIMARY KEY,
+     entry_id INTEGER REFERENCES entries(id),
+     is_scored BOOLEAN DEFAULT false,
+     search_time_seconds NUMERIC,
+     total_faults INTEGER DEFAULT 0,
+     placement INTEGER,
+     result_status TEXT
      -- ... additional fields
    );
    ```
+
+   **Note**: See `supabase/migrations/` for complete schema with all fields, indexes, and RLS policies.
 
 4. **Development:**
    ```bash
@@ -161,19 +199,26 @@ Routes are automatically determined by:
 ## Database Schema
 
 ### Core Tables
-- `shows`: Show/trial information with license key isolation
+- `shows`: Show/trial container with license key for multi-tenancy
 - `trials`: Trial instances linked to shows
-- `classes`: Class definitions with configurable rules
-- `entries`: Dog entries with handler and scoring data
-- `results`: Scoring results with placement calculations
-- `view_entry_class_join_normalized`: Pre-joined entry/class data for queries
-- `view_class_summary`: Pre-aggregated class statistics for performance
+- `classes`: Class definitions with configurable rules and settings
+- `entries`: Dog entries with armband, handler, and check-in status
+- `results`: Scoring results with times, faults, and placements
+- `class_requirements`: Organization-specific class requirements
+
+### Performance Views
+- `view_class_summary`: Pre-aggregated entry counts and statistics per class
+- `view_entry_with_results`: Pre-joined entries + results for faster queries
+- `view_entry_class_join_normalized`: Multi-table join for combined queries
+- `view_trial_summary_normalized`: Trial summary with show context
 
 ### Key Features
-- **License key filtering**: Multi-tenant architecture
-- **Real-time triggers**: Instant updates across clients
-- **Check-in status tracking**: Integer codes for status management
-- **Score history**: Complete audit trail of all scoring actions
+- **Normalized schema**: Clean table structure without legacy prefixes
+- **License key filtering**: Multi-tenant architecture via `license_key` field
+- **Real-time triggers**: Instant updates across clients via Supabase subscriptions
+- **Check-in status tracking**: Integer codes (0-3) for status management
+- **Configurable class rules**: Database-driven class requirements and warnings
+- **Complete audit trail**: All scoring actions tracked in `results` table
 
 ## Architecture Patterns
 

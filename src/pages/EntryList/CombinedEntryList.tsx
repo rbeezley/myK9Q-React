@@ -618,6 +618,7 @@ export const CombinedEntryList: React.FC = () => {
             <button
               className="icon-button actions-button"
               onClick={() => setShowActionsMenu(!showActionsMenu)}
+              aria-label="Actions menu"
               title="More Actions"
             >
               <MoreVertical className="h-5 w-5" />
@@ -1085,3 +1086,5 @@ export const CombinedEntryList: React.FC = () => {
     </div>
   );
 };
+
+export default CombinedEntryList;
