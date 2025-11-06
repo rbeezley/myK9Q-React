@@ -131,7 +131,7 @@ self.addEventListener('push', (event: PushEvent) => {
 
     const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
       body: payload.body,
-      icon: '/icon-192x192.png',
+      icon: '/myK9Q-logo-white.png',
       badge: '/icon-192x192.png',
       vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100], // More prominent vibration for urgent/class started
       data: {
@@ -153,18 +153,18 @@ self.addEventListener('push', (event: PushEvent) => {
     // Add action buttons based on notification type
     if (payload.type === 'up_soon') {
       options.actions = [
-        { action: 'view', title: 'View Entry', icon: '/icon-192x192.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+        { action: 'view', title: 'View Entry', icon: '/myK9Q-logo-white.png' },
+        { action: 'dismiss', title: 'Dismiss', icon: '/myK9Q-logo-white.png' },
       ];
     } else if (payload.type === 'announcement') {
       options.actions = [
-        { action: 'view', title: 'View Details', icon: '/icon-192x192.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+        { action: 'view', title: 'View Details', icon: '/myK9Q-logo-white.png' },
+        { action: 'dismiss', title: 'Dismiss', icon: '/myK9Q-logo-white.png' },
       ];
     } else if (payload.type === 'class_started') {
       options.actions = [
-        { action: 'view', title: 'View Class', icon: '/icon-192x192.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+        { action: 'view', title: 'View Class', icon: '/myK9Q-logo-white.png' },
+        { action: 'dismiss', title: 'Dismiss', icon: '/myK9Q-logo-white.png' },
       ];
     }
 

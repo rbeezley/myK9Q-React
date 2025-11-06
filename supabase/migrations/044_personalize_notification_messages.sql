@@ -1,0 +1,105 @@
+-- =====================================================
+-- Migration 044: Personalize Notification Messages
+-- =====================================================
+-- Purpose: Update notification messages to be more personal
+-- Changes:
+-- - Update message format to "[handler], [dog_name]'s turn is coming up soon."
+-- - Previous format: "[dog_name] (#[armband]) is [X] dogs away in [class]"
+-- =====================================================
+
+-- Update the notify_up_soon function with personalized message format
+CREATE OR REPLACE FUNCTION notify_up_soon()
+RETURNS TRIGGER AS $$
+DECLARE
+  scored_entry RECORD;
+  next_entry RECORD;
+  v_function_url TEXT;
+  v_payload JSONB;
+  v_dogs_ahead INTEGER;
+  v_class_name TEXT;
+BEGIN
+  -- Only proceed if result was just scored (is_scored changed to true)
+  IF NEW.is_scored = true AND (OLD.is_scored IS NULL OR OLD.is_scored = false) THEN
+
+    -- Get the entry that was just scored with its run order
+    SELECT
+      e.*,
+      c.element,
+      c.level,
+      c.license_key,
+      COALESCE(NULLIF(e.exhibitor_order, 0), e.armband_number) AS effective_run_order
+    INTO scored_entry
+    FROM entries e
+    JOIN classes c ON e.class_id = c.id
+    WHERE e.id = NEW.entry_id;
+
+    -- Build class name for notification
+    v_class_name := scored_entry.element || ' ' || scored_entry.level;
+
+    -- Build Edge Function URL (hardcoded for this project)
+    v_function_url := 'https://yyzgjyiqgmjzyhzkqdfx.supabase.co/functions/v1/send-push-notification';
+
+    -- Find next 5 unscored entries in run order
+    v_dogs_ahead := 0;
+    FOR next_entry IN
+      SELECT
+        e.id,
+        e.armband_number,
+        e.call_name,
+        e.handler,
+        e.class_id,
+        COALESCE(NULLIF(e.exhibitor_order, 0), e.armband_number) AS effective_run_order
+      FROM entries e
+      LEFT JOIN results r ON e.id = r.entry_id
+      WHERE e.class_id = scored_entry.class_id
+        AND (r.is_scored IS NULL OR r.is_scored = false)
+        -- Compare using effective run order (exhibitor_order with armband fallback)
+        AND COALESCE(NULLIF(e.exhibitor_order, 0), e.armband_number) > scored_entry.effective_run_order
+      ORDER BY COALESCE(NULLIF(e.exhibitor_order, 0), e.armband_number) ASC
+      LIMIT 5
+    LOOP
+      v_dogs_ahead := v_dogs_ahead + 1;
+
+      -- Build notification payload with personalized message
+      v_payload := jsonb_build_object(
+        'type', 'up_soon',
+        'license_key', scored_entry.license_key,
+        'title', 'You''re Up Soon!',
+        'body', next_entry.handler || ', ' || next_entry.call_name || '''s turn is coming up soon.',
+        'url', '/entries',
+        'armband_number', next_entry.armband_number,
+        'dog_name', next_entry.call_name,
+        'handler', next_entry.handler,
+        'class_id', next_entry.class_id,
+        'entry_id', next_entry.id
+      );
+
+      -- Call Edge Function asynchronously
+      PERFORM net.http_post(
+        url := v_function_url,
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer ' || current_setting('request.jwt.claim.sub', true)
+        ),
+        body := v_payload,
+        timeout_milliseconds := 5000
+      );
+
+    END LOOP;
+
+  END IF;
+
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error but don't fail the update
+    RAISE WARNING 'Failed to send up soon notification: %', SQLERRM;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION notify_up_soon() IS
+'Sends personalized push notifications when entries are up soon.
+Message format: "[handler], [dog_name]''s turn is coming up soon."
+Uses COALESCE(NULLIF(exhibitor_order, 0), armband_number) for correct run order.
+Calls send-push-notification Edge Function using pg_net.http_post().';
