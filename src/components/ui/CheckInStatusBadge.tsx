@@ -44,7 +44,7 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
       case 'conflict': return 'Conflict';
       case 'pulled': return 'Pulled';
       case 'at-gate': return 'At Gate';
-      case 'come-to-gate': return 'Come to Gate';
+      case 'come-to-gate': return 'At Gate'; // Same as at-gate (consolidated)
       default: return 'Not Checked In';
     }
   };

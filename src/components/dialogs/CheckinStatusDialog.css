@@ -344,45 +344,45 @@
   padding-left: 0;
 }
 
-/* Solid colored icon backgrounds for status items - matching badges exactly */
+/* Solid colored icon backgrounds - using standardized check-in colors */
 .status-item.status-no-status .status-icon {
-  color: white;
-  background: #9ca3af;
+  background: var(--checkin-none);
+  color: var(--checkin-none-text);
 }
 
 .status-item.status-checked-in .status-icon {
-  color: white;
-  background: var(--status-qualified);
+  background: var(--checkin-checked-in);
+  color: var(--checkin-checked-in-text);
 }
 
 .status-item.status-at-gate .status-icon {
-  color: white;
-  background: #8b5cf6;
+  background: var(--checkin-at-gate);
+  color: var(--checkin-at-gate-text);
 }
 
 .status-item.status-come-to-gate .status-icon {
-  color: white;
-  background: var(--status-briefing);
+  background: var(--checkin-at-gate);
+  color: var(--checkin-at-gate-text);
 }
 
 .status-item.status-conflict .status-icon {
-  color: white;
-  background: #f59e0b;
+  background: var(--checkin-conflict);
+  color: var(--checkin-conflict-text);
 }
 
 .status-item.status-pulled .status-icon {
-  color: white;
-  background: var(--status-not-qualified);
+  background: var(--checkin-pulled);
+  color: var(--checkin-pulled-text);
 }
 
 .status-item.status-in-ring .status-icon {
-  color: white;
-  background: var(--primary);
+  background: var(--status-in-progress);
+  color: var(--status-in-progress-text);
 }
 
 .status-item.status-completed .status-icon {
-  color: white;
-  background: var(--token-success-contrast);
+  background: var(--status-completed);
+  color: var(--status-completed-text);
 }
 
 /* Light mode overrides for status-item - same as default */
