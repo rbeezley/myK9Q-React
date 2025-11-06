@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Circle, Check, AlertTriangle, XCircle, Star, Bell } from 'lucide-react';
+import { GripVertical, Circle, Check, AlertTriangle, XCircle, Star, Bell, Target } from 'lucide-react';
 import { DogCard } from '../../components/DogCard';
 import { Entry } from '../../stores/entryStore';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
@@ -238,7 +238,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                 const status = entry.status || 'no-status';
                 const textStyle = { textTransform: 'none' as const, fontSize: '0.6875rem' };
                 switch(status) {
-                  case 'in-ring': return <><span className="status-icon" style={{ fontSize: '11px', marginRight: '0.375rem' }}>▶</span><span style={textStyle}>In Ring</span></>;
+                  case 'in-ring': return <><Target className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>In Ring</span></>;
                   case 'completed': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Completed</span></>;
                   case 'no-status': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
                   case 'checked-in': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Checked-in</span></>;

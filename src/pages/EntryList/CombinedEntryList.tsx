@@ -6,7 +6,7 @@ import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorStat
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered, MoreVertical, Printer, ClipboardCheck } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered, MoreVertical, Printer, ClipboardCheck, Target } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
@@ -953,7 +953,7 @@ export const CombinedEntryList: React.FC = () => {
                         const status = entry.status || 'no-status';
                         const textStyle = { textTransform: 'none' as const, fontSize: '0.6875rem' };
                         switch(status) {
-                          case 'in-ring': return <><span className="status-icon" style={{ fontSize: '11px', marginRight: '0.375rem' }}>▶</span><span style={textStyle}>In Ring</span></>;
+                          case 'in-ring': return <><Target className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>In Ring</span></>;
                           case 'completed': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Completed</span></>;
                           case 'no-status': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
                           case 'checked-in': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Checked-in</span></>;
