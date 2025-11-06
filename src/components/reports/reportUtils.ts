@@ -10,6 +10,22 @@ export const formatReportDate = (dateStr: string): string => {
   return `${month}/${day}/${year}`;
 };
 
+// Format timestamp for reports (e.g., "11/6/2025 2:30 PM")
+export const formatReportTimestamp = (date: Date): string => {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const year = date.getFullYear();
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Convert 0 to 12 for midnight
+  const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+
+  return `${month}/${day}/${year} ${hours}:${minutesStr} ${ampm}`;
+};
+
 // Format time for reports in mm:ss.hh format (e.g., "00:01.76" from 1.76 seconds)
 export const formatReportTime = (time: string | number | null | undefined): string => {
   if (!time) return '';

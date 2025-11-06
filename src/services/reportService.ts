@@ -35,7 +35,8 @@ const PRINT_STYLES = `
 .print-logo .logo-img { height: 40px; width: 40px; display: block; }
 .print-logo .logo-text { font-size: 24px; font-weight: bold; color: #007AFF; letter-spacing: -0.5px; }
 .print-title { font-size: 24px; font-weight: bold; margin: 0; padding: 0; line-height: 1.2; }
-.show-id { position: absolute; right: 0; top: 0; font-size: 14px; font-weight: normal; }
+.show-id { position: absolute; right: 0; top: 0; font-size: 14px; font-weight: normal; color: #666; }
+.print-timestamp { text-align: center; font-size: 11px; color: #666; margin-top: 4px; font-style: italic; }
 .show-name { text-align: left; font-size: 16px; font-weight: 600; margin: 0.5rem 0; }
 .trial-info-box { border: 1px solid #000; padding: 0.75rem; margin: 1rem 0 1.5rem 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; }
 .info-row { display: flex; gap: 0.5rem; }
@@ -46,14 +47,19 @@ const PRINT_STYLES = `
 .print-table th { background-color: #f0f0f0; border: 1px solid #000; padding: 6px 8px; text-align: left; font-weight: bold; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
 .print-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; }
 .print-table tbody tr:nth-child(even) { background-color: #fafafa; }
+.checkbox-col { width: 30px; text-align: center; }
 .checkbox-cell { text-align: center; padding: 4px; }
 .checkbox-square { display: inline-block; width: 16px; height: 16px; border: 2px solid #000; vertical-align: middle; }
+.notes-col { width: auto; min-width: 120px; }
 .qualified-text { color: #10b981; font-weight: bold; }
 .nq-text { color: #ef4444; font-weight: bold; }
 .place-cell { font-weight: bold; text-align: center; }
 .time-cell { font-family: 'Courier New', monospace; }
-.print-footer { margin-top: 2rem; display: flex; justify-content: space-between; font-size: 11px; padding-top: 1rem; border-top: 1px solid #e0e0e0; }
-.qualified-count { margin-left: 1.5rem; }
+.print-footer { margin-top: 2rem; display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; font-size: 11px; padding-top: 1rem; border-top: 2px solid #000; }
+.footer-left { text-align: left; display: flex; gap: 16px; flex-wrap: wrap; }
+.footer-center { text-align: center; color: #666; }
+.footer-right { text-align: right; }
+.qualified-count, .nq-count { margin-left: 16px; }
 @media print {
   .print-table th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-table tbody tr:nth-child(even) { background-color: #fafafa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -94,7 +100,8 @@ export const generateCheckInSheet = (classInfo: ReportClassInfo, entries: Entry[
     // Create props for CheckInSheet component
     const props: CheckInSheetProps = {
       classInfo,
-      entries
+      entries,
+      generatedAt: new Date()
     };
 
     // Render component to HTML string
@@ -139,7 +146,8 @@ export const generateResultsSheet = (classInfo: ReportClassInfo, entries: Entry[
     // Create props for ResultsSheet component
     const props: ResultsSheetProps = {
       classInfo,
-      entries: scoredEntries
+      entries: scoredEntries,
+      generatedAt: new Date()
     };
 
     // Render component to HTML string

@@ -29,6 +29,22 @@
   position: absolute;
   left: 0;
   top: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+}
+
+.print-logo .logo-img {
+  height: 40px;
+  width: 40px;
+  display: block;
+}
+
+.print-logo .logo-text {
+  font-size: var(--token-space-3xl);
+  font-weight: bold;
+  color: #007AFF;
+  letter-spacing: -0.5px;
 }
 
 .print-title {
@@ -45,6 +61,15 @@
   top: 0;
   font-size: 14px;
   font-weight: normal;
+  color: #666;
+}
+
+.print-timestamp {
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  margin-top: var(--token-space-sm);
+  font-style: italic;
 }
 
 .show-name {
@@ -111,6 +136,7 @@
 /* Column Widths - Check-in Sheet */
 .checkbox-col {
   width: 30px;
+  text-align: center;
 }
 
 .armband-col {
@@ -126,15 +152,16 @@
 }
 
 .breed-col {
-  width: 150px;
-}
-
-.akc-col {
-  width: 100px;
+  width: 140px;
 }
 
 .handler-col {
+  width: 180px;
+}
+
+.notes-col {
   width: auto;
+  min-width: 120px;
 }
 
 /* Column Widths - Results Sheet */
@@ -202,24 +229,35 @@
 /* Footer */
 .print-footer {
   margin-top: 2rem;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--token-space-xl);
+  align-items: center;
   font-size: 11px;
   font-weight: normal;
   padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 2px solid #000;
 }
 
 .footer-left {
   text-align: left;
+  display: flex;
+  gap: var(--token-space-xl);
+  flex-wrap: wrap;
+}
+
+.footer-center {
+  text-align: center;
+  color: #666;
 }
 
 .footer-right {
   text-align: right;
 }
 
-.qualified-count {
-  margin-left: 1.5rem;
+.qualified-count,
+.nq-count {
+  margin-left: var(--token-space-xl);
 }
 
 /* Print Media Query */
