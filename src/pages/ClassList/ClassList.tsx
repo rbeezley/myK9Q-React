@@ -1099,7 +1099,7 @@ export const ClassList: React.FC = () => {
                     setActivePopup(null);
                   }}
                 >
-                  <div className="class-option-icon" style={{ background: '#3b82f6' }}>
+                  <div className="class-option-icon icon-primary">
                     <ClipboardList size={20} />
                   </div>
                   <div className="class-option-label">Requirements</div>
@@ -1119,7 +1119,7 @@ export const ClassList: React.FC = () => {
                     setActivePopup(null);
                   }}
                 >
-                  <div className="class-option-icon" style={{ background: '#8b5cf6' }}>
+                  <div className="class-option-icon icon-accent">
                     <Clock size={20} />
                   </div>
                   <div className="class-option-label">Set Max Time</div>
@@ -1134,7 +1134,7 @@ export const ClassList: React.FC = () => {
                     setActivePopup(null);
                   }}
                 >
-                  <div className="class-option-icon" style={{ background: '#64748b' }}>
+                  <div className="class-option-icon icon-muted">
                     <Settings size={20} />
                   </div>
                   <div className="class-option-label">Settings</div>
@@ -1149,7 +1149,7 @@ export const ClassList: React.FC = () => {
                     setActivePopup(null);
                   }}
                 >
-                  <div className="class-option-icon" style={{ background: '#10b981' }}>
+                  <div className="class-option-icon icon-success">
                     <BarChart3 size={20} />
                   </div>
                   <div className="class-option-label">Statistics</div>
@@ -1165,7 +1165,7 @@ export const ClassList: React.FC = () => {
                     }
                   }}
                 >
-                  <div className="class-option-icon" style={{ background: '#f59e0b' }}>
+                  <div className="class-option-icon icon-warning">
                     <FileText size={20} />
                   </div>
                   <div className="class-option-label">Check-In Sheet</div>
@@ -1181,7 +1181,7 @@ export const ClassList: React.FC = () => {
                     }
                   }}
                 >
-                  <div className="class-option-icon" style={{ background: '#ec4899' }}>
+                  <div className="class-option-icon icon-secondary">
                     <Award size={20} />
                   </div>
                   <div className="class-option-label">Results Sheet</div>

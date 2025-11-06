@@ -467,38 +467,38 @@
 
 .class-status-badge.none,
 .class-status-badge.pending {
-  background: var(--status-none, #e5e7eb);
+  background: var(--status-none);
   color: var(--token-text-secondary);
 }
 
 .class-status-badge.setup {
-  background: var(--status-setup, #fef3c7);
+  background: var(--status-setup);
   color: var(--token-warning-contrast);
 }
 
 .class-status-badge.briefing {
-  background: var(--status-briefing, #3b82f6);
+  background: var(--status-briefing);
   color: white;
 }
 
 .class-status-badge.break {
-  background: var(--status-break, #14b8a6);
+  background: var(--status-break);
   color: white;
 }
 
 .class-status-badge.start-time {
-  background: var(--status-start-time, #8b5cf6);
+  background: var(--status-start-time);
   color: white;
 }
 
 .class-status-badge.in-progress {
-  background: var(--status-in-progress, #6366f1);
+  background: var(--status-in-progress);
   color: white;
   animation: subtlePulse 2s ease-in-out infinite;
 }
 
 .class-status-badge.completed {
-  background: var(--status-completed, #10b981);
+  background: var(--status-completed);
   color: white;
 }
 
@@ -1187,6 +1187,31 @@
   width: 20px;
   height: 20px;
   stroke-width: 2;
+}
+
+/* Menu option icon colors - using theme variables */
+.class-option-icon.icon-primary {
+  background: var(--primary);
+}
+
+.class-option-icon.icon-accent {
+  background: var(--token-accent);
+}
+
+.class-option-icon.icon-muted {
+  background: var(--muted-foreground);
+}
+
+.class-option-icon.icon-success {
+  background: var(--token-success);
+}
+
+.class-option-icon.icon-warning {
+  background: var(--token-warning-contrast);
+}
+
+.class-option-icon.icon-secondary {
+  background: var(--secondary);
 }
 
 .class-option-label {
