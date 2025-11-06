@@ -111,7 +111,18 @@ export const useTVData = ({
             start_time: cls.planned_start_time
           }))
           .sort((a, b) => {
-            // First, sort by priority
+            // First, sort by trial date
+            const dateCompare = a.trial_date.localeCompare(b.trial_date);
+            if (dateCompare !== 0) {
+              return dateCompare;
+            }
+
+            // Second, sort by trial number
+            if (a.trial_number !== b.trial_number) {
+              return a.trial_number - b.trial_number;
+            }
+
+            // Third, sort by status priority
             const priorityA = priorityMap[a.class_status || 'setup'] || 99;
             const priorityB = priorityMap[b.class_status || 'setup'] || 99;
 
@@ -119,12 +130,12 @@ export const useTVData = ({
               return priorityA - priorityB;
             }
 
-            // Within same priority, sort by start time (if available)
+            // Fourth, sort by start time (if available)
             if (a.start_time && b.start_time) {
               return a.start_time.localeCompare(b.start_time);
             }
 
-            // Fall back to element name
+            // Finally, fall back to element name
             return (a.element_type || '').localeCompare(b.element_type || '');
           });
 
