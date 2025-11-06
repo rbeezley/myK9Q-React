@@ -280,7 +280,7 @@
   position: relative;
   text-align: center;
   /* CRITICAL: Match EntryList.css constraints exactly */
-  max-width: 100px; /* Increased for better padding */
+  max-width: 120px; /* Increased to fit "Come to Gate" without wrapping */
   max-height: 28px; /* Smaller to fit content */
   min-height: var(--token-space-3xl); /* Smaller minimum */
   overflow: hidden;
