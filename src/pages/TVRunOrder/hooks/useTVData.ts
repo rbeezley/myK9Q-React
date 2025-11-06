@@ -60,30 +60,28 @@ export const useTVData = ({
 
     const fetchData = async () => {
       try {
-        // Fetch classes with multiple statuses (in-progress and upcoming)
+        // Fetch classes using the combined view (handles Novice A & B combining at DB level)
         // NOTE: Removed total_entry_count and completed_entry_count - we calculate these from actual entry data
         const { data: classes, error: classError } = await supabase
-          .from('classes')
+          .from('view_combined_classes')
           .select(`
             id,
             element,
             level,
             section,
+            class_name,
+            display_level,
             judge_name,
             class_status,
-            trials!inner (
-              trial_date,
-              trial_number,
-              planned_start_time,
-              shows!inner (
-                license_key
-              )
-            )
+            trial_date,
+            trial_number,
+            planned_start_time,
+            license_key
           `)
-          .eq('trials.shows.license_key', licenseKey)
+          .eq('license_key', licenseKey)
           .in('class_status', ['in_progress', 'briefing', 'start_time', 'setup'])
-          .order('trials(trial_date)')
-          .order('trials(trial_number)');
+          .order('trial_date')
+          .order('trial_number');
 
         if (classError) throw classError;
 
@@ -96,20 +94,21 @@ export const useTVData = ({
         };
 
         // Transform classes (counts will be calculated from entry data below)
+        // Note: Novice A & B are already combined by the view!
         const transformedClasses: ClassInfo[] = (classes || [])
           .map((cls: any) => ({
             id: cls.id.toString(),
-            trial_date: cls.trials.trial_date,
-            trial_number: cls.trials.trial_number,
+            trial_date: cls.trial_date,
+            trial_number: cls.trial_number,
             element_type: cls.element,
-            level: cls.level,
+            level: cls.display_level,  // Use display_level from view (handles "Novice" vs "Novice A")
             section: cls.section,
-            class_name: `${cls.element} ${cls.level || ''}`.trim(),
+            class_name: cls.class_name,  // Use class_name from view (handles "Element Novice A & B")
             judge_name: cls.judge_name,
             entry_total_count: 0,  // Will be calculated from actual entries
             entry_completed_count: 0,  // Will be calculated from actual entries
             class_status: cls.class_status,
-            start_time: cls.trials.planned_start_time
+            start_time: cls.planned_start_time
           }))
           .sort((a, b) => {
             // First, sort by priority
@@ -128,8 +127,6 @@ export const useTVData = ({
             // Fall back to element name
             return (a.element_type || '').localeCompare(b.element_type || '');
           });
-
-        // Note: Don't set inProgressClasses yet - we'll combine Novice A & B first
 
         // Fetch entries for all in-progress classes
         // NOTE: Split into batches to avoid URL length limits with .in() clause
@@ -188,18 +185,18 @@ export const useTVData = ({
         };
 
         // Group entries by class AND calculate counts
-        const grouped: Record<string, EntryInfo[]> = {};
+        const entriesByClassKey: Record<string, EntryInfo[]> = {};
         const countsPerClass = new Map<string, {total: number, completed: number}>();
 
         if (entries.length > 0) {
           entries.forEach((entry: any) => {
             const key = `${entry.trial_date}-${entry.trial_number}-${entry.element}-${entry.level}`;
-            if (!grouped[key]) {
-              grouped[key] = [];
+            if (!entriesByClassKey[key]) {
+              entriesByClassKey[key] = [];
               countsPerClass.set(key, {total: 0, completed: 0});
             }
 
-            grouped[key].push({
+            entriesByClassKey[key].push({
               id: entry.id.toString(),
               armband: entry.armband_number.toString(),
               dog_name: entry.dog_call_name,
@@ -230,82 +227,9 @@ export const useTVData = ({
           cls.entry_completed_count = counts.completed;
         });
 
-        // Combine Novice A & B classes (similar to CombinedEntryList)
-        const combinedClasses: ClassInfo[] = [];
-        const combinedEntries: Record<string, EntryInfo[]> = {};
-        const processedNovice = new Set<string>();
-
-        transformedClasses.forEach(cls => {
-          // Check if this is a Novice class with section
-          const isNovice = cls.level?.toLowerCase().includes('novice');
-          const section = cls.section;
-          const hasSection = section === 'A' || section === 'B';
-
-          if (isNovice && hasSection) {
-            // Create a key without section for grouping
-            const baseKey = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-Novice`;
-
-            if (processedNovice.has(baseKey)) {
-              // Already processed this Novice class, skip
-              return;
-            }
-
-            // Find both A and B sections
-            const sectionA = transformedClasses.find(c =>
-              c.trial_date === cls.trial_date &&
-              c.trial_number === cls.trial_number &&
-              c.element_type === cls.element_type &&
-              c.level?.toLowerCase().includes('novice') &&
-              c.section === 'A'
-            );
-            const sectionB = transformedClasses.find(c =>
-              c.trial_date === cls.trial_date &&
-              c.trial_number === cls.trial_number &&
-              c.element_type === cls.element_type &&
-              c.level?.toLowerCase().includes('novice') &&
-              c.section === 'B'
-            );
-
-            // Combine if both sections exist
-            if (sectionA && sectionB) {
-              processedNovice.add(baseKey);
-
-              // Create combined class info
-              const combinedClass: ClassInfo = {
-                ...cls,
-                id: `${sectionA.id}-${sectionB.id}`, // Combined ID
-                class_name: `${cls.element_type} Novice A & B`,
-                level: 'Novice',
-                section: undefined, // Remove section indicator
-                entry_total_count: (sectionA.entry_total_count || 0) + (sectionB.entry_total_count || 0),
-                entry_completed_count: (sectionA.entry_completed_count || 0) + (sectionB.entry_completed_count || 0)
-              };
-
-              combinedClasses.push(combinedClass);
-
-              // Combine entries from both sections
-              const keyA = `${sectionA.trial_date}-${sectionA.trial_number}-${sectionA.element_type}-${sectionA.level}`;
-              const keyB = `${sectionB.trial_date}-${sectionB.trial_number}-${sectionB.element_type}-${sectionB.level}`;
-              const entriesA = grouped[keyA] || [];
-              const entriesB = grouped[keyB] || [];
-
-              combinedEntries[baseKey] = [...entriesA, ...entriesB];
-            } else {
-              // Only one section exists, treat as regular class
-              combinedClasses.push(cls);
-              const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
-              combinedEntries[key] = grouped[key] || [];
-            }
-          } else {
-            // Non-Novice class, add as-is
-            combinedClasses.push(cls);
-            const key = `${cls.trial_date}-${cls.trial_number}-${cls.element_type}-${cls.level}`;
-            combinedEntries[key] = grouped[key] || [];
-          }
-        });
-
-        setInProgressClasses(combinedClasses);
-        setEntriesByClass(combinedEntries);
+        // No need to combine Novice A & B - the view already did that!
+        setInProgressClasses(transformedClasses);
+        setEntriesByClass(entriesByClassKey);
 
         setIsConnected(true);
         setError(null);
