@@ -129,7 +129,7 @@
 }
 
 .theme-dark .trial-info-card {
-  background: rgba(26, 29, 35, 0.8);
+  background: var(--card);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -250,12 +250,12 @@
   0%, 100% {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(59, 130, 246, 0.2);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--primary-subtle);
   }
   50% {
     opacity: 0.9;
     transform: scale(1.03);
-    box-shadow: 0 var(--token-space-xs) 6px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 var(--token-space-xs) 6px var(--primary-subtle);
   }
 }
 
@@ -779,7 +779,7 @@
 }
 
 .dog-entry:hover {
-  background: rgba(0, 122, 255, 0.03);
+  background: var(--primary-subtle);
   border-color: var(--primary);
   box-shadow: var(--token-shadow-sm);
 }
@@ -789,8 +789,8 @@
 }
 
 .theme-dark .dog-entry:hover {
-  background: rgba(0, 122, 255, 0.08);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.15);
+  background: var(--primary-subtle);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--primary-subtle);
 }
 
 .dog-armband {
@@ -1067,8 +1067,8 @@
 }
 
 .theme-dark .popup-content h3 {
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
 }
 
 .popup-header-content {
@@ -1151,7 +1151,7 @@
 
 .theme-dark .class-option-item {
   background: var(--card);
-  border-color: #334155;
+  border-color: var(--border);
 }
 
 .class-option-item:hover {
@@ -1161,7 +1161,7 @@
 }
 
 .theme-dark .class-option-item:hover {
-  background: #334155;
+  background: var(--border);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
 }
 
