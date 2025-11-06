@@ -11,7 +11,7 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { logger } from '../../../utils/logger';
 import { subscriptionCleanup } from '../../../services/subscriptionCleanup';

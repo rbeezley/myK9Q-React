@@ -9,7 +9,7 @@ import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/Che
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
-import { useDogDetailsData, ClassEntry, DogInfo } from './hooks/useDogDetailsData';
+import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
 import {
   ArrowLeft,
   RefreshCw,
@@ -41,19 +41,13 @@ export const DogDetails: React.FC = () => {
     refetch
   } = useDogDetailsData(armband, showContext?.licenseKey, currentRole);
 
-  // Local state for UI management
-  const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
-  const [classes, setClasses] = useState<ClassEntry[]>([]);
+  // Derive state from React Query data instead of syncing
+  const dogInfo = data?.dogInfo ?? null;
+  const classes = data?.classes ?? [];
+
+  // Local state for UI management only
   const [isLoaded, setIsLoaded] = useState(false);
   const [activePopup, setActivePopup] = useState<number | null>(null);
-
-  // Sync React Query data with local state
-  useEffect(() => {
-    if (data) {
-      setDogInfo(data.dogInfo);
-      setClasses(data.classes);
-    }
-  }, [data]);
 
   // Set loaded class after data loads to prevent CSS rehydration issues
   useEffect(() => {

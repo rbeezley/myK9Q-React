@@ -98,7 +98,6 @@ export const ClassList: React.FC = () => {
       setTrialInfo(trialInfoData);
     }
     if (classesData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing immutable cache data to mutable local state for real-time updates
       setClasses(classesData);
     }
   }, [trialInfoData, classesData]);

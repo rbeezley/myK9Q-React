@@ -1,7 +1,6 @@
 import React from 'react';
-import { Circle, Check, AlertTriangle, XCircle, Star, Bell } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
-import { getCheckInStatusIcon } from '../../utils/statusUtils';
+import { getCheckinStatusIcon, getCheckinStatusLabel } from '@/utils/statusIcons';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 export interface CheckInStatusBadgeProps {
@@ -37,32 +36,9 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
 }) => {
   const haptic = useHapticFeedback();
 
-  // Get label based on status
-  const getLabel = (status: string): string => {
-    switch (status) {
-      case 'checked-in': return 'Checked-in';
-      case 'conflict': return 'Conflict';
-      case 'pulled': return 'Pulled';
-      case 'at-gate': return 'At Gate';
-      case 'come-to-gate': return 'Come to Gate';
-      default: return 'Not Checked In';
-    }
-  };
-
-  // Get icon component based on status
-  const getIcon = (status: string): React.ReactNode => {
-    const iconName = getCheckInStatusIcon(status);
-    const props = { size: iconSize, className: 'status-icon' };
-
-    switch (iconName) {
-      case 'Check': return <Check {...props} />;
-      case 'AlertTriangle': return <AlertTriangle {...props} />;
-      case 'XCircle': return <XCircle {...props} />;
-      case 'Star': return <Star {...props} />;
-      case 'Bell': return <Bell {...props} />;
-      default: return <Circle {...props} />;
-    }
-  };
+  // Get label and icon from centralized statusConfig via statusIcons utility
+  const label = getCheckinStatusLabel(status);
+  const icon = getCheckinStatusIcon(status, { size: iconSize, className: 'status-icon' });
 
   const handleClick = (e: React.MouseEvent) => {
     if (onClick) {
@@ -78,9 +54,10 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
 
   return (
     <StatusBadge
-      label={getLabel(status)}
+      label={label}
       statusColor={status}
-      icon={getIcon(status)}
+      statusType="checkin"
+      icon={icon}
       clickable={clickable}
       onClick={handleClick}
       className={className}
