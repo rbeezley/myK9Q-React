@@ -12,14 +12,7 @@
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding: 0 var(--token-space-lg);  /* 12px horizontal on mobile */
-}
-
-/* Desktop - increased padding */
-@media (min-width: 1024px) {
-  .class-list-container {
-    padding: 0 var(--token-space-3xl);  /* 24px horizontal on desktop */
-  }
+  /* No horizontal padding - page-header provides padding */
 }
 
 /* ========== HEADER WITH GLASS MORPHISM ========== */

@@ -17,7 +17,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--token-space-xl) var(--token-space-3xl);
+  padding: var(--token-space-xl) var(--token-space-lg); /* Mobile-first: 12px horizontal */
   padding-bottom: 4rem;
 }
 
@@ -636,10 +636,6 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-  .settings-content {
-    padding: var(--token-space-lg) var(--token-space-xl);
-  }
-
   .settings-header {
     flex-direction: column;
     align-items: flex-start;
@@ -942,4 +938,11 @@
 
 .theme-light .notification-instructions-hint {
   color: var(--token-text-secondary);
+}
+
+/* Desktop - increase horizontal padding */
+@media (min-width: 1024px) {
+  .settings-content {
+    padding: var(--token-space-xl) var(--token-space-3xl); /* Desktop: 24px horizontal */
+  }
 }

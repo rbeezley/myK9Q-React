@@ -298,46 +298,31 @@ function applyHighContrast(enabled: boolean) {
 }
 
 /**
- * Apply theme color (blue/green/orange)
+ * Apply theme color using CSS classes (no dynamic CSS loading)
+ * Theme colors are now handled via CSS classes added to <html> element
+ * This prevents FOUC by using CSS custom properties instead of separate files
  */
 function applyThemeColor(themeColor: 'blue' | 'green' | 'orange') {
-  // Remove any existing theme CSS links
-  const greenLink = document.getElementById('green-theme-link');
-  const orangeLink = document.getElementById('orange-theme-link');
-  if (greenLink) greenLink.remove();
-  if (orangeLink) orangeLink.remove();
+  const html = document.documentElement;
 
-  // Apply selected theme color
-  if (themeColor === 'green') {
-    const link = document.createElement('link');
-    link.id = 'green-theme-link';
-    link.rel = 'stylesheet';
-    link.href = '/src/styles/green-theme.css';
-    document.head.appendChild(link);
-  } else if (themeColor === 'orange') {
-    const link = document.createElement('link');
-    link.id = 'orange-theme-link';
-    link.rel = 'stylesheet';
-    link.href = '/src/styles/orange-theme.css';
-    document.head.appendChild(link);
-  }
-  // Blue theme is default, no additional CSS needed
+  // Remove all theme color classes
+  html.classList.remove('theme-blue', 'theme-green', 'theme-orange');
+
+  // Add selected theme color class
+  html.classList.add(`theme-${themeColor}`);
 }
 
 /**
  * Initialize settings on app load
+ * NOTE: Theme and theme color are initialized by blocking script in index.html
+ * This only applies non-theme settings (font size, density, etc.)
  */
 export function initializeSettings() {
   const { settings } = useSettingsStore.getState();
-  applyTheme(settings.theme);
+  // Theme and theme color already applied by blocking script in index.html
+  // Only apply other visual settings here
   applyFontSize(settings.fontSize);
   applyDensity(settings.density);
   applyReduceMotion(settings.reduceMotion);
   applyHighContrast(settings.highContrast);
-
-  // Apply theme color (blue/green/orange) from localStorage
-  const savedThemeColor = localStorage.getItem('myK9Q_themeColor') as 'blue' | 'green' | 'orange' | null;
-  if (savedThemeColor) {
-    applyThemeColor(savedThemeColor);
-  }
 }

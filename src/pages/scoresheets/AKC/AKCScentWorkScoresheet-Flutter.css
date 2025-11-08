@@ -54,7 +54,7 @@
 /* Header - Matching Flutter */
 .mobile-header {
   background: var(--scoresheet-header-bg);
-  padding: var(--token-space-lg) var(--token-space-xl);
+  /* Padding inherited from .page-header (12px mobile, 24px desktop) for consistency */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -781,16 +781,10 @@
   }
 }
 
-/* Responsive breakpoints - matching entry list full-width pattern */
+/* Responsive breakpoints - full-width pattern for consistency */
 
-/* Large Desktop: 1400px+ - constrained container like entry list */
-@media (min-width: 1400px) {
-  .scoresheet-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
-  }
-}
+/* Large Desktop: 1400px+ - full width, no max-width constraint */
+/* Removed max-width constraint to match layout standards (24px hamburger position) */
 
 /* Light theme support */
 .theme-light .scoresheet-container {

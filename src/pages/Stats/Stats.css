@@ -353,21 +353,17 @@
 
   .stats-cards {
     padding: var(--token-space-3xl);
-    max-width: 1200px;
-    margin: 0 auto;
+    /* Full-width pattern: no max-width constraint */
   }
 
   .stats-charts {
     padding: 0 var(--token-space-3xl);
-    max-width: 1200px;
-    margin: 0 auto;
+    /* Full-width pattern: no max-width constraint */
   }
 
   .stats-section {
     padding: var(--token-space-3xl);
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+    /* Full-width pattern: no max-width constraint */
   }
 
   .card-value {

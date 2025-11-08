@@ -1029,7 +1029,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="scoresheet-container app-container">
+    <div className="scoresheet-container">
       <div className="scoresheet">
       {/* Header */}
       <header className="page-header mobile-header">
