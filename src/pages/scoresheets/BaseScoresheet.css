@@ -73,25 +73,30 @@
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Sophisticated Header with Glass Morphism */
+/* Scoresheet Header - Matches page-header pattern */
 .scoresheet-header {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1000;  /* High z-index to ensure header appears above content */
   backdrop-filter: blur(20px);
   background: rgba(255, 255, 255, 0.8);
   border-bottom: 1px solid var(--border);
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-sm) var(--token-space-lg);  /* 12px horizontal on mobile */
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  gap: var(--token-space-xl);
+  min-height: 44px;
 }
 
 .theme-dark .scoresheet-header {
   background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .scoresheet-header {
+    padding: var(--token-space-sm) var(--token-space-3xl);  /* 24px horizontal on desktop */
+  }
 }
 
 .scoresheet-header h1 {
@@ -101,6 +106,7 @@
   color: var(--foreground);
   letter-spacing: -0.02em;
   line-height: 1.2;
+  flex: 1;
 }
 
 /* Apple-style Back Button */
@@ -875,23 +881,19 @@
 }
 
 @media (max-width: 480px) {
-  .scoresheet-header {
-    padding: 0.75rem 1rem;
-  }
-  
   .scoresheet-header h1 {
     font-size: 1.125rem;
   }
-  
+
   .armband-number {
     font-size: 1.75rem;
   }
-  
+
   .qualifying-buttons {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
+
   .qual-button {
     padding: 0.875rem;
     font-size: 0.8125rem;

@@ -1,7 +1,6 @@
 import React from 'react';
 import { X, Info, Mail, Globe, Key } from 'lucide-react';
 import './shared-dialog.css';
-// @ts-expect-error - package.json is not a TypeScript module
 import { version } from '../../../package.json';
 
 interface AboutDialogProps {

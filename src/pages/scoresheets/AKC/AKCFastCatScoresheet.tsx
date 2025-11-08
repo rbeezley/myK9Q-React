@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { Timer } from '../../../components/scoring/Timer';
+import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
 import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -243,9 +244,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
   return (
     <div className="scoresheet-container akc-fastcat">
       <header className="scoresheet-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
+        <HamburgerMenu />
         <h1>AKC FastCAT</h1>
         <div className="sync-status">
           {isOnline ? (

@@ -5,6 +5,7 @@ import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../s
 import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
 import '../BaseScoresheet.css';
 import './UKCObedienceScoresheet.css';
@@ -231,9 +232,7 @@ export const UKCObedienceScoresheet: React.FC = () => {
         {darkMode ? '☀️' : '🌙'}
       </button>
       <header className="scoresheet-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
+        <HamburgerMenu />
         <h1>UKC Obedience</h1>
         <div className="sync-status">
           {isOnline ? (

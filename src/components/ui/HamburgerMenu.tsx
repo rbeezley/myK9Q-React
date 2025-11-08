@@ -6,7 +6,6 @@ import { useAnnouncementStore } from '../../stores/announcementStore';
 import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3 } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import './shared-ui.css';
-// @ts-expect-error - package.json is not a TypeScript module
 import { version } from '../../../package.json';
 
 /**

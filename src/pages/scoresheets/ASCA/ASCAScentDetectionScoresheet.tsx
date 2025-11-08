@@ -6,6 +6,7 @@ import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../s
 import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
 import './ASCAScentDetectionScoresheet.css';
 
@@ -257,9 +258,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
   return (
     <div className="scoresheet-container asca-scent-detection">
       <header className="scoresheet-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
+        <HamburgerMenu />
         <h1>ASCA Scent Detection</h1>
         <div className="sync-status">
           {isOnline ? (

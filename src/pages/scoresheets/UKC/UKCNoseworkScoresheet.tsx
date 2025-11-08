@@ -15,6 +15,7 @@ import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../s
 import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
 import '../BaseScoresheet.css';
 import './UKCNoseworkScoresheet.css';
@@ -260,9 +261,7 @@ export const UKCNoseworkScoresheet: React.FC = () => {
   return (
     <div className="scoresheet-container ukc-nosework-scoresheet">
       <div className="scoresheet-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
+        <HamburgerMenu />
         <h1>UKC Nosework</h1>
         <button className="theme-toggle" onClick={toggleTheme}>
           {darkMode ? '☀️' : '🌙'}

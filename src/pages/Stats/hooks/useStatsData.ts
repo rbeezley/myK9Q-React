@@ -509,7 +509,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         fastestTimes
       });
 
-      setLastFetch(Date.now());
+      _setLastFetch(Date.now());
     } catch (err) {
       console.error('Error fetching stats:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch statistics'));
@@ -520,7 +520,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
 
   // Refetch function
   const refetch = () => {
-    setLastFetch(0); // Force refetch
+    _setLastFetch(0); // Force refetch
   };
 
   // Effect to fetch data
