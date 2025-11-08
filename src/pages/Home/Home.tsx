@@ -14,6 +14,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, Heart, Calendar, Users2, MoreVertical } from 'lucide-react';
 import { useHomeDashboardData } from './hooks/useHomeDashboardData';
 import type { EntryData, TrialData } from './hooks/useHomeDashboardData';
+import { Onboarding } from '@/components/Onboarding/Onboarding';
 import './Home.css';
 
 export const Home: React.FC = () => {
@@ -40,6 +41,11 @@ export const Home: React.FC = () => {
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
   const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('onboarding_completed');
+  });
 
   // Local state for favorites and entries with favorites applied
   const [favoriteDogs, setFavoriteDogs] = useState<Set<number>>(new Set());
@@ -294,6 +300,11 @@ export const Home: React.FC = () => {
 
   return (
     <div className="home-container">
+      {/* Onboarding - Show on first visit */}
+      {showOnboarding && (
+        <Onboarding onComplete={() => setShowOnboarding(false)} />
+      )}
+
       {/* Enhanced Header with Glass Morphism */}
       <header className="page-header home-header">
         <HamburgerMenu currentPage="home" />

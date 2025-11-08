@@ -121,8 +121,10 @@ export const EntryList: React.FC = () => {
 
   // Sync local entries with fetched data - now simple since LocalStateManager handles merging
   useEffect(() => {
-    setLocalEntries(entries);
-  }, [entries]);
+    if (entries.length > 0) {
+      setLocalEntries(entries);
+    }
+  }, [entries.length]); // Only depend on length to avoid infinite loop
 
   // Drag and drop sensors
   const sensors = useSensors(

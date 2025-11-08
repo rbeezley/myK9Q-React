@@ -3,8 +3,11 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3 } from 'lucide-react';
+import { AboutDialog } from '../dialogs/AboutDialog';
 import './shared-ui.css';
+// @ts-expect-error - package.json is not a TypeScript module
+import { version } from '../../../package.json';
 
 /**
  * HamburgerMenu Component
@@ -27,7 +30,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'settings' | 'entries' | 'admin' | 'tv';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -39,11 +42,12 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [_isAnimating, setIsAnimating] = useState(false);
+  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
-  
+
   const navigate = useNavigate();
   const { showContext, role, logout } = useAuth();
   const { unreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
@@ -169,6 +173,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span>Settings</span>
               </button>
 
+              <button
+                className={`menu-item ${currentPage === 'stats' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/stats'))}
+              >
+                <BarChart3 className="menu-icon" />
+                <span>Statistics</span>
+              </button>
+
               {/* Admin Section - Only show for admin users */}
               {role === 'admin' && (
                 <>
@@ -216,6 +228,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span>Video Tutorials</span>
               </a>
 
+              <button
+                className="menu-item"
+                onClick={() => handleMenuItemClick(() => setIsAboutDialogOpen(true))}
+              >
+                <Info className="menu-icon" />
+                <span>About</span>
+              </button>
+
               <div className="menu-divider"></div>
 
               {/* Theme Toggle */}
@@ -234,11 +254,23 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               >
                 <span>Logout</span>
               </button>
+
+              {/* Version Number */}
+              <div className="menu-version">
+                v{version}
+              </div>
             </div>
           </nav>
         </div>,
         document.body
       )}
+
+      {/* About Dialog */}
+      <AboutDialog
+        isOpen={isAboutDialogOpen}
+        onClose={() => setIsAboutDialogOpen(false)}
+        licenseKey={showContext?.licenseKey}
+      />
     </>
   );
 };

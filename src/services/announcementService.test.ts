@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { AnnouncementService } from './announcementService';
 import { supabase } from '../lib/supabase';
 import type { Announcement } from '../stores/announcementStore';
@@ -45,7 +45,7 @@ describe('AnnouncementService', () => {
   ];
 
   describe('getAnnouncements', () => {
-    it('should fetch announcements with default filters', async () => {
+    test('should fetch announcements with default filters', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -73,7 +73,7 @@ describe('AnnouncementService', () => {
       expect(mockEq).toHaveBeenCalledWith('is_active', true);
     });
 
-    it('should filter by priority', async () => {
+    test('should filter by priority', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -96,7 +96,7 @@ describe('AnnouncementService', () => {
       expect(mockEq).toHaveBeenCalledWith('priority', 'high');
     });
 
-    it('should filter by author role', async () => {
+    test('should filter by author role', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -119,7 +119,7 @@ describe('AnnouncementService', () => {
       expect(mockEq).toHaveBeenCalledWith('author_role', 'judge');
     });
 
-    it('should apply search filter', async () => {
+    test('should apply search filter', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -144,7 +144,7 @@ describe('AnnouncementService', () => {
       );
     });
 
-    it('should apply pagination', async () => {
+    test('should apply pagination', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -178,7 +178,7 @@ describe('AnnouncementService', () => {
       expect(mockRange).toHaveBeenCalledWith(20, 29);
     });
 
-    it('should throw error when query fails', async () => {
+    test('should throw error when query fails', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -200,7 +200,7 @@ describe('AnnouncementService', () => {
       ).rejects.toThrow();
     });
 
-    it('should return empty array when no announcements found', async () => {
+    test('should return empty array when no announcements found', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -226,7 +226,7 @@ describe('AnnouncementService', () => {
   });
 
   describe('getAnnouncement', () => {
-    it('should fetch a specific announcement', async () => {
+    test('should fetch a specific announcement', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -249,7 +249,7 @@ describe('AnnouncementService', () => {
       expect(mockEq).toHaveBeenCalledWith('is_active', true);
     });
 
-    it('should return null when announcement not found', async () => {
+    test('should return null when announcement not found', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -269,7 +269,7 @@ describe('AnnouncementService', () => {
       expect(result).toBeNull();
     });
 
-    it('should throw error for other database errors', async () => {
+    test('should throw error for other database errors', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -300,7 +300,7 @@ describe('AnnouncementService', () => {
       license_key: mockLicenseKey
     };
 
-    it('should create a new announcement', async () => {
+    test('should create a new announcement', async () => {
       const createdAnnouncement = {
         ...newAnnouncement,
         id: 3,
@@ -328,7 +328,7 @@ describe('AnnouncementService', () => {
       expect(mockInsert).toHaveBeenCalledWith(newAnnouncement);
     });
 
-    it('should throw error when creation fails', async () => {
+    test('should throw error when creation fails', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockInsert = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
@@ -350,7 +350,7 @@ describe('AnnouncementService', () => {
   });
 
   describe('updateAnnouncement', () => {
-    it('should update announcement when user has admin role', async () => {
+    test('should update announcement when user has admin role', async () => {
       const updates = { title: 'Updated Title' };
       const updatedAnnouncement = { ...mockAnnouncements[0], ...updates };
 
@@ -397,7 +397,7 @@ describe('AnnouncementService', () => {
       expect(mockUpdate).toHaveBeenCalledWith(updates);
     });
 
-    it('should allow user to update their own role announcements', async () => {
+    test('should allow user to update their own role announcements', async () => {
       const updates = { title: 'Updated by Judge' };
       const updatedAnnouncement = { ...mockAnnouncements[1], ...updates };
 
@@ -441,7 +441,7 @@ describe('AnnouncementService', () => {
       expect(result.title).toBe('Updated by Judge');
     });
 
-    it('should throw error when user lacks permission', async () => {
+    test('should throw error when user lacks permission', async () => {
       const updates = { title: 'Unauthorized Update' };
 
       const mockFrom = vi.fn().mockReturnThis();
@@ -468,7 +468,7 @@ describe('AnnouncementService', () => {
       ).rejects.toThrow('Insufficient permissions');
     });
 
-    it('should throw error when announcement not found', async () => {
+    test('should throw error when announcement not found', async () => {
       const updates = { title: 'Updated Title' };
 
       const mockFrom = vi.fn().mockReturnThis();
@@ -492,7 +492,7 @@ describe('AnnouncementService', () => {
   });
 
   describe('deleteAnnouncement', () => {
-    it('should soft delete announcement when user has admin role', async () => {
+    test('should soft delete announcement when user has admin role', async () => {
       const mockFromGet = vi.fn().mockReturnThis();
       const mockSelectGet = vi.fn().mockReturnThis();
       const mockEqGet = vi.fn().mockReturnThis();
@@ -531,7 +531,7 @@ describe('AnnouncementService', () => {
       expect(mockEqSecond).toHaveBeenCalledWith('license_key', mockLicenseKey);
     });
 
-    it('should allow user to delete their own role announcements', async () => {
+    test('should allow user to delete their own role announcements', async () => {
       const mockFromGet = vi.fn().mockReturnThis();
       const mockSelectGet = vi.fn().mockReturnThis();
       const mockEqGet = vi.fn().mockReturnThis();
@@ -570,7 +570,7 @@ describe('AnnouncementService', () => {
       expect(mockEqSecond).toHaveBeenCalledWith('license_key', mockLicenseKey);
     });
 
-    it('should throw error when user lacks permission to delete', async () => {
+    test('should throw error when user lacks permission to delete', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -592,7 +592,7 @@ describe('AnnouncementService', () => {
   });
 
   describe('markAsRead', () => {
-    it('should mark announcement as read', async () => {
+    test('should mark announcement as read', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockUpsert = vi.fn().mockResolvedValue({ error: null });
 
@@ -609,7 +609,7 @@ describe('AnnouncementService', () => {
       });
     });
 
-    it('should handle duplicate read records gracefully', async () => {
+    test('should handle duplicate read records gracefully', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockUpsert = vi.fn().mockResolvedValue({
         error: { message: 'duplicate key value violates unique constraint' }
@@ -625,7 +625,7 @@ describe('AnnouncementService', () => {
       ).resolves.not.toThrow();
     });
 
-    it('should throw error for non-duplicate database errors', async () => {
+    test('should throw error for non-duplicate database errors', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockUpsert = vi.fn().mockResolvedValue({
         error: { message: 'Database connection failed' }

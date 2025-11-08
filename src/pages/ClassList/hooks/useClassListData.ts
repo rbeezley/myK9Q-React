@@ -227,17 +227,17 @@ async function fetchClasses(
       judge_name: cls.judge_name || 'TBA',
       entry_count: entryCount,
       completed_count: completedCount,
-      class_status: cls.class_status || 'no-status',
+      class_status: (cls.class_status?.trim() || 'no-status') as 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed',
       is_completed: cls.is_completed || false,
       is_favorite: false, // Will be updated by component with localStorage
       time_limit_seconds: cls.time_limit_seconds,
       time_limit_area2_seconds: cls.time_limit_area2_seconds,
       time_limit_area3_seconds: cls.time_limit_area3_seconds,
       area_count: cls.area_count,
-      // Parse time values from class_status_comment based on current status
-      briefing_time: cls.class_status === 'briefing' ? cls.class_status_comment : undefined,
-      break_until: cls.class_status === 'break' ? cls.class_status_comment : undefined,
-      start_time: cls.class_status === 'start_time' ? cls.class_status_comment : undefined,
+      // Get time values from their respective columns
+      briefing_time: cls.briefing_time || undefined,
+      break_until: cls.break_until || undefined,
+      start_time: cls.start_time || undefined,
       dogs: dogs
     };
   });

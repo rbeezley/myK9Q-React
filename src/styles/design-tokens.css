@@ -55,34 +55,34 @@
   --status-pulled-bg: #ef4444;
   --status-pulled-text: #ffffff;
 
-  /* Class Status Colors - Light Mode */
-  /* Setup: Orange/amber (warning state) */
-  --status-setup: #f97316;
+  /* Class Status Colors - Light Mode (matching dialog) */
+  /* Setup: Deep amber/brown - informational status */
+  --status-setup: #b45309;
   --status-setup-text: #ffffff;
 
-  /* Briefing: Blue (primary) */
-  --status-briefing: var(--primary);
+  /* Briefing: Bright orange - action required, needs to stand out */
+  --status-briefing: #ff6b00;
   --status-briefing-text: #ffffff;
 
-  /* Break: Purple (accent) */
-  --status-break: #8b5cf6;
+  /* Break: Magenta/purple */
+  --status-break: #c000ff;
   --status-break-text: #ffffff;
 
-  /* Start Time: Purple (distinct from In Progress) */
-  --status-start-time: #6610f2;
+  /* Start Time: Teal/cyan - distinct from blue and purple */
+  --status-start-time: #14b8a6;
   --status-start-time-text: #ffffff;
 
-  /* In Progress: Blue (primary) */
-  --status-in-progress: var(--primary);
+  /* In Progress: Blue */
+  --status-in-progress: #0066ff;
   --status-in-progress-text: #ffffff;
 
-  /* Completed: Green (success) */
-  --status-completed: #10b981;
+  /* Completed: Emerald green */
+  --status-completed: #00cc66;
   --status-completed-text: #ffffff;
 
-  /* None/Pending: Light gray */
-  --status-none: #f3f4f6;
-  --status-none-text: #6b7280;
+  /* None/Pending: Gray with white text */
+  --status-none: #9ca3af;
+  --status-none-text: #ffffff;
 
   /* Check-in Status Colors - Light Mode (Traffic Light System) */
   /* None: Gray (no action taken) */
@@ -261,6 +261,7 @@
 
   /* ===== TOUCH TARGETS ===== */
   --min-touch-target: 44px;
+  --comfortable-touch-target: 36px;
   --stress-touch-target: 52px;
 }
 
@@ -306,55 +307,10 @@
   --status-pulled: #ef4444;
   --status-pulled-bg: #ef4444;
 
-  /* Class Status Colors - Dark Mode */
-  /* Setup: Bright orange (good contrast on dark) */
-  --status-setup: #fb923c;
-  --status-setup-text: #1a1a1a;
+  /* Class Status Colors - Inherited from :root (same vibrant colors work in dark mode) */
 
-  /* Briefing: Bright blue (primary, darker text for contrast) */
-  --status-briefing: #60a5fa;
-  --status-briefing-text: #1a1a1a;
-
-  /* Break: Bright purple */
-  --status-break: #a78bfa;
-  --status-break-text: #1a1a1a;
-
-  /* Start Time: Bright purple (distinct from In Progress) */
-  --status-start-time: #8b7cff;
-  --status-start-time-text: #1a1a1a;
-
-  /* In Progress: Bright blue (primary) */
-  --status-in-progress: #60a5fa;
-  --status-in-progress-text: #1a1a1a;
-
-  /* Completed: Bright green */
-  --status-completed: #34d399;
-  --status-completed-text: #1a1a1a;
-
-  /* None/Pending: Dark gray with light text */
-  --status-none: #374151;
-  --status-none-text: #9ca3af;
-
-  /* Check-in Status Colors - Dark Mode */
-  /* None: Gray with light text */
-  --checkin-none: #4b5563;
-  --checkin-none-text: #d1d5db;
-
-  /* Checked In: Bright green with dark text */
-  --checkin-checked-in: #34d399;
-  --checkin-checked-in-text: #1a1a1a;
-
-  /* Conflict: Bright orange with dark text */
-  --checkin-conflict: #fb923c;
-  --checkin-conflict-text: #1a1a1a;
-
-  /* Pulled: Bright red with white text (good contrast) */
-  --checkin-pulled: #ef4444;
-  --checkin-pulled-text: #ffffff;
-
-  /* At Gate: Bright purple with dark text */
-  --checkin-at-gate: #a78bfa;
-  --checkin-at-gate-text: #1a1a1a;
+  /* Check-in Status Colors - Inherited from :root (same vibrant colors work in dark mode) */
+  /* Using same colors as light mode with white text for consistency */
 
   /* Result Status Colors */
   --status-qualified: #10b981;
@@ -387,10 +343,6 @@
   --token-shadow-xl: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
   --token-hover-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
   --token-hover-shadow-lg: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
-
-  /* In Ring: Bright Blue (dark mode) */
-  --checkin-in-ring: #60a5fa;
-  --checkin-in-ring-text: #1a1a1a;
 
   /* Legacy tokens (Dark Mode) */
   --token-status-no-status: var(--status-no-status);

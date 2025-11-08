@@ -426,126 +426,137 @@
   color: var(--foreground);
 }
 
-/* ========== STATUS BUTTON ========== */
+/* ========== CORNER BADGE (Consistent with EntryList and ClassList) ========== */
 
-.status-button {
-  flex: 0 0 auto;
-  min-width: 120px;
-  width: auto;
-  height: 48px;
-  padding: 0 var(--token-space-xl);
-  border: var(--token-space-xs) solid var(--border);
-  border-radius: var(--token-space-lg);
-  font-size: 0.9375rem;
+.class-card-action {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.class-card-action .status-badge {
+  padding: var(--token-space-sm) var(--token-space-lg);
+  border-radius: var(--token-space-lg) 0 var(--token-space-lg) 0; /* Round top-left and bottom-right corners */
+  font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  background: var(--card);
-  color: var(--foreground);
-}
-
-.status-button svg {
-  width: var(--token-space-2xl);
-  height: var(--token-space-2xl);
-}
-
-.status-button .status-icon {
-  font-size: 1rem;
-  width: var(--token-space-2xl);
-  height: var(--token-space-2xl);
-  max-width: var(--token-space-2xl);
-  max-height: var(--token-space-2xl);
-  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--token-space-xs);
-  vertical-align: middle;
+  gap: var(--token-space-xs);
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  text-align: center;
+  max-width: 140px;
+  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  border: none;
 }
 
-.status-button:not(:disabled):hover {
+/* Invisible touch area for better mobile tapping */
+.class-card-action .status-badge::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: 0;
+}
+
+.class-card-action .status-badge:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: var(--token-shadow-md);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
-.status-button:not(:disabled):active {
+.class-card-action .status-badge:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.status-button:disabled {
+.class-card-action .status-badge:disabled {
   cursor: not-allowed;
+  opacity: 1; /* Keep full opacity for scored results */
 }
 
-.status-button.qualified:disabled,
-.status-button.not-qualified:disabled,
-.status-button.excused:disabled {
-  opacity: 1;
+/* Status icons - 18px standard size */
+.class-card-action .status-badge .status-icon {
+  font-size: 1.125rem; /* 18px */
+  width: 1.125rem;
+  height: 1.125rem;
+  line-height: 1;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* Status-specific button styles */
-.status-button.no-status,
-.status-button.pending {
+.class-card-action .status-badge .status-text {
+  font-size: 0.6875rem;
+  line-height: 1.1;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none; /* Override badge's uppercase */
+}
+
+/* Ensure SVG icons are properly sized - 18px standard */
+.class-card-action .status-badge svg {
+  width: 1.125rem; /* 18px */
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* Status-specific badge colors */
+.class-card-action .status-badge.no-status,
+.class-card-action .status-badge.pending {
   background: var(--status-no-status);
   color: white;
-  border-color: var(--status-no-status);
 }
 
-.status-button.checked-in {
+.class-card-action .status-badge.checked-in {
   background: var(--status-checked-in);
   color: white;
-  border-color: var(--status-checked-in);
 }
 
-.status-button.at-gate {
+.class-card-action .status-badge.at-gate {
   background: var(--status-at-gate);
   color: white;
-  border-color: var(--status-at-gate);
 }
 
-.status-button.in-ring {
+.class-card-action .status-badge.in-ring {
   background: var(--status-in-ring);
   color: white;
-  border-color: var(--status-in-ring);
 }
 
-.status-button.conflict {
+.class-card-action .status-badge.conflict {
   background: var(--status-conflict);
   color: white;
-  border-color: var(--status-conflict);
 }
 
-.status-button.pulled {
+.class-card-action .status-badge.pulled {
   background: var(--status-pulled);
   color: white;
-  border-color: var(--status-pulled);
 }
 
-.status-button.qualified {
+.class-card-action .status-badge.qualified {
   background: var(--status-qualified);
   color: white;
-  border-color: var(--status-qualified);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.4);
-  font-weight: 700;
 }
 
-.status-button.not-qualified {
+.class-card-action .status-badge.not-qualified {
   background: var(--status-not-qualified);
   color: white;
-  border-color: var(--status-not-qualified);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(239, 68, 68, 0.4);
-  font-weight: 700;
 }
 
-.status-button.excused {
+.class-card-action .status-badge.excused {
   background: var(--status-not-qualified);
   color: white;
-  border-color: var(--status-not-qualified);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(239, 68, 68, 0.4);
-  font-weight: 700;
 }
 
 /* ========== BOTTOM NAVIGATION ========== */

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { recalculatePlacementsForClass, getEntryPlacement, manuallyRecalculatePlacements } from './placementService';
 import { supabase } from '../lib/supabase';
 
@@ -16,7 +16,7 @@ describe('placementService', () => {
   });
 
   describe('recalculatePlacementsForClass', () => {
-    it('should recalculate placements for a single class', async () => {
+    test('should recalculate placements for a single class', async () => {
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
       vi.mocked(supabase.rpc).mockImplementation(mockRpc);
 
@@ -28,7 +28,7 @@ describe('placementService', () => {
       });
     });
 
-    it('should recalculate placements for multiple classes', async () => {
+    test('should recalculate placements for multiple classes', async () => {
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
       vi.mocked(supabase.rpc).mockImplementation(mockRpc);
 
@@ -40,7 +40,7 @@ describe('placementService', () => {
       });
     });
 
-    it('should use nationals flag when specified', async () => {
+    test('should use nationals flag when specified', async () => {
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
       vi.mocked(supabase.rpc).mockImplementation(mockRpc);
 
@@ -52,7 +52,7 @@ describe('placementService', () => {
       });
     });
 
-    it('should throw error when RPC call fails', async () => {
+    test('should throw error when RPC call fails', async () => {
       const mockError = { message: 'Database error', code: 'PGRST301' };
       const mockRpc = vi.fn().mockResolvedValue({ error: mockError });
       vi.mocked(supabase.rpc).mockImplementation(mockRpc);
@@ -62,7 +62,7 @@ describe('placementService', () => {
       ).rejects.toThrow();
     });
 
-    it('should handle exceptions from supabase', async () => {
+    test('should handle exceptions from supabase', async () => {
       const mockRpc = vi.fn().mockRejectedValue(new Error('Network error'));
       vi.mocked(supabase.rpc).mockImplementation(mockRpc);
 
@@ -71,7 +71,7 @@ describe('placementService', () => {
       ).rejects.toThrow('Network error');
     });
 
-    it('should normalize single class ID to array', async () => {
+    test('should normalize single class ID to array', async () => {
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
       vi.mocked(supabase.rpc).mockImplementation(mockRpc);
 
@@ -84,7 +84,7 @@ describe('placementService', () => {
   });
 
   describe('getEntryPlacement', () => {
-    it('should return placement for a valid entry', async () => {
+    test('should return placement for a valid entry', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -107,7 +107,7 @@ describe('placementService', () => {
       expect(mockEq).toHaveBeenCalledWith('id', 1001);
     });
 
-    it('should return null when entry is not found', async () => {
+    test('should return null when entry is not found', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -127,7 +127,7 @@ describe('placementService', () => {
       expect(placement).toBeNull();
     });
 
-    it('should return null when query throws exception', async () => {
+    test('should return null when query throws exception', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -144,7 +144,7 @@ describe('placementService', () => {
       expect(placement).toBeNull();
     });
 
-    it('should handle placement of null (unplaced entry)', async () => {
+    test('should handle placement of null (unplaced entry)', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -164,7 +164,7 @@ describe('placementService', () => {
       expect(placement).toBeNull();
     });
 
-    it('should return placement of 0 for NQ entries', async () => {
+    test('should return placement of 0 for NQ entries', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -198,7 +198,7 @@ describe('placementService', () => {
       }
     };
 
-    it('should recalculate placements for regular show', async () => {
+    test('should recalculate placements for regular show', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -226,7 +226,7 @@ describe('placementService', () => {
       });
     });
 
-    it('should detect nationals competition and use correct flag', async () => {
+    test('should detect nationals competition and use correct flag', async () => {
       const nationalsClassData = {
         ...mockClassData,
         trials: {
@@ -263,7 +263,7 @@ describe('placementService', () => {
       });
     });
 
-    it('should throw error when class data fetch fails', async () => {
+    test('should throw error when class data fetch fails', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -283,7 +283,7 @@ describe('placementService', () => {
       );
     });
 
-    it('should throw error when placement recalculation fails', async () => {
+    test('should throw error when placement recalculation fails', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -306,7 +306,7 @@ describe('placementService', () => {
       await expect(manuallyRecalculatePlacements(101)).rejects.toThrow();
     });
 
-    it('should handle case-insensitive nationals detection', async () => {
+    test('should handle case-insensitive nationals detection', async () => {
       const nationalsClassData = {
         ...mockClassData,
         trials: {
@@ -343,7 +343,7 @@ describe('placementService', () => {
       });
     });
 
-    it('should default to false for nationals flag if show_type is null', async () => {
+    test('should default to false for nationals flag if show_type is null', async () => {
       const classDataWithNullType = {
         ...mockClassData,
         trials: {

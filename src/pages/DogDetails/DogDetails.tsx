@@ -90,23 +90,14 @@ export const DogDetails: React.FC = () => {
         return;
       }
 
-      // Update local state immediately for better UX
-      setClasses(prev => prev.map(c =>
-        c.id === classId
-          ? {
-              ...c,
-              checked_in: status !== 'no-status',
-              check_in_status: status,
-              // Keep result_text unchanged - it's for scoring results only
-            }
-          : c
-      ));
-
       // Close popup
       setActivePopup(null);
 
       // Update database using the proper service function
       await updateEntryCheckinStatus(classId, status);
+
+      // Refetch data to get updated state
+      await refetch();
     } catch (error) {
       console.error('Error:', error);
       // Reload to get correct state
@@ -200,7 +191,7 @@ export const DogDetails: React.FC = () => {
         
         <div className="header-actions">
           <button className="refresh-button" onClick={() => refetch()}>
-            <RefreshCw className="h-5 w-5" />
+            <RefreshCw size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           </button>
         </div>
       </header>
@@ -242,67 +233,61 @@ export const DogDetails: React.FC = () => {
               style={{ position: 'relative', cursor: 'pointer' }}
               onClick={() => handleClassCardClick(entry)}
             >
-              {/* Status Button - positioned absolute, aligned with position badge */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent card click when clicking status button
-                  if (!isScored) {
-                    handleOpenPopup(e, entry.id);
-                  }
-                }}
-                disabled={isScored}
-                className={`status-button ${statusColor}`}
-                style={{
-                  position: 'absolute',
-                  top: '0.875rem',  // Aligned with position badge
-                  right: '1rem',
-                  zIndex: 1,
-                  minWidth: '100px',
-                  height: '36px'
-                }}
-              >
-                {/* Show actual result status for scored dogs - respect visibility */}
-                {isScored ? (
-                  <>
-                    {/* Only show qualification status if visible */}
-                    {entry.visibleFields?.showQualification ? (
-                      <>
-                        {isQualified ? (
-                          <>
-                            <ThumbsUp className="h-4 w-4" />
-                            Qualified
-                          </>
-                        ) : isNQ ? (
-                          <>
-                            <XCircle className="h-4 w-4" />
-                            Not Qualified
-                          </>
-                        ) : (
-                          <>
-                            <Check className="h-4 w-4" />
-                            {getStatusLabel(entry)}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <Circle className="h-4 w-4" />
-                        Results Pending
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {/* Check-in status icons - matching dialog */}
-                    {entry.check_in_status === 'checked-in' && <Check className="status-icon h-4 w-4" />}
-                    {entry.check_in_status === 'conflict' && <AlertTriangle className="status-icon h-4 w-4" />}
-                    {entry.check_in_status === 'pulled' && <XCircle className="status-icon h-4 w-4" />}
-                    {entry.check_in_status === 'at-gate' && <Star className="status-icon h-4 w-4" />}
-                    {entry.check_in_status === 'no-status' && <Circle className="status-icon h-4 w-4" />}
-                    {getStatusLabel(entry)}
-                  </>
-                )}
-              </button>
+              {/* Corner Badge - Match EntryList design */}
+              <div className="class-card-action">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card click when clicking status button
+                    if (!isScored) {
+                      handleOpenPopup(e, entry.id);
+                    }
+                  }}
+                  disabled={isScored}
+                  className={`status-badge ${statusColor}`}
+                >
+                  {/* Show actual result status for scored dogs - respect visibility */}
+                  {isScored ? (
+                    <>
+                      {/* Only show qualification status if visible */}
+                      {entry.visibleFields?.showQualification ? (
+                        <>
+                          {isQualified ? (
+                            <>
+                              <ThumbsUp size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                              <span className="status-text">Qualified</span>
+                            </>
+                          ) : isNQ ? (
+                            <>
+                              <XCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                              <span className="status-text">Not Qualified</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                              <span className="status-text">{getStatusLabel(entry)}</span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                          <span className="status-text">Results Pending</span>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Check-in status icons */}
+                      {entry.check_in_status === 'checked-in' && <Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
+                      {entry.check_in_status === 'conflict' && <AlertTriangle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
+                      {entry.check_in_status === 'pulled' && <XCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
+                      {entry.check_in_status === 'at-gate' && <Star size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
+                      {entry.check_in_status === 'no-status' && <Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
+                      <span className="status-text">{getStatusLabel(entry)}</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               <div className="class-content">
                 {/* Top row: Position Badge + Class Name */}

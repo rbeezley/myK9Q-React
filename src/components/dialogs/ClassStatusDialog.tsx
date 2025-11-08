@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar } from 'lucide-react';
+import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar, Circle } from 'lucide-react';
 import './shared-dialog.css';
 import './ClassStatusDialog.css';
 
@@ -33,6 +33,14 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
   const [isFirstEdit, setIsFirstEdit] = useState(true);
 
   const statusOptions = [
+    {
+      id: 'no-status',
+      label: 'No Status',
+      icon: Circle,
+      description: 'Reset class status',
+      colorVar: '--status-none',
+      needsTime: false
+    },
     {
       id: 'setup',
       label: 'Setup',

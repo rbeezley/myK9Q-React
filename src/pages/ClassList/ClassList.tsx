@@ -428,21 +428,22 @@ export const ClassList: React.FC = () => {
 
     console.log('🕐 Updating class IDs with time:', idsToUpdate);
 
-    // Use text status directly
+    // Convert 'no-status' to null for database
+    const dbStatus = status === 'no-status' ? null : status;
     const updateData: any = {
-      class_status: status
+      class_status: dbStatus
     };
 
-    // Store the time in class_status_comment field
+    // Store the time in appropriate time column
     switch (status) {
       case 'briefing':
-        updateData.class_status_comment = timeValue;
+        updateData.briefing_time = timeValue;
         break;
       case 'break':
-        updateData.class_status_comment = timeValue;
+        updateData.break_until = timeValue;
         break;
       case 'start_time':
-        updateData.class_status_comment = timeValue;
+        updateData.start_time = timeValue;
         break;
     }
 
@@ -511,12 +512,13 @@ export const ClassList: React.FC = () => {
 
     console.log('🔄 ClassList: Updating class IDs:', idsToUpdate);
 
-    // Use text status directly
+    // Convert 'no-status' to null for database
+    const dbStatus = status === 'no-status' ? null : status;
     const updateData = {
-      class_status: status
+      class_status: dbStatus
     };
 
-    console.log('✅ Using text status directly:', { status });
+    console.log('✅ Converting status for DB:', { uiStatus: status, dbStatus });
 
     console.log('🔄 ClassList: Update data:', updateData);
 
@@ -609,6 +611,7 @@ export const ClassList: React.FC = () => {
     }
 
     switch (status) {
+      case 'no-status': return 'no-status';
       case 'setup': return 'setup';
       case 'briefing': return 'briefing';
       case 'break': return 'break';
@@ -624,9 +627,9 @@ export const ClassList: React.FC = () => {
           if (isCompleted) return 'completed';
           if (hasDogsInRing) return 'in-progress';
           if (classEntry.completed_count > 0) return 'in-progress';
-          return 'none';
+          return 'no-status';
         }
-        return 'none';
+        return 'no-status';
     }
   };
 
@@ -664,8 +667,10 @@ export const ClassList: React.FC = () => {
           return { label: 'In Progress', time: null };
         case 'completed':
           return { label: 'Completed', time: null };
+        case 'no-status':
+          return { label: 'No Status', time: null };
         default:
-          return { label: 'no status', time: null };
+          return { label: 'No Status', time: null };
       }
     })();
 

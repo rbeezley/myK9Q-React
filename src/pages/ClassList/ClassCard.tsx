@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, MoreHorizontal, Clock, Users, UserCheck } from 'lucide-react';
+import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle } from 'lucide-react';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
 
@@ -66,6 +66,28 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 }) => {
   const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
   const _isInProgress = classEntry.class_status === 'in_progress';
+
+  // Helper function to get the appropriate icon for each status
+  const getStatusIcon = (status: ClassEntry['class_status']) => {
+    switch (status) {
+      case 'no-status':
+        return <Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'setup':
+        return <Wrench size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'briefing':
+        return <MessageSquare size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'break':
+        return <Coffee size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'start_time':
+        return <CalendarClock size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'in_progress':
+        return <PlayCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'completed':
+        return <CheckCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      default:
+        return <Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+    }
+  };
 
   return (
     <div
@@ -154,57 +176,64 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 
         {/* Bottom Section: Status Badge + Preview (grouped together) */}
         <div className="class-status-preview-section">
-          {/* Status Badge */}
-          {hasPermission('canManageClasses') ? (
-            <div
-              className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)} clickable`}
-              style={{ pointerEvents: 'auto' }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
+          {/* Status Badge - Corner badge design like entry list */}
+          <div className="class-card-status-action">
+            {hasPermission('canManageClasses') ? (
+              <button
+                className={`status-badge class-status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
 
-                setSelectedClassForStatus(classEntry);
-                setStatusDialogOpen(true);
-              }}
-            >
-              {(() => {
-                const formattedStatus = getFormattedStatus(classEntry);
-                return (
-                  <div className="status-badge-content">
-                    <span className="status-text">{formattedStatus.label}</span>
-                    {formattedStatus.time && (
+                  setSelectedClassForStatus(classEntry);
+                  setStatusDialogOpen(true);
+                }}
+              >
+                {getStatusIcon(classEntry.class_status)}
+                <span className="status-text">
+                  {(() => {
+                    const formattedStatus = getFormattedStatus(classEntry);
+                    return (
                       <>
-                        {' '}
-                        <span className="status-time">{formattedStatus.time}</span>
+                        {formattedStatus.label}
+                        {formattedStatus.time && (
+                          <>
+                            {' '}
+                            <span className="status-time">{formattedStatus.time}</span>
+                          </>
+                        )}
                       </>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          ) : (
-            <div className={`status-badge class-status-badge mobile-touch-target ${getStatusColor(classEntry.class_status, classEntry)}`}>
-              {(() => {
-                const formattedStatus = getFormattedStatus(classEntry);
-                return (
-                  <div className="status-badge-content">
-                    <span className="status-text">{formattedStatus.label}</span>
-                    {formattedStatus.time && (
+                    );
+                  })()}
+                </span>
+              </button>
+            ) : (
+              <div className={`status-badge class-status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
+                {getStatusIcon(classEntry.class_status)}
+                <span className="status-text">
+                  {(() => {
+                    const formattedStatus = getFormattedStatus(classEntry);
+                    return (
                       <>
-                        {' '}
-                        <span className="status-time">{formattedStatus.time}</span>
+                        {formattedStatus.label}
+                        {formattedStatus.time && (
+                          <>
+                            {' '}
+                            <span className="status-time">{formattedStatus.time}</span>
+                          </>
+                        )}
                       </>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+                    );
+                  })()}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Preview Text */}
           {classEntry.dogs.length > 0 ? (

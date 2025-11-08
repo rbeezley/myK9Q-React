@@ -948,21 +948,17 @@ export const CombinedEntryList: React.FC = () => {
                       }
                     >
                       {(() => {
-                        const iconSize = 14;
-                        const iconStyle = { width: `${iconSize}px`, height: `${iconSize}px`, flexShrink: 0, marginRight: '0.375rem', display: 'inline-block', verticalAlign: 'middle' };
-
                         const status = entry.status || 'no-status';
-                        const textStyle = { textTransform: 'none' as const, fontSize: '0.6875rem' };
                         switch(status) {
-                          case 'in-ring': return <><Target className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>In Ring</span></>;
-                          case 'completed': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Completed</span></>;
-                          case 'no-status': return <><Circle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>No Status</span></>;
-                          case 'checked-in': return <><Check className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Checked-in</span></>;
-                          case 'conflict': return <><AlertTriangle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Conflict</span></>;
-                          case 'pulled': return <><XCircle className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Pulled</span></>;
-                          case 'at-gate': return <><Star className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>At Gate</span></>;
-                          case 'come-to-gate': return <><Bell className="status-icon" size={iconSize} style={iconStyle} /><span style={textStyle}>Come to Gate</span></>;
-                          default: return <span style={textStyle}>{status}</span>;
+                          case 'in-ring': return <><Target size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">In Ring</span></>;
+                          case 'completed': return <><Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Completed</span></>;
+                          case 'no-status': return <><Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">No Status</span></>;
+                          case 'checked-in': return <><Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Checked-in</span></>;
+                          case 'conflict': return <><AlertTriangle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Conflict</span></>;
+                          case 'pulled': return <><XCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Pulled</span></>;
+                          case 'at-gate': return <><Star size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">At Gate</span></>;
+                          case 'come-to-gate': return <><Bell size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Come to Gate</span></>;
+                          default: return <span className="status-text">{status}</span>;
                         }
                       })()}
                     </div>

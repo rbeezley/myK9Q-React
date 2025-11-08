@@ -133,8 +133,8 @@ async function handlePushNotification(event) {
 
     const notificationOptions = {
       body: data.content || data.title,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
+      icon: '/myK9Q-logo-white.png',
+      badge: '/myK9Q-logo-white.png',
       tag: `announcement-${data.licenseKey}-${data.id}`,
       requireInteraction: isUrgent, // Persistent for urgent
       silent: false,
@@ -148,25 +148,30 @@ async function handlePushNotification(event) {
       actions: [
         {
           action: 'view',
-          title: 'View Announcements',
-          icon: '/icon-192x192.png'
+          title: 'View',
+          icon: '/myK9Q-logo-white.png'
         },
         {
           action: 'dismiss',
           title: 'Dismiss',
-          icon: '/icon-192x192.png'
+          icon: '/myK9Q-logo-white.png'
         }
       ]
     };
 
     // Customize title based on priority and show info
-    let title = data.showName || 'myK9Q Show Update';
+    let title = data.title || 'Show Update';
+
+    // Add show name if available (but not if title already contains it)
+    if (data.showName && !title.includes(data.showName)) {
+      title = `${data.showName}: ${title}`;
+    }
+
+    // Add priority indicators
     if (isUrgent) {
-      title = `🚨 URGENT - ${title}`;
+      title = `🚨 ${title}`;
     } else if (isHigh) {
       title = `⚠️ ${title}`;
-    } else {
-      title = `📢 ${title}`;
     }
 
     await self.registration.showNotification(title, notificationOptions);

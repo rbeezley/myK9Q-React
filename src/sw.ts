@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+// Service Worker Version: 2.4 - Green icon with solid background
 import { clientsClaim } from 'workbox-core';
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
@@ -131,8 +132,8 @@ self.addEventListener('push', (event: PushEvent) => {
 
     const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
       body: payload.body,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
+      icon: '/myK9Q-notification-icon-512.png',
+      badge: '/myK9Q-notification-icon-512.png',
       vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100], // More prominent vibration for urgent/class started
       data: {
         url: payload.url || '/',
@@ -150,21 +151,21 @@ self.addEventListener('push', (event: PushEvent) => {
            `up-soon-${payload.armband_number}`,
     };
 
-    // Add action buttons based on notification type
+    // Add action buttons based on notification type (no icons - they're too small)
     if (payload.type === 'up_soon') {
       options.actions = [
-        { action: 'view', title: 'View Entry', icon: '/icon-192x192.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+        { action: 'view', title: 'View Entry' },
+        { action: 'dismiss', title: 'Dismiss' },
       ];
     } else if (payload.type === 'announcement') {
       options.actions = [
-        { action: 'view', title: 'View Details', icon: '/icon-192x192.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+        { action: 'view', title: 'View' },
+        { action: 'dismiss', title: 'Dismiss' },
       ];
     } else if (payload.type === 'class_started') {
       options.actions = [
-        { action: 'view', title: 'View Class', icon: '/icon-192x192.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icon-192x192.png' },
+        { action: 'view', title: 'View Class' },
+        { action: 'dismiss', title: 'Dismiss' },
       ];
     }
 
@@ -259,6 +260,80 @@ self.addEventListener('install', (_event) => {
   console.log('[Service Worker] Installed');
   // Skip waiting to activate immediately
   self.skipWaiting();
+});
+
+/**
+ * Handle messages from the main thread
+ * Used for simulating push notifications in development
+ */
+self.addEventListener('message', (event: ExtendableMessageEvent) => {
+  console.log('[Service Worker] Message received:', event.data);
+
+  // Handle simulated push notifications (for development/testing)
+  if (event.data && event.data.type === 'SIMULATE_PUSH') {
+    console.log('[Service Worker] 🧪 Simulated push notification:', event.data.data);
+
+    // Convert the simulated push data to match our PushPayload interface
+    const data = event.data.data;
+    const pushPayload: PushPayload = {
+      type: 'announcement',
+      title: data.title || 'Show Update',
+      body: data.content || data.title,
+      license_key: data.licenseKey,
+      priority: data.priority || 'normal',
+      url: '/announcements',
+    };
+
+    // Check for duplicates
+    const messageId = generateMessageId(pushPayload);
+    if (isDuplicateMessage(messageId)) {
+      console.log('[Service Worker] Skipping duplicate simulated notification');
+      return;
+    }
+
+    // Build notification options
+    const isUrgent = pushPayload.priority === 'urgent';
+    const isHigh = pushPayload.priority === 'high';
+
+    const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
+      body: pushPayload.body,
+      icon: '/myK9Q-notification-icon-512.png',
+      badge: '/myK9Q-notification-icon-512.png',
+      vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
+      data: {
+        url: pushPayload.url,
+        type: pushPayload.type,
+        license_key: pushPayload.license_key,
+        priority: pushPayload.priority,
+      },
+      requireInteraction: isUrgent,
+      tag: `announcement-${Date.now()}`,
+      actions: [
+        { action: 'view', title: 'View' },
+        { action: 'dismiss', title: 'Dismiss' },
+      ],
+    };
+
+    // Add priority indicators to title
+    let title = pushPayload.title;
+    if (data.showName && !title.includes(data.showName)) {
+      title = `${data.showName}: ${title}`;
+    }
+    if (isUrgent) {
+      title = `🚨 ${title}`;
+    } else if (isHigh) {
+      title = `⚠️ ${title}`;
+    }
+
+    // Show the notification
+    self.registration.showNotification(title, options)
+      .then(() => {
+        console.log('[Service Worker] ✅ Simulated notification displayed');
+      })
+      .catch((error) => {
+        console.error('[Service Worker] ❌ Failed to show simulated notification:', error);
+      });
+  }
 });
 
 console.log('[Service Worker] myK9Q Service Worker loaded with push notification support');

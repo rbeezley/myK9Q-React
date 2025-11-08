@@ -258,16 +258,17 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-md);
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: none;
   flex-wrap: wrap;
   max-width: 100%;
+  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
 }
 
 .status-badge.disabled {
@@ -285,11 +286,9 @@
 }
 
 /* Status badge colors */
-.status-badge.none,
 .status-badge.no-status {
-  background: var(--muted);
-  color: var(--muted-foreground);
-  border: 1px solid var(--border);
+  background: var(--status-none);
+  color: var(--status-none-text);
 }
 
 .status-badge.checked-in {

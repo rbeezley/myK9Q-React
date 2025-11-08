@@ -336,12 +336,13 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-md);
+  font-size: 0.875rem;
   font-weight: 600;
   white-space: nowrap;
+  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
 }
 
 .status-badge.not-checked-in {
@@ -830,7 +831,7 @@
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 40px; /* Increased from 28px for better tap target */
+  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
 }
 
 .checkin-status:hover {
@@ -843,7 +844,7 @@
 }
 
 .checkin-status.mobile-touch-target {
-  min-height: 44px; /* Increased to meet mobile tap target guidelines */
+  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
   min-width: 90px;
   padding: var(--token-space-lg) var(--token-space-xl);
   font-size: 0.875rem;
@@ -1219,7 +1220,7 @@
     margin-right: 0;
     width: fit-content;
     font-size: 0.6875rem;
-    min-height: 36px;
+    min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
     min-width: 60px;
     padding: 0.375rem 0.75rem;
     cursor: pointer;
@@ -1255,7 +1256,7 @@
 
   .checkin-status.mobile-touch-target {
     font-size: 0.625rem;
-    min-height: var(--token-space-4xl);
+    min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
     min-width: 50px;
     padding: 0.3rem 0.6rem;
     margin-top: 0.375rem;

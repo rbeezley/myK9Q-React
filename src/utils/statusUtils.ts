@@ -63,13 +63,9 @@ export function getClassDisplayStatus(classEntry: ClassEntry): 'not-started' | '
     return 'in-progress';
   }
 
-  // PRIORITY 3: Only use automatic detection if class_status is 'no-status' or other basic statuses
-  if (classEntry.class_status === 'no-status' ||
-      classEntry.class_status === 'setup' ||
-      classEntry.class_status === 'briefing' ||
-      classEntry.class_status === 'break' ||
-      classEntry.class_status === 'start_time') {
-
+  // PRIORITY 3: Only use automatic detection if class_status is 'no-status'
+  // Manual statuses like setup, briefing, break, start_time should always be respected
+  if (classEntry.class_status === 'no-status') {
     // A class is completed when all dogs are scored
     const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
     if (isCompleted) {
@@ -99,6 +95,7 @@ export function getClassStatusColor(
   }
 
   switch (status) {
+    case 'no-status': return 'no-status';
     case 'setup': return 'setup';
     case 'briefing': return 'briefing';
     case 'break': return 'break';

@@ -216,6 +216,52 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         // Update service worker with license key for tenant isolation
         serviceWorkerManager.updateLicenseKey(licenseKey);
 
+        // Auto-update push subscription if notifications are enabled
+        (async () => {
+          try {
+            const settings = localStorage.getItem('myK9Q_settings');
+            if (settings) {
+              const parsed = JSON.parse(settings);
+              if (parsed.enableNotifications) {
+                const authData = localStorage.getItem('myK9Q_auth');
+                if (authData) {
+                  const { role } = JSON.parse(authData);
+                  const { default: PushNotificationService } = await import('../services/pushNotificationService');
+
+                  // Check if already subscribed
+                  const isSubscribed = await PushNotificationService.isSubscribed();
+                  if (isSubscribed) {
+                    console.log('[Push Auto-Switch] Updating subscription for new show:', licenseKey);
+
+                    // Get favorite armbands from localStorage
+                    const favoritesKey = `dog_favorites_${licenseKey}`;
+                    const savedFavorites = localStorage.getItem(favoritesKey);
+                    let favoriteArmbands: number[] = [];
+
+                    if (savedFavorites) {
+                      try {
+                        const parsed = JSON.parse(savedFavorites);
+                        if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
+                          favoriteArmbands = parsed;
+                        }
+                      } catch (error) {
+                        console.error('[Push Auto-Switch] Error parsing favorites:', error);
+                      }
+                    }
+
+                    await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
+                    console.log('[Push Auto-Switch] ✓ Subscription updated successfully');
+                  } else {
+                    console.log('[Push Auto-Switch] Not subscribed - skipping show switch');
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('[Push Auto-Switch] Failed to update subscription:', error);
+          }
+        })();
+
         // Auto-fetch announcements for new license
         Promise.all([
           get().fetchAnnouncements(licenseKey),
@@ -344,8 +390,74 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             unreadCount: state.unreadCount + 1
           }));
 
-          // Push notification is now handled by database trigger (Migration 019)
-          // No need to send manually from client
+          // Push notification is handled by database trigger (Migration 019) in production
+          // For development AND testing, also trigger service worker directly
+          // TODO: Remove this once Edge Function is deployed and working
+          if ('serviceWorker' in navigator) {
+            console.log('🧪 [DEV] Simulating push notification for development');
+
+            // Add timeout to service worker ready promise
+            const swReadyTimeout = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Service worker ready timeout')), 5000)
+            );
+
+            Promise.race([navigator.serviceWorker.ready, swReadyTimeout])
+              .then((registration) => {
+                const swRegistration = registration as ServiceWorkerRegistration;
+                console.log('📱 Service worker ready:', swRegistration);
+                console.log('📱 Service worker active:', swRegistration.active);
+
+                if (!swRegistration.active) {
+                  console.error('❌ Service worker is not active');
+                  // Fallback: Show browser notification directly
+                  if ('Notification' in window && Notification.permission === 'granted') {
+                    console.log('📱 Showing fallback browser notification');
+                    new Notification(data.title, {
+                      body: data.content,
+                      icon: '/myK9Q-notification-icon-512.png',
+                      badge: '/myK9Q-notification-icon-512.png',
+                    });
+                  }
+                  return;
+                }
+
+                swRegistration.active.postMessage({
+                  type: 'SIMULATE_PUSH',
+                  data: {
+                    id: data.id,
+                    licenseKey: data.license_key,
+                    title: data.title,
+                    content: data.content,
+                    priority: data.priority,
+                    showName: localStorage.getItem('current_show_name') || 'myK9Q Show',
+                    timestamp: new Date().toISOString()
+                  }
+                });
+                console.log('📱 Simulated push notification sent to service worker');
+              })
+              .catch(error => {
+                console.error('❌ Service worker not ready:', error.message);
+                // Fallback: Show browser notification directly
+                if ('Notification' in window && Notification.permission === 'granted') {
+                  console.log('📱 Showing fallback browser notification');
+                  const isUrgent = data.priority === 'urgent';
+                  const title = isUrgent ? `🚨 ${data.title}` : data.title;
+                  new Notification(title, {
+                    body: data.content,
+                    icon: '/myK9Q-notification-icon-512.png',
+                    badge: '/myK9Q-notification-icon-512.png',
+                    requireInteraction: isUrgent,
+                  });
+                } else {
+                  console.error('❌ Cannot show notification - permission not granted');
+                }
+              });
+          } else {
+            console.log('ℹ️ Not simulating push notification:', {
+              serviceWorkerSupported: 'serviceWorker' in navigator,
+              isDev: import.meta.env.DEV
+            });
+          }
 
         } catch (error) {
           console.error('Error creating announcement:', error);

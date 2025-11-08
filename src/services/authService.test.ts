@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import { authenticatePasscode, getShowByLicenseKey, testDatabaseConnection } from './authService';
 import { supabase } from '../lib/supabase';
 import * as authUtils from '../utils/auth';
@@ -56,11 +56,11 @@ describe('authService', () => {
       { id: 202, trial_id: 101, class_name: 'Advanced B', class_order: 2 }
     ];
 
-    it('should successfully authenticate a valid passcode', async () => {
-      // Mock validatePasscodeAgainstLicenseKey to return true for first show
+    test('should successfully authenticate a valid passcode', async () => {
+      // Mock validatePasscodeAgainstLicenseKey to return PasscodeResult for second show
       vi.spyOn(authUtils, 'validatePasscodeAgainstLicenseKey')
-        .mockReturnValueOnce(false) // First show fails
-        .mockReturnValueOnce(true);  // Second show succeeds
+        .mockReturnValueOnce(null) // First show fails
+        .mockReturnValueOnce({ role: 'judge', licenseKey: 'b123', isValid: true });  // Second show succeeds
 
       // Mock Supabase queries
       const mockFrom = vi.fn().mockReturnThis();
@@ -77,7 +77,7 @@ describe('authService', () => {
           in: mockIn,
           order: mockOrder,
           single: mockSingle
-        };
+        } as any;
 
         if (table === 'shows') {
           mockSelect.mockImplementation((fields?: string) => {
@@ -123,7 +123,7 @@ describe('authService', () => {
       expect(result?.classes).toEqual(mockClasses);
     });
 
-    it('should return null when no shows exist', async () => {
+    test('should return null when no shows exist', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockOrder = vi.fn().mockResolvedValue({ data: [], error: null });
@@ -138,9 +138,9 @@ describe('authService', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when passcode does not match any show', async () => {
+    test('should return null when passcode does not match any show', async () => {
       vi.spyOn(authUtils, 'validatePasscodeAgainstLicenseKey')
-        .mockReturnValue(false);
+        .mockReturnValue(null);
 
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
@@ -157,13 +157,13 @@ describe('authService', () => {
       expect(authUtils.validatePasscodeAgainstLicenseKey).toHaveBeenCalledTimes(2);
     });
 
-    it('should return null when database query fails', async () => {
+    test('should return null when database query fails', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockOrder = vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'Database error' }
-      });
+      } as any);
 
       vi.mocked(supabase.from).mockReturnValue({
         select: mockSelect,
@@ -175,9 +175,9 @@ describe('authService', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle trial fetch errors gracefully', async () => {
+    test('should handle trial fetch errors gracefully', async () => {
       vi.spyOn(authUtils, 'validatePasscodeAgainstLicenseKey')
-        .mockReturnValue(true);
+        .mockReturnValue({ role: 'admin', licenseKey: 'a260', isValid: true });
 
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
@@ -191,7 +191,7 @@ describe('authService', () => {
           eq: mockEq,
           order: mockOrder,
           single: mockSingle
-        };
+        } as any;
 
         if (table === 'shows') {
           mockSelect.mockImplementation((fields?: string) => {
@@ -225,9 +225,9 @@ describe('authService', () => {
       expect(result?.classes).toEqual([]);
     });
 
-    it('should handle empty trials array', async () => {
+    test('should handle empty trials array', async () => {
       vi.spyOn(authUtils, 'validatePasscodeAgainstLicenseKey')
-        .mockReturnValue(true);
+        .mockReturnValue({ role: 'admin', licenseKey: 'a260', isValid: true });
 
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
@@ -241,7 +241,7 @@ describe('authService', () => {
           eq: mockEq,
           order: mockOrder,
           single: mockSingle
-        };
+        } as any;
 
         if (table === 'shows') {
           mockSelect.mockImplementation((fields?: string) => {
@@ -295,7 +295,7 @@ describe('authService', () => {
       { id: 201, trial_id: 101, class_name: 'Novice A', class_order: 1 }
     ];
 
-    it('should retrieve show data by license key', async () => {
+    test('should retrieve show data by license key', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -310,7 +310,7 @@ describe('authService', () => {
           in: mockIn,
           order: mockOrder,
           single: mockSingle
-        };
+        } as any;
 
         if (table === 'shows') {
           mockSelect.mockImplementation((fields: string) => {
@@ -362,7 +362,7 @@ describe('authService', () => {
       expect(result?.classes).toEqual(mockClasses);
     });
 
-    it('should return null when show is not found', async () => {
+    test('should return null when show is not found', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -379,7 +379,7 @@ describe('authService', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle database errors gracefully', async () => {
+    test('should handle database errors gracefully', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
@@ -396,7 +396,7 @@ describe('authService', () => {
       expect(result).toBeNull();
     });
 
-    it('should use fallback organization from license data', async () => {
+    test('should use fallback organization from license data', async () => {
       const showWithoutOrg = { ...mockShow, organization: null, show_type: null };
 
       const mockFrom = vi.fn().mockReturnThis();
@@ -411,7 +411,7 @@ describe('authService', () => {
           eq: mockEq,
           order: mockOrder,
           single: mockSingle
-        };
+        } as any;
 
         if (table === 'shows') {
           mockSelect.mockImplementation((fields: string) => {
@@ -453,7 +453,7 @@ describe('authService', () => {
   });
 
   describe('testDatabaseConnection', () => {
-    it('should return true when database connection is successful', async () => {
+    test('should return true when database connection is successful', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue({ data: [{ count: 1 }], error: null });
@@ -469,13 +469,13 @@ describe('authService', () => {
       expect(supabase.from).toHaveBeenCalledWith('shows');
     });
 
-    it('should return false when database query returns an error', async () => {
+    test('should return false when database query returns an error', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' }
-      });
+      } as any);
 
       vi.mocked(supabase.from).mockReturnValue({
         select: mockSelect,
@@ -487,7 +487,7 @@ describe('authService', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when database query throws an exception', async () => {
+    test('should return false when database query throws an exception', async () => {
       const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockRejectedValue(new Error('Network error'));

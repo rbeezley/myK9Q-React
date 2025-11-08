@@ -1409,7 +1409,7 @@
   border: none;
   background: none;
   cursor: default;
-  min-height: 36px; /* Minimum tap target height for accessibility */
+  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
 }
 
 .status-badge.clickable {
@@ -1510,14 +1510,14 @@
   color: #ffffff;
 }
 
-/* Check-in status: none (not checked in) */
-.status-badge.none {
-  background: var(--status-none-bg);
+/* Check-in status: no-status (not checked in) */
+.status-badge.no-status {
+  background: var(--status-none);
   color: #ffffff;
 }
 
-.theme-dark .status-badge.none {
-  background: var(--status-none-bg);
+.theme-dark .status-badge.no-status {
+  background: var(--status-none);
   color: #ffffff;
 }
 
@@ -3178,6 +3178,15 @@
   height: 1px;
   background: var(--border);
   margin: 0.5rem 1.5rem;
+}
+
+.menu-version {
+  text-align: center;
+  padding: 1rem 1.5rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  opacity: 0.7;
 }
 
 /* Dark mode specific styles */

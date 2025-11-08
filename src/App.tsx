@@ -92,6 +92,11 @@ const Settings = React.lazy(() =>
     default: module.Settings
   }))
 );
+const Stats = React.lazy(() =>
+  import('./pages/Stats/Stats').then(module => ({
+    default: module.Stats
+  }))
+);
 const PerformanceMetricsAdmin = React.lazy(() =>
   import('./pages/Admin/PerformanceMetricsAdmin').then(module => ({
     default: module.PerformanceMetricsAdmin
@@ -331,6 +336,36 @@ function AppWithAuth() {
               <ProtectedRoute>
                 <Suspense fallback={<PageLoader message="Loading settings..." />}>
                   <Settings />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stats"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading statistics..." />}>
+                  <Stats />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stats/trial/:trialId"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading trial statistics..." />}>
+                  <Stats />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stats/trial/:trialId/class/:classId"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader message="Loading class statistics..." />}>
+                  <Stats />
                 </Suspense>
               </ProtectedRoute>
             }

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import { syncManager } from './syncManager';
 import { supabase } from '../lib/supabase';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
@@ -54,7 +54,7 @@ describe('SyncManager', () => {
   });
 
   describe('getState', () => {
-    it('should return current sync state', () => {
+    test('should return current sync state', () => {
       const state = syncManager.getState();
 
       expect(state).toHaveProperty('status');
@@ -63,7 +63,7 @@ describe('SyncManager', () => {
       expect(state).toHaveProperty('error');
     });
 
-    it('should return a copy of state, not reference', () => {
+    test('should return a copy of state, not reference', () => {
       const state1 = syncManager.getState();
       const state2 = syncManager.getState();
 
@@ -73,7 +73,7 @@ describe('SyncManager', () => {
   });
 
   describe('subscribe', () => {
-    it('should add listener and return unsubscribe function', () => {
+    test('should add listener and return unsubscribe function', () => {
       const listener = vi.fn();
       const unsubscribe = syncManager.subscribe(listener);
 
@@ -83,7 +83,7 @@ describe('SyncManager', () => {
       unsubscribe();
     });
 
-    it('should notify listener on state changes', () => {
+    test('should notify listener on state changes', () => {
       const listener = vi.fn();
       const unsubscribe = syncManager.subscribe(listener);
 
@@ -97,7 +97,7 @@ describe('SyncManager', () => {
       syncManager.resumeSync();
     });
 
-    it('should stop notifying after unsubscribe', () => {
+    test('should stop notifying after unsubscribe', () => {
       const listener = vi.fn();
       const unsubscribe = syncManager.subscribe(listener);
 
@@ -116,7 +116,7 @@ describe('SyncManager', () => {
   });
 
   describe('subscribeToUpdates', () => {
-    it('should create a new subscription', () => {
+    test('should create a new subscription', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -150,7 +150,7 @@ describe('SyncManager', () => {
       unsubscribe();
     });
 
-    it('should unsubscribe old subscription if key already exists', () => {
+    test('should unsubscribe old subscription if key already exists', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -171,7 +171,7 @@ describe('SyncManager', () => {
       expect(mockChannel.unsubscribe).toHaveBeenCalled();
     });
 
-    it('should return unsubscribe function', () => {
+    test('should return unsubscribe function', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -193,7 +193,7 @@ describe('SyncManager', () => {
       expect(mockChannel.unsubscribe).toHaveBeenCalled();
     });
 
-    it('should handle subscription errors', () => {
+    test('should handle subscription errors', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn((callback) => {
@@ -214,7 +214,7 @@ describe('SyncManager', () => {
   });
 
   describe('unsubscribe', () => {
-    it('should unsubscribe from specific subscription', () => {
+    test('should unsubscribe from specific subscription', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -229,7 +229,7 @@ describe('SyncManager', () => {
       expect(mockChannel.unsubscribe).toHaveBeenCalled();
     });
 
-    it('should do nothing if key does not exist', () => {
+    test('should do nothing if key does not exist', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -246,7 +246,7 @@ describe('SyncManager', () => {
   });
 
   describe('unsubscribeAll', () => {
-    it('should unsubscribe from all active subscriptions', () => {
+    test('should unsubscribe from all active subscriptions', () => {
       const mockChannel1 = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -274,14 +274,14 @@ describe('SyncManager', () => {
   });
 
   describe('pauseSync', () => {
-    it('should pause sync and update state', () => {
+    test('should pause sync and update state', () => {
       syncManager.pauseSync();
 
       const state = syncManager.getState();
       expect(state.status).toBe('paused');
     });
 
-    it('should unsubscribe all subscriptions', () => {
+    test('should unsubscribe all subscriptions', () => {
       const mockChannel = {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
@@ -298,7 +298,7 @@ describe('SyncManager', () => {
   });
 
   describe('resumeSync', () => {
-    it('should resume sync and update state', () => {
+    test('should resume sync and update state', () => {
       syncManager.pauseSync();
       syncManager.resumeSync();
 
@@ -308,7 +308,7 @@ describe('SyncManager', () => {
   });
 
   describe('queueSync', () => {
-    it('should add operation to queue and update pending count', () => {
+    test('should add operation to queue and update pending count', () => {
       const operation = vi.fn().mockResolvedValue(undefined);
 
       syncManager.queueSync(operation);
@@ -317,7 +317,7 @@ describe('SyncManager', () => {
       expect(state.pendingChanges).toBeGreaterThanOrEqual(0);
     });
 
-    it('should process queue immediately', async () => {
+    test('should process queue immediately', async () => {
       const operation = vi.fn().mockResolvedValue(undefined);
 
       syncManager.queueSync(operation);
@@ -330,7 +330,7 @@ describe('SyncManager', () => {
   });
 
   describe('manualSync', () => {
-    it('should process offline queue and sync queue', async () => {
+    test('should process offline queue and sync queue', async () => {
       const mockOfflineState = {
         queue: [],
         startSync: vi.fn(),
@@ -347,7 +347,7 @@ describe('SyncManager', () => {
       expect(useOfflineQueueStore.getState).toHaveBeenCalled();
     });
 
-    it('should process pending offline queue items', async () => {
+    test('should process pending offline queue items', async () => {
       const mockOfflineState = {
         queue: [
           { id: '1', entryId: 101, scoreData: { time: 30 }, status: 'pending' },
@@ -371,7 +371,7 @@ describe('SyncManager', () => {
       expect(mockOfflineState.markAsCompleted).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle failed offline queue items', async () => {
+    test('should handle failed offline queue items', async () => {
       const mockOfflineState = {
         queue: [
           { id: '1', entryId: 101, scoreData: { time: 30 }, status: 'pending' }
@@ -394,7 +394,7 @@ describe('SyncManager', () => {
   });
 
   describe('shouldBlockSync', () => {
-    it('should block sync when offline', () => {
+    test('should block sync when offline', () => {
       Object.defineProperty(global.navigator, 'onLine', {
         writable: true,
         value: false
@@ -403,7 +403,7 @@ describe('SyncManager', () => {
       expect(syncManager.shouldBlockSync()).toBe(true);
     });
 
-    it('should block sync when paused', () => {
+    test('should block sync when paused', () => {
       Object.defineProperty(global.navigator, 'onLine', {
         writable: true,
         value: true
@@ -416,7 +416,7 @@ describe('SyncManager', () => {
       syncManager.resumeSync();
     });
 
-    it('should not block sync when online and not paused', () => {
+    test('should not block sync when online and not paused', () => {
       Object.defineProperty(global.navigator, 'onLine', {
         writable: true,
         value: true
@@ -428,19 +428,19 @@ describe('SyncManager', () => {
   });
 
   describe('getRetryDelay', () => {
-    it('should calculate exponential backoff', () => {
+    test('should calculate exponential backoff', () => {
       expect(syncManager.getRetryDelay(0)).toBe(1000);
       expect(syncManager.getRetryDelay(1)).toBe(2000);
       expect(syncManager.getRetryDelay(2)).toBe(4000);
       expect(syncManager.getRetryDelay(3)).toBe(8000);
     });
 
-    it('should cap delay at 30 seconds', () => {
+    test('should cap delay at 30 seconds', () => {
       expect(syncManager.getRetryDelay(10)).toBe(30000);
       expect(syncManager.getRetryDelay(20)).toBe(30000);
     });
 
-    it('should use custom base delay', () => {
+    test('should use custom base delay', () => {
       expect(syncManager.getRetryDelay(0, 500)).toBe(500);
       expect(syncManager.getRetryDelay(1, 500)).toBe(1000);
       expect(syncManager.getRetryDelay(2, 500)).toBe(2000);
@@ -448,13 +448,13 @@ describe('SyncManager', () => {
   });
 
   describe('isWiFiOnlyAndCellular', () => {
-    it('should always return false (feature removed)', () => {
+    test('should always return false (feature removed)', () => {
       expect(syncManager.isWiFiOnlyAndCellular()).toBe(false);
     });
   });
 
   describe('network event handlers', () => {
-    it('should handle online event', async () => {
+    test('should handle online event', async () => {
       const mockOfflineState = {
         queue: [],
         startSync: vi.fn(),
@@ -475,7 +475,7 @@ describe('SyncManager', () => {
       expect(state.status).toBe('synced');
     });
 
-    it('should update status to offline when pauseSync is called', () => {
+    test('should update status to offline when pauseSync is called', () => {
       // Resume sync first to ensure starting state
       syncManager.resumeSync();
 

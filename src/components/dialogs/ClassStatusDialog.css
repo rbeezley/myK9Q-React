@@ -115,6 +115,10 @@
 }
 
 /* Solid colored icon backgrounds - using standardized design tokens */
+.status-item[style*="--status-none"] .status-icon {
+  background: var(--status-none);
+}
+
 .status-item[style*="--status-setup"] .status-icon {
   background: var(--status-setup);
 }
@@ -140,6 +144,10 @@
 }
 
 /* Color variables for different statuses */
+.status-item[style*="--status-none"] {
+  --status-color: var(--status-none);
+}
+
 .status-item[style*="--status-setup"] {
   --status-color: var(--status-setup);
 }
