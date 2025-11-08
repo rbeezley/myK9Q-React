@@ -61,6 +61,18 @@ npm run setup        # Interactive Supabase environment setup
 - **Files**: [src/utils/auth.ts](src/utils/auth.ts), [src/contexts/AuthContext.tsx](src/contexts/AuthContext.tsx)
 
 ### Database Schema (Supabase)
+
+**📖 Complete Reference**: See [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) for comprehensive schema documentation including:
+- All 23 tables with complete column definitions
+- All 4 performance views with usage guidance
+- All 43 database functions with signatures
+- All 15 triggers with descriptions
+- Common query patterns and examples
+- Multi-tenant isolation guidelines
+- Migration history and best practices
+
+**Quick Overview**:
+
 **Core Tables** (normalized, no `tbl_*` prefix):
 - `shows`: Show/trial containers (license_key = multi-tenant isolation)
 - `trials`: Trial instances linked to shows
@@ -68,22 +80,12 @@ npm run setup        # Interactive Supabase environment setup
 - `entries`: Dog entries (armband_number, call_name, handler)
 - `results`: Scoring results (time, faults, placement)
 - `class_requirements`: Organization-specific class requirements with configurable rules
-  - `has_30_second_warning` (boolean, default: true): Whether 30-second warning is given
-  - `time_type` ('fixed'|'range'|'dictated', default: 'range'): Type of max time allowed
-  - `warning_notes` (text): Custom warning message for display
-  - `updated_at` (timestamp): Auto-updated via trigger when rules change
 
-**Key Views**:
-- `view_entry_class_join_normalized`: Pre-joined data for queries (entries + classes + trials + shows)
-- `view_trial_summary_normalized`: Trial summary with show context (trial info + show info)
-- `view_class_summary`: **Performance view** - Pre-aggregated entry counts and scoring statistics per class
-  - Eliminates: 3-4 separate queries per class list
-  - Returns: Class info + trial info + show info + 7 aggregated counts (total_entries, scored_entries, checked_in_count, at_gate_count, in_ring_count, qualified_count, nq_count)
-  - Use in: ClassList, Home dashboard, CompetitionAdmin pages
-- `view_entry_with_results`: **Performance view** - Entries pre-joined with results table
-  - Eliminates: Separate entries + results queries + JavaScript map/join logic
-  - Returns: All entry fields + all result fields + computed convenience fields
-  - Use in: entryService, entry lists, scoresheet data loading, dog details
+**Key Performance Views** (Always use these instead of manual joins):
+- `view_class_summary`: Pre-aggregated class statistics (use in ClassList, Home dashboard)
+- `view_entry_with_results`: Entries pre-joined with results (use in entry lists, scoresheets)
+- `view_entry_class_join_normalized`: Entries with full class/trial/show context
+- `view_trial_summary_normalized`: Trial summary with show context
 
 **Real-time Subscriptions**:
 - Use standard `id` field for all tables
