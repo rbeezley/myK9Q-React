@@ -83,7 +83,7 @@
 }
 
 .scoresheet-header h1 {
-  margin: 0 0 0 var(--token-space-xl);  /* 16px left margin for spacing from hamburger */
+  margin: 0;  /* No margin needed - gap from page-header provides spacing */
   font-size: 1.25rem;
   font-weight: 650;
   color: var(--foreground);
