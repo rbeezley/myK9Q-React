@@ -64,13 +64,16 @@
   --error-contrast: #ef4444;
 }
 
-/* Base Scoresheet Container */
+/* Base Scoresheet Container - Match Home page structure (no padding) */
 .scoresheet-container {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Match Home page */
 }
 
 /* Scoresheet Header - Matches page-header pattern */
@@ -153,14 +156,18 @@
   color: var(--warning);
 }
 
-/* Main Content Area */
+/* Main Content Area - Scrollable with centered content */
 .scoresheet-content {
+  flex: 1;
+  overflow-y: auto;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   max-width: 800px;
+  width: 100%;
   margin: 0 auto;
+  padding-bottom: 100px; /* Space for fixed action buttons if needed */
 }
 
 /* Enhanced Card Components with Glass Morphism */
@@ -839,6 +846,7 @@
   .scoresheet-content {
     padding: 1rem;
     gap: 1rem;
+    padding-bottom: 100px; /* Maintain space for action buttons */
   }
   
   .dog-header-card {
