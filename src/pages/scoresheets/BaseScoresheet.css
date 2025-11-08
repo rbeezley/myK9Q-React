@@ -84,7 +84,6 @@
   padding: var(--token-space-sm) var(--token-space-lg);  /* 12px horizontal on mobile */
   display: flex;
   align-items: center;
-  gap: var(--token-space-xl);
   min-height: 44px;
 }
 
@@ -100,7 +99,7 @@
 }
 
 .scoresheet-header h1 {
-  margin: 0;
+  margin: 0 0 0 var(--token-space-xl);  /* 16px left margin for spacing from hamburger */
   font-size: 1.25rem;
   font-weight: 650;
   color: var(--foreground);
