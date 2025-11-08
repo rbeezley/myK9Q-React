@@ -6,13 +6,25 @@
 /* ========== CONTAINER & LAYOUT ========== */
 
 .dog-details-container {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding-bottom: 100px;
-  /* No horizontal padding - follows Home page pattern where header and content handle their own padding */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollable content wrapper - contains everything below the dog card that scrolls */
+.dog-details-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: var(--token-space-4xl);
+  /* Smooth scrolling for better UX */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* ========== HEADER - inherits from global .page-header ========== */
@@ -25,7 +37,7 @@
   flex: 1;
   text-align: center;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 590;
   margin: 0 0 0 var(--token-space-xl);
   color: var(--foreground);
   letter-spacing: -0.02em;
@@ -63,10 +75,89 @@
   transform: scale(0.95);
 }
 
+/* Three-dot menu button - matches hamburger menu styling */
+.header-menu-button {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-menu-button:hover {
+  background: var(--muted);
+  transform: translateY(-1px);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode menu button */
+.theme-dark .header-menu-button {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.theme-dark .header-menu-button:hover {
+  background: var(--secondary);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+}
+
+/* ========== DROPDOWN MENU ========== */
+
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--token-shadow-lg);
+  z-index: 1000;
+  min-width: 180px;
+  max-width: calc(100vw - 2rem);
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--muted);
+}
+
+.dropdown-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ========== DOG INFO CARD ========== */
 
 .dog-info-card {
-  margin: 0 var(--token-space-lg) var(--token-space-xl) var(--token-space-lg);  /* Horizontal margins match page-header padding */
+  margin: var(--token-space-lg) var(--token-space-lg) var(--token-space-xl) var(--token-space-lg);  /* Added top margin for spacing from header */
   padding: var(--token-space-2xl);
   background: var(--card);
   backdrop-filter: blur(20px);
@@ -80,7 +171,7 @@
 /* Desktop - increased horizontal margins to match page-header padding */
 @media (min-width: 1024px) {
   .dog-info-card {
-    margin: 0 var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
+    margin: var(--token-space-xl) var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
   }
 }
 

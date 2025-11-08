@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useMemo, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { BarChart3, TrendingUp, Award, Clock } from 'lucide-react';
+import { BarChart3, TrendingUp, Award, Clock, MoreVertical, RefreshCw } from 'lucide-react';
 import { PageLoader } from '../../components/LoadingSpinner';
 import { HamburgerMenu } from '../../components/ui/HamburgerMenu';
 import { useAuth } from '../../contexts/AuthContext';
@@ -17,7 +17,7 @@ const JudgePerformanceChart = lazy(() => import('./components/JudgePerformanceCh
 const FastestTimesTable = lazy(() => import('./components/FastestTimesTable'));
 const CleanSweepSection = lazy(() => import('./components/CleanSweepSection'));
 const StatsFiltersComponent = lazy(() => import('./components/StatsFilters'));
-const StatsBreadcrumbs = lazy(() => import('./components/StatsBreadcrumbs'));
+const _StatsBreadcrumbs = lazy(() => import('./components/StatsBreadcrumbs'));
 
 export const Stats: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +37,23 @@ export const Stats: React.FC = () => {
     levels: []
   });
 
+  // State for header menu
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setShowHeaderMenu(false);
+      }
+    };
+    if (showHeaderMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showHeaderMenu]);
+
   // Stats is now filter-based only (no route-based drill-down)
   const level: StatsLevel = 'show';
 
@@ -51,7 +68,7 @@ export const Stats: React.FC = () => {
   }), [searchParams]);
 
   // Fetch stats data
-  const { data, isLoading, error } = useStatsData({
+  const { data, isLoading, error, refetch } = useStatsData({
     level,
     showId: showContext?.showId,
     filters
@@ -214,19 +231,33 @@ export const Stats: React.FC = () => {
       <header className="page-header stats-page-header">
         <HamburgerMenu />
         <div className="header-content">
-          <div className="title-row">
-            <h1>
-              <BarChart3 className="title-icon" />
-              Statistics
-            </h1>
-          </div>
-          <div className="breadcrumbs-row">
-            <Suspense fallback={<div className="breadcrumbs-skeleton" />}>
-              <StatsBreadcrumbs
-                filters={filters}
-              />
-            </Suspense>
-          </div>
+          <h1>
+            <BarChart3 className="title-icon" />
+            Statistics
+          </h1>
+        </div>
+        <div className="dropdown-container">
+          <button
+            className="header-menu-button"
+            onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+            aria-label="Page options"
+          >
+            <MoreVertical size={20} />
+          </button>
+          {showHeaderMenu && (
+            <div className="dropdown-menu">
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  refetch();
+                  setShowHeaderMenu(false);
+                }}
+              >
+                <RefreshCw size={18} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -311,7 +342,10 @@ export const Stats: React.FC = () => {
       <div className="stats-charts">
         {/* Qualification Distribution */}
         <div className="chart-container">
-          <h2 className="chart-title">Result Distribution</h2>
+          <h2 className="chart-title">
+            Result Distribution
+            <span className="chart-hint-mobile">Tap segments for details</span>
+          </h2>
           <Suspense fallback={<div className="chart-skeleton" />}>
             <QualificationChart data={data} onSegmentClick={handleFilterChange} />
           </Suspense>
@@ -320,7 +354,10 @@ export const Stats: React.FC = () => {
         {/* Judge Performance */}
         {data.judgeStats.length > 0 && (
           <div className="chart-container">
-            <h2 className="chart-title">Performance by Judge</h2>
+            <h2 className="chart-title">
+              Performance by Judge
+              <span className="chart-hint-mobile">Tap bars for details</span>
+            </h2>
             <Suspense fallback={<div className="chart-skeleton" />}>
               <JudgePerformanceChart
                 data={data.judgeStats}
@@ -335,7 +372,10 @@ export const Stats: React.FC = () => {
       {/* Only show breed chart when NOT filtering by breed */}
       {data.breedStats.length > 0 && !filters.breed && (
         <div className="stats-section breed-performance-section">
-          <h2 className="chart-title">Performance by Breed</h2>
+          <h2 className="chart-title">
+            Performance by Breed
+            <span className="chart-hint-mobile">Tap bars for details</span>
+          </h2>
           <div className="breed-chart-container">
             <Suspense fallback={<div className="chart-skeleton" />}>
               <BreedPerformanceChart

@@ -9,7 +9,7 @@ import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorStat
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
-import { Clock, CheckCircle, GripVertical, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
+import { Clock, CheckCircle, GripVertical, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical, ChevronDown, Search, X, ArrowUpDown, Users } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { formatTrialDate } from '../../utils/dateUtils';
@@ -722,6 +722,7 @@ export const EntryList: React.FC = () => {
         <div className="class-info">
           <div className="class-title-row">
             <h1>
+              <Users className="title-icon" />
               {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
             </h1>
             {statusBadge && (
@@ -820,14 +821,7 @@ export const EntryList: React.FC = () => {
 
       <HeaderTicker />
 
-      {/* Pull to Refresh Wrapper */}
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        enabled={settings.pullToRefresh}
-        threshold={80}
-      >
-
-      {/* Search and Sort Header */}
+      {/* Search and Sort Header - STICKY */}
       <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
         <button
           className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
@@ -951,7 +945,16 @@ export const EntryList: React.FC = () => {
         onTabChange={(tabId) => setActiveTab(tabId as TabType)}
       />
 
-      <div className="entry-list-content">
+      {/* Pull to Refresh Wrapper - wraps only scrollable content */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={settings.pullToRefresh}
+        threshold={80}
+      >
+
+      {/* Scrollable Content Area - only the grid scrolls */}
+      <div className="entry-list-scrollable">
+        <div className="entry-list-content">
         {currentEntries.length === 0 ? (
           <div className="no-entries">
             <h2>No {activeTab} entries</h2>
@@ -987,7 +990,10 @@ export const EntryList: React.FC = () => {
             </SortableContext>
           </DndContext>
         )}
+        </div>
       </div>
+
+      </PullToRefresh>
 
       {/* Check-in Status Dialog */}
       <CheckinStatusDialog
@@ -1117,8 +1123,6 @@ export const EntryList: React.FC = () => {
           </div>
         </div>
       )}
-
-      </PullToRefresh>
     </div>
   );
 };

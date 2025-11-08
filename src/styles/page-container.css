@@ -43,11 +43,11 @@
   backdrop-filter: blur(20px);
   background: rgba(255, 255, 255, 0.8);
   border-bottom: 1px solid var(--border);
-  padding: var(--token-space-sm) var(--token-space-lg);  /* 12px horizontal on mobile */
+  padding: var(--token-space-lg) var(--token-space-lg);  /* 12px vertical and horizontal on mobile */
   display: flex;
   align-items: center;
   gap: var(--token-space-xl);
-  min-height: 44px;
+  min-height: 60px;  /* Increased from 44px for more breathing room */
 }
 
 .theme-dark .page-header {
@@ -57,8 +57,16 @@
 /* Desktop */
 @media (min-width: 1024px) {
   .page-header {
-    padding: var(--token-space-sm) var(--token-space-3xl);  /* 24px horizontal on desktop */
+    padding: var(--token-space-lg) var(--token-space-3xl);  /* 12px vertical, 24px horizontal on desktop */
   }
+}
+
+/* Title Icon - Standard styling for page header icons */
+.title-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 /**

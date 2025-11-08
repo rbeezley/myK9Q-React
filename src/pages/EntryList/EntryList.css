@@ -5,11 +5,28 @@
 /* ========== CONTAINER & LAYOUT ========== */
 
 .entry-list-container {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--token-space-lg); /* Add horizontal padding: 12px mobile */
+}
+
+/* Scrollable content wrapper - contains entry grid that can scroll */
+.entry-list-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: var(--token-space-4xl);
+  /* Force list to extend to bottom - subtract header, ticker, search/tabs (~360px total) */
+  min-height: calc(100vh - 360px);
+  /* Smooth scrolling for better UX */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* ========== HEADER ========== */
@@ -93,6 +110,9 @@
   text-overflow: ellipsis;
   max-width: 100%;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-md);
 }
 
 .class-title-row {
@@ -1193,6 +1213,9 @@
 /* ========== RESPONSIVE: TABLET (640px+) ========== */
 
 @media (min-width: 640px) {
+  .entry-list-container {
+    padding: 0 var(--token-space-3xl); /* Desktop: 24px horizontal */
+  }
 
   /* Show trial details on tablet and up */
   .trial-details-group {

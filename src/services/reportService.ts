@@ -3,6 +3,7 @@ import React from 'react';
 import { Entry } from '../stores/entryStore';
 import { CheckInSheet, CheckInSheetProps } from '../components/reports/CheckInSheet';
 import { ResultsSheet, ResultsSheetProps } from '../components/reports/ResultsSheet';
+import { DogResultsSheet, DogResultsSheetProps } from '../components/reports/DogResultsSheet';
 
 /**
  * Report generation service
@@ -165,5 +166,49 @@ export const generateResultsSheet = (classInfo: ReportClassInfo, entries: Entry[
   } catch (error) {
     console.error('Error generating results sheet:', error);
     alert('Error generating results sheet. Please try again.');
+  }
+};
+
+/**
+ * Generate and print dog results report
+ */
+export const generateDogResultsSheet = (dogInfo: DogResultsSheetProps['dogInfo'], results: DogResultsSheetProps['results'], showName?: string, organization?: string): void => {
+  try {
+    if (results.length === 0) {
+      alert('No results to display in dog results report.');
+      return;
+    }
+
+    // Create props for DogResultsSheet component
+    const props: DogResultsSheetProps = {
+      dogInfo,
+      results,
+      showName,
+      organization
+    };
+
+    // Render component to HTML string
+    const componentHTML = ReactDOMServer.renderToStaticMarkup(
+      React.createElement(DogResultsSheet, props)
+    );
+
+    // Generate complete HTML document
+    const htmlDoc = generatePrintHTML(
+      `${dogInfo.callName} - Performance Report`,
+      componentHTML
+    );
+
+    // Open new window and write HTML
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (printWindow) {
+      printWindow.document.write(htmlDoc);
+      printWindow.document.close();
+    } else {
+      console.error('Failed to open print window. Please check popup blocker settings.');
+      alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
+    }
+  } catch (error) {
+    console.error('Error generating dog results sheet:', error);
+    alert('Error generating dog results sheet. Please try again.');
   }
 };

@@ -90,6 +90,9 @@
   letter-spacing: -0.02em;
   line-height: 1.2;
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-md);
 }
 
 /* Apple-style Back Button */

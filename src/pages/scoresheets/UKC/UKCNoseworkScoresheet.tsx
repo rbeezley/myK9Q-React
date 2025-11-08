@@ -17,6 +17,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
+import { ClipboardCheck } from 'lucide-react';
 import '../BaseScoresheet.css';
 import './UKCNoseworkScoresheet.css';
 
@@ -262,7 +263,10 @@ export const UKCNoseworkScoresheet: React.FC = () => {
     <div className="scoresheet-container ukc-nosework-scoresheet">
       <header className="page-header scoresheet-header">
         <HamburgerMenu />
-        <h1>UKC Nosework</h1>
+        <h1>
+          <ClipboardCheck className="title-icon" />
+          UKC Nosework
+        </h1>
         <button className="theme-toggle" onClick={toggleTheme}>
           {darkMode ? '☀️' : '🌙'}
         </button>

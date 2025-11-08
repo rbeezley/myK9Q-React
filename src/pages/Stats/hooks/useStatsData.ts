@@ -189,7 +189,10 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         statsData.forEach((entry: StatsQueryResult) => {
           if (!entry.dog_breed) return;
 
-          const existing = breedMap.get(entry.dog_breed) || {
+          // Normalize breed name: trim whitespace
+          const normalizedBreed = entry.dog_breed.trim();
+
+          const existing = breedMap.get(normalizedBreed) || {
             totalEntries: 0,
             qualifiedCount: 0,
             nqCount: 0,
@@ -207,7 +210,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
             existing.nqCount++;
           }
 
-          breedMap.set(entry.dog_breed, existing);
+          breedMap.set(normalizedBreed, existing);
         });
 
         breedStats = Array.from(breedMap.entries()).map(([breed, stats]) => ({
@@ -298,6 +301,17 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         const { data: summaryData, error: summaryError } = await summaryQuery;
         if (summaryError) throw summaryError;
 
+        // Debug: Log unique judge names
+        const uniqueJudgeNames = new Set((summaryData || []).map((e: StatsQueryResult) => e.judge_name).filter(Boolean));
+        console.log('[Stats] Unique judge names in data:', Array.from(uniqueJudgeNames));
+        console.log('[Stats] Judge name character codes:',
+          Array.from(uniqueJudgeNames).map(name => ({
+            name,
+            codes: Array.from(name as string).map(c => c.charCodeAt(0)),
+            length: (name as string).length
+          }))
+        );
+
         // Aggregate by judge
         const judgeMap = new Map<string, {
           classesJudged: Set<string>;
@@ -309,7 +323,10 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         (summaryData || []).forEach((entry: StatsQueryResult) => {
           if (!entry.judge_name || !entry.class_id) return;
 
-          const existing = judgeMap.get(entry.judge_name) || {
+          // Normalize judge name: trim whitespace and normalize case for deduplication
+          const normalizedJudgeName = entry.judge_name.trim();
+
+          const existing = judgeMap.get(normalizedJudgeName) || {
             classesJudged: new Set<string>(),
             totalEntries: 0,
             qualifiedCount: 0,
@@ -325,7 +342,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
             }
           }
 
-          judgeMap.set(entry.judge_name, existing);
+          judgeMap.set(normalizedJudgeName, existing);
         });
 
         // Convert to JudgeStat array
@@ -367,14 +384,64 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
 
         if (judgeError) throw judgeError;
 
-        judgeStats = (judgeData || []).map((judge: JudgeStatsQueryResult) => ({
-          judgeName: judge.judge_name,
-          classesJudged: judge.classes_judged,
-          totalEntries: judge.total_entries,
-          qualifiedCount: judge.qualified_count,
-          qualificationRate: judge.qualification_rate,
-          averageQualifiedTime: judge.avg_qualified_time
-        }));
+        // Debug: Log raw judge data from view
+        console.log('[Stats] Raw judge data from view_judge_stats:', judgeData);
+        console.log('[Stats] Judge names from view:', (judgeData || []).map((j: JudgeStatsQueryResult) => ({
+          name: j.judge_name,
+          codes: Array.from(j.judge_name || '').map(c => c.charCodeAt(0)),
+          length: (j.judge_name || '').length,
+          entries: j.total_entries,
+          rate: j.qualification_rate
+        })));
+
+        // Deduplicate judges across trials - view returns one row per trial_id
+        // We need to aggregate judges who judged multiple trials at the show level
+        const judgeAggregateMap = new Map<string, {
+          classesJudged: number;
+          totalEntries: number;
+          qualifiedCount: number;
+          qualifiedTimes: number[];
+        }>();
+
+        (judgeData || []).forEach((judge: JudgeStatsQueryResult) => {
+          const normalizedName = judge.judge_name?.trim();
+          if (!normalizedName) return;
+
+          const existing = judgeAggregateMap.get(normalizedName) || {
+            classesJudged: 0,
+            totalEntries: 0,
+            qualifiedCount: 0,
+            qualifiedTimes: []
+          };
+
+          existing.classesJudged += judge.classes_judged;
+          existing.totalEntries += judge.total_entries;
+          existing.qualifiedCount += judge.qualified_count;
+          if (judge.avg_qualified_time && judge.avg_qualified_time > 0) {
+            // Weight the average time by number of qualified entries
+            for (let i = 0; i < judge.qualified_count; i++) {
+              existing.qualifiedTimes.push(judge.avg_qualified_time);
+            }
+          }
+
+          judgeAggregateMap.set(normalizedName, existing);
+        });
+
+        judgeStats = Array.from(judgeAggregateMap.entries())
+          .map(([judgeName, stats]) => ({
+            judgeName,
+            classesJudged: stats.classesJudged,
+            totalEntries: stats.totalEntries,
+            qualifiedCount: stats.qualifiedCount,
+            qualificationRate: stats.totalEntries > 0
+              ? (stats.qualifiedCount / stats.totalEntries) * 100
+              : 0,
+            averageQualifiedTime: stats.qualifiedTimes.length > 0
+              ? stats.qualifiedTimes.reduce((sum, t) => sum + t, 0) / stats.qualifiedTimes.length
+              : null
+          }))
+          .sort((a, b) => b.totalEntries - a.totalEntries)
+          .slice(0, 10);
       }
 
       // Fetch fastest times

@@ -20,7 +20,8 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  Settings
+  Settings,
+  MoreVertical
 } from 'lucide-react';
 import './Announcements.css';
 import '../../components/announcements/AnnouncementComponents.css';
@@ -57,6 +58,7 @@ export const Announcements: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; announcement: Announcement | null }>({ isOpen: false, announcement: null });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showMenuDropdown, setShowMenuDropdown] = useState(false);
 
   // Can create announcements if admin, judge, or steward
   const canCreateAnnouncements = hasRole(['admin', 'judge', 'steward']);
@@ -121,55 +123,87 @@ export const Announcements: React.FC = () => {
         </div>
 
         <div className="header-actions">
-          {/* Notification Settings */}
-          <button
-            onClick={() => setShowNotificationSettings(!showNotificationSettings)}
-            className={`action-btn settings-btn ${showNotificationSettings ? 'active' : ''}`}
-            title="Notification settings"
-          >
-            <Settings />
-          </button>
-
-          {/* Refresh Button */}
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className={`action-btn refresh-btn ${isRefreshing ? 'loading' : ''}`}
-            title="Refresh announcements"
-          >
-            <RefreshCw className={isRefreshing ? 'spinning' : ''} />
-          </button>
-
-          {/* Filter Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`action-btn filter-btn ${showFilters ? 'active' : ''}`}
-            title="Filter announcements"
-          >
-            <Filter />
-          </button>
-
-          {/* Mark All Read */}
-          {unreadCount > 0 && (
+          {/* 3-Dot Menu */}
+          <div className="menu-container" style={{ position: 'relative' }}>
             <button
-              onClick={handleMarkAllAsRead}
-              className="action-btn mark-read-btn"
-              title="Mark all as read"
+              onClick={() => setShowMenuDropdown(!showMenuDropdown)}
+              className="action-btn menu-btn"
+              title="More options"
+              aria-label="More options"
             >
-              <CheckCircle />
+              <MoreVertical />
             </button>
-          )}
 
-          {/* Create Announcement */}
-          {canCreateAnnouncements && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="action-btn create-btn primary"
-              title="Create announcement"
-            >
-              <Plus />
-            </button>
-          )}
+            {/* Dropdown Menu */}
+            {showMenuDropdown && (
+              <div className="dropdown-menu announcements-menu">
+                {/* Create Announcement */}
+                {canCreateAnnouncements && (
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(true);
+                      setShowMenuDropdown(false);
+                    }}
+                    className="dropdown-item"
+                  >
+                    <Plus size={18} />
+                    <span>Create Announcement</span>
+                  </button>
+                )}
+
+                {/* Refresh Button */}
+                <button
+                  onClick={() => {
+                    handleRefresh();
+                    setShowMenuDropdown(false);
+                  }}
+                  disabled={isRefreshing}
+                  className="dropdown-item"
+                >
+                  <RefreshCw size={18} className={isRefreshing ? 'spinning' : ''} />
+                  <span>Refresh</span>
+                </button>
+
+                {/* Filter Toggle */}
+                <button
+                  onClick={() => {
+                    setShowFilters(!showFilters);
+                    setShowMenuDropdown(false);
+                  }}
+                  className={`dropdown-item ${showFilters ? 'active' : ''}`}
+                >
+                  <Filter size={18} />
+                  <span>Filter</span>
+                </button>
+
+                {/* Mark All Read */}
+                {unreadCount > 0 && (
+                  <button
+                    onClick={() => {
+                      handleMarkAllAsRead();
+                      setShowMenuDropdown(false);
+                    }}
+                    className="dropdown-item"
+                  >
+                    <CheckCircle size={18} />
+                    <span>Mark All as Read</span>
+                  </button>
+                )}
+
+                {/* Notification Settings */}
+                <button
+                  onClick={() => {
+                    setShowNotificationSettings(!showNotificationSettings);
+                    setShowMenuDropdown(false);
+                  }}
+                  className={`dropdown-item ${showNotificationSettings ? 'active' : ''}`}
+                >
+                  <Settings size={18} />
+                  <span>Notification Settings</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

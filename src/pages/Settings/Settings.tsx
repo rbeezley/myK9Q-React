@@ -15,7 +15,7 @@ import {
 } from '@/components/ui';
 import { exportPersonalData, clearAllData, getStorageUsage, formatBytes } from '@/services/dataExportService';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
-import { Download, AlertCircle, Database, Trash2, Volume2 } from 'lucide-react';
+import { Download, AlertCircle, Database, Trash2, Volume2, MoreVertical, RefreshCw, Settings as SettingsIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PushNotificationService from '@/services/pushNotificationService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +33,9 @@ export function Settings() {
   const searchableSettings = useSearchableSettings();
   const { showContext, role } = useAuth();
 
+  // State for header menu
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+
   // Push notification state
   const [_isPushSubscribed, setIsPushSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -43,6 +46,20 @@ export function Settings() {
   useEffect(() => {
     getStorageUsage().then(setStorageUsage);
   }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setShowHeaderMenu(false);
+      }
+    };
+    if (showHeaderMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showHeaderMenu]);
 
   // Configure voice announcement service when settings change
   useEffect(() => {
@@ -160,18 +177,54 @@ export function Settings() {
     }
   };
 
-  // Clear cache
+  // Refresh function
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="settings-container">
       <header className="page-header settings-header">
         <HamburgerMenu currentPage="settings" />
-        <h1>Settings</h1>
-        <button
-          className="reset-all-btn"
-          onClick={() => setShowResetConfirm(true)}
-        >
-          Reset All
-        </button>
+        <div className="header-content">
+          <h1>
+            <SettingsIcon className="title-icon" />
+            Settings
+          </h1>
+        </div>
+        <div className="dropdown-container">
+          <button
+            className="header-menu-button"
+            onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+            aria-label="Page options"
+          >
+            <MoreVertical size={20} />
+          </button>
+          {showHeaderMenu && (
+            <div className="dropdown-menu">
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  handleRefresh();
+                  setShowHeaderMenu(false);
+                }}
+              >
+                <RefreshCw size={18} />
+                <span>Refresh</span>
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  setShowResetConfirm(true);
+                  setShowHeaderMenu(false);
+                }}
+              >
+                <AlertCircle size={18} />
+                <span>Reset All</span>
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="settings-content">

@@ -6,13 +6,28 @@
 /* ========== CONTAINER & LAYOUT ========== */
 
 .class-list-container {
-  min-height: 100vh;
-  width: 100%;
+  height: 100vh;
+  overflow: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  /* No horizontal padding - page-header provides padding */
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--token-space-lg); /* Add horizontal padding: 12px mobile */
+}
+
+/* Scrollable content wrapper - contains class grid that can scroll */
+.class-list-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: var(--token-space-4xl);
+  /* Force list to extend to bottom - subtract header, ticker, search/tabs (~360px total) */
+  min-height: calc(100vh - 360px);
+  /* Smooth scrolling for better UX */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* ========== HEADER WITH GLASS MORPHISM ========== */
@@ -41,7 +56,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0;
+  gap: var(--token-space-sm); /* Match Home header for consistency: 4px */
 }
 
 .trial-info h1 {
@@ -51,6 +66,9 @@
   line-height: 1;
   color: var(--foreground);
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-md);
 }
 
 .trial-subtitle {
@@ -275,6 +293,13 @@
 /* Match the margin of search-controls for perfect alignment */
 .class-list {
   margin: 0 var(--token-space-lg) var(--token-space-xl);
+}
+
+/* Add horizontal margin to grid-responsive when used in ClassList */
+.class-list-container .grid-responsive {
+  margin-left: var(--token-space-lg);
+  margin-right: var(--token-space-lg);
+  margin-top: var(--token-space-lg);
 }
 
 .class-card {
@@ -910,6 +935,10 @@
 /* ========== RESPONSIVE: TABLET (640px+) ========== */
 
 @media (min-width: 640px) {
+  .class-list-container {
+    padding: 0 var(--token-space-3xl); /* Desktop: 24px horizontal */
+  }
+
   .tab-text {
     display: inline;
   }
@@ -943,6 +972,13 @@
 
   .class-list {
     margin: 0 var(--token-space-xl) var(--token-space-xl);
+  }
+
+  /* Match desktop search controls margin (16px) */
+  .class-list-container .grid-responsive {
+    margin-left: var(--token-space-xl);
+    margin-right: var(--token-space-xl);
+    margin-top: var(--token-space-xl);
   }
 
 }

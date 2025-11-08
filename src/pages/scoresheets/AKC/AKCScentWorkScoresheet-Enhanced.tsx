@@ -21,7 +21,7 @@ import { NationalsCounterSimple } from '../../../components/scoring/NationalsCou
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
 import { DogCard } from '../../../components/DogCard';
-import { X } from 'lucide-react';
+import { X, ClipboardCheck } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
@@ -1042,6 +1042,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         />
         <div className="header-content">
           <h1>
+            <ClipboardCheck className="title-icon" />
             {isNationalsMode ? '🏆 AKC Nationals' : 'AKC Scent Work'}
           </h1>
           <div className="header-trial-info">

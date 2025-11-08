@@ -4,12 +4,15 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { updateEntryCheckinStatus } from '../../services/entryService';
 import { getAvailabilityMessage } from '../../services/resultVisibilityService';
+import { generateDogResultsSheet } from '../../services/reportService';
 import { Button, HamburgerMenu, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
 import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
+import { DogStatistics } from './components/DogStatistics';
+import type { DogResultEntry } from '../../components/reports/DogResultsSheet';
 import {
   ArrowLeft,
   RefreshCw,
@@ -22,9 +25,12 @@ import {
   User,
   Check,
   Circle,
-  Star
+  Star,
+  MoreVertical,
+  FileText
 } from 'lucide-react';
 import './DogDetails.css';
+import './components/DogStatistics.css';
 
 export const DogDetails: React.FC = () => {
   const { armband } = useParams<{ armband: string }>();
@@ -48,6 +54,7 @@ export const DogDetails: React.FC = () => {
   // Local state for UI management only
   const [isLoaded, setIsLoaded] = useState(false);
   const [activePopup, setActivePopup] = useState<number | null>(null);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
   // Set loaded class after data loads to prevent CSS rehydration issues
   useEffect(() => {
@@ -59,6 +66,21 @@ export const DogDetails: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [isLoading, classes.length]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setShowHeaderMenu(false);
+      }
+    };
+
+    if (showHeaderMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showHeaderMenu]);
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -74,7 +96,7 @@ export const DogDetails: React.FC = () => {
       setTimeout(() => {
         document.addEventListener('click', handleClickOutside);
       }, 0);
-      
+
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [activePopup]);
@@ -114,16 +136,62 @@ export const DogDetails: React.FC = () => {
     navigate(`/class/${entry.class_id}/entries`);
   };
 
+  const handleGenerateReport = () => {
+    if (!dogInfo) return;
+
+    // Convert ClassEntry[] to DogResultEntry[]
+    const results: DogResultEntry[] = classes.map(classEntry => {
+      // Build class name
+      const classNameParts = [classEntry.element, classEntry.level];
+      if (classEntry.section && classEntry.section !== '-') {
+        classNameParts.push(classEntry.section);
+      }
+
+      return {
+        id: classEntry.id,
+        trialDate: classEntry.trial_date,
+        trialNumber: classEntry.trial_number || 1,
+        className: classNameParts.filter(Boolean).join(' '),
+        element: classEntry.element || '',
+        level: classEntry.level || '',
+        section: classEntry.section,
+        judgeName: classEntry.judge_name || 'TBD',
+        searchTime: classEntry.search_time,
+        faultCount: classEntry.fault_count,
+        placement: classEntry.position || null,
+        resultText: classEntry.result_text,
+        isScored: classEntry.is_scored,
+        checkInStatus: classEntry.check_in_status || 'no-status'
+      };
+    });
+
+    const dogInfoForReport = {
+      callName: dogInfo.call_name,
+      breed: dogInfo.breed,
+      handler: dogInfo.handler,
+      armband: dogInfo.armband
+    };
+
+    generateDogResultsSheet(
+      dogInfoForReport,
+      results,
+      showContext?.showName,
+      undefined // organization - could be extracted from class data if needed
+    );
+
+    setShowHeaderMenu(false);
+  };
+
   const handleOpenPopup = (event: React.MouseEvent<HTMLButtonElement>, classId: number) => {
     event.stopPropagation();
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();
-    
+
     // Calculate position to show popup below the button
     // Adjust if too close to screen edges
     let left = rect.left;
     let top = rect.bottom + 8;
-    
+
     // Check if popup would go off right edge
     if (left + 180 > window.innerWidth) {
       left = window.innerWidth - 190;
@@ -188,11 +256,40 @@ export const DogDetails: React.FC = () => {
         />
         
         <h1>{dogInfo.call_name}</h1>
-        
+
         <div className="header-actions">
-          <button className="refresh-button" onClick={() => refetch()}>
-            <RefreshCw size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} />
-          </button>
+          <div className="dropdown-container">
+            <button
+              className="header-menu-button"
+              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+              aria-label="More options"
+            >
+              <MoreVertical size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} />
+            </button>
+
+            {showHeaderMenu && (
+              <div className="dropdown-menu">
+                <button
+                  className="dropdown-item"
+                  onClick={handleGenerateReport}
+                  disabled={!dogInfo || classes.length === 0}
+                >
+                  <FileText size={18} style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                  <span>Performance Report</span>
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    refetch();
+                    setShowHeaderMenu(false);
+                  }}
+                >
+                  <RefreshCw size={18} style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -210,13 +307,15 @@ export const DogDetails: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      <p className="results-notice">
-        All Results are preliminary
-      </p>
 
-      {/* Class Entry Cards with Status Indicators */}
-      <div className="classes-section">
+      {/* Scrollable Content Area - only content below dog card scrolls */}
+      <div className="dog-details-scrollable">
+        <p className="results-notice">
+          All Results are preliminary
+        </p>
+
+        {/* Class Entry Cards with Status Indicators */}
+        <div className="classes-section">
         <h3 className="classes-header">Class Entries</h3>
 
         <div className="classes-grid">
@@ -390,6 +489,10 @@ export const DogDetails: React.FC = () => {
           );
         })}
         </div>
+        </div>
+
+        {/* Dog Statistics Section */}
+        <DogStatistics classes={classes} dogName={dogInfo.call_name} />
       </div>
 
       {/* Status Management Dialog */}

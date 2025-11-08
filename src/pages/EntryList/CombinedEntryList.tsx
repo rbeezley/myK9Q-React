@@ -6,7 +6,7 @@ import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorStat
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered, MoreVertical, Printer, ClipboardCheck, Target } from 'lucide-react';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered, MoreVertical, Printer, ClipboardCheck, Target, Users } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
@@ -560,6 +560,7 @@ export const CombinedEntryList: React.FC = () => {
         <div className="class-info">
           <div className="class-title-row">
             <h1>
+              <Users className="title-icon" />
               {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
             </h1>
             {/* Show status badge */}
@@ -774,7 +775,9 @@ export const CombinedEntryList: React.FC = () => {
         onTabChange={(tabId) => setActiveTab(tabId as 'pending' | 'completed')}
       />
 
-      <div className="entry-list-content">
+      {/* Scrollable Content Area - only the grid scrolls */}
+      <div className="entry-list-scrollable">
+        <div className="entry-list-content">
         {currentEntries.length === 0 ? (
           <div className="no-entries">
             <h2>No {activeTab} entries</h2>
@@ -976,6 +979,7 @@ export const CombinedEntryList: React.FC = () => {
             ))}
           </div>
         )}
+        </div>
       </div>
 
       {/* Reset Menu Popup */}

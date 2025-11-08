@@ -53,14 +53,95 @@
   margin-bottom: 0;
 }
 
-.settings-header h1 {
+.settings-header .header-content {
   flex: 1;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--token-space-lg);
+}
+
+.settings-header h1 {
   font-size: 1.125rem;
   font-weight: 590;
   color: var(--foreground);
   margin: 0;
   letter-spacing: -0.02em;
+}
+
+/* Header Menu Button */
+.settings-header .header-menu-button {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: absolute;
+  right: var(--token-space-lg);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.settings-header .header-menu-button:hover {
+  background: var(--muted);
+  transform: translateY(calc(-50% - 1px));
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
+}
+
+.settings-header .dropdown-container {
+  position: relative;
+}
+
+.settings-header .dropdown-menu {
+  position: fixed;
+  top: 60px;
+  right: var(--token-space-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-lg);
+  box-shadow: var(--token-shadow-lg);
+  z-index: 1000;
+  min-width: 180px;
+}
+
+.settings-header .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  transition: background 0.2s ease;
+}
+
+.settings-header .dropdown-item:first-child {
+  border-radius: var(--token-radius-lg) var(--token-radius-lg) 0 0;
+}
+
+.settings-header .dropdown-item:last-child {
+  border-radius: 0 0 var(--token-radius-lg) var(--token-radius-lg);
+}
+
+.settings-header .dropdown-item:hover {
+  background: var(--accent);
+}
+
+.settings-header .dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
 }
 
 .reset-all-btn {
@@ -488,7 +569,6 @@
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.08);
 }
 
-.theme-light,
 .theme-light .setting-item.indented {
   background: var(--input);
   border-left: var(--token-space-sm) solid var(--primary);
@@ -945,4 +1025,19 @@
   .settings-content {
     padding: var(--token-space-xl) var(--token-space-3xl); /* Desktop: 24px horizontal */
   }
+
+  .settings-header .dropdown-menu {
+    right: var(--token-space-3xl);
+  }
+}
+
+/* Dark Theme Adjustments */
+.theme-dark .settings-header .header-menu-button {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.theme-dark .settings-header .header-menu-button:hover {
+  background: var(--accent);
 }

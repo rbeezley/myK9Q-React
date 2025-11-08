@@ -7,6 +7,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
+import { ClipboardCheck } from 'lucide-react';
 import '../BaseScoresheet.css';
 import './UKCObedienceScoresheet.css';
 
@@ -233,7 +234,10 @@ export const UKCObedienceScoresheet: React.FC = () => {
       </button>
       <header className="page-header scoresheet-header">
         <HamburgerMenu />
-        <h1>UKC Obedience</h1>
+        <h1>
+          <ClipboardCheck className="title-icon" />
+          UKC Obedience
+        </h1>
         <div className="sync-status">
           {isOnline ? (
             <span className="online">● Online</span>

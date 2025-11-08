@@ -14,10 +14,15 @@
 @import './styles/high-contrast.css';
 @import './styles/reduce-motion.css';
 
-/* Import critical page CSS to prevent FOUC (Flash of Unstyled Content) */
-@import './pages/EntryList/EntryList.css';
-@import './pages/ClassList/ClassList.css';
+/* Import ALL page CSS upfront to prevent FOUC (Flash of Unstyled Content) */
+/* This ensures CSS is loaded synchronously before React renders, eliminating race conditions */
 @import './pages/Home/Home.css';
+@import './pages/ClassList/ClassList.css';
+@import './pages/EntryList/EntryList.css';
+@import './pages/Stats/Stats.css';
+@import './pages/Settings/Settings.css';
+@import './pages/DogDetails/DogDetails.css';
+@import './pages/Announcements/Announcements.css';
 
 * {
   margin: 0;
@@ -67,6 +72,7 @@ body {
   background: var(--background, #ffffff);
   color: var(--foreground, #000000);
   font-size: var(--font-size-base);
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Apply font sizes to text elements */
@@ -100,30 +106,41 @@ button, input, select, textarea {
 
 /* Custom Scrollbar Styling - Global */
 ::-webkit-scrollbar {
-  width: var(--token-space-lg);
-  height: var(--token-space-lg);
+  width: 8px;  /* Reduced from 12px to minimize layout impact */
+  height: 8px;  /* Reduced from 12px to minimize layout impact */
 }
 
+/* Light mode (default) - transparent track to avoid gray line */
 ::-webkit-scrollbar-track {
-  background: rgba(31, 41, 55, 0.3);
+  background: transparent;
+}
+
+/* Dark mode - visible gray track */
+.theme-dark ::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
-  border-radius: 6px;
-  border: var(--token-space-xs) solid transparent;
+  background: transparent;  /* Hide scrollbar in light mode */
+  border-radius: 4px;
+  border: 1px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: rgba(99, 102, 241, 0.5);  /* Show on hover */
   background-clip: padding-box;
 }
 
-/* Firefox scrollbar */
+/* Firefox scrollbar - hide in light mode */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(31, 41, 55, 0.3);
+  scrollbar-color: transparent transparent;  /* Hide scrollbar in light mode */
+}
+
+/* Firefox dark mode */
+.theme-dark * {
+  scrollbar-color: rgba(99, 102, 241, 0.4) rgba(31, 41, 55, 0.1);
 }
 
 /* Global CSS Rehydration Prevention */

@@ -8,6 +8,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
+import { ClipboardCheck } from 'lucide-react';
 import './ASCAScentDetectionScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'E';
@@ -259,7 +260,10 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
     <div className="scoresheet-container asca-scent-detection">
       <header className="page-header scoresheet-header">
         <HamburgerMenu />
-        <h1>ASCA Scent Detection</h1>
+        <h1>
+          <ClipboardCheck className="title-icon" />
+          ASCA Scent Detection
+        </h1>
         <div className="sync-status">
           {isOnline ? (
             <span className="online">● Online</span>

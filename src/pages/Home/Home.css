@@ -6,13 +6,16 @@
 
 .home-container {
   height: 100vh;
-  overflow: hidden;
+  width: 100%;
+  overflow: hidden; /* No scrolling on container - only on entry-grid-virtual */
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif);
   transition: background-color var(--token-transition-normal);
   display: flex;
   flex-direction: column;
+  margin: 0;
+  padding: 0 var(--token-space-lg); /* Add horizontal padding: 12px mobile */
 }
 
 /* Scrollable content wrapper - contains everything that can scroll */
@@ -50,7 +53,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: var(--token-space-sm); /* Match ClassList for consistency: 4px */
 }
 
 .header-center h1 {
@@ -60,6 +63,9 @@
   color: var(--foreground);
   letter-spacing: -0.02em;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-md);
 }
 
 .header-subtitle {
@@ -67,13 +73,13 @@
   font-size: 0.75rem;
   color: var(--token-text-secondary);
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.2; /* Match trial-detail for consistency */
 }
 
 /* ========== SHOW INFO CARD ========== */
 
 .show-info {
-  margin: var(--token-space-xl);
+  margin: var(--token-space-lg) 0; /* Only vertical margin, let page handle horizontal */
   padding: var(--token-space-2xl);
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
@@ -122,8 +128,7 @@
 }
 
 .announcements-ticker-container {
-  margin: var(--token-space-xl);
-  margin-bottom: 0;
+  margin: var(--token-space-lg) 0 0 0; /* Only top margin, let page handle horizontal */
   overflow: hidden;
   border-radius: var(--token-radius-lg);
   box-shadow: var(--token-shadow-sm);
@@ -221,7 +226,7 @@
 /* ========== TRIALS SECTION ========== */
 
 .trials-section {
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg) 0; /* Only vertical padding, let page handle horizontal */
   position: relative;
   z-index: 1;
   flex-shrink: 0;
@@ -653,7 +658,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 var(--token-space-xl) 0;
+  padding: 0; /* Let page-container handle all horizontal padding */
   position: relative;
   z-index: 1;
   min-height: 0; /* Required for flex children to shrink properly */
@@ -1219,12 +1224,16 @@
    ======================================== */
 
 @media (min-width: 640px) {
+  .home-container {
+    padding: 0 var(--token-space-3xl); /* Desktop: 24px horizontal */
+  }
+
   .header-center h1 {
     font-size: 1.25rem;
   }
 
   .show-info {
-    margin: var(--token-space-xl) var(--token-space-3xl);
+    margin: var(--token-space-lg) 0; /* Only vertical margin on desktop too */
     padding: var(--token-space-2xl) var(--token-space-3xl);
   }
 
@@ -1233,7 +1242,7 @@
   }
 
   .trials-section {
-    padding: var(--token-space-xl) var(--token-space-3xl) var(--token-space-3xl);
+    padding: var(--token-space-lg) 0 var(--token-space-3xl) 0; /* Only vertical padding on desktop */
   }
 
   .ticker-icon {
@@ -1263,7 +1272,7 @@
   }
 
   .announcements-ticker-container {
-    margin: var(--token-space-xl) var(--token-space-3xl) 0;
+    margin: var(--token-space-lg) 0 0 0; /* Only top margin on desktop */
   }
 
   /* Note: Desktop search/sort styles are now in shared-components.css */
@@ -1276,7 +1285,7 @@
   /* Sort button tablet adjustments removed - using global styles */
 
   .entry-list {
-    padding: 0 var(--token-space-3xl) 0;
+    padding: 0; /* Let page-container handle horizontal padding on desktop too */
   }
 
   .entry-grid {

@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
@@ -969,7 +969,10 @@ export const ClassList: React.FC = () => {
         />
 
         <div className="trial-info">
-          <h1>{trialInfo.trial_name}</h1>
+          <h1>
+            <List className="title-icon" />
+            {trialInfo.trial_name}
+          </h1>
           <div className="trial-subtitle">
             <div className="trial-info-row">
               <div className="trial-details-group">
@@ -1023,14 +1026,7 @@ export const ClassList: React.FC = () => {
       <HeaderTicker />
       {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
-      {/* Pull to Refresh Wrapper */}
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        enabled={settings.pullToRefresh}
-        threshold={80}
-      >
-
-      {/* Search, Sort, and Filter Controls */}
+      {/* Search, Sort, and Filter Controls - STICKY */}
       <ClassFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -1045,27 +1041,36 @@ export const ClassList: React.FC = () => {
         hapticFeedback={hapticFeedback}
       />
 
-      {/* Enhanced Classes List Section */}
-      <div className="grid-responsive">
-        {filteredClasses.map((classEntry) => (
-          <ClassCard
-            key={classEntry.id}
-            classEntry={classEntry}
-            hasPermission={hasPermission}
-            toggleFavorite={toggleFavorite}
-            handleViewEntries={handleViewEntries}
-            setActivePopup={setActivePopup}
-            setSelectedClassForStatus={setSelectedClassForStatus}
-            setStatusDialogOpen={setStatusDialogOpen}
-            activePopup={activePopup}
-            getStatusColor={getStatusColor}
-            getFormattedStatus={getFormattedStatus}
-            getContextualPreview={getContextualPreview}
-            onPrefetch={() => handleClassPrefetch(classEntry.id)}
-          />
-        ))}
-      </div>
+      {/* Pull to Refresh Wrapper - wraps only scrollable content */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={settings.pullToRefresh}
+        threshold={80}
+      >
 
+      {/* Scrollable Content Area - only the grid scrolls */}
+      <div className="class-list-scrollable">
+        {/* Enhanced Classes List Section */}
+        <div className="grid-responsive">
+          {filteredClasses.map((classEntry) => (
+            <ClassCard
+              key={classEntry.id}
+              classEntry={classEntry}
+              hasPermission={hasPermission}
+              toggleFavorite={toggleFavorite}
+              handleViewEntries={handleViewEntries}
+              setActivePopup={setActivePopup}
+              setSelectedClassForStatus={setSelectedClassForStatus}
+              setStatusDialogOpen={setStatusDialogOpen}
+              activePopup={activePopup}
+              getStatusColor={getStatusColor}
+              getFormattedStatus={getFormattedStatus}
+              getContextualPreview={getContextualPreview}
+              onPrefetch={() => handleClassPrefetch(classEntry.id)}
+            />
+          ))}
+        </div>
+      </div>
 
       {/* Navigation Menu Popup */}
       {activePopup !== null && (

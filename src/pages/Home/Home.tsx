@@ -11,7 +11,7 @@ import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { RefreshCw, Heart, Calendar, Users2, MoreVertical } from 'lucide-react';
+import { RefreshCw, Heart, Calendar, Users2, MoreVertical, Home as HomeIcon } from 'lucide-react';
 import { useHomeDashboardData } from './hooks/useHomeDashboardData';
 import type { EntryData, TrialData } from './hooks/useHomeDashboardData';
 import { Onboarding } from '@/components/Onboarding/Onboarding';
@@ -310,7 +310,10 @@ export const Home: React.FC = () => {
         <HamburgerMenu currentPage="home" />
 
         <div className="header-center">
-          <h1>Home</h1>
+          <h1>
+            <HomeIcon className="title-icon" />
+            Home
+          </h1>
           <p className="header-subtitle">myK9Q - Queue & Qualify</p>
         </div>
 

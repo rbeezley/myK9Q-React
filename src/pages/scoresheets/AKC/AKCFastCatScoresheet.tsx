@@ -8,6 +8,7 @@ import { getClassEntries, markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 import { SyncIndicator } from '../../../components/ui';
+import { ClipboardCheck } from 'lucide-react';
 import './AKCFastCatScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'E' | 'DQ';
@@ -245,7 +246,10 @@ export const AKCFastCatScoresheet: React.FC = () => {
     <div className="scoresheet-container akc-fastcat">
       <header className="page-header scoresheet-header">
         <HamburgerMenu />
-        <h1>AKC FastCAT</h1>
+        <h1>
+          <ClipboardCheck className="title-icon" />
+          AKC FastCAT
+        </h1>
         <div className="sync-status">
           {isOnline ? (
             <span className="online">● Online</span>
