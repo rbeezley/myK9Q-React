@@ -298,21 +298,6 @@ function applyHighContrast(enabled: boolean) {
 }
 
 /**
- * Apply theme color using CSS classes (no dynamic CSS loading)
- * Theme colors are now handled via CSS classes added to <html> element
- * This prevents FOUC by using CSS custom properties instead of separate files
- */
-function applyThemeColor(themeColor: 'blue' | 'green' | 'orange') {
-  const html = document.documentElement;
-
-  // Remove all theme color classes
-  html.classList.remove('theme-blue', 'theme-green', 'theme-orange');
-
-  // Add selected theme color class
-  html.classList.add(`theme-${themeColor}`);
-}
-
-/**
  * Initialize settings on app load
  * NOTE: Theme and theme color are initialized by blocking script in index.html
  * This only applies non-theme settings (font size, density, etc.)
