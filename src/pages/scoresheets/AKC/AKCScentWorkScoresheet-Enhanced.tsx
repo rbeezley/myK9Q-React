@@ -1032,7 +1032,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     <div className="scoresheet-container app-container">
       <div className="scoresheet">
       {/* Header */}
-      <header className="mobile-header">
+      <header className="page-header mobile-header">
         <HamburgerMenu
           backNavigation={{
             label: "Back to Entry List",

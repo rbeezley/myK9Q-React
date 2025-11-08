@@ -231,7 +231,7 @@ export const UKCObedienceScoresheet: React.FC = () => {
       <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
         {darkMode ? '☀️' : '🌙'}
       </button>
-      <header className="scoresheet-header">
+      <header className="page-header scoresheet-header">
         <HamburgerMenu />
         <h1>UKC Obedience</h1>
         <div className="sync-status">

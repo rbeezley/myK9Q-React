@@ -260,13 +260,13 @@ export const UKCNoseworkScoresheet: React.FC = () => {
 
   return (
     <div className="scoresheet-container ukc-nosework-scoresheet">
-      <div className="scoresheet-header">
+      <header className="page-header scoresheet-header">
         <HamburgerMenu />
         <h1>UKC Nosework</h1>
         <button className="theme-toggle" onClick={toggleTheme}>
           {darkMode ? '☀️' : '🌙'}
         </button>
-      </div>
+      </header>
 
       <div className="scoresheet-content">
         {/* Competitor Info */}

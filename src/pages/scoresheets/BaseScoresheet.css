@@ -76,29 +76,10 @@
   overflow: hidden; /* Match Home page */
 }
 
-/* Scoresheet Header - Matches page-header pattern */
+/* Scoresheet Header - Additional styles for scoresheets (used with page-header) */
 .scoresheet-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;  /* High z-index to ensure header appears above content */
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid var(--border);
-  padding: var(--token-space-sm) var(--token-space-lg);  /* 12px horizontal on mobile */
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-}
-
-.theme-dark .scoresheet-header {
-  background: rgba(26, 29, 35, 0.8);
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .scoresheet-header {
-    padding: var(--token-space-sm) var(--token-space-3xl);  /* 24px horizontal on desktop */
-  }
+  /* All base styles now inherited from .page-header */
+  /* Only add scoresheet-specific overrides here if needed */
 }
 
 .scoresheet-header h1 {

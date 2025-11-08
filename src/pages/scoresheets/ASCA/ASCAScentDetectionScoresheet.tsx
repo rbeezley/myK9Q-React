@@ -257,7 +257,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
   
   return (
     <div className="scoresheet-container asca-scent-detection">
-      <header className="scoresheet-header">
+      <header className="page-header scoresheet-header">
         <HamburgerMenu />
         <h1>ASCA Scent Detection</h1>
         <div className="sync-status">

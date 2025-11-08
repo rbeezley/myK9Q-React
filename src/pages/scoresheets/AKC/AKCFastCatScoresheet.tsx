@@ -243,7 +243,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
   
   return (
     <div className="scoresheet-container akc-fastcat">
-      <header className="scoresheet-header">
+      <header className="page-header scoresheet-header">
         <HamburgerMenu />
         <h1>AKC FastCAT</h1>
         <div className="sync-status">

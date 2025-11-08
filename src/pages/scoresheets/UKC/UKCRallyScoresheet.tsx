@@ -238,7 +238,7 @@ export const UKCRallyScoresheet: React.FC = () => {
         {darkMode ? '☀️' : '🌙'}
       </button>
       
-      <header className="scoresheet-header">
+      <header className="page-header scoresheet-header">
         <HamburgerMenu />
         <h1>UKC Rally</h1>
         <div className="sync-status">
