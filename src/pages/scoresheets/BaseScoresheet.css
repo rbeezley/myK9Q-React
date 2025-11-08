@@ -143,6 +143,7 @@
   align-items: center;
   font-size: 0.875rem;
   font-weight: 500;
+  margin-left: auto;  /* Push to right edge */
 }
 
 .sync-status .online {
