@@ -4,6 +4,11 @@
  * Provides a simple Promise-based API for storing and retrieving data
  * in IndexedDB for offline-first functionality.
  *
+ * **MIGRATED TO IDB LIBRARY** (Phase 1 Day 3-4)
+ * - Replaced raw IndexedDB callbacks with idb promise-based API
+ * - Maintains backward compatibility with existing API
+ * - Simplified error handling and transaction management
+ *
  * Features:
  * - Type-safe storage with TypeScript generics
  * - Automatic schema versioning
@@ -17,6 +22,8 @@
  * - shows: Complete show data for offline operation
  * - metadata: App metadata and settings
  */
+
+import { openDB, type IDBPDatabase } from 'idb';
 
 const DB_NAME = 'myK9Q';
 const DB_VERSION = 1;
@@ -64,13 +71,13 @@ export interface Metadata {
 }
 
 class IndexedDBManager {
-  private db: IDBDatabase | null = null;
-  private initPromise: Promise<IDBDatabase> | null = null;
+  private db: IDBPDatabase | null = null;
+  private initPromise: Promise<IDBPDatabase> | null = null;
 
   /**
-   * Initialize the database connection
+   * Initialize the database connection using idb library
    */
-  async init(): Promise<IDBDatabase> {
+  async init(): Promise<IDBPDatabase> {
     if (this.db) {
       return this.db;
     }
@@ -79,22 +86,8 @@ class IndexedDBManager {
       return this.initPromise;
     }
 
-    this.initPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onerror = () => {
-        console.error('❌ IndexedDB failed to open:', request.error);
-        reject(request.error);
-      };
-
-      request.onsuccess = () => {
-        this.db = request.result;
-        console.log('✅ IndexedDB opened successfully');
-        resolve(this.db);
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
+    this.initPromise = openDB(DB_NAME, DB_VERSION, {
+      upgrade(db, oldVersion, newVersion, transaction) {
         console.log('🔄 Upgrading IndexedDB schema...');
 
         // Cache store - for prefetch and SWR data
@@ -128,10 +121,12 @@ class IndexedDBManager {
         }
 
         console.log('✅ IndexedDB schema upgrade complete');
-      };
+      },
     });
 
-    return this.initPromise;
+    this.db = await this.initPromise;
+    console.log('✅ IndexedDB opened successfully');
+    return this.db;
   }
 
   /**
@@ -140,32 +135,22 @@ class IndexedDBManager {
   async get<T>(storeName: string, key: string): Promise<T | null> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readonly');
-      const store = transaction.objectStore(storeName);
-      const request = store.get(key);
+      const result = await db.get(storeName, key);
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          const result = request.result;
-
-          // Check TTL expiration for cache entries
-          if (result && storeName === STORES.CACHE) {
-            const entry = result as CacheEntry;
-            if (entry.ttl) {
-              const age = Date.now() - entry.timestamp;
-              if (age > entry.ttl) {
-                // Expired - delete and return null
-                this.delete(storeName, key).catch(console.error);
-                resolve(null);
-                return;
-              }
-            }
+      // Check TTL expiration for cache entries
+      if (result && storeName === STORES.CACHE) {
+        const entry = result as CacheEntry;
+        if (entry.ttl) {
+          const age = Date.now() - entry.timestamp;
+          if (age > entry.ttl) {
+            // Expired - delete and return null
+            await this.delete(storeName, key);
+            return null;
           }
+        }
+      }
 
-          resolve(result || null);
-        };
-        request.onerror = () => reject(request.error);
-      });
+      return result || null;
     } catch (error) {
       console.error('❌ IndexedDB get error:', error);
       return null;
@@ -178,20 +163,13 @@ class IndexedDBManager {
   async set<T>(storeName: string, value: T): Promise<void> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
 
       // Add size estimate for cache entries
       if (storeName === STORES.CACHE && (value as any).data) {
         (value as any).size = this.estimateSize((value as any).data);
       }
 
-      const request = store.put(value);
-
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
+      await db.put(storeName, value);
     } catch (error) {
       console.error('❌ IndexedDB set error:', error);
       throw error;
@@ -204,14 +182,7 @@ class IndexedDBManager {
   async delete(storeName: string, key: string): Promise<void> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
-      const request = store.delete(key);
-
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
+      await db.delete(storeName, key);
     } catch (error) {
       console.error('❌ IndexedDB delete error:', error);
     }
@@ -223,34 +194,29 @@ class IndexedDBManager {
   async getAll<T>(storeName: string): Promise<T[]> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readonly');
-      const store = transaction.objectStore(storeName);
-      const request = store.getAll();
+      let results = await db.getAll(storeName);
 
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          let results = request.result || [];
+      // Filter expired cache entries
+      if (storeName === STORES.CACHE) {
+        const now = Date.now();
+        const validResults: T[] = [];
 
-          // Filter expired cache entries
-          if (storeName === STORES.CACHE) {
-            const now = Date.now();
-            results = results.filter((entry: CacheEntry) => {
-              if (entry.ttl) {
-                const age = now - entry.timestamp;
-                if (age > entry.ttl) {
-                  // Delete expired entry
-                  this.delete(storeName, entry.key).catch(console.error);
-                  return false;
-                }
-              }
-              return true;
-            });
+        for (const entry of results as CacheEntry[]) {
+          if (entry.ttl) {
+            const age = now - entry.timestamp;
+            if (age > entry.ttl) {
+              // Delete expired entry
+              await this.delete(storeName, entry.key);
+              continue;
+            }
           }
+          validResults.push(entry as T);
+        }
 
-          resolve(results);
-        };
-        request.onerror = () => reject(request.error);
-      });
+        return validResults;
+      }
+
+      return results;
     } catch (error) {
       console.error('❌ IndexedDB getAll error:', error);
       return [];
@@ -263,17 +229,8 @@ class IndexedDBManager {
   async clear(storeName: string): Promise<void> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
-      const request = store.clear();
-
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-          console.log(`🗑️ Cleared ${storeName} store`);
-          resolve();
-        };
-        request.onerror = () => reject(request.error);
-      });
+      await db.clear(storeName);
+      console.log(`🗑️ Cleared ${storeName} store`);
     } catch (error) {
       console.error('❌ IndexedDB clear error:', error);
     }
@@ -289,15 +246,11 @@ class IndexedDBManager {
   ): Promise<T[]> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readonly');
-      const store = transaction.objectStore(storeName);
-      const index = store.index(indexName);
-      const request = index.getAll(value);
-
-      return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(request.error);
-      });
+      const tx = db.transaction(storeName, 'readonly');
+      const index = tx.store.index(indexName);
+      const results = await index.getAll(value);
+      await tx.done;
+      return results;
     } catch (error) {
       console.error('❌ IndexedDB getByIndex error:', error);
       return [];
@@ -310,8 +263,7 @@ class IndexedDBManager {
   async batchSet<T>(storeName: string, values: T[]): Promise<void> {
     try {
       const db = await this.init();
-      const transaction = db.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
+      const tx = db.transaction(storeName, 'readwrite');
 
       // Add size estimates for cache entries
       if (storeName === STORES.CACHE) {
@@ -322,16 +274,10 @@ class IndexedDBManager {
         });
       }
 
-      const promises = values.map(
-        (value) =>
-          new Promise<void>((resolve, reject) => {
-            const request = store.put(value);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-          })
-      );
+      // Use Promise.all for parallel puts within transaction
+      await Promise.all(values.map((value) => tx.store.put(value)));
+      await tx.done;
 
-      await Promise.all(promises);
       console.log(`💾 Batch saved ${values.length} items to ${storeName}`);
     } catch (error) {
       console.error('❌ IndexedDB batchSet error:', error);
@@ -348,15 +294,20 @@ class IndexedDBManager {
       const now = Date.now();
       let deletedCount = 0;
 
+      const db = await this.init();
+      const tx = db.transaction(STORES.CACHE, 'readwrite');
+
       for (const entry of entries) {
         if (entry.ttl) {
           const age = now - entry.timestamp;
           if (age > entry.ttl) {
-            await this.delete(STORES.CACHE, entry.key);
+            await tx.store.delete(entry.key);
             deletedCount++;
           }
         }
       }
+
+      await tx.done;
 
       if (deletedCount > 0) {
         console.log(`🧹 Cleaned ${deletedCount} expired cache entries`);
