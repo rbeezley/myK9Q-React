@@ -24,6 +24,7 @@ export { RefreshIndicator } from './RefreshIndicator';
 export { ErrorState } from './ErrorState';
 export { OfflineIndicator } from './OfflineIndicator';
 export { OfflineStatusBar } from './OfflineStatusBar';
+export { OfflineQueueStatus } from './OfflineQueueStatus';
 export { SyncProgress } from './SyncProgress';
 export { PreloadShowDialog } from './PreloadShowDialog';
 export { StorageManager } from './StorageManager';

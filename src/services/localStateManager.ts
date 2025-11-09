@@ -83,6 +83,13 @@ class LocalStateManager {
         entries: this.state.entries.size,
         pending: this.state.pendingChanges.size,
       });
+
+      // Auto-cleanup stale pending changes on initialization (> 1 minute old)
+      // This prevents corrupt data from previous sessions showing incorrect UI state
+      const staleCount = await this.clearStalePending(60 * 1000); // 1 minute
+      if (staleCount > 0) {
+        console.log(`[LocalStateManager] Cleaned up ${staleCount} stale pending changes on init`);
+      }
     } catch (error) {
       console.error('[LocalStateManager] Failed to initialize:', error);
       // Continue with empty state
@@ -123,42 +130,96 @@ class LocalStateManager {
   /**
    * Apply a server update (from database query or real-time subscription)
    * This updates the base state but preserves pending changes
+   *
+   * IMPORTANT: If the server data matches the pending changes, we can clear them
+   * (they've been successfully synced)
    */
   async applyServerUpdate(entries: Entry[]): Promise<void> {
     let hasChanges = false;
+    const pendingToRemove: number[] = [];
+
+    // 🧹 CLEANUP: Check for stale pending changes (> 1 minute old) and remove them
+    // This ensures that failed sync attempts don't show incorrect UI state
+    // We do this on every refresh instead of just on init for faster recovery
+    const now = Date.now();
+    const staleThreshold = 60 * 1000; // 1 minute
+
+    for (const [entryId, change] of this.state.pendingChanges.entries()) {
+      const age = now - change.timestamp;
+      if (age > staleThreshold) {
+        console.log(`[LocalStateManager] Removing stale pending change for entry ${entryId} (${Math.floor(age / 1000)}s old)`);
+        pendingToRemove.push(entryId);
+      }
+    }
 
     for (const entry of entries) {
-      // Only update if server data is different and there's no pending change
-      const hasPendingChange = this.state.pendingChanges.has(entry.id);
+      const pending = this.state.pendingChanges.get(entry.id);
 
-      if (!hasPendingChange) {
+      if (!pending) {
         // No pending change, safe to update from server
         this.state.entries.set(entry.id, entry);
         hasChanges = true;
       } else {
-        // Has pending change, only update fields that aren't being modified
-        const pending = this.state.pendingChanges.get(entry.id)!;
-        const merged = this.mergeServerWithPending(entry, pending);
-        this.state.entries.set(entry.id, merged);
-        hasChanges = true;
+        // Has pending change - check if server confirms our changes
+        const serverMatchesPending = this.serverMatchesPendingChanges(entry, pending);
+
+        if (serverMatchesPending) {
+          // Server confirms our pending changes - safe to clear and use server data
+          console.log(`[LocalStateManager] Server confirmed pending changes for entry ${entry.id}, clearing pending`);
+          this.state.entries.set(entry.id, entry);
+
+          // Only add to pendingToRemove if not already there from stale check
+          if (!pendingToRemove.includes(entry.id)) {
+            pendingToRemove.push(entry.id);
+          }
+          hasChanges = true;
+        } else {
+          // Server data differs from pending - keep pending changes (unless stale)
+          // Note: If the change is stale (> 1 minute), it's already in pendingToRemove
+          if (!pendingToRemove.includes(entry.id)) {
+            console.log(`[LocalStateManager] Server data differs from pending for entry ${entry.id}, keeping pending`);
+            const merged = this.mergeServerWithPending(entry, pending);
+            this.state.entries.set(entry.id, merged);
+            hasChanges = true;
+          } else {
+            // Stale pending change - use server data
+            console.log(`[LocalStateManager] Stale pending change for entry ${entry.id}, using server data`);
+            this.state.entries.set(entry.id, entry);
+            hasChanges = true;
+          }
+        }
       }
     }
 
-    if (hasChanges) {
+    // Remove confirmed pending changes
+    for (const entryId of pendingToRemove) {
+      this.state.pendingChanges.delete(entryId);
+    }
+
+    if (hasChanges || pendingToRemove.length > 0) {
       await this.persistState();
       this.state.lastSync = Date.now();
+
+      // Only notify listeners if we cleared pending changes
+      // Don't notify on regular server updates (hasChanges without pendingToRemove)
+      // This prevents infinite refresh loops
+      if (pendingToRemove.length > 0) {
+        console.log(`[LocalStateManager] Notifying listeners after clearing ${pendingToRemove.length} pending changes`);
+        this.notifyListeners();
+      }
     }
   }
 
   /**
    * Update an entry with local changes (optimistic update)
    * This adds a pending change that will be synced later
+   *
+   * If the entry is not yet in local state, we still create the pending change.
+   * This handles the case where a scoresheet loads and submits a score before
+   * the EntryList has loaded the entries into localStateManager.
    */
   async updateEntry(entryId: number, changes: Partial<Entry>, type: PendingChange['type']): Promise<Entry> {
     const existingEntry = this.state.entries.get(entryId);
-    if (!existingEntry) {
-      throw new Error(`Entry ${entryId} not found in local state`);
-    }
 
     // Create pending change with metadata
     const pendingChange: PendingChange = {
@@ -175,16 +236,29 @@ class LocalStateManager {
       },
     };
 
-    // Store pending change
+    // Store pending change (even if entry not loaded yet)
     this.state.pendingChanges.set(entryId, pendingChange);
 
-    // Apply changes to base entry immediately for UI
-    const updatedEntry = { ...existingEntry, ...changes };
-    this.state.entries.set(entryId, updatedEntry);
+    let updatedEntry: Entry;
+
+    if (existingEntry) {
+      // Entry exists in local state - update it immediately for UI
+      updatedEntry = { ...existingEntry, ...changes };
+      this.state.entries.set(entryId, updatedEntry);
+    } else {
+      // Entry not loaded yet - create a minimal entry with just the changes
+      // This will be properly merged when the real entry data is loaded via applyServerUpdate
+      console.log(`[LocalStateManager] Entry ${entryId} not in local state yet - creating pending-only entry`);
+      updatedEntry = {
+        id: entryId,
+        ...changes,
+      } as Entry;
+      // Don't add to entries map - wait for real data from server
+    }
 
     await this.persistState();
 
-    // Notify listeners of state change
+    // Notify listeners of state change (this triggers EntryList refresh)
     this.notifyListeners();
 
     return updatedEntry;
@@ -225,6 +299,37 @@ class LocalStateManager {
    */
   hasPendingChange(entryId: number): boolean {
     return this.state.pendingChanges.has(entryId);
+  }
+
+  /**
+   * Check if server data matches pending changes
+   * Used to determine if pending changes have been successfully synced
+   */
+  private serverMatchesPendingChanges(serverEntry: Entry, pending: PendingChange): boolean {
+    console.log(`[LocalStateManager] Comparing server data with pending for entry ${serverEntry.id}:`);
+
+    // Check each field in the pending changes
+    for (const [key, value] of Object.entries(pending.changes)) {
+      const serverValue = (serverEntry as any)[key];
+
+      console.log(`  - ${key}: pending=${JSON.stringify(value)} (${typeof value}) vs server=${JSON.stringify(serverValue)} (${typeof serverValue})`);
+
+      // Handle different comparison types
+      if (typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') {
+        if (serverValue !== value) {
+          console.log(`    ❌ MISMATCH: ${JSON.stringify(serverValue)} !== ${JSON.stringify(value)}`);
+          return false; // Server data differs
+        }
+      } else if (value === null || value === undefined) {
+        if (serverValue !== value) {
+          console.log(`    ❌ MISMATCH: ${JSON.stringify(serverValue)} !== ${JSON.stringify(value)}`);
+          return false;
+        }
+      }
+    }
+
+    console.log(`  ✅ All fields match!`);
+    return true; // All pending changes are confirmed by server
   }
 
   /**
@@ -289,6 +394,48 @@ class LocalStateManager {
     } catch (error) {
       console.error('[LocalStateManager] Failed to clear state:', error);
     }
+  }
+
+  /**
+   * Clear all pending changes (for debugging stale pending changes)
+   */
+  async clearAllPending(): Promise<void> {
+    const count = this.state.pendingChanges.size;
+    this.state.pendingChanges.clear();
+
+    await this.persistState();
+    this.notifyListeners();
+
+    console.log(`[LocalStateManager] Cleared ${count} pending changes`);
+  }
+
+  /**
+   * Clear stale pending changes older than specified age
+   * Default is 1 minute (60000ms) to quickly clean up failed sync attempts
+   */
+  async clearStalePending(maxAgeMs: number = 60 * 1000): Promise<number> {
+    const now = Date.now();
+    const toRemove: number[] = [];
+
+    for (const [entryId, change] of this.state.pendingChanges.entries()) {
+      const age = now - change.timestamp;
+      if (age > maxAgeMs) {
+        console.log(`[LocalStateManager] Removing stale pending change for entry ${entryId} (${Math.floor(age / 1000)}s old)`);
+        toRemove.push(entryId);
+      }
+    }
+
+    for (const entryId of toRemove) {
+      this.state.pendingChanges.delete(entryId);
+    }
+
+    if (toRemove.length > 0) {
+      await this.persistState();
+      this.notifyListeners();
+      console.log(`[LocalStateManager] Cleared ${toRemove.length} stale pending changes`);
+    }
+
+    return toRemove.length;
   }
 
   /**

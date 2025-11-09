@@ -689,6 +689,13 @@ export async function markInRing(
   inRing: boolean = true
 ): Promise<boolean> {
   try {
+    // 🚀 LOCAL-FIRST: Do NOT clear pending changes here!
+    // Let applyServerUpdate() in localStateManager handle clearing when it confirms
+    // the server data matches the pending changes. This prevents a race condition where
+    // we clear the pending change before applyServerUpdate() can merge it.
+    //
+    // This matches the pattern used in handleResetScore() which works correctly.
+
     // When removing from ring (inRing=false), check if entry is already scored
     // If scored, don't change status back to 'no-status' - keep it as 'completed'
     if (!inRing) {

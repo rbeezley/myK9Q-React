@@ -115,28 +115,38 @@ export function useOptimisticScoring() {
 
     // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
     // This creates a pending change that will be merged with database queries
-    try {
-      console.log('🔄 Attempting to update LocalStateManager for entry:', entryId);
-      await localStateManager.updateEntry(
-        entryId,
-        {
-          isScored: true,
-          status: 'completed',
-          resultText: scoreData.resultText,
-          searchTime: scoreData.searchTime,
-          faultCount: scoreData.faultCount,
-          correctFinds: scoreData.correctCount,
-          incorrectFinds: scoreData.incorrectCount,
-          // Add other score fields as needed
-        },
-        'score'
-      );
-      console.log('✅ LocalStateManager updated with pending score');
-    } catch (error) {
-      // Entry not loaded in LocalStateManager yet - this is expected on first score
-      console.error('❌ Could not update LocalStateManager:', error);
-      console.log('📝 Entry will update after page refresh when data is fetched');
-    }
+    // Even if the entry isn't loaded yet, we create the pending change
+    //
+    // IMPORTANT: Values must match EXACTLY what getClassEntries() returns after mapping
+    // - resultText from database is lowercase ('nq', 'qualified', 'absent', etc.)
+    // - searchTime from database is number.toString() without padding ('0', '123.45')
+    // - faultCount, correctFinds, etc. are numbers
+    console.log('🔄 Updating LocalStateManager for entry:', entryId);
+
+    // Normalize resultText to match database format (lowercase)
+    const normalizedResultText = scoreData.resultText.toLowerCase();
+
+    // Normalize searchTime to match database format (no padding)
+    // Database returns search_time_seconds?.toString() which doesn't pad decimals
+    const searchTimeNum = scoreData.searchTime ? parseFloat(scoreData.searchTime) : 0;
+    const normalizedSearchTime = searchTimeNum.toString();
+
+    await localStateManager.updateEntry(
+      entryId,
+      {
+        // Use Entry interface field names with normalized values
+        isScored: true,
+        status: 'completed',
+        resultText: normalizedResultText, // Lowercase to match database
+        searchTime: normalizedSearchTime, // No padding to match database
+        faultCount: scoreData.faultCount || 0,
+        correctFinds: scoreData.correctCount || 0,
+        incorrectFinds: scoreData.incorrectCount || 0,
+        // Add other score fields as needed
+      },
+      'score'
+    );
+    console.log('✅ LocalStateManager updated with pending score (will notify EntryList listeners)');
 
     console.log('✅ Local state updated optimistically');
 

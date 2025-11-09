@@ -1410,6 +1410,7 @@
   background: none;
   cursor: default;
   min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+  color: #ffffff; /* Default white text for status badges */
 }
 
 .status-badge.clickable {
@@ -1443,6 +1444,7 @@
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  color: inherit; /* Inherit color from parent status badge */
 }
 
 .status-time {
@@ -6057,4 +6059,117 @@ select.form-input {
 .theme-dark select.input-field,
 .theme-dark select.form-input {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L2 5h8z'/%3E%3C/svg%3E");
+}
+
+/* ========== OFFLINE QUEUE STATUS ========== */
+/* Toast notifications for offline queue sync status */
+
+.offline-queue-status {
+  position: fixed;
+  bottom: var(--token-space-3xl);
+  right: var(--token-space-3xl);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.queue-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-xl) var(--token-space-2xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--token-space-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
+  animation: slideInFromBottom 0.3s ease-out;
+  max-width: 320px;
+}
+
+.queue-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-sm);
+}
+
+.queue-message strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.queue-message span {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* Toast variants */
+.queue-toast-offline {
+  border-color: var(--status-at-gate);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.queue-toast-offline svg {
+  color: var(--status-at-gate);
+}
+
+.queue-toast-syncing {
+  border-color: var(--status-in-ring);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.queue-toast-syncing svg {
+  color: var(--status-in-ring);
+}
+
+.queue-toast-error {
+  border-color: var(--destructive);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.queue-toast-error svg {
+  color: var(--destructive);
+}
+
+.queue-toast-success {
+  border-color: var(--status-checked-in);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.queue-toast-success svg {
+  color: var(--status-checked-in);
+}
+
+/* Rotating icon for syncing */
+.rotating {
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .offline-queue-status {
+    bottom: var(--token-space-2xl);
+    right: var(--token-space-lg);
+    left: var(--token-space-lg);
+  }
+
+  .queue-toast {
+    max-width: none;
+  }
 }

@@ -68,6 +68,11 @@
   border-left: 3px solid var(--checkin-at-gate);
 }
 
+.dog-card.in-ring {
+  border-left: 3px solid var(--checkin-in-ring);
+  border-color: var(--checkin-in-ring);
+}
+
 .dog-card.scored {
   border-left: 3px solid var(--status-completed);
 }
@@ -297,12 +302,12 @@
 /* Status badge colors - matching original EntryList styles */
 .dog-card-action .status-badge.no-status {
   background: var(--status-no-status-bg);
-  color: white;
+  color: var(--status-no-status-text);
 }
 
 .theme-dark .dog-card-action .status-badge.no-status {
   background: var(--status-no-status-bg);
-  color: white;
+  color: var(--status-no-status-text);
 }
 
 .dog-card-action .status-badge.checked-in {
@@ -372,6 +377,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   text-transform: none; /* Override badge's uppercase */
+  color: inherit; /* Inherit white color from parent status badge */
 }
 
 /* Ensure SVG icons are properly sized - 18px standard */

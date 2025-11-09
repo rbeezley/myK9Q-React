@@ -138,8 +138,14 @@ export function useStaleWhileRevalidate<T>(
     const cached = cache.get(key);
     const isCacheValid = cached && (Date.now() - cached.timestamp) < ttl;
 
-    // If cache is valid and not forcing refresh, use cached data
-    if (isCacheValid && !forceRefresh) {
+    // IMPORTANT: Always fetch if forcing refresh (for local-first architecture)
+    // The fetcher (getClassEntries) merges database data with localStateManager pending changes
+    // Even if cache is fresh, we MUST call fetcher to get pending changes merged
+    if (forceRefresh) {
+      console.log(`🔄 Force refresh requested for key: ${key}, bypassing cache`);
+      // Don't return early - fall through to fetch
+    } else if (isCacheValid) {
+      // Cache is valid and not forcing - return cached data
       setData(cached.data);
       setIsStale(false);
       setError(null);
@@ -156,7 +162,7 @@ export function useStaleWhileRevalidate<T>(
     setError(null);
 
     try {
-      console.log(`🔄 Fetching fresh data for key: ${key}`);
+      console.log(`🔄 Fetching fresh data for key: ${key}${forceRefresh ? ' (forced)' : ''}`);
       const freshData = await fetcher();
 
       // Check if component is still mounted and request wasn't aborted

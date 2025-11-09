@@ -85,7 +85,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
               return 'scored'; // Fallback to generic scored
             })()
           ) :
-          entry.status === 'in-ring' ? 'no-status' : // In-ring will be shown in status badge
+          entry.status === 'in-ring' ? 'in-ring' : // In-ring gets blue border
           (entry.status === 'checked-in' ? 'checked-in' :
            entry.status === 'conflict' ? 'conflict' :
            entry.status === 'pulled' ? 'pulled' :

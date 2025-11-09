@@ -84,9 +84,9 @@ export const EntryList: React.FC = () => {
     // For local-first architecture, we need to refresh from entryService
     // which will merge server updates with pending local changes
     if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-      console.log('🔥 Real-time update detected, refreshing from entryService (will merge with pending changes)');
-      // Use refresh which goes through entryService -> localStateManager
-      refresh();
+      console.log('🔥 Real-time update detected, forcing cache bypass to merge with pending changes');
+      // IMPORTANT: Must force refresh to bypass cache and get fresh merged data
+      refresh(true);
     }
   }, [refresh]);
 
@@ -124,7 +124,7 @@ export const EntryList: React.FC = () => {
     if (entries.length > 0) {
       setLocalEntries(entries);
     }
-  }, [entries.length]); // Only depend on length to avoid infinite loop
+  }, [entries]); // Depend on entries array to catch content changes (isScored, status, etc.)
 
   // Drag and drop sensors
   const sensors = useSensors(

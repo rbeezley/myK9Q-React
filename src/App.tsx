@@ -6,7 +6,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { OfflineIndicator, DeviceTierToast, AutoLogoutWarning } from './components/ui';
+import { OfflineIndicator, OfflineQueueStatus, DeviceTierToast, AutoLogoutWarning } from './components/ui';
 import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
 import { SubscriptionMonitor } from './components/debug/SubscriptionMonitor';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
@@ -20,6 +20,7 @@ import { useSettingsStore } from './stores/settingsStore';
 import { useOneHandedMode } from './hooks/useOneHandedMode';
 import { useAutoLogout } from './hooks/useAutoLogout';
 import { usePushNotificationAutoSwitch } from './hooks/usePushNotificationAutoSwitch';
+import { useOfflineQueueProcessor } from './hooks/useOfflineQueueProcessor';
 import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
@@ -150,6 +151,10 @@ function AppWithAuth() {
   // Auto-switch push notification subscription when license key changes
   usePushNotificationAutoSwitch(showContext?.licenseKey);
 
+  // 🚀 OFFLINE-FIRST: Process offline queue when network returns
+  // Automatically syncs pending scores to server when coming back online
+  useOfflineQueueProcessor();
+
   // Clean up subscriptions on route changes
   useRouteChangeCleanup();
 
@@ -259,6 +264,7 @@ function AppWithAuth() {
         />
       )}
       <OfflineIndicator />
+      <OfflineQueueStatus />
       <DeviceTierToast />
       <MonitoringDashboard />
 

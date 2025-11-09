@@ -10,7 +10,7 @@ interface DogCardProps {
   handler: string;
   onClick?: () => void;
   className?: string;
-  statusBorder?: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'completed' | 'scored' | 'placement-1' | 'placement-2' | 'placement-3' | 'result-qualified' | 'result-nq' | 'result-ex' | 'result-abs' | 'result-wd';
+  statusBorder?: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'in-ring' | 'completed' | 'scored' | 'placement-1' | 'placement-2' | 'placement-3' | 'result-qualified' | 'result-nq' | 'result-ex' | 'result-abs' | 'result-wd';
   actionButton?: React.ReactNode; // Heart icon for Home, Status badge for EntryList
   resultBadges?: React.ReactNode; // For scored entries
   sectionBadge?: 'A' | 'B' | null; // Section badge for combined Novice A & B view

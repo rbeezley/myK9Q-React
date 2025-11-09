@@ -174,29 +174,32 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
     }
   );
 
-  // Force refresh when navigating back to this page
-  // This ensures we always show fresh data after scoring
+  // Subscribe to LocalStateManager changes
+  // When scoring updates local state, this triggers a refresh to show the new data
+  // We use refresh(true) to bypass cache because getClassEntries() needs to be called
+  // to merge the new pending changes - they're not in the SWR cache
+  useEffect(() => {
+    const unsubscribe = localStateManager.subscribe(() => {
+      console.log('🔄 LocalStateManager changed, bypassing cache to merge pending changes');
+      refresh(true); // Force bypass cache to call getClassEntries() which merges pending changes
+    });
+
+    return () => unsubscribe();
+  }, [refresh]);
+
+  // Handle visibility change for navigation back to page
+  // This ensures EntryList refreshes when you navigate back from scoresheet
+  // We DON'T force refresh here - just trigger normal refresh which will use cache if valid
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('📱 Page became visible, forcing refresh');
-        refresh(true);
+        console.log('📱 Page became visible, refreshing (will use cache if recent)');
+        refresh(); // Normal refresh - uses cache if < 1 minute old
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [refresh]);
-
-  // Subscribe to LocalStateManager changes
-  // When scoring updates local state, this triggers a refresh to show the new data
-  useEffect(() => {
-    const unsubscribe = localStateManager.subscribe(() => {
-      console.log('🔄 LocalStateManager changed, forcing cache bypass');
-      refresh(true); // Force bypass cache to get fresh merged data
-    });
-
-    return () => unsubscribe();
   }, [refresh]);
 
   return {

@@ -40,13 +40,13 @@ export const useEntryListSubscriptions = ({
         console.log('🔔 onEntryUpdate exists?', !!onEntryUpdate);
         console.log('🔔 typeof onEntryUpdate:', typeof onEntryUpdate);
 
-        // 🚀 LOCAL-FIRST: Check if this entry has a pending change
-        // If so, the real-time update confirms database is updated - safe to clear
+        // 🚀 LOCAL-FIRST: DO NOT clear pending changes here!
+        // Let applyServerUpdate() in localStateManager handle clearing when it confirms
+        // the server data matches the pending changes. This prevents a race condition where
+        // we clear the pending change before applyServerUpdate() can merge it.
         const entryId = (payload.new as any)?.id || (payload.old as any)?.id;
         if (entryId && localStateManager.hasPendingChange(entryId)) {
-          console.log(`🎯 Real-time update confirms database updated for entry ${entryId} - clearing pending change`);
-          await localStateManager.clearPendingChange(entryId);
-          console.log(`✅ Pending change cleared for entry ${entryId}`);
+          console.log(`🎯 Real-time update for entry ${entryId} with pending change - letting applyServerUpdate() handle merge and clear`);
         }
 
         // If we have an onEntryUpdate callback, use it to update local state directly
