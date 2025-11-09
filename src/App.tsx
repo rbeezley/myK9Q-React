@@ -1,6 +1,8 @@
 import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
@@ -117,8 +119,16 @@ const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000,   // 30 minutes (formerly cacheTime)
       retry: 1,                  // Retry once on failure
       refetchOnWindowFocus: false, // Don't refetch when window regains focus
+      networkMode: 'always',     // Always run queries, even when offline (will use cached data)
     },
   },
+});
+
+// Create persister for React Query cache (stores to localStorage)
+// This enables offline access to all React Query data
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
+  key: 'myK9Q-react-query-cache',
 });
 
 // Hook to handle route changes and cleanup subscriptions
@@ -522,13 +532,16 @@ function AppWithAuth() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister }}
+      >
         <BrowserRouter>
           <AuthProvider>
             <AppWithAuth />
           </AuthProvider>
         </BrowserRouter>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </ErrorBoundary>
   );
 }

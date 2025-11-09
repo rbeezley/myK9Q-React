@@ -228,12 +228,17 @@ export function useStaleWhileRevalidate<T>(
   }, [fetchOnMount, isHydrated, refresh]);
 
   // Refetch on window focus (always refresh, not just stale data)
+  // BUT only if online - offline will use cached data
   useEffect(() => {
     if (!refetchOnFocus) return;
 
     const handleFocus = () => {
-      console.log(`👀 Window focused, forcing refresh for: ${key}`);
-      refresh(true); // Always force refresh on focus to catch changes from other pages
+      if (navigator.onLine) {
+        console.log(`👀 Window focused, forcing refresh for: ${key}`);
+        refresh(true); // Always force refresh on focus to catch changes from other pages
+      } else {
+        console.log(`👀 Window focused but offline, using cached data for: ${key}`);
+      }
     };
 
     window.addEventListener('focus', handleFocus);

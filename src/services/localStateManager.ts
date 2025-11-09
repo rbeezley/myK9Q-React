@@ -200,13 +200,17 @@ class LocalStateManager {
       await this.persistState();
       this.state.lastSync = Date.now();
 
-      // Only notify listeners if we cleared pending changes
-      // Don't notify on regular server updates (hasChanges without pendingToRemove)
-      // This prevents infinite refresh loops
-      if (pendingToRemove.length > 0) {
-        console.log(`[LocalStateManager] Notifying listeners after clearing ${pendingToRemove.length} pending changes`);
-        this.notifyListeners();
-      }
+      // DO NOT notify listeners here!
+      // applyServerUpdate is called during refresh(), and if we notify here,
+      // it triggers another refresh(), creating an infinite loop:
+      // refresh() → getClassEntries() → applyServerUpdate() → notifyListeners() → refresh() → ...
+      //
+      // The UI will update automatically because:
+      // 1. getClassEntries() calls getEntriesWithPending() which returns merged data
+      // 2. This merged data is returned to the caller (useEntryListData)
+      // 3. React re-renders with the new data
+      //
+      // We only need to notify when NEW pending changes are added (in updateEntry)
     }
   }
 

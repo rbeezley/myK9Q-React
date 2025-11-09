@@ -68,7 +68,21 @@ export async function autoDownloadShow(
       };
     }
 
-    // 2. Get ALL classes for this show (via license key)
+    // 2. Get show ID for this license key (needed for trial queries)
+    const { data: showData, error: showError } = await supabase
+      .from('shows')
+      .select('id')
+      .eq('license_key', licenseKey)
+      .single();
+
+    if (showError || !showData) {
+      console.error('❌ [AUTO-DOWNLOAD] Failed to fetch show:', showError);
+      return { success: false, downloaded: 0, total: 0, errors: [] };
+    }
+
+    const showId = showData.id;
+
+    // 3. Get ALL classes for this show (via license key)
     // One passcode = one license key = one show
     const { data: classes, error } = await supabase
       .from('classes')
@@ -78,6 +92,7 @@ export async function autoDownloadShow(
         level,
         section,
         trials!inner(
+          id,
           trial_number,
           shows!inner(
             license_key
@@ -85,7 +100,6 @@ export async function autoDownloadShow(
         )
       `)
       .eq('trials.shows.license_key', licenseKey)
-      .order('trials.trial_number', { ascending: true })
       .order('element', { ascending: true })
       .order('level', { ascending: true });
 
@@ -99,14 +113,27 @@ export async function autoDownloadShow(
       return { success: false, downloaded: 0, total: 0, errors: [] };
     }
 
-    console.log(`📥 [AUTO-DOWNLOAD] Downloading ${classes.length} classes...`);
+    // Sort classes by trial_number first (can't do this in PostgREST for joined columns)
+    const sortedClasses = classes.sort((a: any, b: any) => {
+      const trialA = Array.isArray(a.trials) ? a.trials[0]?.trial_number : a.trials?.trial_number;
+      const trialB = Array.isArray(b.trials) ? b.trials[0]?.trial_number : b.trials?.trial_number;
+
+      if (trialA !== trialB) {
+        return (trialA || 0) - (trialB || 0);
+      }
+
+      // Already ordered by element and level in the query
+      return 0;
+    });
+
+    console.log(`📥 [AUTO-DOWNLOAD] Downloading ${sortedClasses.length} classes...`);
 
     // 3. Download each class (entries + metadata)
     // getClassEntries() automatically caches to IndexedDB via useStaleWhileRevalidate
     let downloaded = 0;
     const errors: number[] = [];
 
-    for (const classData of classes) {
+    for (const classData of sortedClasses) {
       try {
         await getClassEntries(classData.id, licenseKey);
         downloaded++;
@@ -118,12 +145,12 @@ export async function autoDownloadShow(
 
         onProgress?.({
           current: downloaded,
-          total: classes.length,
+          total: sortedClasses.length,
           classId: classData.id,
           className
         });
 
-        console.log(`📥 [AUTO-DOWNLOAD] ${downloaded}/${classes.length}: ${className}`);
+        console.log(`📥 [AUTO-DOWNLOAD] ${downloaded}/${sortedClasses.length}: ${className}`);
 
       } catch (error) {
         console.error(`❌ [AUTO-DOWNLOAD] Failed to download class ${classData.id}:`, error);
@@ -132,7 +159,56 @@ export async function autoDownloadShow(
       }
     }
 
-    // 4. Mark as cached with timestamp
+    // 4. Cache trial and class list data for offline ClassList pages
+    // Get unique trial IDs from the classes
+    const trialIds = [...new Set(sortedClasses.map((cls: any) => {
+      const trial = Array.isArray(cls.trials) ? cls.trials[0] : cls.trials;
+      return trial?.id;
+    }))].filter(Boolean);
+
+    console.log(`📦 [AUTO-DOWNLOAD] Caching trial data for ${trialIds.length} trials...`);
+
+    for (const trialId of trialIds) {
+      try {
+        // Cache trial info
+        const { data: trialData } = await supabase
+          .from('trials')
+          .select('*')
+          .eq('show_id', showId)
+          .eq('id', trialId)
+          .single();
+
+        if (trialData) {
+          await idbCache.set(
+            `trial-info-${licenseKey}-${trialId}`,
+            trialData,
+            30 * 60 * 1000
+          );
+        }
+
+        // Cache class summary data for this trial
+        const { data: classSummary } = await supabase
+          .from('view_class_summary')
+          .select('*')
+          .eq('trial_id', trialId)
+          .order('class_order');
+
+        if (classSummary) {
+          await idbCache.set(
+            `class-summary-${licenseKey}-${trialId}`,
+            classSummary,
+            30 * 60 * 1000
+          );
+        }
+
+        console.log(`📦 [AUTO-DOWNLOAD] Cached trial ${trialId} data`);
+      } catch (error) {
+        console.error(`⚠️ [AUTO-DOWNLOAD] Failed to cache trial ${trialId}:`, error);
+        // Continue with other trials
+      }
+    }
+
+    // 5. Mark as cached with timestamp
     const cacheData: CachedDownload = {
       downloaded: true,
       classCount: downloaded,
@@ -144,7 +220,7 @@ export async function autoDownloadShow(
     const success = errors.length === 0;
     const statusIcon = success ? '✅' : '⚠️';
     console.log(
-      `${statusIcon} [AUTO-DOWNLOAD] Complete: ${downloaded}/${classes.length} classes`
+      `${statusIcon} [AUTO-DOWNLOAD] Complete: ${downloaded}/${sortedClasses.length} classes`
     );
 
     if (errors.length > 0) {
@@ -154,7 +230,7 @@ export async function autoDownloadShow(
     return {
       success,
       downloaded,
-      total: classes.length,
+      total: sortedClasses.length,
       errors
     };
 

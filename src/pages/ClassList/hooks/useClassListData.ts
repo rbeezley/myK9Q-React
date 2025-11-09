@@ -15,6 +15,7 @@ import { supabase } from '../../../lib/supabase';
 import { getClassEntries } from '../../../services/entryService';
 import { getLevelSortOrder } from '../../../lib/utils';
 import { logger } from '../../../utils/logger';
+import { cache as idbCache } from '@/utils/indexedDB';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -86,7 +87,8 @@ export const classListKeys = {
  */
 async function fetchTrialInfo(
   trialId: string | undefined,
-  showId: string | number | undefined
+  showId: string | number | undefined,
+  licenseKey?: string
 ): Promise<TrialInfo | null> {
   if (!trialId || !showId) {
     logger.log('⏸️ Skipping trial info fetch - trialId or showId not ready yet');
@@ -94,6 +96,29 @@ async function fetchTrialInfo(
   }
 
   logger.log('🔍 Fetching trial info for trial ID:', trialId);
+
+  // Try IndexedDB cache first (for offline support)
+  if (licenseKey) {
+    const cached = await idbCache.get(`trial-info-${licenseKey}-${trialId}`);
+    if (cached && cached.data) {
+      logger.log('✅ Using cached trial info from IndexedDB');
+      const trialData: any = cached.data;
+
+      // Still need to load class data for counts
+      const cachedClassData = await idbCache.get(`class-summary-${licenseKey}-${trialId}`);
+      if (cachedClassData && cachedClassData.data) {
+        const classData: any = cachedClassData.data;
+        return {
+          trial_name: trialData.trial_name,
+          trial_date: trialData.trial_date,
+          trial_number: trialData.trial_number || trialData.trialid,
+          total_classes: classData.length || 0,
+          pending_classes: classData.filter((c: any) => c.is_completed !== true).length || 0,
+          completed_classes: classData.filter((c: any) => c.is_completed === true).length || 0
+        };
+      }
+    }
+  }
 
   // Load trial info using normalized table
   const { data: trialData, error: trialError } = await supabase
@@ -146,16 +171,27 @@ async function fetchClasses(
 
   logger.log('🔍 Fetching classes for trial ID:', trialId);
 
-  // Load classes with pre-calculated entry counts using view_class_summary
-  const { data: classData, error: classError } = await supabase
-    .from('view_class_summary')
-    .select('*')
-    .eq('trial_id', parseInt(trialId))
-    .order('class_order');
+  // Try IndexedDB cache first (for offline support)
+  const cached = await idbCache.get(`class-summary-${licenseKey}-${trialId}`);
+  let classData: any = null;
 
-  if (classError) {
-    logger.error('❌ Error loading classes:', classError);
-    throw classError;
+  if (cached && cached.data) {
+    logger.log('✅ Using cached class summary from IndexedDB');
+    classData = cached.data;
+  } else {
+    // Load classes with pre-calculated entry counts using view_class_summary
+    const { data, error: classError } = await supabase
+      .from('view_class_summary')
+      .select('*')
+      .eq('trial_id', parseInt(trialId))
+      .order('class_order');
+
+    if (classError) {
+      logger.error('❌ Error loading classes:', classError);
+      throw classError;
+    }
+
+    classData = data;
   }
 
   if (!classData) return [];
@@ -164,7 +200,7 @@ async function fetchClasses(
 
   // Load ALL entries for this trial using getClassEntries from entryService
   // This properly queries the results table separately and joins in JavaScript
-  const classIds = classData.map(c => c.class_id);
+  const classIds = classData.map((c: any) => c.class_id);
   const allTrialEntries = await getClassEntries(classIds, licenseKey);
 
   // Process classes with entry data
@@ -243,7 +279,7 @@ async function fetchClasses(
   });
 
   // Sort classes by class_order first, then element, level, section
-  const sortedClasses = processedClasses.sort((a, b) => {
+  const sortedClasses = processedClasses.sort((a: any, b: any) => {
     // Primary sort: class_order (ascending)
     if (a.class_order !== b.class_order) {
       return a.class_order - b.class_order;
@@ -281,13 +317,19 @@ async function fetchClasses(
 /**
  * Hook to fetch trial information
  */
-export function useTrialInfo(trialId: string | undefined, showId: string | number | undefined) {
+export function useTrialInfo(
+  trialId: string | undefined,
+  showId: string | number | undefined,
+  licenseKey: string | undefined
+) {
   return useQuery({
     queryKey: classListKeys.trialInfo(trialId || ''),
-    queryFn: () => fetchTrialInfo(trialId, showId),
+    queryFn: () => fetchTrialInfo(trialId, showId, licenseKey),
     enabled: !!trialId && !!showId, // Only run if both IDs are provided
     staleTime: 5 * 60 * 1000, // 5 minutes (trial info rarely changes)
     gcTime: 10 * 60 * 1000, // 10 minutes cache
+    networkMode: 'always', // Run query even offline, will use cached data
+    retry: false, // Don't retry when offline
   });
 }
 
@@ -301,6 +343,8 @@ export function useClasses(trialId: string | undefined, licenseKey: string | und
     enabled: !!trialId && !!licenseKey, // Only run if both are provided
     staleTime: 1 * 60 * 1000, // 1 minute (classes change frequently)
     gcTime: 5 * 60 * 1000, // 5 minutes cache
+    networkMode: 'always', // Run query even offline, will use cached data
+    retry: false, // Don't retry when offline
   });
 }
 
@@ -312,7 +356,7 @@ export function useClassListData(
   showId: string | number | undefined,
   licenseKey: string | undefined
 ) {
-  const trialInfoQuery = useTrialInfo(trialId, showId);
+  const trialInfoQuery = useTrialInfo(trialId, showId, licenseKey);
   const classesQuery = useClasses(trialId, licenseKey);
 
   return {

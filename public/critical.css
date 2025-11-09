@@ -1,0 +1,49 @@
+/* Base theme colors - prevent flash of wrong colors */
+:root {
+  --background: #fefefe;
+  --foreground: #0a0a0a;
+  --primary: #2563eb;
+  --border: #e5e7eb;
+}
+
+.theme-dark {
+  --background: #1a1d23;
+  --foreground: #ffffff;
+  --primary: #3b82f6;
+  --border: #4a5568;
+}
+
+/* Prevent layout shift during load */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Loading indicator - shown until React hydrates */
+#root:empty::before {
+  content: "";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

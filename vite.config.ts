@@ -133,10 +133,24 @@ export default defineConfig({
           }
         ]
       },
-      strategies: 'injectManifest',
-      srcDir: 'src',
-      filename: 'sw.ts',
-      injectManifest: {
+      workbox: {
+        // Use NetworkFirst strategy for API calls
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-api',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          }
+        ],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
       }
     })
