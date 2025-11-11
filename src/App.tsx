@@ -26,7 +26,6 @@ import { useOfflineQueueProcessor } from './hooks/useOfflineQueueProcessor';
 import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
-import { localStateManager } from './services/localStateManager';
 import { subscriptionCleanup } from './services/subscriptionCleanup';
 // memoryLeakDetector auto-starts via its module initialization (dev mode only)
 
@@ -177,11 +176,7 @@ function AppWithAuth() {
       // Initialize user settings (theme, font size, density, etc.)
       initializeSettings();
 
-      // 🚀 LOCAL-FIRST: Initialize local state manager
-      // This loads persisted entries and pending changes from IndexedDB
-      localStateManager.initialize().catch((error) => {
-        console.error('❌ Failed to initialize local state manager:', error);
-      });
+      // Replication handles all data caching and pending changes
     }
 
     // Apply device-specific CSS classes
@@ -206,24 +201,7 @@ function AppWithAuth() {
     // Schedule auto-cleanup of old cached data (runs daily)
     scheduleAutoCleanup();
 
-    // 🚀 LOCAL-FIRST: Schedule garbage collection for failed pending changes
-    // Runs daily to clean up old failed changes (7+ days old)
-    const runGarbageCollection = async () => {
-      try {
-        const result = await localStateManager.garbageCollect();
-        if (result.discarded > 0) {
-          console.log(`🗑️ Garbage collection: discarded ${result.discarded} old failed changes`);
-        }
-      } catch (error) {
-        console.error('❌ Failed to run garbage collection:', error);
-      }
-    };
-
-    // Run immediately on startup
-    runGarbageCollection();
-
-    // Run daily (every 24 hours)
-    const gcInterval = setInterval(runGarbageCollection, 24 * 60 * 60 * 1000);
+    // Replication handles garbage collection of pending mutations
 
     // 🧹 Start auto-cleanup for subscriptions (checks every 30 minutes)
     const stopAutoCleanup = subscriptionCleanup.startAutoCleanup(30);
@@ -253,7 +231,6 @@ function AppWithAuth() {
       stopMonitoring();
       stopAutoCleanup();
       notificationIntegration.destroy();
-      clearInterval(gcInterval);
       subscriptionCleanup.cleanupAll(); // Final cleanup on app unmount
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };

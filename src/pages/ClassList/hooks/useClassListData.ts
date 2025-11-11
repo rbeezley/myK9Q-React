@@ -16,6 +16,9 @@ import { getClassEntries } from '../../../services/entryService';
 import { getLevelSortOrder } from '../../../lib/utils';
 import { logger } from '../../../utils/logger';
 import { cache as idbCache } from '@/utils/indexedDB';
+import { getReplicationManager } from '@/services/replication';
+import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
+import type { Entry } from '@/services/replication/tables/ReplicatedEntriesTable';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -158,6 +161,147 @@ async function fetchTrialInfo(
 }
 
 /**
+ * Process classes with entry data
+ * Shared logic for both replicated cache and Supabase fallback
+ */
+async function processClassesWithEntries(
+  classesData: Class[],
+  entriesData: Entry[],
+  _licenseKey: string
+): Promise<ClassEntry[]> {
+  // Build a map of classId -> entries
+  const entriesByClass = new Map<string, Entry[]>();
+
+  entriesData.forEach((entry) => {
+    const classId = entry.class_id;
+    if (!entriesByClass.has(classId)) {
+      entriesByClass.set(classId, []);
+    }
+    entriesByClass.get(classId)!.push(entry);
+  });
+
+  // Process each class
+  const processedClasses = classesData.map((cls) => {
+    const classEntries = entriesByClass.get(cls.id) || [];
+
+    // Process dog entries with custom status priority sorting
+    const dogs = classEntries
+      .map((entry) => ({
+        id: parseInt(entry.id, 10),
+        armband: entry.armband_number,
+        call_name: entry.dog_call_name,
+        breed: entry.dog_breed || '',
+        handler: entry.handler_name,
+        in_ring: entry.is_in_ring || false,
+        checkin_status:
+          entry.entry_status === 'checked-in'
+            ? 1
+            : entry.entry_status === 'conflict'
+            ? 2
+            : entry.entry_status === 'pulled'
+            ? 3
+            : entry.entry_status === 'at-gate'
+            ? 4
+            : 0,
+        is_scored: entry.is_scored || false,
+      }))
+      .sort((a, b) => {
+        // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
+        const getStatusPriority = (dog: typeof a) => {
+          if (dog.is_scored) return 7; // Completed (last)
+          if (dog.in_ring) return 1; // In-ring (first)
+          if (dog.checkin_status === 4) return 2; // At gate
+          if (dog.checkin_status === 1) return 3; // Checked-in
+          if (dog.checkin_status === 2) return 4; // Conflict
+          if (dog.checkin_status === 0) return 5; // Not checked-in (pending)
+          if (dog.checkin_status === 3) return 6; // Pulled
+          return 8; // Unknown status
+        };
+
+        const priorityA = getStatusPriority(a);
+        const priorityB = getStatusPriority(b);
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        // Secondary sort by armband number
+        return a.armband - b.armband;
+      });
+
+    // Count totals
+    const entryCount = dogs.length;
+    const completedCount = dogs.filter((dog) => dog.is_scored).length;
+
+    // Construct class name from element, level, and section
+    const sectionPart =
+      cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
+    const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
+
+    return {
+      id: parseInt(cls.id, 10),
+      element: cls.element,
+      level: cls.level,
+      section: cls.section || '',
+      class_name: className,
+      class_order: cls.class_order || 999,
+      judge_name: cls.judge_name || 'TBA',
+      entry_count: entryCount,
+      completed_count: completedCount,
+      class_status: (cls.class_status?.trim() || 'no-status') as
+        | 'no-status'
+        | 'setup'
+        | 'briefing'
+        | 'break'
+        | 'start_time'
+        | 'in_progress'
+        | 'completed',
+      is_completed: cls.is_completed || false,
+      is_favorite: false, // Will be updated by component with localStorage
+      time_limit_seconds: cls.time_limit_seconds,
+      time_limit_area2_seconds: cls.time_limit_area2_seconds,
+      time_limit_area3_seconds: cls.time_limit_area3_seconds,
+      area_count: cls.area_count,
+      briefing_time: cls.briefing_time || undefined,
+      break_until: cls.break_until || undefined,
+      start_time: cls.start_time || undefined,
+      dogs: dogs,
+    };
+  });
+
+  // Sort classes by class_order first, then element, level, section
+  const sortedClasses = processedClasses.sort((a, b) => {
+    // Primary sort: class_order (ascending)
+    if (a.class_order !== b.class_order) {
+      return a.class_order - b.class_order;
+    }
+
+    // Secondary sort: element (alphabetical)
+    if (a.element !== b.element) {
+      return a.element.localeCompare(b.element);
+    }
+
+    // Tertiary sort: level (standard progression: Novice -> Advanced -> Excellent -> Master)
+    const aLevelOrder = getLevelSortOrder(a.level);
+    const bLevelOrder = getLevelSortOrder(b.level);
+
+    if (aLevelOrder !== bLevelOrder) {
+      return aLevelOrder - bLevelOrder;
+    }
+
+    // If same level order, sort alphabetically
+    if (a.level !== b.level) {
+      return a.level.localeCompare(b.level);
+    }
+
+    // Quaternary sort: section (alphabetical)
+    return a.section.localeCompare(b.section);
+  });
+
+  return sortedClasses;
+}
+
+/**
  * Fetch classes with entries and sorting
  */
 async function fetchClasses(
@@ -169,6 +313,53 @@ async function fetchClasses(
     return [];
   }
 
+  // Always use replication (no feature flags - development only, no existing users)
+  const isReplicationEnabled = true;
+
+  if (isReplicationEnabled) {
+    console.log('🔄 [REPLICATION] Fetching classes from replicated cache...');
+    logger.log('🔄 Fetching classes from replicated cache...');
+
+    const manager = getReplicationManager();
+    if (manager) {
+      const classesTable = manager.getTable<Class>('classes');
+      const entriesTable = manager.getTable<Entry>('entries');
+
+      if (classesTable && entriesTable) {
+        try {
+          // Get classes for this trial from cache
+          const cachedClasses = await classesTable.getAll();
+
+          // Convert trialId to number for comparison (route params are strings, DB trial_id is number)
+          const trialIdNum = parseInt(trialId, 10);
+          const trialClasses = cachedClasses.filter(
+            (cls) => cls.trial_id === trialIdNum
+          );
+
+          console.log(`✅ [REPLICATION] Loaded ${trialClasses.length} classes from cache (trial_id: ${trialIdNum})`);
+
+          // Get entries for this trial from cache
+          const cachedEntries = await entriesTable.getAll();
+
+          // Process classes with entry data (same logic as before)
+          const processedClasses = await processClassesWithEntries(
+            trialClasses,
+            cachedEntries,
+            licenseKey
+          );
+
+          console.log(`📊 [REPLICATION] Processed ${processedClasses.length} classes`);
+          return processedClasses;
+
+        } catch (error) {
+          logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+          // Fall through to Supabase query
+        }
+      }
+    }
+  }
+
+  // Fall back to original Supabase implementation
   logger.log('🔍 Fetching classes for trial ID:', trialId);
 
   // Try IndexedDB cache first (for offline support)
@@ -341,7 +532,7 @@ export function useClasses(trialId: string | undefined, licenseKey: string | und
     queryKey: classListKeys.classes(trialId || ''),
     queryFn: () => fetchClasses(trialId, licenseKey),
     enabled: !!trialId && !!licenseKey, // Only run if both are provided
-    staleTime: 1 * 60 * 1000, // 1 minute (classes change frequently)
+    staleTime: 0, // FORCE REFETCH EVERY TIME (for testing replication)
     gcTime: 5 * 60 * 1000, // 5 minutes cache
     networkMode: 'always', // Run query even offline, will use cached data
     retry: false, // Don't retry when offline

@@ -1,5 +1,9 @@
 import { supabase } from '../lib/supabase';
 import type { Announcement } from '../stores/announcementStore';
+import {
+  replicatedAnnouncementsTable,
+  replicatedAnnouncementReadsTable,
+} from '@/services/replication';
 
 export interface CreateAnnouncementData {
   title: string;
@@ -36,54 +40,69 @@ export class AnnouncementService {
 
   /**
    * Fetch announcements for a specific license key
+   * Uses replicated table for offline-first access
    */
   static async getAnnouncements(
     licenseKey: string,
     filters: AnnouncementFilters = {}
   ): Promise<{ data: Announcement[]; count: number }> {
     try {
-      let query = supabase
-        .from('announcements')
-        .select('*', { count: 'exact' })
-        .eq('license_key', licenseKey)
-        .eq('is_active', true);
+      console.log('📢 [AnnouncementService] Fetching from replicated cache...');
+
+      // Get all announcements from replicated table (already filtered by license_key during sync)
+      let announcements = await replicatedAnnouncementsTable.getAll();
+
+      // Apply active filter
+      announcements = announcements.filter(a => a.is_active);
 
       // Apply filters
       if (filters.priority) {
-        query = query.eq('priority', filters.priority);
+        announcements = announcements.filter(a => a.priority === filters.priority);
       }
 
       if (filters.author_role) {
-        query = query.eq('author_role', filters.author_role);
+        announcements = announcements.filter(a => a.author_role === filters.author_role);
       }
 
       if (filters.searchTerm) {
-        query = query.or(`title.ilike.%${filters.searchTerm}%,content.ilike.%${filters.searchTerm}%,author_name.ilike.%${filters.searchTerm}%`);
+        const searchLower = filters.searchTerm.toLowerCase();
+        announcements = announcements.filter(a =>
+          a.title.toLowerCase().includes(searchLower) ||
+          a.content.toLowerCase().includes(searchLower) ||
+          (a.author_name && a.author_name.toLowerCase().includes(searchLower))
+        );
       }
 
       if (!filters.showExpired) {
-        query = query.or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
+        const now = new Date().toISOString();
+        announcements = announcements.filter(a => !a.expires_at || a.expires_at > now);
       }
 
-      // Always order by created_at descending (newest first)
-      query = query.order('created_at', { ascending: false });
+      // Sort by created_at descending (newest first)
+      announcements.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       // Apply pagination
-      if (filters.limit) {
-        query = query.limit(filters.limit);
-      }
-
+      const totalCount = announcements.length;
       if (filters.offset) {
-        query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+        announcements = announcements.slice(filters.offset);
+      }
+      if (filters.limit) {
+        announcements = announcements.slice(0, filters.limit);
       }
 
-      const { data, error, count } = await query;
+      // Transform from ReplicatedAnnouncement (string id) to Announcement (number id)
+      const transformedData: Announcement[] = announcements.map(a => ({
+        ...a,
+        id: parseInt(a.id, 10),
+        author_name: a.author_name || undefined,
+        expires_at: a.expires_at || undefined,
+      }));
 
-      if (error) throw error;
+      console.log(`✅ [AnnouncementService] Loaded ${transformedData.length} announcements from cache`);
 
       return {
-        data: data || [],
-        count: count || 0
+        data: transformedData,
+        count: totalCount
       };
 
     } catch (error) {
@@ -94,25 +113,34 @@ export class AnnouncementService {
 
   /**
    * Get a specific announcement by ID with license key validation
+   * Uses replicated table for offline-first access
    */
   static async getAnnouncement(id: number, licenseKey: string): Promise<Announcement | null> {
     try {
-      const { data, error } = await supabase
-        .from('announcements')
-        .select('*')
-        .eq('id', id)
-        .eq('license_key', licenseKey)
-        .eq('is_active', true)
-        .single();
+      const announcement = await replicatedAnnouncementsTable.get(id.toString());
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return null; // Not found
-        }
-        throw error;
+      if (!announcement) {
+        return null; // Not found
       }
 
-      return data;
+      // Verify license key for multi-tenant security
+      if (announcement.license_key !== licenseKey) {
+        console.warn('License key mismatch for announcement', id);
+        return null;
+      }
+
+      // Verify is_active
+      if (!announcement.is_active) {
+        return null;
+      }
+
+      // Transform to Announcement type (number id)
+      return {
+        ...announcement,
+        id: parseInt(announcement.id, 10),
+        author_name: announcement.author_name || undefined,
+        expires_at: announcement.expires_at || undefined,
+      };
 
     } catch (error) {
       console.error('Error fetching announcement:', error);
@@ -278,6 +306,7 @@ export class AnnouncementService {
 
   /**
    * Get read status for announcements for a specific user
+   * Uses replicated table for offline-first access
    */
   static async getReadStatus(
     licenseKey: string,
@@ -285,21 +314,21 @@ export class AnnouncementService {
     announcementIds?: number[]
   ): Promise<Set<number>> {
     try {
-      let query = supabase
-        .from('announcement_reads')
-        .select('announcement_id')
-        .eq('user_identifier', userIdentifier)
-        .eq('license_key', licenseKey);
+      // Get all reads for this user from replicated table
+      const reads = await replicatedAnnouncementReadsTable.getByUser(userIdentifier);
 
+      // Filter by license key (multi-tenant security)
+      const filteredReads = reads.filter(r => r.license_key === licenseKey);
+
+      // Convert announcement_id from string to number
+      let readAnnouncementIds = filteredReads.map(r => parseInt(r.announcement_id, 10));
+
+      // Filter by specific announcement IDs if provided
       if (announcementIds && announcementIds.length > 0) {
-        query = query.in('announcement_id', announcementIds);
+        readAnnouncementIds = readAnnouncementIds.filter(id => announcementIds.includes(id));
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      return new Set(data?.map(r => r.announcement_id) || []);
+      return new Set(readAnnouncementIds);
 
     } catch (error) {
       console.error('Error fetching read status:', error);
@@ -309,20 +338,17 @@ export class AnnouncementService {
 
   /**
    * Get unread count for a user in a specific show
+   * Uses replicated table for offline-first access
    */
   static async getUnreadCount(licenseKey: string, userIdentifier: string): Promise<number> {
     try {
-      // Get all active announcements for this license
-      const { data: announcements, error: announcementsError } = await supabase
-        .from('announcements')
-        .select('id')
-        .eq('license_key', licenseKey)
-        .eq('is_active', true)
-        .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
+      // Get all active announcements from replicated table
+      const activeAnnouncements = await replicatedAnnouncementsTable.getActive();
 
-      if (announcementsError) throw announcementsError;
+      // Filter by license key
+      const licenseAnnouncements = activeAnnouncements.filter(a => a.license_key === licenseKey);
 
-      const announcementIds = announcements?.map(a => a.id) || [];
+      const announcementIds = licenseAnnouncements.map(a => parseInt(a.id, 10));
 
       if (announcementIds.length === 0) return 0;
 
@@ -379,30 +405,41 @@ export class AnnouncementService {
 
   /**
    * Get recent urgent announcements (for notifications)
+   * Uses replicated table for offline-first access
    */
   static async getRecentUrgentAnnouncements(
     licenseKey: string,
     sinceTimestamp?: string
   ): Promise<Announcement[]> {
     try {
-      let query = supabase
-        .from('announcements')
-        .select('*')
-        .eq('license_key', licenseKey)
-        .eq('is_active', true)
-        .eq('priority', 'urgent')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // Get urgent announcements from replicated table
+      let urgentAnnouncements = await replicatedAnnouncementsTable.getByPriority('urgent');
 
+      // Filter by license key and active status
+      urgentAnnouncements = urgentAnnouncements.filter(a =>
+        a.license_key === licenseKey && a.is_active
+      );
+
+      // Filter by timestamp if provided
       if (sinceTimestamp) {
-        query = query.gt('created_at', sinceTimestamp);
+        urgentAnnouncements = urgentAnnouncements.filter(a => a.created_at > sinceTimestamp);
       }
 
-      const { data, error } = await query;
+      // Sort by created_at descending (newest first)
+      urgentAnnouncements.sort((a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
-      if (error) throw error;
+      // Limit to 10
+      const limited = urgentAnnouncements.slice(0, 10);
 
-      return data || [];
+      // Transform to Announcement type (number id)
+      return limited.map(a => ({
+        ...a,
+        id: parseInt(a.id, 10),
+        author_name: a.author_name || undefined,
+        expires_at: a.expires_at || undefined,
+      }));
 
     } catch (error) {
       console.error('Error fetching recent urgent announcements:', error);

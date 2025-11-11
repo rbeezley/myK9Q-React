@@ -19,6 +19,8 @@ export interface ReplicatedRow<T> {
   version: number;          // For conflict detection (increments on update)
   lastSyncedAt: number;     // Timestamp of last successful sync
   lastAccessedAt: number;   // For LRU eviction
+  accessCount?: number;     // Day 25-26 LOW Fix: For LFU eviction (access frequency)
+  lastModifiedAt?: number;  // Day 25-26 LOW Fix: Protect recently edited data
   isDirty: boolean;         // Has local changes not yet synced
   syncStatus: 'synced' | 'pending' | 'conflict' | 'error';
 }
@@ -30,14 +32,17 @@ export interface SyncMetadata {
   tableName: string;
   lastFullSyncAt: number;
   lastIncrementalSyncAt: number;
-  syncStatus: 'idle' | 'syncing' | 'error';
+  totalRows?: number;           // Total rows cached
+  syncStatus?: 'idle' | 'syncing' | 'error';
   errorMessage?: string;
-  conflictCount: number;
-  pendingMutations: number;
+  conflictCount?: number;
+  pendingMutations?: number;
 }
 
 /**
  * Pending mutation queue item
+ *
+ * Day 25-26: Added dependency tracking to prevent out-of-order execution
  */
 export interface PendingMutation {
   id: string;               // UUID for mutation
@@ -49,6 +54,10 @@ export interface PendingMutation {
   retries: number;          // Retry attempts
   status: 'pending' | 'syncing' | 'failed' | 'success';
   error?: string;           // Last error message
+
+  /** Day 25-26: Causal dependency tracking */
+  dependsOn?: string[];     // IDs of mutations that must complete before this one
+  sequenceNumber?: number;  // Global sequence for ordering (timestamp may not be unique)
 }
 
 /**
@@ -57,10 +66,11 @@ export interface PendingMutation {
 export interface SyncResult {
   tableName: string;
   success: boolean;
-  rowsSynced: number;
-  conflictsResolved: number;
-  errors: string[];
+  operation: 'full-sync' | 'incremental-sync' | 'INSERT' | 'UPDATE' | 'DELETE' | 'BATCH_UPDATE';
+  rowsAffected: number;     // Rows inserted/updated/deleted
+  conflictsResolved?: number;
   duration: number;         // Milliseconds
+  error?: string;           // Error message if failed
 }
 
 /**
@@ -80,10 +90,11 @@ export interface PerformanceReport {
  */
 export interface SyncProgress {
   tableName: string;
-  currentStep: number;
-  totalSteps: number;
-  percentage: number;
-  status: 'synced' | 'syncing' | 'error';
+  operation: 'full-sync' | 'incremental-sync' | 'upload-mutations';
+  processed: number;        // Items processed so far
+  total: number;            // Total items to process
+  percentage: number;       // 0-100
+  status?: 'synced' | 'syncing' | 'error';
 }
 
 /**

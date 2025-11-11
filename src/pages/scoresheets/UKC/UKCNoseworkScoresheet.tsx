@@ -12,12 +12,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
 import { Timer } from '../../../components/scoring/Timer';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { getClassEntries, markInRing } from '../../../services/entryService';
+import { markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
 import { SyncIndicator } from '../../../components/ui';
 import { ClipboardCheck } from 'lucide-react';
+import { getReplicationManager } from '../../../services/replication/initReplication';
+import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
+import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
+import type { Entry } from '../../../stores/entryStore';
 import '../BaseScoresheet.css';
 import './UKCNoseworkScoresheet.css';
 
@@ -84,11 +88,53 @@ export const UKCNoseworkScoresheet: React.FC = () => {
     if (!classId || !showContext?.licenseKey) return;
 
     try {
-      const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);
+      // Load from replicated cache (direct replacement, no feature flags)
+      console.log('[REPLICATION] 🔍 Loading UKC Nosework scoresheet for class:', classId);
+
+      const manager = getReplicationManager();
+      if (!manager) {
+        throw new Error('Replication manager not initialized');
+      }
+
+      const entriesTable = manager.getTable('entries');
+      const classesTable = manager.getTable('classes');
+
+      if (!entriesTable || !classesTable) {
+        throw new Error('Required tables not registered');
+      }
+
+      // Get class information
+      const classData = await classesTable.get(classId) as Class | undefined;
+      if (!classData) {
+        throw new Error(`Class ${classId} not found in cache`);
+      }
+
+      // Get all entries for this class
+      const allEntries = await entriesTable.getAll() as ReplicatedEntry[];
+      const classEntries = allEntries.filter(entry => entry.class_id === classId);
+
+      console.log(`[REPLICATION] ✅ Loaded ${classEntries.length} entries for class ${classId}`);
+
+      // Transform to Entry format for store
+      const transformedEntries: Entry[] = classEntries.map(entry => ({
+        id: parseInt(entry.id),
+        armband: entry.armband_number,
+        callName: entry.dog_call_name || 'Unknown',
+        breed: entry.dog_breed || 'Unknown',
+        handler: entry.handler_name || 'Unknown',
+        isScored: entry.is_scored || false,
+        status: (entry.entry_status as Entry['status']) || 'no-status',
+        classId: parseInt(entry.class_id),
+        className: `${classData.element} ${classData.level}`,
+        element: classData.element,
+        level: classData.level,
+        section: classData.section,
+      }));
+
       setCurrentClassEntries(parseInt(classId));
 
       // Set first pending entry as current
-      const pending = entries.filter(e => !e.isScored);
+      const pending = transformedEntries.filter(e => !e.isScored);
       if (pending.length > 0) {
         setCurrentEntry(pending[0]);
 
@@ -106,7 +152,7 @@ export const UKCNoseworkScoresheet: React.FC = () => {
             pending[0].className,
             'UKC_NOSEWORK',
             showContext.licenseKey,
-            entries.length
+            transformedEntries.length
           );
         }
       }

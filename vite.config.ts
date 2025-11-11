@@ -96,7 +96,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt', // Changed from 'autoUpdate' to 'prompt' to prevent auto-reload in dev
       devOptions: {
-        enabled: false // Disabled to prevent dev-sw.js import errors
+        enabled: true, // Enable for offline testing
+        type: 'module'
       },
       manifest: {
         name: 'myK9Q Ring Scoring',
@@ -134,6 +135,15 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // Precache all build artifacts including lazy-loaded chunks
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+
+        // Enable navigation preload for faster page loads
+        navigationPreload: true,
+
+        // Clean up old caches automatically
+        cleanupOutdatedCaches: true,
+
         // Use NetworkFirst strategy for API calls
         runtimeCaching: [
           {
@@ -149,9 +159,38 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
+          },
+          // Cache navigation requests (SPA routes) with CacheFirst strategy
+          {
+            urlPattern: ({ request, url }) => {
+              // Match navigation requests to our app
+              return request.mode === 'navigate' && url.origin === self.location.origin;
+            },
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'navigation-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              }
+            }
+          },
+          // Cache JavaScript and CSS chunks with CacheFirst strategy
+          {
+            urlPattern: /\/assets\/.*\.(js|css)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
           }
-        ],
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
+        ]
       }
     })
   ],

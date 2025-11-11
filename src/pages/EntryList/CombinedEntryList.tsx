@@ -36,8 +36,8 @@ export const CombinedEntryList: React.FC = () => {
   // Force fresh fetch on mount to avoid stale cache issues after scoring
   // This ensures we always see the latest scores after navigating back from scoresheet or page refresh
   useEffect(() => {
-    console.log('🔄 CombinedEntryList mounted - forcing cache refresh to get latest scores');
-    refresh(true); // Force cache invalidation on mount
+    console.log('🔄 CombinedEntryList mounted - refreshing to get latest scores');
+    refresh(); // Refresh on mount
   }, [refresh]); // Run when refresh function changes (effectively once per mount)
 
   // Actions using shared hook
@@ -364,11 +364,11 @@ export const CombinedEntryList: React.FC = () => {
     try {
       console.log('⏳ Waiting for database write to complete...');
       await handleStatusChangeHook(entryId, newStatus);
-      console.log('✅ Database write confirmed - invalidating cache');
-      // Force refresh to invalidate cache and fetch latest data
+      console.log('✅ Database write confirmed - refreshing');
+      // Refresh to get latest data
       // This ensures immediate page refresh shows the correct status
-      await refresh(true);
-      console.log('✅ Cache invalidated - safe to refresh now');
+      await refresh();
+      console.log('✅ Refreshed - safe to continue');
     } catch (error) {
       console.error('Status change failed:', error);
       // Rollback optimistic update on error
@@ -377,7 +377,7 @@ export const CombinedEntryList: React.FC = () => {
           ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'no-status' }
           : entry
       ));
-      refresh(true);
+      refresh();
     }
   };
 

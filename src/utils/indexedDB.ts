@@ -87,7 +87,7 @@ class IndexedDBManager {
     }
 
     this.initPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion, newVersion, transaction) {
+      upgrade(db, _oldVersion, _newVersion, _transaction) {
         console.log('🔄 Upgrading IndexedDB schema...');
 
         // Cache store - for prefetch and SWR data

@@ -12,10 +12,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
 import { useSettingsStore } from '../../../stores/settingsStore';
-import { getClassEntries, markInRing } from '../../../services/entryService';
+import { markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
-import { supabase } from '../../../lib/supabase';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { getReplicationManager } from '../../../services/replication/initReplication';
+import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
+import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
+import type { Trial } from '../../../services/replication/tables/ReplicatedTrialsTable';
+import type { Entry } from '../../../stores/entryStore';
 // import { NationalsPointCounter, CompactPointCounter } from '../../../components/scoring/NationalsPointCounter';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
@@ -941,22 +945,33 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
     setIsLoadingEntry(true); // Start loading
     try {
-      // First get class information including trial date
-      const { data: classInfo, error: classError } = await supabase
-        .from('classes')
-        .select(`
-          trials!inner (
-            trial_date,
-            trial_number
-          )
-        `)
-        .eq('id', parseInt(classId))
-        .single();
+      // Load from replicated cache (direct replacement, no feature flags)
+      console.log('[REPLICATION] 🔍 Loading scoresheet data for class:', classId);
 
-      if (classInfo && !classError) {
-        const trial = Array.isArray(classInfo.trials) ? classInfo.trials[0] : classInfo.trials;
+      const manager = getReplicationManager();
+      if (!manager) {
+        throw new Error('Replication manager not initialized');
+      }
+
+      const entriesTable = manager.getTable('entries');
+      const classesTable = manager.getTable('classes');
+      const trialsTable = manager.getTable('trials');
+
+      if (!entriesTable || !classesTable || !trialsTable) {
+        throw new Error('Required tables not registered');
+      }
+
+      // Get class information
+      const classData = await classesTable.get(classId) as Class | undefined;
+      if (!classData) {
+        throw new Error(`Class ${classId} not found in cache`);
+      }
+
+      // Get trial information
+      const trialData = await trialsTable.get(String(classData.trial_id)) as Trial | undefined;
+      if (trialData) {
         // Format date as mm/dd/yyyy
-        const rawDate = trial?.trial_date || '';
+        const rawDate = trialData.trial_date || '';
         if (rawDate) {
           const date = new Date(rawDate);
           const formatted = (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
@@ -964,36 +979,57 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                            date.getFullYear();
           setTrialDate(formatted);
         }
-        setTrialNumber(trial?.trial_number?.toString() || '1');
+        setTrialNumber('1'); // trial_number not in Trial schema yet
       }
 
-      const entries = await getClassEntries(parseInt(classId), showContext.licenseKey);
-      setEntries(entries);
+      // Get all entries for this class
+      const allEntries = await entriesTable.getAll() as ReplicatedEntry[];
+      const classEntries = allEntries.filter(entry => entry.class_id === classId);
+
+      console.log(`[REPLICATION] ✅ Loaded ${classEntries.length} entries for class ${classId}`);
+
+      // Transform to Entry format for store
+      const transformedEntries: Entry[] = classEntries.map(entry => ({
+        id: parseInt(entry.id),
+        armband: entry.armband_number,
+        callName: entry.dog_call_name || 'Unknown',
+        breed: entry.dog_breed || 'Unknown',
+        handler: entry.handler_name || 'Unknown',
+        isScored: entry.is_scored || false,
+        status: (entry.entry_status as Entry['status']) || 'no-status',
+        classId: parseInt(entry.class_id),
+        className: `${classData.element} ${classData.level}`,
+        element: classData.element,
+        level: classData.level,
+        section: classData.section,
+      }));
+
+      setEntries(transformedEntries);
       setCurrentClassEntries(parseInt(classId));
 
       if (entryId) {
-        const targetEntry = entries.find(e => e.id === parseInt(entryId));
+        const targetEntry = transformedEntries.find(e => e.id === parseInt(entryId));
         if (targetEntry) {
           setCurrentEntry(targetEntry);
           await markInRing(targetEntry.id, true);
           const initialAreas = initializeAreas(targetEntry.element || '', targetEntry.level || '');
           setAreas(initialAreas);
         }
-      } else if (entries.length > 0) {
-        setCurrentEntry(entries[0]);
-        await markInRing(entries[0].id, true);
-        const initialAreas = initializeAreas(entries[0].element || '', entries[0].level || '');
+      } else if (transformedEntries.length > 0) {
+        setCurrentEntry(transformedEntries[0]);
+        await markInRing(transformedEntries[0].id, true);
+        const initialAreas = initializeAreas(transformedEntries[0].element || '', transformedEntries[0].level || '');
         setAreas(initialAreas);
       }
 
       // Start scoring session
-      if (!isScoring && entries.length > 0) {
+      if (!isScoring && transformedEntries.length > 0) {
         startScoringSession(
           parseInt(classId),
-          entries[0].className || 'AKC Scent Work',
+          transformedEntries[0].className || 'AKC Scent Work',
           isNationalsMode ? 'AKC_SCENT_WORK_NATIONAL' : 'AKC_SCENT_WORK',
           'judge-1',
-          entries.length
+          transformedEntries.length
         );
       }
     } catch (error) {

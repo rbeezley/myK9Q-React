@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 import { serviceWorkerManager } from '../utils/serviceWorkerUtils';
+import { AnnouncementService } from '../services/announcementService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface Announcement {
@@ -80,67 +81,7 @@ interface AnnouncementState {
 
 // Generate user identifier for read tracking
 const generateUserIdentifier = (): string => {
-  // Use session storage for temporary identifier within session
-  let identifier = sessionStorage.getItem('user_session_id');
-  if (!identifier) {
-    identifier = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    sessionStorage.setItem('user_session_id', identifier);
-  }
-  return identifier;
-};
-
-// Announcement cache helpers
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-interface AnnouncementCache {
-  data: Announcement[];
-  timestamp: number;
-  licenseKey: string;
-}
-
-const getCachedAnnouncements = (licenseKey: string): Announcement[] | null => {
-  try {
-    const cached = localStorage.getItem(`announcements_cache_${licenseKey}`);
-    if (!cached) return null;
-
-    const cache: AnnouncementCache = JSON.parse(cached);
-    const now = Date.now();
-
-    // Check if cache is still fresh
-    if (now - cache.timestamp < CACHE_TTL && cache.licenseKey === licenseKey) {
-      console.log('📦 Using cached announcements (age:', Math.round((now - cache.timestamp) / 1000), 'seconds)');
-      return cache.data;
-    }
-
-    console.log('📦 Cache expired (age:', Math.round((now - cache.timestamp) / 1000), 'seconds)');
-    return null;
-  } catch (error) {
-    console.error('Error reading announcement cache:', error);
-    return null;
-  }
-};
-
-const setCachedAnnouncements = (licenseKey: string, data: Announcement[]): void => {
-  try {
-    const cache: AnnouncementCache = {
-      data,
-      timestamp: Date.now(),
-      licenseKey
-    };
-    localStorage.setItem(`announcements_cache_${licenseKey}`, JSON.stringify(cache));
-    console.log('📦 Cached', data.length, 'announcements');
-  } catch (error) {
-    console.error('Error caching announcements:', error);
-  }
-};
-
-const clearAnnouncementCache = (licenseKey: string): void => {
-  try {
-    localStorage.removeItem(`announcements_cache_${licenseKey}`);
-    console.log('📦 Cleared announcement cache');
-  } catch (error) {
-    console.error('Error clearing announcement cache:', error);
-  }
+  return AnnouncementService.generateUserIdentifier();
 };
 
 export const useAnnouncementStore = create<AnnouncementState>()(
@@ -272,78 +213,24 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         });
       },
 
-      fetchAnnouncements: async (licenseKey?: string, forceRefresh = false) => {
+      fetchAnnouncements: async (licenseKey?: string, _forceRefresh = false) => {
         const targetLicenseKey = licenseKey || get().currentLicenseKey;
         if (!targetLicenseKey) {
           set({ error: 'No license key provided' });
           return;
         }
 
-        // Check cache first unless force refresh
-        if (!forceRefresh) {
-          const cached = getCachedAnnouncements(targetLicenseKey);
-          if (cached) {
-            // Still need to get read status for current user
-            const userIdentifier = generateUserIdentifier();
-            const { data: reads } = await supabase
-              .from('announcement_reads')
-              .select('announcement_id')
-              .eq('user_identifier', userIdentifier)
-              .eq('license_key', targetLicenseKey);
-
-            const readIds = new Set(reads?.map(r => r.announcement_id) || []);
-
-            // Mark announcements as read/unread
-            const announcementsWithReadStatus = cached.map(announcement => ({
-              ...announcement,
-              is_read: readIds.has(announcement.id)
-            }));
-
-            // Calculate unread count
-            const unreadCount = announcementsWithReadStatus.filter(a => !a.is_read).length;
-
-            set({
-              announcements: announcementsWithReadStatus,
-              unreadCount,
-              isLoading: false
-            });
-            return;
-          }
-        }
-
         set({ isLoading: true, error: null });
 
         try {
-          // Fetch announcements for specific license key
-          const { data: announcements, error } = await supabase
-            .from('announcements')
-            .select('*')
-            .eq('license_key', targetLicenseKey)
-            .eq('is_active', true)
-            .order('created_at', { ascending: false });
-
-          if (error) throw error;
-
-          // Cache the raw announcements
-          if (announcements) {
-            setCachedAnnouncements(targetLicenseKey, announcements);
-          }
-
-          // Get read status for current user
           const userIdentifier = generateUserIdentifier();
-          const { data: reads } = await supabase
-            .from('announcement_reads')
-            .select('announcement_id')
-            .eq('user_identifier', userIdentifier)
-            .eq('license_key', targetLicenseKey);
 
-          const readIds = new Set(reads?.map(r => r.announcement_id) || []);
-
-          // Mark announcements as read/unread
-          const announcementsWithReadStatus = announcements?.map(announcement => ({
-            ...announcement,
-            is_read: readIds.has(announcement.id)
-          })) || [];
+          // Use AnnouncementService which reads from IndexedDB
+          const { data: announcementsWithReadStatus } = await AnnouncementService.getAnnouncementsWithReadStatus(
+            targetLicenseKey,
+            userIdentifier,
+            {} // No filters at store level
+          );
 
           // Calculate unread count
           const unreadCount = announcementsWithReadStatus.filter(a => !a.is_read).length;
@@ -380,9 +267,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             .single();
 
           if (error) throw error;
-
-          // Invalidate cache
-          clearAnnouncementCache(currentLicenseKey);
 
           // Add to local state
           set(state => ({
@@ -466,8 +350,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
 
       updateAnnouncement: async (id, updates) => {
-        const { currentLicenseKey } = get();
-
         try {
           const { data, error } = await supabase
             .from('announcements')
@@ -477,11 +359,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             .single();
 
           if (error) throw error;
-
-          // Invalidate cache
-          if (currentLicenseKey) {
-            clearAnnouncementCache(currentLicenseKey);
-          }
 
           // Update local state
           set(state => ({
@@ -497,8 +374,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
 
       deleteAnnouncement: async (id) => {
-        const { currentLicenseKey } = get();
-
         try {
           const { error } = await supabase
             .from('announcements')
@@ -506,11 +381,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             .eq('id', id);
 
           if (error) throw error;
-
-          // Invalidate cache
-          if (currentLicenseKey) {
-            clearAnnouncementCache(currentLicenseKey);
-          }
 
           // Remove from local state
           set(state => ({
@@ -533,18 +403,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         const userIdentifier = generateUserIdentifier();
 
         try {
-          // Insert read record (upsert behavior with unique constraint)
-          const { error } = await supabase
-            .from('announcement_reads')
-            .upsert({
-              announcement_id: announcementId,
-              user_identifier: userIdentifier,
-              license_key: currentLicenseKey
-            });
-
-          if (error && !error.message.includes('duplicate')) {
-            throw error;
-          }
+          // Use AnnouncementService (still writes to Supabase)
+          await AnnouncementService.markAsRead(announcementId, currentLicenseKey, userIdentifier);
 
           // Update local state
           set(state => {
@@ -575,18 +435,10 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         if (unreadAnnouncements.length === 0) return;
 
         try {
-          // Batch insert read records
-          const readRecords = unreadAnnouncements.map(a => ({
-            announcement_id: a.id,
-            user_identifier: userIdentifier,
-            license_key: currentLicenseKey
-          }));
+          const announcementIds = unreadAnnouncements.map(a => a.id);
 
-          const { error } = await supabase
-            .from('announcement_reads')
-            .upsert(readRecords);
-
-          if (error) throw error;
+          // Use AnnouncementService (still writes to Supabase)
+          await AnnouncementService.markMultipleAsRead(announcementIds, currentLicenseKey, userIdentifier);
 
           // Update local state
           set(state => ({

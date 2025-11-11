@@ -12,7 +12,9 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:offline-first": "vitest run --coverage useOptimisticScoring EntryList offline-first-pattern-consistency",
-    "setup": "node scripts/setup-dev.cjs"
+    "setup": "node scripts/setup-dev.cjs",
+    "install-hooks": "node scripts/install-git-hooks.cjs",
+    "postinstall": "node scripts/install-git-hooks.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

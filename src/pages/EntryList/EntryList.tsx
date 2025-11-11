@@ -84,9 +84,9 @@ export const EntryList: React.FC = () => {
     // For local-first architecture, we need to refresh from entryService
     // which will merge server updates with pending local changes
     if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-      console.log('🔥 Real-time update detected, forcing cache bypass to merge with pending changes');
-      // IMPORTANT: Must force refresh to bypass cache and get fresh merged data
-      refresh(true);
+      console.log('🔥 Real-time update detected, refreshing to get latest data');
+      // Refresh to get latest data from replication cache
+      refresh();
     }
   }, [refresh]);
 

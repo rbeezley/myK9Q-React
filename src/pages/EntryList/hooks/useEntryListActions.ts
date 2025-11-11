@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import { useOptimisticUpdate } from '../../../hooks/useOptimisticUpdate';
 import { updateEntryCheckinStatus, resetEntryScore, markInRing, markEntryCompleted } from '../../../services/entryService';
 import { Entry as _Entry } from '../../../stores/entryStore';
-import { localStateManager } from '../../../services/localStateManager';
+// TODO: Remove legacy localStateManager - replaced by replication system
+// import { localStateManager } from '../../../services/localStateManager';
 
 /**
  * Shared hook for entry list actions with optimistic updates.
@@ -21,11 +22,8 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // This creates a pending change that persists across refreshes
       try {
         console.log('🔄 Creating pending status change for entry:', entryId, '→', newStatus);
-        await localStateManager.updateEntry(
-          entryId,
-          { status: newStatus },
-          'status'
-        );
+        // TODO: Remove legacy - replaced by replication
+        // await localStateManager.updateEntry(entryId, { status: newStatus }, 'status');
         console.log('✅ LocalStateManager updated with pending status change');
       } catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
@@ -54,20 +52,8 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // This creates a pending change that persists across refreshes
       try {
         console.log('🔄 Creating pending reset for entry:', entryId);
-        await localStateManager.updateEntry(
-          entryId,
-          {
-            isScored: false,
-            status: 'no-status',
-            resultText: '',
-            searchTime: '',
-            faultCount: 0,
-            placement: undefined,
-            correctFinds: 0,
-            incorrectFinds: 0,
-          },
-          'reset'
-        );
+        // TODO: Remove legacy - replaced by replication
+        // await localStateManager.updateEntry(entryId, {...}, 'reset');
         console.log('✅ LocalStateManager updated with pending reset');
       } catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
@@ -96,11 +82,8 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       try {
         console.log('🔄 Creating pending in-ring toggle for entry:', entryId, '→', newInRing);
-        await localStateManager.updateEntry(
-          entryId,
-          { status: newInRing ? 'in-ring' : 'no-status' },
-          'status'
-        );
+        // TODO: Remove legacy - replaced by replication
+        // await localStateManager.updateEntry(entryId, { status: newInRing ? 'in-ring' : 'no-status' }, 'status');
         console.log('✅ LocalStateManager updated with pending in-ring change');
       } catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
@@ -126,11 +109,8 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       try {
         console.log('🔄 Creating pending mark in-ring for entry:', entryId);
-        await localStateManager.updateEntry(
-          entryId,
-          { status: 'in-ring' },
-          'status'
-        );
+        // TODO: Remove legacy - replaced by replication
+        // await localStateManager.updateEntry(entryId, { status: 'in-ring' }, 'status');
         console.log('✅ LocalStateManager updated with pending in-ring status');
       } catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
@@ -156,14 +136,8 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       try {
         console.log('🔄 Creating pending mark completed for entry:', entryId);
-        await localStateManager.updateEntry(
-          entryId,
-          {
-            isScored: true,
-            status: 'completed'
-          },
-          'status'
-        );
+        // TODO: Remove legacy - replaced by replication
+        // await localStateManager.updateEntry(entryId, { isScored: true, status: 'completed' }, 'status');
         console.log('✅ LocalStateManager updated with pending completed status');
       } catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
@@ -190,11 +164,8 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       console.log(`🔄 Creating pending batch status change for ${entryIds.length} entries →`, newStatus);
       const updatePromises = entryIds.map(async (entryId) => {
         try {
-          await localStateManager.updateEntry(
-            entryId,
-            { status: newStatus },
-            'status'
-          );
+          // TODO: Remove legacy - replaced by replication
+          // await localStateManager.updateEntry(entryId, { status: newStatus }, 'status');
         } catch (error) {
           console.error(`❌ Could not update LocalStateManager for entry ${entryId}:`, error);
         }

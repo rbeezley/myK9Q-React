@@ -16,6 +16,8 @@ import { supabase } from '../../../lib/supabase';
 import { logger } from '../../../utils/logger';
 import { subscriptionCleanup } from '../../../services/subscriptionCleanup';
 import { debounce } from 'lodash';
+import { getReplicationManager } from '@/services/replication';
+import type { Entry } from '@/services/replication';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -137,6 +139,7 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
 
 /**
  * Fetch entries (unique dogs by armband)
+ * Uses replicated cache when enabled, falls back to Supabase
  */
 async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]> {
   if (!licenseKey) {
@@ -144,7 +147,57 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
     return [];
   }
 
-  logger.log('🔍 Fetching entries for license key:', licenseKey);
+  // Always use replication (no feature flags - development only, no existing users)
+  const isReplicationEnabled = true;
+
+  if (isReplicationEnabled) {
+    console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
+    logger.log('🔄 Fetching entries from replicated cache...');
+
+    const manager = getReplicationManager();
+    if (manager) {
+      const table = manager.getTable('entries');
+      if (table) {
+        try {
+          // Don't pass licenseKey - entries are already filtered during sync
+          // (entries don't have license_key field, they're linked via classes → trials → shows)
+          const cachedEntries = await table.getAll() as Entry[];
+          console.log(`✅ [REPLICATION] Loaded ${cachedEntries.length} entries from cache`);
+          logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
+
+          // Transform replicated Entry to EntryData format
+          const uniqueDogs = new Map<number, EntryData>();
+
+          cachedEntries.forEach(entry => {
+            if (!uniqueDogs.has(entry.armband_number)) {
+              uniqueDogs.set(entry.armband_number, {
+                id: parseInt(entry.id, 10),
+                armband: entry.armband_number,
+                call_name: entry.dog_call_name,
+                breed: entry.dog_breed || '',
+                handler: entry.handler_name,
+                is_favorite: false, // Will be updated by component after favorites load
+                class_name: undefined, // No class info in replicated Entry yet
+                is_scored: entry.is_scored
+              });
+            }
+          });
+
+          const processedEntries = Array.from(uniqueDogs.values());
+          console.log(`🐕 [REPLICATION] Processed unique dogs from cache: ${processedEntries.length}`);
+          logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
+
+          return processedEntries;
+        } catch (error) {
+          logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+          // Fall through to Supabase query
+        }
+      }
+    }
+  }
+
+  // Fall back to original Supabase query
+  logger.log('🔍 Fetching entries from Supabase (fallback or replication disabled)...');
 
   // Load entries from the normalized view
   const { data: entriesData, error: entriesError } = await supabase
@@ -216,7 +269,7 @@ export function useEntries(licenseKey: string | undefined) {
     queryKey: homeDashboardKeys.entries(licenseKey || ''),
     queryFn: () => fetchEntries(licenseKey),
     enabled: !!licenseKey, // Only run if licenseKey is provided
-    staleTime: 1 * 60 * 1000, // 1 minute (entries change frequently)
+    staleTime: 0, // FORCE REFETCH EVERY TIME (for testing replication)
     gcTime: 5 * 60 * 1000, // 5 minutes cache
   });
 }

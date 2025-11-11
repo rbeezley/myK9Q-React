@@ -21,11 +21,16 @@ This document provides a comprehensive reference for the myK9Q database schema, 
 
 ## Core Tables
 
+**IMPORTANT - ID Types:**
+- Most tables use **bigserial** (auto-incrementing integers), NOT UUIDs
+- When working with IndexedDB or client-side caching, convert IDs to strings for consistent lookups
+- Supabase returns bigserial as JavaScript `number` type, but route params are always strings
+
 ### announcements
 Push notification announcements for events.
-- **id** (uuid, PK): Unique identifier
+- **id** (bigserial, PK): Auto-incrementing unique identifier
 - **license_key** (text): Multi-tenant isolation key
-- **trial_id** (uuid): Associated trial
+- **trial_id** (bigint, FK → trials): Associated trial
 - **message** (text): Announcement message
 - **announcement_type** (text): Type of announcement
 - **metadata** (jsonb): Additional metadata
@@ -34,8 +39,8 @@ Push notification announcements for events.
 
 ### classes
 Class definitions for trials (e.g., Novice A, Masters B).
-- **id** (uuid, PK): Unique identifier
-- **trial_id** (uuid, FK → trials): Parent trial
+- **id** (bigserial, PK): Auto-incrementing unique identifier
+- **trial_id** (bigint, FK → trials): Parent trial
 - **element** (text): Competition element (e.g., "Scent Work", "Rally")
 - **level** (text): Class level (e.g., "Novice", "Masters")
 - **section** (text): Section letter (e.g., "A", "B")
@@ -52,6 +57,7 @@ Class definitions for trials (e.g., Novice A, Masters B).
 - **time_limit_area2_seconds** (int): Area 2 time limit
 - **time_limit_area3_seconds** (int): Area 3 time limit
 - **area_count** (int): Number of search areas
+- **license_key** (text): Multi-tenant isolation key
 - **created_at** (timestamp): Creation timestamp
 - **updated_at** (timestamp): Last update timestamp
 
@@ -59,6 +65,7 @@ Class definitions for trials (e.g., Novice A, Masters B).
 - `class_status = NULL` represents "No Status" in the UI
 - Time fields (briefing_time, break_until, start_time) store formatted time strings
 - Always filter by `license_key` via trial/show joins for multi-tenant isolation
+- **ID Type:** bigserial returns as JavaScript number but must be converted to string for IndexedDB keys
 
 ### class_requirements
 Organization-specific class requirements with configurable rules.
@@ -74,8 +81,8 @@ Organization-specific class requirements with configurable rules.
 
 ### entries
 Dog entries for classes.
-- **id** (uuid, PK): Unique identifier
-- **class_id** (uuid, FK → classes): Associated class
+- **id** (bigserial, PK): Auto-incrementing unique identifier
+- **class_id** (bigint, FK → classes): Associated class
 - **armband_number** (text): Unique armband identifier
 - **call_name** (text): Dog's call name
 - **handler** (text): Handler name
@@ -93,6 +100,7 @@ Dog entries for classes.
 - Migration 039 merged results table into entries (all scoring data is here)
 - `is_scored = true` triggers push notifications via trigger
 - Entry status uses text values (not integer codes from legacy system)
+- **ID Type:** bigserial returns as JavaScript number but must be converted to string for IndexedDB keys
 
 ### event_statistics
 Statistics for national events and competitions.

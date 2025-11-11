@@ -11,7 +11,8 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { mutations as idbMutations } from '@/utils/indexedDB';
 import { haptic } from '@/hooks/useHapticFeedback';
-import { localStateManager } from '@/services/localStateManager';
+// TODO: Remove legacy localStateManager - replaced by replication system
+// import { localStateManager } from '@/services/localStateManager';
 
 export interface QueuedScore {
   id: string; // UUID for queue item
@@ -269,8 +270,8 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
       },
 
       markAsCompleted: async (id) => {
-        // Get the queue item before removing it
-        const item = get().queue.find(q => q.id === id);
+        // TODO: Remove legacy - replaced by replication
+        // const item = get().queue.find(q => q.id === id); // Was only needed for localStateManager
 
         set((state) => ({
           queue: state.queue.filter(item => item.id !== id)
@@ -280,11 +281,11 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
         try {
           await idbMutations.delete(id);
 
-          // 🚀 LOCAL-FIRST: Clear pending change from LocalStateManager
-          if (item?.entryId) {
-            await localStateManager.clearPendingChange(item.entryId);
-            console.log(`✅ Cleared pending change for entry ${item.entryId} after sync`);
-          }
+          // TODO: Remove legacy - replaced by replication
+          // if (item?.entryId) {
+          //   await localStateManager.clearPendingChange(item.entryId);
+          //   console.log(`✅ Cleared pending change for entry ${item.entryId} after sync`);
+          // }
 
           haptic.success();
         } catch (error) {

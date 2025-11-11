@@ -1,10 +1,12 @@
-import { useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useStaleWhileRevalidate } from '../../../hooks/useStaleWhileRevalidate';
 import { getClassEntries } from '../../../services/entryService';
 import { Entry } from '../../../stores/entryStore';
 import { supabase } from '../../../lib/supabase';
-import { localStateManager } from '../../../services/localStateManager';
+import { getReplicationManager } from '@/services/replication';
+import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
+import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
+import { logger } from '@/utils/logger';
 
 export interface ClassInfo {
   className: string;
@@ -40,6 +42,36 @@ interface UseEntryListDataOptions {
 }
 
 /**
+ * Transform replicated entry to Entry format
+ */
+function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): Entry {
+  // Map entry_status to the status field
+  const status = entry.entry_status || 'pending';
+
+  return {
+    id: parseInt(entry.id, 10),
+    armband: entry.armband_number,
+    callName: entry.dog_call_name,
+    breed: entry.dog_breed || '',
+    handler: entry.handler_name,
+    isScored: entry.is_scored || false,
+    status: status as any, // New unified status field
+    // Deprecated fields for backward compatibility
+    inRing: entry.is_in_ring || false,
+    classId: parseInt(entry.class_id, 10),
+    className: classData?.element && classData?.level
+      ? `${classData.element} ${classData.level}${classData.section && classData.section !== '-' ? ` ${classData.section}` : ''}`.trim()
+      : '',
+    element: classData?.element || '',
+    level: classData?.level || '',
+    section: classData?.section || '',
+    timeLimit: classData?.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
+    timeLimit2: classData?.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
+    timeLimit3: classData?.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
+  };
+}
+
+/**
  * Shared hook for fetching and caching entry list data using stale-while-revalidate pattern.
  * Supports both single class and combined class views.
  */
@@ -48,17 +80,72 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
 
   const isCombinedView = !!(classIdA && classIdB);
 
-  // Generate cache key based on view type
-  const cacheKey = isCombinedView
-    ? `combined-entries-${classIdA}-${classIdB}`
-    : `entries-class-${classId}`;
-
   // Fetch function for single class view
   const fetchSingleClass = useCallback(async (): Promise<EntryListData> => {
     if (!classId || !showContext?.licenseKey) {
       return { entries: [], classInfo: null };
     }
 
+    // Always use replication (no feature flags - development only, no existing users)
+    const isReplicationEnabled = true;
+
+    if (isReplicationEnabled) {
+      console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
+      logger.log('🔄 Fetching entries from replicated cache...');
+
+      const manager = getReplicationManager();
+      if (manager) {
+        const classesTable = manager.getTable<Class>('classes');
+        const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+
+        if (classesTable && entriesTable) {
+          try {
+            // Get class data from cache
+            const classData = await classesTable.get(classId);
+
+            if (classData) {
+              // Get entries for this class from cache
+              const cachedEntries = await entriesTable.getAll();
+              const classEntries = cachedEntries
+                .filter((entry) => String(entry.class_id) === classId)
+                .map((entry) => transformReplicatedEntry(entry, classData));
+
+              console.log(`✅ [REPLICATION] Loaded ${classEntries.length} entries from cache (class_id: ${classId})`);
+
+              // Build class info
+              const completedEntries = classEntries.filter((e) => e.isScored).length;
+              const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
+
+              const classInfoData: ClassInfo = {
+                className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
+                element: classData.element || '',
+                level: classData.level || '',
+                section: classData.section || '',
+                trialDate: classEntries[0]?.trialDate || '',
+                trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
+                judgeName: classData.judge_name || 'No Judge Assigned',
+                actualClassId: parseInt(classId),
+                selfCheckin: classData.self_checkin_enabled ?? true,
+                classStatus: classData.class_status || 'pending',
+                totalEntries: classEntries.length,
+                completedEntries,
+                timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
+                timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
+                timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
+                areas: classData.area_count
+              };
+
+              return { entries: classEntries, classInfo: classInfoData };
+            }
+          } catch (error) {
+            logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+            // Fall through to Supabase query
+          }
+        }
+      }
+    }
+
+    // Fall back to original Supabase implementation
     const classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
 
     // Get class info from first entry and fetch additional class data
@@ -106,6 +193,71 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
       return { entries: [], classInfo: null };
     }
 
+    // Always use replication (no feature flags - development only, no existing users)
+    const isReplicationEnabled = true;
+
+    if (isReplicationEnabled) {
+      console.log('🔄 [REPLICATION] Fetching combined entries from replicated cache...');
+      logger.log('🔄 Fetching combined entries from replicated cache...');
+
+      const manager = getReplicationManager();
+      if (manager) {
+        const classesTable = manager.getTable<Class>('classes');
+        const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+
+        if (classesTable && entriesTable) {
+          try {
+            // Get class data for both sections from cache
+            const classDataA = await classesTable.get(classIdA);
+            const classDataB = await classesTable.get(classIdB);
+
+            if (classDataA && classDataB) {
+              // Get entries for both classes from cache
+              const cachedEntries = await entriesTable.getAll();
+              const entriesA = cachedEntries
+                .filter((entry) => String(entry.class_id) === classIdA)
+                .map((entry) => transformReplicatedEntry(entry, classDataA));
+              const entriesB = cachedEntries
+                .filter((entry) => String(entry.class_id) === classIdB)
+                .map((entry) => transformReplicatedEntry(entry, classDataB));
+
+              const combinedEntries = [...entriesA, ...entriesB];
+
+              console.log(`✅ [REPLICATION] Loaded ${combinedEntries.length} combined entries from cache (A: ${entriesA.length}, B: ${entriesB.length})`);
+
+              // Build class info
+              const judgeNameA = classDataA.judge_name || 'No Judge Assigned';
+              const judgeNameB = classDataB.judge_name || 'No Judge Assigned';
+
+              const classInfoData: ClassInfo = {
+                className: `${classDataA.element} ${classDataA.level} A & B`,
+                element: classDataA.element || '',
+                level: classDataA.level || '',
+                trialDate: combinedEntries[0]?.trialDate || '',
+                trialNumber: combinedEntries[0]?.trialNumber ? String(combinedEntries[0].trialNumber) : '',
+                judgeName: judgeNameA,
+                judgeNameB: judgeNameB,
+                actualClassIdA: parseInt(classIdA),
+                actualClassIdB: parseInt(classIdB),
+                selfCheckin: classDataA.self_checkin_enabled ?? true,
+                classStatus: classDataA.class_status || classDataB.class_status || 'pending',
+                timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
+                timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
+                timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
+                areas: classDataA.area_count
+              };
+
+              return { entries: combinedEntries, classInfo: classInfoData };
+            }
+          } catch (error) {
+            logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+            // Fall through to Supabase query
+          }
+        }
+      }
+    }
+
+    // Fall back to original Supabase implementation
     // Load entries from both classes
     const classIdsArray = [parseInt(classIdA), parseInt(classIdB)];
     const combinedEntries = await getClassEntries(classIdsArray, showContext.licenseKey);
@@ -156,45 +308,65 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
   // Use the appropriate fetch function
   const fetchFunction = isCombinedView ? fetchCombinedClasses : fetchSingleClass;
 
-  // Use stale-while-revalidate for instant loading from cache
-  const {
-    data: cachedData,
-    isStale,
-    isRefreshing,
-    error: fetchError,
-    refresh
-  } = useStaleWhileRevalidate<EntryListData>(
-    cacheKey,
-    fetchFunction,
-    {
-      ttl: 60000, // 1 minute cache
-      fetchOnMount: true,
-      refetchOnFocus: true,
-      refetchOnReconnect: true
-    }
-  );
+  // Direct state management (replication handles caching)
+  const [data, setData] = useState<EntryListData>({ entries: [], classInfo: null });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState<Error | null>(null);
 
-  // Subscribe to LocalStateManager changes
-  // When scoring updates local state, this triggers a refresh to show the new data
-  // We use refresh(true) to bypass cache because getClassEntries() needs to be called
-  // to merge the new pending changes - they're not in the SWR cache
+  // Fetch data function
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
+    setFetchError(null);
+    try {
+      const result = await fetchFunction();
+      setData(result);
+    } catch (error) {
+      setFetchError(error as Error);
+      logger.error('Failed to fetch entry list data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchFunction]);
+
+  // Initial load
   useEffect(() => {
-    const unsubscribe = localStateManager.subscribe(() => {
-      console.log('🔄 LocalStateManager changed, bypassing cache to merge pending changes');
-      refresh(true); // Force bypass cache to call getClassEntries() which merges pending changes
+    refresh();
+  }, [refresh]);
+
+  // Subscribe to replication changes
+  // When entries/classes are updated via replication, refresh the view
+  useEffect(() => {
+    const manager = getReplicationManager();
+    if (!manager) return;
+
+    const entriesTable = manager.getTable('entries');
+    const classesTable = manager.getTable('classes');
+
+    if (!entriesTable || !classesTable) return;
+
+    // Subscribe to table changes
+    const unsubscribeEntries = entriesTable.subscribe(() => {
+      console.log('🔄 [REPLICATION] Entries changed, refreshing view');
+      refresh();
     });
 
-    return () => unsubscribe();
+    const unsubscribeClasses = classesTable.subscribe(() => {
+      console.log('🔄 [REPLICATION] Classes changed, refreshing view');
+      refresh();
+    });
+
+    return () => {
+      unsubscribeEntries();
+      unsubscribeClasses();
+    };
   }, [refresh]);
 
   // Handle visibility change for navigation back to page
-  // This ensures EntryList refreshes when you navigate back from scoresheet
-  // We DON'T force refresh here - just trigger normal refresh which will use cache if valid
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('📱 Page became visible, refreshing (will use cache if recent)');
-        refresh(); // Normal refresh - uses cache if < 1 minute old
+        console.log('📱 Page became visible, refreshing');
+        refresh();
       }
     };
 
@@ -203,9 +375,9 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
   }, [refresh]);
 
   return {
-    entries: cachedData?.entries || [],
-    classInfo: cachedData?.classInfo || null,
-    isStale,
+    entries: data.entries,
+    classInfo: data.classInfo,
+    isStale: false, // Replication handles staleness
     isRefreshing,
     fetchError,
     refresh,

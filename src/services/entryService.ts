@@ -5,7 +5,9 @@ import { recalculatePlacementsForClass } from './placementService';
 import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
 import { syncManager } from './syncManager';
-import { localStateManager } from './localStateManager';
+import { getReplicationManager } from '@/services/replication';
+import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
+import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 
 /**
  * Service for managing entries and scores
@@ -63,6 +65,108 @@ export async function getClassEntries(
 
     // For single class, use first ID for backward compatibility
     const primaryClassId = classIdArray[0];
+
+    // Always use replication (no feature flags - development only, no existing users)
+    const isReplicationEnabled = true;
+
+    if (isReplicationEnabled) {
+      console.log('🔄 [REPLICATION] Fetching class entries from replicated cache...');
+
+      const manager = getReplicationManager();
+      if (manager) {
+        const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+        const classesTable = manager.getTable<Class>('classes');
+
+        if (entriesTable && classesTable) {
+          try {
+            // Get class data from cache
+            const cachedClass = await classesTable.get(primaryClassId.toString());
+
+            if (!cachedClass) {
+              console.warn(`[REPLICATION] Class ${primaryClassId} not found in cache, falling back to Supabase`);
+              throw new Error('Class not in cache');
+            }
+
+            console.log(`✅ [REPLICATION] Found class ${primaryClassId} in cache`);
+
+            // Get all entries from cache and filter for this class
+            const cachedEntries = await entriesTable.getAll();
+            const classEntries = cachedEntries.filter(entry =>
+              classIdArray.includes(parseInt(entry.class_id, 10))
+            );
+
+            console.log(`✅ [REPLICATION] Loaded ${classEntries.length} entries from cache for class(es) ${classIdArray.join(', ')}`);
+
+            // Transform replicated entries to Entry format
+            const mappedEntries = classEntries.map(entry => {
+              const status = (entry.entry_status as EntryStatus) || 'no-status';
+
+              // Helper function to convert seconds to MM:SS format
+              const secondsToTimeString = (seconds?: number | null): string => {
+                if (!seconds || seconds === 0) return '';
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+              };
+
+              return {
+                id: parseInt(entry.id, 10),
+                armband: entry.armband_number,
+                callName: entry.dog_call_name,
+                breed: entry.dog_breed || '',
+                handler: entry.handler_name,
+                jumpHeight: '',
+                preferredTime: '',
+                isScored: entry.is_scored || false,
+
+                // Unified status field
+                status,
+
+                // Deprecated fields (backward compatibility)
+                inRing: status === 'in-ring',
+                checkedIn: status !== 'no-status',
+                checkinStatus: status,
+
+                resultText: entry.result_status || 'pending',
+                searchTime: entry.search_time_seconds?.toString() || '0.00',
+                faultCount: entry.total_faults || 0,
+                placement: entry.final_placement ?? undefined,
+                correctFinds: 0, // Not in replicated schema yet
+                incorrectFinds: 0,
+                noFinishCount: 0,
+                totalPoints: 0,
+                nqReason: undefined,
+                excusedReason: undefined,
+                withdrawnReason: undefined,
+                classId: parseInt(entry.class_id, 10),
+                className: `${cachedClass.element} ${cachedClass.level}` + (cachedClass.section && cachedClass.section !== '-' ? ` ${cachedClass.section}` : ''),
+                section: cachedClass.section || '',
+                element: cachedClass.element,
+                level: cachedClass.level,
+                timeLimit: secondsToTimeString(cachedClass.time_limit_seconds),
+                timeLimit2: secondsToTimeString(cachedClass.time_limit_area2_seconds),
+                timeLimit3: secondsToTimeString(cachedClass.time_limit_area3_seconds),
+                areas: cachedClass.area_count,
+                exhibitorOrder: 0, // Not in replicated schema yet
+                actualClassId: parseInt(entry.class_id, 10),
+                trialDate: '', // Would need to join with trials table
+                trialNumber: ''
+              };
+            }).sort((a, b) => a.armband - b.armband);
+
+            console.log(`📊 [REPLICATION] Returning ${mappedEntries.length} entries from cache`);
+            return mappedEntries;
+
+          } catch (error) {
+            console.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+            // Fall through to Supabase query
+          }
+        }
+      }
+    }
+
+    // Fall back to original Supabase implementation
+    console.log('🔍 Fetching class entries from Supabase...');
 
     // Get class data to determine element, level, section for filtering
     const { data: classData, error: classError } = await supabase
@@ -181,20 +285,10 @@ export async function getClassEntries(
       };
     });
 
-    // 🚀 LOCAL-FIRST: Apply server data to LocalStateManager
-    // This updates the base state while preserving any pending local changes
-    await localStateManager.applyServerUpdate(mappedEntries);
+    // Return entries directly - replication layer handles caching and pending changes
+    console.log(`📊 Returning ${mappedEntries.length} entries from Supabase fallback`);
 
-    // 🚀 LOCAL-FIRST: Return merged state (DB + pending changes)
-    // For single class queries, get the merged entries from LocalStateManager
-    // For multi-class queries, we'll still return all entries but they've been cached
-    const mergedEntries = classIdArray.length === 1
-      ? localStateManager.getEntries(primaryClassId)
-      : mappedEntries; // Multi-class: return all for now (TODO: enhance for multi-class)
-
-    console.log(`📊 [LOCAL-FIRST] Returning ${mergedEntries.length} entries (${localStateManager.getStats().pendingChanges} pending changes)`);
-
-    return mergedEntries;
+    return mappedEntries;
   } catch (error) {
     console.error('Error in getClassEntries:', error);
     throw error;
@@ -689,12 +783,7 @@ export async function markInRing(
   inRing: boolean = true
 ): Promise<boolean> {
   try {
-    // 🚀 LOCAL-FIRST: Do NOT clear pending changes here!
-    // Let applyServerUpdate() in localStateManager handle clearing when it confirms
-    // the server data matches the pending changes. This prevents a race condition where
-    // we clear the pending change before applyServerUpdate() can merge it.
-    //
-    // This matches the pattern used in handleResetScore() which works correctly.
+    // Replication handles pending mutations and syncing automatically
 
     // When removing from ring (inRing=false), check if entry is already scored
     // If scored, don't change status back to 'no-status' - keep it as 'completed'

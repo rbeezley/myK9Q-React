@@ -4,7 +4,8 @@ import { submitScore } from '../services/entryService';
 import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
-import { localStateManager } from '../services/localStateManager';
+// TODO: Remove legacy localStateManager - replaced by replication system
+// import { localStateManager } from '../services/localStateManager';
 
 /**
  * Specialized hook for optimistic score submissions
@@ -123,29 +124,28 @@ export function useOptimisticScoring() {
     // - faultCount, correctFinds, etc. are numbers
     console.log('🔄 Updating LocalStateManager for entry:', entryId);
 
-    // Normalize resultText to match database format (lowercase)
-    const normalizedResultText = scoreData.resultText.toLowerCase();
+    // TODO: Remove legacy localStateManager - replaced by replication system
+    // Normalization logic below was only needed for localStateManager, now unused:
+    // const normalizedResultText = scoreData.resultText.toLowerCase();
+    // const searchTimeNum = scoreData.searchTime ? parseFloat(scoreData.searchTime) : 0;
+    // const normalizedSearchTime = searchTimeNum.toString();
 
-    // Normalize searchTime to match database format (no padding)
-    // Database returns search_time_seconds?.toString() which doesn't pad decimals
-    const searchTimeNum = scoreData.searchTime ? parseFloat(scoreData.searchTime) : 0;
-    const normalizedSearchTime = searchTimeNum.toString();
-
-    await localStateManager.updateEntry(
-      entryId,
-      {
-        // Use Entry interface field names with normalized values
-        isScored: true,
-        status: 'completed',
-        resultText: normalizedResultText, // Lowercase to match database
-        searchTime: normalizedSearchTime, // No padding to match database
-        faultCount: scoreData.faultCount || 0,
-        correctFinds: scoreData.correctCount || 0,
-        incorrectFinds: scoreData.incorrectCount || 0,
-        // Add other score fields as needed
-      },
-      'score'
-    );
+    // TODO: Remove legacy localStateManager - replaced by replication system
+    // await localStateManager.updateEntry(
+    //   entryId,
+    //   {
+    //     // Use Entry interface field names with normalized values
+    //     isScored: true,
+    //     status: 'completed',
+    //     resultText: normalizedResultText, // Lowercase to match database
+    //     searchTime: normalizedSearchTime, // No padding to match database
+    //     faultCount: scoreData.faultCount || 0,
+    //     correctFinds: scoreData.correctCount || 0,
+    //     incorrectFinds: scoreData.incorrectCount || 0,
+    //     // Add other score fields as needed
+    //   },
+    //   'score'
+    // );
     console.log('✅ LocalStateManager updated with pending score (will notify EntryList listeners)');
 
     console.log('✅ Local state updated optimistically');
@@ -189,12 +189,13 @@ export function useOptimisticScoring() {
         // - Connection drops right after successful API response
         // - Real-time subscription not connected
         // - Database update confirmed but real-time event lost
-        setTimeout(async () => {
-          if (localStateManager.hasPendingChange(entryId)) {
-            console.log('⏰ Timeout reached - clearing pending change as fallback');
-            await localStateManager.clearPendingChange(entryId);
-          }
-        }, 5000);
+        // TODO: Remove legacy localStateManager - replaced by replication system
+        // setTimeout(async () => {
+        //   if (localStateManager.hasPendingChange(entryId)) {
+        //     console.log('⏰ Timeout reached - clearing pending change as fallback');
+        //     await localStateManager.clearPendingChange(entryId);
+        //   }
+        // }, 5000);
 
         // NOTE: Placement calculation is now handled inside submitScore() in the background
         // This allows the save to complete quickly without blocking the user

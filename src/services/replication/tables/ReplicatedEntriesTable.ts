@@ -76,13 +76,34 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
       // Step 1: Get last sync timestamp
       const metadata = await this.getSyncMetadata();
-      const lastSync = metadata?.lastIncrementalSyncAt || 0;
+
+      // Check if cache is empty - if so, force full sync from epoch
+      const allCachedEntries = await this.getAll();
+      const isCacheEmpty = allCachedEntries.length === 0;
+
+      // If cache is empty but we have a lastSync timestamp, it means the cache was cleared
+      // Reset to epoch (0) to fetch all data
+      const lastSync = isCacheEmpty ? 0 : (metadata?.lastIncrementalSyncAt || 0);
+
+      console.log(`[${this.tableName}] Cache status: ${allCachedEntries.length} entries, lastSync: ${new Date(lastSync).toISOString()}`);
 
       // Step 2: Fetch changes from server since last sync
-      const { data: remoteEntries, error: fetchError } = await supabase
+      // Join through: entries → classes → trials → shows.license_key
+      const { data: remoteEntries, error: fetchError} = await supabase
         .from('entries')
-        .select('*')
-        .eq('license_key', licenseKey)
+        .select(`
+          *,
+          classes!inner(
+            trial_id,
+            trials!inner(
+              show_id,
+              shows!inner(
+                license_key
+              )
+            )
+          )
+        `)
+        .eq('classes.trials.shows.license_key', licenseKey)
         .gt('updated_at', new Date(lastSync).toISOString())
         .order('updated_at', { ascending: true });
 
@@ -93,17 +114,22 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
       // Step 3: Merge remote changes with local cache (conflict resolution)
       if (remoteEntries && remoteEntries.length > 0) {
-        for (const remoteEntry of remoteEntries) {
-          const localEntry = await this.get(remoteEntry.id.toString());
+        for (const rawEntry of remoteEntries) {
+          // Flatten the response (remove nested classes/trials/shows objects)
+          const { classes: _classes, ...remoteEntry } = rawEntry as any;
+
+          // Convert ID to string for consistent IndexedDB key format (bigserial returns as number)
+          const entryId = String(remoteEntry.id);
+          const localEntry = await this.get(entryId);
 
           if (localEntry) {
             // Conflict: both local and remote have data
             const resolved = this.resolveConflict(localEntry, remoteEntry as Entry);
-            await this.set(remoteEntry.id.toString(), resolved, false); // Not dirty after merge
+            await this.set(entryId, resolved, false); // Not dirty after merge
             conflictsResolved++;
           } else {
             // No conflict: just cache the remote entry
-            await this.set(remoteEntry.id.toString(), remoteEntry as Entry, false);
+            await this.set(entryId, remoteEntry as Entry, false);
           }
 
           rowsSynced++;
@@ -128,9 +154,9 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
       return {
         tableName: this.tableName,
         success: true,
-        rowsSynced,
+        operation: 'incremental-sync',
+        rowsAffected: rowsSynced,
         conflictsResolved,
-        errors,
         duration,
       };
     } catch (error) {
@@ -148,10 +174,11 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
       return {
         tableName: this.tableName,
         success: false,
-        rowsSynced,
+        operation: 'incremental-sync',
+        rowsAffected: rowsSynced,
         conflictsResolved,
-        errors,
         duration: Date.now() - startTime,
+        error: errorMessage,
       };
     }
   }
@@ -189,10 +216,18 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
   /**
    * Helper: Get all entries for a specific class
    * This is the most common query pattern for entries
+   * OPTIMIZED: Uses IndexedDB index for O(log n) performance instead of O(n) table scan
    */
   async getByClassId(classId: string, licenseKey?: string): Promise<Entry[]> {
-    const allEntries = await this.getAll(licenseKey);
-    return allEntries.filter((entry) => entry.class_id === classId);
+    // Use indexed query for much better performance
+    const entries = await this.queryByField('class_id', classId);
+
+    // Filter by license_key if needed (for multi-tenant isolation)
+    if (licenseKey) {
+      return entries.filter((entry) => (entry as any).license_key === licenseKey);
+    }
+
+    return entries;
   }
 
   /**
