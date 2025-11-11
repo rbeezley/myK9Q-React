@@ -259,7 +259,7 @@
   border: 1px solid var(--dark-border-strong);
   border-radius: 2rem;
   margin-bottom: 3rem;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   font-size: 0.9375rem;
   font-weight: 500;
 }
@@ -283,7 +283,7 @@
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   font-size: 0.9375rem;
   font-weight: 500;
 }
@@ -350,7 +350,7 @@
   letter-spacing: -0.02em;
   text-align: center;
   margin-bottom: 4rem;
-  color: var(--foreground);
+  color: var(--text-primary);
 }
 
 .features-grid {
@@ -389,7 +389,7 @@
 .feature-header h3 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -406,7 +406,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   font-size: 0.9375rem;
   line-height: 1.5;
 }
@@ -429,14 +429,14 @@
   font-size: 2rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--foreground);
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 1rem;
 }
 
 .resources-subtitle {
   font-size: 1.125rem;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   text-align: center;
   margin-bottom: 3rem;
 }
@@ -488,14 +488,14 @@
 .resource-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--text-primary);
   margin: 0 0 0.75rem 0;
 }
 
 .resource-description {
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   margin: 0 0 1.5rem 0;
   flex-grow: 1;
 }
@@ -526,7 +526,7 @@
   letter-spacing: -0.02em;
   text-align: center;
   margin-bottom: 4rem;
-  color: var(--foreground);
+  color: var(--text-primary);
 }
 
 .capabilities-grid {
@@ -557,13 +557,13 @@
 .capability-item h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--text-primary);
   margin: 0 0 0.5rem;
 }
 
 .capability-item p {
   font-size: 0.9375rem;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
 }
@@ -591,13 +591,13 @@
   font-size: 2.5rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--foreground);
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
 .cta-description {
   font-size: 1.125rem;
-  color: var(--token-text-secondary);
+  color: var(--text-secondary);
   margin-bottom: 2rem;
   line-height: 1.6;
 }
@@ -649,7 +649,7 @@
 .footer-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--text-primary);
 }
 
 .footer-copyright {
