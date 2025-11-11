@@ -199,11 +199,10 @@ export const Login: React.FC = () => {
           login(fullPasscode, showDataWithType);
 
           // 🚀 AUTO-DOWNLOAD: Start background download for offline use
-          // Only for staff roles (not exhibitors)
-          const role = fullPasscode.charAt(0).toLowerCase();
+          // All roles (admin, judge, steward, exhibitor) benefit from cached data
           const { settings } = useSettingsStore.getState();
 
-          if (settings.autoDownloadOnLogin && role !== 'e') {
+          if (settings.autoDownloadOnLogin) {
             triggerAutoDownload(showDataWithType.licenseKey);
           }
 
@@ -229,11 +228,10 @@ export const Login: React.FC = () => {
       login(fullPasscode, showDataWithType);
 
       // 🚀 AUTO-DOWNLOAD: Start background download for offline use
-      // Only for staff roles (not exhibitors)
-      const role = fullPasscode.charAt(0).toLowerCase();
+      // All roles (admin, judge, steward, exhibitor) benefit from cached data
       const { settings } = useSettingsStore.getState();
 
-      if (settings.autoDownloadOnLogin && role !== 'e') {
+      if (settings.autoDownloadOnLogin) {
         triggerAutoDownload(showDataWithType.licenseKey);
       }
 
