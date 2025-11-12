@@ -29,22 +29,30 @@ export function isReplicationEnabled(): boolean {
   const disabledUntil = localStorage.getItem(REPLICATION_DISABLED_UNTIL_KEY);
   if (disabledUntil) {
     const until = parseInt(disabledUntil, 10);
+    const now = Date.now();
 
-    // Sanity check: if disabled until is more than 24 hours in the future, clear it
-    const maxDisableTime = Date.now() + (24 * 60 * 60 * 1000);
-    if (until > maxDisableTime) {
-      console.warn(`[ReplicationConfig] Invalid disable time (${new Date(until).toLocaleString()}), clearing...`);
+    // Check if the timeout has expired
+    if (now >= until) {
+      // Timeout expired, re-enable
+      console.log(`[ReplicationConfig] Temporary disable expired at ${new Date(until).toLocaleString()}, re-enabling`);
       localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
       return true;
     }
 
-    if (Date.now() < until) {
-      console.warn(`[ReplicationConfig] Replication disabled until ${new Date(until).toLocaleString()}`);
-      return false;
-    } else {
-      // Timeout expired, re-enable
+    // Still disabled - calculate remaining time
+    const remainingMs = until - now;
+    const remainingMinutes = Math.ceil(remainingMs / 60000);
+
+    // Sanity check: if disabled for more than 24 hours from when it was set, it's likely invalid
+    // But we can't know when it was set, so just check if it's more than 24 hours in total
+    if (remainingMs > (24 * 60 * 60 * 1000)) {
+      console.warn(`[ReplicationConfig] Disable time seems excessive (${remainingMinutes} minutes remaining), clearing...`);
       localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
+      return true;
     }
+
+    console.warn(`[ReplicationConfig] Replication disabled for ${remainingMinutes} more minute(s) until ${new Date(until).toLocaleString()}`);
+    return false;
   }
 
   return true;
@@ -74,6 +82,22 @@ export function enableReplication(): void {
   localStorage.removeItem(REPLICATION_DISABLED_KEY);
   localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
   console.log('[ReplicationConfig] ✅ Replication ENABLED');
+}
+
+/**
+ * Clear any expired temporary disable
+ */
+export function clearExpiredDisable(): boolean {
+  const disabledUntil = localStorage.getItem(REPLICATION_DISABLED_UNTIL_KEY);
+  if (disabledUntil) {
+    const until = parseInt(disabledUntil, 10);
+    if (Date.now() >= until) {
+      localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
+      console.log('[ReplicationConfig] Cleared expired temporary disable');
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
