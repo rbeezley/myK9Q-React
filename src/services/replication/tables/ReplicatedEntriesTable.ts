@@ -89,7 +89,9 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
       // Step 2: Fetch changes from server since last sync
       // Join through: entries → classes → trials → shows.license_key
-      const { data: remoteEntries, error: fetchError} = await supabase
+      console.log(`[${this.tableName}] Fetching entries for license: ${licenseKey}, since: ${new Date(lastSync).toISOString()}`);
+
+      const fetchPromise = supabase
         .from('entries')
         .select(`
           *,
@@ -107,10 +109,34 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         .gt('updated_at', new Date(lastSync).toISOString())
         .order('updated_at', { ascending: true });
 
+      // Add 30 second timeout to prevent infinite hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Entries fetch timed out after 30 seconds')), 30000);
+      });
+
+      let result;
+      try {
+        result = await Promise.race([fetchPromise, timeoutPromise]);
+      } catch (timeoutError) {
+        console.error(`[${this.tableName}] Fetch timed out, trying simpler query...`);
+        // Fallback: use view instead of complex join
+        result = await supabase
+          .from('view_entry_class_join_normalized')
+          .select('*')
+          .eq('license_key', licenseKey)
+          .gt('updated_at', new Date(lastSync).toISOString())
+          .order('updated_at', { ascending: true });
+      }
+
+      const { data: remoteEntries, error: fetchError } = result as any;
+
       if (fetchError) {
+        console.error(`[${this.tableName}] Fetch error:`, fetchError);
         errors.push(`Fetch error: ${fetchError.message}`);
         throw fetchError;
       }
+
+      console.log(`[${this.tableName}] Fetched ${remoteEntries?.length || 0} entries from server`);
 
       // Step 3: Merge remote changes with local cache (conflict resolution)
       if (remoteEntries && remoteEntries.length > 0) {
