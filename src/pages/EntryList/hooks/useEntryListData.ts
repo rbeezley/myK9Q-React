@@ -3,7 +3,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { getClassEntries } from '../../../services/entryService';
 import { Entry } from '../../../stores/entryStore';
 import { supabase } from '../../../lib/supabase';
-import { getReplicationManager } from '@/services/replication';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
 import { logger } from '@/utils/logger';
@@ -93,8 +93,8 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
       console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
       logger.log('🔄 Fetching entries from replicated cache...');
 
-      const manager = getReplicationManager();
-      if (manager) {
+      try {
+        const manager = await ensureReplicationManager();
         const classesTable = manager.getTable<Class>('classes');
         const entriesTable = manager.getTable<ReplicatedEntry>('entries');
 
@@ -142,6 +142,9 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
             // Fall through to Supabase query
           }
         }
+      } catch (managerError) {
+        logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
+        // Fall through to Supabase query
       }
     }
 
@@ -200,8 +203,8 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
       console.log('🔄 [REPLICATION] Fetching combined entries from replicated cache...');
       logger.log('🔄 Fetching combined entries from replicated cache...');
 
-      const manager = getReplicationManager();
-      if (manager) {
+      try {
+        const manager = await ensureReplicationManager();
         const classesTable = manager.getTable<Class>('classes');
         const entriesTable = manager.getTable<ReplicatedEntry>('entries');
 
@@ -254,6 +257,9 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
             // Fall through to Supabase query
           }
         }
+      } catch (managerError) {
+        logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
+        // Fall through to Supabase query
       }
     }
 
@@ -336,28 +342,38 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
   // Subscribe to replication changes
   // When entries/classes are updated via replication, refresh the view
   useEffect(() => {
-    const manager = getReplicationManager();
-    if (!manager) return;
+    let unsubscribeEntries: (() => void) | undefined;
+    let unsubscribeClasses: (() => void) | undefined;
 
-    const entriesTable = manager.getTable('entries');
-    const classesTable = manager.getTable('classes');
+    const setupSubscriptions = async () => {
+      try {
+        const manager = await ensureReplicationManager();
 
-    if (!entriesTable || !classesTable) return;
+        const entriesTable = manager.getTable('entries');
+        const classesTable = manager.getTable('classes');
 
-    // Subscribe to table changes
-    const unsubscribeEntries = entriesTable.subscribe(() => {
-      console.log('🔄 [REPLICATION] Entries changed, refreshing view');
-      refresh();
-    });
+        if (!entriesTable || !classesTable) return;
 
-    const unsubscribeClasses = classesTable.subscribe(() => {
-      console.log('🔄 [REPLICATION] Classes changed, refreshing view');
-      refresh();
-    });
+        // Subscribe to table changes
+        unsubscribeEntries = entriesTable.subscribe(() => {
+          console.log('🔄 [REPLICATION] Entries changed, refreshing view');
+          refresh();
+        });
+
+        unsubscribeClasses = classesTable.subscribe(() => {
+          console.log('🔄 [REPLICATION] Classes changed, refreshing view');
+          refresh();
+        });
+      } catch (error) {
+        logger.error('❌ Error setting up replication subscriptions:', error);
+      }
+    };
+
+    setupSubscriptions();
 
     return () => {
-      unsubscribeEntries();
-      unsubscribeClasses();
+      if (unsubscribeEntries) unsubscribeEntries();
+      if (unsubscribeClasses) unsubscribeClasses();
     };
   }, [refresh]);
 

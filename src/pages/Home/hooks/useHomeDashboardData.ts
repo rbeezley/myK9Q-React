@@ -16,7 +16,7 @@ import { supabase } from '../../../lib/supabase';
 import { logger } from '../../../utils/logger';
 import { subscriptionCleanup } from '../../../services/subscriptionCleanup';
 import { debounce } from 'lodash';
-import { getReplicationManager } from '@/services/replication';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Entry } from '@/services/replication';
 
 // ============================================================
@@ -154,8 +154,8 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
     console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
     logger.log('🔄 Fetching entries from replicated cache...');
 
-    const manager = getReplicationManager();
-    if (manager) {
+    try {
+      const manager = await ensureReplicationManager();
       const table = manager.getTable('entries');
       if (table) {
         try {
@@ -193,6 +193,9 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
           // Fall through to Supabase query
         }
       }
+    } catch (managerError) {
+      logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
+      // Fall through to Supabase query
     }
   }
 

@@ -16,7 +16,7 @@ import type { VisibleResultFields, VisibilityTiming } from '../../../types/visib
 import type { CheckinStatus } from '../../../components/dialogs/CheckinStatusDialog';
 import type { UserRole } from '../../../utils/auth';
 import { logger } from '../../../utils/logger';
-import { getReplicationManager } from '../../../services/replication/initReplication';
+import { ensureReplicationManager } from '../../../utils/replicationHelper';
 import type { Entry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Trial } from '../../../services/replication/tables/ReplicatedTrialsTable';
@@ -99,11 +99,8 @@ async function fetchDogDetails(
   logger.log('[REPLICATION] 🔍 Fetching dog details for armband:', armband);
 
   try {
-    // Load from replicated cache
-    const manager = getReplicationManager();
-    if (!manager) {
-      throw new Error('Replication manager not initialized');
-    }
+    // Load from replicated cache - ensure it's initialized
+    const manager = await ensureReplicationManager();
 
     const entriesTable = manager.getTable('entries');
     const classesTable = manager.getTable('classes');

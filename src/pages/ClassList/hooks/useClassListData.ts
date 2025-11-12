@@ -16,7 +16,7 @@ import { getClassEntries } from '../../../services/entryService';
 import { getLevelSortOrder } from '../../../lib/utils';
 import { logger } from '../../../utils/logger';
 import { cache as idbCache } from '@/utils/indexedDB';
-import { getReplicationManager } from '@/services/replication';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '@/services/replication/tables/ReplicatedEntriesTable';
 
@@ -320,8 +320,8 @@ async function fetchClasses(
     console.log('🔄 [REPLICATION] Fetching classes from replicated cache...');
     logger.log('🔄 Fetching classes from replicated cache...');
 
-    const manager = getReplicationManager();
-    if (manager) {
+    try {
+      const manager = await ensureReplicationManager();
       const classesTable = manager.getTable<Class>('classes');
       const entriesTable = manager.getTable<Entry>('entries');
 
@@ -356,6 +356,9 @@ async function fetchClasses(
           // Fall through to Supabase query
         }
       }
+    } catch (managerError) {
+      logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
+      // Fall through to Supabase query
     }
   }
 
