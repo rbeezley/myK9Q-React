@@ -25,6 +25,14 @@ const DB_NAME = 'myK9Q_Replication';
 const DB_VERSION = 2; // Version 2: Add query performance indexes
 
 /**
+ * Shared database instance singleton
+ * CRITICAL: All ReplicatedTable instances MUST share the same DB connection
+ * to avoid upgrade transaction deadlocks when 16 tables initialize simultaneously
+ */
+let sharedDB: IDBPDatabase | null = null;
+let dbInitPromise: Promise<IDBPDatabase> | null = null;
+
+/**
  * New object stores for replication system
  */
 export const REPLICATION_STORES = {
@@ -56,11 +64,23 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
   /**
    * Initialize IndexedDB connection
+   * SINGLETON PATTERN: All tables share the same DB instance to prevent upgrade deadlocks
    */
   protected async init(): Promise<IDBPDatabase> {
-    if (this.db) return this.db;
+    // Return shared instance if already initialized
+    if (sharedDB) {
+      this.db = sharedDB;
+      return sharedDB;
+    }
 
-    this.db = await openDB(DB_NAME, DB_VERSION, {
+    // If initialization is in progress, wait for it
+    if (dbInitPromise) {
+      this.db = await dbInitPromise;
+      return this.db;
+    }
+
+    // Start initialization (only one table will execute this)
+    dbInitPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, _newVersion, _transaction) {
         // Create replicated_tables store if it doesn't exist
         if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
@@ -113,6 +133,12 @@ export abstract class ReplicatedTable<T extends { id: string }> {
         }
       },
     });
+
+    // Save to singleton and instance
+    sharedDB = await dbInitPromise;
+    this.db = sharedDB;
+
+    console.log(`[ReplicatedTable] ✅ Shared database initialized successfully`);
 
     return this.db;
   }
