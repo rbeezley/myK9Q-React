@@ -63,9 +63,17 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       if (result.status === 'corrupted' || result.status === 'locked') {
         setIsCorrupted(true);
 
-        // Don't auto-recover immediately - let user see the modal and click the button
-        // This gives them visibility into what's happening
+        // Show modal first, then attempt auto-recovery after a short delay
         console.log('[DatabaseRecovery] Database corruption confirmed - showing recovery modal');
+
+        // Auto-attempt recovery after 2 seconds (gives user time to see what's happening)
+        if (!autoRecoveryAttempted) {
+          setAutoRecoveryAttempted(true);
+          setTimeout(() => {
+            console.log('[DatabaseRecovery] Starting automatic recovery...');
+            handleAutoRecovery();
+          }, 2000);
+        }
       } else if (result.status === 'healthy') {
         setIsCorrupted(false);
         onRecovered?.();
