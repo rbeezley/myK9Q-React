@@ -24,7 +24,7 @@ export function Landing() {
             <div className="hero-visual">
               <div className="screenshot-wrapper">
                 <img
-                  src="/screenshots/home-page.png"
+                  src="/home-page-screenshot.png"
                   alt="myK9Q App Home Page"
                   className="screenshot-image"
                 />
