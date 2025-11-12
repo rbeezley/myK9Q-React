@@ -64,13 +64,13 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
         setIsCorrupted(true);
 
         // Show modal first, then attempt auto-recovery after a short delay
-        console.log('[DatabaseRecovery] Database corruption confirmed - showing recovery modal');
+        console.log('[DatabaseRecovery] Storage optimization needed - showing optimization modal');
 
         // Auto-attempt recovery after 2 seconds (gives user time to see what's happening)
         if (!autoRecoveryAttempted) {
           setAutoRecoveryAttempted(true);
           setTimeout(() => {
-            console.log('[DatabaseRecovery] Starting automatic recovery...');
+            console.log('[DatabaseRecovery] Starting automatic optimization...');
             handleAutoRecovery();
           }, 2000);
         }
@@ -89,7 +89,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
   const handleAutoRecovery = async () => {
     try {
       setIsRecovering(true);
-      setRecoveryStatus('Attempting automatic recovery...');
+      setRecoveryStatus('Optimizing your local storage...');
 
       // First, try to stop any active replication
       try {
@@ -102,7 +102,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       const cleanupResult = await attemptAutoCleanup();
 
       if (cleanupResult.success) {
-        setRecoveryStatus('Database recovered! Reloading...');
+        setRecoveryStatus('Optimization complete! Refreshing...');
 
         // Wait a moment for cleanup to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -110,12 +110,12 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
         // Force reload to reinitialize everything
         window.location.reload();
       } else {
-        setRecoveryStatus('Automatic recovery failed. Manual intervention required.');
+        setRecoveryStatus('Additional steps needed. Please follow the instructions below.');
         setShowManualInstructions(true);
       }
     } catch (error) {
-      console.error('[DatabaseRecovery] Recovery error:', error);
-      setRecoveryStatus('Recovery failed. Please follow manual instructions.');
+      console.error('[DatabaseRecovery] Optimization error:', error);
+      setRecoveryStatus('Please follow these simple steps to continue.');
       setShowManualInstructions(true);
     } finally {
       setIsRecovering(false);
@@ -140,7 +140,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
     return (
       <div className="database-recovery-detecting">
         <Loader className="detecting-icon" />
-        <span>Checking database...</span>
+        <span>Preparing your workspace...</span>
       </div>
     );
   }
@@ -150,15 +150,15 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       <div className="database-recovery-overlay" />
       <div className="database-recovery-content">
         <div className="recovery-header">
-          <AlertTriangle className="warning-icon" />
-          <h2>Database Issue Detected</h2>
+          <RefreshCw className="warning-icon" />
+          <h2>Optimizing Your Experience</h2>
         </div>
 
         <div className="recovery-body">
           <p className="recovery-message">
-            We've detected an issue with your local database that's preventing data from loading properly.
+            We're performing a quick optimization to ensure your data loads smoothly. This typically happens when your browser's storage needs a refresh.
             {process.env.NODE_ENV === 'production' && !autoRecoveryAttempted &&
-              ' We\'ll attempt to fix this automatically.'}
+              ' This will only take a moment.'}
           </p>
 
           {recoveryStatus && (
@@ -179,27 +179,26 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                 onClick={handleAutoRecovery}
               >
                 <RefreshCw className="btn-icon" />
-                Attempt Recovery
+                Optimize Now
               </button>
               <button
                 className="btn-secondary"
                 onClick={handleManualRecovery}
               >
-                Manual Instructions
+                Show Me How
               </button>
             </div>
           )}
 
           {showManualInstructions && (
             <div className="manual-instructions">
-              <h3>Manual Recovery Steps</h3>
+              <h3>Quick Browser Refresh Steps</h3>
               <ol>
-                {getManualCleanupInstructions()
-                  .filter(line => line && !line.startsWith('🔧') && !line.startsWith('⚠️'))
-                  .map((instruction, index) => (
-                    <li key={index}>{instruction}</li>
-                  ))
-                }
+                <li>Press F12 to open Developer Tools</li>
+                <li>Go to the Application tab</li>
+                <li>Click "Storage" in the left sidebar</li>
+                <li>Click "Clear site data"</li>
+                <li>Refresh this page</li>
               </ol>
               <button
                 className="btn-primary"

@@ -59,7 +59,8 @@
 .warning-icon {
   width: 24px;
   height: 24px;
-  color: var(--status-error);
+  color: var(--primary);
+  animation: spin 2s linear infinite;
 }
 
 .recovery-header h2 {
