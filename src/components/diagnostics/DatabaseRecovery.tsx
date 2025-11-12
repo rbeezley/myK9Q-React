@@ -128,6 +128,15 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       if (cleanupResult.success) {
         setRecoveryStatus('Optimization complete! Refreshing...');
 
+        // Re-enable replication after successful cleanup
+        try {
+          const { enableReplication } = await import('@/services/replication/replicationConfig');
+          enableReplication();
+          console.log('[DatabaseRecovery] Re-enabled replication after successful recovery');
+        } catch (error) {
+          console.warn('[DatabaseRecovery] Could not re-enable replication:', error);
+        }
+
         // Wait a moment for cleanup to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
 

@@ -29,6 +29,15 @@ export function isReplicationEnabled(): boolean {
   const disabledUntil = localStorage.getItem(REPLICATION_DISABLED_UNTIL_KEY);
   if (disabledUntil) {
     const until = parseInt(disabledUntil, 10);
+
+    // Sanity check: if disabled until is more than 24 hours in the future, clear it
+    const maxDisableTime = Date.now() + (24 * 60 * 60 * 1000);
+    if (until > maxDisableTime) {
+      console.warn(`[ReplicationConfig] Invalid disable time (${new Date(until).toLocaleString()}), clearing...`);
+      localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
+      return true;
+    }
+
     if (Date.now() < until) {
       console.warn(`[ReplicationConfig] Replication disabled until ${new Date(until).toLocaleString()}`);
       return false;
