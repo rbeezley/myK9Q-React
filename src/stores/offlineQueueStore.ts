@@ -329,6 +329,9 @@ if (typeof window !== 'undefined') {
     useOfflineQueueStore.getState().setOnlineStatus(false);
   });
 
-  // Hydrate on module load
-  useOfflineQueueStore.getState().hydrate?.();
+  // Hydrate on next tick to avoid circular dependency during minification
+  // This prevents "Cannot access 'A' before initialization" errors in production
+  setTimeout(() => {
+    useOfflineQueueStore.getState().hydrate?.();
+  }, 0);
 }
