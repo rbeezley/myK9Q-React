@@ -170,8 +170,14 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     } catch (error) {
       console.error(`[ReplicatedTable] ❌ Failed to open database:`, error);
 
-      // Database is corrupt or locked - delete and retry ONCE
-      console.warn(`[ReplicatedTable] 🗑️ Deleting corrupted database and retrying...`);
+      // Import the config function
+      const { handleDatabaseCorruption } = await import('./replicationConfig');
+
+      // Database is corrupt or locked - disable replication and clean up
+      console.warn(`[ReplicatedTable] 🗑️ Deleting corrupted database and disabling replication...`);
+
+      // Handle the corruption (this will disable replication temporarily)
+      handleDatabaseCorruption();
 
       try {
         await deleteDB(DB_NAME);

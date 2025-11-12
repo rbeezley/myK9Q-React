@@ -8,6 +8,30 @@
 export function setupQuickRecovery() {
   // Make recovery function available globally
   if (typeof window !== 'undefined') {
+    // Import replication config
+    import('../services/replication/replicationConfig').then(({
+      disableReplication,
+      enableReplication,
+      getReplicationStatus
+    }) => {
+      // Add replication control functions
+      (window as any).disableReplication = () => {
+        disableReplication('Manual disable via console');
+        console.log('Replication disabled. Refresh the page to apply.');
+      };
+
+      (window as any).enableReplication = () => {
+        enableReplication();
+        console.log('Replication enabled. Refresh the page to apply.');
+      };
+
+      (window as any).replicationStatus = () => {
+        const status = getReplicationStatus();
+        console.log('Replication status:', status);
+        return status;
+      };
+    });
+
     // One-liner function users can run
     (window as any).fixDatabase = async () => {
       console.log('🔧 Running myK9Q Database Recovery...');

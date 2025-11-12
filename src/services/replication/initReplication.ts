@@ -27,6 +27,7 @@ import {
   replicatedNationalsRankingsTable,
   replicatedAuditLogViewTable,
 } from './index';
+import { isReplicationEnabled, handleDatabaseCorruption } from './replicationConfig';
 
 // Track if we've already initialized to prevent duplicate initialization
 let isInitialized = false;
@@ -38,6 +39,12 @@ let isInitialized = false;
  */
 export async function initializeReplication(): Promise<void> {
   try {
+    // Check if replication is enabled
+    if (!isReplicationEnabled()) {
+      console.warn('[Replication] Replication is disabled, skipping initialization');
+      return;
+    }
+
     // Prevent duplicate initialization
     if (isInitialized) {
       console.log('[Replication] Already initialized, skipping duplicate initialization');
