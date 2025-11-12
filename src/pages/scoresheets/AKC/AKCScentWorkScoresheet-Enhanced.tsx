@@ -941,7 +941,11 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }, [classId, entryId, showContext]);
 
   const loadEntries = async () => {
-    if (!classId || !showContext?.licenseKey) return;
+    console.log('[Scoresheet] loadEntries called with classId:', classId, 'showContext:', showContext);
+    if (!classId || !showContext?.licenseKey) {
+      console.log('[Scoresheet] Missing required data - classId:', classId, 'licenseKey:', showContext?.licenseKey);
+      return;
+    }
 
     setIsLoadingEntry(true); // Start loading
     try {
@@ -949,20 +953,44 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       console.log('[REPLICATION] 🔍 Loading scoresheet data for class:', classId);
 
       // Ensure replication manager is initialized (handles recovery scenarios)
+      console.log('[Scoresheet] Ensuring replication manager...');
       const manager = await ensureReplicationManager();
+      console.log('[Scoresheet] Got replication manager:', manager);
 
       const entriesTable = manager.getTable('entries');
       const classesTable = manager.getTable('classes');
       const trialsTable = manager.getTable('trials');
+
+      console.log('[Scoresheet] Tables - entries:', !!entriesTable, 'classes:', !!classesTable, 'trials:', !!trialsTable);
 
       if (!entriesTable || !classesTable || !trialsTable) {
         throw new Error('Required tables not registered');
       }
 
       // Get class information
-      const classData = await classesTable.get(classId) as Class | undefined;
+      console.log('[Scoresheet] Getting class data for classId:', classId);
+      let classData = await classesTable.get(classId) as Class | undefined;
+      console.log('[Scoresheet] Class data:', classData);
+
       if (!classData) {
-        throw new Error(`Class ${classId} not found in cache`);
+        console.error('[Scoresheet] Class not found in cache, attempting to sync...');
+
+        // Try to sync the class data from server
+        try {
+          console.log('[Scoresheet] Attempting to sync class data from server...');
+          await manager.syncTable('classes');
+
+          // Try again after sync
+          classData = await classesTable.get(classId) as Class | undefined;
+          if (classData) {
+            console.log('[Scoresheet] Class data retrieved after sync');
+          } else {
+            throw new Error(`Class ${classId} not found even after sync`);
+          }
+        } catch (syncError) {
+          console.error('[Scoresheet] Failed to sync class data:', syncError);
+          throw new Error(`Class ${classId} not found in cache and sync failed`);
+        }
       }
 
       // Get trial information
@@ -981,10 +1009,27 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       }
 
       // Get all entries for this class
-      const allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-      const classEntries = allEntries.filter(entry => entry.class_id === classId);
+      let allEntries = await entriesTable.getAll() as ReplicatedEntry[];
+      let classEntries = allEntries.filter(entry => entry.class_id === classId);
 
-      console.log(`[REPLICATION] ✅ Loaded ${classEntries.length} entries for class ${classId}`);
+      console.log(`[REPLICATION] Found ${classEntries.length} entries for class ${classId}`);
+
+      // If no entries found, try to sync
+      if (classEntries.length === 0) {
+        console.log('[Scoresheet] No entries found in cache, attempting to sync entries...');
+        try {
+          await manager.syncTable('entries');
+
+          // Try again after sync
+          allEntries = await entriesTable.getAll() as ReplicatedEntry[];
+          classEntries = allEntries.filter(entry => entry.class_id === classId);
+
+          console.log(`[Scoresheet] After sync, found ${classEntries.length} entries`);
+        } catch (syncError) {
+          console.error('[Scoresheet] Failed to sync entries:', syncError);
+          // Continue with empty entries, user will be redirected
+        }
+      }
 
       // Transform to Entry format for store
       const transformedEntries: Entry[] = classEntries.map(entry => ({
@@ -1031,7 +1076,16 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error('Error loading entries:', error);
+      console.error('[Scoresheet] Error loading entries:', error);
+      console.error('[Scoresheet] Full error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        classId,
+        entryId,
+        showContext
+      });
+      // Show user-friendly error message
+      alert(`Unable to load scoresheet data. Please refresh the page and try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoadingEntry(false); // Done loading (success or error)
     }

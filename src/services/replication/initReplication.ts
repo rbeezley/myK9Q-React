@@ -45,10 +45,24 @@ export async function initializeReplication(): Promise<void> {
       return;
     }
 
-    // Prevent duplicate initialization
-    if (isInitialized) {
-      console.log('[Replication] Already initialized, skipping duplicate initialization');
+    // Check if we already have a manager instance
+    const existingManager = getReplicationManager();
+    if (existingManager) {
+      console.log('[Replication] Manager already exists, skipping duplicate initialization');
       return;
+    }
+
+    // Prevent duplicate initialization within same session
+    if (isInitialized) {
+      console.log('[Replication] Already initialized in this session, checking manager state...');
+      // Double-check that manager really exists
+      const manager = getReplicationManager();
+      if (!manager) {
+        console.warn('[Replication] isInitialized was true but manager is null, resetting flag');
+        isInitialized = false; // Reset flag to allow reinitialization
+      } else {
+        return;
+      }
     }
 
     // Get license key from auth
