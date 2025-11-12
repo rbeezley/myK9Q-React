@@ -17,7 +17,12 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
   const [autoRecoveryAttempted, setAutoRecoveryAttempted] = useState(false);
 
   useEffect(() => {
-    detectDatabaseIssues();
+    // In development, wait a bit before checking to avoid false positives during HMR
+    const checkDelay = process.env.NODE_ENV === 'development' ? 1000 : 100;
+
+    const timeoutId = setTimeout(() => {
+      detectDatabaseIssues();
+    }, checkDelay);
 
     // Listen for database errors in console
     const originalError = console.error;
@@ -57,6 +62,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
 
     // Cleanup
     return () => {
+      clearTimeout(timeoutId);
       console.error = originalError;
       console.warn = originalWarn;
     };
@@ -70,6 +76,22 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       const result = await runIndexedDBDiagnostics();
 
       if (result.status === 'corrupted' || result.status === 'locked') {
+        // In development, double-check after a short delay to avoid false positives
+        if (process.env.NODE_ENV === 'development' && result.status === 'locked') {
+          console.log('[DatabaseRecovery] Database appears locked, verifying...');
+
+          // Wait a moment and check again
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const recheckResult = await runIndexedDBDiagnostics();
+
+          if (recheckResult.status === 'healthy') {
+            console.log('[DatabaseRecovery] False alarm - database is healthy');
+            setIsCorrupted(false);
+            onRecovered?.();
+            return;
+          }
+        }
+
         setIsCorrupted(true);
 
         // Show modal first, then attempt auto-recovery after a short delay
