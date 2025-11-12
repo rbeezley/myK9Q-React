@@ -15,7 +15,7 @@ import { useSettingsStore } from '../../../stores/settingsStore';
 import { markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
-import { getReplicationManager } from '../../../services/replication/initReplication';
+import { ensureReplicationManager } from '../../../utils/replicationHelper';
 import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Trial } from '../../../services/replication/tables/ReplicatedTrialsTable';
@@ -948,10 +948,8 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       // Load from replicated cache (direct replacement, no feature flags)
       console.log('[REPLICATION] 🔍 Loading scoresheet data for class:', classId);
 
-      const manager = getReplicationManager();
-      if (!manager) {
-        throw new Error('Replication manager not initialized');
-      }
+      // Ensure replication manager is initialized (handles recovery scenarios)
+      const manager = await ensureReplicationManager();
 
       const entriesTable = manager.getTable('entries');
       const classesTable = manager.getTable('classes');
