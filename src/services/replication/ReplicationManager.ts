@@ -510,6 +510,41 @@ export class ReplicationManager {
   }
 
   /**
+   * Stop replication manager and cleanup resources
+   */
+  async stop(): Promise<void> {
+    console.log('[ReplicationManager] Stopping replication...');
+
+    // Stop auto sync
+    this.stopAutoSync();
+
+    // Clear sync queue
+    this.syncQueue = [];
+
+    // Mark as not syncing
+    this.isSyncing = false;
+    this.isProcessingQueue = false;
+
+    // Cleanup tables (close DB connections)
+    for (const [tableName, table] of this.tables) {
+      try {
+        // If table has a cleanup method, call it
+        if (typeof (table as any).cleanup === 'function') {
+          await (table as any).cleanup();
+        }
+      } catch (error) {
+        console.warn(`[ReplicationManager] Error cleaning up table ${tableName}:`, error);
+      }
+    }
+
+    // Clear tables map
+    this.tables.clear();
+
+    console.log('[ReplicationManager] Replication stopped');
+  }
+
+
+  /**
    * Clear all caches (e.g., when switching shows)
    * This prevents multi-tenant data leakage
    */
@@ -899,5 +934,11 @@ export function destroyReplicationManager(): void {
   if (instance) {
     instance.destroy();
     instance = null;
+  }
+}
+
+export async function stopReplicationManager(): Promise<void> {
+  if (instance) {
+    await instance.stop();
   }
 }

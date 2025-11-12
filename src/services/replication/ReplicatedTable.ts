@@ -20,6 +20,7 @@ import type {
 import type { SyncOptions } from './SyncEngine';
 import { logger } from '@/utils/logger';
 import { getTableTTL } from '@/config/featureFlags';
+import { logDiagnosticReport } from '@/utils/indexedDBDiagnostics';
 
 const DB_NAME = 'myK9Q_Replication';
 const DB_VERSION = 3; // Version 3: Fix upgrade deadlock with timeout + corrupted DB recovery
@@ -212,6 +213,17 @@ export abstract class ReplicatedTable<T extends { id: string }> {
         return this.db;
       } catch (retryError) {
         console.error(`[ReplicatedTable] ❌ Failed to recreate database after deletion:`, retryError);
+
+        // Database is completely stuck - run diagnostics
+        console.error(`[ReplicatedTable] 🔍 Database is locked/corrupted - running diagnostics...`);
+
+        // Run diagnostic report in background
+        setTimeout(() => {
+          logDiagnosticReport().catch(err => {
+            console.error('[ReplicatedTable] Diagnostic report failed:', err);
+          });
+        }, 0);
+
         // Reset promises to allow future retries
         dbInitPromise = null;
         sharedDB = null;

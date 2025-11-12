@@ -27,6 +27,8 @@ import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
 import { subscriptionCleanup } from './services/subscriptionCleanup';
+import { DatabaseRecovery } from './components/diagnostics/DatabaseRecovery';
+import './utils/quickRecovery'; // Auto-setup recovery functions
 // memoryLeakDetector auto-starts via its module initialization (dev mode only)
 
 // Import unified container system
@@ -240,6 +242,9 @@ function AppWithAuth() {
     <>
       {/* PWA Install Banner - Smart banner that auto-hides when installed */}
       <PWAInstallBanner />
+
+      {/* Database recovery component (shows only when corruption detected) */}
+      <DatabaseRecovery />
 
       {/* Auto-logout warning modal */}
       {autoLogout.showWarning && (
