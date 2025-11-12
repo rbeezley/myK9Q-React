@@ -67,23 +67,33 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * SINGLETON PATTERN: All tables share the same DB instance to prevent upgrade deadlocks
    */
   protected async init(): Promise<IDBPDatabase> {
+    console.log(`[${this.tableName}] init() called - sharedDB: ${!!sharedDB}, dbInitPromise: ${!!dbInitPromise}`);
+
     // Return shared instance if already initialized
     if (sharedDB) {
+      console.log(`[${this.tableName}] Using existing sharedDB`);
       this.db = sharedDB;
       return sharedDB;
     }
 
     // If initialization is in progress, wait for it
     if (dbInitPromise) {
+      console.log(`[${this.tableName}] Waiting for dbInitPromise to resolve...`);
       this.db = await dbInitPromise;
+      console.log(`[${this.tableName}] dbInitPromise resolved successfully`);
       return this.db;
     }
 
     // Start initialization (only one table will execute this)
+    console.log(`[${this.tableName}] Starting new DB initialization...`);
     dbInitPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, _newVersion, _transaction) {
+        console.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
+
         // Create replicated_tables store if it doesn't exist
         if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
+          console.log(`[ReplicatedTable] Creating REPLICATED_TABLES store...`);
+
           const store = db.createObjectStore(REPLICATION_STORES.REPLICATED_TABLES, {
             keyPath: ['tableName', 'id'],
           });
@@ -118,6 +128,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
         // Create sync_metadata store
         if (!db.objectStoreNames.contains(REPLICATION_STORES.SYNC_METADATA)) {
+          console.log(`[ReplicatedTable] Creating SYNC_METADATA store...`);
           db.createObjectStore(REPLICATION_STORES.SYNC_METADATA, {
             keyPath: 'tableName',
           });
@@ -125,12 +136,15 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
         // Create pending_mutations store
         if (!db.objectStoreNames.contains(REPLICATION_STORES.PENDING_MUTATIONS)) {
+          console.log(`[ReplicatedTable] Creating PENDING_MUTATIONS store...`);
           const mutationStore = db.createObjectStore(REPLICATION_STORES.PENDING_MUTATIONS, {
             keyPath: 'id',
           });
           mutationStore.createIndex('status', 'status', { unique: false });
           mutationStore.createIndex('tableName', 'tableName', { unique: false });
         }
+
+        console.log(`[ReplicatedTable] ✅ Upgrade callback complete`);
       },
     });
 
