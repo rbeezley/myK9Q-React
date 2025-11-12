@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, RefreshCw, CheckCircle, Loader } from 'lucide-react';
-import { runIndexedDBDiagnostics, attemptAutoCleanup, getManualCleanupInstructions } from '@/utils/indexedDBDiagnostics';
+import { runIndexedDBDiagnostics, attemptAutoCleanup } from '@/utils/indexedDBDiagnostics';
 import { stopReplicationManager } from '@/services/replication/ReplicationManager';
 import './DatabaseRecovery.css';
 
@@ -165,10 +165,6 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
     setShowManualInstructions(true);
   };
 
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-
   // Don't show anything if database is healthy
   if (!isDetecting && !isCorrupted) {
     return null;
@@ -282,7 +278,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                             setTimeout(resolve, 500);
                           });
                           console.log(`Deleted ${db}`);
-                        } catch (e) {
+                        } catch (_e) {
                           console.log(`Could not delete ${db}`);
                         }
                       }

@@ -108,7 +108,7 @@ export function setupQuickRecovery() {
             console.log('');
             console.log('Then refresh the page.');
           };
-        } catch (error) {
+        } catch (_error) {
           // Ignore errors in detection
         }
       }, 5000);

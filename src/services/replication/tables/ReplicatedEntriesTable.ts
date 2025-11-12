@@ -123,7 +123,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
       let result;
       try {
         result = await Promise.race([fetchPromise, timeoutPromise]);
-      } catch (timeoutError) {
+      } catch (_timeoutError) {
         console.error(`[${this.tableName}] Fetch timed out, trying simpler query...`);
         // Fallback: use view instead of complex join
         result = await supabase

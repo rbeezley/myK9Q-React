@@ -27,7 +27,7 @@ import {
   replicatedNationalsRankingsTable,
   replicatedAuditLogViewTable,
 } from './index';
-import { isReplicationEnabled, handleDatabaseCorruption } from './replicationConfig';
+import { isReplicationEnabled } from './replicationConfig';
 
 // Track if we've already initialized to prevent duplicate initialization
 let isInitialized = false;
