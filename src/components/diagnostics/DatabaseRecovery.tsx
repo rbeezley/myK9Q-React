@@ -224,22 +224,24 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                 className="btn-secondary"
                 onClick={handleManualRecovery}
               >
-                Show Me How
+                More Options
               </button>
             </div>
           )}
 
           {showManualInstructions && (
             <div className="manual-instructions">
-              <h3>Quick Browser Refresh Steps</h3>
+              <h3>Additional Options</h3>
 
               {/* Quick fix button for stuck situations */}
-              <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background-secondary)', borderRadius: 'var(--token-radius-md)' }}>
-                <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Quick Fix (Try This First):</p>
+              <div style={{ padding: '1rem', background: 'var(--background-secondary)', borderRadius: 'var(--token-radius-md)' }}>
+                <p style={{ marginBottom: '1rem' }}>
+                  If the automatic optimization didn't complete, you can try a full cache clear:
+                </p>
                 <button
                   className="btn-primary"
                   onClick={async () => {
-                    setRecoveryStatus('Clearing cache...');
+                    setRecoveryStatus('Clearing all data and refreshing...');
                     setIsRecovering(true);
 
                     try {
@@ -315,26 +317,12 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                   style={{ width: '100%' }}
                 >
                   <RefreshCw className="btn-icon" />
-                  Clear Cache & Reload
+                  Clear All Data & Refresh
                 </button>
+                <p style={{ marginTop: '0.5rem', marginBottom: 0, fontSize: '0.875rem', color: 'var(--foreground-secondary)' }}>
+                  This will clear all stored data and reload the page
+                </p>
               </div>
-
-              <p style={{ marginBottom: '1rem' }}>Or follow these manual steps:</p>
-              <ol>
-                <li>Press F12 to open Developer Tools</li>
-                <li>Go to the Application tab</li>
-                <li>Click "Storage" in the left sidebar</li>
-                <li>Click "Clear site data"</li>
-                <li>Refresh this page</li>
-              </ol>
-              <button
-                className="btn-primary"
-                onClick={handleRefresh}
-                style={{ marginTop: '1rem' }}
-              >
-                <RefreshCw className="btn-icon" />
-                Refresh Page
-              </button>
             </div>
           )}
         </div>
