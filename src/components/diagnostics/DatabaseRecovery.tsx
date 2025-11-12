@@ -18,6 +18,39 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
 
   useEffect(() => {
     detectDatabaseIssues();
+
+    // Listen for database errors in console
+    const originalError = console.error;
+    console.error = (...args) => {
+      const errorMessage = args.join(' ');
+      if (errorMessage.includes('Database open timed out') ||
+          errorMessage.includes('database may be corrupted') ||
+          errorMessage.includes('ReplicationManager] Failed to sync')) {
+        console.log('[DatabaseRecovery] Corruption detected via console error');
+        setIsCorrupted(true);
+        setIsDetecting(false);
+      }
+      originalError.apply(console, args);
+    };
+
+    // Also listen for critical alerts
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      const warnMessage = args.join(' ');
+      if (warnMessage.includes('CRITICAL ALERT') ||
+          warnMessage.includes('Deleting corrupted database')) {
+        console.log('[DatabaseRecovery] Corruption detected via console warning');
+        setIsCorrupted(true);
+        setIsDetecting(false);
+      }
+      originalWarn.apply(console, args);
+    };
+
+    // Cleanup
+    return () => {
+      console.error = originalError;
+      console.warn = originalWarn;
+    };
   }, []);
 
   const detectDatabaseIssues = async () => {
@@ -30,11 +63,9 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       if (result.status === 'corrupted' || result.status === 'locked') {
         setIsCorrupted(true);
 
-        // In production, automatically attempt recovery once
-        if (!autoRecoveryAttempted && process.env.NODE_ENV === 'production') {
-          setAutoRecoveryAttempted(true);
-          await handleAutoRecovery();
-        }
+        // Don't auto-recover immediately - let user see the modal and click the button
+        // This gives them visibility into what's happening
+        console.log('[DatabaseRecovery] Database corruption confirmed - showing recovery modal');
       } else if (result.status === 'healthy') {
         setIsCorrupted(false);
         onRecovered?.();
