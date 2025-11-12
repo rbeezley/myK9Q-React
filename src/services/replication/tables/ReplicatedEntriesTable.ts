@@ -65,20 +65,26 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
    * 3. Resolve conflicts
    */
   async sync(licenseKey: string): Promise<SyncResult> {
+    console.log(`[${this.tableName}] 🚀 Starting sync for license: ${licenseKey}`);
     const startTime = Date.now();
     const errors: string[] = [];
     let rowsSynced = 0;
     let conflictsResolved = 0;
 
     try {
+      console.log(`[${this.tableName}] Step 1: Updating sync metadata...`);
       // Update sync status to 'syncing'
       await this.updateSyncMetadata({ syncStatus: 'syncing' });
 
+      console.log(`[${this.tableName}] Step 2: Getting sync metadata...`);
       // Step 1: Get last sync timestamp
       const metadata = await this.getSyncMetadata();
+      console.log(`[${this.tableName}] Metadata retrieved:`, metadata);
 
+      console.log(`[${this.tableName}] Step 3: Checking cache...`);
       // Check if cache is empty - if so, force full sync from epoch
       const allCachedEntries = await this.getAll();
+      console.log(`[${this.tableName}] Cache check complete: ${allCachedEntries.length} entries`);
       const isCacheEmpty = allCachedEntries.length === 0;
 
       // If cache is empty but we have a lastSync timestamp, it means the cache was cleared
