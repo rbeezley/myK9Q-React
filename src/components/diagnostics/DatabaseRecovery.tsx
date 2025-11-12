@@ -91,15 +91,30 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       setIsRecovering(true);
       setRecoveryStatus('Optimizing your local storage...');
 
-      // First, try to stop any active replication
-      try {
-        await stopReplicationManager();
-      } catch (error) {
-        console.warn('[DatabaseRecovery] Could not stop replication:', error);
-      }
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Recovery timeout')), 10000) // 10 second timeout
+      );
 
-      // Attempt cleanup
-      const cleanupResult = await attemptAutoCleanup();
+      // Create recovery promise
+      const recoveryPromise = async () => {
+        // First, try to stop any active replication
+        try {
+          await stopReplicationManager();
+        } catch (error) {
+          console.warn('[DatabaseRecovery] Could not stop replication:', error);
+        }
+
+        // Attempt cleanup
+        const cleanupResult = await attemptAutoCleanup();
+        return cleanupResult;
+      };
+
+      // Race between recovery and timeout
+      const cleanupResult = await Promise.race([
+        recoveryPromise(),
+        timeoutPromise
+      ]) as { success: boolean; message?: string };
 
       if (cleanupResult.success) {
         setRecoveryStatus('Optimization complete! Refreshing...');
@@ -113,9 +128,15 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
         setRecoveryStatus('Additional steps needed. Please follow the instructions below.');
         setShowManualInstructions(true);
       }
-    } catch (error) {
-      console.error('[DatabaseRecovery] Optimization error:', error);
-      setRecoveryStatus('Please follow these simple steps to continue.');
+    } catch (error: any) {
+      console.error('[DatabaseRecovery] Optimization error or timeout:', error);
+
+      // If it's a timeout, provide a more direct solution
+      if (error?.message === 'Recovery timeout') {
+        setRecoveryStatus('The optimization is taking longer than expected. Please use the manual steps below.');
+      } else {
+        setRecoveryStatus('Please follow these simple steps to continue.');
+      }
       setShowManualInstructions(true);
     } finally {
       setIsRecovering(false);
@@ -193,6 +214,38 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
           {showManualInstructions && (
             <div className="manual-instructions">
               <h3>Quick Browser Refresh Steps</h3>
+
+              {/* Quick fix button for stuck situations */}
+              <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background-secondary)', borderRadius: 'var(--token-radius-md)' }}>
+                <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Quick Fix (Try This First):</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    // Clear all myK9Q data and reload
+                    const databases = ['myK9Q_Replication', 'myK9Q_OfflineCache', 'myK9Q_Mutations'];
+                    databases.forEach(db => {
+                      try {
+                        indexedDB.deleteDatabase(db);
+                      } catch (e) {
+                        console.log(`Could not delete ${db}`);
+                      }
+                    });
+                    // Clear localStorage
+                    Object.keys(localStorage).forEach(key => {
+                      if (key.includes('myK9Q') && !key.includes('auth')) {
+                        localStorage.removeItem(key);
+                      }
+                    });
+                    window.location.reload();
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  <RefreshCw className="btn-icon" />
+                  Clear Cache & Reload
+                </button>
+              </div>
+
+              <p style={{ marginBottom: '1rem' }}>Or follow these manual steps:</p>
               <ol>
                 <li>Press F12 to open Developer Tools</li>
                 <li>Go to the Application tab</li>
