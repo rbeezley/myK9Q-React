@@ -11,7 +11,7 @@
  * - Subscription pattern for real-time updates
  */
 
-import { openDB, IDBPDatabase } from 'idb';
+import { openDB, deleteDB, IDBPDatabase } from 'idb';
 import type {
   ReplicatedRow,
   SyncMetadata,
@@ -22,7 +22,7 @@ import { logger } from '@/utils/logger';
 import { getTableTTL } from '@/config/featureFlags';
 
 const DB_NAME = 'myK9Q_Replication';
-const DB_VERSION = 2; // Version 2: Add query performance indexes
+const DB_VERSION = 3; // Version 3: Fix upgrade deadlock with timeout + corrupted DB recovery
 
 /**
  * Shared database instance singleton
@@ -86,7 +86,10 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     // Start initialization (only one table will execute this)
     console.log(`[${this.tableName}] Starting new DB initialization...`);
-    dbInitPromise = openDB(DB_NAME, DB_VERSION, {
+
+    // Timeout protection: openDB can hang if database is corrupt or locked
+    const DB_OPEN_TIMEOUT_MS = 10000; // 10 second timeout for opening database
+    const openDBPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, _newVersion, _transaction) {
         console.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
 
@@ -107,8 +110,8 @@ export abstract class ReplicatedTable<T extends { id: string }> {
           store.createIndex('tableName_data.trial_id', ['tableName', 'data.trial_id'], { unique: false });
           store.createIndex('tableName_data.show_id', ['tableName', 'data.show_id'], { unique: false });
           store.createIndex('tableName_data.armband_number', ['tableName', 'data.armband_number'], { unique: false });
-        } else if (oldVersion < 2) {
-          // Upgrade from v1 to v2: Add query performance indexes
+        } else if (oldVersion < 3) {
+          // Upgrade from v1/v2 to v3: Add query performance indexes if missing
           const store = _transaction.objectStore(REPLICATION_STORES.REPLICATED_TABLES);
 
           // Add new indexes if they don't exist
@@ -148,13 +151,73 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       },
     });
 
-    // Save to singleton and instance
-    sharedDB = await dbInitPromise;
-    this.db = sharedDB;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Database open timed out after ${DB_OPEN_TIMEOUT_MS}ms - database may be corrupted or locked`));
+      }, DB_OPEN_TIMEOUT_MS);
+    });
 
-    console.log(`[ReplicatedTable] ✅ Shared database initialized successfully`);
+    // Try to open database with timeout
+    try {
+      dbInitPromise = Promise.race([openDBPromise, timeoutPromise]);
+      sharedDB = await dbInitPromise;
+      this.db = sharedDB;
 
-    return this.db;
+      console.log(`[ReplicatedTable] ✅ Shared database initialized successfully`);
+
+      return this.db;
+    } catch (error) {
+      console.error(`[ReplicatedTable] ❌ Failed to open database:`, error);
+
+      // Database is corrupt or locked - delete and retry ONCE
+      console.warn(`[ReplicatedTable] 🗑️ Deleting corrupted database and retrying...`);
+
+      try {
+        await deleteDB(DB_NAME);
+        console.log(`[ReplicatedTable] Database deleted successfully`);
+
+        // Retry opening database (fresh start)
+        const retryPromise = openDB(DB_NAME, DB_VERSION, {
+          upgrade(db, oldVersion, _newVersion, _transaction) {
+            console.log(`[ReplicatedTable] 🔧 Retry upgrade - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
+            // Same upgrade logic as above (create all stores)
+            if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
+              const store = db.createObjectStore(REPLICATION_STORES.REPLICATED_TABLES, {
+                keyPath: ['tableName', 'id'],
+              });
+              store.createIndex('tableName', 'tableName', { unique: false });
+              store.createIndex('tableName_lastSyncedAt', ['tableName', 'lastSyncedAt'], { unique: false });
+              store.createIndex('isDirty', 'isDirty', { unique: false });
+              store.createIndex('tableName_data.class_id', ['tableName', 'data.class_id'], { unique: false });
+              store.createIndex('tableName_data.trial_id', ['tableName', 'data.trial_id'], { unique: false });
+              store.createIndex('tableName_data.show_id', ['tableName', 'data.show_id'], { unique: false });
+              store.createIndex('tableName_data.armband_number', ['tableName', 'data.armband_number'], { unique: false });
+            }
+            if (!db.objectStoreNames.contains(REPLICATION_STORES.SYNC_METADATA)) {
+              db.createObjectStore(REPLICATION_STORES.SYNC_METADATA, { keyPath: 'tableName' });
+            }
+            if (!db.objectStoreNames.contains(REPLICATION_STORES.PENDING_MUTATIONS)) {
+              const mutationStore = db.createObjectStore(REPLICATION_STORES.PENDING_MUTATIONS, { keyPath: 'id' });
+              mutationStore.createIndex('status', 'status', { unique: false });
+              mutationStore.createIndex('tableName', 'tableName', { unique: false });
+            }
+          },
+        });
+
+        dbInitPromise = Promise.race([retryPromise, timeoutPromise]);
+        sharedDB = await dbInitPromise;
+        this.db = sharedDB;
+
+        console.log(`[ReplicatedTable] ✅ Database recreated successfully after corruption`);
+        return this.db;
+      } catch (retryError) {
+        console.error(`[ReplicatedTable] ❌ Failed to recreate database after deletion:`, retryError);
+        // Reset promises to allow future retries
+        dbInitPromise = null;
+        sharedDB = null;
+        throw retryError;
+      }
+    }
   }
 
   /**
