@@ -17,10 +17,20 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
   const [autoRecoveryAttempted, setAutoRecoveryAttempted] = useState(false);
 
   useEffect(() => {
+    // Only check once per browser session to avoid re-checking on navigation
+    const sessionKey = 'myK9Q_db_checked';
+    const hasCheckedThisSession = sessionStorage.getItem(sessionKey) === 'true';
+
+    if (hasCheckedThisSession) {
+      setIsDetecting(false);
+      return;
+    }
+
     // In development, wait a bit before checking to avoid false positives during HMR
     const checkDelay = process.env.NODE_ENV === 'development' ? 1000 : 100;
 
     const timeoutId = setTimeout(() => {
+      sessionStorage.setItem(sessionKey, 'true');
       detectDatabaseIssues();
     }, checkDelay);
 
