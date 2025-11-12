@@ -292,25 +292,45 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
   /**
    * Get all rows for this table
+   * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
    */
   async getAll(licenseKey?: string): Promise<T[]> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
-    const index = tx.store.index('tableName');
+    const GET_ALL_TIMEOUT_MS = 10000; // 10 second timeout for reading all rows
 
-    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
+    const getAllPromise = (async () => {
+      const db = await this.init();
+      const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
+      const index = tx.store.index('tableName');
 
-    // Filter expired rows
-    const freshRows = rows.filter((row) => !this.isExpired(row));
+      const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
 
-    // Filter by license_key if provided (for multi-tenant isolation)
-    if (licenseKey) {
-      return freshRows
-        .filter((row) => (row.data as any).license_key === licenseKey)
-        .map((row) => row.data);
+      // Filter expired rows
+      const freshRows = rows.filter((row) => !this.isExpired(row));
+
+      // Filter by license_key if provided (for multi-tenant isolation)
+      if (licenseKey) {
+        return freshRows
+          .filter((row) => (row.data as any).license_key === licenseKey)
+          .map((row) => row.data);
+      }
+
+      return freshRows.map((row) => row.data);
+    })();
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`[${this.tableName}] getAll() timed out after ${GET_ALL_TIMEOUT_MS}ms - possible transaction deadlock`));
+      }, GET_ALL_TIMEOUT_MS);
+    });
+
+    try {
+      const result = await Promise.race([getAllPromise, timeoutPromise]);
+      return result;
+    } catch (error) {
+      console.error(`[${this.tableName}] ❌ getAll() failed:`, error);
+      // Return empty array on timeout to allow sync to continue
+      return [];
     }
-
-    return freshRows.map((row) => row.data);
   }
 
   /**
@@ -752,30 +772,69 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
   /**
    * Get sync metadata for this table
+   * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
    */
   async getSyncMetadata(): Promise<SyncMetadata | null> {
-    const db = await this.init();
-    return await db.get(REPLICATION_STORES.SYNC_METADATA, this.tableName) as SyncMetadata | null;
+    const METADATA_TIMEOUT_MS = 5000; // 5 second timeout for metadata operations
+
+    const readPromise = (async () => {
+      const db = await this.init();
+      return await db.get(REPLICATION_STORES.SYNC_METADATA, this.tableName) as SyncMetadata | null;
+    })();
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`[${this.tableName}] Metadata read timed out after ${METADATA_TIMEOUT_MS}ms - possible transaction deadlock`));
+      }, METADATA_TIMEOUT_MS);
+    });
+
+    try {
+      const result = await Promise.race([readPromise, timeoutPromise]);
+      return result;
+    } catch (error) {
+      console.error(`[${this.tableName}] ❌ Metadata read failed:`, error);
+      // Return null on timeout to allow sync to continue with default metadata
+      return null;
+    }
   }
 
   /**
    * Update sync metadata
+   * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
    */
   protected async updateSyncMetadata(updates: Partial<SyncMetadata>): Promise<void> {
-    const db = await this.init();
-    const existing = await this.getSyncMetadata();
+    const METADATA_TIMEOUT_MS = 5000; // 5 second timeout for metadata operations
 
-    const metadata: SyncMetadata = {
-      tableName: this.tableName,
-      lastFullSyncAt: existing?.lastFullSyncAt || 0,
-      lastIncrementalSyncAt: existing?.lastIncrementalSyncAt || 0,
-      syncStatus: 'idle',
-      conflictCount: existing?.conflictCount || 0,
-      pendingMutations: existing?.pendingMutations || 0,
-      ...updates,
-    };
+    const updatePromise = (async () => {
+      const db = await this.init();
+      const existing = await this.getSyncMetadata();
 
-    await db.put(REPLICATION_STORES.SYNC_METADATA, metadata);
+      const metadata: SyncMetadata = {
+        tableName: this.tableName,
+        lastFullSyncAt: existing?.lastFullSyncAt || 0,
+        lastIncrementalSyncAt: existing?.lastIncrementalSyncAt || 0,
+        syncStatus: 'idle',
+        conflictCount: existing?.conflictCount || 0,
+        pendingMutations: existing?.pendingMutations || 0,
+        ...updates,
+      };
+
+      await db.put(REPLICATION_STORES.SYNC_METADATA, metadata);
+    })();
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`[${this.tableName}] Metadata update timed out after ${METADATA_TIMEOUT_MS}ms - possible transaction deadlock`));
+      }, METADATA_TIMEOUT_MS);
+    });
+
+    try {
+      await Promise.race([updatePromise, timeoutPromise]);
+      console.log(`[${this.tableName}] ✅ Metadata updated successfully`);
+    } catch (error) {
+      console.error(`[${this.tableName}] ❌ Metadata update failed:`, error);
+      throw error;
+    }
   }
 
   /**
