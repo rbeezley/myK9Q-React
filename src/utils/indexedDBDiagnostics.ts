@@ -220,22 +220,65 @@ export async function attemptAutoCleanup(): Promise<{ success: boolean; message:
   try {
     console.log('[IndexedDB Diagnostics] Starting auto-cleanup...');
 
-    // Try to delete the database
-    await deleteDB(DB_NAME);
+    // Helper function to delete database with timeout
+    const deleteWithTimeout = async (dbName: string, timeout: number = 3000): Promise<boolean> => {
+      console.log(`[IndexedDB Diagnostics] Attempting to delete ${dbName}...`);
 
-    // Also delete legacy databases
-    try {
-      await deleteDB('myK9Q_OfflineCache');
-      await deleteDB('myK9Q_Mutations');
-    } catch {
-      // Ignore errors for legacy databases
-    }
+      const deletePromise = new Promise<boolean>((resolve) => {
+        const deleteReq = indexedDB.deleteDatabase(dbName);
 
-    return {
-      success: true,
-      message: 'Database cleaned successfully. Please refresh the page to recreate the database.',
+        deleteReq.onsuccess = () => {
+          console.log(`[IndexedDB Diagnostics] Successfully deleted ${dbName}`);
+          resolve(true);
+        };
+
+        deleteReq.onerror = () => {
+          console.warn(`[IndexedDB Diagnostics] Failed to delete ${dbName}:`, deleteReq.error);
+          resolve(false);
+        };
+
+        deleteReq.onblocked = () => {
+          console.warn(`[IndexedDB Diagnostics] Delete blocked for ${dbName} - database still in use`);
+          resolve(false);
+        };
+      });
+
+      const timeoutPromise = new Promise<boolean>((resolve) => {
+        setTimeout(() => {
+          console.warn(`[IndexedDB Diagnostics] Delete timeout for ${dbName} after ${timeout}ms`);
+          resolve(false);
+        }, timeout);
+      });
+
+      return Promise.race([deletePromise, timeoutPromise]);
     };
+
+    // Try to delete databases with individual timeouts
+    const mainDeleted = await deleteWithTimeout(DB_NAME, 3000);
+
+    // Also delete legacy databases (don't wait for these)
+    const legacyDatabases = ['myK9Q_OfflineCache', 'myK9Q_Mutations', 'myK9Q_entries', 'myK9Q_classes', 'myK9Q_trials', 'myK9Q_shows'];
+
+    // Delete legacy databases in parallel with shorter timeout
+    const legacyPromises = legacyDatabases.map(db => deleteWithTimeout(db, 1000));
+    const legacyResults = await Promise.allSettled(legacyPromises);
+
+    const legacyDeleted = legacyResults.filter(r => r.status === 'fulfilled' && r.value).length;
+    console.log(`[IndexedDB Diagnostics] Deleted ${legacyDeleted}/${legacyDatabases.length} legacy databases`);
+
+    if (mainDeleted) {
+      return {
+        success: true,
+        message: 'Database cleaned successfully. Please refresh the page to recreate the database.',
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Could not delete database - it may be in use by another tab. Close other tabs and try again.',
+      };
+    }
   } catch (error) {
+    console.error('[IndexedDB Diagnostics] Auto-cleanup error:', error);
     return {
       success: false,
       message: `Auto-cleanup failed: ${error instanceof Error ? error.message : String(error)}. Manual cleanup required.`,

@@ -25,10 +25,17 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       const errorMessage = args.join(' ');
       if (errorMessage.includes('Database open timed out') ||
           errorMessage.includes('database may be corrupted') ||
-          errorMessage.includes('ReplicationManager] Failed to sync')) {
-        console.log('[DatabaseRecovery] Corruption detected via console error');
+          errorMessage.includes('ReplicationManager] Failed to sync') ||
+          errorMessage.includes('Failed to open IndexedDB') ||
+          errorMessage.includes('IDBDatabase.transaction') ||
+          errorMessage.includes('QuotaExceededError') ||
+          errorMessage.includes('UnknownError') ||
+          errorMessage.includes('VersionError')) {
+        console.log('[DatabaseRecovery] Corruption/error detected via console error');
         setIsCorrupted(true);
         setIsDetecting(false);
+
+        // Note: Auto-recovery will be triggered by detectDatabaseIssues
       }
       originalError.apply(console, args);
     };
@@ -38,8 +45,10 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
     console.warn = (...args) => {
       const warnMessage = args.join(' ');
       if (warnMessage.includes('CRITICAL ALERT') ||
-          warnMessage.includes('Deleting corrupted database')) {
-        console.log('[DatabaseRecovery] Corruption detected via console warning');
+          warnMessage.includes('Deleting corrupted database') ||
+          warnMessage.includes('Database blocked') ||
+          warnMessage.includes('Delete blocked')) {
+        console.log('[DatabaseRecovery] Corruption/blocking detected via console warning');
         setIsCorrupted(true);
         setIsDetecting(false);
       }
@@ -220,23 +229,79 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                 <p style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Quick Fix (Try This First):</p>
                 <button
                   className="btn-primary"
-                  onClick={() => {
-                    // Clear all myK9Q data and reload
-                    const databases = ['myK9Q_Replication', 'myK9Q_OfflineCache', 'myK9Q_Mutations'];
-                    databases.forEach(db => {
-                      try {
-                        indexedDB.deleteDatabase(db);
-                      } catch (e) {
-                        console.log(`Could not delete ${db}`);
+                  onClick={async () => {
+                    setRecoveryStatus('Clearing cache...');
+                    setIsRecovering(true);
+
+                    try {
+                      // Get all databases if possible
+                      let allDatabases = [
+                        'myK9Q_Replication',
+                        'myK9Q_OfflineCache',
+                        'myK9Q_Mutations',
+                        'myK9Q_entries',
+                        'myK9Q_classes',
+                        'myK9Q_trials',
+                        'myK9Q_shows',
+                        'myK9Q_announcements'
+                      ];
+
+                      // Try to get actual list of databases
+                      if ('databases' in indexedDB) {
+                        try {
+                          const dbs = await indexedDB.databases();
+                          const myK9QDbs = dbs.filter(db => db.name?.startsWith('myK9Q')).map(db => db.name!);
+                          if (myK9QDbs.length > 0) {
+                            allDatabases = myK9QDbs;
+                          }
+                        } catch {
+                          // Use default list
+                        }
                       }
-                    });
-                    // Clear localStorage
-                    Object.keys(localStorage).forEach(key => {
-                      if (key.includes('myK9Q') && !key.includes('auth')) {
-                        localStorage.removeItem(key);
+
+                      // Clear all myK9Q databases
+                      for (const db of allDatabases) {
+                        try {
+                          const deleteReq = indexedDB.deleteDatabase(db);
+                          await new Promise((resolve) => {
+                            deleteReq.onsuccess = resolve;
+                            deleteReq.onerror = resolve;
+                            deleteReq.onblocked = resolve;
+                            // Force timeout after 500ms per database
+                            setTimeout(resolve, 500);
+                          });
+                          console.log(`Deleted ${db}`);
+                        } catch (e) {
+                          console.log(`Could not delete ${db}`);
+                        }
                       }
-                    });
-                    window.location.reload();
+
+                      // Clear localStorage (except auth)
+                      Object.keys(localStorage).forEach(key => {
+                        if (key.includes('myK9Q') && !key.includes('auth')) {
+                          localStorage.removeItem(key);
+                        }
+                      });
+
+                      // Clear service worker cache
+                      if ('serviceWorker' in navigator) {
+                        try {
+                          const registrations = await navigator.serviceWorker.getRegistrations();
+                          for (const registration of registrations) {
+                            await registration.unregister();
+                          }
+                        } catch {
+                          // Ignore
+                        }
+                      }
+
+                      console.log('Cache cleared successfully, reloading...');
+                      window.location.reload();
+                    } catch (error) {
+                      console.error('Error clearing cache:', error);
+                      // Reload anyway
+                      window.location.reload();
+                    }
                   }}
                   style={{ width: '100%' }}
                 >
