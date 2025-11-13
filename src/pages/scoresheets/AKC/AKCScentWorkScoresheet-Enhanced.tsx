@@ -1010,9 +1010,17 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
       // Get all entries for this class
       let allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-      let classEntries = allEntries.filter(entry => entry.class_id === classId);
+      console.log(`[Scoresheet] Total entries in cache: ${allEntries.length}`);
+
+      // Convert classId to string for comparison since entry.class_id is stored as string
+      const classIdStr = String(classId);
+      let classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
 
       console.log(`[REPLICATION] Found ${classEntries.length} entries for class ${classId}`);
+      if (classEntries.length === 0 && allEntries.length > 0) {
+        console.log(`[Scoresheet] Sample entry class_ids:`, allEntries.slice(0, 5).map(e => ({ id: e.id, class_id: e.class_id, type: typeof e.class_id })));
+        console.log(`[Scoresheet] Looking for class_id: "${classIdStr}" (type: ${typeof classIdStr})`);
+      }
 
       // If no entries found, try to sync
       if (classEntries.length === 0) {
@@ -1022,7 +1030,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
           // Try again after sync
           allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-          classEntries = allEntries.filter(entry => entry.class_id === classId);
+          classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
 
           console.log(`[Scoresheet] After sync, found ${classEntries.length} entries`);
         } catch (syncError) {

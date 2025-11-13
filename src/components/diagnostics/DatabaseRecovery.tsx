@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, RefreshCw, CheckCircle, Loader } from 'lucide-react';
+import { AlertTriangle, RefreshCw, CheckCircle, Loader, WifiOff } from 'lucide-react';
 import { runIndexedDBDiagnostics, attemptAutoCleanup } from '@/utils/indexedDBDiagnostics';
 import { stopReplicationManager } from '@/services/replication/ReplicationManager';
 import './DatabaseRecovery.css';
@@ -15,8 +15,31 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
   const [recoveryStatus, setRecoveryStatus] = useState<string>('');
   const [showManualInstructions, setShowManualInstructions] = useState(false);
   const [autoRecoveryAttempted, setAutoRecoveryAttempted] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Listen for online/offline events
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
+    // SKIP DATABASE RECOVERY IN DEVELOPMENT ENTIRELY
+    // This prevents false positives from HMR and rapid page reloads
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[DatabaseRecovery] Skipping in development environment');
+      setIsDetecting(false);
+      return;
+    }
+
     // Only check once per browser session to avoid re-checking on navigation
     const sessionKey = 'myK9Q_db_checked';
     const hasCheckedThisSession = sessionStorage.getItem(sessionKey) === 'true';
@@ -26,8 +49,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       return;
     }
 
-    // In development, wait a bit before checking to avoid false positives during HMR
-    const checkDelay = process.env.NODE_ENV === 'development' ? 1000 : 100;
+    const checkDelay = 100;
 
     const timeoutId = setTimeout(() => {
       sessionStorage.setItem(sessionKey, 'true');
@@ -127,9 +149,48 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
     }
   };
 
+  const backupPendingMutations = () => {
+    try {
+      // Backup offline queue to prevent data loss
+      const offlineQueueData = localStorage.getItem('offline-queue-storage');
+      if (offlineQueueData) {
+        localStorage.setItem('myK9Q_mutation_backup', offlineQueueData);
+        console.log('[DatabaseRecovery] Backed up pending mutations');
+      }
+    } catch (error) {
+      console.warn('[DatabaseRecovery] Could not backup mutations:', error);
+    }
+  };
+
+  const restorePendingMutations = () => {
+    try {
+      const backup = localStorage.getItem('myK9Q_mutation_backup');
+      if (backup) {
+        localStorage.setItem('offline-queue-storage', backup);
+        localStorage.removeItem('myK9Q_mutation_backup');
+        console.log('[DatabaseRecovery] Restored pending mutations');
+      }
+    } catch (error) {
+      console.warn('[DatabaseRecovery] Could not restore mutations:', error);
+    }
+  };
+
   const handleAutoRecovery = async () => {
+    // CRITICAL: Never clear data when offline - prevents permanent data loss
+    if (!isOnline) {
+      setRecoveryStatus('⚠️ You are offline. Please connect to the internet before attempting recovery to prevent data loss.');
+      setShowManualInstructions(false);
+      setIsRecovering(false);
+      return;
+    }
+
     try {
       setIsRecovering(true);
+      setRecoveryStatus('Backing up your offline work...');
+
+      // CRITICAL: Backup pending mutations before ANY cleanup
+      backupPendingMutations();
+
       setRecoveryStatus('Optimizing your local storage...');
 
       // Create a timeout promise
@@ -158,6 +219,11 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
       ]) as { success: boolean; message?: string };
 
       if (cleanupResult.success) {
+        setRecoveryStatus('Restoring your offline work...');
+
+        // CRITICAL: Restore pending mutations after cleanup
+        restorePendingMutations();
+
         setRecoveryStatus('Optimization complete! Refreshing...');
 
         // Re-enable replication after successful cleanup
@@ -212,6 +278,52 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
     );
   }
 
+  // Show offline warning if database issues detected while offline
+  if (isCorrupted && !isOnline) {
+    return (
+      <div className="database-recovery-modal">
+        <div className="database-recovery-overlay" />
+        <div className="database-recovery-content">
+          <div className="recovery-header">
+            <WifiOff className="warning-icon" style={{ color: 'var(--destructive)' }} />
+            <h2>Database Issue Detected</h2>
+          </div>
+
+          <div className="recovery-body">
+            <p className="recovery-message">
+              We've detected a database issue, but you're currently offline. To safely recover without losing your data:
+            </p>
+
+            <div style={{
+              padding: 'var(--token-space-xl)',
+              background: 'var(--muted)',
+              borderRadius: '0.5rem',
+              marginTop: 'var(--token-space-xl)'
+            }}>
+              <ol style={{ marginLeft: 'var(--token-space-xl)', marginBottom: 0 }}>
+                <li style={{ marginBottom: 'var(--token-space-md)' }}>
+                  Connect to WiFi or a stable internet connection
+                </li>
+                <li style={{ marginBottom: 0 }}>
+                  Return to this page and the recovery will proceed automatically
+                </li>
+              </ol>
+            </div>
+
+            <p style={{
+              marginTop: 'var(--token-space-xl)',
+              fontSize: '0.875rem',
+              color: 'var(--foreground-secondary)',
+              marginBottom: 0
+            }}>
+              <strong>Your offline work is safe.</strong> We will not clear any data until you're online and can re-sync from the server.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="database-recovery-modal">
       <div className="database-recovery-overlay" />
@@ -224,8 +336,6 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
         <div className="recovery-body">
           <p className="recovery-message">
             We're performing a quick optimization to ensure your data loads smoothly. This typically happens when your browser's storage needs a refresh.
-            {process.env.NODE_ENV === 'production' && !autoRecoveryAttempted &&
-              ' This will only take a moment.'}
           </p>
 
           {recoveryStatus && (
@@ -268,9 +378,25 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                 </p>
                 <button
                   className="btn-primary"
+                  disabled={!isOnline}
                   onClick={async () => {
-                    setRecoveryStatus('Clearing all data and refreshing...');
+                    // CRITICAL: Never clear data when offline
+                    if (!isOnline) {
+                      alert('⚠️ Please connect to the internet before clearing data to prevent data loss.');
+                      return;
+                    }
+
+                    if (!confirm('⚠️ This will clear all cached data and re-sync from the server. Your offline work will be preserved. Continue?')) {
+                      return;
+                    }
+
+                    setRecoveryStatus('Backing up offline work...');
                     setIsRecovering(true);
+
+                    // CRITICAL: Backup pending mutations
+                    backupPendingMutations();
+
+                    setRecoveryStatus('Clearing all data and refreshing...');
 
                     try {
                       // Get all databases if possible
@@ -315,9 +441,9 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                         }
                       }
 
-                      // Clear localStorage (except auth)
+                      // Clear localStorage (except auth AND mutation backup)
                       Object.keys(localStorage).forEach(key => {
-                        if (key.includes('myK9Q') && !key.includes('auth')) {
+                        if (key.includes('myK9Q') && !key.includes('auth') && !key.includes('mutation_backup')) {
                           localStorage.removeItem(key);
                         }
                       });
@@ -334,6 +460,11 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                         }
                       }
 
+                      setRecoveryStatus('Restoring offline work...');
+
+                      // CRITICAL: Restore pending mutations before reload
+                      restorePendingMutations();
+
                       console.log('Cache cleared successfully, reloading...');
                       window.location.reload();
                     } catch (error) {
@@ -345,10 +476,12 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                   style={{ width: '100%' }}
                 >
                   <RefreshCw className="btn-icon" />
-                  Clear All Data & Refresh
+                  {isOnline ? 'Clear All Data & Refresh' : 'Offline - Connect to Clear Data'}
                 </button>
                 <p style={{ marginTop: '0.5rem', marginBottom: 0, fontSize: '0.875rem', color: 'var(--foreground-secondary)' }}>
-                  This will clear all stored data and reload the page
+                  {isOnline
+                    ? 'This will clear all cached data and re-sync from the server. Your offline work will be preserved.'
+                    : '⚠️ You must be online to safely clear data without losing your work.'}
                 </p>
               </div>
             </div>

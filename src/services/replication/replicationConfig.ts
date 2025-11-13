@@ -101,6 +101,23 @@ export function clearExpiredDisable(): boolean {
 }
 
 /**
+ * Auto-clear replication disabled flags in development mode
+ * This prevents HMR/reload false positives from blocking development
+ */
+export function clearDevelopmentDisableFlags(): void {
+  if (process.env.NODE_ENV === 'development') {
+    const wasDisabled = localStorage.getItem(REPLICATION_DISABLED_KEY);
+    const wasTemporarilyDisabled = localStorage.getItem(REPLICATION_DISABLED_UNTIL_KEY);
+
+    if (wasDisabled || wasTemporarilyDisabled) {
+      localStorage.removeItem(REPLICATION_DISABLED_KEY);
+      localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
+      console.log('[ReplicationConfig] 🔧 Auto-cleared replication disabled flags in development mode');
+    }
+  }
+}
+
+/**
  * Get current replication status
  */
 export function getReplicationStatus(): ReplicationStatus {
@@ -122,6 +139,13 @@ export function getReplicationStatus(): ReplicationStatus {
  * Handle database corruption by disabling replication
  */
 export function handleDatabaseCorruption(): void {
+  // SKIP CORRUPTION HANDLING IN DEVELOPMENT ENTIRELY
+  // This prevents false positives from HMR and rapid page reloads
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[ReplicationConfig] 🔧 Corruption detected in development - skipping auto-disable (HMR/reload false positive)');
+    return;
+  }
+
   console.error('[ReplicationConfig] 🚨 Database corruption detected - disabling replication');
 
   // Disable for 5 minutes to allow recovery

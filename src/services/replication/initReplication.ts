@@ -27,7 +27,7 @@ import {
   replicatedNationalsRankingsTable,
   replicatedAuditLogViewTable,
 } from './index';
-import { isReplicationEnabled } from './replicationConfig';
+import { isReplicationEnabled, clearDevelopmentDisableFlags } from './replicationConfig';
 
 // Track if we've already initialized to prevent duplicate initialization
 let isInitialized = false;
@@ -39,6 +39,9 @@ let isInitialized = false;
  */
 export async function initializeReplication(): Promise<void> {
   try {
+    // In development mode, auto-clear any disabled flags from HMR/reload false positives
+    clearDevelopmentDisableFlags();
+
     // Check if replication is enabled
     if (!isReplicationEnabled()) {
       console.warn('[Replication] Replication is disabled, skipping initialization');

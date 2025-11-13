@@ -268,22 +268,21 @@ export const CombinedEntryList: React.FC = () => {
   const confirmResetScore = async () => {
     if (!resetConfirmDialog.entry) return;
 
-    try {
-      await handleResetScoreHook(resetConfirmDialog.entry.id);
+    const entryId = resetConfirmDialog.entry.id;
+    console.log('[CombinedEntryList] Resetting score for entry:', entryId);
 
-      // Update local state to move entry back to pending
-      setLocalEntries(prev => prev.map(entry =>
-        entry.id === resetConfirmDialog.entry!.id
-          ? {
-              ...entry,
-              isScored: false,
-              inRing: false,
-              placement: undefined,
-              searchTime: undefined,
-              resultText: undefined
-            }
-          : entry
-      ));
+    try {
+      await handleResetScoreHook(entryId);
+
+      // CRITICAL: Wait longer for the sync AND real-time update to fully propagate
+      // The sync updates the database AND the replication cache
+      // Real-time subscriptions also fire and update the cache
+      // We need to wait for both to complete before refreshing
+      console.log('[CombinedEntryList] Waiting for sync and real-time updates to complete...');
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Give sync + real-time time to complete
+
+      console.log('[CombinedEntryList] Refreshing entries from server...');
+      await refresh(); // Fetch updated data from server/cache
 
       // Switch to pending tab to show the reset entry
       setActiveTab('pending');

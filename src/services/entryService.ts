@@ -537,6 +537,22 @@ export async function submitScore(
       console.log('🔍 Saved entry_status in database:', updatedData[0].entry_status);
     }
 
+    // CRITICAL: Trigger immediate sync to update UI without refresh
+    // This ensures the scored dog moves to completed tab immediately
+    try {
+      const { getReplicationManager } = await import('./replication');
+      const manager = getReplicationManager();
+      if (manager) {
+        console.log('[submitScore] Triggering immediate sync of entries table...');
+        await manager.syncTable('entries', { forceFullSync: false });
+        console.log('[submitScore] ✅ Immediate sync complete');
+      } else {
+        console.warn('[submitScore] Replication manager not available, UI may not update until next sync');
+      }
+    } catch (syncError) {
+      console.warn('[submitScore] Failed to trigger immediate sync (non-critical):', syncError);
+    }
+
     // OPTIMIZATION: Run placement calculation and class completion checks in background
     // This allows the save to complete quickly (~100ms) while background tasks run
     // Users can navigate away immediately without waiting for these operations
@@ -1103,6 +1119,22 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
     }
 
     console.log('✅ Score reset successfully - reset score fields for entry', entryId);
+
+    // CRITICAL: Trigger immediate sync to update UI without refresh
+    // This ensures the entry moves back to pending/checked-in tab immediately
+    try {
+      const { getReplicationManager } = await import('./replication');
+      const manager = getReplicationManager();
+      if (manager) {
+        console.log('[resetEntryScore] Triggering immediate sync of entries table...');
+        await manager.syncTable('entries', { forceFullSync: false });
+        console.log('[resetEntryScore] ✅ Immediate sync complete');
+      } else {
+        console.warn('[resetEntryScore] Replication manager not available, UI may not update until next sync');
+      }
+    } catch (syncError) {
+      console.warn('[resetEntryScore] Failed to trigger immediate sync (non-critical):', syncError);
+    }
 
     // Check if class should be marked as incomplete
     if (entryData?.class_id) {

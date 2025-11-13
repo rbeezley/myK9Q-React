@@ -468,17 +468,22 @@ export const EntryList: React.FC = () => {
 
 
   const handleEntryClick = async (entry: Entry) => {
+    console.log('[EntryList] handleEntryClick called with entry:', entry);
+
     if (entry.isScored) {
+      console.log('[EntryList] Entry already scored, returning');
       return;
     }
 
     if (!hasPermission('canScore')) {
+      console.log('[EntryList] No permission to score');
       alert('You do not have permission to score entries.');
       return;
     }
 
     // Set dog status to in-ring when scoresheet opens
     if (entry.id && !entry.isScored) {
+      console.log('[EntryList] Setting dog in-ring status...');
       const success = await setDogInRingStatus(entry.id, true);
       if (success) {
         setLocalEntries(prev => prev.map(e =>
@@ -488,6 +493,9 @@ export const EntryList: React.FC = () => {
     }
 
     const route = getScoreSheetRoute(entry);
+    console.log('[EntryList] Navigating to scoresheet route:', route);
+    console.log('[EntryList] ShowContext:', showContext);
+    console.log('[EntryList] ClassId:', classId);
     navigate(route);
   };
 
