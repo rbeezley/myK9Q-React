@@ -369,16 +369,38 @@
 /* ========== POSITION BADGE ========== */
 
 .class-position {
-  flex-shrink: 0;
-  width: 36px;  /* Reduced from 48px */
-  height: 36px;  /* Reduced from 48px */
+  display: none;  /* Position badge moved inline with results */
+}
+
+/* Inline position badge in results row */
+.position-badge-inline {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: var(--token-space-lg);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  gap: 0.25rem;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--token-space-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.position-badge-inline svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.position-badge-inline .position-number {
+  position: static;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+  border: none;
 }
 
 .position-badge {
@@ -442,12 +464,13 @@
 .class-meta-details {
   display: none;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: var(--token-space-xl);
+  gap: var(--token-space-md);  /* Reduced gap for tighter spacing */
   font-size: 0.875rem;
   color: var(--token-text-secondary);
-  padding-left: 60px;  /* Space for position badge */
+  padding-left: 0;  /* Left-align with class title */
+  min-width: 0;  /* Allow flex children to shrink below content size */
 }
 
 .dog-details-container.loaded .class-meta-details {
@@ -494,7 +517,9 @@
   align-items: center;
   gap: var(--token-space-xl);
   margin-top: 0;  /* Remove top margin for tighter spacing */
-  padding-left: 60px;  /* Space for position badge */
+  padding-left: 0;  /* Left-align with class title */
+  padding-top: var(--token-space-md);  /* Add top padding for divider spacing */
+  border-top: 1px solid var(--border);  /* Add divider line */
 }
 
 .stat-item {
@@ -521,14 +546,14 @@
 
 .class-card-action {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  top: -1px;
+  right: -1px;
   z-index: 10;
 }
 
 .class-card-action .status-badge {
   padding: var(--token-space-sm) var(--token-space-lg);
-  border-radius: var(--token-space-lg) 0 var(--token-space-lg) 0; /* Round top-left and bottom-right corners */
+  border-radius: 0 0 0 var(--token-space-lg); /* Round bottom-left corner only - matches EntryList DogCard */
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;

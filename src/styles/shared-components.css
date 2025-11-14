@@ -474,7 +474,7 @@
    Reset Menu
    ======================== */
 .reset-button {
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 1rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.375rem;
@@ -482,6 +482,10 @@
   font-size: 1.125rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .reset-button:hover {

@@ -394,13 +394,15 @@
   flex-shrink: 0;
   width: 100%;
   padding-right: 120px;
+  padding-bottom: 2.5rem;
   min-height: 44px;
+  overflow: visible;
 }
 
 .class-title-section {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.5rem;
 }
 
 .class-name {
@@ -440,24 +442,26 @@
 
 .class-actions {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 1.75rem;
+  right: 0.5rem;
   display: flex;
+  flex-direction: column;
   gap: var(--token-space-md);
   align-items: center;
+  z-index: 9;
 }
 
-/* Corner badge container - positioned in bottom-right */
+/* Corner badge container - positioned in top-right */
 .class-card-status-action {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  top: -1px;
+  right: -1px;
   z-index: 10;
 }
 
-.class-status-badge {
+.class-card-status-action .class-status-badge {
   padding: var(--token-space-sm) var(--token-space-lg); /* Match entry list badge padding */
-  border-radius: var(--token-space-lg) 0 var(--token-space-lg) 0; /* Round top-left and bottom-right corners (top-left, top-right, bottom-right, bottom-left) */
+  border-radius: 0 var(--token-space-lg) 0 var(--token-space-lg); /* Square top-left and bottom-right, rounded top-right and bottom-left (top-left, top-right, bottom-right, bottom-left) */
   font-size: 0.75rem; /* Match entry list badge size */
   font-weight: 600;
   white-space: nowrap; /* Prevent wrapping */
@@ -535,6 +539,16 @@
 
 .class-status-badge.in-progress {
   animation: subtlePulse 2s ease-in-out infinite;
+}
+
+/* Contextual preview with dividing line */
+.contextual-preview-condensed {
+  padding-top: var(--token-space-md);
+  margin-top: var(--token-space-md);
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--token-text-secondary);
+  line-height: 1.4;
 }
 
 .action-icon-button {
@@ -1060,6 +1074,13 @@
   animation: fadeIn 0.2s ease;
 }
 
+/* When popup is positioned relative to button */
+.popup-overlay--positioned {
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1075,6 +1096,26 @@
   max-width: 500px;
   max-height: calc(100vh - 2rem);
   animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* When positioned at top-center */
+.popup-container[style*="position: fixed"] {
+  position: fixed !important;
+  width: auto;
+  max-width: 500px;
+  max-height: calc(100vh - 120px);
+  animation: slideDown 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
@@ -1235,29 +1276,47 @@
   stroke-width: 2;
 }
 
-/* Menu option icon colors - using theme variables */
+/* Menu option icon colors - with proper contrast for both themes */
 .class-option-icon.icon-primary {
   background: var(--primary);
+  color: white;
 }
 
 .class-option-icon.icon-accent {
-  background: var(--token-accent);
+  background: #0891b2;
+  color: white;
+}
+.theme-dark .class-option-icon.icon-accent {
+  background: #06b6d4;
 }
 
 .class-option-icon.icon-muted {
-  background: var(--muted-foreground);
+  background: #6b7280;
+  color: white;
+}
+.theme-dark .class-option-icon.icon-muted {
+  background: #9ca3af;
 }
 
 .class-option-icon.icon-success {
   background: var(--token-success);
+  color: white;
 }
 
 .class-option-icon.icon-warning {
-  background: var(--token-warning-contrast);
+  background: #f97316;
+  color: white;
+}
+.theme-dark .class-option-icon.icon-warning {
+  background: #fb923c;
 }
 
 .class-option-icon.icon-secondary {
-  background: var(--secondary);
+  background: #8b5cf6;
+  color: white;
+}
+.theme-dark .class-option-icon.icon-secondary {
+  background: #a78bfa;
 }
 
 .class-option-label {
@@ -1292,6 +1351,10 @@
 
 /* Mobile responsiveness */
 @media (max-width: 640px) {
+  .class-content {
+    padding-bottom: 1.5rem;  /* Reduce bottom padding on mobile */
+  }
+
   .popup-container {
     max-width: 100%;
     max-height: 100vh;
@@ -1303,6 +1366,13 @@
 
   .class-options-grid {
     max-height: calc(100vh - 8rem);
+  }
+}
+
+/* 2-column layout adjustments */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .class-content {
+    padding-bottom: 2rem;  /* Reduce bottom padding on tablet */
   }
 }
 

@@ -51,6 +51,7 @@ export const ClassList: React.FC = () => {
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
   const [activePopup, setActivePopup] = useState<number | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
   const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
@@ -1066,6 +1067,12 @@ export const ClassList: React.FC = () => {
               getStatusColor={getStatusColor}
               getFormattedStatus={getFormattedStatus}
               getContextualPreview={getContextualPreview}
+              onMenuClick={(classId, position) => {
+                setActivePopup(null); // Close any existing popup
+                setPopupPosition(position);
+                // Re-open with new position
+                setTimeout(() => setActivePopup(classId), 0);
+              }}
               onPrefetch={() => handleClassPrefetch(classEntry.id)}
             />
           ))}
@@ -1074,8 +1081,21 @@ export const ClassList: React.FC = () => {
 
       {/* Navigation Menu Popup */}
       {activePopup !== null && (
-        <div className="popup-overlay" onClick={() => setActivePopup(null)}>
-          <div className="popup-container" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`popup-overlay ${popupPosition ? 'popup-overlay--positioned' : ''}`}
+          onClick={() => setActivePopup(null)}
+        >
+          <div
+            className="popup-container"
+            onClick={(e) => e.stopPropagation()}
+            style={popupPosition ? {
+              position: 'fixed',
+              top: `${popupPosition.top}px`,
+              left: `${popupPosition.left}%`,
+              transform: 'translateX(-50%)',
+              margin: 0
+            } : {}}
+          >
             <div className="popup-content">
               <h3>
                 <div className="popup-header-content">

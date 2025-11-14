@@ -47,6 +47,7 @@ interface ClassCardProps {
   getStatusColor: (status: ClassEntry['class_status'], classEntry?: ClassEntry) => string;
   getFormattedStatus: (classEntry: ClassEntry) => { label: string; time: string | null };
   getContextualPreview: (classEntry: ClassEntry) => string;
+  onMenuClick?: (classId: number, position: { top: number; left: number }) => void;
   onPrefetch?: () => void;
 }
 
@@ -62,6 +63,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   getStatusColor,
   getFormattedStatus,
   getContextualPreview,
+  onMenuClick,
   onPrefetch,
 }) => {
   const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
@@ -132,7 +134,18 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               className="class-menu-button"
               onClick={(e) => {
                 e.stopPropagation();
-                setActivePopup(activePopup === classEntry.id ? null : classEntry.id);
+                if (activePopup === classEntry.id) {
+                  setActivePopup(null);
+                } else {
+                  const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                  // Position dialog below button, centered on screen
+                  // But use button's Y position so it follows scroll
+                  onMenuClick?.(classEntry.id, {
+                    top: Math.max(16, rect.bottom + 16), // Below button with padding, min 16px from top
+                    left: 50 // Centered horizontally
+                  });
+                  setActivePopup(classEntry.id);
+                }
               }}
             >
               <MoreHorizontal className="menu-icon" />

@@ -198,12 +198,17 @@
   letter-spacing: 0.025em;
 }
 
-/* Action button - absolute positioned in bottom right corner (consistent with class cards) */
+/* Action button - absolute positioned in top right corner */
 .dog-card-action {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  top: -1px;
+  right: -1px;
   z-index: 10;
+}
+
+/* Reset button (three-dot menu) - add margin for spacing from edge */
+.dog-card-action .reset-button {
+  margin: 0.5rem 0.5rem 0 0;
 }
 
 /* Favorite button for Home page */
@@ -269,7 +274,7 @@
 /* Status badge for EntryList page - Corner badge design matching class cards */
 .dog-card-action .status-badge {
   padding: var(--token-space-sm) var(--token-space-lg); /* Match class badge padding */
-  border-radius: var(--token-space-lg) 0 var(--token-space-lg) 0; /* Round top-left and bottom-right corners (top-left, top-right, bottom-right, bottom-left) */
+  border-radius: 0 0 0 var(--token-space-lg); /* Round bottom-left corner (top-left, top-right, bottom-right, bottom-left) */
   font-size: 0.75rem; /* Match class badge size */
   font-weight: 600;
   white-space: nowrap; /* Prevent wrapping */

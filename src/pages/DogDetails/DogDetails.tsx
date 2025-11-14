@@ -389,45 +389,38 @@ export const DogDetails: React.FC = () => {
               </div>
 
               <div className="class-content">
-                {/* Top row: Position Badge + Class Name */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  paddingRight: '120px'
+                {/* Top row: Class Name */}
+                <h4 className="class-name" style={{
+                  margin: 0,
+                  fontSize: '1.125rem',
+                  fontWeight: 600,
+                  lineHeight: 1.2
                 }}>
-                  {/* Position Badge - only show if placement visible and dog qualified with valid placement */}
-                  <div className="class-position" style={{ flexShrink: 0 }}>
-                    {entry.visibleFields?.showPlacement &&
-                     entry.position &&
-                     entry.position !== 9996 &&
-                     isQualified ? (
-                      <div className="position-badge">
-                        <Trophy />
-                        <span className="position-number">{entry.position}</span>
-                      </div>
-                    ) : (
-                      <span className="position-placeholder">--</span>
-                    )}
-                  </div>
+                  {[
+                    entry.element,
+                    entry.level,
+                    entry.section && entry.section !== '-' ? entry.section : null
+                  ].filter(Boolean).join(' • ')}
+                </h4>
 
-                  {/* Class Name - vertically centered with badge */}
-                  <h4 className="class-name" style={{
+                {/* Second row: Judge */}
+                {entry.judge_name && (
+                  <p style={{
                     margin: 0,
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    lineHeight: 1.2,
-                    flex: 1
+                    marginBottom: 'var(--token-space-md)',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: 'var(--muted-foreground)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.375rem'
                   }}>
-                    {[
-                      entry.element,
-                      entry.level,
-                      entry.section && entry.section !== '-' ? entry.section : null
-                    ].filter(Boolean).join(' • ')}
-                  </h4>
-                </div>
+                    <User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+                    Judge: {entry.judge_name}
+                  </p>
+                )}
 
-                {/* Second row: Metadata */}
+                {/* Additional metadata row */}
                 <div className="class-meta-details">
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                     <TrialDateBadge date={entry.trial_date} />
@@ -438,17 +431,24 @@ export const DogDetails: React.FC = () => {
                       Trial {entry.trial_number}
                     </span>
                   )}
-                  {entry.judge_name && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      <User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-                      {entry.judge_name}
-                    </span>
-                  )}
                 </div>
 
                 {/* Performance Stats - respect visibility settings */}
                 {entry.is_scored && (
                   <div className="class-stats">
+                    {/* Placement Badge - show on results row if visible */}
+                    {entry.visibleFields?.showPlacement &&
+                     entry.position !== null &&
+                     entry.position !== undefined &&
+                     entry.position !== 9996 &&
+                     entry.position > 0 &&
+                     isQualified && (
+                      <div className="position-badge-inline">
+                        <Trophy size={16} />
+                        <span className="position-number">{entry.position}</span>
+                      </div>
+                    )}
+
                     {/* Time - show if visible, otherwise show availability message */}
                     {entry.visibleFields?.showTime ? (
                       <div className="stat-item">
