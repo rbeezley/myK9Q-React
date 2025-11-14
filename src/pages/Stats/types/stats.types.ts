@@ -92,6 +92,7 @@ export interface StatsFilters {
   trialNumber: number | null;   // Trial number within the show
   element: string | null;       // Container, Handler Discrimination, etc.
   level: string | null;         // Novice, Advanced, Excellent, Masters
+  classId: number | null;       // Specific class ID for filtering
 }
 
 // Navigation level

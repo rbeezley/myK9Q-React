@@ -1,0 +1,317 @@
+/* ===== CLASS SETTINGS DIALOG ===== */
+
+/* Settings Form Container */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-lg);
+}
+
+/* Class Info Display */
+.settings-class-info {
+  background: var(--muted);
+  border-radius: var(--token-radius-md);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-left: 4px solid var(--primary);
+  margin-bottom: var(--token-space-sm);
+}
+
+.settings-info-label {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  font-weight: var(--token-font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.settings-info-value {
+  font-size: 1.05rem;
+  color: var(--foreground);
+  font-weight: var(--token-font-weight-semibold);
+  margin: var(--token-space-xs) 0 0 0;
+}
+
+/* Settings Section */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-md);
+}
+
+/* Settings Item */
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-2xl);
+  padding: var(--token-space-lg);
+  background: var(--muted);
+  border-radius: var(--token-radius-md);
+  border: 1px solid var(--border);
+}
+
+.settings-item-header {
+  flex: 1;
+}
+
+.settings-label {
+  display: block;
+  font-weight: var(--token-font-weight-semibold);
+  color: var(--foreground);
+  margin: 0 0 var(--token-space-sm) 0;
+  font-size: 0.95rem;
+}
+
+.settings-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+/* Toggle Switch */
+.settings-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  flex-shrink: 0;
+}
+
+.settings-toggle {
+  position: relative;
+  width: 40px;
+  height: 16px;
+  background: #cbd5e1;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  padding: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+}
+
+.settings-toggle--on {
+  background: var(--primary);
+  justify-content: flex-end;
+}
+
+.settings-toggle-thumb {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.settings-toggle-label {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: var(--token-font-weight-medium);
+  min-width: 60px;
+}
+
+/* Info Box */
+.settings-info-box {
+  display: flex;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg);
+  background: var(--muted);
+  border-radius: var(--token-radius-md);
+  border-left: 3px solid var(--primary);
+}
+
+.settings-info-icon {
+  flex-shrink: 0;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+.settings-info-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+/* Messages */
+.settings-message {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  border-radius: var(--token-radius-md);
+  font-size: 0.875rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.settings-message--success {
+  background: #d1fae5;
+  color: #065f46;
+  border-left: 3px solid #10b981;
+}
+
+.theme-dark .settings-message--success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #86efac;
+  border-left-color: #10b981;
+}
+
+.settings-message--error {
+  background: #fee2e2;
+  color: #991b1b;
+  border-left: 3px solid #ef4444;
+}
+
+.theme-dark .settings-message--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-left-color: #ef4444;
+}
+
+.settings-message svg {
+  flex-shrink: 0;
+}
+
+/* Results Visibility Section */
+.settings-visibility-header {
+  margin-bottom: var(--token-space-sm);
+}
+
+.settings-visibility-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-md);
+}
+
+.settings-visibility-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-md) var(--token-space-lg);
+  background: var(--muted);
+  border: 2px solid var(--border);
+  border-radius: var(--token-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-visibility-option:hover {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+}
+
+.settings-visibility-option input:checked + .settings-visibility-content {
+  /* Will be styled by parent */
+}
+
+.settings-radio-input {
+  margin-top: 4px;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.settings-visibility-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-sm);
+}
+
+.settings-visibility-title {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  font-weight: var(--token-font-weight-semibold);
+  color: var(--foreground);
+  font-size: 0.95rem;
+}
+
+.settings-visibility-icon {
+  font-size: 1.2rem;
+}
+
+.settings-visibility-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  font-weight: var(--token-font-weight-medium);
+}
+
+.settings-visibility-details {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+/* Selected state */
+.settings-visibility-option input:checked + .settings-visibility-content .settings-visibility-title {
+  color: var(--primary);
+}
+
+.settings-visibility-option input:checked ~ .settings-visibility-option {
+  border-color: var(--primary);
+}
+
+/* Loading State */
+.settings-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--token-space-4xl);
+  color: var(--muted-foreground);
+}
+
+/* Dark Theme */
+.theme-dark .settings-class-info {
+  background: #1e293b;
+  border-left-color: var(--primary);
+}
+
+.theme-dark .settings-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.theme-dark .settings-info-box {
+  background: #1e293b;
+  border-left-color: var(--primary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .settings-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--token-space-lg);
+  }
+
+  .settings-toggle-container {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .settings-toggle-label {
+    flex: 1;
+  }
+}

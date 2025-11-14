@@ -12,6 +12,7 @@ import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Setti
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
+import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { Entry } from '../../stores/entryStore';
 import { getClassEntries } from '../../services/entryService';
@@ -59,6 +60,8 @@ export const ClassList: React.FC = () => {
   const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
   const [selectedClassForMaxTime, setSelectedClassForMaxTime] = useState<ClassEntry | null>(null);
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [selectedClassForSettings, setSelectedClassForSettings] = useState<ClassEntry | null>(null);
 
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -1159,7 +1162,11 @@ export const ClassList: React.FC = () => {
                   className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log('Navigate to class settings for class', activePopup);
+                    const classData = classes.find(c => c.id === activePopup);
+                    if (classData) {
+                      setSelectedClassForSettings(classData);
+                      setSettingsDialogOpen(true);
+                    }
                     setActivePopup(null);
                   }}
                 >
@@ -1174,7 +1181,9 @@ export const ClassList: React.FC = () => {
                   className="class-option-item"
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log('Navigate to class statistics for class', activePopup);
+                    if (trialId && activePopup !== null) {
+                      navigate(`/stats/trial/${trialId}?classId=${activePopup}`);
+                    }
                     setActivePopup(null);
                   }}
                 >
@@ -1294,6 +1303,26 @@ export const ClassList: React.FC = () => {
           start_time: undefined
         }}
         currentStatus={selectedClassForStatus?.class_status || ''}
+      />
+
+      {/* Class Settings Dialog */}
+      <ClassSettingsDialog
+        isOpen={settingsDialogOpen}
+        onClose={() => {
+          setSettingsDialogOpen(false);
+          setSelectedClassForSettings(null);
+        }}
+        classData={selectedClassForSettings || {
+          id: 0,
+          element: '',
+          level: '',
+          class_name: '',
+          self_checkin_enabled: true
+        }}
+        onSettingsUpdate={() => {
+          // Refresh class data after settings update
+          refetch();
+        }}
       />
 
       </PullToRefresh>

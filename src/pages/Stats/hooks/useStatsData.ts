@@ -97,6 +97,10 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         console.log('[Stats] Filtering by level:', context.filters.level);
         baseQuery = baseQuery.eq('level', context.filters.level);
       }
+      if (context.filters.classId) {
+        console.log('[Stats] Filtering by class ID:', context.filters.classId);
+        baseQuery = baseQuery.eq('class_id', context.filters.classId);
+      }
 
       // Fetch main stats
       const { data: statsData, error: statsError } = await baseQuery;
@@ -170,12 +174,12 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         : null;
 
       // Fetch breed stats
-      // When additional filters (trialDate, trialNumber, element, level) are active,
+      // When additional filters (trialDate, trialNumber, element, level, classId) are active,
       // we need to query view_stats_summary directly because view_breed_stats pre-aggregates
       let breedStats: BreedStat[] = [];
 
       const hasBreedFilters = context.filters.trialDate || context.filters.trialNumber ||
-                              context.filters.element || context.filters.level || context.filters.judge;
+                              context.filters.element || context.filters.level || context.filters.judge || context.filters.classId;
 
       if (hasBreedFilters) {
         // Use statsData (already filtered) and aggregate by breed in application
@@ -261,12 +265,12 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
       }
 
       // Fetch judge stats
-      // When breed or additional filters (trialDate, element, level) are active,
+      // When breed or additional filters (trialDate, element, level, classId) are active,
       // we need to query view_stats_summary directly because view_judge_stats pre-aggregates
       let judgeStats: JudgeStat[] = [];
 
       const hasAdditionalFilters = context.filters.breed || context.filters.trialDate ||
-                                    context.filters.element || context.filters.level;
+                                    context.filters.element || context.filters.level || context.filters.classId;
 
       if (hasAdditionalFilters) {
         // Query view_stats_summary and aggregate by judge in application
@@ -296,6 +300,9 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         }
         if (context.filters.level) {
           summaryQuery = summaryQuery.eq('level', context.filters.level);
+        }
+        if (context.filters.classId) {
+          summaryQuery = summaryQuery.eq('class_id', context.filters.classId);
         }
 
         const { data: summaryData, error: summaryError } = await summaryQuery;
@@ -467,6 +474,9 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
       }
       if (context.filters.level) {
         timesQuery = timesQuery.eq('level', context.filters.level);
+      }
+      if (context.filters.classId) {
+        timesQuery = timesQuery.eq('class_id', context.filters.classId);
       }
       // Note: view_fastest_times doesn't have trial_date or judge_name
       // If those filters are active, we'd need to query view_stats_summary instead

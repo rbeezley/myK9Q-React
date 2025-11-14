@@ -1,0 +1,272 @@
+import React, { useState, useEffect } from 'react';
+import { X, Settings, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { setClassVisibility } from '../../services/resultVisibilityService';
+import { PRESET_CONFIGS } from '../../types/visibility';
+import type { VisibilityPreset } from '../../types/visibility';
+import './shared-dialog.css';
+import './ClassSettingsDialog.css';
+
+interface ClassSettingsDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  classData: {
+    id: number;
+    element: string;
+    level: string;
+    class_name: string;
+    self_checkin_enabled?: boolean;
+  };
+  onSettingsUpdate?: () => void;
+}
+
+export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
+  isOpen,
+  onClose,
+  classData,
+  onSettingsUpdate
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [selfCheckinEnabled, setSelfCheckinEnabled] = useState(false);
+  const [resultsVisibility, setResultsVisibility] = useState<VisibilityPreset>('standard');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Load current settings when dialog opens
+  useEffect(() => {
+    if (isOpen && classData) {
+      setSuccessMessage('');
+      setErrorMessage('');
+      loadSettings();
+    }
+  }, [isOpen, classData]);
+
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+
+      // Load self check-in setting
+      const { data, error } = await supabase
+        .from('classes')
+        .select('self_checkin_enabled')
+        .eq('id', classData.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading class settings:', error);
+        setErrorMessage('Failed to load class settings');
+        return;
+      }
+
+      if (data) {
+        setSelfCheckinEnabled(data.self_checkin_enabled ?? true);
+      }
+
+      // Load results visibility setting
+      // Note: We need to pass trial_id and license_key but we don't have them in this dialog
+      // For now, just fetch from the class visibility override table directly
+      const { data: visibilityData } = await supabase
+        .from('class_result_visibility_overrides')
+        .select('preset_name')
+        .eq('class_id', classData.id)
+        .maybeSingle();
+
+      if (visibilityData?.preset_name) {
+        setResultsVisibility(visibilityData.preset_name);
+      }
+    } catch (error) {
+      console.error('Exception loading class settings:', error);
+      setErrorMessage('Failed to load class settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true);
+      setSuccessMessage('');
+      setErrorMessage('');
+
+      // Update self check-in setting
+      const { error: checkinError } = await supabase
+        .from('classes')
+        .update({
+          self_checkin_enabled: selfCheckinEnabled
+        })
+        .eq('id', classData.id);
+
+      if (checkinError) {
+        console.error('Error saving check-in settings:', checkinError);
+        setErrorMessage('Failed to save settings. Please try again.');
+        return;
+      }
+
+      // Update results visibility setting
+      try {
+        await setClassVisibility(classData.id, resultsVisibility, 'ClassSettingsDialog');
+      } catch (visibilityError) {
+        console.error('Error saving visibility settings:', visibilityError);
+        setErrorMessage('Failed to save results visibility. Please try again.');
+        return;
+      }
+
+      setSuccessMessage('Settings saved successfully!');
+
+      // Refresh parent data if callback provided
+      if (onSettingsUpdate) {
+        onSettingsUpdate();
+      }
+
+      // Close dialog after brief delay to show success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error) {
+      console.error('Exception saving class settings:', error);
+      setErrorMessage('Failed to save settings. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="dialog-header">
+          <h2 className="dialog-title">
+            <Settings size={24} />
+            Class Settings
+          </h2>
+          <button
+            className="close-button"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="dialog-content">
+          {loading ? (
+            <div className="settings-loading">
+              <p>Loading settings...</p>
+            </div>
+          ) : (
+            <div className="settings-form">
+              {/* Class Info */}
+              <div className="settings-class-info">
+                <p className="settings-info-label">{classData.element}</p>
+                <p className="settings-info-value">{classData.class_name}</p>
+              </div>
+
+              {/* Self Check-in Toggle */}
+              <div className="settings-section">
+                <div className="settings-item">
+                  <div className="settings-item-header">
+                    <label className="settings-label">Allow Self Check-in</label>
+                    <p className="settings-description">
+                      Exhibitors can check in their own dogs
+                    </p>
+                  </div>
+                  <div className="settings-toggle-container">
+                    <button
+                      className={`settings-toggle ${
+                        selfCheckinEnabled ? 'settings-toggle--on' : ''
+                      }`}
+                      onClick={() => setSelfCheckinEnabled(!selfCheckinEnabled)}
+                      aria-label="Toggle self check-in"
+                    >
+                      <span className="settings-toggle-thumb" />
+                    </button>
+                    <span className="settings-toggle-label">
+                      {selfCheckinEnabled ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Results Visibility Section */}
+              <div className="settings-section">
+                <div className="settings-visibility-header">
+                  <label className="settings-label">Results Visibility</label>
+                  <p className="settings-description">
+                    Control when and what results are shown to exhibitors
+                  </p>
+                </div>
+
+                <div className="settings-visibility-options">
+                  {(['open', 'standard', 'review'] as const).map((preset) => {
+                    const config = PRESET_CONFIGS[preset];
+                    return (
+                      <label key={preset} className="settings-visibility-option">
+                        <input
+                          type="radio"
+                          name="results-visibility"
+                          value={preset}
+                          checked={resultsVisibility === preset}
+                          onChange={() => setResultsVisibility(preset)}
+                          className="settings-radio-input"
+                        />
+                        <div className="settings-visibility-content">
+                          <div className="settings-visibility-title">
+                            <span className="settings-visibility-icon">{config.icon}</span>
+                            <span>{config.title}</span>
+                          </div>
+                          <p className="settings-visibility-description">
+                            {config.description}
+                          </p>
+                          <p className="settings-visibility-details">
+                            {config.details}
+                          </p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Messages */}
+              {successMessage && (
+                <div className="settings-message settings-message--success">
+                  <CheckCircle size={18} />
+                  <span>{successMessage}</span>
+                </div>
+              )}
+
+              {errorMessage && (
+                <div className="settings-message settings-message--error">
+                  <AlertCircle size={18} />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="dialog-footer">
+          <button
+            className="dialog-button dialog-button-secondary"
+            onClick={onClose}
+            disabled={saving}
+          >
+            Cancel
+          </button>
+          <button
+            className="dialog-button dialog-button-primary"
+            onClick={handleSaveSettings}
+            disabled={saving || loading}
+          >
+            {saving ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

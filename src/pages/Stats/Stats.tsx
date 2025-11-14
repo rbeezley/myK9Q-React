@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useMemo, useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { BarChart3, TrendingUp, Award, Clock, MoreVertical, RefreshCw } from 'lucide-react';
 import { PageLoader } from '../../components/LoadingSpinner';
 import { HamburgerMenu } from '../../components/ui/HamburgerMenu';
@@ -23,6 +23,7 @@ export const Stats: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showContext } = useAuth();
+  const { trialId } = useParams<{ trialId?: string }>();
 
   // State for filter options
   const [filterOptions, setFilterOptions] = useState<{
@@ -30,11 +31,13 @@ export const Stats: React.FC = () => {
     trialNumbers: number[];
     elements: string[];
     levels: string[];
+    classes: Array<{ id: number; name: string; trialDate?: string; trialNumber?: number }>;
   }>({
     trialDates: [],
     trialNumbers: [],
     elements: [],
-    levels: []
+    levels: [],
+    classes: []
   });
 
   // State for header menu
@@ -64,7 +67,8 @@ export const Stats: React.FC = () => {
     trialDate: searchParams.get('trialDate'),
     trialNumber: searchParams.get('trialNumber') ? parseInt(searchParams.get('trialNumber')!) : null,
     element: searchParams.get('element'),
-    level: searchParams.get('level')
+    level: searchParams.get('level'),
+    classId: searchParams.get('classId') ? parseInt(searchParams.get('classId')!) : null
   }), [searchParams]);
 
   // Fetch stats data
@@ -82,8 +86,14 @@ export const Stats: React.FC = () => {
       try {
         const { data: statsData } = await supabase
           .from('view_stats_summary')
-          .select('trial_date, element, level')
+          .select('trial_date, trial_id, element, level, class_id')
           .eq('license_key', showContext.licenseKey)
+          .eq('show_id', showContext.showId);
+
+        // Also fetch trials to get trial numbers
+        const { data: trialsForNumber } = await supabase
+          .from('trials')
+          .select('id, trial_number')
           .eq('show_id', showContext.showId);
 
         if (statsData) {
@@ -101,7 +111,8 @@ export const Stats: React.FC = () => {
             trialDates: uniqueDates,
             trialNumbers: [], // Will fetch from trials table separately
             elements: uniqueElements,
-            levels: uniqueLevels
+            levels: uniqueLevels,
+            classes: []  // Will populate after extracting classes
           });
         }
 
@@ -119,13 +130,46 @@ export const Stats: React.FC = () => {
             trialNumbers: uniqueTrialNumbers
           }));
         }
+
+        // Fetch classes from view_stats_summary
+        // If viewing trial-specific stats, filter to only classes from that trial
+        if (statsData) {
+          let classesData = statsData;
+          if (trialId) {
+            // Filter to only classes from the current trial (convert trialId to number for comparison)
+            const trialIdNum = parseInt(trialId);
+            classesData = statsData.filter(d => d.trial_id === trialIdNum);
+          }
+
+          // Create a map of trial IDs to trial numbers for easy lookup
+          const trialNumberMap = new Map<number, number>();
+          if (trialsForNumber) {
+            trialsForNumber.forEach(t => {
+              trialNumberMap.set(t.id, t.trial_number);
+            });
+          }
+
+          const uniqueClasses = [...new Set(classesData.map(d => JSON.stringify({
+            id: d.class_id,
+            name: `${d.element} - ${d.level}`,
+            trialDate: d.trial_date,
+            trialNumber: d.trial_id ? trialNumberMap.get(d.trial_id) : undefined
+          })).filter(Boolean))]
+            .map(c => JSON.parse(c))
+            .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+          setFilterOptions(prev => ({
+            ...prev,
+            classes: uniqueClasses
+          }));
+        }
       } catch (err) {
         console.error('Error fetching filter options:', err);
       }
     };
 
     fetchFilterOptions();
-  }, [showContext?.licenseKey, showContext?.showId]);
+  }, [showContext?.licenseKey, showContext?.showId, trialId]);
 
   // Handle filter changes - persist to URL
   const handleFilterChange = (newFilters: Partial<StatsFilters>) => {
@@ -185,6 +229,15 @@ export const Stats: React.FC = () => {
       }
     }
 
+    // Update class ID filter
+    if (newFilters.classId !== undefined) {
+      if (newFilters.classId) {
+        params.set('classId', newFilters.classId.toString());
+      } else {
+        params.delete('classId');
+      }
+    }
+
     setSearchParams(params);
   };
 
@@ -225,6 +278,34 @@ export const Stats: React.FC = () => {
     );
   }
 
+  // Get current class information for display
+  const currentClass = filters.classId
+    ? filterOptions.classes.find(c => c.id === filters.classId)
+    : null;
+
+  // Format class subtitle with trial info
+  const formatClassSubtitle = () => {
+    if (!currentClass) return '';
+    const parts: string[] = [];
+    if (currentClass.trialDate) {
+      // Parse ISO date string without timezone conversion
+      // This prevents JavaScript from converting UTC to local timezone incorrectly
+      const [year, month, day] = currentClass.trialDate.split('T')[0].split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const formattedDate = date.toLocaleDateString('en-US', {
+        month: 'numeric',
+        day: 'numeric',
+        year: '2-digit'
+      });
+      parts.push(formattedDate);
+    }
+    if (currentClass.trialNumber !== undefined) {
+      parts.push(`Trial ${currentClass.trialNumber}`);
+    }
+    parts.push(currentClass.name);
+    return parts.join(' • ');
+  };
+
   return (
     <div className="stats-container">
       {/* Header - consistent with other pages */}
@@ -235,6 +316,9 @@ export const Stats: React.FC = () => {
             <BarChart3 className="title-icon" />
             Statistics
           </h1>
+          {currentClass && (
+            <p className="stats-class-subtitle">{formatClassSubtitle()}</p>
+          )}
         </div>
         <div className="dropdown-container">
           <button

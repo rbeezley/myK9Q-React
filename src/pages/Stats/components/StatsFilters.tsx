@@ -53,7 +53,8 @@ const StatsFilters: React.FC<StatsFiltersProps> = ({
     filters.trialDate,
     filters.trialNumber,
     filters.element,
-    filters.level
+    filters.level,
+    filters.classId
   ].filter(Boolean).length;
 
   // Apply filters
@@ -70,7 +71,8 @@ const StatsFilters: React.FC<StatsFiltersProps> = ({
       trialDate: null,
       trialNumber: null,
       element: null,
-      level: null
+      level: null,
+      classId: null
     };
     setTempFilters(clearedFilters);
     onFilterChange(clearedFilters);
@@ -341,7 +343,7 @@ const StatsFilters: React.FC<StatsFiltersProps> = ({
               </div>
 
               {/* Level Filter */}
-              <div>
+              <div style={{ marginBottom: 'var(--token-space-xl)' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '0.875rem',
@@ -371,6 +373,7 @@ const StatsFilters: React.FC<StatsFiltersProps> = ({
                   ))}
                 </select>
               </div>
+
             </div>
 
             {/* Action Buttons */}
@@ -425,6 +428,7 @@ const StatsFilters: React.FC<StatsFiltersProps> = ({
       display: 'flex',
       gap: 'var(--token-space-lg)',
       alignItems: 'center',
+      justifyContent: 'center',
       flexWrap: 'wrap'
     }}>
       {/* Breed Dropdown */}
