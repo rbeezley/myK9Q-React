@@ -89,7 +89,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     console.log(`[${this.tableName}] Starting new DB initialization...`);
 
     // Timeout protection: openDB can hang if database is corrupt or locked
-    const DB_OPEN_TIMEOUT_MS = 10000; // 10 second timeout for opening database
+    const DB_OPEN_TIMEOUT_MS = 30000; // 30 second timeout for opening database (increased from 10s to handle 16 concurrent tables)
     const openDBPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, _newVersion, _transaction) {
         console.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
@@ -160,6 +160,8 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     // Try to open database with timeout
     try {
+      // CRITICAL: Set dbInitPromise BEFORE awaiting to prevent race condition
+      // All other tables will wait on this promise instead of starting their own initialization
       dbInitPromise = Promise.race([openDBPromise, timeoutPromise]);
       sharedDB = await dbInitPromise;
       this.db = sharedDB;
@@ -416,7 +418,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
    */
   async getAll(licenseKey?: string): Promise<T[]> {
-    const GET_ALL_TIMEOUT_MS = 10000; // 10 second timeout for reading all rows
+    const GET_ALL_TIMEOUT_MS = 20000; // 20 second timeout for reading all rows (increased from 10s for large datasets)
 
     const getAllPromise = (async () => {
       const db = await this.init();

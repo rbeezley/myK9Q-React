@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
-import { initializeReplication } from '../services/replication/initReplication';
 
 interface ShowContext {
   showId: string;
@@ -107,10 +106,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(newAuthState);
     saveAuthToStorage(newAuthState);
 
-    // Initialize replication system after login
-    initializeReplication().catch((error) => {
-      console.error('[Auth] Failed to initialize replication after login:', error);
-    });
+    // Replication system already initialized at app startup in main.tsx
+    // No need to re-initialize here (previously caused fourth initialization race condition)
   }, []);
 
   const logout = useCallback(() => {

@@ -23,17 +23,11 @@ const updateSW = registerSW({
     console.log('App ready to work offline')
     // Initialize service worker manager when offline-ready
     serviceWorkerManager.initialize().catch(console.error)
-
-    // Initialize replication system
-    initializeReplication().catch(console.error)
   },
   onRegistered() {
     console.log('Service Worker registered')
     // Also initialize here to be safe
     serviceWorkerManager.initialize().catch(console.error)
-
-    // Initialize replication system
-    initializeReplication().catch(console.error)
   }
 })
 

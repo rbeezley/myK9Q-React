@@ -150,8 +150,8 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
     return [];
   }
 
-  // Disable replication for now due to IndexedDB initialization issues
-  const isReplicationEnabled = false;
+  // Replication enabled after fixing initialization race conditions
+  const isReplicationEnabled = true;
 
   if (isReplicationEnabled) {
     console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');

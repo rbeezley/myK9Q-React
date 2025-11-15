@@ -139,13 +139,10 @@ export function getReplicationStatus(): ReplicationStatus {
  * Handle database corruption by disabling replication
  */
 export function handleDatabaseCorruption(): void {
-  // SKIP CORRUPTION HANDLING IN DEVELOPMENT ENTIRELY
-  // This prevents false positives from HMR and rapid page reloads
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[ReplicationConfig] 🔧 Corruption detected in development - skipping auto-disable (HMR/reload false positive)');
-    return;
-  }
-
+  // Allow recovery in both development and production
+  // Note: Previously disabled in dev to prevent HMR false positives, but we need
+  // the recovery mechanism to work. The init() race condition fixes should prevent
+  // false corruption detection.
   console.error('[ReplicationConfig] 🚨 Database corruption detected - disabling replication');
 
   // Disable for 5 minutes to allow recovery
