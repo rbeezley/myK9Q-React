@@ -81,10 +81,11 @@ export async function initializeReplication(): Promise<void> {
     isInitialized = true; // Mark as initialized
 
     // Initialize ReplicationManager with configuration
+    // Issue #4 Fix: Disable auto-sync during table registration to prevent race conditions
     const manager = initReplicationManager({
       licenseKey,
       autoSyncInterval: 5 * 60 * 1000, // 5 minutes
-      autoSyncOnStartup: true,
+      autoSyncOnStartup: false, // Don't start sync yet - wait for subscriptions
       autoSyncOnReconnect: true,
     });
 
@@ -121,7 +122,13 @@ export async function initializeReplication(): Promise<void> {
 
     console.log('[Replication] Registered 16 tables');
 
-    // Start auto-sync (will sync enabled tables on interval)
+    // Issue #4 Fix: Wait for all subscriptions to be ready before starting sync
+    console.log('[Replication] Waiting for subscriptions to initialize...');
+    await manager.waitForSubscriptionsReady();
+    console.log('[Replication] All subscriptions ready');
+
+    // Now start auto-sync (all tables registered and subscriptions ready)
+    console.log('[Replication] Starting auto-sync...');
     manager.startAutoSync();
 
     console.log('[Replication] ✅ Replication system initialized successfully');

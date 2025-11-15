@@ -65,6 +65,10 @@ export class SyncEngine {
   private syncTimer: NodeJS.Timeout | null = null;
   private isSyncing: boolean = false;
 
+  // Issue #12 Fix: Debounce localStorage backup to prevent race conditions
+  private backupDebounceTimer: NodeJS.Timeout | null = null;
+  private isBackupInProgress: boolean = false;
+
   constructor(config: SyncEngineConfig = {}) {
     this.syncInterval = config.syncInterval || 5 * 60 * 1000; // 5 min default
     this.maxRetries = config.maxRetries || 3;
@@ -804,21 +808,43 @@ export class SyncEngine {
   /**
    * Backup pending mutations to localStorage
    * Day 25-26: Prevent data loss if IndexedDB cleared
+   * Issue #12 Fix: Debounce backup writes to prevent race conditions
    */
   private async backupMutationsToLocalStorage(): Promise<void> {
-    try {
-      const db = await this.init();
-      const pending = await db.getAll(REPLICATION_STORES.PENDING_MUTATIONS);
-
-      if (pending.length > 0) {
-        localStorage.setItem('replication_mutation_backup', JSON.stringify(pending));
-        logger.log(`[SyncEngine] Backed up ${pending.length} mutations to localStorage`);
-      } else {
-        localStorage.removeItem('replication_mutation_backup');
-      }
-    } catch (error) {
-      logger.warn('[SyncEngine] Failed to backup mutations to localStorage:', error);
+    // Clear existing timer
+    if (this.backupDebounceTimer) {
+      clearTimeout(this.backupDebounceTimer);
     }
+
+    // Debounce for 1 second
+    return new Promise((resolve) => {
+      this.backupDebounceTimer = setTimeout(async () => {
+        // Issue #12 Fix: Skip if backup already in progress
+        if (this.isBackupInProgress) {
+          logger.log('[SyncEngine] Backup already in progress, skipping duplicate call');
+          resolve();
+          return;
+        }
+
+        this.isBackupInProgress = true;
+        try {
+          const db = await this.init();
+          const pending = await db.getAll(REPLICATION_STORES.PENDING_MUTATIONS);
+
+          if (pending.length > 0) {
+            localStorage.setItem('replication_mutation_backup', JSON.stringify(pending));
+            logger.log(`[SyncEngine] Backed up ${pending.length} mutations to localStorage`);
+          } else {
+            localStorage.removeItem('replication_mutation_backup');
+          }
+        } catch (error) {
+          logger.warn('[SyncEngine] Failed to backup mutations to localStorage:', error);
+        } finally {
+          this.isBackupInProgress = false;
+          resolve();
+        }
+      }, 1000); // 1 second debounce
+    });
   }
 
   /**

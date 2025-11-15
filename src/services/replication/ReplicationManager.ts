@@ -21,6 +21,12 @@ import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getReplicationMonitor } from './ReplicationMonitor';
 
+/**
+ * Issue #8 Fix: Unique tab identifier to prevent cross-tab message echo
+ * Each browser tab gets a unique ID to identify its own messages
+ */
+const TAB_ID = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
 export interface ReplicationManagerConfig {
   /** Auto-sync interval in milliseconds (default: 5 min) */
   autoSyncInterval?: number;
@@ -75,6 +81,9 @@ export class ReplicationManager {
   /** Day 25-26 MEDIUM Fix: Cross-tab sync via BroadcastChannel */
   private broadcastChannel: BroadcastChannel | null = null;
 
+  /** Issue #4 Fix: Track subscription setup promises */
+  private subscriptionReadyPromises: Map<string, Promise<void>> = new Map();
+
   /** Day 25-26 LOW Fix: Sync queue for manual sync requests */
   private syncQueue: Array<() => Promise<void>> = [];
   private isProcessingQueue: boolean = false;
@@ -105,6 +114,7 @@ export class ReplicationManager {
   /**
    * Register a table for replication
    * Day 25-26 MEDIUM Fix: Also subscribe to real-time changes
+   * Issue #4 Fix: Track subscription setup to prevent concurrent sync
    */
   registerTable<T extends { id: string }>(
     tableName: ReplicatedTableName,
@@ -120,9 +130,10 @@ export class ReplicationManager {
     this.tables.set(tableName, table);
     logger.log(`[ReplicationManager] Registered table: ${tableName}`);
 
-    // Day 25-26 MEDIUM Fix: Subscribe to real-time changes if enabled
+    // Issue #4 Fix: Track subscription setup if real-time sync is enabled
     if (this.config.enableRealtimeSync !== false) {
-      this.subscribeToRealtimeChanges(tableName);
+      const readyPromise = this.subscribeToRealtimeChanges(tableName);
+      this.subscriptionReadyPromises.set(tableName, readyPromise);
     }
   }
 
@@ -160,6 +171,29 @@ export class ReplicationManager {
    */
   getRegisteredTables(): string[] {
     return Array.from(this.tables.keys());
+  }
+
+  /**
+   * Wait for all subscription setups to complete
+   * Issue #4 Fix: Prevents sync from starting before subscriptions are ready
+   */
+  async waitForSubscriptionsReady(): Promise<void> {
+    if (this.subscriptionReadyPromises.size === 0) {
+      logger.log('[ReplicationManager] No subscriptions to wait for (real-time sync may be disabled)');
+      return;
+    }
+
+    logger.log(
+      `[ReplicationManager] Waiting for ${this.subscriptionReadyPromises.size} subscription(s) to be ready...`
+    );
+
+    try {
+      await Promise.all(this.subscriptionReadyPromises.values());
+      logger.log('[ReplicationManager] All subscriptions ready');
+    } catch (error) {
+      logger.error('[ReplicationManager] Some subscriptions failed to initialize:', error);
+      // Don't throw - app can work without real-time sync
+    }
   }
 
   /**
@@ -783,12 +817,23 @@ export class ReplicationManager {
    * Initialize cross-tab sync via BroadcastChannel
    * Day 25-26 MEDIUM Fix: Instant cache invalidation across browser tabs
    */
+  /**
+   * Issue #8 Fix: Prevent cross-tab sync cascade
+   * - Ignore messages from our own tab
+   * - Only sync when OTHER tabs make changes
+   */
   private initCrossTabSync(): void {
     try {
       this.broadcastChannel = new BroadcastChannel('replication-sync');
 
       this.broadcastChannel.onmessage = (event) => {
-        const { type, tableName, licenseKey } = event.data;
+        const { type, tableName, licenseKey, originTabId } = event.data;
+
+        // CRITICAL FIX: Ignore our own messages
+        if (originTabId === TAB_ID) {
+          logger.log(`[ReplicationManager] Ignoring own message for ${tableName}`);
+          return;
+        }
 
         // Only process messages for our license key
         if (licenseKey !== this.config.licenseKey) {
@@ -796,7 +841,7 @@ export class ReplicationManager {
         }
 
         if (type === 'table-changed') {
-          logger.log(`[ReplicationManager] Cross-tab sync: ${tableName} changed in another tab`);
+          logger.log(`[ReplicationManager] Cross-tab sync: ${tableName} changed in tab ${originTabId}`);
 
           // Trigger incremental sync for this table
           const table = this.getTable(tableName);
@@ -808,7 +853,7 @@ export class ReplicationManager {
         }
       };
 
-      logger.log('✅ [ReplicationManager] Cross-tab sync initialized');
+      logger.log(`✅ [ReplicationManager] Cross-tab sync initialized (Tab ID: ${TAB_ID})`);
     } catch (error) {
       logger.warn('[ReplicationManager] BroadcastChannel not supported:', error);
     }
@@ -817,52 +862,60 @@ export class ReplicationManager {
   /**
    * Subscribe to real-time changes for a table
    * Day 25-26 MEDIUM Fix: Instant cache invalidation via Supabase real-time
+   * Issue #4 Fix: Return Promise to track subscription readiness
    */
-  private subscribeToRealtimeChanges(tableName: string): void {
-    try {
-      const channel = supabase
-        .channel(`replication:${tableName}:${this.config.licenseKey}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*', // INSERT, UPDATE, DELETE
-            schema: 'public',
-            table: tableName,
-            filter: `license_key=eq.${this.config.licenseKey}`,
-          },
-          (payload) => {
-            logger.log(`[ReplicationManager] Real-time change detected in ${tableName}:`, payload.eventType);
+  private subscribeToRealtimeChanges(tableName: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        const channel = supabase
+          .channel(`replication:${tableName}:${this.config.licenseKey}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*', // INSERT, UPDATE, DELETE
+              schema: 'public',
+              table: tableName,
+              filter: `license_key=eq.${this.config.licenseKey}`,
+            },
+            (payload) => {
+              logger.log(`[ReplicationManager] Real-time change detected in ${tableName}:`, payload.eventType);
 
-            // Trigger incremental sync for this table
-            const table = this.getTable(tableName);
-            if (table) {
-              this.syncTable(tableName, { forceFullSync: false }).catch((error) => {
-                logger.error(`[ReplicationManager] Real-time sync failed for ${tableName}:`, error);
-              });
+              // Trigger incremental sync for this table
+              const table = this.getTable(tableName);
+              if (table) {
+                this.syncTable(tableName, { forceFullSync: false }).catch((error) => {
+                  logger.error(`[ReplicationManager] Real-time sync failed for ${tableName}:`, error);
+                });
+              }
+
+              // Notify other tabs via BroadcastChannel
+              // Issue #8 Fix: Include originTabId to prevent echo
+              if (this.broadcastChannel) {
+                this.broadcastChannel.postMessage({
+                  type: 'table-changed',
+                  tableName,
+                  licenseKey: this.config.licenseKey,
+                  originTabId: TAB_ID, // Track origin to prevent cascade
+                });
+              }
             }
-
-            // Notify other tabs via BroadcastChannel
-            if (this.broadcastChannel) {
-              this.broadcastChannel.postMessage({
-                type: 'table-changed',
-                tableName,
-                licenseKey: this.config.licenseKey,
-              });
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              logger.log(`✅ [ReplicationManager] Real-time subscription active for ${tableName}`);
+              resolve(); // Issue #4 Fix: Resolve promise when subscribed
+            } else if (status === 'CHANNEL_ERROR') {
+              logger.error(`[ReplicationManager] Real-time subscription error for ${tableName}`);
+              reject(new Error(`Subscription failed for ${tableName}`));
             }
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            logger.log(`✅ [ReplicationManager] Real-time subscription active for ${tableName}`);
-          } else if (status === 'CHANNEL_ERROR') {
-            logger.error(`[ReplicationManager] Real-time subscription error for ${tableName}`);
-          }
-        });
+          });
 
-      this.realtimeChannels.set(tableName, channel);
-    } catch (error) {
-      logger.error(`[ReplicationManager] Failed to subscribe to real-time changes for ${tableName}:`, error);
-    }
+        this.realtimeChannels.set(tableName, channel);
+      } catch (error) {
+        logger.error(`[ReplicationManager] Failed to subscribe to real-time changes for ${tableName}:`, error);
+        reject(error);
+      }
+    });
   }
 
   /**

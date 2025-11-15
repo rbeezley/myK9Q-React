@@ -5,22 +5,8 @@
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
-// Mock environment variables
-vi.mock('../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(),
-    auth: {
-      signIn: vi.fn(),
-      signOut: vi.fn(),
-      onAuthStateChange: vi.fn(),
-    },
-    channel: vi.fn(() => ({
-      on: vi.fn(),
-      subscribe: vi.fn(),
-      unsubscribe: vi.fn(),
-    })),
-  },
-}));
+// Note: vi.mock() calls in setup files cause all tests to fail
+// Each test file that needs mocks must add them individually
 
 // Mock window.matchMedia (for dark mode detection)
 Object.defineProperty(window, 'matchMedia', {
@@ -76,29 +62,18 @@ window.addEventListener = vi.fn((event: string, handler: any) => {
   return originalAddEventListener(event as any, handler);
 }) as any;
 
-// Mock IndexedDB for local-first storage
-const indexedDBMock = {
-  open: vi.fn(() => {
-    const request: any = {
-      result: null,
-      error: null as Error | null,
-      onsuccess: null as any,
-      onerror: null as any,
-      onupgradeneeded: null as any,
-    };
-    // Immediately fail to prevent actual DB operations in tests
-    setTimeout(() => {
-      if (request.onerror) {
-        request.error = new Error('IndexedDB not available in test environment');
-        (request.onerror as any)({ target: request });
-      }
-    }, 0);
-    return request;
-  }),
-  deleteDatabase: vi.fn(),
-};
+// Setup IndexedDB polyfill for replication system tests
+import 'fake-indexeddb/auto';
+import { IDBFactory } from 'fake-indexeddb';
 
+// Provide a real IndexedDB implementation for tests
+if (typeof globalThis.indexedDB === 'undefined') {
+  globalThis.indexedDB = new IDBFactory();
+}
+
+// Also set it on window for browser-like environment
 Object.defineProperty(window, 'indexedDB', {
   writable: true,
-  value: indexedDBMock,
+  configurable: true,
+  value: globalThis.indexedDB,
 });

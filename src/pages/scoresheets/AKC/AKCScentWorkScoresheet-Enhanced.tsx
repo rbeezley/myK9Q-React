@@ -691,6 +691,22 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   };
 
+  const renderRecordTimeButton = () => {
+    if (areas.length <= 1) return null;
+
+    const isLastArea = currentAreaIndex >= areas.length - 1;
+    return (
+      <button
+        className="timer-btn-start next-area"
+        onClick={recordTimeAndMoveToNextArea}
+        title={isLastArea ? "Record time for final area" : "Record time and move to next area"}
+        aria-label={isLastArea ? "Record time for final area" : "Record time and move to next area"}
+      >
+        {isLastArea ? 'Record Time' : 'Record Time / Next Area'}
+      </button>
+    );
+  };
+
   const resetStopwatch = () => {
     setStopwatchTime(0);
     if (stopwatchInterval) {
@@ -1206,25 +1222,15 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
               })() : false;
 
               if (hasExpired) {
-                // Time expired - show appropriate button based on current area
-                const isLastArea = currentAreaIndex >= areas.length - 1;
+                // Time expired - show Record Time button for all multi-area classes
                 return (
                   <>
                     <div className="timer-expired-indicator">⏱ Time Expired</div>
-                    {!isLastArea && areas.length > 1 && (
-                      <button
-                        className="timer-btn-start next-area"
-                        onClick={recordTimeAndMoveToNextArea}
-                        title="Record time and move to next area"
-                      >
-                        Next Area
-                      </button>
-                    )}
+                    {renderRecordTimeButton()}
                   </>
                 );
               } else {
-                // Timer paused but not expired - show Resume and appropriate button
-                const isLastArea = currentAreaIndex >= areas.length - 1;
+                // Timer paused but not expired - show Resume and Record Time button
                 return (
                   <>
                     <button
@@ -1234,15 +1240,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
                     >
                       Resume
                     </button>
-                    {!isLastArea && areas.length > 1 && (
-                      <button
-                        className="timer-btn-start next-area"
-                        onClick={recordTimeAndMoveToNextArea}
-                        title="Record time and move to next area"
-                      >
-                        Next Area
-                      </button>
-                    )}
+                    {renderRecordTimeButton()}
                   </>
                 );
               }
