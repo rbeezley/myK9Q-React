@@ -460,6 +460,6 @@ export const useNationalsStore = create<NationalsState>()(
         })
       }
     ),
-    { name: 'nationals-store' }
+    { name: 'nationals-store', enabled: import.meta.env.DEV }
   )
 );

@@ -34,8 +34,8 @@ const updateSW = registerSW({
 // Also initialize replication immediately for faster startup
 initializeReplication().catch(console.error)
 
-// Expose debug functions
-if (typeof window !== 'undefined') {
+// Expose debug functions (development only)
+if (import.meta.env.DEV && typeof window !== 'undefined') {
   // Force full sync
   (window as any).debugForceFullSync = async () => {
     const { triggerFullSync } = await import('./services/replication/initReplication')

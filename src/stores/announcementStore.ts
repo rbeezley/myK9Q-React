@@ -641,6 +641,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
     }),
     {
       name: 'announcement-store',
+      enabled: import.meta.env.DEV
     }
   )
 );

@@ -315,7 +315,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
         }
       }
     }),
-    { name: 'offline-queue' }
+    { name: 'offline-queue', enabled: import.meta.env.DEV }
   )
 );
 

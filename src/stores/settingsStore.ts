@@ -234,7 +234,7 @@ export const useSettingsStore = create<SettingsState>()(
         name: 'myK9Q_settings',
       }
     ),
-    { name: 'SettingsStore' }
+    { name: 'SettingsStore', enabled: import.meta.env.DEV }
   )
 );
 

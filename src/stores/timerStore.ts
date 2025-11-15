@@ -345,6 +345,7 @@ export const useTimerStore = create<TimerState>()(
         if (!area || !area.maxTime) return false;
         return area.elapsedTime >= area.maxTime;
       }
-    })
+    }),
+    { enabled: import.meta.env.DEV }
   )
 );
