@@ -7,10 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-
-// V3 Database Configuration (default)
-const V3_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const V3_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { supabase as supabaseV3 } from '@/lib/supabase'; // Reuse main client
 
 // Legacy Database Configuration
 const LEGACY_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL_LEGACY;
@@ -19,11 +16,11 @@ const LEGACY_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY_LEGACY;
 // Flutter App URL
 const FLUTTER_APP_URL = import.meta.env.VITE_LEGACY_APP_URL || 'https://myk9q208.flutterflow.app';
 
-// Create Supabase clients
-const supabaseV3 = createClient(V3_SUPABASE_URL, V3_SUPABASE_ANON_KEY);
-const supabaseLegacy = LEGACY_SUPABASE_URL && LEGACY_SUPABASE_ANON_KEY
-  ? createClient(LEGACY_SUPABASE_URL, LEGACY_SUPABASE_ANON_KEY)
-  : null;
+// Create legacy client only if needed (singleton pattern)
+let supabaseLegacy: ReturnType<typeof createClient> | null = null;
+if (LEGACY_SUPABASE_URL && LEGACY_SUPABASE_ANON_KEY) {
+  supabaseLegacy = createClient(LEGACY_SUPABASE_URL, LEGACY_SUPABASE_ANON_KEY);
+}
 
 export interface DetectionResult {
   database: 'v3' | 'legacy';
@@ -247,7 +244,9 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
       if (!legacyError && legacyShows) {
         for (const show of legacyShows) {
           // Legacy database uses mobile_app_lic_key field
-          if (validatePasscodeAgainstLicenseKey(passcode, show.mobile_app_lic_key)) {
+          // Type assertion needed since we don't have legacy database types
+          const legacyShow = show as { mobile_app_lic_key?: string; [key: string]: any };
+          if (legacyShow.mobile_app_lic_key && validatePasscodeAgainstLicenseKey(passcode, legacyShow.mobile_app_lic_key)) {
             console.log('Passcode validated against legacy database, redirecting to Flutter');
 
             // Pass passcode to Flutter app for auto-login (backwards compatible)
@@ -302,7 +301,7 @@ export function getMigrationStatus(): {
 } {
   return {
     enabled: isMigrationModeEnabled(),
-    v3Configured: !!(V3_SUPABASE_URL && V3_SUPABASE_ANON_KEY),
+    v3Configured: !!supabaseV3, // V3 client is always configured via main import
     legacyConfigured: !!(LEGACY_SUPABASE_URL && LEGACY_SUPABASE_ANON_KEY),
     flutterUrl: FLUTTER_APP_URL
   };
