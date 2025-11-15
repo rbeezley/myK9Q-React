@@ -869,7 +869,7 @@ export class SyncEngine {
 
       // Check if mutations already exist in IndexedDB
       const existing = await db.getAll(REPLICATION_STORES.PENDING_MUTATIONS);
-      const existingIds = new Set(existing.map((m: any) => m.id));
+      const existingIds = new Set(existing.map((m: PendingMutation) => m.id));
 
       let restoredCount = 0;
 

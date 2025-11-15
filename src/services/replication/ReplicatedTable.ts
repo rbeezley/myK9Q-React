@@ -18,15 +18,23 @@ import type {
   SyncResult,
 } from './types';
 import type { SyncOptions } from './SyncEngine';
-import type { Logger, GetTableTTL, LogDiagnostics, ReplicatedTableDependencies } from './dependencies';
+import type { Logger, GetTableTTL, LogDiagnostics, ReplicatedTableDependencies, ReplicatedTableName } from './dependencies';
+import {
+  DB_NAME,
+  DB_VERSION,
+  NOTIFY_DEBOUNCE_MS,
+  QUERY_TIMEOUT_MS,
+  SLOW_QUERY_THRESHOLD_MS,
+  MAX_OPTIMISTIC_UPDATE_RETRIES,
+  MAX_CHUNK_SIZE,
+  DB_INIT_TIMEOUT_MS,
+  INIT_RETRY_DELAY_MS,
+} from './replicationConstants';
 
 // Production dependencies - imported from actual modules
 import { logger as defaultLogger } from '@/utils/logger';
 import { getTableTTL as defaultGetTableTTL } from '@/config/featureFlags';
 import { logDiagnosticReport as defaultLogDiagnostics } from '@/utils/indexedDBDiagnostics';
-
-const DB_NAME = 'myK9Q_Replication';
-const DB_VERSION = 3; // Version 3: Fix upgrade deadlock with timeout + corrupted DB recovery
 
 /**
  * Shared database instance singleton
@@ -85,7 +93,6 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
   /** Day 25-26 MEDIUM Fix: Debouncing for listener notifications */
   private notifyDebounceTimer: NodeJS.Timeout | null = null;
-  private readonly NOTIFY_DEBOUNCE_MS = 100; // Batch notifications within 100ms
 
   /** Issue #6 Fix: Leading-edge notification flag to prevent starvation */
   private hasNotifiedLeadingEdge: boolean = false;
@@ -104,7 +111,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     this.logDiagnosticsFn = dependencies.logDiagnostics ?? defaultLogDiagnostics;
 
     // Set TTL using injected function
-    this.ttl = customTTL || this.getTableTTLFn(tableName as any);
+    this.ttl = customTTL || this.getTableTTLFn(tableName as ReplicatedTableName);
   }
 
   /**
@@ -112,39 +119,39 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * SINGLETON PATTERN: All tables share the same DB instance to prevent upgrade deadlocks
    */
   protected async init(): Promise<IDBPDatabase> {
-    console.log(`[${this.tableName}] init() called - sharedDB: ${!!sharedDB}, dbInitPromise: ${!!dbInitPromise}`);
+    this.logger.log(`[${this.tableName}] init() called - sharedDB: ${!!sharedDB}, dbInitPromise: ${!!dbInitPromise}`);
 
     // Return shared instance if already initialized
     if (sharedDB) {
-      console.log(`[${this.tableName}] Using existing sharedDB`);
+      this.logger.log(`[${this.tableName}] Using existing sharedDB`);
       this.db = sharedDB;
       return sharedDB;
     }
 
     // If initialization is in progress, wait for it AND join the queue
     if (dbInitPromise) {
-      console.log(`[${this.tableName}] Waiting for dbInitPromise to resolve...`);
+      this.logger.log(`[${this.tableName}] Waiting for dbInitPromise to resolve...`);
 
       // Wait for database to open
       this.db = await dbInitPromise;
-      console.log(`[${this.tableName}] dbInitPromise resolved successfully`);
+      this.logger.log(`[${this.tableName}] dbInitPromise resolved successfully`);
 
       // CRITICAL FIX: Join the initialization queue to prevent transaction stampede
       // All 16 tables will wait here in sequence instead of creating transactions simultaneously
       const myTurn = tableInitQueue.then(async () => {
         tablesInitialized++;
-        console.log(`[${this.tableName}] My turn in queue (${tablesInitialized}/16)`);
+        this.logger.log(`[${this.tableName}] My turn in queue (${tablesInitialized}/16)`);
 
         // PHASE 1 DAY 2 FIX: Wait for ALL active transactions to complete
         // The 10ms delay was a timing heuristic, not a guarantee.
         // We now wait for actual transaction completion to prevent deadlocks.
         if (activeTransactions.size > 0) {
-          console.log(`[${this.tableName}] Waiting for ${activeTransactions.size} active transactions to complete...`);
+          this.logger.log(`[${this.tableName}] Waiting for ${activeTransactions.size} active transactions to complete...`);
           await Promise.all(Array.from(activeTransactions));
-          console.log(`[${this.tableName}] All active transactions complete`);
+          this.logger.log(`[${this.tableName}] All active transactions complete`);
         }
 
-        console.log(`[${this.tableName}] Queue slot complete, ready for transactions`);
+        this.logger.log(`[${this.tableName}] Queue slot complete, ready for transactions`);
       });
 
       // Update queue for next table
@@ -159,31 +166,29 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     // PHASE 1 DAY 1 FIX: Atomic compare-and-swap to prevent race condition
     // Check if another thread is currently initializing the database
     if (dbInitInProgress) {
-      console.log(`[${this.tableName}] Another thread is initializing DB, waiting...`);
+      this.logger.log(`[${this.tableName}] Another thread is initializing DB, waiting...`);
       // Wait a bit and retry (another thread won the race)
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, INIT_RETRY_DELAY_MS));
       return this.init(); // Recursive retry
     }
 
     // WE WON THE RACE - set flag atomically before creating dbInitPromise
     dbInitInProgress = true;
-    console.log(`[${this.tableName}] Won initialization race, creating database...`);
+    this.logger.log(`[${this.tableName}] Won initialization race, creating database...`);
 
     // Start initialization (only one table will execute this)
-    console.log(`[${this.tableName}] Starting new DB initialization...`);
+    this.logger.log(`[${this.tableName}] Starting new DB initialization...`);
 
     // Timeout protection: openDB can hang if database is corrupt or locked
-    const DB_OPEN_TIMEOUT_MS = 30000; // 30 second timeout for opening database (increased from 10s to handle 16 concurrent tables)
-
-    console.log(`[${this.tableName}] About to call openDB("${DB_NAME}", ${DB_VERSION})...`);
+    this.logger.log(`[${this.tableName}] About to call openDB("${DB_NAME}", ${DB_VERSION})...`);
     const openDBPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, _newVersion, _transaction) {
-        console.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
-        console.log(`[ReplicatedTable] Upgrade transaction mode: ${_transaction.mode}`);
+        defaultLogger.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
+        defaultLogger.log(`[ReplicatedTable] Upgrade transaction mode: ${_transaction.mode}`);
 
         // Create replicated_tables store if it doesn't exist
         if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
-          console.log(`[ReplicatedTable] Creating REPLICATED_TABLES store...`);
+          defaultLogger.log(`[ReplicatedTable] Creating REPLICATED_TABLES store...`);
 
           const store = db.createObjectStore(REPLICATION_STORES.REPLICATED_TABLES, {
             keyPath: ['tableName', 'id'],
@@ -219,7 +224,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
         // Create sync_metadata store
         if (!db.objectStoreNames.contains(REPLICATION_STORES.SYNC_METADATA)) {
-          console.log(`[ReplicatedTable] Creating SYNC_METADATA store...`);
+          defaultLogger.log(`[ReplicatedTable] Creating SYNC_METADATA store...`);
           db.createObjectStore(REPLICATION_STORES.SYNC_METADATA, {
             keyPath: 'tableName',
           });
@@ -227,7 +232,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
         // Create pending_mutations store
         if (!db.objectStoreNames.contains(REPLICATION_STORES.PENDING_MUTATIONS)) {
-          console.log(`[ReplicatedTable] Creating PENDING_MUTATIONS store...`);
+          defaultLogger.log(`[ReplicatedTable] Creating PENDING_MUTATIONS store...`);
           const mutationStore = db.createObjectStore(REPLICATION_STORES.PENDING_MUTATIONS, {
             keyPath: 'id',
           });
@@ -235,17 +240,17 @@ export abstract class ReplicatedTable<T extends { id: string }> {
           mutationStore.createIndex('tableName', 'tableName', { unique: false });
         }
 
-        console.log(`[ReplicatedTable] ✅ Upgrade callback complete`);
+        defaultLogger.log(`[ReplicatedTable] ✅ Upgrade callback complete`);
       },
     }).then((db) => {
-      console.log(`[ReplicatedTable] ✅ openDB() promise resolved!`);
+      defaultLogger.log(`[ReplicatedTable] ✅ openDB() promise resolved!`);
       return db;
     });
 
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
-        reject(new Error(`Database open timed out after ${DB_OPEN_TIMEOUT_MS}ms - database may be corrupted or locked`));
-      }, DB_OPEN_TIMEOUT_MS);
+        reject(new Error(`Database open timed out after ${DB_INIT_TIMEOUT_MS}ms - database may be corrupted or locked`));
+      }, DB_INIT_TIMEOUT_MS);
     });
 
     // Try to open database with timeout
@@ -256,32 +261,32 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       sharedDB = await dbInitPromise;
       this.db = sharedDB;
 
-      console.log(`[ReplicatedTable] ✅ Shared database initialized successfully`);
+      this.logger.log(`[ReplicatedTable] ✅ Shared database initialized successfully`);
 
       // PHASE 1 DAY 1 FIX: Release the initialization flag on success
       dbInitInProgress = false;
 
       return this.db;
     } catch (error) {
-      console.error(`[ReplicatedTable] ❌ Failed to open database:`, error);
+      this.logger.error(`[ReplicatedTable] ❌ Failed to open database:`, error);
 
       // Import the config function
       const { handleDatabaseCorruption } = await import('./replicationConfig');
 
       // Database is corrupt or locked - disable replication and clean up
-      console.warn(`[ReplicatedTable] 🗑️ Deleting corrupted database and disabling replication...`);
+      this.logger.warn(`[ReplicatedTable] 🗑️ Deleting corrupted database and disabling replication...`);
 
       // Handle the corruption (this will disable replication temporarily)
       handleDatabaseCorruption();
 
       try {
         await deleteDB(DB_NAME);
-        console.log(`[ReplicatedTable] Database deleted successfully`);
+        this.logger.log(`[ReplicatedTable] Database deleted successfully`);
 
         // Retry opening database (fresh start)
         const retryPromise = openDB(DB_NAME, DB_VERSION, {
           upgrade(db, oldVersion, _newVersion, _transaction) {
-            console.log(`[ReplicatedTable] 🔧 Retry upgrade - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
+            defaultLogger.log(`[ReplicatedTable] 🔧 Retry upgrade - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
             // Same upgrade logic as above (create all stores)
             if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
               const store = db.createObjectStore(REPLICATION_STORES.REPLICATED_TABLES, {
@@ -315,7 +320,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
         // NOW update dbInitPromise to point to the new database
         dbInitPromise = Promise.resolve(sharedDB);
 
-        console.log(`[ReplicatedTable] ✅ Database recreated successfully after corruption`);
+        this.logger.log(`[ReplicatedTable] ✅ Database recreated successfully after corruption`);
 
         // PHASE 1 DAY 1 FIX: Release the initialization flag on success
         dbInitInProgress = false;
@@ -326,15 +331,15 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
         return this.db;
       } catch (retryError) {
-        console.error(`[ReplicatedTable] ❌ Failed to recreate database after deletion:`, retryError);
+        this.logger.error(`[ReplicatedTable] ❌ Failed to recreate database after deletion:`, retryError);
 
         // Database is completely stuck - run diagnostics
-        console.error(`[ReplicatedTable] 🔍 Database is locked/corrupted - running diagnostics...`);
+        this.logger.error(`[ReplicatedTable] 🔍 Database is locked/corrupted - running diagnostics...`);
 
         // Run diagnostic report in background
         setTimeout(() => {
           Promise.resolve(this.logDiagnosticsFn({})).catch(err => {
-            console.error('[ReplicatedTable] Diagnostic report failed:', err);
+            this.logger.error('[ReplicatedTable] Diagnostic report failed:', err);
           });
         }, 0);
 
@@ -342,13 +347,13 @@ export abstract class ReplicatedTable<T extends { id: string }> {
         // If other threads have active transactions, don't destroy their state
         const currentlyInUse = activeTransactions.size > 0;
         if (!currentlyInUse) {
-          console.log(`[${this.tableName}] No active transactions, safe to reset global state`);
+          this.logger.log(`[${this.tableName}] No active transactions, safe to reset global state`);
           dbInitPromise = null;
           sharedDB = null;
           tableInitQueue = Promise.resolve();
           tablesInitialized = 0;
         } else {
-          console.warn(
+          this.logger.warn(
             `[${this.tableName}] Not resetting DB state - ${activeTransactions.size} active transactions. ` +
             `Other tables may still be using the database.`
           );
@@ -497,18 +502,17 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    *
    * Day 25-26 MEDIUM Fix: Added timeout and performance logging
    */
-  async queryByField(fieldName: 'class_id' | 'trial_id' | 'show_id' | 'armband_number', value: any): Promise<T[]> {
+  async queryByField(fieldName: 'class_id' | 'trial_id' | 'show_id' | 'armband_number', value: string): Promise<T[]> {
     const startTime = performance.now();
     const db = await this.init();
     const indexName = `tableName_data.${fieldName}`;
 
     try {
-      // Day 25-26 MEDIUM Fix: Query timeout (500ms)
+      // Day 25-26 MEDIUM Fix: Query timeout
       // Issue #11 Fix: Abort transaction on timeout to prevent resource leaks
-      const QUERY_TIMEOUT_MS = 500;
 
       let txAborted = false;
-      let tx: any = null;
+      let tx: { abort: () => void } | null = null;
 
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
@@ -528,8 +532,9 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
       // Execute query with timeout
       const queryPromise = (async () => {
-        tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
-        const index = tx.store.index(indexName);
+        const transaction = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
+        tx = transaction; // Store for abort capability
+        const index = transaction.store.index(indexName);
 
         // Issue #11 Fix: Check if aborted before proceeding
         if (txAborted) {
@@ -554,7 +559,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
       // Day 25-26 MEDIUM Fix: Performance logging
       const duration = performance.now() - startTime;
-      if (duration > 100) {
+      if (duration > SLOW_QUERY_THRESHOLD_MS) {
         this.logger.warn(
           `⚠️ [${this.tableName}] SLOW query detected: ${fieldName}=${value} took ${duration.toFixed(2)}ms ` +
           `(${results.length} results). Consider optimizing or reducing dataset.`
@@ -570,7 +575,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       // Day 25-26 MEDIUM Fix: Handle timeout errors
       if (error instanceof Error && error.message.includes('Query timeout')) {
         this.logger.error(
-          `❌ [${this.tableName}] Query TIMEOUT: ${fieldName}=${value} exceeded 500ms. ` +
+          `❌ [${this.tableName}] Query TIMEOUT: ${fieldName}=${value} exceeded ${QUERY_TIMEOUT_MS}ms. ` +
           `This indicates a performance issue. Dataset may be too large or index not working properly.`
         );
         throw error;
@@ -587,15 +592,19 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * Query rows by index (DEPRECATED - use queryByField for better performance)
    * Example: queryIndex('class_id', '123') returns all entries with class_id = 123
    */
-  async queryIndex(indexName: keyof T, value: any): Promise<T[]> {
+  async queryIndex(indexName: keyof T, value: string | number): Promise<T[]> {
     // Try optimized query first for known fields
-    if (['class_id', 'trial_id', 'show_id', 'armband_number'].includes(indexName as string)) {
-      return this.queryByField(indexName as any, value);
+    const fieldName = indexName as string;
+    if (['class_id', 'trial_id', 'show_id', 'armband_number'].includes(fieldName)) {
+      return this.queryByField(
+        fieldName as 'class_id' | 'trial_id' | 'show_id' | 'armband_number',
+        String(value)
+      );
     }
 
     // Fall back to table scan for other fields
     const allRows = await this.getAll();
-    return allRows.filter((row) => (row as any)[indexName] === value);
+    return allRows.filter((row) => row[indexName] === value);
   }
 
   /**
@@ -635,7 +644,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       const result = await Promise.race([getAllPromise, timeoutPromise]);
       return result;
     } catch (error) {
-      console.error(`[${this.tableName}] ❌ getAll() failed:`, error);
+      this.logger.error(`[${this.tableName}] ❌ getAll() failed:`, error);
       // Return empty array on timeout to allow sync to continue
       return [];
     }
@@ -692,7 +701,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
   async optimisticUpdate(
     id: string,
     updateFn: (current: T) => T | Promise<T>,
-    _maxRetries = 3
+    _maxRetries = MAX_OPTIMISTIC_UPDATE_RETRIES
   ): Promise<T> {
     // Issue #5 Fix: Acquire row lock to prevent concurrent update livelocks
     // With the lock, we have exclusive access to this row, so no retry is needed
@@ -762,7 +771,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * - Allow progress updates
    * - Prevent transaction timeouts
    */
-  async batchSetChunked(items: T[], chunkSize: number = 100): Promise<void> {
+  async batchSetChunked(items: T[], chunkSize: number = MAX_CHUNK_SIZE): Promise<void> {
     const totalRows = items.length;
 
     // For small datasets, use regular batchSet
@@ -886,7 +895,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       await this.actuallyNotifyListeners();
       this.notifyDebounceTimer = null;
       this.hasNotifiedLeadingEdge = false; // Reset flag
-    }, this.NOTIFY_DEBOUNCE_MS);
+    }, NOTIFY_DEBOUNCE_MS);
   }
 
   /**
@@ -1158,7 +1167,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       const result = await Promise.race([readPromise, timeoutPromise]);
       return result;
     } catch (error) {
-      console.error(`[${this.tableName}] ❌ Metadata read failed:`, error);
+      this.logger.error(`[${this.tableName}] ❌ Metadata read failed:`, error);
       // Return null on timeout to allow sync to continue with default metadata
       return null;
     }
@@ -1221,9 +1230,9 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     try {
       await Promise.race([updatePromise, timeoutPromise]);
-      console.log(`[${this.tableName}] ✅ Metadata updated successfully`);
+      this.logger.log(`[${this.tableName}] ✅ Metadata updated successfully`);
     } catch (error) {
-      console.error(`[${this.tableName}] ❌ Metadata update failed:`, error);
+      this.logger.error(`[${this.tableName}] ❌ Metadata update failed:`, error);
       throw error;
     }
   }

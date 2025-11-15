@@ -28,6 +28,7 @@ import {
   replicatedAuditLogViewTable,
 } from './index';
 import { isReplicationEnabled, clearDevelopmentDisableFlags } from './replicationConfig';
+import { logger } from '@/utils/logger';
 
 // Track if we've already initialized to prevent duplicate initialization
 let isInitialized = false;
@@ -44,24 +45,24 @@ export async function initializeReplication(): Promise<void> {
 
     // Check if replication is enabled
     if (!isReplicationEnabled()) {
-      console.warn('[Replication] Replication is disabled, skipping initialization');
+      logger.warn('[Replication] Replication is disabled, skipping initialization');
       return;
     }
 
     // Check if we already have a manager instance
     const existingManager = getReplicationManager();
     if (existingManager) {
-      console.log('[Replication] Manager already exists, skipping duplicate initialization');
+      logger.log('[Replication] Manager already exists, skipping duplicate initialization');
       return;
     }
 
     // Prevent duplicate initialization within same session
     if (isInitialized) {
-      console.log('[Replication] Already initialized in this session, checking manager state...');
+      logger.log('[Replication] Already initialized in this session, checking manager state...');
       // Double-check that manager really exists
       const manager = getReplicationManager();
       if (!manager) {
-        console.warn('[Replication] isInitialized was true but manager is null, resetting flag');
+        logger.warn('[Replication] isInitialized was true but manager is null, resetting flag');
         isInitialized = false; // Reset flag to allow reinitialization
       } else {
         return;
@@ -73,11 +74,11 @@ export async function initializeReplication(): Promise<void> {
     const licenseKey = auth.showContext?.licenseKey;
 
     if (!licenseKey) {
-      console.log('[Replication] No license key found, skipping initialization');
+      logger.log('[Replication] No license key found, skipping initialization');
       return;
     }
 
-    console.log('[Replication] Initializing replication system...');
+    logger.log('[Replication] Initializing replication system...');
     isInitialized = true; // Mark as initialized
 
     // Initialize ReplicationManager with configuration
@@ -90,7 +91,7 @@ export async function initializeReplication(): Promise<void> {
     });
 
     // Register all tables
-    console.log('[Replication] Registering tables...');
+    logger.log('[Replication] Registering tables...');
 
     // Core tables
     manager.registerTable('entries', replicatedEntriesTable);
@@ -120,20 +121,20 @@ export async function initializeReplication(): Promise<void> {
     // Audit Log View (Day 20)
     manager.registerTable('view_audit_log', replicatedAuditLogViewTable);
 
-    console.log('[Replication] Registered 16 tables');
+    logger.log('[Replication] Registered 16 tables');
 
     // Issue #4 Fix: Wait for all subscriptions to be ready before starting sync
-    console.log('[Replication] Waiting for subscriptions to initialize...');
+    logger.log('[Replication] Waiting for subscriptions to initialize...');
     await manager.waitForSubscriptionsReady();
-    console.log('[Replication] All subscriptions ready');
+    logger.log('[Replication] All subscriptions ready');
 
     // Now start auto-sync (all tables registered and subscriptions ready)
-    console.log('[Replication] Starting auto-sync...');
+    logger.log('[Replication] Starting auto-sync...');
     manager.startAutoSync();
 
-    console.log('[Replication] ✅ Replication system initialized successfully');
+    logger.log('[Replication] ✅ Replication system initialized successfully');
   } catch (error) {
-    console.error('[Replication] Failed to initialize replication system:', error);
+    logger.error('[Replication] Failed to initialize replication system:', error);
     // Don't throw - app should work without replication
   }
 }
@@ -145,21 +146,21 @@ export async function initializeReplication(): Promise<void> {
 export async function triggerManualSync(tableName: string): Promise<void> {
   const manager = getReplicationManager();
   if (!manager) {
-    console.warn('[Replication] Cannot sync - manager not initialized');
+    logger.warn('[Replication] Cannot sync - manager not initialized');
     return;
   }
 
   try {
-    console.log(`[Replication] Manual sync triggered for ${tableName}`);
+    logger.log(`[Replication] Manual sync triggered for ${tableName}`);
     const result = await manager.syncTable(tableName);
 
     if (result.success) {
-      console.log(`[Replication] ✅ Manual sync complete: ${result.rowsAffected} rows`);
+      logger.log(`[Replication] ✅ Manual sync complete: ${result.rowsAffected} rows`);
     } else {
-      console.error(`[Replication] ❌ Manual sync failed: ${result.error}`);
+      logger.error(`[Replication] ❌ Manual sync failed: ${result.error}`);
     }
   } catch (error) {
-    console.error(`[Replication] Manual sync error for ${tableName}:`, error);
+    logger.error(`[Replication] Manual sync error for ${tableName}:`, error);
   }
 }
 
@@ -170,20 +171,20 @@ export async function triggerManualSync(tableName: string): Promise<void> {
 export async function triggerFullSync(licenseKey: string): Promise<void> {
   const manager = getReplicationManager();
   if (!manager) {
-    console.warn('[Replication] Cannot sync - manager not initialized');
+    logger.warn('[Replication] Cannot sync - manager not initialized');
     return;
   }
 
   try {
-    console.log('[Replication] Full sync triggered for all tables');
+    logger.log('[Replication] Full sync triggered for all tables');
     const results = await manager.syncAll({ licenseKey, forceFullSync: true });
 
     const successful = results.filter(r => r.success).length;
     const failed = results.filter(r => !r.success).length;
 
-    console.log(`[Replication] ✅ Full sync complete: ${successful} succeeded, ${failed} failed`);
+    logger.log(`[Replication] ✅ Full sync complete: ${successful} succeeded, ${failed} failed`);
   } catch (error) {
-    console.error('[Replication] Full sync error:', error);
+    logger.error('[Replication] Full sync error:', error);
   }
 }
 
@@ -194,16 +195,16 @@ export async function triggerFullSync(licenseKey: string): Promise<void> {
 export async function clearReplicationCaches(): Promise<void> {
   const manager = getReplicationManager();
   if (!manager) {
-    console.warn('[Replication] Cannot clear caches - manager not initialized');
+    logger.warn('[Replication] Cannot clear caches - manager not initialized');
     return;
   }
 
   try {
-    console.log('[Replication] Clearing all caches for show change...');
+    logger.log('[Replication] Clearing all caches for show change...');
     await manager.clearAllCaches();
-    console.log('[Replication] ✅ All caches cleared');
+    logger.log('[Replication] ✅ All caches cleared');
   } catch (error) {
-    console.error('[Replication] Failed to clear caches:', error);
+    logger.error('[Replication] Failed to clear caches:', error);
   }
 }
 
@@ -226,21 +227,21 @@ export async function getReplicationPerformance() {
 export async function refreshTable(tableName: string): Promise<void> {
   const manager = getReplicationManager();
   if (!manager) {
-    console.warn('[Replication] Cannot refresh - manager not initialized');
+    logger.warn('[Replication] Cannot refresh - manager not initialized');
     return;
   }
 
   try {
-    console.log(`[Replication] Refreshing table: ${tableName}`);
+    logger.log(`[Replication] Refreshing table: ${tableName}`);
     const result = await manager.refreshTable(tableName);
 
     if (result.success) {
-      console.log(`[Replication] ✅ Refresh complete: ${result.rowsAffected} rows`);
+      logger.log(`[Replication] ✅ Refresh complete: ${result.rowsAffected} rows`);
     } else {
-      console.error(`[Replication] ❌ Refresh failed: ${result.error}`);
+      logger.error(`[Replication] ❌ Refresh failed: ${result.error}`);
     }
   } catch (error) {
-    console.error(`[Replication] Refresh error for ${tableName}:`, error);
+    logger.error(`[Replication] Refresh error for ${tableName}:`, error);
   }
 }
 
@@ -251,20 +252,20 @@ export async function refreshTable(tableName: string): Promise<void> {
 export async function refreshAllTables(): Promise<void> {
   const manager = getReplicationManager();
   if (!manager) {
-    console.warn('[Replication] Cannot refresh - manager not initialized');
+    logger.warn('[Replication] Cannot refresh - manager not initialized');
     return;
   }
 
   try {
-    console.log('[Replication] Refreshing all tables...');
+    logger.log('[Replication] Refreshing all tables...');
     const results = await manager.refreshAll();
 
     const successful = results.filter(r => r.success).length;
     const failed = results.filter(r => !r.success).length;
 
-    console.log(`[Replication] ✅ Refresh complete: ${successful} succeeded, ${failed} failed`);
+    logger.log(`[Replication] ✅ Refresh complete: ${successful} succeeded, ${failed} failed`);
   } catch (error) {
-    console.error('[Replication] Refresh error:', error);
+    logger.error('[Replication] Refresh error:', error);
   }
 }
 

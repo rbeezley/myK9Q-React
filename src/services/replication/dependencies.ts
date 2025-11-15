@@ -5,26 +5,40 @@
  * while using real implementations in production.
  */
 
+import { DEFAULT_TTL_MS } from './replicationConstants';
+import type { ReplicatedTableName } from '@/config/featureFlags';
+
+// Re-export for convenience
+export type { ReplicatedTableName };
+
 /**
  * Logger interface - matches the structure of @/utils/logger
  */
 export interface Logger {
-  log: (...args: any[]) => void;
-  warn: (...args: any[]) => void;
-  error: (...args: any[]) => void;
-  debug?: (...args: any[]) => void;
+  log: (...args: unknown[]) => void;
+  warn: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+  debug?: (...args: unknown[]) => void;
+}
+
+/**
+ * Diagnostic report structure
+ */
+export interface DiagnosticReport {
+  timestamp?: number;
+  error?: Error | string;
+  context?: Record<string, unknown>;
 }
 
 /**
  * TTL provider function type
- * Note: Uses 'any' to avoid circular dependency with featureFlags
  */
-export type GetTableTTL = (tableName: any) => number;
+export type GetTableTTL = (tableName: ReplicatedTableName) => number;
 
 /**
  * Diagnostics logger function type
  */
-export type LogDiagnostics = (report: any) => void;
+export type LogDiagnostics = (report: DiagnosticReport) => void | Promise<void>;
 
 /**
  * All injectable dependencies for ReplicatedTable
@@ -48,7 +62,7 @@ export const noopLogger: Logger = {
 /**
  * Default TTL provider (5 minutes)
  */
-export const defaultGetTableTTL: GetTableTTL = () => 300000;
+export const defaultGetTableTTL: GetTableTTL = () => DEFAULT_TTL_MS;
 
 /**
  * Default no-op diagnostics

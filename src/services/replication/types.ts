@@ -49,7 +49,7 @@ export interface PendingMutation {
   tableName: string;
   operation: 'INSERT' | 'UPDATE' | 'DELETE' | 'BATCH_UPDATE';
   rowId: string;            // ID of affected row
-  data: any;                // Mutation data
+  data: Record<string, unknown>;  // Mutation data (generic object)
   timestamp: number;        // When mutation was queued
   retries: number;          // Retry attempts
   status: 'pending' | 'syncing' | 'failed' | 'success';
@@ -118,16 +118,16 @@ export type ConflictStrategy =
 /**
  * Table query filter
  */
-export interface TableFilter<T = any> {
+export interface TableFilter<T = Record<string, unknown>> {
   field: keyof T;
   operator: '=' | '!=' | '>' | '<' | '>=' | '<=' | 'in' | 'like';
-  value: any;
+  value: string | number | boolean | string[];
 }
 
 /**
  * Table query options
  */
-export interface QueryOptions<T = any> {
+export interface QueryOptions<T = Record<string, unknown>> {
   filters?: TableFilter<T>[];
   orderBy?: keyof T;
   orderDirection?: 'asc' | 'desc';

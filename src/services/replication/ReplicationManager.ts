@@ -299,7 +299,7 @@ export class ReplicationManager {
    */
   private async _syncAllInternal(options?: Partial<SyncOptions>): Promise<SyncResult[]> {
     this.isSyncing = true;
-    console.log('[ReplicationManager] Starting sync for all tables...');
+    logger.log('[ReplicationManager] Starting sync for all tables...');
 
     const startTime = Date.now();
     const results: SyncResult[] = [];
@@ -307,23 +307,23 @@ export class ReplicationManager {
     try {
       // Day 25-26 LOW Fix: Phase 1 - Upload mutations BEFORE download sync
       // This prevents race conditions where download overwrites pending uploads
-      console.log('[ReplicationManager] Phase 1: Uploading pending mutations...');
+      logger.log('[ReplicationManager] Phase 1: Uploading pending mutations...');
       const mutationResults = await this.syncEngine.uploadPendingMutations();
-      console.log('[ReplicationManager] Phase 1 complete:', mutationResults.length, 'mutations uploaded');
+      logger.log('[ReplicationManager] Phase 1 complete:', mutationResults.length, 'mutations uploaded');
       results.push(...mutationResults);
 
       // Day 25-26 LOW Fix: Phase 2 - Download sync (mutations are now synced)
       const tableNames = Array.from(this.tables.keys());
-      console.log('[ReplicationManager] Phase 2: Syncing', tableNames.length, 'tables...');
+      logger.log('[ReplicationManager] Phase 2: Syncing', tableNames.length, 'tables...');
 
       for (const tableName of tableNames) {
         try {
-          console.log(`[ReplicationManager] Syncing table: ${tableName}`);
+          logger.log(`[ReplicationManager] Syncing table: ${tableName}`);
           const result = await this.syncTable(tableName, options);
-          console.log(`[ReplicationManager] Table ${tableName} sync result:`, result);
+          logger.log(`[ReplicationManager] Table ${tableName} sync result:`, result);
           results.push(result);
         } catch (error) {
-          console.error(
+          logger.error(
             `[ReplicationManager] Failed to sync table ${tableName}:`,
             error
           );
@@ -343,7 +343,7 @@ export class ReplicationManager {
       const duration = Date.now() - startTime;
       const successCount = results.filter((r) => r.success).length;
 
-      console.log(
+      logger.log(
         `✅ [ReplicationManager] Sync complete: ${successCount}/${results.length} tables synced in ${duration}ms`
       );
 
@@ -547,7 +547,7 @@ export class ReplicationManager {
    * Stop replication manager and cleanup resources
    */
   async stop(): Promise<void> {
-    console.log('[ReplicationManager] Stopping replication...');
+    logger.log('[ReplicationManager] Stopping replication...');
 
     // Stop auto sync
     this.stopAutoSync();
@@ -567,14 +567,14 @@ export class ReplicationManager {
           await (table as any).cleanup();
         }
       } catch (error) {
-        console.warn(`[ReplicationManager] Error cleaning up table ${tableName}:`, error);
+        logger.warn(`[ReplicationManager] Error cleaning up table ${tableName}:`, error);
       }
     }
 
     // Clear tables map
     this.tables.clear();
 
-    console.log('[ReplicationManager] Replication stopped');
+    logger.log('[ReplicationManager] Replication stopped');
   }
 
 

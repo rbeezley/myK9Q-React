@@ -10,7 +10,7 @@
  */
 
 import { logger } from '@/utils/logger';
-import type { SyncResult } from './types';
+import type { SyncResult, PendingMutation } from './types';
 
 export interface ReplicationHealthMetrics {
   // Sync metrics
@@ -250,8 +250,8 @@ export class ReplicationMonitor {
       const { openDB } = await import('idb');
       const db = await openDB('myK9Q_replication', 1);
       const mutations = await db.getAll('pending_mutations');
-      pendingMutations = mutations.filter((m: any) => m.status === 'pending').length;
-      failedMutations = mutations.filter((m: any) => m.status === 'failed').length;
+      pendingMutations = mutations.filter((m: PendingMutation) => m.status === 'pending').length;
+      failedMutations = mutations.filter((m: PendingMutation) => m.status === 'failed').length;
     } catch (error) {
       logger.warn('[ReplicationMonitor] Failed to get mutation counts:', error);
     }

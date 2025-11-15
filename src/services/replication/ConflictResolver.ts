@@ -285,7 +285,7 @@ export class ConflictResolver {
   /**
    * Check if value is undefined or null
    */
-  private isUndefinedOrNull(value: any): boolean {
+  private isUndefinedOrNull(value: unknown): boolean {
     return value === undefined || value === null;
   }
 

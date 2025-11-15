@@ -197,10 +197,8 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
    * OPTIMIZED: Uses IndexedDB index for O(log n) performance
    */
   async getByTrialId(trialId: string): Promise<Class[]> {
-    const trialIdNum = parseInt(trialId, 10);
-
     // Use indexed query for much better performance
-    const classes = await this.queryByField('trial_id', trialIdNum);
+    const classes = await this.queryByField('trial_id', trialId);
 
     // Sort by class_order
     return classes.sort((a, b) => (a.class_order || 0) - (b.class_order || 0));
