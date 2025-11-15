@@ -85,8 +85,6 @@ export async function generateSmartDefaults(
   const perfSettings = await getPerformanceSettings();
 
   const defaults: Partial<AppSettings> = {
-    // Performance Mode - default to auto
-
     // Animations - based on device tier
     enableAnimations: perfSettings.animations,
     reduceMotion: context.deviceTier === 'low' || (context.batteryLevel !== undefined && context.batteryLevel < 0.2),
@@ -99,6 +97,9 @@ export async function generateSmartDefaults(
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     fontSize: 'medium',
     density: context.deviceTier === 'low' ? 'compact' : 'comfortable',
+
+    // Offline
+    autoDownloadOnLogin: context.deviceTier === 'high' && context.connectionQuality === 'fast',
 
     // Notification Settings
     enableNotifications: true,
@@ -121,8 +122,6 @@ export async function generateSmartDefaults(
 
     // Advanced
     developerMode: false,
-    showFPS: false,
-    showNetworkRequests: false,
     consoleLogging: 'errors' as const,
     enableBetaFeatures: false,
     enablePerformanceMonitoring: false,
@@ -134,87 +133,6 @@ export async function generateSmartDefaults(
   return defaults;
 }
 
-/**
- * Get image quality default based on context
- */
-function _getImageQualityDefault(context: SmartDefaultsContext): 'low' | 'medium' | 'high' | 'original' {
-  // If on cellular with slow connection, use low quality
-  if (context.connectionType === 'cellular' && context.connectionQuality === 'slow') {
-    return 'low';
-  }
-
-  // If low-end device, use medium quality
-  if (context.deviceTier === 'low') {
-    return 'medium';
-  }
-
-  // If high-end device with good connection, use high quality
-  if (context.deviceTier === 'high' && context.connectionQuality === 'fast') {
-    return 'high';
-  }
-
-  // Default to medium for most cases
-  return 'medium';
-}
-
-/**
- * Get sync frequency default based on context
- */
-function _getSyncFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '5s' | '30s' | 'manual' {
-  // Low-end devices: 30 second intervals
-  if (context.deviceTier === 'low') {
-    return '30s';
-  }
-
-  // Slow connection: 30 second intervals
-  if (context.connectionQuality === 'slow') {
-    return '30s';
-  }
-
-  // Fast connection: immediate
-  if (context.connectionQuality === 'fast' && context.deviceTier === 'high') {
-    return 'immediate';
-  }
-
-  // Default: 5 second intervals
-  return '5s';
-}
-
-/**
- * Get storage limit default based on context
- */
-function _getStorageLimitDefault(context: SmartDefaultsContext): 100 | 500 | 1000 | -1 {
-  // Low-end devices: 100MB
-  if (context.deviceTier === 'low') {
-    return 100;
-  }
-
-  // Medium devices: 500MB
-  if (context.deviceTier === 'medium') {
-    return 500;
-  }
-
-  // High-end devices: 1GB
-  return 1000;
-}
-
-/**
- * Get auto-save frequency default based on context
- */
-function _getAutoSaveFrequencyDefault(context: SmartDefaultsContext): 'immediate' | '10s' | '30s' | '1m' | '5m' {
-  // High-end devices with good connection: immediate
-  if (context.deviceTier === 'high' && context.connectionQuality === 'fast') {
-    return 'immediate';
-  }
-
-  // Low-end devices: 1 minute
-  if (context.deviceTier === 'low') {
-    return '1m';
-  }
-
-  // Default: 10 seconds
-  return '10s';
-}
 
 /**
  * Get role-based defaults
@@ -306,7 +224,9 @@ export async function getRecommendedSettings(
       };
 
     case 'data-saver':
-      return {};
+      return {
+        autoDownloadOnLogin: false,
+      };
 
     case 'balanced':
     default:

@@ -1,0 +1,265 @@
+
+> myk9q-react@3.0.0 test
+> vitest --reporter=dot
+
+
+[1m[46m RUN [49m[22m [36mv4.0.9 [39m[90mD:/AI-Projects/myK9Q-React-new[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mrecalculatePlacementsForClass[2m > [22m[2mshould recalculate placements for a single class
+[22m[39m✅ Recalculated placements for class(es) 101
+
+[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mrecalculatePlacementsForClass[2m > [22m[2mshould recalculate placements for multiple classes
+[22m[39m✅ Recalculated placements for class(es) 101, 102, 103
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mrecalculatePlacementsForClass[2m > [22m[2mshould use nationals flag when specified
+[22m[39m✅ Recalculated placements for class(es) 101
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mrecalculatePlacementsForClass[2m > [22m[2mshould normalize single class ID to array
+[22m[39m✅ Recalculated placements for class(es) 201
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould recalculate placements for regular show
+[22m[39m🔄 Manual placement recalculation requested for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould recalculate placements for regular show
+[22m[39m✅ Recalculated placements for class(es) 101
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould recalculate placements for regular show
+[22m[39m✅ Manual placement recalculation completed for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould detect nationals competition and use correct flag
+[22m[39m🔄 Manual placement recalculation requested for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould detect nationals competition and use correct flag
+[22m[39m✅ Recalculated placements for class(es) 101
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould detect nationals competition and use correct flag
+[22m[39m✅ Manual placement recalculation completed for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould throw error when class data fetch fails
+[22m[39m🔄 Manual placement recalculation requested for class [33m999[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould throw error when placement recalculation fails
+[22m[39m🔄 Manual placement recalculation requested for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould handle case-insensitive nationals detection
+[22m[39m🔄 Manual placement recalculation requested for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould handle case-insensitive nationals detection
+[22m[39m✅ Recalculated placements for class(es) 101
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould handle case-insensitive nationals detection
+[22m[39m✅ Manual placement recalculation completed for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould default to false for nationals flag if show_type is null
+[22m[39m🔄 Manual placement recalculation requested for class [33m101[39m
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould default to false for nationals flag if show_type is null
+[22m[39m✅ Recalculated placements for class(es) 101
+
+[90mstdout[2m | src/services/placementService.test.ts[2m > [22m[2mplacementService[2m > [22m[2mmanuallyRecalculatePlacements[2m > [22m[2mshould default to false for nationals flag if show_type is null
+[22m[39m✅ Manual placement recalculation completed for class [33m101[39m
+
+[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[31mx[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould fetch announcements with default filters
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould fetch announcements with default filters
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould filter by priority
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould filter by priority
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould filter by author role
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould filter by author role
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould apply search filter
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould apply search filter
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould apply pagination
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould apply pagination
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould throw error when query fails
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould throw error when query fails
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould return empty array when no announcements found
+[22m[39m📢 [AnnouncementService] Fetching from replicated cache...
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mgetAnnouncements[2m > [22m[2mshould return empty array when no announcements found
+[22m[39m✅ [AnnouncementService] Loaded 0 announcements from cache
+
+[90mstdout[2m | src/services/announcementService.test.ts[2m > [22m[2mAnnouncementService[2m > [22m[2mcreateAnnouncement[2m > [22m[2mshould create a new announcement
+[22m[39m✅ Created announcement: New Announcement
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2msubscribe[2m > [22m[2mshould notify listener on state changes
+[22m[39m⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 0 subscriptions
+▶️ Resuming real-time sync
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2msubscribe[2m > [22m[2mshould stop notifying after unsubscribe
+[22m[39m⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 0 subscriptions
+▶️ Resuming real-time sync
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2msubscribeToUpdates[2m > [22m[2mshould create a new subscription
+[22m[39m🔌 Creating subscription: test-key
+📝 Registered subscription: test-key (sync)
+🔌 Unsubscribing from test-key
+🗑️ Unregistered subscription: test-key
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2msubscribeToUpdates[2m > [22m[2mshould unsubscribe old subscription if key already exists
+[22m[39m🔌 Creating subscription: test-key
+📝 Registered subscription: test-key (sync)
+🔌 Unsubscribing from test-key
+🗑️ Unregistered subscription: test-key
+🔌 Creating subscription: test-key
+📝 Registered subscription: test-key (sync)
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2msubscribeToUpdates[2m > [22m[2mshould return unsubscribe function
+[22m[39m🔌 Unsubscribing from test-key
+🗑️ Unregistered subscription: test-key
+🔌 Creating subscription: test-key
+📝 Registered subscription: test-key (sync)
+🔌 Unsubscribing from test-key
+🗑️ Unregistered subscription: test-key
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2msubscribeToUpdates[2m > [22m[2mshould handle subscription errors
+[22m[39m🔌 Creating subscription: test-key
+📝 Registered subscription: test-key (sync)
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2munsubscribe[2m > [22m[2mshould unsubscribe from specific subscription
+[22m[39m🔌 Unsubscribing from test-key
+🗑️ Unregistered subscription: test-key
+🔌 Creating subscription: test-key
+📝 Registered subscription: test-key (sync)
+🔌 Unsubscribing from test-key
+🗑️ Unregistered subscription: test-key
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2munsubscribeAll[2m > [22m[2mshould unsubscribe from all active subscriptions
+[22m[39m🔌 Creating subscription: key1
+📝 Registered subscription: key1 (sync)
+🔌 Creating subscription: key2
+📝 Registered subscription: key2 (sync)
+🔌 Unsubscribing from all 2 subscriptions
+🗑️ Unregistered subscription: key1
+🗑️ Unregistered subscription: key2
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mpauseSync[2m > [22m[2mshould pause sync and update state
+[22m[39m⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 0 subscriptions
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mpauseSync[2m > [22m[2mshould unsubscribe all subscriptions
+[22m[39m🔌 Creating subscription: key
+📝 Registered subscription: key (sync)
+⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 1 subscriptions
+🗑️ Unregistered subscription: key
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mresumeSync[2m > [22m[2mshould resume sync and update state
+[22m[39m⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 0 subscriptions
+▶️ Resuming real-time sync
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mqueueSync[2m > [22m[2mshould add operation to queue and update pending count
+[22m[39m🔄 Processing 1 queued sync operations
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mqueueSync[2m > [22m[2mshould process queue immediately
+[22m[39m🔄 Processing 1 queued sync operations
+
+[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[32m·[39m[33m[39m[31mx[39m[33m[39m[32m·[39m[33m[39m[31mx[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[32m·[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[31mx[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mmanualSync[2m > [22m[2mshould process offline queue and sync queue
+[22m[39m🔄 Manual sync triggered
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mmanualSync[2m > [22m[2mshould process pending offline queue items
+[22m[39m🔄 Manual sync triggered
+🔄 Processing 2 offline queue items
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mmanualSync[2m > [22m[2mshould process pending offline queue items
+[22m[39m✅ Offline queue sync complete: 2 success, 0 failed
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mmanualSync[2m > [22m[2mshould handle failed offline queue items
+[22m[39m🔄 Manual sync triggered
+🔄 Processing 1 offline queue items
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mmanualSync[2m > [22m[2mshould handle failed offline queue items
+[22m[39m✅ Offline queue sync complete: 0 success, 1 failed
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mshouldBlockSync[2m > [22m[2mshould block sync when paused
+[22m[39m⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 0 subscriptions
+▶️ Resuming real-time sync
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mshouldBlockSync[2m > [22m[2mshould not block sync when online and not paused
+[22m[39m▶️ Resuming real-time sync
+
+[90mstdout[2m | src/services/syncManager.test.ts[2m > [22m[2mSyncManager[2m > [22m[2mnetwork event handlers[2m > [22m[2mshould update status to offline when pauseSync is called
+[22m[39m▶️ Resuming real-time sync
+⏸️ Pausing real-time sync
+🔌 Unsubscribing from all 0 subscriptions
+▶️ Resuming real-time sync
+
+[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[33m[39m[32m·[39m[90mstdout[2m | src/pages/EntryList/__tests__/EntryList.reset-score.test.tsx
+[22m[39m🔄 Upgrading IndexedDB schema...
+  ✓ Created cache store
+  ✓ Created mutations store
+  ✓ Created shows store
+  ✓ Created metadata store
+✅ IndexedDB schema upgrade complete
+
+[90mstdout[2m | src/pages/EntryList/__tests__/EntryList.reset-score.test.tsx
+[22m[39m✅ IndexedDB opened successfully
+
+[90mstdout[2m | src/pages/EntryList/__tests__/EntryList.status-changes.test.tsx
+[22m[39m🔄 Upgrading IndexedDB schema...
+  ✓ Created cache store
+  ✓ Created mutations store
+  ✓ Created shows store
+  ✓ Created metadata store
+✅ IndexedDB schema upgrade complete
+
+[90mstdout[2m | src/pages/EntryList/__tests__/EntryList.status-changes.test.tsx
+[22m[39m✅ IndexedDB opened successfully
+
+[90mstdout[2m | src/pages/EntryList/__tests__/EntryList.reset-score.test.tsx
+[22m[39m🧪 Debug functions available:
+  - window.debugMarkInRing(entryId, true/false)
+  - window.testSupabaseConnection()
+  - window.testRealTimeEvents(classId)
+  - window.testUnfilteredRealTime()
+  - window.debugMonitorEntry(entryId) // Monitor specific entry for changes
+  - window.debugStopwatchIssue(entryId) // 🚨 Debug stopwatch issue
+  - window.debugTestCheckinUpdate(entryId, "checked-in") // Test check-in status updates
+  - window.testSupabaseRealTime() // Test basic real-time functionality
+  - window.stopMonitoring() // Stop monitoring
+
+[90mstdout[2m | src/pages/EntryList/__tests__/EntryList.status-changes.test.tsx
+[22m[39m🧪 Debug functions available:
+  - window.debugMarkInRing(entryId, true/false)
+  - window.testSupabaseConnection()
+  - window.testRealTimeEvents(classId)
+  - window.testUnfilteredRealTime()
+  - window.debugMonitorEntry(entryId) // Monitor specific entry for changes
+  - window.debugStopwatchIssue(entryId) // 🚨 Debug stopwatch issue
+  - window.debugTestCheckinUpdate(entryId, "checked-in") // Test check-in status updates
+  - window.testSupabaseRealTime() // Test basic real-time functionality
+  - window.stopMonitoring() // Stop monitoring
+
+[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m[33m[39m[2m[90m-[39m[22m
+
+[2m Test Files [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[2m | [22m[33m2 skipped[39m[90m (18)[39m
+[2m      Tests [22m [1m[31m17 failed[39m[22m[2m | [22m[1m[32m332 passed[39m[22m[2m | [22m[33m29 skipped[39m[90m (378)[39m
+[2m   Start at [22m 16:53:25
+[2m   Duration [22m 7.74s[2m (transform 7.76s, setup 8.46s, collect 11.36s, tests 1.13s, environment 47.01s, prepare 1.21s)[22m
+
