@@ -34,6 +34,14 @@ let sharedDB: IDBPDatabase | null = null;
 let dbInitPromise: Promise<IDBPDatabase> | null = null;
 
 /**
+ * Table initialization queue to prevent transaction stampede
+ * When dbInitPromise resolves, all 16 tables try to create transactions simultaneously.
+ * This queue ensures they take turns accessing the database to prevent deadlock.
+ */
+let tableInitQueue: Promise<void> = Promise.resolve();
+let tablesInitialized = 0;
+
+/**
  * New object stores for replication system
  */
 export const REPLICATION_STORES = {
@@ -77,11 +85,32 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       return sharedDB;
     }
 
-    // If initialization is in progress, wait for it
+    // If initialization is in progress, wait for it AND join the queue
     if (dbInitPromise) {
       console.log(`[${this.tableName}] Waiting for dbInitPromise to resolve...`);
+
+      // Wait for database to open
       this.db = await dbInitPromise;
       console.log(`[${this.tableName}] dbInitPromise resolved successfully`);
+
+      // CRITICAL FIX: Join the initialization queue to prevent transaction stampede
+      // All 16 tables will wait here in sequence instead of creating transactions simultaneously
+      const myTurn = tableInitQueue.then(async () => {
+        tablesInitialized++;
+        console.log(`[${this.tableName}] My turn in queue (${tablesInitialized}/16)`);
+
+        // Small delay to ensure previous table's transactions complete
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        console.log(`[${this.tableName}] Queue slot complete, ready for transactions`);
+      });
+
+      // Update queue for next table
+      tableInitQueue = myTurn;
+
+      // Wait for my turn before returning
+      await myTurn;
+
       return this.db;
     }
 
@@ -90,9 +119,12 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     // Timeout protection: openDB can hang if database is corrupt or locked
     const DB_OPEN_TIMEOUT_MS = 30000; // 30 second timeout for opening database (increased from 10s to handle 16 concurrent tables)
+
+    console.log(`[${this.tableName}] About to call openDB("${DB_NAME}", ${DB_VERSION})...`);
     const openDBPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, _newVersion, _transaction) {
         console.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
+        console.log(`[ReplicatedTable] Upgrade transaction mode: ${_transaction.mode}`);
 
         // Create replicated_tables store if it doesn't exist
         if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
@@ -150,6 +182,9 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
         console.log(`[ReplicatedTable] ✅ Upgrade callback complete`);
       },
+    }).then((db) => {
+      console.log(`[ReplicatedTable] ✅ openDB() promise resolved!`);
+      return db;
     });
 
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -235,6 +270,8 @@ export abstract class ReplicatedTable<T extends { id: string }> {
         // Reset promises to allow future retries
         dbInitPromise = null;
         sharedDB = null;
+        tableInitQueue = Promise.resolve();
+        tablesInitialized = 0;
         throw retryError;
       }
     }
