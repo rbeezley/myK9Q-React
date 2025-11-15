@@ -142,13 +142,16 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
  * Uses replicated cache when enabled, falls back to Supabase
  */
 async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]> {
+  console.log('🐕 fetchEntries called with licenseKey:', licenseKey);
+  logger.log('🐕 fetchEntries called with licenseKey:', licenseKey);
+
   if (!licenseKey) {
     logger.log('⏸️ Skipping entries fetch - licenseKey not ready yet');
     return [];
   }
 
-  // Always use replication (no feature flags - development only, no existing users)
-  const isReplicationEnabled = true;
+  // Disable replication for now due to IndexedDB initialization issues
+  const isReplicationEnabled = false;
 
   if (isReplicationEnabled) {
     console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
@@ -272,7 +275,7 @@ export function useEntries(licenseKey: string | undefined) {
     queryKey: homeDashboardKeys.entries(licenseKey || ''),
     queryFn: () => fetchEntries(licenseKey),
     enabled: !!licenseKey, // Only run if licenseKey is provided
-    staleTime: 0, // FORCE REFETCH EVERY TIME (for testing replication)
+    staleTime: 30 * 1000, // 30 seconds - entries can change frequently during scoring
     gcTime: 5 * 60 * 1000, // 5 minutes cache
   });
 }
