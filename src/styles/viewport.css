@@ -179,17 +179,17 @@ body {
 
 /* Shadow when scrolled */
 .scroll-shadow-top {
-  box-shadow: inset 0 10px 10px -10px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 10px 10px -10px var(--token-shadow-sm);
 }
 
 .scroll-shadow-bottom {
-  box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 -10px 10px -10px var(--token-shadow-sm);
 }
 
 .scroll-shadow-both {
   box-shadow:
-    inset 0 10px 10px -10px rgba(0, 0, 0, 0.1),
-    inset 0 -10px 10px -10px rgba(0, 0, 0, 0.1);
+    inset 0 10px 10px -10px var(--token-shadow-sm),
+    inset 0 -10px 10px -10px var(--token-shadow-sm);
 }
 
 /* ==========================================================================
@@ -346,7 +346,7 @@ body {
 
 @media (prefers-color-scheme: dark) {
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--glass-border);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -354,7 +354,7 @@ body {
   }
 
   .thin-scrollbar {
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-color: var(--glass-border) transparent;
   }
 
   .scroll-shadow-top {

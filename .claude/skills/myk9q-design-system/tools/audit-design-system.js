@@ -126,15 +126,23 @@ function scanFile(filePath) {
   if (!EXCEPTIONS.files.hardcodedColors.includes(fileName)) {
     let match;
     const colorPattern = new RegExp(PATTERNS.hardcodedColors);
-    while ((match = colorPattern.exec(content)) !== null) {
-      const line = content.substring(0, match.index).split('\n').length;
-      const snippet = match[0];
+    const lines = content.split('\n');
 
-      // Skip if it's a CSS variable definition or should be ignored
-      if (!snippet.includes('var(--') && !shouldIgnoreViolation(filePath, line, 'hardcoded-color', ignoreRules)) {
+    while ((match = colorPattern.exec(content)) !== null) {
+      const lineNum = content.substring(0, match.index).split('\n').length;
+      const snippet = match[0];
+      const fullLine = lines[lineNum - 1] || '';
+
+      // Skip if:
+      // 1. It's a CSS variable definition (contains var(--)
+      // 2. It's a fallback value in var(--token, #fallback) pattern
+      // 3. Should be ignored per .auditignore
+      const isFallback = fullLine.includes('var(--') && fullLine.includes(',');
+
+      if (!snippet.includes('var(--') && !isFallback && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-color', ignoreRules)) {
         violations.push({
           type: 'hardcoded-color',
-          line,
+          line: lineNum,
           snippet,
           message: 'Use CSS variable (e.g., var(--foreground)) instead of hardcoded color',
         });
@@ -146,15 +154,24 @@ function scanFile(filePath) {
   if (!EXCEPTIONS.files.hardcodedSpacing.includes(fileName)) {
     let match;
     const spacingPattern = new RegExp(PATTERNS.hardcodedSpacing);
-    while ((match = spacingPattern.exec(content)) !== null) {
-      const line = content.substring(0, match.index).split('\n').length;
-      const snippet = match[0];
+    const lines = content.split('\n');
 
-      // Skip if it's a CSS variable definition, an exception, or should be ignored
-      if (!snippet.includes('var(--') && !EXCEPTIONS.spacing.some(ex => snippet.includes(ex)) && !shouldIgnoreViolation(filePath, line, 'hardcoded-spacing', ignoreRules)) {
+    while ((match = spacingPattern.exec(content)) !== null) {
+      const lineNum = content.substring(0, match.index).split('\n').length;
+      const snippet = match[0];
+      const fullLine = lines[lineNum - 1] || '';
+
+      // Skip if:
+      // 1. It's a CSS variable definition (contains var(--)
+      // 2. It's a fallback value in var(--token, value) pattern
+      // 3. It's an allowed exception value
+      // 4. Should be ignored per .auditignore
+      const isFallback = fullLine.includes('var(--') && fullLine.includes(',');
+
+      if (!snippet.includes('var(--') && !isFallback && !EXCEPTIONS.spacing.some(ex => snippet.includes(ex)) && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-spacing', ignoreRules)) {
         violations.push({
           type: 'hardcoded-spacing',
-          line,
+          line: lineNum,
           snippet,
           message: 'Use design token (e.g., var(--token-space-lg)) instead of hardcoded value',
         });

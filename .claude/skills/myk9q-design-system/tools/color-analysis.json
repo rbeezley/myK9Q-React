@@ -1,0 +1,3790 @@
+{
+  "summary": {
+    "totalColors": 403,
+    "totalOccurrences": 1626,
+    "timestamp": "2025-11-16T21:54:28.709Z"
+  },
+  "groups": [
+    {
+      "primary": "#e0f2fe",
+      "variants": [
+        {
+          "color": "#bae6fd",
+          "count": 5
+        },
+        {
+          "color": "#f3f4f6",
+          "count": 9
+        },
+        {
+          "color": "#fee2e2",
+          "count": 1
+        },
+        {
+          "color": "#f0f9ff",
+          "count": 3
+        },
+        {
+          "color": "#ffffff",
+          "count": 58
+        },
+        {
+          "color": "#ffffff (0.1 opacity)",
+          "count": 33
+        },
+        {
+          "color": "#ffffff (0.8 opacity)",
+          "count": 31
+        },
+        {
+          "color": "#f0f0f0",
+          "count": 4
+        },
+        {
+          "color": "#ffffff (0.7 opacity)",
+          "count": 8
+        },
+        {
+          "color": "#ffffff (0.6 opacity)",
+          "count": 13
+        },
+        {
+          "color": "#ffffff (0.4 opacity)",
+          "count": 5
+        },
+        {
+          "color": "#ffffff (0.15 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#ffffff (0.05 opacity)",
+          "count": 10
+        },
+        {
+          "color": "#ffffff (0.5 opacity)",
+          "count": 6
+        },
+        {
+          "color": "#ffffff (0.2 opacity)",
+          "count": 24
+        },
+        {
+          "color": "#ffffff (0.3 opacity)",
+          "count": 21
+        },
+        {
+          "color": "#fafafa",
+          "count": 3
+        },
+        {
+          "color": "#f9fafb",
+          "count": 3
+        },
+        {
+          "color": "#f5f5f5",
+          "count": 4
+        },
+        {
+          "color": "#f8f9fa",
+          "count": 5
+        },
+        {
+          "color": "#f8fafc (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ffffff (0.95 opacity)",
+          "count": 8
+        },
+        {
+          "color": "#ffebee",
+          "count": 2
+        },
+        {
+          "color": "#e3f2fd",
+          "count": 1
+        },
+        {
+          "color": "#fff3e0",
+          "count": 1
+        },
+        {
+          "color": "#eff6ff",
+          "count": 2
+        },
+        {
+          "color": "#ffffff (0.75 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#fffbeb",
+          "count": 1
+        },
+        {
+          "color": "#ffffff (0.02 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#fefefe",
+          "count": 3
+        },
+        {
+          "color": "#f6f6f6",
+          "count": 2
+        },
+        {
+          "color": "#f1f5f9",
+          "count": 2
+        },
+        {
+          "color": "#f8fafc (0.8 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#fefefe (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ffffff (0.25 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ffffff (0.03 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#ffffff (0.08 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f8fafc",
+          "count": 2
+        },
+        {
+          "color": "#ede9fe",
+          "count": 1
+        },
+        {
+          "color": "#f1f5f9 (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#fafbfc",
+          "count": 1
+        }
+      ],
+      "total": 291,
+      "files": [
+        {
+          "file": "/src/components/dialogs/CheckinStatusDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 75,
+              "property": "background",
+              "value": "background: #e0f2fe;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 3685,
+              "property": "background",
+              "value": "background: #e0f2fe;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#000000 (0.1 opacity)",
+      "variants": [
+        {
+          "color": "#000000 (0.5 opacity)",
+          "count": 19
+        },
+        {
+          "color": "#000000 (0.7 opacity)",
+          "count": 5
+        },
+        {
+          "color": "#000000 (0.3 opacity)",
+          "count": 25
+        },
+        {
+          "color": "#000000 (0.15 opacity)",
+          "count": 12
+        },
+        {
+          "color": "#000000 (0.2 opacity)",
+          "count": 17
+        },
+        {
+          "color": "#111111",
+          "count": 5
+        },
+        {
+          "color": "#0a0a0a",
+          "count": 9
+        },
+        {
+          "color": "#000000 (0.85 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#000000",
+          "count": 14
+        },
+        {
+          "color": "#141419 (0.95 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#141914 (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#191414 (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#000000 (0.05 opacity)",
+          "count": 13
+        },
+        {
+          "color": "#000000 (0.08 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#000000 (0.12 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#000000 (0.75 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#000000 (0.9 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#000000 (0.6 opacity)",
+          "count": 8
+        },
+        {
+          "color": "#000000 (0.8 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#000000 (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#000000 (0.03 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#000000 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#000000 (0.04 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 177,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 684,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/diagnostics/DatabaseRecovery.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 15,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/shared-dialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 91,
+              "property": "background",
+              "value": "background: rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/PasscodeInput/PasscodeInput.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 38,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/PWAInstallBanner.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 83,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ThemeToggle.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 130,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 233,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 362,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 856,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 6083,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/TabBar.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 86,
+              "property": "background",
+              "value": "background: rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 1237,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 1961,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Announcements/Announcements.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 507,
+              "property": "--border",
+              "value": "--border: rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/ClassList/ClassList.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1223,
+              "property": "background",
+              "value": "background: rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/DogDetails/components/DogStatistics.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 47,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/EntryList/EntryList.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1265,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-JudgeDialog.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 514,
+              "property": "border-bottom-color",
+              "value": "border-bottom-color: rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 561,
+              "property": "border-color",
+              "value": "border-color: rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 582,
+              "property": "border-color",
+              "value": "border-color: rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 591,
+              "property": "border-color",
+              "value": "border-color: rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Settings/Settings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 619,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Stats/Stats.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 153,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/performance.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 103,
+              "property": "unknown",
+              "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1),"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/shared-components.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 507,
+              "property": "box-shadow",
+              "value": "box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/touch-targets.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 345,
+              "property": "background",
+              "value": "background: rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/viewport.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 182,
+              "property": "box-shadow",
+              "value": "box-shadow: inset 0 10px 10px -10px rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 186,
+              "property": "box-shadow",
+              "value": "box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.1);"
+            },
+            {
+              "line": 191,
+              "property": "unknown",
+              "value": "inset 0 10px 10px -10px rgba(0, 0, 0, 0.1),"
+            },
+            {
+              "line": 192,
+              "property": "unknown",
+              "value": "inset 0 -10px 10px -10px rgba(0, 0, 0, 0.1);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#334155 (0.8 opacity)",
+      "variants": [
+        {
+          "color": "#475569 (0.9 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#334155",
+          "count": 12
+        },
+        {
+          "color": "#1e293b",
+          "count": 6
+        },
+        {
+          "color": "#1f2937",
+          "count": 9
+        },
+        {
+          "color": "#4b5563",
+          "count": 3
+        },
+        {
+          "color": "#374151",
+          "count": 5
+        },
+        {
+          "color": "#1e293b (0.9 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#475569 (0.6 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#1e293b (1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#475569 (0.3 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#475569 (0.5 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#3a3a3a",
+          "count": 5
+        },
+        {
+          "color": "#333333",
+          "count": 20
+        },
+        {
+          "color": "#555555",
+          "count": 3
+        },
+        {
+          "color": "#444444",
+          "count": 2
+        },
+        {
+          "color": "#495057",
+          "count": 3
+        },
+        {
+          "color": "#2c3e50",
+          "count": 5
+        },
+        {
+          "color": "#34495e",
+          "count": 6
+        },
+        {
+          "color": "#1f2937 (0.8 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#4b5563 (0.8 opacity)",
+          "count": 6
+        },
+        {
+          "color": "#1f2937 (1 opacity)",
+          "count": 6
+        },
+        {
+          "color": "#374151 (0.5 opacity)",
+          "count": 5
+        },
+        {
+          "color": "#1f2937 (0.98 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#4b5563 (0.5 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#4b5563 (0.3 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#374151 (0.7 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#3c3c3c (0.5 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#1f2937 (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#4b5563 (0.6 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#1f2937 (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#4a5568",
+          "count": 2
+        },
+        {
+          "color": "#475569",
+          "count": 7
+        },
+        {
+          "color": "#3c3c3c (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#4a4a4a",
+          "count": 1
+        },
+        {
+          "color": "#1f2937 (0.5 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#1f2937 (0.7 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#1f2937 (0.85 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#1f2937 (0.6 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#374151 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#4b5563 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#374151 (0.9 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#374151 (0.8 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 144,
+      "files": [
+        {
+          "file": "/src/components/dialogs/CheckinStatusDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 85,
+              "property": "background",
+              "value": "background: rgba(51, 65, 85, 0.8);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#ff3b30 (0.1 opacity)",
+      "variants": [
+        {
+          "color": "#ff3b30 (0.05 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ff3b30 (0.2 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#ef4444 (0.1 opacity)",
+          "count": 21
+        },
+        {
+          "color": "#ef4444",
+          "count": 41
+        },
+        {
+          "color": "#ef4444 (0.4 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#ef4444 (0.6 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ef4444 (0.15 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#f44336",
+          "count": 7
+        },
+        {
+          "color": "#ef4444 (0.5 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#ef4444 (0.3 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#dc2626",
+          "count": 14
+        },
+        {
+          "color": "#dc3545",
+          "count": 9
+        },
+        {
+          "color": "#e74c3c",
+          "count": 3
+        },
+        {
+          "color": "#f44336 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f44336 (0 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ff4757",
+          "count": 1
+        },
+        {
+          "color": "#ef4444 (0.05 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#ef4444 (0.2 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#ff3b30",
+          "count": 2
+        },
+        {
+          "color": "#ef4444 (0.12 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ef4444 (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ff5722",
+          "count": 3
+        },
+        {
+          "color": "#dc2626 (0.2 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#dc2626 (0.1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#dc2626 (0.15 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#dc2626 (0.4 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 140,
+      "files": [
+        {
+          "file": "/src/components/announcements/NotificationSettings.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 54,
+              "property": "background",
+              "value": "background: rgba(255, 59, 48, 0.1);"
+            },
+            {
+              "line": 213,
+              "property": "background",
+              "value": "background: rgba(255, 59, 48, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 57,
+              "property": "background",
+              "value": "background: rgba(255, 59, 48, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1110,
+              "property": "background-color",
+              "value": "background-color: rgba(255, 59, 48, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/apple-design-system.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 320,
+              "property": "background",
+              "value": "background: rgba(255, 59, 48, 0.1);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#8b5cf6",
+      "variants": [
+        {
+          "color": "#8b5cf6 (0.1 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#6366f1",
+          "count": 18
+        },
+        {
+          "color": "#6366f1 (0.1 opacity)",
+          "count": 21
+        },
+        {
+          "color": "#6366f1 (0.4 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#6366f1 (0.5 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#6366f1 (0.2 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#7c3aed",
+          "count": 8
+        },
+        {
+          "color": "#9333ea",
+          "count": 4
+        },
+        {
+          "color": "#9333ea (0.15 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#9333ea (0.5 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#6366f1 (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#6366f1 (0.9 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8b5cf6 (0.05 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#6366f1 (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8b5cf6 (0.12 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8b5cf6 (0.5 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8b5cf6 (0.2 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8b5cf6 (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#7c3aed (0.2 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#7c3aed (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#7c3aed (1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#7c3aed (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#7c3aed (0.3 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#7c3aed (0.9 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#a855f7 (0.1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#a855f7",
+          "count": 1
+        },
+        {
+          "color": "#a855f7 (0.3 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#6366f1 (0.05 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#6366f1 (0.08 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 112,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1129,
+              "property": "--purple",
+              "value": "--purple: #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/debug/SubscriptionMonitor.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 347,
+              "property": "color",
+              "value": "color: #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/RunOrderDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 218,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/PWAInstallBanner.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 10,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 10,
+          "contexts": [
+            {
+              "line": 1475,
+              "property": "background",
+              "value": "background: #8b5cf6;"
+            },
+            {
+              "line": 1506,
+              "property": "background",
+              "value": "background: #8b5cf6;"
+            },
+            {
+              "line": 1783,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #6366f1, #8b5cf6);"
+            },
+            {
+              "line": 3273,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
+            },
+            {
+              "line": 3309,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/wireframes/NationalsWireframe.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 338,
+              "property": "background",
+              "value": "background: #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/AuditLog.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 372,
+              "property": "color",
+              "value": "color: #8b5cf6;"
+            },
+            {
+              "line": 373,
+              "property": "border",
+              "value": "border: 1px solid #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 3,
+          "contexts": [
+            {
+              "line": 460,
+              "property": "color",
+              "value": "color: #8b5cf6;"
+            },
+            {
+              "line": 627,
+              "property": "color",
+              "value": "color: #8b5cf6;"
+            },
+            {
+              "line": 628,
+              "property": "border",
+              "value": "border: 1px solid #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Announcements/Announcements.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 498,
+              "property": "--info",
+              "value": "--info: #8b5cf6;"
+            },
+            {
+              "line": 516,
+              "property": "--info",
+              "value": "--info: #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/ClassList/ClassList.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1342,
+              "property": "background",
+              "value": "background: #8b5cf6;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/DogDetails/components/DogStatistics.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 79,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Stats/Stats.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 185,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/one-handed-mode.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 30,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #6366f1, #8b5cf6);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#10b981",
+      "variants": [
+        {
+          "color": "#10b981 (0.1 opacity)",
+          "count": 12
+        },
+        {
+          "color": "#10b981 (0.15 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#10b981 (0.3 opacity)",
+          "count": 10
+        },
+        {
+          "color": "#10b981 (0.4 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#10b98114",
+          "count": 1
+        },
+        {
+          "color": "#10b981 (0.2 opacity)",
+          "count": 6
+        },
+        {
+          "color": "#22c55e (0.5 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#27ae60",
+          "count": 2
+        },
+        {
+          "color": "#2ecc71",
+          "count": 1
+        },
+        {
+          "color": "#14b8a6",
+          "count": 4
+        },
+        {
+          "color": "#22c55e",
+          "count": 4
+        },
+        {
+          "color": "#22c55e (0.1 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#10b981 (0.05 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#10b981 (0.12 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#10b981 (0.5 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#10b981 (0.8 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#0d9e6f",
+          "count": 2
+        },
+        {
+          "color": "#059669",
+          "count": 7
+        },
+        {
+          "color": "#10b981 (0.08 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#10b981 (0.25 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#10b981 (0.03 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#10b981 (0.02 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#10b981 (0.06 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#22c55e (0.15 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#22c55e (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#22c55e (0.3 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 104,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1133,
+              "property": "--green",
+              "value": "--green: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/debug/SubscriptionMonitor.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 352,
+              "property": "color",
+              "value": "color: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/ClassSettingsDialog.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 183,
+              "property": "border-left",
+              "value": "border-left: 3px solid #10b981;"
+            },
+            {
+              "line": 189,
+              "property": "border-left-color",
+              "value": "border-left-color: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/monitoring/shared-monitoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 161,
+              "property": "border-left-color",
+              "value": "border-left-color: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 555,
+              "property": "background",
+              "value": "background: #10B981;"
+            },
+            {
+              "line": 675,
+              "property": "background",
+              "value": "background: #10B981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 3,
+          "contexts": [
+            {
+              "line": 2629,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);"
+            },
+            {
+              "line": 4237,
+              "property": "background",
+              "value": "background: linear-gradient(90deg, #10b981 0%, #14b8a6 100%);"
+            },
+            {
+              "line": 4301,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 3,
+          "contexts": [
+            {
+              "line": 32,
+              "property": "--success-contrast",
+              "value": "--success-contrast: #10b981;"
+            },
+            {
+              "line": 65,
+              "property": "--success-contrast",
+              "value": "--success-contrast: #10b981;"
+            },
+            {
+              "line": 641,
+              "property": "border",
+              "value": "border: 1px solid #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/ConfirmationDialog.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 57,
+              "property": "border-top",
+              "value": "border-top: 6px solid #10b981;"
+            },
+            {
+              "line": 212,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Announcements/Announcements.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 496,
+              "property": "--success",
+              "value": "--success: #10b981;"
+            },
+            {
+              "line": 514,
+              "property": "--success",
+              "value": "--success: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/DogDetails/components/DogStatistics.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 71,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+            },
+            {
+              "line": 280,
+              "property": "background",
+              "value": "background: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Landing/Landing.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 11,
+              "property": "--accent-green",
+              "value": "--accent-green: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Login/Login.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 12,
+              "property": "--accent-green",
+              "value": "--accent-green: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/BaseScoresheet.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 32,
+              "property": "--success-contrast",
+              "value": "--success-contrast: #10b981;"
+            },
+            {
+              "line": 62,
+              "property": "--success-contrast",
+              "value": "--success-contrast: #10b981;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Settings/Settings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 892,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Stats/Stats.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 177,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/TVRunOrder/components/TVEntryCard.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 4,
+              "property": "--status-done",
+              "value": "--status-done: #10b981; /* Green for light mode */"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#451a1a",
+      "variants": [
+        {
+          "color": "#450a0a",
+          "count": 1
+        },
+        {
+          "color": "#1a1a1a",
+          "count": 9
+        },
+        {
+          "color": "#1a1d23 (0.8 opacity)",
+          "count": 22
+        },
+        {
+          "color": "#2a2a2a",
+          "count": 10
+        },
+        {
+          "color": "#222222",
+          "count": 8
+        },
+        {
+          "color": "#3a1e1e",
+          "count": 2
+        },
+        {
+          "color": "#3a351e",
+          "count": 1
+        },
+        {
+          "color": "#282828 (0.5 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#1e1e1e (0.5 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#282828 (0.8 opacity)",
+          "count": 6
+        },
+        {
+          "color": "#1a1d23",
+          "count": 5
+        },
+        {
+          "color": "#262626",
+          "count": 4
+        },
+        {
+          "color": "#1a1d23 (0.95 opacity)",
+          "count": 5
+        },
+        {
+          "color": "#282828 (0.6 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#1e1e1e (0.8 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 81,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 522,
+              "property": "background",
+              "value": "background: #451a1a;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#f59e0b (0.1 opacity)",
+      "variants": [
+        {
+          "color": "#ff9500 (0.1 opacity)",
+          "count": 7
+        },
+        {
+          "color": "#f59e0b (0.05 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b",
+          "count": 19
+        },
+        {
+          "color": "#fbbf24 (0.1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#fbbf24",
+          "count": 2
+        },
+        {
+          "color": "#f59e0b14",
+          "count": 1
+        },
+        {
+          "color": "#ff9800",
+          "count": 12
+        },
+        {
+          "color": "#f57c00",
+          "count": 5
+        },
+        {
+          "color": "#ffc107",
+          "count": 3
+        },
+        {
+          "color": "#f39c12",
+          "count": 1
+        },
+        {
+          "color": "#ff9800 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ff9800 (0 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ff9500 (0.2 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#ffa502",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b (0.2 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#ff9500",
+          "count": 2
+        },
+        {
+          "color": "#ff9500 (0.05 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b (0.12 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b (0.5 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ffa500",
+          "count": 3
+        },
+        {
+          "color": "#f59e0b (0.15 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#f59e0b (0.3 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 78,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1135,
+              "property": "--warning-subtle",
+              "value": "--warning-subtle: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/debug/SubscriptionMonitor.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 356,
+              "property": "background",
+              "value": "background: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/diagnostics/IndexedDBDiagnosticPanel.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 45,
+              "property": "background",
+              "value": "background: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/monitoring/shared-monitoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 167,
+              "property": "background",
+              "value": "background: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 6026,
+              "property": "background",
+              "value": "background: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 645,
+              "property": "background-color",
+              "value": "background-color: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/shared-components.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 301,
+              "property": "background",
+              "value": "background: rgba(245, 158, 11, 0.1);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#6b7280 (0.1 opacity)",
+      "variants": [
+        {
+          "color": "#6b7280",
+          "count": 16
+        },
+        {
+          "color": "#666666",
+          "count": 12
+        },
+        {
+          "color": "#888888",
+          "count": 7
+        },
+        {
+          "color": "#757575",
+          "count": 3
+        },
+        {
+          "color": "#6b7280 (0.9 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#6b7280 (0.3 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#6b7280 (1 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#6c757d",
+          "count": 5
+        },
+        {
+          "color": "#616161",
+          "count": 1
+        },
+        {
+          "color": "#64748b (0.3 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#6b7280 (0.8 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#6b7280 (0.03 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#707070",
+          "count": 1
+        }
+      ],
+      "total": 62,
+      "files": [
+        {
+          "file": "/src/components/debug/SubscriptionMonitor.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 361,
+              "property": "background",
+              "value": "background: rgba(107, 114, 128, 0.1);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#d1d5db",
+      "variants": [
+        {
+          "color": "#cbd5e1",
+          "count": 2
+        },
+        {
+          "color": "#e5e7eb",
+          "count": 15
+        },
+        {
+          "color": "#d1fae5",
+          "count": 2
+        },
+        {
+          "color": "#dbeafe",
+          "count": 3
+        },
+        {
+          "color": "#e2e8f0 (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#e2e8f0 (1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#c0c0c0",
+          "count": 1
+        },
+        {
+          "color": "#e0e0e0",
+          "count": 6
+        },
+        {
+          "color": "#e9ecef",
+          "count": 1
+        },
+        {
+          "color": "#d4edda",
+          "count": 3
+        },
+        {
+          "color": "#f8d7da",
+          "count": 3
+        },
+        {
+          "color": "#dee2e6",
+          "count": 3
+        },
+        {
+          "color": "#ecf0f1",
+          "count": 3
+        },
+        {
+          "color": "#bdc3c7",
+          "count": 2
+        },
+        {
+          "color": "#e8f5e8",
+          "count": 1
+        },
+        {
+          "color": "#cccccc",
+          "count": 2
+        },
+        {
+          "color": "#d0d0d0",
+          "count": 1
+        },
+        {
+          "color": "#e8e8e8",
+          "count": 2
+        },
+        {
+          "color": "#bfdbfe",
+          "count": 1
+        }
+      ],
+      "total": 55,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 667,
+              "property": "background",
+              "value": "background: #d1d5db;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Settings/Settings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 603,
+              "property": "border",
+              "value": "border: 1.5px solid #d1d5db;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#3b82f6 (0.05 opacity)",
+      "variants": [
+        {
+          "color": "#3b82f6",
+          "count": 11
+        },
+        {
+          "color": "#3b82f6 (0.1 opacity)",
+          "count": 9
+        },
+        {
+          "color": "#3b82f6 (0.15 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#3b82f6 (0.8 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#3b82f6 (1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#2196f3",
+          "count": 5
+        },
+        {
+          "color": "#2196f3 (0.7 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#2196f3 (0 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#3498db",
+          "count": 3
+        },
+        {
+          "color": "#2563eb",
+          "count": 6
+        },
+        {
+          "color": "#3b82f6 (0.12 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#3b82f6 (0.5 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#3b82f6 (0.2 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#2563eb (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#3b82f6 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#3b82f6 (0.3 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 53,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 329,
+              "property": "background",
+              "value": "background: rgba(59, 130, 246, 0.05);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 6118,
+              "property": "background",
+              "value": "background: rgba(59, 130, 246, 0.05);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#94a3b8",
+      "variants": [
+        {
+          "color": "#94a3b8 (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#94a3b8 (0.3 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#94a3b8 (0.2 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#94a3b8 (0.5 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#aaaaaa",
+          "count": 5
+        },
+        {
+          "color": "#9e9e9e",
+          "count": 8
+        },
+        {
+          "color": "#999999",
+          "count": 4
+        },
+        {
+          "color": "#95a5a6",
+          "count": 2
+        },
+        {
+          "color": "#9ca3af",
+          "count": 7
+        },
+        {
+          "color": "#a0a0a0",
+          "count": 2
+        },
+        {
+          "color": "#8e8e93 (0.12 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8e8e93 (0.08 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#8e8e93 (0.2 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#9ca3af (0.1 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#9ca3af (0.2 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 46,
+      "files": [
+        {
+          "file": "/src/components/dialogs/CheckinStatusDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 86,
+              "property": "color",
+              "value": "color: #94a3b8;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#007aff (0.03 opacity)",
+      "variants": [
+        {
+          "color": "#007aff (0.3 opacity)",
+          "count": 5
+        },
+        {
+          "color": "#007bff",
+          "count": 2
+        },
+        {
+          "color": "#007aff (0.1 opacity)",
+          "count": 10
+        },
+        {
+          "color": "#007aff (0.2 opacity)",
+          "count": 7
+        },
+        {
+          "color": "#007aff (0.05 opacity)",
+          "count": 4
+        },
+        {
+          "color": "#007aff (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#007aff",
+          "count": 2
+        }
+      ],
+      "total": 37,
+      "files": [
+        {
+          "file": "/src/components/DogCard.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 27,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 372,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 704,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Home/Home.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 814,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/BaseScoresheet.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 179,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/apple-design-system.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 25,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#5855eb",
+      "variants": [
+        {
+          "color": "#667eea",
+          "count": 10
+        },
+        {
+          "color": "#4f46e5",
+          "count": 5
+        },
+        {
+          "color": "#5856d6",
+          "count": 2
+        },
+        {
+          "color": "#5856d6 (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#5856d6 (0.2 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#667eea (0.1 opacity)",
+          "count": 2
+        }
+      ],
+      "total": 27,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 358,
+              "property": "background",
+              "value": "background: #5855eb;"
+            },
+            {
+              "line": 359,
+              "property": "border-color",
+              "value": "border-color: #5855eb;"
+            },
+            {
+              "line": 600,
+              "property": "background",
+              "value": "background: #5855eb;"
+            },
+            {
+              "line": 601,
+              "property": "border-color",
+              "value": "border-color: #5855eb;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/MaxTimeWarningDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 87,
+              "property": "background",
+              "value": "background: #5855eb;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#ff6b6b",
+      "variants": [
+        {
+          "color": "#ff6b6b (0.15 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#ec7063",
+          "count": 1
+        },
+        {
+          "color": "#f87171",
+          "count": 2
+        },
+        {
+          "color": "#ff8e53",
+          "count": 3
+        },
+        {
+          "color": "#ff6b6b (0.1 opacity)",
+          "count": 3
+        },
+        {
+          "color": "#ff8e53 (0.1 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 25,
+      "files": [
+        {
+          "file": "/src/components/DogCard.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 247,
+              "property": "color",
+              "value": "color: #ff6b6b;"
+            },
+            {
+              "line": 249,
+              "property": "border-color",
+              "value": "border-color: #ff6b6b;"
+            },
+            {
+              "line": 259,
+              "property": "background",
+              "value": "background: #ff6b6b;"
+            },
+            {
+              "line": 261,
+              "property": "border-color",
+              "value": "border-color: #ff6b6b;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Home/Home.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 941,
+              "property": "color",
+              "value": "color: #ff6b6b;"
+            },
+            {
+              "line": 943,
+              "property": "border-color",
+              "value": "border-color: #ff6b6b;"
+            },
+            {
+              "line": 953,
+              "property": "background",
+              "value": "background: #ff6b6b;"
+            },
+            {
+              "line": 955,
+              "property": "border-color",
+              "value": "border-color: #ff6b6b;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/UKC/UKCRallyScoresheet.css",
+          "occurrences": 5,
+          "contexts": [
+            {
+              "line": 5,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);"
+            },
+            {
+              "line": 102,
+              "property": "color",
+              "value": "color: #FF6B6B;"
+            },
+            {
+              "line": 129,
+              "property": "color",
+              "value": "color: #FF6B6B;"
+            },
+            {
+              "line": 308,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);"
+            },
+            {
+              "line": 439,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#34c759 (0.1 opacity)",
+      "variants": [
+        {
+          "color": "#4caf50",
+          "count": 10
+        },
+        {
+          "color": "#28a745",
+          "count": 5
+        },
+        {
+          "color": "#4caf50 (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#4caf50 (0 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#34c759 (0.2 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#34c759",
+          "count": 2
+        }
+      ],
+      "total": 23,
+      "files": [
+        {
+          "file": "/src/components/announcements/NotificationSettings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 49,
+              "property": "background",
+              "value": "background: rgba(52, 199, 89, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 45,
+              "property": "background",
+              "value": "background: rgba(52, 199, 89, 0.1);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1105,
+              "property": "background-color",
+              "value": "background-color: rgba(52, 199, 89, 0.1);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#fef3c7",
+      "variants": [
+        {
+          "color": "#fff3cd",
+          "count": 2
+        },
+        {
+          "color": "#fecaca",
+          "count": 4
+        }
+      ],
+      "total": 18,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 287,
+              "property": "border",
+              "value": "border: 1px solid #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/MaxTimeWarningDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 32,
+              "property": "border",
+              "value": "border: 3px solid #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 66,
+              "property": "--warning-contrast",
+              "value": "--warning-contrast: #fef3c7;"
+            },
+            {
+              "line": 647,
+              "property": "border",
+              "value": "border: 1px solid #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/ConfirmationDialog.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 53,
+              "property": "border-top",
+              "value": "border-top: 6px solid #fef3c7;"
+            },
+            {
+              "line": 204,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #fef3c7 0%, #d97706 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Announcements/Announcements.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 497,
+              "property": "--warning",
+              "value": "--warning: #fef3c7;"
+            },
+            {
+              "line": 515,
+              "property": "--warning",
+              "value": "--warning: #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/MigrationTest/MigrationTest.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 277,
+              "property": "background",
+              "value": "background: #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/BaseScoresheet.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 63,
+              "property": "--warning-contrast",
+              "value": "--warning-contrast: #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Settings/Settings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 996,
+              "property": "background",
+              "value": "background: #fef3c7;"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/utilities.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 265,
+              "property": "background",
+              "value": "background: #fef3c7;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#b91c1c",
+      "variants": [
+        {
+          "color": "#d32f2f",
+          "count": 5
+        },
+        {
+          "color": "#c62828",
+          "count": 2
+        },
+        {
+          "color": "#d32f2f (0.4 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#d32f2f (0 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#c2410c",
+          "count": 2
+        }
+      ],
+      "total": 15,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 698,
+              "property": "color",
+              "value": "color: #b91c1c;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Flutter.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 821,
+              "property": "color",
+              "value": "color: #B91C1C;"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/mobile-optimizations.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 31,
+              "property": "--error-contrast",
+              "value": "--error-contrast: #b91c1c;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#60a5fa",
+      "variants": [
+        {
+          "color": "#818cf8",
+          "count": 2
+        },
+        {
+          "color": "#818cf8 (0.2 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#818cf8 (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#818cf8 (0.6 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#818cf8 (0.8 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#818cf8 (0.15 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 14,
+      "files": [
+        {
+          "file": "/src/components/monitoring/shared-monitoring.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 717,
+              "property": "color",
+              "value": "color: #60a5fa;"
+            },
+            {
+              "line": 1087,
+              "property": "color",
+              "value": "color: #60a5fa;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/wireframes/NationalsWireframe.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 23,
+              "property": "color",
+              "value": "color: #60a5fa;"
+            },
+            {
+              "line": 366,
+              "property": "color",
+              "value": "color: #60a5fa;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#ef6c00",
+      "variants": [
+        {
+          "color": "#f97316",
+          "count": 5
+        },
+        {
+          "color": "#d97706",
+          "count": 4
+        },
+        {
+          "color": "#ea580c",
+          "count": 1
+        }
+      ],
+      "total": 12,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 340,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);"
+            },
+            {
+              "line": 1536,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#111827",
+      "variants": [
+        {
+          "color": "#022c22",
+          "count": 1
+        },
+        {
+          "color": "#1e3a2e",
+          "count": 2
+        },
+        {
+          "color": "#111827 (0.95 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#0f172a",
+          "count": 2
+        }
+      ],
+      "total": 11,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 540,
+              "property": "background",
+              "value": "background: #111827;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 647,
+              "property": "color",
+              "value": "color: #111827;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 4368,
+              "property": "background",
+              "value": "background: #111827;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/UKC/UKCNoseworkScoresheet.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 228,
+              "property": "background",
+              "value": "background: #111827;"
+            },
+            {
+              "line": 232,
+              "property": "background",
+              "value": "background: #111827;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#764ba2",
+      "variants": [
+        {
+          "color": "#673ab7",
+          "count": 3
+        }
+      ],
+      "total": 11,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 49,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/TransitionMessage/TransitionMessage.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 32,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea, #764ba2);"
+            },
+            {
+              "line": 105,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea, #764ba2);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 38,
+              "property": "--admin-secondary",
+              "value": "--admin-secondary: #764ba2;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/shared-scoresheet.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 10,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/UKC/UKCObedienceScoresheet.css",
+          "occurrences": 3,
+          "contexts": [
+            {
+              "line": 5,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            },
+            {
+              "line": 281,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            },
+            {
+              "line": 412,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#78350f",
+      "variants": [
+        {
+          "color": "#991b1b",
+          "count": 1
+        },
+        {
+          "color": "#721c24",
+          "count": 2
+        },
+        {
+          "color": "#7f1d1d",
+          "count": 2
+        }
+      ],
+      "total": 7,
+      "files": [
+        {
+          "file": "/src/components/announcements/AnnouncementComponents.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 640,
+              "property": "color",
+              "value": "color: #78350f;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Settings/Settings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1002,
+              "property": "color",
+              "value": "color: #78350f;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#93c5fd",
+      "variants": [
+        {
+          "color": "#a5b4fc",
+          "count": 2
+        },
+        {
+          "color": "#80bdff",
+          "count": 2
+        },
+        {
+          "color": "#93bbfc",
+          "count": 1
+        }
+      ],
+      "total": 7,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 558,
+              "property": "color",
+              "value": "color: #93c5fd;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 4373,
+              "property": "color",
+              "value": "color: #93c5fd;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#065f46",
+      "variants": [
+        {
+          "color": "#155724",
+          "count": 2
+        },
+        {
+          "color": "#0d8043",
+          "count": 1
+        },
+        {
+          "color": "#166534",
+          "count": 1
+        },
+        {
+          "color": "#047857 (0.3 opacity)",
+          "count": 1
+        }
+      ],
+      "total": 6,
+      "files": [
+        {
+          "file": "/src/components/dialogs/ClassSettingsDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 182,
+              "property": "color",
+              "value": "color: #065f46;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#fca5a5",
+      "variants": [],
+      "total": 6,
+      "files": [
+        {
+          "file": "/src/components/dialogs/ClassSettingsDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 200,
+              "property": "color",
+              "value": "color: #fca5a5;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 772,
+              "property": "color",
+              "value": "color: #fca5a5;"
+            },
+            {
+              "line": 776,
+              "property": "color",
+              "value": "color: #fca5a5;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 4378,
+              "property": "color",
+              "value": "color: #fca5a5;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/Login/Login.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 274,
+              "property": "color",
+              "value": "color: #fca5a5;"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/message-banner.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 223,
+              "property": "color",
+              "value": "color: #fca5a5;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#ffd700",
+      "variants": [
+        {
+          "color": "#facc15 (0.3 opacity)",
+          "count": 1
+        },
+        {
+          "color": "#ffff00",
+          "count": 1
+        }
+      ],
+      "total": 6,
+      "files": [
+        {
+          "file": "/src/components/DogCard.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 81,
+              "property": "border-left",
+              "value": "border-left: 3px solid #ffd700; /* Gold */"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/DogDetails/DogDetails.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 381,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);"
+            },
+            {
+              "line": 410,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Nationals.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 5,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#45a049",
+      "variants": [
+        {
+          "color": "#3d8b40",
+          "count": 2
+        }
+      ],
+      "total": 6,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 4,
+          "contexts": [
+            {
+              "line": 324,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);"
+            },
+            {
+              "line": 329,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);"
+            },
+            {
+              "line": 1519,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);"
+            },
+            {
+              "line": 1525,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#1976d2",
+      "variants": [
+        {
+          "color": "#0284c7",
+          "count": 2
+        },
+        {
+          "color": "#1d4ed8",
+          "count": 2
+        }
+      ],
+      "total": 6,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 362,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #2196F3 0%, #1976d2 100%);"
+            },
+            {
+              "line": 1395,
+              "property": "color",
+              "value": "color: #1976d2;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#9c27b0",
+      "variants": [],
+      "total": 6,
+      "files": [
+        {
+          "file": "/src/pages/scoresheets/ASCA/ASCAScentDetectionScoresheet.css",
+          "occurrences": 6,
+          "contexts": [
+            {
+              "line": 3,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);"
+            },
+            {
+              "line": 118,
+              "property": "border",
+              "value": "border: 3px solid #9C27B0;"
+            },
+            {
+              "line": 124,
+              "property": "color",
+              "value": "color: #9C27B0;"
+            },
+            {
+              "line": 175,
+              "property": "background",
+              "value": "background: #9C27B0;"
+            },
+            {
+              "line": 277,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#0369a1",
+      "variants": [
+        {
+          "color": "#0891b2",
+          "count": 2
+        },
+        {
+          "color": "#0056b3",
+          "count": 1
+        }
+      ],
+      "total": 5,
+      "files": [
+        {
+          "file": "/src/components/dialogs/CheckinStatusDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 76,
+              "property": "color",
+              "value": "color: #0369a1;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 268,
+              "property": "color",
+              "value": "color: #0369a1;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#86efac",
+      "variants": [],
+      "total": 4,
+      "files": [
+        {
+          "file": "/src/components/dialogs/ClassSettingsDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 188,
+              "property": "color",
+              "value": "color: #86efac;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 3526,
+              "property": "border",
+              "value": "border: 1px solid #86efac;"
+            },
+            {
+              "line": 4883,
+              "property": "border",
+              "value": "border: 1px solid #86efac;"
+            }
+          ]
+        },
+        {
+          "file": "/src/styles/message-banner.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 206,
+              "property": "color",
+              "value": "color: #86efac;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#0ea5e9",
+      "variants": [
+        {
+          "color": "#06b6d4 (0.1 opacity)",
+          "count": 2
+        },
+        {
+          "color": "#06b6d4",
+          "count": 1
+        }
+      ],
+      "total": 4,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 254,
+              "property": "background",
+              "value": "background: #0ea5e9;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#34d399",
+      "variants": [],
+      "total": 4,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 785,
+              "property": "color",
+              "value": "color: #34d399;"
+            },
+            {
+              "line": 789,
+              "property": "color",
+              "value": "color: #34d399;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/UKC/UKCNoseworkScoresheet.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 220,
+              "property": "--color-success",
+              "value": "--color-success: #34d399;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/TVRunOrder/components/TVEntryCard.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 17,
+              "property": "--status-done",
+              "value": "--status-done: #34d399; /* Brighter green for dark mode */"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#a78bfa",
+      "variants": [],
+      "total": 4,
+      "files": [
+        {
+          "file": "/src/components/monitoring/shared-monitoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1082,
+              "property": "color",
+              "value": "color: #a78bfa;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 1901,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #818cf8, #a78bfa);"
+            },
+            {
+              "line": 5358,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #8b5cf6, #a78bfa);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/ClassList/ClassList.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1346,
+              "property": "background",
+              "value": "background: #a78bfa;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#856404",
+      "variants": [
+        {
+          "color": "#a16207",
+          "count": 1
+        }
+      ],
+      "total": 4,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 825,
+              "property": "color",
+              "value": "color: #856404;"
+            },
+            {
+              "line": 915,
+              "property": "color",
+              "value": "color: #856404;"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Nationals.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 6,
+              "property": "color",
+              "value": "color: #856404;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#1e3a8a",
+      "variants": [],
+      "total": 2,
+      "files": [
+        {
+          "file": "/src/components/dialogs/MaxTimeDialog.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 549,
+              "property": "background",
+              "value": "background: #1e3a8a;"
+            }
+          ]
+        },
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 4372,
+              "property": "background",
+              "value": "background: #1e3a8a;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#16a34a",
+      "variants": [],
+      "total": 2,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 2,
+          "contexts": [
+            {
+              "line": 562,
+              "property": "background",
+              "value": "background: #16A34A;"
+            },
+            {
+              "line": 682,
+              "property": "background",
+              "value": "background: #16A34A;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#f4d03f",
+      "variants": [
+        {
+          "color": "#ffed4e",
+          "count": 1
+        }
+      ],
+      "total": 2,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 985,
+              "property": "color",
+              "value": "color: #f4d03f;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#fb923c",
+      "variants": [],
+      "total": 2,
+      "files": [
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 2635,
+              "property": "background",
+              "value": "background: linear-gradient(135deg, #f59e0b 0%, #fb923c 100%);"
+            }
+          ]
+        },
+        {
+          "file": "/src/pages/ClassList/ClassList.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1338,
+              "property": "background",
+              "value": "background: #fb923c;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#cd7f32",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/components/DogCard.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 89,
+              "property": "border-left",
+              "value": "border-left: 3px solid #cd7f32; /* Bronze */"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#a3e635",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/components/monitoring/shared-monitoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1039,
+              "property": "color",
+              "value": "color: #a3e635;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#2e7d32",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/components/scoring/shared-scoring.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1400,
+              "property": "color",
+              "value": "color: #2e7d32;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#00d4aa",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/components/ui/shared-ui.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 415,
+              "property": "border-left",
+              "value": "border-left: 3px solid #00d4aa;     /* Current green for at gate */"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#4c3d9f",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/pages/Admin/CompetitionAdmin.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 548,
+              "property": "background-color",
+              "value": "background-color: #4c3d9f;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#b45309",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/pages/Settings/Settings.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 1010,
+              "property": "color",
+              "value": "color: #b45309;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "primary": "#0a5d00",
+      "variants": [],
+      "total": 1,
+      "files": [
+        {
+          "file": "/src/styles/mobile-optimizations.css",
+          "occurrences": 1,
+          "contexts": [
+            {
+              "line": 30,
+              "property": "--success-contrast",
+              "value": "--success-contrast: #0a5d00;"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
