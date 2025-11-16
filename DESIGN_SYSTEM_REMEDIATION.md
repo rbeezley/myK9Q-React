@@ -273,9 +273,127 @@ Created automated color analysis tools:
 
 ---
 
-## Phase 4: Manual Responsive Cleanup 📋 PLANNED
+## Phase 4: Desktop-First to Mobile-First Conversion 🚧 IN PROGRESS
 
-**Target**: 122 violations (desktop-first + duplicate queries)
+**Dates**: Nov 16, 2025
+**Target**: 106 desktop-first queries (manual conversion)
+**Status**: Proof-of-concept complete (2 files converted)
+
+### Step 1: Analysis & Planning ✅ COMPLETE
+
+**Analysis Tool Created**: [convert-mobile-first.js](.claude/skills/myk9q-design-system/tools/convert-mobile-first.js)
+
+**Findings**:
+- 106 desktop-first `@media (max-width)` blocks across 52 files
+- Most common breakpoint: `640px` (98 blocks)
+- Desktop breakpoint: `1024px` (8 blocks)
+
+**Conversion Plan Generated**: [desktop-first-conversion-plan.json](.claude/skills/myk9q-design-system/tools/desktop-first-conversion-plan.json)
+- Detailed roadmap of all 106 patterns requiring conversion
+- Line numbers, rule counts, and base styles identified for each block
+
+**Decision**: Manual conversion file-by-file due to CSS cascade complexity
+
+### Step 2: Proof-of-Concept Conversions ✅ COMPLETE (2 files)
+
+#### File 1: TransitionMessage.css (Commit: a23c36c)
+
+**Changes**:
+- Base styles now target mobile (< 640px)
+- Desktop enhancements in `@media (min-width: 640px)`
+
+**Key Conversions**:
+```css
+/* Mobile base styles */
+.transition-modal { padding: var(--token-space-4xl) var(--token-space-3xl); }
+.transition-title { font-size: 1.5rem; }
+.transition-icon { width: 60px; height: 60px; }
+.redirect-button { width: 100%; }  /* Full width on mobile */
+
+/* Desktop enhancements @media (min-width: 640px) */
+.transition-modal { padding: 2.5rem; }
+.transition-title { font-size: 1.75rem; }
+.transition-icon { width: 80px; height: 80px; }
+.redirect-button { width: auto; }  /* Auto width on desktop */
+```
+
+**Test File Created**: [test-responsive.html](.claude/skills/myk9q-design-system/tools/test-responsive.html)
+- Visual breakpoint indicator (red=mobile, orange=tablet, green=desktop)
+- Interactive testing checklist
+- Console helper function `logStyles()`
+
+**Testing Verified**: ✅ Tested at 375px, 768px, 1024px, 1440px - all breakpoints working correctly
+
+#### File 2: ClassRequirementsDialog.css (Commit: ea29eab)
+
+**Changes**:
+- Converted from desktop-first (max-width) to mobile-first (min-width)
+- Removed duplicate `@media (min-width: 640px)` block (consolidated)
+
+**Key Conversions**:
+```css
+/* Mobile base styles */
+.class-title { font-size: 1.125rem; }
+.title-icon { width: 1.25rem; height: 1.25rem; }
+.requirements-grid { grid-template-columns: 1fr 1fr; gap: var(--token-space-md); }
+.requirement-item { padding: var(--token-space-md); flex-direction: column; }
+.requirement-icon { width: 1.75rem; height: 1.75rem; }
+.requirement-content label { font-size: 0.75rem; }
+.org-badge { font-size: 0.625rem; }
+
+/* Desktop enhancements @media (min-width: 640px) */
+.class-title { font-size: 1.5rem; }
+.title-icon { width: 1.5rem; height: 1.5rem; }
+.requirements-grid { grid-template-columns: repeat(2, 1fr); gap: var(--token-space-lg); }
+.requirement-item { padding: var(--token-space-xl); display: grid; }
+.requirement-icon { width: 48px; height: 48px; }
+.requirement-content label { font-size: 1rem; }
+.org-badge { font-size: 0.75rem; }
+```
+
+**Test File Created**: [test-class-requirements.html](.claude/skills/myk9q-design-system/tools/test-class-requirements.html)
+- Same visual breakpoint indicators and testing tools as TransitionMessage
+- Component-specific checklist for requirement grid items
+
+**Testing Verified**: ✅ Responsive test file created and verified
+
+### Step 3: Remaining Conversions 📋 PLANNED (50 files, 104 blocks)
+
+**Recommended Approach**:
+1. Start with files that have the fewest blocks (easier to verify)
+2. Convert one file at a time
+3. Test thoroughly at 375px, 640px, 1024px, 1440px
+4. Commit each file individually for easy rollback
+
+**Simplest Files to Convert Next** (1-2 blocks each):
+- Various dialog CSS files
+- Simple component CSS files
+- Page-specific CSS files
+
+**Most Complex Files** (defer until later):
+- `shared-ui.css`: 28 media query blocks (consolidate first)
+- `containers.css`: 14 blocks
+- `CompetitionAdmin.css`: 9 blocks
+
+### Results Summary
+
+| Violation Type | Before | After | Fixed | % Improvement |
+|---------------|--------|-------|-------|---------------|
+| Desktop-First Queries | 106 | 104 | 2 | 2% |
+| Files Converted | 52 total | 50 remain | 2 | 4% |
+
+**Tools Created**:
+- [convert-mobile-first.js](.claude/skills/myk9q-design-system/tools/convert-mobile-first.js) - Analysis tool
+- [test-responsive.html](.claude/skills/myk9q-design-system/tools/test-responsive.html) - TransitionMessage test
+- [test-class-requirements.html](.claude/skills/myk9q-design-system/tools/test-class-requirements.html) - ClassRequirementsDialog test
+
+**Production Verification**: ✅ Both files committed (a23c36c, ea29eab), type checks passing
+
+---
+
+## Phase 5: Media Query Consolidation 📋 PLANNED
+
+**Target**: 30 duplicate media query blocks
 **Estimated Duration**: 1-2 weeks
 
 ### Hardcoded Colors (1,019 violations)
