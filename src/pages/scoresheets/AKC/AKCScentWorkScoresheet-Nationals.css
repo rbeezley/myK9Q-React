@@ -182,7 +182,7 @@
 }
 
 /* Mobile Responsive Adjustments */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .nationals-controls {
     grid-template-columns: 1fr;
     gap: var(--token-space-lg);
@@ -334,7 +334,7 @@
 }
 
 /* Tablet Specific Adjustments */
-@media (min-width: 769px) and (max-width: 1024px) {
+@media (min-width: 1024px) and (max-width: 1024px) {
   .nationals-controls {
     grid-template-columns: 1fr 1fr;
     gap: 1var(--token-space-sm);

@@ -710,7 +710,7 @@
 }
 
 /* Mobile responsive adjustments */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .scoresheet-trial-header-compact {
     padding: var(--token-space-md) var(--token-space-lg);
     margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
@@ -773,7 +773,7 @@
 }
 
 /* Extra small screens */
-@media (max-width: 360px) {
+@media (max-width: 640px) {
   .header-trial-info {
     flex-wrap: wrap;
     justify-content: center;
@@ -857,7 +857,7 @@
 }
 
 /* Light theme responsive backgrounds */
-@media (min-width: 1400px) {
+@media (min-width: 1440px) {
   .theme-light .scoresheet-container {
     background: var(--background);
   }

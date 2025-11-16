@@ -492,7 +492,7 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .monitoring-dashboard {
     width: 100%;
     height: 40vh;
@@ -750,7 +750,7 @@
 }
 
 /* Mobile responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .network-inspector {
     width: calc(100vw - 40px);
     right: var(--token-space-2xl);
@@ -849,7 +849,7 @@
 }
 
 /* Mobile responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .performance-monitor {
     top: auto;
     bottom: 80px;
@@ -1107,7 +1107,7 @@
 }
 
 /* Mobile responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .state-inspector {
     width: calc(100vw - 40px);
     left: var(--token-space-2xl);

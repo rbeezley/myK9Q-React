@@ -26,7 +26,7 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1024px;
   margin: 0 auto;
   padding: 0 var(--token-space-4xl);
 }
@@ -55,7 +55,7 @@
 }
 
 .hero-container {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 0 var(--token-space-4xl);
   position: relative;
@@ -669,7 +669,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .container {
     padding: 0 var(--token-space-3xl);
   }
@@ -730,7 +730,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .hero-section {
     padding: 4rem 0 4rem;
   }

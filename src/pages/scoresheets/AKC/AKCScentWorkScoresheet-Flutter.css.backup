@@ -1,0 +1,864 @@
+/* Mobile-Optimized Scoresheet - React Implementation */
+
+/* CSS Variables for theming - now using global design tokens */
+:root {
+  --scoresheet-bg: var(--background);
+  --scoresheet-text: var(--foreground);
+  --scoresheet-text-secondary: var(--token-text-secondary);
+  --scoresheet-text-tertiary: var(--token-text-tertiary);
+  --scoresheet-text-placeholder: var(--token-text-placeholder);
+  --scoresheet-card-bg: var(--muted);
+  --scoresheet-card-border: var(--border);
+  --scoresheet-header-bg: var(--muted);
+  --scoresheet-input-bg: var(--input);
+  --scoresheet-input-border: var(--border);
+  --scoresheet-badge-text: var(--primary-foreground);
+  --scoresheet-hover-overlay: rgba(255, 255, 255, 0.1);
+}
+
+.theme-light {
+  --scoresheet-bg: var(--background);
+  --scoresheet-text: var(--foreground);
+  --scoresheet-text-secondary: var(--token-text-secondary);
+  --scoresheet-text-tertiary: var(--token-text-tertiary);
+  --scoresheet-text-placeholder: var(--token-text-placeholder);
+  --scoresheet-card-bg: var(--muted);
+  --scoresheet-card-border: var(--border);
+  --scoresheet-header-bg: var(--muted);
+  --scoresheet-input-bg: var(--input);
+  --scoresheet-input-border: var(--border);
+  --scoresheet-badge-text: var(--primary-foreground);
+  --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
+}
+
+.scoresheet-container {
+  height: 100vh;
+  background: var(--scoresheet-bg);
+  color: var(--scoresheet-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  width: 100%;
+}
+
+.scoresheet {
+  width: 100%;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Header - Matching Flutter */
+.mobile-header {
+  background: var(--scoresheet-header-bg);
+  /* Padding inherited from .page-header (12px mobile, 24px desktop) for consistency */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--scoresheet-card-border);
+  border-radius: var(--token-space-lg);
+  position: relative;
+  z-index: var(--token-z-raised);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--token-space-xs);
+  flex: 1;
+}
+
+.mobile-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--scoresheet-text);
+}
+
+.header-trial-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--token-space-lg);
+  color: var(--scoresheet-text-secondary);
+  font-weight: 500;
+}
+
+.header-trial-info .trial-separator {
+  color: var(--scoresheet-text-tertiary);
+  font-size: var(--token-space-lg);
+}
+
+.back-btn, .theme-btn {
+  background: none;
+  border: none;
+  color: var(--scoresheet-text);
+  font-size: var(--token-space-2xl);
+  padding: var(--token-space-md);
+  cursor: pointer;
+  border-radius: var(--token-space-md);
+  transition: background 0.2s;
+}
+
+.back-btn:hover, .theme-btn:hover {
+  background: var(--scoresheet-hover-overlay);
+}
+
+/* Trial Header - Matching other containers */
+.scoresheet-trial-header {
+  text-align: center;
+  padding: var(--token-space-xl);
+  background: var(--scoresheet-card-bg);
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
+  border: 1px solid var(--scoresheet-card-border);
+}
+
+/* Compact Trial Header - One Line */
+.scoresheet-trial-header-compact {
+  text-align: center;
+  padding: var(--token-space-lg) var(--token-space-xl);
+  background: var(--scoresheet-card-bg);
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
+  border: 1px solid var(--scoresheet-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+  flex-wrap: wrap;
+}
+
+.trial-info-item {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--scoresheet-text);
+}
+
+.trial-separator {
+  font-size: 14px;
+  color: var(--scoresheet-text-tertiary);
+  margin: 0 var(--token-space-sm);
+}
+
+.trial-date {
+  font-size: 14px;
+  color: var(--scoresheet-text-secondary);
+  margin-bottom: var(--token-space-sm);
+}
+
+.trial-class {
+  font-size: var(--token-space-xl);
+  font-weight: 600;
+  color: var(--scoresheet-text);
+}
+
+/* Dog Info Card - Full width like other pages */
+.scoresheet-dog-card {
+  background: var(--scoresheet-card-bg);
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  padding: var(--token-space-xl);
+  border-radius: var(--token-space-lg);
+  border: 1px solid var(--scoresheet-card-border);
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-xl);
+}
+
+/* Compact Dog Info Card */
+.scoresheet-dog-card-compact {
+  background: transparent;
+  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
+  border: none;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--token-space-lg);
+  color: var(--scoresheet-text);
+}
+
+/* Clean Dog Info - No Background */
+.scoresheet-dog-info-clean {
+  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-lg) 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--token-space-lg);
+  background: transparent;
+  border: none;
+  color: var(--scoresheet-text);
+}
+
+.scoresheet-dog-info-card {
+  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  padding: var(--token-space-xl);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--token-space-xl);
+  background: var(--scoresheet-card-bg);
+  border: 1px solid var(--scoresheet-card-border);
+  border-radius: var(--token-space-lg);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+}
+
+.scoresheet-armband {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: var(--scoresheet-badge-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--token-space-3xl);
+  font-weight: bold;
+  border-radius: var(--token-space-lg);
+  flex-shrink: 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(59, 130, 246, 0.3);
+}
+
+.scoresheet-dog-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-xs);
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.scoresheet-dog-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--scoresheet-text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.scoresheet-dog-breed {
+  font-size: 14px;
+  color: var(--scoresheet-text-secondary);
+  margin: 0;
+}
+
+.scoresheet-dog-handler {
+  font-size: 13px;
+  color: var(--scoresheet-text-tertiary);
+  margin: 0;
+}
+
+.dog-armband {
+  font-size: var(--token-space-4xl);
+  font-weight: bold;
+  color: var(--scoresheet-text);
+  min-width: 80px;
+  text-align: center;
+  align-self: flex-start;
+  line-height: 1.2;
+}
+
+.dog-info {
+  flex: 1;
+}
+
+.dog-info-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-xs);
+  align-items: flex-start;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.dog-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--scoresheet-text);
+  margin: 0;
+  line-height: 1.2;
+  align-self: flex-start;
+}
+
+.dog-details {
+  font-size: 14px;
+  color: var(--scoresheet-text-secondary);
+  margin-bottom: var(--token-space-xs);
+}
+
+.dog-handler {
+  font-size: 13px;
+  color: var(--scoresheet-text-tertiary);
+  margin: 0;
+}
+
+.person-number {
+  font-size: var(--token-space-lg);
+  color: var(--scoresheet-text-tertiary);
+}
+
+/* Timer Card - Compact version */
+.scoresheet-timer-card {
+  background: var(--scoresheet-card-bg);
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-xl) var(--token-space-lg);
+  border-radius: var(--token-space-lg);
+  border: 1px solid var(--scoresheet-card-border);
+  text-align: center;
+  position: relative; /* For absolute positioning of reset button */
+}
+
+.timer-display-large {
+  font-size: var(--token-space-4xl);
+  font-weight: bold;
+  color: var(--scoresheet-text);
+  margin-bottom: var(--token-space-md);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+
+.timer-display-large.warning {
+  color: var(--token-error);
+  animation: pulse 1s infinite;
+}
+
+.timer-display-large.expired {
+  color: var(--token-error-contrast);
+  animation: flash 0.5s infinite;
+}
+
+.timer-countdown-display {
+  font-size: var(--token-space-xl);
+  font-weight: 500;
+  color: var(--scoresheet-text-secondary);
+  margin-bottom: var(--token-space-lg);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.timer-controls-flutter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--token-space-md);
+}
+
+/* Reset button - positioned in top-right corner */
+.timer-btn-reset {
+  position: absolute;
+  top: var(--token-space-lg);
+  right: var(--token-space-lg);
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: none;
+  background: #6b7280; /* Neutral gray - clearly secondary (works in both themes) */
+  color: white;
+  font-size: var(--token-space-xl);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+  z-index: var(--token-z-raised);
+}
+
+.timer-btn-pause {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  border: none;
+  background: #6b7280;
+  color: white;
+  font-size: var(--token-space-2xl);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+}
+
+.timer-btn-start {
+  width: 200px; /* Increased from 160px */
+  min-width: 200px;
+  height: 72px; /* Increased from 64px */
+  border-radius: 36px; /* Match new height */
+  border: none;
+  background: var(--primary); /* Theme-aware: blue/green/orange */
+  color: white;
+  font-size: 1.375rem; /* Slightly larger text */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+  flex-shrink: 0;
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.25);
+}
+
+.timer-btn-start.stop {
+  background: var(--token-error); /* Keep red for stop */
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
+}
+
+.timer-btn-pause:hover:not(:disabled), .timer-btn-reset:hover:not(:disabled) {
+  background: #6b7280;
+  filter: brightness(1.15);
+  transform: scale(1.05);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+}
+
+.timer-btn-pause:active:not(:disabled), .timer-btn-reset:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.timer-btn-pause:disabled, .timer-btn-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.timer-btn-start:hover:not(.stop) {
+  background: var(--primary);
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 6px var(--token-space-xl) rgba(0, 0, 0, 0.3);
+}
+
+.timer-btn-start:active {
+  transform: scale(0.95);
+}
+
+.timer-btn-start.stop:hover {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 6px var(--token-space-xl) rgba(239, 68, 68, 0.4);
+}
+
+.timer-secondary {
+  position: absolute;
+  top: var(--token-space-2xl);
+  right: var(--token-space-2xl);
+  background: rgba(16, 185, 129, 0.2);
+  border: var(--token-space-xs) solid #10B981;
+  border-radius: var(--token-space-2xl);
+  padding: var(--token-space-md) var(--token-space-lg);
+  font-size: 14px;
+  color: var(--token-success);
+}
+
+.scoresheet-timer-card {
+  position: relative;
+  z-index: var(--token-z-raised);
+}
+
+/* Timer Warning Styles */
+.timer-warning {
+  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  border-radius: var(--token-space-md);
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--token-space-xl);
+  animation: pulse 1s infinite;
+}
+
+.timer-warning.warning {
+  background: rgba(239, 68, 68, 0.1);
+  border: var(--token-space-xs) solid #EF4444;
+  color: var(--token-error);
+}
+
+.timer-warning.expired {
+  background: rgba(220, 38, 38, 0.2);
+  border: var(--token-space-xs) solid #DC2626;
+  color: var(--token-error-contrast);
+  animation: flash 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Time Input - Compact version */
+.scoresheet-time-card {
+  background: var(--scoresheet-card-bg);
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  padding: var(--token-space-lg);
+  border-radius: var(--token-space-lg);
+  border: 1px solid var(--scoresheet-card-border);
+  text-align: center;
+}
+
+.time-input-flutter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+}
+
+.scoresheet-time-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.scoresheet-time-input {
+  background: var(--scoresheet-input-bg);
+  border: 2px solid var(--scoresheet-input-border);
+  border-radius: var(--token-space-lg);
+  padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl); /* Increased padding for better touch target */
+  color: var(--scoresheet-text);
+  font-size: 16px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+  min-width: 0;
+  width: 180px;
+  min-height: 48px; /* Better touch target height */
+  text-align: center;
+}
+
+/* Empty state - more subtle appearance */
+.scoresheet-time-input:placeholder-shown {
+  background: var(--muted);
+  border-color: var(--border);
+  font-weight: 400;
+}
+
+/* Filled state - more prominent */
+.scoresheet-time-input:not(:placeholder-shown) {
+  background: var(--scoresheet-input-bg);
+  border-color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.scoresheet-time-clear-button {
+  position: absolute;
+  right: var(--token-space-md);
+  background: none;
+  border: none;
+  color: var(--scoresheet-text-secondary);
+  cursor: pointer;
+  padding: var(--token-space-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--token-space-sm);
+  transition: all 0.2s;
+}
+
+.scoresheet-time-clear-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--token-error);
+}
+
+.scoresheet-time-input.single-area {
+  flex: 1;
+  width: auto;
+}
+
+.scoresheet-time-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  background: var(--scoresheet-input-bg);
+}
+
+.scoresheet-time-input::placeholder {
+  color: var(--scoresheet-text-secondary);
+  font-weight: 400;
+  font-size: 15px;
+}
+
+.max-time {
+  font-size: 14px;
+  color: var(--scoresheet-text-secondary);
+  white-space: nowrap;
+}
+
+/* Area Badge Styles - Compact */
+.area-badge {
+  background: rgba(16, 185, 129, 0.8);
+  color: var(--scoresheet-badge-text);
+  padding: 6px 10px;
+  border-radius: var(--token-space-xl);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  min-width: 55px;
+  max-width: 70px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.area-badge.completed {
+  background: rgba(107, 114, 128, 0.8);
+  color: var(--scoresheet-badge-text);
+}
+
+.area-badge.pending {
+  background: rgba(16, 185, 129, 0.8);
+  color: var(--scoresheet-badge-text);
+}
+
+/* Max Time Badge Styles */
+.max-time-badge {
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  color: rgba(124, 58, 237, 1);
+  padding: 6px var(--token-space-lg);
+  border-radius: var(--token-space-xl);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 50px;
+  text-align: center;
+}
+
+.max-time-display {
+  color: var(--scoresheet-text-tertiary);
+  font-size: var(--token-space-lg);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Result Choice Chips positioned properly - Compact */
+.results-section {
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+}
+
+/* Nationals Counter positioned properly - Compact */
+.nationals-counter-simple {
+  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+}
+
+/* Action Buttons - Matching Flutter */
+.scoresheet-actions {
+  margin: var(--token-space-xl);
+  margin-top: auto;
+  display: flex;
+  gap: var(--token-space-lg);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--token-space-3xl));
+  padding-top: var(--token-space-xl);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  width: calc(100% - var(--token-space-4xl));
+}
+
+.scoresheet-btn-cancel, .scoresheet-btn-save {
+  flex: 1;
+  height: 56px;
+  border-radius: 28px;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scoresheet-btn-cancel {
+  background: rgba(107, 114, 128, 0.8);
+  color: var(--scoresheet-badge-text);
+}
+
+.scoresheet-btn-save {
+  background: var(--primary); /* Theme-aware color (blue/green/orange) */
+  color: white;
+}
+
+.scoresheet-btn-cancel:hover {
+  background: rgba(107, 114, 128, 1);
+  transform: scale(1.02);
+}
+
+.scoresheet-btn-save:hover {
+  background: var(--primary);
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.scoresheet-btn-save:disabled {
+  background: var(--primary);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.4;
+  color: white;
+}
+
+.theme-light .scoresheet-btn-save:disabled {
+  background: var(--primary);
+  color: white;
+  opacity: 0.4;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+  .scoresheet-trial-header-compact {
+    padding: var(--token-space-md) var(--token-space-lg);
+    margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
+    font-size: var(--token-space-lg);
+  }
+
+  .trial-info-item {
+    font-size: var(--token-space-lg);
+  }
+
+  .trial-separator {
+    font-size: var(--token-space-lg);
+  }
+
+  .scoresheet-dog-card-compact,
+  .scoresheet-dog-info-clean {
+    margin: var(--token-space-lg) var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
+    padding: 10px 0;
+    gap: 10px;
+  }
+
+  .time-input-flutter {
+    gap: var(--token-space-md);
+  }
+
+  .area-badge {
+    padding: 6px var(--token-space-md);
+    font-size: 11px;
+    min-width: 50px;
+    max-width: 60px;
+  }
+
+  .scoresheet-time-input {
+    width: 160px;
+    padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg); /* Maintain touch target on mobile */
+    font-size: 15px;
+    min-height: 44px; /* Mobile touch target standard */
+  }
+
+  .scoresheet-time-input.single-area {
+    width: auto;
+    flex: 1;
+  }
+
+  .max-time-display {
+    font-size: 11px;
+  }
+
+  .dog-name {
+    font-size: var(--token-space-xl);
+  }
+
+  .dog-details {
+    font-size: 13px;
+  }
+
+  .dog-handler {
+    font-size: var(--token-space-lg);
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .header-trial-info {
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 10px;
+  }
+}
+
+/* Responsive breakpoints - full-width pattern for consistency */
+
+/* Large Desktop: 1400px+ - full width, no max-width constraint */
+/* Removed max-width constraint to match layout standards (24px hamburger position) */
+
+/* Light theme support */
+.theme-light .scoresheet-container {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.theme-light .scoresheet {
+  background: var(--background);
+}
+
+/* Light mode - all text colors now handled by CSS variables above */
+
+/* Light mode button styles - colors inherited from base via variables */
+
+/* Light theme badge styles - colors inherited from base via variables */
+
+.theme-light .max-time-badge {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: rgba(124, 58, 237, 0.9);
+}
+
+/* Light theme timer warning styles */
+.theme-light .timer-warning.warning {
+  background: rgba(239, 68, 68, 0.05);
+  border: var(--token-space-xs) solid #EF4444;
+  color: var(--token-error-contrast);
+}
+
+.theme-light .timer-warning.expired {
+  background: rgba(220, 38, 38, 0.1);
+  border: var(--token-space-xs) solid #DC2626;
+  color: #B91C1C;
+}
+
+/* Timer Expired Indicator */
+.timer-expired-indicator {
+  padding: var(--token-space-md) var(--token-space-xl);
+  border-radius: var(--token-space-lg);
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: var(--token-error);
+  font-size: var(--token-space-xl);
+  font-weight: 600;
+  text-align: center;
+  margin: 0 var(--token-space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  animation: pulse-expired 2s ease-in-out infinite;
+}
+
+.theme-light .timer-expired-indicator {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: var(--token-error-contrast);
+}
+
+@keyframes pulse-expired {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+/* Light theme responsive backgrounds */
+@media (min-width: 1400px) {
+  .theme-light .scoresheet-container {
+    background: var(--background);
+  }
+}

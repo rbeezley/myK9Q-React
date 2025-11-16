@@ -61,7 +61,7 @@
 }
 
 /* Mobile-specific improvements */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .time-input {
     font-size: 1.25rem;
     padding: var(--token-space-2xl) 3.5rem var(--token-space-2xl) 3.5rem;

@@ -417,7 +417,7 @@
 }
 
 /* Tablet and up */
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .dog-card {
     padding: 0.875rem;
   }

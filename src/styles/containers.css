@@ -25,12 +25,12 @@
 /* Tablet breakpoint */
 @media (min-width: 640px) {
   :root {
-    --container-max-width: 768px;
+    --container-max-width: 640px;
     --container-offset: calc((100vw - 768px) / 2);
   }
 
   .app-container {
-    max-width: 768px;
+    max-width: 640px;
     padding: 0 var(--token-space-3xl);
   }
 }
@@ -38,12 +38,12 @@
 /* Desktop breakpoint */
 @media (min-width: 1024px) {
   :root {
-    --container-max-width: 1200px;
+    --container-max-width: 1024px;
     --container-offset: calc((100vw - 1200px) / 2);
   }
 
   .app-container {
-    max-width: 1200px;
+    max-width: 1024px;
     padding: 0 var(--token-space-4xl);
   }
 }
@@ -71,7 +71,7 @@
 }
 
 /* Ultra-narrow breakpoint for multi-window monitoring (320px-480px) */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .app-container-wide {
     padding: 0 var(--token-space-md);
     min-width: 280px; /* Absolute minimum for readability */
@@ -79,7 +79,7 @@
 }
 
 /* Small mobile optimization (481px-639px) */
-@media (min-width: 481px) and (max-width: 639px) {
+@media (min-width: 640px) and (max-width: 639px) {
   .app-container-wide {
     padding: 0 var(--token-space-lg);
   }
@@ -87,19 +87,19 @@
 
 @media (min-width: 640px) {
   .app-container-wide {
-    max-width: 768px;
+    max-width: 640px;
     padding: 0 var(--token-space-3xl);
   }
 }
 
 @media (min-width: 1024px) {
   .app-container-wide {
-    max-width: 1400px;
+    max-width: 1440px;
     padding: 0 var(--token-space-4xl);
   }
 
   .app-container-wide {
-    --container-max-width: 1400px;
+    --container-max-width: 1440px;
     --container-offset: calc((100vw - 1400px) / 2);
   }
 }

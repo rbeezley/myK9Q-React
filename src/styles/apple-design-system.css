@@ -402,7 +402,7 @@
 }
 
 /* Performance Mode for Older Devices */
-@media (max-width: 480px) and (max-resolution: 150dpi) {
+@media (max-width: 640px) and (max-resolution: 150dpi) {
   .apple-card,
   .entry-card {
     backdrop-filter: none;

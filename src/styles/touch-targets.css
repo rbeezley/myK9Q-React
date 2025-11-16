@@ -287,7 +287,7 @@
    MOBILE-SPECIFIC OPTIMIZATIONS
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   /* Larger touch targets on mobile */
   .touch-target-mobile-large {
     min-width: var(--touch-target-large);

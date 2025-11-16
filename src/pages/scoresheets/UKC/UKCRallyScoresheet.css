@@ -448,7 +448,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .score-inputs {
     grid-template-columns: 1fr;
     gap: var(--token-space-xl);
@@ -478,7 +478,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .final-score h3 {
     font-size: 1.5rem;
   }

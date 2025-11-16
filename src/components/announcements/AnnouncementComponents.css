@@ -1136,7 +1136,7 @@ button.filter-option.high.active {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .priority-selector {
     grid-template-columns: 1fr;
   }

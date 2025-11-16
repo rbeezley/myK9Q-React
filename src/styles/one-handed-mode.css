@@ -279,7 +279,7 @@
    MOBILE-SPECIFIC
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .one-handed-mode {
     --fab-size: 64px;
     --fab-offset: var(--token-space-2xl);

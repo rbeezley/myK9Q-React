@@ -1,7 +1,7 @@
 /* Migration Test Dashboard Styles */
 
 .migration-test-container {
-  max-width: 1200px;
+  max-width: 1024px;
   margin: 0 auto;
   padding: var(--token-space-4xl);
   background: #f8fafc;
@@ -365,7 +365,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .migration-test-container {
     padding: var(--token-space-xl);
   }

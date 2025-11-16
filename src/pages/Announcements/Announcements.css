@@ -522,7 +522,7 @@ button.action-btn.active svg {
    ======================================== */
 
 /* Tablet adjustments */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .announcements-header {
     padding: var(--token-space-lg) var(--token-space-xl);
   }
@@ -551,7 +551,7 @@ button.action-btn.active svg {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .header-actions {
     gap: var(--token-space-sm);
   }

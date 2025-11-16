@@ -332,7 +332,7 @@
   padding: var(--token-space-xl);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .entries-grid,
   .classes-grid {
     grid-template-columns: 1fr;

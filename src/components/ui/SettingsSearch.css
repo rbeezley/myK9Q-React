@@ -288,7 +288,7 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .search-input {
     height: 44px;
     font-size: 0.9375rem;

@@ -170,7 +170,7 @@
   gap: var(--token-space-xl);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .scoresheet-grid-2,
   .scoresheet-grid-3 {
     grid-template-columns: 1fr;

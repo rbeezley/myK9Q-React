@@ -165,7 +165,7 @@
 }
 
 /* Improved Readability for Small Screens */
-@media (max-width: 390px) {
+@media (max-width: 640px) {
   .entry-name {
     font-size: 1rem;
     line-height: 1.3;

@@ -379,7 +379,7 @@
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .wireframe-container {
     margin: 10px;
     padding: var(--token-space-xl);
@@ -436,7 +436,7 @@
   }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 640px) {
   .wireframe-counter-btn {
     width: var(--token-space-4xl);
     height: var(--token-space-4xl);

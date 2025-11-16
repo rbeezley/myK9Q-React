@@ -1397,7 +1397,7 @@
 }
 
 /* 2-column layout adjustments */
-@media (min-width: 641px) and (max-width: 1023px) {
+@media (min-width: 640px) and (max-width: 1023px) {
   .class-content {
     padding-bottom: var(--token-space-4xl);  /* Reduce bottom padding on tablet */
   }

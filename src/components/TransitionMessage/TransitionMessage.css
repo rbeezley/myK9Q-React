@@ -193,7 +193,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .transition-modal {
     padding: var(--token-space-4xl) var(--token-space-3xl);
   }

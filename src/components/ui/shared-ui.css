@@ -114,7 +114,7 @@
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 640px) and (max-width: 1024px) {
   .armband-badge.long-number {
     font-size: 0.875rem;
   }
@@ -162,7 +162,7 @@
   }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 640px) and (max-width: 1024px) {
   .armband-badge {
     width: 3.25rem;
     height: 3.25rem;
@@ -171,7 +171,7 @@
   }
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
   .armband-badge {
     width: 3.5rem;
     height: 3.5rem;
@@ -1869,7 +1869,7 @@
 }
 
 /* Mobile-specific adjustments */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .floating-action-button {
     --fab-size: 64px;
     --fab-offset: var(--token-space-2xl);
@@ -2561,7 +2561,7 @@
 }
 
 .offline-indicator-content {
-  max-width: 1200px;
+  max-width: 1024px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -2883,7 +2883,7 @@
 }
 
 /* Responsive */
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   /* On desktop, center the bottom sheet and make it narrower */
   .bottom-sheet {
     left: 50%;
@@ -3721,7 +3721,7 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .storage-manager {
     padding: var(--token-space-xl);
   }
@@ -4633,7 +4633,7 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .section-header {
     padding: 0.875rem var(--token-space-xl);
   }
@@ -5137,7 +5137,7 @@
 }
 
 .conflict-banner-content {
-  max-width: 1200px;
+  max-width: 1024px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -5440,7 +5440,7 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .conflict-dialog {
     max-width: 100%;
     max-height: 100%;

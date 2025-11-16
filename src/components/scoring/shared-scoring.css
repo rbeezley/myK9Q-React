@@ -207,7 +207,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .armband-number {
     font-size: 28px;
     width: 60px;
@@ -398,7 +398,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .timer-grid.horizontal {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
@@ -408,7 +408,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .multi-timer-header {
     padding: var(--token-space-xl);
   }
@@ -448,7 +448,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .timer-stats {
     flex-direction: column;
     gap: var(--token-space-lg);
@@ -596,7 +596,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .counters-grid {
     gap: var(--token-space-md);
   }
@@ -1001,7 +1001,7 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .nationals-point-counter {
     margin: var(--token-space-lg) 0;
     padding: var(--token-space-lg);
@@ -1161,7 +1161,7 @@ button.choice-chip.danger.selected {
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .result-choice-chips {
     gap: 6px;
     margin: var(--token-space-lg) 0;
@@ -1654,7 +1654,7 @@ button.choice-chip.secondary.selected {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .timer-controls {
     flex-wrap: wrap;
   }

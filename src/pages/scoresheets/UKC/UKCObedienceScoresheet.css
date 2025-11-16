@@ -449,7 +449,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .points-input {
     font-size: 1.75rem;
     padding: var(--token-space-2xl);
@@ -475,7 +475,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .points-input {
     font-size: 1.5rem;
   }

@@ -872,7 +872,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .scoresheet-header h1 {
     font-size: 1.125rem;
   }

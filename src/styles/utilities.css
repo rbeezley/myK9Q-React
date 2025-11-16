@@ -465,7 +465,7 @@
   min-width: 44px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .mobile-touch-target {
     min-height: auto;
     min-width: auto;

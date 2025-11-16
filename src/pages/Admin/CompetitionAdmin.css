@@ -659,7 +659,7 @@
 }
 
 /* Tablet: 2 columns */
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 640px) and (max-width: 1024px) {
   .classes-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -672,7 +672,7 @@
 }
 
 /* Desktop: 3 columns */
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
   .classes-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -904,7 +904,7 @@
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .admin-content {
     padding: var(--token-space-lg);
   }
