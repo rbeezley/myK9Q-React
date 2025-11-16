@@ -144,6 +144,16 @@ function useRouteChangeCleanup() {
     if (fromRoute !== toRoute) {
       // Clean up stale subscriptions on route change
       subscriptionCleanup.cleanupOnRouteChange(fromRoute, toRoute);
+
+      // Track navigation for intelligent prefetching
+      (async () => {
+        const { getReplicationManager } = await import('./services/replication');
+        const manager = getReplicationManager();
+        if (manager) {
+          manager.trackNavigation(toRoute);
+        }
+      })();
+
       previousLocation.current = toRoute;
     }
   }, [location.pathname]);

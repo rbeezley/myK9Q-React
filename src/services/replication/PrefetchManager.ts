@@ -83,7 +83,7 @@ export class PrefetchManager {
     // Trigger prefetch for likely next page
     this.schedulePrefetch(toPage);
 
-    logger.log(`[Prefetch] Navigation tracked: ${fromPage} → ${toPage}`);
+    console.log(`🚀 [Prefetch] Navigation tracked: ${fromPage} → ${toPage}`);
   }
 
   /**
@@ -95,7 +95,7 @@ export class PrefetchManager {
       const predictions = this.predictNextPages(currentPage);
 
       if (predictions.length > 0) {
-        logger.log(`[Prefetch] Predicted next pages:`, predictions.map(p => p.toPage));
+        console.log(`🔮 [Prefetch] Predicted next pages:`, predictions.map(p => p.toPage));
         this.executePrefetch(predictions);
       }
     }, this.PREFETCH_DELAY_MS);
@@ -157,8 +157,11 @@ export class PrefetchManager {
   private getTasksForPage(pageName: string): PrefetchTask[] {
     const tasks: PrefetchTask[] = [];
 
+    // Normalize page path for matching (handles /admin/myK9Q1-... patterns)
+    const normalizedPath = this.normalizePath(pageName);
+
     // Define prefetch strategies per page
-    switch (pageName) {
+    switch (normalizedPath) {
       case '/class-list':
         // Prefetch classes and trials for class list
         tasks.push(
@@ -192,12 +195,78 @@ export class PrefetchManager {
         );
         break;
 
+      case '/admin/release-control':
+        // Admin: Release control (trial and class management)
+        tasks.push(
+          { tableName: 'trials', priority: 'high' },
+          { tableName: 'classes', priority: 'high' }
+        );
+        break;
+
+      case '/admin/statistics':
+        // Admin: Statistics page (needs all data for summaries)
+        tasks.push(
+          { tableName: 'entries', priority: 'high' },
+          { tableName: 'classes', priority: 'high' },
+          { tableName: 'trials', priority: 'medium' }
+        );
+        break;
+
+      case '/admin':
+        // Admin home (show list)
+        tasks.push(
+          { tableName: 'shows', priority: 'high' },
+          { tableName: 'trials', priority: 'medium' }
+        );
+        break;
+
       default:
         // No specific prefetch strategy
         break;
     }
 
     return tasks;
+  }
+
+  /**
+   * Normalize page path for pattern matching
+   * Strips license keys and IDs from admin/dynamic routes
+   */
+  private normalizePath(pagePath: string): string {
+    // Strip trailing slashes
+    const cleaned = pagePath.replace(/\/$/, '');
+
+    // Admin release control: /admin/myK9Q1-... → /admin/release-control
+    if (/^\/admin\/[^/]+$/.test(cleaned)) {
+      return '/admin/release-control';
+    }
+
+    // Admin statistics: /admin/myK9Q1-.../statistics → /admin/statistics
+    if (/^\/admin\/[^/]+\/statistics$/.test(cleaned)) {
+      return '/admin/statistics';
+    }
+
+    // Admin trial details: /admin/myK9Q1-.../trial/123 → /admin
+    if (/^\/admin\/[^/]+\/trial\/\d+$/.test(cleaned)) {
+      return '/admin';
+    }
+
+    // Class entry list: /admin/myK9Q1-.../trial/123/class/456 → /entry-list
+    if (/^\/admin\/[^/]+\/trial\/\d+\/class\/\d+$/.test(cleaned)) {
+      return '/entry-list';
+    }
+
+    // Scoresheet: /scoresheet/AKC/... → /scoresheet
+    if (/^\/scoresheet\//.test(cleaned)) {
+      return '/scoresheet';
+    }
+
+    // Class list: /class-list or /class-list/myK9Q1-... → /class-list
+    if (/^\/class-list/.test(cleaned)) {
+      return '/class-list';
+    }
+
+    return cleaned;
   }
 
   /**
@@ -222,7 +291,7 @@ export class PrefetchManager {
         return;
       }
 
-      logger.log(`[Prefetch] Prefetching table: ${task.tableName} (priority: ${task.priority})`);
+      console.log(`💾 [Prefetch] Prefetching table: ${task.tableName} (priority: ${task.priority})`);
 
       // Trigger background sync (non-blocking)
       // The table's sync() method will handle the actual data fetch
