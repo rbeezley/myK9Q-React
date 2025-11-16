@@ -7,7 +7,6 @@ import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
 import { autoDownloadShow } from '../../services/autoDownloadService';
-import { useSettingsStore } from '../../stores/settingsStore';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -200,11 +199,8 @@ export const Login: React.FC = () => {
 
           // 🚀 AUTO-DOWNLOAD: Start background download for offline use
           // All roles (admin, judge, steward, exhibitor) benefit from cached data
-          const { settings } = useSettingsStore.getState();
-
-          if (settings.autoDownloadOnLogin) {
-            triggerAutoDownload(showDataWithType.licenseKey);
-          }
+          // Always enabled - offline-first architecture
+          triggerAutoDownload(showDataWithType.licenseKey);
 
           navigate('/home');
           return;
@@ -229,11 +225,8 @@ export const Login: React.FC = () => {
 
       // 🚀 AUTO-DOWNLOAD: Start background download for offline use
       // All roles (admin, judge, steward, exhibitor) benefit from cached data
-      const { settings } = useSettingsStore.getState();
-
-      if (settings.autoDownloadOnLogin) {
-        triggerAutoDownload(showDataWithType.licenseKey);
-      }
+      // Always enabled - offline-first architecture
+      triggerAutoDownload(showDataWithType.licenseKey);
 
       navigate('/home');
     } catch (err) {

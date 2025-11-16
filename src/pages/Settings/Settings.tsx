@@ -364,34 +364,6 @@ export function Settings() {
         </div>
       </CollapsibleSection>
 
-      {/* Offline Mode Section */}
-      <CollapsibleSection
-        id="offline-section"
-        title="Offline Mode"
-        description="Automatic data download for offline scoring"
-        defaultExpanded={false}
-        badge={1}
-      >
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="autoDownloadOnLogin">Auto-Download on Login</label>
-            <span className="setting-hint">Automatically download all classes for offline use (~0.5 MB)</span>
-            <span className="setting-description">
-              Downloads current show data in background when you log in. Typical show: 50 classes, 600+ entries, 2-3 seconds download time.
-            </span>
-          </div>
-          <label className="toggle-switch">
-            <input
-              id="autoDownloadOnLogin"
-              type="checkbox"
-              checked={settings.autoDownloadOnLogin}
-              onChange={(e) => updateSettings({ autoDownloadOnLogin: e.target.checked })}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-      </CollapsibleSection>
-
       {/* Notifications Section */}
       <CollapsibleSection
         id="notifications-section"

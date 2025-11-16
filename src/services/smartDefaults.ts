@@ -98,9 +98,6 @@ export async function generateSmartDefaults(
     fontSize: 'medium',
     density: context.deviceTier === 'low' ? 'compact' : 'comfortable',
 
-    // Offline
-    autoDownloadOnLogin: context.deviceTier === 'high' && context.connectionQuality === 'fast',
-
     // Notification Settings
     enableNotifications: true,
     notificationSound: context.deviceTier !== 'low',
@@ -224,9 +221,9 @@ export async function getRecommendedSettings(
       };
 
     case 'data-saver':
-      return {
-        autoDownloadOnLogin: false,
-      };
+      // Data-saver mode no longer disables auto-download
+      // Offline-first architecture requires data sync for app to function
+      return {};
 
     case 'balanced':
     default:
