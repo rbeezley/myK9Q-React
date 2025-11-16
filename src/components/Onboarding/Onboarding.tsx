@@ -190,8 +190,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           <h2 className="onboarding-title">{screen.title}</h2>
           <p className="onboarding-description">{screen.description}</p>
 
-          {/* Notification Enable Button (Screen 3 only) */}
-          {currentScreen === 2 && notificationStatus === 'idle' && (
+          {/* Notification Enable Button (Screen 1 only) */}
+          {currentScreen === 0 && notificationStatus === 'idle' && (
             <button
               className="onboarding-notification-button"
               onClick={handleEnableNotifications}
@@ -211,16 +211,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </button>
           )}
 
-          {/* Notification Enabled Success (Screen 3 only) */}
-          {currentScreen === 2 && notificationStatus === 'enabled' && (
+          {/* Notification Enabled Success (Screen 1 only) */}
+          {currentScreen === 0 && notificationStatus === 'enabled' && (
             <div className="onboarding-notification-success">
               <CheckCircle size={20} />
               <span>Notifications Enabled!</span>
             </div>
           )}
 
-          {/* Notification Denied Warning (Screen 3 only) */}
-          {currentScreen === 2 && notificationStatus === 'denied' && (
+          {/* Notification Denied Warning (Screen 1 only) */}
+          {currentScreen === 0 && notificationStatus === 'denied' && (
             <div className="onboarding-notification-denied">
               <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#f59e0b' }}>
                 Permission denied. You can enable notifications later in Settings.
