@@ -94,7 +94,7 @@ const defaultSettings: AppSettings = {
   hapticFeedback: true,
 
   // Notifications
-  enableNotifications: true,
+  enableNotifications: false, // Default: disabled (users must explicitly opt-in)
   notificationSound: true,
   voiceNotifications: false, // Default: disabled (users must opt-in)
   showBadges: true,

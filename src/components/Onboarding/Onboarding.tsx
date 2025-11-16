@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Heart, CheckCircle, Bell, Clock, ChevronRight } from 'lucide-react';
+import { useSettingsStore } from '@/stores/settingsStore';
+import PushNotificationService from '@/services/pushNotificationService';
+import { useAuth } from '@/contexts/AuthContext';
 import './Onboarding.css';
 
 interface OnboardingProps {
@@ -49,6 +52,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [currentScreen, setCurrentScreen] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isEnablingNotifications, setIsEnablingNotifications] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState<'idle' | 'enabled' | 'denied'>('idle');
+
+  const { updateSettings } = useSettingsStore();
+  const { showContext, role } = useAuth();
 
   const minSwipeDistance = 50;
 
@@ -87,6 +95,52 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const handleComplete = () => {
     localStorage.setItem('onboarding_completed', 'true');
     onComplete();
+  };
+
+  const handleEnableNotifications = async () => {
+    if (!showContext?.licenseKey || !role) {
+      console.error('[Onboarding] Missing license key or role');
+      return;
+    }
+
+    setIsEnablingNotifications(true);
+
+    try {
+      // Enable notifications in settings
+      updateSettings({ enableNotifications: true });
+
+      // Get favorite armbands from localStorage
+      const favoritesKey = `dog_favorites_${showContext.licenseKey}`;
+      const savedFavorites = localStorage.getItem(favoritesKey);
+      let favoriteArmbands: number[] = [];
+
+      if (savedFavorites) {
+        try {
+          const parsed = JSON.parse(savedFavorites);
+          if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
+            favoriteArmbands = parsed;
+          }
+        } catch (error) {
+          console.error('[Onboarding] Error parsing favorites:', error);
+        }
+      }
+
+      // Request browser permission and subscribe
+      const success = await PushNotificationService.subscribe(role, showContext.licenseKey, favoriteArmbands);
+
+      if (success) {
+        setNotificationStatus('enabled');
+      } else {
+        setNotificationStatus('denied');
+        updateSettings({ enableNotifications: false });
+      }
+    } catch (error) {
+      console.error('[Onboarding] Error enabling notifications:', error);
+      setNotificationStatus('denied');
+      updateSettings({ enableNotifications: false });
+    } finally {
+      setIsEnablingNotifications(false);
+    }
   };
 
   const screen = screens[currentScreen];
@@ -135,6 +189,44 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           {/* Title & Description */}
           <h2 className="onboarding-title">{screen.title}</h2>
           <p className="onboarding-description">{screen.description}</p>
+
+          {/* Notification Enable Button (Screen 3 only) */}
+          {currentScreen === 2 && notificationStatus === 'idle' && (
+            <button
+              className="onboarding-notification-button"
+              onClick={handleEnableNotifications}
+              disabled={isEnablingNotifications}
+            >
+              {isEnablingNotifications ? (
+                <>
+                  <div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} />
+                  Enabling...
+                </>
+              ) : (
+                <>
+                  <Bell size={18} />
+                  Enable Notifications
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Notification Enabled Success (Screen 3 only) */}
+          {currentScreen === 2 && notificationStatus === 'enabled' && (
+            <div className="onboarding-notification-success">
+              <CheckCircle size={20} />
+              <span>Notifications Enabled!</span>
+            </div>
+          )}
+
+          {/* Notification Denied Warning (Screen 3 only) */}
+          {currentScreen === 2 && notificationStatus === 'denied' && (
+            <div className="onboarding-notification-denied">
+              <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#f59e0b' }}>
+                Permission denied. You can enable notifications later in Settings.
+              </p>
+            </div>
+          )}
 
           {/* Progress Dots */}
           <div className="onboarding-dots">

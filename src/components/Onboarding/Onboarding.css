@@ -263,6 +263,68 @@
   }
 }
 
+/* Notification button */
+.onboarding-notification-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+  width: 100%;
+  max-width: 280px;
+  padding: var(--token-space-lg) var(--token-space-3xl);
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--token-space-lg);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: var(--token-space-3xl) auto;
+  min-height: var(--min-touch-target);
+}
+
+.onboarding-notification-button:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.onboarding-notification-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.onboarding-notification-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Notification success message */
+.onboarding-notification-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-xl);
+  background: #10b98114;
+  border: 2px solid var(--status-checked-in);
+  border-radius: var(--token-space-lg);
+  color: var(--status-checked-in);
+  font-weight: 600;
+  margin: var(--token-space-3xl) auto;
+  max-width: 280px;
+}
+
+/* Notification denied warning */
+.onboarding-notification-denied {
+  padding: var(--token-space-xl);
+  background: #f59e0b14;
+  border: 2px solid #f59e0b;
+  border-radius: var(--token-space-lg);
+  margin: var(--token-space-3xl) auto;
+  max-width: 280px;
+  text-align: center;
+}
+
 /* Dark theme adjustments */
 .theme-dark .onboarding-overlay {
   background: var(--background);

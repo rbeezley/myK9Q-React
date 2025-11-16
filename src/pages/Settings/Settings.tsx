@@ -182,6 +182,16 @@ export function Settings() {
     window.location.reload();
   };
 
+  // Show onboarding again
+  const handleShowOnboarding = () => {
+    localStorage.removeItem('onboarding_completed');
+    showToast('Onboarding will show when you refresh or reopen the app', 'info');
+    // Optional: Auto-reload after a delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  };
+
   return (
     <div className="settings-container">
       <header className="page-header settings-header">
@@ -416,6 +426,11 @@ export function Settings() {
                     }
 
                     const success = await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
+
+                    // 🔄 Update permission state immediately so warnings show without refresh
+                    const newPermission = await PushNotificationService.getPermissionState();
+                    setPermissionState(newPermission);
+
                     if (success) {
                       setIsPushSubscribed(true);
                       showToast('Push notifications enabled!', 'success');
@@ -427,6 +442,10 @@ export function Settings() {
                     console.error('[Settings] Subscribe error:', error);
                     showToast('Failed to enable push notifications', 'error');
                     updateSettings({ enableNotifications: false });
+
+                    // 🔄 Update permission state to show appropriate warnings
+                    const newPermission = await PushNotificationService.getPermissionState();
+                    setPermissionState(newPermission);
                   } finally {
                     setIsSubscribing(false);
                   }
@@ -530,6 +549,53 @@ export function Settings() {
               </div>
             )}
 
+            {/* Test Notifications Button - Shows when permission granted */}
+            {permissionState === 'granted' && browserCompatibility?.supported && (
+              <div className="setting-item indented" style={{ backgroundColor: '#10b98114', borderLeft: '3px solid #10b981', padding: '1rem', borderRadius: '12px', margin: '0.5rem 0' }}>
+                <div className="setting-info" style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.5rem', color: '#10b981' }}>
+                        ✅ Notifications Enabled
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: 'var(--token-text-muted)' }}>
+                        You'll receive alerts when your favorited dogs are up next
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Send a test notification
+                          if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                            const registration = await navigator.serviceWorker.ready;
+                            await registration.showNotification('myK9Q Test Notification', {
+                              body: 'Your notifications are working! You\'ll be notified when your dogs are up next.',
+                              icon: '/icon-192x192.png',
+                              badge: '/icon-192x192.png',
+                              tag: 'test-notification',
+                              requireInteraction: false
+                            });
+                            showToast('Test notification sent!', 'success');
+                          }
+                        } catch (error) {
+                          console.error('[Settings] Test notification error:', error);
+                          showToast('Failed to send test notification', 'error');
+                        }
+                      }}
+                      className="btn btn-secondary"
+                      style={{
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Send Test Notification
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Dogs Ahead Setting - Simplified */}
             <div className="setting-item indented">
               <div className="setting-info">
@@ -579,6 +645,20 @@ export function Settings() {
                 />
                 <span className="toggle-slider"></span>
               </label>
+            </div>
+
+            <div className="setting-item indented">
+              <div className="setting-info">
+                <label>Show Onboarding Again</label>
+                <span className="setting-hint">View the welcome tour and enable notifications</span>
+              </div>
+              <button
+                onClick={handleShowOnboarding}
+                className="btn btn-secondary"
+                style={{ padding: 'var(--token-space-md) var(--token-space-xl)', fontSize: '0.875rem' }}
+              >
+                Show Onboarding
+              </button>
             </div>
           </>
         )}
