@@ -162,6 +162,23 @@ export class AnnouncementService {
       if (error) throw error;
 
       console.log('✅ Created announcement:', data.title);
+
+      // CRITICAL: Trigger immediate sync to update UI without refresh
+      // This ensures the new announcement appears in the list immediately
+      try {
+        const { getReplicationManager } = await import('./replication');
+        const manager = getReplicationManager();
+        if (manager) {
+          console.log('[createAnnouncement] Triggering immediate sync of announcements table...');
+          await manager.syncTable('announcements', { forceFullSync: false });
+          console.log('[createAnnouncement] ✅ Immediate sync complete');
+        } else {
+          console.warn('[createAnnouncement] Replication manager not available, UI may not update until next sync');
+        }
+      } catch (syncError) {
+        console.warn('[createAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
+      }
+
       return data;
 
     } catch (error) {
@@ -202,6 +219,20 @@ export class AnnouncementService {
       if (error) throw error;
 
       console.log('✅ Updated announcement:', data.title);
+
+      // CRITICAL: Trigger immediate sync to update UI without refresh
+      try {
+        const { getReplicationManager } = await import('./replication');
+        const manager = getReplicationManager();
+        if (manager) {
+          console.log('[updateAnnouncement] Triggering immediate sync of announcements table...');
+          await manager.syncTable('announcements', { forceFullSync: false });
+          console.log('[updateAnnouncement] ✅ Immediate sync complete');
+        }
+      } catch (syncError) {
+        console.warn('[updateAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
+      }
+
       return data;
 
     } catch (error) {
@@ -239,6 +270,19 @@ export class AnnouncementService {
       if (error) throw error;
 
       console.log('✅ Deleted announcement:', existing.title);
+
+      // CRITICAL: Trigger immediate sync to update UI without refresh
+      try {
+        const { getReplicationManager } = await import('./replication');
+        const manager = getReplicationManager();
+        if (manager) {
+          console.log('[deleteAnnouncement] Triggering immediate sync of announcements table...');
+          await manager.syncTable('announcements', { forceFullSync: false });
+          console.log('[deleteAnnouncement] ✅ Immediate sync complete');
+        }
+      } catch (syncError) {
+        console.warn('[deleteAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
+      }
 
     } catch (error) {
       console.error('Error deleting announcement:', error);
