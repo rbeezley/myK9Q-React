@@ -18,15 +18,21 @@ export const useEntryListActions = (_onRefresh: () => void) => {
    */
   const handleStatusChange = useCallback(
     async (entryId: number, newStatus: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
-      // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
-      // This creates a pending change that persists across refreshes
+      // 🚀 OFFLINE-FIRST: Update replication cache immediately
+      // This creates an optimistic update that works offline and persists across refreshes
       try {
-        console.log('🔄 Creating pending status change for entry:', entryId, '→', newStatus);
-        // TODO: Remove legacy - replaced by replication
-        // await localStateManager.updateEntry(entryId, { status: newStatus }, 'status');
-        console.log('✅ LocalStateManager updated with pending status change');
+        console.log('🔄 Optimistically updating replication cache for entry:', entryId, '→', newStatus);
+        const { getReplicationManager } = await import('../../../services/replication');
+        const manager = getReplicationManager();
+        if (manager) {
+          const entriesTable = manager.getTable('entries');
+          if (entriesTable && 'updateEntryStatus' in entriesTable) {
+            await (entriesTable as any).updateEntryStatus(String(entryId), newStatus, true);
+            console.log('✅ Replication cache updated optimistically');
+          }
+        }
       } catch (error) {
-        console.error('❌ Could not update LocalStateManager:', error);
+        console.error('❌ Could not update replication cache optimistically:', error);
       }
 
       // Use the optimistic update hook for retry logic and error handling
