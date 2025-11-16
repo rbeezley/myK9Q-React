@@ -1062,6 +1062,22 @@ export async function updateEntryCheckinStatus(
 
     console.log('🔍 Verified updated status:', verifyData);
 
+    // CRITICAL: Trigger immediate sync to update UI without refresh
+    // This ensures the status change reflects in the replication cache immediately
+    try {
+      const { getReplicationManager } = await import('./replication');
+      const manager = getReplicationManager();
+      if (manager) {
+        console.log('[updateEntryCheckinStatus] Triggering immediate sync of entries table...');
+        await manager.syncTable('entries', { forceFullSync: false });
+        console.log('[updateEntryCheckinStatus] ✅ Immediate sync complete');
+      } else {
+        console.warn('[updateEntryCheckinStatus] Replication manager not available, UI may not update until next sync');
+      }
+    } catch (syncError) {
+      console.warn('[updateEntryCheckinStatus] Failed to trigger immediate sync (non-critical):', syncError);
+    }
+
     // Small delay to ensure write has propagated (fixes immediate refresh race condition)
     await new Promise(resolve => setTimeout(resolve, 100));
     console.log('✅ Write propagation complete - safe to refresh');
