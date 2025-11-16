@@ -37,6 +37,7 @@ export interface Class {
   area_count?: number;
   actual_start_time?: string;
   actual_end_time?: string;
+  planned_start_time?: string;
   license_key: string;
   created_at?: string;
   updated_at?: string;

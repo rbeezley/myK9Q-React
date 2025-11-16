@@ -70,6 +70,34 @@
   line-height: 1.4;
 }
 
+/* Time Input */
+.settings-time-input {
+  width: 100%;
+  padding: var(--token-space-md) var(--token-space-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-md);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.settings-time-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+.settings-time-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: var(--icon-filter, none);
+}
+
+.theme-dark .settings-time-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 /* Toggle Switch */
 .settings-toggle-container {
   display: flex;

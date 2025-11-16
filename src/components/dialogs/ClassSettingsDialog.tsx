@@ -30,6 +30,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
   const [saving, setSaving] = useState(false);
   const [selfCheckinEnabled, setSelfCheckinEnabled] = useState(false);
   const [resultsVisibility, setResultsVisibility] = useState<VisibilityPreset>('standard');
+  const [plannedStartTime, setPlannedStartTime] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -46,10 +47,10 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
     try {
       setLoading(true);
 
-      // Load self check-in setting
+      // Load self check-in setting and planned start time
       const { data, error } = await supabase
         .from('classes')
-        .select('self_checkin_enabled')
+        .select('self_checkin_enabled, planned_start_time')
         .eq('id', classData.id)
         .single();
 
@@ -61,6 +62,17 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
 
       if (data) {
         setSelfCheckinEnabled(data.self_checkin_enabled ?? true);
+
+        // Convert ISO timestamp to datetime-local format (YYYY-MM-DDTHH:MM)
+        if (data.planned_start_time) {
+          const date = new Date(data.planned_start_time);
+          const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16);
+          setPlannedStartTime(localDateTime);
+        } else {
+          setPlannedStartTime('');
+        }
       }
 
       // Load results visibility setting
@@ -89,12 +101,18 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       setSuccessMessage('');
       setErrorMessage('');
 
-      // Update self check-in setting
+      // Update self check-in setting and planned start time
+      const updateData: {
+        self_checkin_enabled: boolean;
+        planned_start_time: string | null;
+      } = {
+        self_checkin_enabled: selfCheckinEnabled,
+        planned_start_time: plannedStartTime ? new Date(plannedStartTime).toISOString() : null
+      };
+
       const { error: checkinError } = await supabase
         .from('classes')
-        .update({
-          self_checkin_enabled: selfCheckinEnabled
-        })
+        .update(updateData)
         .eq('id', classData.id);
 
       if (checkinError) {
@@ -188,6 +206,27 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       {selfCheckinEnabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
+                </div>
+              </div>
+
+              {/* Planned Start Time */}
+              <div className="settings-section">
+                <div className="settings-item">
+                  <div className="settings-item-header">
+                    <label className="settings-label" htmlFor="planned-start-time">
+                      Planned Start Time
+                    </label>
+                    <p className="settings-description">
+                      Scheduled start time for this class (optional)
+                    </p>
+                  </div>
+                  <input
+                    id="planned-start-time"
+                    type="datetime-local"
+                    className="settings-time-input"
+                    value={plannedStartTime}
+                    onChange={(e) => setPlannedStartTime(e.target.value)}
+                  />
                 </div>
               </div>
 
