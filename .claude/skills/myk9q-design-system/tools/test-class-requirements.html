@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClassRequirementsDialog Responsive Test</title>
+  <link rel="stylesheet" href="../../../src/components/dialogs/ClassRequirementsDialog.css">
+  <link rel="stylesheet" href="../../../src/styles/design-tokens.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f3f4f6;
+    }
+
+    .breakpoint-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+      color: white;
+      padding: 10px 20px;
+      font-weight: bold;
+      z-index: 10000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .current-width {
+      font-size: 14px;
+    }
+
+    .breakpoint-label {
+      font-size: 18px;
+    }
+
+    /* Color coding */
+    .bp-mobile { background: #ef4444; }
+    .bp-tablet { background: #f59e0b; }
+    .bp-desktop { background: #10b981; }
+
+    .test-info {
+      margin: 60px 20px 20px;
+      padding: 15px;
+      background: white;
+      border-left: 4px solid #3b82f6;
+      border-radius: 4px;
+    }
+
+    .test-info h2 {
+      margin-top: 0;
+      color: #1e293b;
+    }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 8px 0;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .checklist li:before {
+      content: "☐ ";
+      color: #64748b;
+      margin-right: 8px;
+    }
+
+    .test-container {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="breakpoint-indicator" id="indicator">
+    <span class="current-width" id="width"></span>
+    <span class="breakpoint-label" id="label"></span>
+  </div>
+
+  <div class="test-info">
+    <h2>📊 ClassRequirementsDialog Responsive Test</h2>
+    <p><strong>Instructions:</strong> Resize your browser window and verify the checklist below.</p>
+
+    <h3>Mobile (< 640px) - Red Header</h3>
+    <ul class="checklist">
+      <li>Title font-size: 1.125rem (smaller)</li>
+      <li>Title icon: 1.25rem × 1.25rem</li>
+      <li>Requirements grid: 2 columns, smaller gap</li>
+      <li>Requirement items: column layout, centered, smaller padding</li>
+      <li>Requirement icons: 1.75rem × 1.75rem</li>
+      <li>Labels: 0.75rem font size</li>
+      <li>Values: 0.875rem font size</li>
+      <li>Org badge: 0.625rem font, smaller padding</li>
+    </ul>
+
+    <h3>Desktop (≥ 640px) - Orange/Green Header</h3>
+    <ul class="checklist">
+      <li>Title font-size: 1.5rem (larger)</li>
+      <li>Title icon: 1.5rem × 1.5rem</li>
+      <li>Requirements grid: 2 columns, larger gap</li>
+      <li>Requirement items: grid layout, larger padding</li>
+      <li>Requirement icons: 48px × 48px</li>
+      <li>Labels: 1rem font size</li>
+      <li>Values: larger font size</li>
+      <li>Org badge: 0.75rem font, larger padding</li>
+    </ul>
+  </div>
+
+  <div class="test-container">
+    <!-- ClassRequirementsDialog Component -->
+    <div class="class-info-header">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <svg class="title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        <h1 class="class-title">Advanced Scent Work Container</h1>
+      </div>
+
+      <div class="class-meta">
+        <span class="org-badge">AKC</span>
+        <span class="entry-count">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          15 entries
+        </span>
+      </div>
+    </div>
+
+    <div class="requirements-grid">
+      <div class="requirement-item">
+        <div class="requirement-icon" style="background: #3b82f6;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="requirement-content">
+          <label>Time Limit</label>
+          <div class="requirement-value">3:00 minutes</div>
+        </div>
+      </div>
+
+      <div class="requirement-item">
+        <div class="requirement-icon" style="background: #8b5cf6;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="requirement-content">
+          <label>Hides</label>
+          <div class="requirement-value">3 required</div>
+        </div>
+      </div>
+
+      <div class="requirement-item">
+        <div class="requirement-icon" style="background: #10b981;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div class="requirement-content">
+          <label>Search Area</label>
+          <div class="requirement-value">600 sq ft</div>
+        </div>
+      </div>
+
+      <div class="requirement-item">
+        <div class="requirement-icon" style="background: #f59e0b;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <div class="requirement-content">
+          <label>Passing Score</label>
+          <div class="requirement-value">80 points</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateIndicator() {
+      const width = window.innerWidth;
+      const widthEl = document.getElementById('width');
+      const labelEl = document.getElementById('label');
+      const indicatorEl = document.getElementById('indicator');
+
+      widthEl.textContent = `${width}px`;
+
+      // Remove all bp classes
+      indicatorEl.classList.remove('bp-mobile', 'bp-tablet', 'bp-desktop');
+
+      if (width < 640) {
+        labelEl.textContent = 'Mobile (< 640px)';
+        indicatorEl.classList.add('bp-mobile');
+      } else if (width < 1024) {
+        labelEl.textContent = 'Tablet (640px - 1023px)';
+        indicatorEl.classList.add('bp-tablet');
+      } else {
+        labelEl.textContent = 'Desktop (≥ 1024px)';
+        indicatorEl.classList.add('bp-desktop');
+      }
+    }
+
+    // Update on load and resize
+    updateIndicator();
+    window.addEventListener('resize', updateIndicator);
+
+    // Log computed styles for debugging
+    window.logStyles = function() {
+      const title = document.querySelector('.class-title');
+      const icon = document.querySelector('.title-icon');
+      const reqItem = document.querySelector('.requirement-item');
+      const reqIcon = document.querySelector('.requirement-icon');
+      const label = document.querySelector('.requirement-content label');
+
+      console.log('Current width:', window.innerWidth);
+      console.log('Title font-size:', window.getComputedStyle(title).fontSize);
+      console.log('Title icon size:', window.getComputedStyle(icon).width);
+      console.log('Requirement item padding:', window.getComputedStyle(reqItem).padding);
+      console.log('Requirement icon size:', window.getComputedStyle(reqIcon).width);
+      console.log('Label font-size:', window.getComputedStyle(label).fontSize);
+    };
+
+    console.log('💡 Tip: Run logStyles() in console to see computed values');
+  </script>
+</body>
+</html>

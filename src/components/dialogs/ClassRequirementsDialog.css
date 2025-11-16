@@ -1,11 +1,8 @@
-/* Class Requirements Dialog Styles - Updated for proper light/dark theme support */
-
-
-
+/* Class Requirements Dialog Styles - Mobile-First Responsive Design */
 
 .title-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.25rem;  /* Mobile: smaller icon */
+  height: 1.25rem;
   color: var(--primary);
 }
 
@@ -48,32 +45,33 @@
 }
 
 .class-info-header {
-  margin-bottom: var(--token-space-3xl);
-  padding-bottom: var(--token-space-xl);
+  margin-bottom: var(--token-space-lg);  /* Mobile: smaller margin */
+  padding-bottom: var(--token-space-md);  /* Mobile: smaller padding */
   border-bottom: 1px solid var(--border);
 }
 
 .class-title {
-  font-size: 1.5rem;
+  font-size: 1.125rem;  /* Mobile: smaller title */
   font-weight: 700;
   color: var(--foreground);
-  margin: 0 0 var(--token-space-md) 0;
+  margin: 0 0 var(--token-space-sm) 0;  /* Mobile: smaller margin */
 }
 
 .class-meta {
   display: flex;
+  flex-direction: row;  /* Mobile: row layout */
   align-items: center;
-  gap: var(--token-space-xl);
+  gap: var(--token-space-lg);  /* Mobile: smaller gap */
 }
 
 .org-badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--token-space-sm) var(--token-space-lg);
+  padding: var(--token-space-xs) var(--token-space-md);  /* Mobile: smaller padding */
   background: var(--primary);
   color: white;
   border-radius: var(--token-space-lg);
-  font-size: 0.75rem;
+  font-size: 0.625rem;  /* Mobile: smaller font */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -84,28 +82,21 @@
   align-items: center;
   gap: var(--token-space-md);
   color: var(--token-text-tertiary);
-  font-size: 0.875rem;
+  font-size: 0.75rem;  /* Mobile: smaller font */
   font-weight: 500;
 }
 
 .requirements-grid {
   display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 640px) {
-  .requirements-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--token-space-lg);
-  }
+  gap: var(--token-space-md);  /* Mobile: smaller gap */
+  grid-template-columns: 1fr 1fr;  /* Mobile: 2 columns */
 }
 
 .requirement-item {
   display: grid;
   grid-template-columns: 48px 1fr;
   grid-template-rows: auto auto;
-  padding: var(--token-space-xl);
+  padding: var(--token-space-md);  /* Mobile: smaller padding */
   background: white;
   border: var(--token-space-xs) solid var(--border);
   border-radius: 10px;
@@ -114,6 +105,9 @@
   min-height: 80px;
   position: relative;
   user-select: none;
+  flex-direction: column;  /* Mobile: column layout */
+  align-items: center;  /* Mobile: centered */
+  text-align: center;  /* Mobile: centered text */
 }
 
 .requirement-item-clickable {
@@ -137,8 +131,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 1.75rem;  /* Mobile: smaller icon */
+  height: 1.75rem;
   border-radius: var(--token-space-lg);
   color: white;
   flex-shrink: 0;
@@ -159,19 +153,19 @@
   grid-row: 1;
   display: flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.75rem;  /* Mobile: smaller font */
   font-weight: 600;
   color: var(--foreground);
   line-height: 1.2;
-  margin: 0;
+  margin: 0 0 var(--token-space-xs) 0;  /* Mobile: smaller margin */
 }
 
 .requirement-content .requirement-value {
   grid-column: 1 / -1;
   grid-row: 2;
-  font-size: var(--token-space-lg);
+  font-size: 0.875rem;  /* Mobile: smaller font */
   color: var(--muted-foreground);
-  line-height: 1.3;
+  line-height: 1.2;  /* Mobile: tighter line height */
   padding-left: 0;
   margin: 0;
   word-wrap: break-word;
@@ -206,87 +200,62 @@
 }
 
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
-  .dialog-overlay {
-    padding: var(--token-space-sm);
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
+  .title-icon {
+    width: 1.5rem;  /* Desktop: larger icon */
+    height: 1.5rem;
   }
-
-  .dialog-container {
-    max-width: 100%;
-    border-radius: var(--token-space-lg);
-    max-height: 95vh;
-  }
-
-  .dialog-header {
-    padding: var(--token-space-lg);
-  }
-
-  .dialog-content {
-    padding: var(--token-space-lg);
-  }
-
 
   .class-info-header {
-    margin-bottom: var(--token-space-lg);
-    padding-bottom: var(--token-space-md);
+    margin-bottom: var(--token-space-3xl);  /* Desktop: larger margin */
+    padding-bottom: var(--token-space-xl);  /* Desktop: larger padding */
   }
 
   .class-title {
-    font-size: 1.125rem;
-    margin: 0 0 var(--token-space-sm) 0;
+    font-size: 1.5rem;  /* Desktop: larger title */
+    margin: 0 0 var(--token-space-md) 0;  /* Desktop: larger margin */
   }
 
   .class-meta {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--token-space-lg);
-  }
-
-  .requirements-grid {
-    gap: var(--token-space-md);
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .requirement-item {
-    padding: var(--token-space-md);
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--token-space-md);
-  }
-
-  .requirement-icon {
-    width: 1.75rem;
-    height: 1.75rem;
-  }
-
-  .requirement-content label {
-    font-size: 0.75rem;
-    margin-bottom: var(--token-space-xs);
-  }
-
-  .requirement-content value {
-    font-size: 0.875rem;
-    line-height: 1.2;
+    gap: var(--token-space-xl);  /* Desktop: larger gap */
   }
 
   .org-badge {
-    padding: var(--token-space-xs) var(--token-space-md);
-    font-size: 0.625rem;
+    padding: var(--token-space-sm) var(--token-space-lg);  /* Desktop: larger padding */
+    font-size: 0.75rem;  /* Desktop: larger font */
   }
 
   .entry-count {
-    font-size: 0.75rem;
+    font-size: 0.875rem;  /* Desktop: larger font */
   }
 
-  .dialog-title {
-    font-size: 1.125rem;
+  .requirements-grid {
+    grid-template-columns: repeat(2, 1fr);  /* Desktop: explicit 2 columns */
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
-  .title-icon {
-    width: 1.25rem;
-    height: 1.25rem;
+  .requirement-item {
+    padding: var(--token-space-xl);  /* Desktop: larger padding */
+    display: grid;  /* Desktop: restore grid layout */
+    flex-direction: initial;  /* Desktop: reset flex-direction */
+    align-items: initial;  /* Desktop: reset alignment */
+    text-align: initial;  /* Desktop: reset text alignment */
+  }
+
+  .requirement-icon {
+    width: 48px;  /* Desktop: larger icon */
+    height: 48px;
+  }
+
+  .requirement-content label {
+    font-size: 1rem;  /* Desktop: larger font */
+    margin-bottom: 0;  /* Desktop: no extra margin */
+  }
+
+  .requirement-content .requirement-value {
+    font-size: var(--token-space-lg);  /* Desktop: larger font */
+    line-height: 1.3;  /* Desktop: more relaxed line height */
   }
 }
 
