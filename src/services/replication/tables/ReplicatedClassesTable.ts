@@ -35,6 +35,8 @@ export interface Class {
   time_limit_area2_seconds?: number;
   time_limit_area3_seconds?: number;
   area_count?: number;
+  actual_start_time?: string;
+  actual_end_time?: string;
   license_key: string;
   created_at?: string;
   updated_at?: string;

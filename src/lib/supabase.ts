@@ -66,6 +66,8 @@ export interface ClassQueue {
   // See ClassList.tsx and useTVData.ts for examples
   pre_entry_fee: number;
   day_of_show_fee: number;
+  actual_start_time: string | null;
+  actual_end_time: string | null;
   access_class_id: number | null;
   access_trial_id: number | null;
   access_show_id: number | null;

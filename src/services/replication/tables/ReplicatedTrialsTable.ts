@@ -27,6 +27,8 @@ export interface Trial {
   secretary_name?: string;
   weather_conditions?: string;
   notes?: string;
+  actual_start_time?: string;
+  actual_end_time?: string;
   license_key: string;
   created_at?: string;
   updated_at?: string;

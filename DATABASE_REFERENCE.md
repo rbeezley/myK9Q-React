@@ -57,6 +57,8 @@ Class definitions for trials (e.g., Novice A, Masters B).
 - **time_limit_area2_seconds** (int): Area 2 time limit
 - **time_limit_area3_seconds** (int): Area 3 time limit
 - **area_count** (int): Number of search areas
+- **actual_start_time** (timestamp): Auto-populated when first dog in class is scored
+- **actual_end_time** (timestamp): Auto-populated when last dog in class is scored
 - **license_key** (text): Multi-tenant isolation key
 - **created_at** (timestamp): Creation timestamp
 - **updated_at** (timestamp): Last update timestamp
@@ -64,6 +66,7 @@ Class definitions for trials (e.g., Novice A, Masters B).
 **Important Notes**:
 - `class_status = NULL` represents "No Status" in the UI
 - Time fields (briefing_time, break_until, start_time) store formatted time strings
+- `actual_start_time` and `actual_end_time` are automatically populated by database triggers
 - Always filter by `license_key` via trial/show joins for multi-tenant isolation
 - **ID Type:** bigserial returns as JavaScript number but must be converted to string for IndexedDB keys
 
@@ -201,11 +204,14 @@ Trial instances linked to shows.
 - **trial_date** (date): Date of trial
 - **trial_name** (text): Name of trial
 - **competition_type** (text): Type of competition (e.g., "National", "Regular")
+- **actual_start_time** (timestamp): Auto-populated when first dog in trial is scored
+- **actual_end_time** (timestamp): Auto-populated when last dog in trial is scored
 - **created_at** (timestamp): Creation timestamp
 - **updated_at** (timestamp): Last update timestamp
 
 **Important Notes**:
 - Check `competition_type = 'National'` for nationals-specific scoring logic
+- `actual_start_time` and `actual_end_time` are automatically populated by database triggers
 - Always join to shows to get `license_key` for filtering
 
 ---
