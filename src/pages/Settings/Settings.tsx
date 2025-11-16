@@ -476,6 +476,21 @@ export function Settings() {
           </label>
         </div>
 
+        {/* Show Onboarding Again - Always visible so users can re-enable notifications */}
+        <div className="setting-item">
+          <div className="setting-info">
+            <label>Show Onboarding Again</label>
+            <span className="setting-hint">View the welcome tour and enable notifications</span>
+          </div>
+          <button
+            onClick={handleShowOnboarding}
+            className="btn btn-secondary"
+            style={{ padding: 'var(--token-space-md) var(--token-space-xl)', fontSize: '0.875rem' }}
+          >
+            Show Onboarding
+          </button>
+        </div>
+
         {settings.enableNotifications && (
           <>
 
@@ -645,20 +660,6 @@ export function Settings() {
                 />
                 <span className="toggle-slider"></span>
               </label>
-            </div>
-
-            <div className="setting-item indented">
-              <div className="setting-info">
-                <label>Show Onboarding Again</label>
-                <span className="setting-hint">View the welcome tour and enable notifications</span>
-              </div>
-              <button
-                onClick={handleShowOnboarding}
-                className="btn btn-secondary"
-                style={{ padding: 'var(--token-space-md) var(--token-space-xl)', fontSize: '0.875rem' }}
-              >
-                Show Onboarding
-              </button>
             </div>
           </>
         )}
