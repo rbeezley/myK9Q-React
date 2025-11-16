@@ -87,13 +87,14 @@
   cursor: not-allowed;
 }
 
-.action-btn.active {
+/* Higher specificity to override base action-btn color */
+button.action-btn.active {
   background: var(--primary);
-  color: white !important;
+  color: white;
 }
 
-.action-btn.active svg {
-  color: white !important;
+button.action-btn.active svg {
+  color: white;
 }
 
 .action-btn.primary {

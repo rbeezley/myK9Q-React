@@ -3,23 +3,61 @@
 # Use this file to document and ignore legitimate design system violations.
 # Format: filename:line-number:reason
 # OR: filename:pattern:reason (to ignore all instances in a file)
-#
-# Example:
-# src/components/ThirdPartyWidget.css:45:Third-party library requires exact RGB value
-# src/components/LegacyComponent.css:*:Legacy component - scheduled for refactor in Q2
-# src/styles/animations.css:hardcoded-spacing:Precise animation timing required
 
-# Third-party integrations
-# Add third-party CSS files here
+# ========================================
+# Accessibility Files - !important REQUIRED
+# ========================================
+# These files use !important to ensure accessibility overrides work
+# WCAG compliance requires these to take precedence over all other styles
 
-# Browser-specific workarounds
-# Document browser bugs that require specific values
+reduce-motion.css:*:Accessibility override - WCAG requirement for prefers-reduced-motion
+high-contrast.css:*:Accessibility override - WCAG requirement for prefers-contrast
 
-# Legacy components (migration in progress)
-# Track components being migrated to design system
+# ========================================
+# Theme Override Files - Intentional !important
+# ========================================
+# Theme system uses !important to ensure theme colors override defaults
+# This is by design - themes must take precedence
 
-# Designer-approved exceptions
-# Document intentional deviations from design system
+green-theme.css:*:Theme override system - intentional !important for theme switching
+orange-theme.css:*:Theme override system - intentional !important for theme switching
+purple-theme.css:*:Theme override system - intentional !important for theme switching
 
-# Performance optimizations
-# Document cases where specific values improve performance
+# ========================================
+# Design System Source Definitions
+# ========================================
+# These files define the tokens - hardcoded values are intentional
+
+design-tokens.css:*:Token definitions - hardcoded values are the source of truth
+
+# ========================================
+# Third-Party / Generated Code
+# ========================================
+# External code we don't control
+
+node_modules:*:Third-party dependencies
+dist:*:Generated build output
+build:*:Generated build output
+
+# ========================================
+# Legacy / Backup Files
+# ========================================
+# Historical files preserved for reference
+
+backups:*:Historical backup files
+*.backup:*:Backup files
+
+# ========================================
+# Critical Inline CSS
+# ========================================
+# Minimize changes to critical path CSS
+
+critical.css:*:Critical inline CSS - minimize changes for performance
+critical-inline.css:*:Critical inline CSS - minimize changes for performance
+
+# ========================================
+# Inline Style Overrides
+# ========================================
+# These !important declarations are required to override inline styles
+
+ClassList.css:1130:Override inline position styles from React state

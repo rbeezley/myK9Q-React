@@ -159,18 +159,19 @@
 }
 
 /* Status badge styling - Override ClassList absolute positioning */
-.entry-list-header .class-status-badge {
-  position: static !important;
-  display: inline-flex !important;
+/* Higher specificity to override .class-card-status-action .class-status-badge */
+.entry-list-container .entry-list-header .class-status-badge {
+  position: static;
+  display: inline-flex;
   align-items: center;
   font-size: 0.625rem;
   padding: 0.125rem 0.375rem;
   border-radius: var(--token-radius-sm);
   font-weight: 600;
   white-space: nowrap;
-  bottom: auto !important;
-  right: auto !important;
-  max-width: none !important;
+  bottom: auto;
+  right: auto;
+  max-width: none;
 }
 
 .class-status-badge.status-in-progress {
@@ -294,7 +295,8 @@
 
 /* ========== STATUS TABS ========== */
 
-.status-tabs {
+/* Higher specificity to override any sticky positioning from shared styles */
+.entry-list-container .status-tabs {
   display: flex;
   flex-direction: row;
   gap: var(--token-space-xs);
@@ -305,9 +307,9 @@
   border: 1px solid var(--border);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  position: static !important;  /* Override sticky position from shared-components.css */
-  top: auto !important;  /* Remove sticky top positioning */
-  z-index: auto !important;  /* Remove any z-index stacking context */
+  position: static;  /* Override sticky position */
+  top: auto;  /* Remove sticky top positioning */
+  z-index: auto;  /* Remove any z-index stacking context */
 }
 
 .status-tab {

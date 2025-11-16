@@ -150,8 +150,8 @@ function scanFile(filePath) {
       const line = content.substring(0, match.index).split('\n').length;
       const snippet = match[0];
 
-      // Skip if it's a CSS variable definition or an exception
-      if (!snippet.includes('var(--') && !EXCEPTIONS.spacing.some(ex => snippet.includes(ex))) {
+      // Skip if it's a CSS variable definition, an exception, or should be ignored
+      if (!snippet.includes('var(--') && !EXCEPTIONS.spacing.some(ex => snippet.includes(ex)) && !shouldIgnoreViolation(filePath, line, 'hardcoded-spacing', ignoreRules)) {
         violations.push({
           type: 'hardcoded-spacing',
           line,
@@ -168,12 +168,14 @@ function scanFile(filePath) {
     const importantPattern = new RegExp(PATTERNS.important);
     while ((match = importantPattern.exec(content)) !== null) {
       const line = content.substring(0, match.index).split('\n').length;
-      violations.push({
-        type: 'important-usage',
-        line,
-        snippet: '!important',
-        message: 'Avoid !important - use proper CSS specificity instead',
-      });
+      if (!shouldIgnoreViolation(filePath, line, 'important-usage', ignoreRules)) {
+        violations.push({
+          type: 'important-usage',
+          line,
+          snippet: '!important',
+          message: 'Avoid !important - use proper CSS specificity instead',
+        });
+      }
     }
   }
 
@@ -184,7 +186,7 @@ function scanFile(filePath) {
     const line = content.substring(0, match.index).split('\n').length;
     const snippet = match[0];
 
-    if (!snippet.includes('var(--')) {
+    if (!snippet.includes('var(--') && !shouldIgnoreViolation(filePath, line, 'hardcoded-z-index', ignoreRules)) {
       violations.push({
         type: 'hardcoded-z-index',
         line,
@@ -199,12 +201,14 @@ function scanFile(filePath) {
   while ((match = breakpointPattern.exec(content)) !== null) {
     const line = content.substring(0, match.index).split('\n').length;
     const snippet = match[0];
-    violations.push({
-      type: 'non-standard-breakpoint',
-      line,
-      snippet,
-      message: 'Use standard breakpoints: 640px, 1024px, or 1440px',
-    });
+    if (!shouldIgnoreViolation(filePath, line, 'non-standard-breakpoint', ignoreRules)) {
+      violations.push({
+        type: 'non-standard-breakpoint',
+        line,
+        snippet,
+        message: 'Use standard breakpoints: 640px, 1024px, or 1440px',
+      });
+    }
   }
 
   // Check for desktop-first approach
@@ -212,12 +216,14 @@ function scanFile(filePath) {
   while ((match = desktopFirstPattern.exec(content)) !== null) {
     const line = content.substring(0, match.index).split('\n').length;
     const snippet = match[0];
-    violations.push({
-      type: 'desktop-first',
-      line,
-      snippet,
-      message: 'Use mobile-first approach with min-width instead of max-width',
-    });
+    if (!shouldIgnoreViolation(filePath, line, 'desktop-first', ignoreRules)) {
+      violations.push({
+        type: 'desktop-first',
+        line,
+        snippet,
+        message: 'Use mobile-first approach with min-width instead of max-width',
+      });
+    }
   }
 
   // Check for multiple media query blocks for same breakpoint

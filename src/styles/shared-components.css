@@ -505,7 +505,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 10000 !important; /* Must be above all page elements including announcement banner */
+  z-index: var(--token-z-toast); /* Above all page elements including announcement banner */
   min-width: 150px;
 }
 

@@ -1097,9 +1097,10 @@
 }
 
 /* Success - Qualified (uses theme color with white text) */
-.choice-chip.success.selected {
+/* Higher specificity to override base choice-chip color */
+button.choice-chip.success.selected {
   background: var(--primary);
-  color: white !important; /* Force white text for readability */
+  color: white; /* White text for readability */
   border-color: var(--primary);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);
@@ -1118,9 +1119,10 @@
 }
 
 /* Warning - Absent/Withdrawn (Purple to match entry card badges) */
-.choice-chip.warning.selected {
+/* Higher specificity to override base choice-chip color */
+button.choice-chip.warning.selected {
   background: #9333EA;
-  color: white !important;
+  color: white;
   border-color: #9333EA;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(147, 51, 234, 0.4);
   transform: translateY(-1px);
@@ -1138,9 +1140,10 @@
 }
 
 /* Danger - NQ/Excused (uses design token) */
-.choice-chip.danger.selected {
+/* Higher specificity to override base choice-chip color */
+button.choice-chip.danger.selected {
   background: var(--token-error-contrast);
-  color: white !important;
+  color: white;
   border-color: var(--token-error-contrast);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(220, 38, 38, 0.4);
   transform: translateY(-1px);
@@ -1275,10 +1278,11 @@
   transform: translateY(-1px);
 }
 
-.choice-chip.primary.selected,
-.choice-chip.secondary.selected {
+/* Higher specificity to override base choice-chip color */
+button.choice-chip.primary.selected,
+button.choice-chip.secondary.selected {
   background: var(--primary);
-  color: white !important;
+  color: white;
   border-color: var(--primary);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);

@@ -619,24 +619,25 @@
   color: var(--primary);
 }
 
-.filter-option.active {
+/* Higher specificity to override base filter-option color */
+button.filter-option.active {
   border-color: var(--primary);
   background: var(--primary);
-  color: white !important;
+  color: white;
   font-weight: 600;
 }
 
-.filter-option.urgent.active {
+button.filter-option.urgent.active {
   background: var(--danger);
   border-color: var(--danger);
-  color: white !important;
+  color: white;
   font-weight: 600;
 }
 
-.filter-option.high.active {
+button.filter-option.high.active {
   background: var(--warning);
   border-color: var(--warning);
-  color: #78350f !important;
+  color: #78350f;
   font-weight: 600;
 }
 
