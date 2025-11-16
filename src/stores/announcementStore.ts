@@ -257,16 +257,19 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         }
 
         try {
-          const { data, error } = await supabase
-            .from('announcements')
-            .insert({
-              ...announcement,
-              license_key: currentLicenseKey
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
+          // 🚀 OFFLINE-FIRST: Use AnnouncementService which handles:
+          // 1. Database write
+          // 2. Immediate cache sync (our fix)
+          // 3. Real-time subscription triggers
+          const data = await AnnouncementService.createAnnouncement({
+            title: announcement.title,
+            content: announcement.content,
+            priority: announcement.priority,
+            author_role: announcement.author_role,
+            author_name: announcement.author_name,
+            expires_at: announcement.expires_at,
+            license_key: currentLicenseKey
+          });
 
           // Add to local state
           set(state => ({
@@ -350,15 +353,26 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
 
       updateAnnouncement: async (id, updates) => {
-        try {
-          const { data, error } = await supabase
-            .from('announcements')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
+        const { currentLicenseKey } = get();
+        if (!currentLicenseKey) {
+          throw new Error('No license key set');
+        }
 
-          if (error) throw error;
+        // Get current user role from localStorage
+        const authData = localStorage.getItem('myK9Q_auth');
+        if (!authData) {
+          throw new Error('Not authenticated');
+        }
+        const { role } = JSON.parse(authData);
+
+        try {
+          // 🚀 OFFLINE-FIRST: Use AnnouncementService which handles immediate cache sync
+          const data = await AnnouncementService.updateAnnouncement(
+            id,
+            updates,
+            currentLicenseKey,
+            role
+          );
 
           // Update local state
           set(state => ({
@@ -374,13 +388,21 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       },
 
       deleteAnnouncement: async (id) => {
-        try {
-          const { error } = await supabase
-            .from('announcements')
-            .update({ is_active: false })
-            .eq('id', id);
+        const { currentLicenseKey } = get();
+        if (!currentLicenseKey) {
+          throw new Error('No license key set');
+        }
 
-          if (error) throw error;
+        // Get current user role from localStorage
+        const authData = localStorage.getItem('myK9Q_auth');
+        if (!authData) {
+          throw new Error('Not authenticated');
+        }
+        const { role } = JSON.parse(authData);
+
+        try {
+          // 🚀 OFFLINE-FIRST: Use AnnouncementService which handles immediate cache sync
+          await AnnouncementService.deleteAnnouncement(id, currentLicenseKey, role);
 
           // Remove from local state
           set(state => ({
