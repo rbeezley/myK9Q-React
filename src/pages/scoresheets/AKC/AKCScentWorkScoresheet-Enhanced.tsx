@@ -15,6 +15,7 @@ import { useSettingsStore } from '../../../stores/settingsStore';
 import { markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
+import { useClassCompletion } from '../../../hooks/useClassCompletion';
 import { ensureReplicationManager } from '../../../utils/replicationHelper';
 import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
@@ -81,6 +82,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
 
   // Optimistic scoring hook
   const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
+
+  // Class completion celebration hook
+  const { CelebrationModal, checkCompletion } = useClassCompletion(classId);
 
   // Nationals-specific state
   const [alertsCorrect, setAlertsCorrect] = useState(0);
@@ -497,8 +501,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           }
         }
 
-        // Remove from ring before navigating back
+        // Check if class is completed and show celebration
+        await checkCompletion();
 
+        // Remove from ring before navigating back
         if (currentEntry?.id) {
           try {
             await markInRing(currentEntry.id, false);
@@ -1144,10 +1150,12 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="scoresheet-container">
-      <div className="scoresheet">
-      {/* Header */}
-      <header className="page-header mobile-header">
+    <>
+      {CelebrationModal}
+      <div className="scoresheet-container">
+        <div className="scoresheet">
+        {/* Header */}
+        <header className="page-header mobile-header">
         <HamburgerMenu
           backNavigation={{
             label: "Back to Entry List",
@@ -1530,6 +1538,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       )}
       </div>
     </div>
+    </>
   );
 };
 
