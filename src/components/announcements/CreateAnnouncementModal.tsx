@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAnnouncementStore, type Announcement } from '../../stores/announcementStore';
 import { AnnouncementService } from '../../services/announcementService';
 import {
@@ -8,7 +8,8 @@ import {
   Calendar,
   Eye,
   EyeOff,
-  Info
+  Info,
+  WifiOff
 } from 'lucide-react';
 
 interface CreateAnnouncementModalProps {
@@ -44,9 +45,24 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   const isEditing = !!editingAnnouncement;
   const canCreate = AnnouncementService.canManageAnnouncements(userRole || '');
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   if (!canCreate) {
     return (
@@ -90,6 +106,12 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
       return;
     }
 
+    // Check if online before attempting to create/update announcement
+    if (!navigator.onLine) {
+      setError('You must be online to create or update announcements. Please check your internet connection and try again.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -130,6 +152,22 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content create-announcement-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Offline Warning Banner */}
+        {!isOnline && (
+          <div className="offline-warning-banner" style={{
+            background: 'var(--status-error)',
+            color: 'white',
+            padding: 'var(--token-space-xl)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--token-space-md)',
+            borderRadius: 'var(--token-radius-md) var(--token-radius-md) 0 0'
+          }}>
+            <WifiOff size={20} />
+            <span style={{ fontWeight: 500 }}>You're offline. Connect to the internet to create or update announcements.</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="modal-header">
           <div className="header-left">
@@ -313,12 +351,18 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
             type="submit"
             onClick={handleSubmit}
             className="btn btn-primary"
-            disabled={isSubmitting || !title.trim() || !content.trim()}
+            disabled={isSubmitting || !title.trim() || !content.trim() || !isOnline}
+            title={!isOnline ? 'Cannot create announcements while offline' : ''}
           >
             {isSubmitting ? (
               <>
                 <div className="spinner" />
                 {isEditing ? 'Updating...' : 'Creating...'}
+              </>
+            ) : !isOnline ? (
+              <>
+                <WifiOff />
+                Offline
               </>
             ) : (
               <>
