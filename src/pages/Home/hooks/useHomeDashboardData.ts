@@ -168,29 +168,36 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
           console.log(`✅ [REPLICATION] Loaded ${cachedEntries.length} entries from cache`);
           logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
 
-          // Transform replicated Entry to EntryData format
-          const uniqueDogs = new Map<number, EntryData>();
+          // If cache is empty, fall back to Supabase (cache may still be syncing)
+          if (cachedEntries.length === 0) {
+            console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
+            logger.log('📭 Cache is empty, falling back to Supabase');
+            // Fall through to Supabase query
+          } else {
+            // Transform replicated Entry to EntryData format
+            const uniqueDogs = new Map<number, EntryData>();
 
-          cachedEntries.forEach(entry => {
-            if (!uniqueDogs.has(entry.armband_number)) {
-              uniqueDogs.set(entry.armband_number, {
-                id: parseInt(entry.id, 10),
-                armband: entry.armband_number,
-                call_name: entry.dog_call_name,
-                breed: entry.dog_breed || '',
-                handler: entry.handler_name,
-                is_favorite: false, // Will be updated by component after favorites load
-                class_name: undefined, // No class info in replicated Entry yet
-                is_scored: entry.is_scored
-              });
-            }
-          });
+            cachedEntries.forEach(entry => {
+              if (!uniqueDogs.has(entry.armband_number)) {
+                uniqueDogs.set(entry.armband_number, {
+                  id: parseInt(entry.id, 10),
+                  armband: entry.armband_number,
+                  call_name: entry.dog_call_name,
+                  breed: entry.dog_breed || '',
+                  handler: entry.handler_name,
+                  is_favorite: false, // Will be updated by component after favorites load
+                  class_name: undefined, // No class info in replicated Entry yet
+                  is_scored: entry.is_scored
+                });
+              }
+            });
 
-          const processedEntries = Array.from(uniqueDogs.values());
-          console.log(`🐕 [REPLICATION] Processed unique dogs from cache: ${processedEntries.length}`);
-          logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
+            const processedEntries = Array.from(uniqueDogs.values());
+            console.log(`🐕 [REPLICATION] Processed unique dogs from cache: ${processedEntries.length}`);
+            logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
 
-          return processedEntries;
+            return processedEntries;
+          }
         } catch (error) {
           logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
           // Fall through to Supabase query

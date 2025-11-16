@@ -712,6 +712,33 @@
   font-weight: 500;
 }
 
+/* Planned Start Time */
+.class-planned-time {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  font-size: 0.875rem;
+  color: var(--token-text-secondary);
+}
+
+.class-planned-time svg {
+  width: var(--token-space-xl);
+  height: var(--token-space-xl);
+  opacity: 0.6;
+  color: var(--primary);
+}
+
+.planned-time-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.planned-time-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 .class-preview {
   display: flex;
   align-items: center;

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle } from 'lucide-react';
+import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
 
@@ -23,6 +23,7 @@ interface ClassEntry {
   start_time?: string;
   briefing_time?: string;
   break_until?: string;
+  planned_start_time?: string;
   dogs: {
     id: number;
     armband: number;
@@ -84,6 +85,19 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     () => getContextualPreview(classEntry),
     [classEntry, getContextualPreview]
   );
+
+  // Format planned start time for display
+  const formatPlannedStartTime = (timestamp: string | undefined) => {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
 
   // Helper function to get the appropriate icon for each status
   const getStatusIcon = (status: ClassEntry['class_status']) => {
@@ -200,6 +214,13 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 <span className="time-limit-badge time-limit-tbd">TBD</span>
               )}
             </div>
+            {classEntry.planned_start_time && (
+              <div className="class-planned-time">
+                <Calendar size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+                <span className="planned-time-label">Planned:</span>
+                <span className="planned-time-value">{formatPlannedStartTime(classEntry.planned_start_time)}</span>
+              </div>
+            )}
           </div>
         </div>
 

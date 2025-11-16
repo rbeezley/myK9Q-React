@@ -7,7 +7,17 @@ import tsparser from '@typescript-eslint/parser';
 
 export default [
   {
-    ignores: ['dist', 'dev-dist', 'node_modules', '*.config.js', '*.config.ts', '**/*.backup', '**/*.test.ts', '**/*.test.tsx']
+    ignores: [
+      'dist',
+      'dev-dist',
+      'node_modules',
+      '*.config.js',
+      '*.config.ts',
+      '**/*.backup',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '.claude/skills/**/assets/**'
+    ]
   },
   {
     files: ['**/*.{ts,tsx}'],
