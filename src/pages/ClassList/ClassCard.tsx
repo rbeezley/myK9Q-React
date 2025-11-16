@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle } from 'lucide-react';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
@@ -68,6 +68,22 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 }) => {
   const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
   const _isInProgress = classEntry.class_status === 'in_progress';
+
+  // Memoize computed values to prevent redundant function calls
+  const statusColor = useMemo(
+    () => getStatusColor(classEntry.class_status, classEntry),
+    [classEntry, getStatusColor]
+  );
+
+  const formattedStatus = useMemo(
+    () => getFormattedStatus(classEntry),
+    [classEntry, getFormattedStatus]
+  );
+
+  const contextualPreview = useMemo(
+    () => getContextualPreview(classEntry),
+    [classEntry, getContextualPreview]
+  );
 
   // Helper function to get the appropriate icon for each status
   const getStatusIcon = (status: ClassEntry['class_status']) => {
@@ -193,7 +209,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           <div className="class-card-status-action">
             {hasPermission('canManageClasses') ? (
               <button
-                className={`status-badge class-status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}
+                className={`status-badge class-status-badge ${statusColor}`}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -209,40 +225,26 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               >
                 {getStatusIcon(classEntry.class_status)}
                 <span className="status-text">
-                  {(() => {
-                    const formattedStatus = getFormattedStatus(classEntry);
-                    return (
-                      <>
-                        {formattedStatus.label}
-                        {formattedStatus.time && (
-                          <>
-                            {' '}
-                            <span className="status-time">{formattedStatus.time}</span>
-                          </>
-                        )}
-                      </>
-                    );
-                  })()}
+                  {formattedStatus.label}
+                  {formattedStatus.time && (
+                    <>
+                      {' '}
+                      <span className="status-time">{formattedStatus.time}</span>
+                    </>
+                  )}
                 </span>
               </button>
             ) : (
-              <div className={`status-badge class-status-badge ${getStatusColor(classEntry.class_status, classEntry)}`}>
+              <div className={`status-badge class-status-badge ${statusColor}`}>
                 {getStatusIcon(classEntry.class_status)}
                 <span className="status-text">
-                  {(() => {
-                    const formattedStatus = getFormattedStatus(classEntry);
-                    return (
-                      <>
-                        {formattedStatus.label}
-                        {formattedStatus.time && (
-                          <>
-                            {' '}
-                            <span className="status-time">{formattedStatus.time}</span>
-                          </>
-                        )}
-                      </>
-                    );
-                  })()}
+                  {formattedStatus.label}
+                  {formattedStatus.time && (
+                    <>
+                      {' '}
+                      <span className="status-time">{formattedStatus.time}</span>
+                    </>
+                  )}
                 </span>
               </div>
             )}
@@ -251,11 +253,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           {/* Preview Text */}
           {classEntry.dogs.length > 0 ? (
             <div className="contextual-preview-condensed">
-              {(() => {
-                const preview = getContextualPreview(classEntry);
-                // Condense multiline preview to single line
-                return preview.replace(/\n/g, ' • ');
-              })()}
+              {contextualPreview.replace(/\n/g, ' • ')}
             </div>
           ) : (
             <div className="no-entries">
