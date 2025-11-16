@@ -59,7 +59,7 @@
   margin: 0 auto;
   padding: 0 var(--token-space-4xl);
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
 }
 
 /* Side-by-Side Hero Layout */

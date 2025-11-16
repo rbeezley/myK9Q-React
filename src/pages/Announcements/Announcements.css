@@ -134,7 +134,7 @@ button.action-btn.active svg {
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   overflow: hidden;
   min-width: 200px;
 }
@@ -455,7 +455,7 @@ button.action-btn.active svg {
   font-size: 0.875rem;
   color: var(--token-text-secondary);
   backdrop-filter: blur(10px);
-  z-index: 5;
+  z-index: var(--token-z-raised);
 }
 
 .info-icon {

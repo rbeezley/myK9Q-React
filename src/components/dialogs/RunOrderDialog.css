@@ -16,7 +16,7 @@
 .run-order-dialog .dialog-header {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--token-z-raised);
   background: inherit;
   padding-top: var(--token-space-3xl);
   padding-bottom: var(--token-space-2xl);
@@ -40,7 +40,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--token-text-secondary);
-  z-index: 11;
+  z-index: var(--token-z-raised);
 }
 
 .run-order-dialog .dialog-close:hover {
@@ -181,7 +181,7 @@
   margin-top: var(--token-space-3xl);
   border-top: 1px solid var(--border);
   background: inherit;
-  z-index: 20;
+  z-index: var(--token-z-raised);
   pointer-events: auto;
 }
 
@@ -198,7 +198,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 21;
+  z-index: var(--token-z-raised);
   pointer-events: auto;
 }
 

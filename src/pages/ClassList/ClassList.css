@@ -448,7 +448,7 @@
   flex-direction: column;
   gap: var(--token-space-md);
   align-items: center;
-  z-index: 9;
+  z-index: var(--token-z-raised);
 }
 
 /* Corner badge container - positioned in top-right */
@@ -456,7 +456,7 @@
   position: absolute;
   top: -1px;
   right: -1px;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .class-card-status-action .class-status-badge {
@@ -622,7 +622,7 @@
   flex-shrink: 0;
   color: var(--foreground);
   position: relative;
-  z-index: 10;
+  z-index: var(--token-z-raised);
   pointer-events: auto;
 }
 
@@ -1039,7 +1039,7 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
-  z-index: 9999;  /* Very high z-index to appear above all content */
+  z-index: var(--token-z-toast);  /* Very high z-index to appear above all content */
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);
   overflow: hidden;

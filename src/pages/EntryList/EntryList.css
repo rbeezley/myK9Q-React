@@ -44,7 +44,7 @@
   margin-left: auto;  /* Ensure buttons stay on the right */
   flex-shrink: 0;     /* Prevent buttons from shrinking */
   position: relative;
-  z-index: 300;  /* Higher than announcement banner (50) and page-header (100) */
+  z-index: var(--token-z-overlay);  /* Higher than announcement banner (50) and page-header (100) */
 }
 
 /* Back button */
@@ -248,7 +248,7 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
-  z-index: 1;  /* Inherits stacking context from parent .header-buttons (z-index: 300) */
+  z-index: var(--token-z-raised);  /* Inherits stacking context from parent .header-buttons (z-index: 300) */
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);  /* Prevent going off screen */
   overflow: hidden;
@@ -784,7 +784,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 /* Dog info */
@@ -1249,7 +1249,7 @@
     min-width: 60px;
     padding: 0.375rem var(--token-space-lg);
     cursor: pointer;
-    z-index: 1000;
+    z-index: var(--token-z-modal);
     pointer-events: all;
   }
 

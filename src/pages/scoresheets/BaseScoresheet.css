@@ -222,7 +222,7 @@
 
 .dog-header-card > * {
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
 }
 
 .armband-section {
@@ -654,7 +654,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   animation: fadeIn 0.3s ease;
   backdrop-filter: blur(10px);
 }
@@ -804,7 +804,7 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   font-size: 1.25rem;
 }
 

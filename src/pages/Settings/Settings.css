@@ -108,7 +108,7 @@
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
   box-shadow: var(--token-shadow-lg);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   min-width: 180px;
 }
 
@@ -473,7 +473,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   padding: var(--token-space-xl);
   animation: fadeIn 0.2s ease;
 }
@@ -865,7 +865,7 @@
   gap: var(--token-space-xl);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s;
-  z-index: 2000;
+  z-index: var(--token-z-toast);
 }
 
 @keyframes slideInRight {

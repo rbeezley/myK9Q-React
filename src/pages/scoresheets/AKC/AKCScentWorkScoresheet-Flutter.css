@@ -62,7 +62,7 @@
   border-bottom: 1px solid var(--scoresheet-card-border);
   border-radius: var(--token-space-lg);
   position: relative;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .header-content {
@@ -365,7 +365,7 @@
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .timer-btn-pause {
@@ -457,7 +457,7 @@
 
 .scoresheet-timer-card {
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
 }
 
 /* Timer Warning Styles */

@@ -24,7 +24,7 @@
   flex-direction: column;
   font-family: 'Courier New', monospace;
   font-size: var(--token-space-lg);
-  z-index: 9999;
+  z-index: var(--token-z-toast);
   box-shadow: 0 -4px var(--token-space-2xl) rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
@@ -528,7 +528,7 @@
   position: fixed;
   bottom: var(--token-space-2xl);
   right: var(--token-space-2xl);
-  z-index: 9998;
+  z-index: var(--token-z-toast);
   background: #1f2937;
   color: white;
   border: none;
@@ -563,7 +563,7 @@
   background: #1f2937;
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
-  z-index: 9998;
+  z-index: var(--token-z-toast);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -806,7 +806,7 @@
   position: fixed;
   top: 60px;
   right: var(--token-space-lg);
-  z-index: 9999;
+  z-index: var(--token-z-toast);
   display: flex;
   flex-direction: column;
   gap: var(--token-space-md);
@@ -902,7 +902,7 @@
   position: fixed;
   bottom: 90px;
   right: var(--token-space-2xl);
-  z-index: 9998;
+  z-index: var(--token-z-toast);
   background: #7c3aed;
   color: white;
   border: none;
@@ -933,7 +933,7 @@
   background: #1f2937;
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
-  z-index: 9997;
+  z-index: var(--token-z-toast);
   display: flex;
   flex-direction: column;
   overflow: hidden;

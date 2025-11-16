@@ -8,7 +8,7 @@
   right: 0;
   bottom: 0;
   background: var(--background);
-  z-index: 9999;
+  z-index: var(--token-z-toast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,7 +39,7 @@
   padding: var(--token-space-md) var(--token-space-lg);
   border-radius: var(--token-space-md);
   transition: all 0.2s ease;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .onboarding-skip:hover {

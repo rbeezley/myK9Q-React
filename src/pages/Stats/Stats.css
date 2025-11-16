@@ -84,7 +84,7 @@
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
   box-shadow: var(--token-shadow-lg);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   min-width: 180px;
 }
 
@@ -127,7 +127,7 @@
   padding: var(--token-space-lg);
   position: sticky;
   top: 60px; /* Below the header */
-  z-index: 9;
+  z-index: var(--token-z-raised);
 }
 
 /* Summary Cards */

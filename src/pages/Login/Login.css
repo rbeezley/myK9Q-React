@@ -30,7 +30,7 @@
   position: absolute;
   inset: 0;
   background: var(--login-dark-bg);
-  z-index: 0;
+  z-index: var(--token-z-base);
 }
 
 /* Subtle green glow effect like landing page */
@@ -52,7 +52,7 @@
 
 .login-content {
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -343,7 +343,7 @@
   align-items: center;
   gap: 0.6rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
+  z-index: var(--token-z-raised);
   backdrop-filter: blur(10px);
   animation: fadeIn 0.6s ease-out 0.65s both;
 }

@@ -206,7 +206,7 @@
   letter-spacing: 0.5px;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .theme-dark .table-header {

@@ -124,7 +124,7 @@
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
   box-shadow: var(--token-shadow-lg);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   min-width: 180px;
   max-width: calc(100vw - 2rem);
   overflow: hidden;
@@ -548,7 +548,7 @@
   position: absolute;
   top: -1px;
   right: -1px;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .class-card-action .status-badge {
@@ -581,7 +581,7 @@
   content: '';
   position: absolute;
   inset: -8px;
-  z-index: 0;
+  z-index: var(--token-z-base);
 }
 
 .class-card-action .status-badge:hover:not(:disabled) {
@@ -687,7 +687,7 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
-  z-index: 50;
+  z-index: var(--token-z-raised);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -841,7 +841,7 @@
   border-radius: 50%;
   cursor: pointer;
   box-shadow: var(--token-shadow-sm);
-  z-index: 100;
+  z-index: var(--token-z-overlay);
   font-size: 1.2rem;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

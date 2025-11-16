@@ -259,19 +259,19 @@ body {
 .sticky-top {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .sticky-top-header {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--token-z-overlay);
 }
 
 .sticky-bottom {
   position: sticky;
   bottom: 0;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 /* ==========================================================================

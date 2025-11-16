@@ -21,7 +21,7 @@
   left: var(--token-space-xl);
   color: var(--muted-foreground);
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--token-z-raised);
 }
 
 .search-input {
@@ -118,7 +118,7 @@
   border: var(--token-space-xs) solid var(--border-color, #e5e7eb);
   border-radius: var(--token-space-lg);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   animation: slideDown 0.2s ease;
 }
 

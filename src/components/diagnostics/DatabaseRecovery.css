@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   gap: var(--token-space-md);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -25,7 +25,7 @@
 .database-recovery-modal {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: var(--token-z-toast);
 }
 
 .database-recovery-overlay {

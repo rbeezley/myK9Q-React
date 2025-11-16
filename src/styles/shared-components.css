@@ -215,7 +215,7 @@
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 .status-tab {
@@ -496,7 +496,7 @@
   position: fixed;
   inset: 0;
   background: transparent;
-  z-index: 998;
+  z-index: var(--token-z-overlay);
 }
 
 .reset-menu {
@@ -551,7 +551,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
+  z-index: var(--token-z-toast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -657,7 +657,7 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
-  z-index: 9999;  /* Very high z-index to appear above all content including tabs */
+  z-index: var(--token-z-toast);  /* Very high z-index to appear above all content including tabs */
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);  /* Prevent going off screen */
   overflow: hidden;

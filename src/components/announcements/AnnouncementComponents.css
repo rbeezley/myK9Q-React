@@ -153,7 +153,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  z-index: var(--token-z-raised);
   min-width: 8rem;
   padding: var(--token-space-sm);
 }
@@ -721,7 +721,7 @@ button.filter-option.high.active {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   padding: var(--token-space-xl);
 }
 

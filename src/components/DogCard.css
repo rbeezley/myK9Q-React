@@ -203,7 +203,7 @@
   position: absolute;
   top: -1px;
   right: -1px;
-  z-index: 10;
+  z-index: var(--token-z-raised);
 }
 
 /* Reset button (three-dot menu) - add margin for spacing from edge */
@@ -301,7 +301,7 @@
   content: '';
   position: absolute;
   inset: -8px;
-  z-index: 0;
+  z-index: var(--token-z-base);
 }
 
 /* Status badge colors - matching original EntryList styles */

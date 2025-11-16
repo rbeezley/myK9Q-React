@@ -156,7 +156,7 @@
   color: white;
   flex-shrink: 0;
   margin: var(--token-space-md);
-  z-index: 2;
+  z-index: var(--token-z-raised);
 }
 
 .ticker-content {
@@ -205,7 +205,7 @@
   color: white;
   flex-shrink: 0;
   margin: var(--token-space-md);
-  z-index: 2;
+  z-index: var(--token-z-raised);
   transition: transform var(--token-transition-fast);
 }
 
@@ -228,7 +228,7 @@
 .trials-section {
   padding: var(--token-space-lg) 0; /* Only vertical padding, let page handle horizontal */
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
   flex-shrink: 0;
 }
 
@@ -564,7 +564,7 @@
 .search-sort-container {
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
   flex-shrink: 0;
 }
 
@@ -660,7 +660,7 @@
   flex-direction: column;
   padding: 0; /* Let page-container handle all horizontal padding */
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
   min-height: 0; /* Required for flex children to shrink properly */
   overflow: hidden; /* Prevent double scrollbars - only entry-grid-virtual scrolls */
 }
@@ -672,7 +672,7 @@
   margin-top: var(--token-space-lg);
   margin-bottom: var(--token-space-xl);
   position: relative;
-  z-index: 1;
+  z-index: var(--token-z-raised);
 }
 
 .entry-list-title {
@@ -1188,7 +1188,7 @@
   cursor: pointer;
   transition: all var(--token-transition-normal);
   box-shadow: var(--token-shadow-md);
-  z-index: 1000;
+  z-index: var(--token-z-modal);
   font-size: 1.25rem;
 }
 

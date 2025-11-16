@@ -32,7 +32,7 @@
   border: none;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.4);
   cursor: pointer;
-  z-index: 999;
+  z-index: var(--token-z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,7 +88,7 @@
   background: white;
   border-top: 1px solid var(--border);
   box-shadow: 0 -2px var(--token-space-md) rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  z-index: var(--token-z-overlay);
 }
 
 /* Ensure content doesn't hide behind fixed actions */
@@ -113,7 +113,7 @@
   right: 0;
   bottom: 50%;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 998;
+  z-index: var(--token-z-overlay);
   pointer-events: none;
 }
 
@@ -124,7 +124,7 @@
   left: 0;
   right: 0;
   height: 44px;
-  z-index: 1001;
+  z-index: var(--token-z-modal);
   cursor: pointer;
 }
 
@@ -197,7 +197,7 @@
   transform: scale(0.8);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
-  z-index: 998;
+  z-index: var(--token-z-overlay);
 }
 
 .quick-actions.visible {
