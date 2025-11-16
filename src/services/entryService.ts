@@ -972,7 +972,6 @@ export function subscribeToEntryUpdates(
 
   console.log('🔌 Setting up subscription via syncManager for class_id:', actualClassId);
   console.log('🔍 Using correct column name: class_id (matching the main query)');
-  console.log('🚨 CRITICAL: actualClassId should be the REAL classid (275) not URL ID (340)');
 
   syncManager.subscribeToUpdates(
     key,
