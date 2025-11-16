@@ -606,7 +606,7 @@ export const ClassList: React.FC = () => {
     ));
   };
 
-  const getStatusColor = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
+  const getStatusColor = useCallback((status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     // Check is_completed first for consistent coloring
     if (classEntry) {
       const displayStatus = getClassDisplayStatus(classEntry);
@@ -635,10 +635,10 @@ export const ClassList: React.FC = () => {
         }
         return 'no-status';
     }
-  };
+  }, []);
 
   // Helper function to format status with time in a structured way
-  const getFormattedStatus = (classEntry: ClassEntry) => {
+  const getFormattedStatus = useCallback((classEntry: ClassEntry) => {
     // Check is_completed first, then fall back to class_status
     const displayStatus = getClassDisplayStatus(classEntry);
 
@@ -688,7 +688,7 @@ export const ClassList: React.FC = () => {
     });
 
     return result;
-  };
+  }, []);
 
   const _getStatusLabel = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     switch (status) {
@@ -728,7 +728,7 @@ export const ClassList: React.FC = () => {
   };
 
   // Smart contextual preview helper function
-  const getContextualPreview = (classEntry: ClassEntry): string => {
+  const getContextualPreview = useCallback((classEntry: ClassEntry): string => {
     const status = getClassDisplayStatus(classEntry);
 
     switch (status) {
@@ -737,7 +737,7 @@ export const ClassList: React.FC = () => {
 
       case 'completed':
         return `Completed • ${classEntry.entry_count} ${classEntry.entry_count === 1 ? 'entry' : 'entries'} scored`;
-        
+
       case 'in-progress': {
         const inRingDog = classEntry.dogs.find(dog => dog.in_ring);
         const nextDogs = classEntry.dogs
@@ -748,25 +748,25 @@ export const ClassList: React.FC = () => {
         if (inRingDog) {
           preview += `In Ring: ${inRingDog.armband} (${inRingDog.call_name})`;
         }
-        
+
         if (nextDogs.length > 0) {
           const nextArmband = nextDogs.map(dog => dog.armband).join(', ');
           preview += inRingDog ? ` • Next: ${nextArmband}` : `Next: ${nextArmband}`;
         }
-        
+
         const remaining = classEntry.entry_count - classEntry.completed_count;
         if (preview) {
           preview += `\n${remaining} of ${classEntry.entry_count} remaining`;
         } else {
           preview = `${remaining} of ${classEntry.entry_count} remaining`;
         }
-        
+
         return preview;
       }
       default:
         return `${classEntry.completed_count} of ${classEntry.entry_count} entries scored`;
     }
-  };
+  }, []);
 
   // Helper function to group Novice A/B classes into combined entries
   const groupNoviceClasses = useCallback((classList: ClassEntry[]): ClassEntry[] => {
