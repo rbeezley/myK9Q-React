@@ -6,7 +6,7 @@
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   cursor: pointer;
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.06);
@@ -108,7 +108,7 @@
 .dog-card-content {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   position: relative;
 }
 
@@ -118,7 +118,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
 }
 
 /* Section Badge (for combined Novice A & B view) */
@@ -147,11 +147,11 @@
 .dog-card-details {
   flex: 1;
   min-width: 0;
-  padding-right: 48px; /* Space for action button */
+  padding-right: 4var(--token-space-md); /* Space for action button */
 }
 
 .dog-card-name {
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 var(--token-space-sm) 0;
   font-size: 1rem;
   font-weight: 590;
   color: var(--foreground);
@@ -165,7 +165,7 @@
 }
 
 .dog-card-breed {
-  margin: 0 0 0.125rem 0;
+  margin: 0 0 var(--token-space-xs) 0;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--token-text-secondary);
@@ -183,14 +183,14 @@
 /* Result badges for scored entries */
 .dog-card-results {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: var(--token-space-md);
   flex-wrap: wrap;
 }
 
 .dog-card-results .result-badge {
-  padding: 0.125rem 0.5rem;
+  padding: var(--token-space-xs) var(--token-space-md);
   border-radius: 0.375rem;
   font-size: 0.6875rem;
   font-weight: 600;
@@ -208,7 +208,7 @@
 
 /* Reset button (three-dot menu) - add margin for spacing from edge */
 .dog-card-action .reset-button {
-  margin: 0.5rem 0.5rem 0 0;
+  margin: var(--token-space-md) var(--token-space-md) 0 0;
 }
 
 /* Favorite button for Home page */
@@ -395,12 +395,12 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .dog-card {
-    padding: 0.75rem;
+    padding: var(--token-space-lg);
     min-height: 70px;
   }
 
   .dog-card-content {
-    gap: 0.75rem;
+    gap: var(--token-space-lg);
   }
 
   .dog-card-name {
@@ -430,7 +430,7 @@
 /* Desktop */
 @media (min-width: 1024px) {
   .dog-card {
-    padding: 1rem;
+    padding: var(--token-space-xl);
     min-height: 90px;
   }
 

@@ -7,7 +7,7 @@
 }
 
 .class-card.skeleton .class-content {
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 /* Icon skeletons (heart and menu) */
@@ -26,7 +26,7 @@
   border-radius: 0.25rem;
   background: var(--skeleton-gradient);
   background-size: 200% 100%;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--token-space-md);
 }
 
 /* Judge name skeleton */
@@ -41,8 +41,8 @@
 /* Info items skeleton (time, entries, progress) */
 .class-info-row {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--token-space-xl);
+  margin-top: var(--token-space-xl);
 }
 
 .skeleton-info-item {
@@ -60,7 +60,7 @@
   border-radius: 1rem;
   background: var(--skeleton-gradient);
   background-size: 200% 100%;
-  margin-top: 1rem;
+  margin-top: var(--token-space-xl);
 }
 
 /* Preview text skeleton */
@@ -70,7 +70,7 @@
   border-radius: 0.25rem;
   background: var(--skeleton-gradient);
   background-size: 200% 100%;
-  margin-top: 0.5rem;
+  margin-top: var(--token-space-md);
 }
 
 /* Shimmer animation */

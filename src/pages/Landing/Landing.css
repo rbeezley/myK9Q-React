@@ -28,7 +28,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 var(--token-space-4xl);
 }
 
 /* Hero Section */
@@ -57,7 +57,7 @@
 .hero-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 var(--token-space-4xl);
   position: relative;
   z-index: 1;
 }
@@ -129,14 +129,14 @@
 .hero-logo-image {
   width: 130px;
   height: 130px;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--token-space-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--glass-bg);
   border: 1px solid var(--dark-border-strong);
   border-radius: 2rem;
-  padding: 1.25rem;
+  padding: var(--token-space-2xl);
   box-shadow: 0 0 30px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.15);
 }
 
@@ -151,7 +151,7 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin: 0.25rem 0 0 0;
+  margin: var(--token-space-sm) 0 0 0;
 }
 
 /* Queue & Qualify Title */
@@ -161,11 +161,11 @@
   line-height: 1.2;
   letter-spacing: 0.05em;
   color: var(--text-primary);
-  margin: 0.5rem 0 3rem 0;
+  margin: var(--token-space-md) 0 3rem 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
   flex-wrap: wrap;
 }
 
@@ -179,7 +179,7 @@
   color: var(--text-tertiary);
   font-size: 1.875rem;
   font-weight: 300;
-  margin: 0 0.25rem;
+  margin: 0 var(--token-space-sm);
   opacity: 0.5;
 }
 
@@ -196,7 +196,7 @@
   font-size: 2rem;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-bottom: 2rem;
+  margin-bottom: var(--token-space-4xl);
   letter-spacing: -0.01em;
 }
 
@@ -253,8 +253,8 @@
 .hero-nationals-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg) var(--token-space-2xl);
   background: var(--glass-bg);
   border: 1px solid var(--dark-border-strong);
   border-radius: 2rem;
@@ -299,7 +299,7 @@
 .screenshot-wrapper {
   position: relative;
   width: 375px;
-  padding: 1rem 0.75rem;
+  padding: var(--token-space-xl) var(--token-space-lg);
   background: #1a1a1a;
   border-radius: 3rem;
   box-shadow:
@@ -356,14 +356,14 @@
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: var(--token-space-3xl);
 }
 
 .feature-card {
   background: var(--glass-bg);
   border: 1px solid var(--dark-border);
   border-radius: 0.75rem;
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   transition: all 0.3s ease;
 }
 
@@ -376,8 +376,8 @@
 .feature-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: var(--token-space-lg);
+  margin-bottom: var(--token-space-3xl);
 }
 
 .feature-icon-header {
@@ -399,13 +399,13 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 .feature-list li {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
   color: var(--text-secondary);
   font-size: 0.9375rem;
   line-height: 1.5;
@@ -431,7 +431,7 @@
   letter-spacing: -0.02em;
   color: var(--text-primary);
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 .resources-subtitle {
@@ -444,7 +444,7 @@
 .resources-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
+  gap: var(--token-space-4xl);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -453,7 +453,7 @@
   background: var(--glass-bg);
   border: 1px solid var(--dark-border-strong);
   border-radius: 1rem;
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -476,7 +476,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .resource-icon {
@@ -489,21 +489,21 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--token-space-lg) 0;
 }
 
 .resource-description {
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--text-secondary);
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   flex-grow: 1;
 }
 
 .resource-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   color: var(--accent-green);
   font-size: 0.9375rem;
   font-weight: 500;
@@ -532,12 +532,12 @@
 .capabilities-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: var(--token-space-4xl);
 }
 
 .capability-item {
   text-align: left;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   background: transparent;
   border-radius: 0.75rem;
   transition: all 0.2s ease;
@@ -551,14 +551,14 @@
   width: var(--token-space-3xl);
   height: var(--token-space-3xl);
   color: var(--accent-green);
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 .capability-item h4 {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--token-space-md);
 }
 
 .capability-item p {
@@ -592,21 +592,21 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 .cta-description {
   font-size: 1.125rem;
   color: var(--text-secondary);
-  margin-bottom: 2rem;
+  margin-bottom: var(--token-space-4xl);
   line-height: 1.6;
 }
 
 .btn-cta {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 1.75rem;
+  gap: var(--token-space-md);
+  padding: var(--token-space-xl) 1.75rem;
   background: var(--accent-green);
   color: white;
   border: none;
@@ -638,7 +638,7 @@
 .footer-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
 }
 
 .footer-logo {
@@ -671,7 +671,7 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 0 1.5rem;
+    padding: 0 var(--token-space-3xl);
   }
 
   .hero-section {
@@ -689,7 +689,7 @@
 
   .hero-title {
     font-size: 1.5rem;
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
 
   .hero-queue,
@@ -711,7 +711,7 @@
 
   .hero-features {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--token-space-3xl);
   }
 
   .features-grid,
@@ -725,7 +725,7 @@
 
   .footer-content {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--token-space-3xl);
     text-align: center;
   }
 }
@@ -746,7 +746,7 @@
 
   .hero-title {
     font-size: 1.25rem;
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
 
   .hero-queue,

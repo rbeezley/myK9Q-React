@@ -9,7 +9,7 @@
 
 .alert,
 .message-banner {
-  margin: 1rem 0;
+  margin: var(--token-space-xl) 0;
   border-radius: var(--token-radius-lg);
   border: 1px solid;
   overflow: hidden;
@@ -20,8 +20,8 @@
 .message-content {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-xl);
 }
 
 .alert-icon,
@@ -29,7 +29,7 @@
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
-  margin-top: 0.125rem;
+  margin-top: var(--token-space-xs);
 }
 
 .alert-message,
@@ -42,7 +42,7 @@
 .alert-title,
 .message-title {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--token-space-sm);
   font-size: 0.9375rem;
 }
 
@@ -57,7 +57,7 @@
 .message-close {
   background: none;
   border: none;
-  padding: 0.25rem;
+  padding: var(--token-space-sm);
   cursor: pointer;
   color: inherit;
   opacity: 0.7;
@@ -148,8 +148,8 @@
   background: var(--input);
   border-left: 3px solid var(--primary);
   border-radius: var(--token-radius-md);
-  padding: 1rem;
-  margin: 1rem 0;
+  padding: var(--token-space-xl);
+  margin: var(--token-space-xl) 0;
 }
 
 .help-banner p {
@@ -163,8 +163,8 @@
 .inline-message {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
+  gap: var(--token-space-md);
+  padding: var(--token-space-sm) var(--token-space-lg);
   border-radius: var(--token-radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -246,7 +246,7 @@
 @media (max-width: 640px) {
   .alert-content,
   .message-content {
-    padding: 0.75rem;
+    padding: var(--token-space-lg);
   }
 
   .alert-message,

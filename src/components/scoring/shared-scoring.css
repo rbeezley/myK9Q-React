@@ -236,7 +236,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 4var(--token-space-md);
   background: #f8f9fa;
   border-radius: var(--token-space-lg);
 }
@@ -1458,7 +1458,7 @@ button.choice-chip.secondary.selected {
 
 .timer-progress-text {
   position: absolute;
-  top: -20px;
+  top: -var(--token-space-2xl);
   right: 0;
   font-size: 10px;
   font-weight: bold;

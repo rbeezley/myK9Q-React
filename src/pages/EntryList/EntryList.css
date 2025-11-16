@@ -40,7 +40,7 @@
 .header-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   margin-left: auto;  /* Ensure buttons stay on the right */
   flex-shrink: 0;     /* Prevent buttons from shrinking */
   position: relative;
@@ -51,8 +51,8 @@
 .back-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: var(--muted);
   color: var(--foreground);
   border: 1px solid var(--border);
@@ -138,7 +138,7 @@
   gap: var(--token-space-sm);
   font-size: 0.8125rem;  /* Slightly larger for better readability */
   color: var(--token-text-secondary);
-  margin-top: 2px;
+  margin-top: var(--token-space-xs);
 }
 
 .trial-date-text,
@@ -165,7 +165,7 @@
   display: inline-flex;
   align-items: center;
   font-size: 0.625rem;
-  padding: 0.125rem 0.375rem;
+  padding: var(--token-space-xs) 0.375rem;
   border-radius: var(--token-radius-sm);
   font-weight: 600;
   white-space: nowrap;
@@ -192,7 +192,7 @@
 .trial-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
   font-size: 0.875rem;
   color: var(--token-text-secondary);
   align-items: center;
@@ -242,7 +242,7 @@
 
 .actions-dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + var(--token-space-md));
   right: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -252,7 +252,7 @@
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);  /* Prevent going off screen */
   overflow: hidden;
-  margin-right: 0.25rem;  /* Small margin from edge */
+  margin-right: var(--token-space-sm);  /* Small margin from edge */
 }
 
 .theme-dark .print-dropdown-menu {
@@ -261,7 +261,7 @@
 
 .action-menu-item {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: none;
   border: none;
   text-align: left;
@@ -271,7 +271,7 @@
   transition: background-color 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
 }
 
 .action-menu-item:hover {
@@ -290,7 +290,7 @@
 .menu-divider {
   height: 1px;
   background: var(--border);
-  margin: 0.25rem 0;
+  margin: var(--token-space-sm) 0;
 }
 
 /* ========== STATUS TABS ========== */
@@ -343,7 +343,7 @@
 .status-tab-count {
   display: inline-block;
   margin-left: 0.375rem;
-  padding: 0.125rem 0.375rem;
+  padding: var(--token-space-xs) 0.375rem;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 0.75rem;
   font-size: 0.6875rem;
@@ -496,7 +496,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   color: var(--token-text-secondary);
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -791,7 +791,7 @@
 .dog-info {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--token-space-xs);
   margin-bottom: var(--token-space-md);
 }
 
@@ -815,7 +815,7 @@
   margin-top: 0.0625rem;
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--token-space-xs);
   text-align: left;
 }
 
@@ -918,7 +918,7 @@
 .result-badge-mobile {
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem var(--token-space-lg);
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-weight: 700;
@@ -970,7 +970,7 @@
 .time-badge-mobile {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.5rem;
+  padding: var(--token-space-sm) var(--token-space-md);
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
@@ -983,16 +983,16 @@
 /* Inline results */
 .result-inline {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   align-items: center;
-  margin-top: 0.25rem;
+  margin-top: var(--token-space-sm);
   justify-content: flex-start;
 }
 
 .result-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.625rem;
+  padding: var(--token-space-sm) 0.625rem;
   border-radius: 0.75rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -1037,7 +1037,7 @@
 .time-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.625rem;
+  padding: var(--token-space-sm) 0.625rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
@@ -1050,7 +1050,7 @@
 .faults-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.625rem;
+  padding: var(--token-space-sm) 0.625rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
@@ -1064,7 +1064,7 @@
 .faults-badge-subtle {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.625rem;
+  padding: var(--token-space-sm) 0.625rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
@@ -1085,8 +1085,8 @@
 .placement-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.625rem;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) 0.625rem;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 0.75rem;
   font-size: 0.875rem;
@@ -1159,12 +1159,12 @@
 
 .drag-handle-external {
   position: absolute;
-  left: -2rem;
+  left: -var(--token-space-4xl);
   top: 50%;
   transform: translateY(-50%);
   cursor: grab;
   color: var(--token-text-secondary);
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -1240,14 +1240,14 @@
 
   .checkin-status.mobile-touch-target {
     position: static;
-    margin-top: 0.5rem;
+    margin-top: var(--token-space-md);
     margin-left: auto;
     margin-right: 0;
     width: fit-content;
     font-size: 0.6875rem;
     min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
     min-width: 60px;
-    padding: 0.375rem 0.75rem;
+    padding: 0.375rem var(--token-space-lg);
     cursor: pointer;
     z-index: 1000;
     pointer-events: all;
@@ -1267,12 +1267,12 @@
 
   .status-tabs {
     max-width: 600px;
-    margin: 1rem auto;
+    margin: var(--token-space-xl) auto;
   }
 
   .mobile-search-container {
     max-width: 600px;
-    margin: 1rem auto 0 auto;
+    margin: var(--token-space-xl) auto 0 auto;
   }
 
   .entry-card {

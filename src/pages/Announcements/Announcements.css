@@ -26,7 +26,7 @@
 .header-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
   position: relative;
   justify-content: center;
 }
@@ -49,7 +49,7 @@
   background: var(--danger);
   color: white;
   border-radius: 50%;
-  padding: 0.25rem 0.5rem;
+  padding: var(--token-space-sm) var(--token-space-md);
   font-size: 0.75rem;
   font-weight: 600;
   min-width: 1.5rem;
@@ -60,7 +60,7 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
 }
 
 .action-btn {
@@ -128,7 +128,7 @@ button.action-btn.active svg {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + var(--token-space-md));
   right: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -195,7 +195,7 @@ button.action-btn.active svg {
 .context-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   font-size: 0.875rem;
 }
 
@@ -209,7 +209,7 @@ button.action-btn.active svg {
 
 .context-license {
   background: var(--surface);
-  padding: 0.125rem 0.375rem;
+  padding: var(--token-space-xs) 0.375rem;
   border-radius: 0.25rem;
   font-family: monospace;
   font-size: 0.75rem;
@@ -270,7 +270,7 @@ button.action-btn.active svg {
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-lg) 2.5rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--surface);
@@ -290,7 +290,7 @@ button.action-btn.active svg {
 
 .clear-search-btn {
   position: absolute;
-  right: 0.5rem;
+  right: var(--token-space-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -330,12 +330,12 @@ button.action-btn.active svg {
 .error-banner {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-xl);
   background: var(--danger-subtle);
   color: var(--danger);
   border-radius: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 .error-banner svg {
@@ -346,7 +346,7 @@ button.action-btn.active svg {
 
 .retry-btn {
   margin-left: auto;
-  padding: 0.5rem 1rem;
+  padding: var(--token-space-md) var(--token-space-xl);
   border: 1px solid var(--danger);
   border-radius: 0.375rem;
   background: transparent;
@@ -367,8 +367,8 @@ button.action-btn.active svg {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
-  gap: 1rem;
+  padding: 3rem var(--token-space-xl);
+  gap: var(--token-space-xl);
   color: var(--token-text-secondary);
 }
 
@@ -383,8 +383,8 @@ button.action-btn.active svg {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
-  gap: 1rem;
+  padding: 3rem var(--token-space-xl);
+  gap: var(--token-space-xl);
   text-align: center;
   color: var(--token-text-secondary);
 }
@@ -412,8 +412,8 @@ button.action-btn.active svg {
 .create-first-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg) var(--token-space-3xl);
   border: 1px solid var(--primary);
   border-radius: 0.5rem;
   background: transparent;
@@ -422,7 +422,7 @@ button.action-btn.active svg {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 0.5rem;
+  margin-top: var(--token-space-md);
 }
 
 .clear-filters-btn:hover,
@@ -435,19 +435,19 @@ button.action-btn.active svg {
 .announcements-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 /* Active Filters Summary */
 .active-filters-summary {
   position: fixed;
-  bottom: 2rem;
+  bottom: var(--token-space-4xl);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 2rem;
@@ -465,7 +465,7 @@ button.action-btn.active svg {
 }
 
 .clear-all-btn {
-  padding: 0.25rem 0.75rem;
+  padding: var(--token-space-sm) var(--token-space-lg);
   border: 1px solid var(--primary);
   border-radius: 1rem;
   background: transparent;
@@ -553,7 +553,7 @@ button.action-btn.active svg {
 
 @media (max-width: 480px) {
   .header-actions {
-    gap: 0.25rem;
+    gap: var(--token-space-sm);
   }
 
   .action-btn {
@@ -562,7 +562,7 @@ button.action-btn.active svg {
   }
 
   .empty-state {
-    padding: 2rem 1rem;
+    padding: var(--token-space-4xl) var(--token-space-xl);
   }
 
   .empty-icon {

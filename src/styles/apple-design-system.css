@@ -10,7 +10,7 @@
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--token-shadow-sm);
   transition: all 0.5s var(--apple-ease);
@@ -85,7 +85,7 @@
     rgba(142, 142, 147, 0.08) 100%);
   border: 1px solid rgba(142, 142, 147, 0.2);
   border-radius: 0.75rem;
-  padding: 0.25rem;
+  padding: var(--token-space-sm);
   display: grid;
   width: 100%;
 }
@@ -95,7 +95,7 @@
   transition: all 0.3s var(--apple-ease);
   font-size: var(--token-font-md);
   font-weight: var(--token-font-weight-medium);
-  padding: 0.75rem 1rem;
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: transparent;
   border: none;
   color: var(--muted-foreground);
@@ -116,7 +116,7 @@
   background: var(--brand-gradient);
   border: none;
   border-radius: 0.75rem;
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   color: white;
   font-size: var(--token-font-md);
   font-weight: var(--token-font-weight-semibold);
@@ -148,7 +148,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   color: var(--secondary-foreground);
   font-size: var(--token-font-md);
   font-weight: var(--token-font-weight-medium);
@@ -233,7 +233,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   background: var(--card);
   border-bottom: 1px solid var(--border);
   backdrop-filter: var(--glass-blur);
@@ -253,7 +253,7 @@
   backdrop-filter: var(--glass-blur);
   display: flex;
   justify-content: space-around;
-  padding: 0.75rem 0;
+  padding: var(--token-space-lg) 0;
   z-index: var(--token-z-overlay);
 }
 
@@ -261,7 +261,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--token-space-sm);
   background: none;
   border: none;
   color: var(--muted-foreground);
@@ -269,7 +269,7 @@
   font-weight: var(--token-font-weight-medium);
   cursor: pointer;
   transition: all 0.2s var(--apple-ease);
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   border-radius: 0.5rem;
   min-height: var(--stress-touch-target);
   min-width: var(--stress-touch-target);
@@ -294,7 +294,7 @@
 .apple-status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
+  padding: var(--token-space-sm) var(--token-space-lg);
   border-radius: 1rem;
   font-size: var(--token-font-sm);
   font-weight: var(--token-font-weight-bold);
@@ -338,8 +338,8 @@
 /* Theme Toggle */
 .apple-theme-toggle {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: var(--token-space-xl);
+  right: var(--token-space-xl);
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 50%;
@@ -363,12 +363,12 @@
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 640px) {
   .apple-card {
-    padding: 1rem;
+    padding: var(--token-space-xl);
     border-radius: 0.75rem;
   }
 
   .apple-header {
-    padding: 1rem;
+    padding: var(--token-space-xl);
   }
 
   .apple-armband-badge {

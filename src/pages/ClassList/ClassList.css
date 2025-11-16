@@ -40,7 +40,7 @@
 .header-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   margin-left: auto;
   flex-shrink: 0;
   position: relative;  /* Ensure dropdown positioning works correctly */
@@ -151,7 +151,7 @@
 }
 
 .trial-info-card h2 {
-  margin: 0 0 0.125rem 0;
+  margin: 0 0 var(--token-space-xs) 0;
   font-size: 1.125rem;
   font-weight: 590;
   color: var(--foreground);
@@ -199,7 +199,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 0.125rem;
+  gap: var(--token-space-xs);
   width: auto;
   box-sizing: border-box;
 }
@@ -393,7 +393,7 @@
   margin-bottom: var(--token-space-md);
   flex-shrink: 0;
   width: 100%;
-  padding-right: 120px;
+  padding-right: 1var(--token-space-2xl);
   padding-bottom: 2.5rem;
   min-height: 44px;
   overflow: visible;
@@ -402,7 +402,7 @@
 .class-title-section {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
 }
 
 .class-name {
@@ -443,7 +443,7 @@
 .class-actions {
   position: absolute;
   top: 1.75rem;
-  right: 0.5rem;
+  right: var(--token-space-md);
   display: flex;
   flex-direction: column;
   gap: var(--token-space-md);
@@ -880,7 +880,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--token-space-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1033,7 +1033,7 @@
 
 .class-list-header .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + var(--token-space-md));
   right: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -1043,14 +1043,14 @@
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);
   overflow: hidden;
-  margin-right: 0.5rem;
+  margin-right: var(--token-space-md);
 }
 
 .class-list-header .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-xl);
   cursor: pointer;
   font-size: 0.875rem;
   color: var(--foreground);
@@ -1097,7 +1097,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   animation: fadeIn 0.2s ease;
 }
 
@@ -1171,7 +1171,7 @@
   align-items: center;
   justify-content: space-between;
   margin: 0;
-  padding: 0.875rem 1rem;
+  padding: 0.875rem var(--token-space-xl);
   font-size: 1.125rem;
   font-weight: var(--token-font-weight-semibold, 600);
   color: var(--foreground);
@@ -1188,7 +1188,7 @@
 .popup-header-content {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--token-space-sm);
 }
 
 .popup-title {
@@ -1210,7 +1210,7 @@
   border: none;
   color: var(--muted-foreground);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   border-radius: 0.375rem;
   transition: all 0.2s ease;
   display: flex;
@@ -1233,7 +1233,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  padding: 0.75rem 1rem 1rem 1rem;
+  padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
   overflow-y: auto;
   max-height: calc(100vh - 12rem);
 }
@@ -1379,7 +1379,7 @@
 /* Mobile responsiveness */
 @media (max-width: 640px) {
   .class-content {
-    padding-bottom: 1.5rem;  /* Reduce bottom padding on mobile */
+    padding-bottom: var(--token-space-3xl);  /* Reduce bottom padding on mobile */
   }
 
   .popup-container {
@@ -1399,7 +1399,7 @@
 /* 2-column layout adjustments */
 @media (min-width: 641px) and (max-width: 1023px) {
   .class-content {
-    padding-bottom: 2rem;  /* Reduce bottom padding on tablet */
+    padding-bottom: var(--token-space-4xl);  /* Reduce bottom padding on tablet */
   }
 }
 

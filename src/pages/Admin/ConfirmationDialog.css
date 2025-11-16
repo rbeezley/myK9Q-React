@@ -65,8 +65,8 @@
 .dialog-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 2rem 2rem 1rem 2rem;
+  gap: var(--token-space-xl);
+  padding: var(--token-space-4xl) var(--token-space-4xl) var(--token-space-xl) var(--token-space-4xl);
   border-bottom: 1px solid var(--border);
 }
 
@@ -85,11 +85,11 @@
 
 /* Dialog Content */
 .dialog-content {
-  padding: 1.5rem 2rem;
+  padding: var(--token-space-3xl) var(--token-space-4xl);
 }
 
 .dialog-message {
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--token-space-xl) 0;
   font-size: 1.1rem;
   color: var(--foreground);
   line-height: 1.6;
@@ -99,12 +99,12 @@
   background: var(--muted);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-lg);
-  padding: 1.25rem;
-  margin-top: 1rem;
+  padding: var(--token-space-2xl);
+  margin-top: var(--token-space-xl);
 }
 
 .dialog-details h4 {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--token-space-lg) 0;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
@@ -119,11 +119,11 @@
 }
 
 .dialog-details li {
-  padding: 0.5rem 0;
+  padding: var(--token-space-md) 0;
   color: var(--foreground);
   font-weight: 500;
   position: relative;
-  padding-left: 1.5rem;
+  padding-left: var(--token-space-3xl);
 }
 
 .dialog-details li::before {
@@ -139,8 +139,8 @@
   background: rgba(16, 185, 129, 0.1);
   border: 2px solid var(--status-checked-in);
   border-radius: var(--token-radius-lg);
-  padding: 1.25rem;
-  margin-top: 1rem;
+  padding: var(--token-space-2xl);
+  margin-top: var(--token-space-xl);
   color: var(--foreground);
   font-weight: 500;
 }
@@ -153,14 +153,14 @@
 /* Dialog Actions */
 .dialog-actions {
   display: flex;
-  gap: 1rem;
-  padding: 1.5rem 2rem 2rem 2rem;
+  gap: var(--token-space-xl);
+  padding: var(--token-space-3xl) var(--token-space-4xl) var(--token-space-4xl) var(--token-space-4xl);
   background: var(--muted);
   justify-content: flex-end;
 }
 
 .dialog-btn {
-  padding: 0.75rem 2rem;
+  padding: var(--token-space-lg) var(--token-space-4xl);
   border: none;
   border-radius: var(--token-space-lg);
   font-size: 1rem;
@@ -232,7 +232,7 @@
 }
 
 .admin-name-input-group {
-  margin-top: 1.5rem;
+  margin-top: var(--token-space-3xl);
 }
 
 .admin-name-label {
@@ -240,12 +240,12 @@
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--foreground);
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--token-space-lg);
 }
 
 .admin-name-input {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.875rem var(--token-space-xl);
   background-color: var(--input);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-lg);
@@ -269,20 +269,20 @@
 /* Responsive Design */
 @media (max-width: 640px) {
   .dialog-container {
-    margin: 1rem;
+    margin: var(--token-space-xl);
     width: calc(100% - 2rem);
   }
 
   .dialog-header {
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    padding: var(--token-space-3xl) var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
   }
 
   .dialog-content {
-    padding: 1rem 1.5rem;
+    padding: var(--token-space-xl) var(--token-space-3xl);
   }
 
   .dialog-actions {
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    padding: var(--token-space-xl) var(--token-space-3xl) var(--token-space-3xl) var(--token-space-3xl);
     flex-direction: column;
   }
 

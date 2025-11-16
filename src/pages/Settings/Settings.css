@@ -74,7 +74,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.75rem;
+  padding: var(--token-space-lg);
   color: var(--secondary-foreground);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -145,7 +145,7 @@
 }
 
 .reset-all-btn {
-  padding: 0.625rem 1.25rem;
+  padding: 0.625rem var(--token-space-2xl);
   background: transparent;
   color: var(--danger, #ef4444);
   border: 1.5px solid var(--danger, #ef4444);
@@ -181,7 +181,7 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--foreground);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--token-space-lg) 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 1; /* Increased from 0.9 for better visibility */
@@ -191,7 +191,7 @@
 .section-description {
   font-size: 0.875rem;
   color: var(--muted-foreground); /* Better contrast than token-text-secondary */
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--token-space-xl) 0;
   font-weight: 400;
   text-align: left;
 }
@@ -211,7 +211,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: var(--token-space-2xl) var(--token-space-3xl);
   background: rgba(55, 65, 81, 0.5);
   border-bottom: none;
   min-height: auto;
@@ -231,7 +231,7 @@
 .setting-item.indented {
   padding-left: 3.5rem;
   background: rgba(31, 41, 55, 0.7);
-  margin-left: 1.5rem;
+  margin-left: var(--token-space-3xl);
   margin-right: 0;
   border-left: var(--token-space-sm) solid var(--primary);
   position: relative;
@@ -241,7 +241,7 @@
 /* .setting-item.indented::before {
   content: '';
   position: absolute;
-  left: 1rem;
+  left: var(--token-space-xl);
   top: 50%;
   transform: translateY(-50%);
   width: 6px;
@@ -281,7 +281,7 @@
 
 /* Select Dropdowns */
 .setting-item select {
-  padding: 0.625rem 2.5rem 0.625rem 1rem;
+  padding: 0.625rem 2.5rem 0.625rem var(--token-space-xl);
   background: rgba(31, 41, 55, 0.8);
   border: 1.5px solid rgba(75, 85, 99, 0.8);
   border-radius: 10px;
@@ -381,13 +381,13 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.75rem 0;
-  margin: 0.75rem 0;
+  padding: var(--token-space-lg) 0;
+  margin: var(--token-space-lg) 0;
   text-decoration: none;
   transition: color 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
 }
 
 .link-button:hover {
@@ -409,14 +409,14 @@
   display: flex;
   gap: var(--spacing-md, 1rem);
   margin-top: var(--spacing-md, 1rem);
-  padding: 1.25rem 1.5rem;
+  padding: var(--token-space-2xl) var(--token-space-3xl);
   background: rgba(55, 65, 81, 0.4);
   border-radius: var(--token-space-lg);
   border: 1.5px solid rgba(75, 85, 99, 0.4);
 }
 
 .secondary-button {
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   background: rgba(31, 41, 55, 0.8);
   color: var(--foreground);
   border: 1.5px solid rgba(75, 85, 99, 0.8);
@@ -439,7 +439,7 @@
 }
 
 .danger-button {
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   background: var(--danger, #ef4444);
   color: white;
   border: 1.5px solid var(--danger, #ef4444);
@@ -572,7 +572,7 @@
 .theme-light .setting-item.indented {
   background: var(--input);
   border-left: var(--token-space-sm) solid var(--primary);
-  margin-left: 1.5rem;
+  margin-left: var(--token-space-3xl);
 }
 
 /* Removed blue dot indicator for light mode */
@@ -739,7 +739,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-md, 1rem);
-    padding: 1rem 1.25rem;
+    padding: var(--token-space-xl) var(--token-space-2xl);
   }
 
   .setting-info {
@@ -758,13 +758,13 @@
   }
 
   .setting-item.indented {
-    padding-left: 1.25rem;
+    padding-left: var(--token-space-2xl);
     border-left-width: var(--token-space-xs);
   }
 
   .setting-actions {
     flex-direction: column;
-    padding: 1rem;
+    padding: var(--token-space-xl);
   }
 
   .secondary-button,
@@ -844,17 +844,17 @@
   }
 
   .setting-item {
-    padding: 1.25rem 1.5rem;
+    padding: var(--token-space-2xl) var(--token-space-3xl);
   }
 }
 
 /* Toast Notification */
 .toast {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: var(--token-space-4xl);
+  right: var(--token-space-4xl);
   min-width: 300px;
-  padding: 1rem 1.5rem;
+  padding: var(--token-space-xl) var(--token-space-3xl);
   border-radius: var(--token-space-lg);
   font-size: 0.875rem;
   font-weight: 500;
@@ -862,7 +862,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s;
   z-index: 2000;
@@ -925,7 +925,7 @@
   font-size: 0.8125rem;
   color: var(--primary, #818cf8);
   font-weight: 500;
-  margin-top: 0.5rem;
+  margin-top: var(--token-space-md);
 }
 
 .theme-light,
@@ -953,18 +953,18 @@
 /* Toast Mobile */
 @media (max-width: 640px) {
   .toast {
-    left: 1rem;
-    right: 1rem;
+    left: var(--token-space-xl);
+    right: var(--token-space-xl);
     min-width: unset;
-    bottom: 1rem;
+    bottom: var(--token-space-xl);
   }
 }
 
 /* Install Instructions Box */
 .install-instructions-box {
   font-size: 0.875rem;
-  margin-top: 0.5rem;
-  padding: 0.75rem;
+  margin-top: var(--token-space-md);
+  padding: var(--token-space-lg);
   background: rgba(55, 65, 81, 0.8);
   border-radius: var(--token-space-md);
   border-left: 3px solid #f97316;
@@ -975,12 +975,12 @@
 .install-instructions-title {
   color: var(--muted);
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--token-space-md);
   font-weight: 600;
 }
 
 .install-instructions-text {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--token-space-md) 0;
   color: #e5e7eb;
 }
 

@@ -19,7 +19,7 @@
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--token-space-xl);
 }
 
 /* Tablet breakpoint */
@@ -31,7 +31,7 @@
 
   .app-container {
     max-width: 768px;
-    padding: 0 1.5rem;
+    padding: 0 var(--token-space-3xl);
   }
 }
 
@@ -44,7 +44,7 @@
 
   .app-container {
     max-width: 1200px;
-    padding: 0 2rem;
+    padding: 0 var(--token-space-4xl);
   }
 }
 
@@ -57,7 +57,7 @@
 
   .app-container {
     max-width: 1280px;
-    padding: 0 2rem;
+    padding: 0 var(--token-space-4xl);
   }
 }
 
@@ -67,13 +67,13 @@
 .app-container-wide {
   width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--token-space-xl);
 }
 
 /* Ultra-narrow breakpoint for multi-window monitoring (320px-480px) */
 @media (max-width: 480px) {
   .app-container-wide {
-    padding: 0 0.5rem;
+    padding: 0 var(--token-space-md);
     min-width: 280px; /* Absolute minimum for readability */
   }
 }
@@ -81,21 +81,21 @@
 /* Small mobile optimization (481px-639px) */
 @media (min-width: 481px) and (max-width: 639px) {
   .app-container-wide {
-    padding: 0 0.75rem;
+    padding: 0 var(--token-space-lg);
   }
 }
 
 @media (min-width: 640px) {
   .app-container-wide {
     max-width: 768px;
-    padding: 0 1.5rem;
+    padding: 0 var(--token-space-3xl);
   }
 }
 
 @media (min-width: 1024px) {
   .app-container-wide {
     max-width: 1400px;
-    padding: 0 2rem;
+    padding: 0 var(--token-space-4xl);
   }
 
   .app-container-wide {
@@ -119,20 +119,20 @@
 .app-container-narrow {
   width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--token-space-xl);
 }
 
 @media (min-width: 640px) {
   .app-container-narrow {
     max-width: 600px;
-    padding: 0 1.5rem;
+    padding: 0 var(--token-space-3xl);
   }
 }
 
 @media (min-width: 1024px) {
   .app-container-narrow {
     max-width: 800px;
-    padding: 0 2rem;
+    padding: 0 var(--token-space-4xl);
   }
 }
 
@@ -169,18 +169,18 @@
 
 /* Standard mobile-first spacing */
 .section-spacing {
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 @media (min-width: 640px) {
   .section-spacing {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--token-space-3xl);
   }
 }
 
 @media (min-width: 1024px) {
   .section-spacing {
-    margin-bottom: 2rem;
+    margin-bottom: var(--token-space-4xl);
   }
 }
 

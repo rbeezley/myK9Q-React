@@ -13,7 +13,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   border-radius: var(--token-space-md);
   color: var(--token-text-tertiary);
   transition: all 0.2s;
@@ -29,8 +29,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 2rem;
+  gap: var(--token-space-xl);
+  padding: var(--token-space-4xl);
   text-align: center;
 }
 
@@ -48,8 +48,8 @@
 }
 
 .class-info-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: var(--token-space-3xl);
+  padding-bottom: var(--token-space-xl);
   border-bottom: 1px solid var(--border);
 }
 
@@ -57,19 +57,19 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--foreground);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--token-space-md) 0;
 }
 
 .class-meta {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 .org-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
+  padding: var(--token-space-sm) var(--token-space-lg);
   background: var(--primary);
   color: white;
   border-radius: var(--token-space-lg);
@@ -82,7 +82,7 @@
 .entry-count {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   color: var(--token-text-tertiary);
   font-size: 0.875rem;
   font-weight: 500;
@@ -181,8 +181,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
+  gap: var(--token-space-xl);
+  padding: 3rem var(--token-space-xl);
   text-align: center;
 }
 
@@ -209,7 +209,7 @@
 /* Mobile Responsive */
 @media (max-width: 640px) {
   .dialog-overlay {
-    padding: 0.25rem;
+    padding: var(--token-space-sm);
   }
 
   .dialog-container {
@@ -219,41 +219,41 @@
   }
 
   .dialog-header {
-    padding: 0.75rem;
+    padding: var(--token-space-lg);
   }
 
   .dialog-content {
-    padding: 0.75rem;
+    padding: var(--token-space-lg);
   }
 
 
   .class-info-header {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: var(--token-space-lg);
+    padding-bottom: var(--token-space-md);
   }
 
   .class-title {
     font-size: 1.125rem;
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 var(--token-space-sm) 0;
   }
 
   .class-meta {
     flex-direction: row;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--token-space-lg);
   }
 
   .requirements-grid {
-    gap: 0.5rem;
+    gap: var(--token-space-md);
     grid-template-columns: 1fr 1fr;
   }
 
   .requirement-item {
-    padding: 0.5rem;
+    padding: var(--token-space-md);
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
 
   .requirement-icon {
@@ -263,7 +263,7 @@
 
   .requirement-content label {
     font-size: 0.75rem;
-    margin-bottom: 0.125rem;
+    margin-bottom: var(--token-space-xs);
   }
 
   .requirement-content value {
@@ -272,7 +272,7 @@
   }
 
   .org-badge {
-    padding: 0.125rem 0.5rem;
+    padding: var(--token-space-xs) var(--token-space-md);
     font-size: 0.625rem;
   }
 

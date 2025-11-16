@@ -8,15 +8,15 @@
 .scoresheet-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 1rem;
+  padding: var(--token-space-xl);
 }
 
 .scoresheet-card {
   background: white;
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-sm) 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+  padding: var(--token-space-3xl);
+  margin-bottom: var(--token-space-xl);
 }
 
 /* Common Header Styles */
@@ -24,8 +24,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: var(--token-space-3xl);
+  padding-bottom: var(--token-space-xl);
   border-bottom: var(--token-space-xs) solid #e5e7eb;
 }
 
@@ -38,12 +38,12 @@
 .scoresheet-subtitle {
   font-size: 0.875rem;
   color: var(--muted-foreground);
-  margin-top: 0.25rem;
+  margin-top: var(--token-space-sm);
 }
 
 /* Common Button Styles */
 .scoresheet-btn {
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   border-radius: var(--token-space-md);
   font-weight: 600;
   transition: all 0.2s;
@@ -92,7 +92,7 @@
 /* Common Form Input Styles */
 .scoresheet-input {
   width: 100%;
-  padding: 0.75rem;
+  padding: var(--token-space-lg);
   border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-md);
   font-size: 1rem;
@@ -108,7 +108,7 @@
   display: block;
   font-weight: 600;
   color: var(--token-text-secondary);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--token-space-md);
 }
 
 /* Common Timer Styles */
@@ -117,7 +117,7 @@
   font-weight: 700;
   font-family: 'Courier New', monospace;
   text-align: center;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   background: var(--input);
   border-radius: var(--token-space-md);
 }
@@ -136,7 +136,7 @@
 .scoresheet-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: var(--token-space-md) var(--token-space-xl);
   border-radius: 9999px;
   font-weight: 600;
   font-size: 0.875rem;
@@ -161,13 +161,13 @@
 .scoresheet-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 .scoresheet-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 @media (max-width: 768px) {
@@ -195,21 +195,21 @@
 
 /* Common Section Styles */
 .scoresheet-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .scoresheet-section-title {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--foreground);
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--token-space-lg);
 }
 
 /* Common Alert Styles */
 .scoresheet-alert {
-  padding: 1rem;
+  padding: var(--token-space-xl);
   border-radius: var(--token-space-md);
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 .scoresheet-alert-info {

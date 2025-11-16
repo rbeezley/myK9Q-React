@@ -80,7 +80,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.75rem;
+  padding: var(--token-space-lg);
   color: var(--secondary-foreground);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -118,7 +118,7 @@
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + var(--token-space-md));
   right: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -133,8 +133,8 @@
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-xl);
   cursor: pointer;
   font-size: 0.875rem;
   color: var(--foreground);
@@ -377,10 +377,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: var(--token-space-sm);
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
   color: white;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem var(--token-space-lg);
   border-radius: var(--token-space-md);
   font-size: 0.75rem;
   font-weight: 600;
@@ -429,8 +429,8 @@
 
 .position-number {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: -var(--token-space-xs);
+  right: -var(--token-space-xs);
   background: white;
   color: #FFA500;
   font-size: 0.625rem;
@@ -505,7 +505,7 @@
 }
 
 .class-type {
-  margin: 0.125rem 0;
+  margin: var(--token-space-xs) 0;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--token-text-secondary);
@@ -737,7 +737,7 @@
 .nav-label {
   font-size: 0.75rem;
   font-weight: 500;
-  margin-top: 0.125rem;
+  margin-top: var(--token-space-xs);
 }
 
 /* ========== LOADING & ERROR STATES ========== */

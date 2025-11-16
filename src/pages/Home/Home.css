@@ -42,7 +42,7 @@
 .header-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
 }
 
 .header-center {
@@ -520,7 +520,7 @@
   border: none;
   color: var(--muted-foreground);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
   display: flex;
@@ -548,7 +548,7 @@
 }
 
 .search-results-header {
-  padding: 0.5rem 1.5rem;
+  padding: var(--token-space-md) var(--token-space-3xl);
   background: var(--muted);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -571,7 +571,7 @@
 .search-sort-container.expanded {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
 }
 
 .search-sort-container > * {
@@ -596,7 +596,7 @@
 
 .search-input-full {
   width: 100%;
-  padding: 0.5rem 0.5rem 0.5rem 2.25rem;
+  padding: var(--token-space-md) var(--token-space-md) var(--token-space-md) 2.25rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--background);
@@ -613,12 +613,12 @@
 
 .clear-search-btn {
   position: absolute;
-  right: 0.5rem;
+  right: var(--token-space-md);
   background: none;
   border: none;
   color: var(--muted-foreground);
   cursor: pointer;
-  padding: 0.25rem;
+  padding: var(--token-space-sm);
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
@@ -635,7 +635,7 @@
 /* Local overrides only if needed */
 
 .sort-btn.favorites-btn {
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   flex-shrink: 0;
 }
 
@@ -700,11 +700,11 @@
 .favorites-filter-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   background: transparent;
   border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-radius-lg);
-  padding: 0.5rem 1rem;
+  padding: var(--token-space-md) var(--token-space-xl);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--token-text-secondary);
@@ -791,7 +791,7 @@
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
-  padding: 0.875rem 1rem;
+  padding: 0.875rem var(--token-space-xl);
   cursor: pointer;
   transition: all var(--token-transition-slow);
   box-shadow: var(--token-shadow-md);
@@ -856,7 +856,7 @@
 }
 
 .entry-name {
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 var(--token-space-sm) 0;
   font-size: 0.9375rem;
   font-weight: 590;
   color: var(--foreground);
@@ -870,7 +870,7 @@
 }
 
 .entry-breed {
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 var(--token-space-sm) 0;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--token-text-secondary);
@@ -907,7 +907,7 @@
   background: transparent;
   border: var(--token-space-xs) solid transparent;
   border-radius: 0.5rem;
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -973,11 +973,11 @@
 }
 
 .loading-skeleton {
-  padding: 1rem 0;
+  padding: var(--token-space-xl) 0;
 }
 
 .skeleton-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .skeleton-text {
@@ -999,7 +999,7 @@
 
 .skeleton-grid {
   display: grid;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   grid-template-columns: 1fr;
 }
 
@@ -1008,7 +1008,7 @@
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
-  padding: 0.875rem 1rem;
+  padding: 0.875rem var(--token-space-xl);
   box-shadow: var(--token-shadow-md);
 }
 
@@ -1041,7 +1041,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--token-space-sm);
 }
 
 .skeleton-name {

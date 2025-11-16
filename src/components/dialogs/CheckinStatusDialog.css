@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: var(--token-space-xl);
 }
 
 
@@ -17,14 +17,14 @@
 .status-dialog-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
   width: 100%;
 }
 
 .status-dialog-entry {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
 }
 
 .status-dialog-entry .armband-badge {
@@ -35,7 +35,7 @@
 .status-dialog-details {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--token-space-xs);
   min-width: 0;
   flex: 1;
 }
@@ -106,8 +106,8 @@
 .status-options-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem 1rem 1rem;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
 }
 
 .status-option {
@@ -259,7 +259,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  padding: 0.75rem 1rem 1rem 1rem;
+  padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
 }
 
 @media (min-width: 640px) {

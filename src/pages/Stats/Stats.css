@@ -50,7 +50,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.75rem;
+  padding: var(--token-space-lg);
   color: var(--secondary-foreground);
   cursor: pointer;
   transition: all 0.2s ease;

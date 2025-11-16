@@ -17,7 +17,7 @@
 
 /* Timer Section - Enhanced */
 .timer-section h3 {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   font-size: 1.25rem;
   font-weight: 650;
   color: var(--foreground);
@@ -30,26 +30,26 @@
 
 /* Score Section - Enhanced */
 .score-section h3 {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   font-size: 1.25rem;
   font-weight: 650;
   color: var(--foreground);
   letter-spacing: -0.02em;
   border-bottom: var(--token-space-xs) solid rgba(255, 107, 107, 0.2);
-  padding-bottom: 0.75rem;
+  padding-bottom: var(--token-space-lg);
 }
 
 .score-inputs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: var(--token-space-3xl);
+  margin-bottom: var(--token-space-3xl);
 }
 
 .score-input {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--token-space-md);
 }
 
 .score-input label {
@@ -64,7 +64,7 @@
   background: var(--input);
   border: 0;
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   font-size: 1.125rem;
   color: var(--foreground);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -89,15 +89,15 @@
 /* Final Score Display */
 .final-score {
   text-align: center;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 142, 83, 0.1) 100%);
   border-radius: 1rem;
   border: var(--token-space-xs) solid rgba(255, 107, 107, 0.3);
-  margin-top: 1.5rem;
+  margin-top: var(--token-space-3xl);
 }
 
 .final-score h3 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--token-space-md) 0;
   font-size: 2rem;
   color: #FF6B6B;
   font-family: -apple-system-ui-monospaced, 'SF Mono', Monaco, 'Menlo', 'Consolas', monospace;
@@ -108,7 +108,7 @@
 }
 
 .qualifying-status {
-  margin: 0.5rem 0 0 0;
+  margin: var(--token-space-md) 0 0 0;
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -124,7 +124,7 @@
 }
 
 .course-time {
-  margin: 0.75rem 0 0 0;
+  margin: var(--token-space-lg) 0 0 0;
   font-size: 0.875rem;
   color: #FF6B6B;
   font-weight: 500;
@@ -136,10 +136,10 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
-  margin: 1.5rem 0;
+  margin: var(--token-space-3xl) 0;
 }
 
 .theme-dark .qualifying-section {
@@ -151,7 +151,7 @@
   display: block;
   font-size: 0.75rem;
   color: var(--text-tertiary);
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -160,11 +160,11 @@
 .qualifying-buttons {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
 }
 
 .qual-button {
-  padding: 1rem 0.75rem;
+  padding: var(--token-space-xl) var(--token-space-lg);
   font-size: 1rem;
   font-weight: 700;
   border: 1px solid var(--border);
@@ -205,10 +205,10 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
-  margin: 1.5rem 0;
+  margin: var(--token-space-3xl) 0;
   animation: slideIn 0.3s ease;
 }
 
@@ -232,7 +232,7 @@
   display: block;
   font-size: 0.75rem;
   color: var(--text-tertiary);
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--token-space-lg);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -243,7 +243,7 @@
   background: var(--input);
   border: 0;
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   font-size: 1rem;
   color: var(--foreground);
   resize: vertical;
@@ -264,14 +264,14 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   align-items: center;
-  margin-top: 1.5rem;
+  margin-top: var(--token-space-3xl);
 }
 
 .theme-dark .action-buttons {
@@ -283,7 +283,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.875rem var(--token-space-3xl);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -309,7 +309,7 @@
   color: white;
   border: none;
   border-radius: 0.75rem;
-  padding: 1rem 2rem;
+  padding: var(--token-space-xl) var(--token-space-4xl);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -359,7 +359,7 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 1.25rem;
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
@@ -385,7 +385,7 @@
 }
 
 .confirmation-dialog h2 {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   font-size: 1.5rem;
   font-weight: 650;
   color: var(--foreground);
@@ -393,11 +393,11 @@
 }
 
 .confirmation-details {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .confirmation-details p {
-  margin: 0.75rem 0;
+  margin: var(--token-space-lg) 0;
   font-size: 0.9375rem;
   color: var(--token-text-secondary);
   line-height: 1.4;
@@ -410,12 +410,12 @@
 
 .confirmation-buttons {
   display: flex;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   justify-content: flex-end;
 }
 
 .confirmation-buttons button {
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   font-size: 1rem;
   border-radius: 0.75rem;
   cursor: pointer;
@@ -451,7 +451,7 @@
 @media (max-width: 768px) {
   .score-inputs {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: var(--token-space-xl);
   }
   
   .final-score h3 {
@@ -460,7 +460,7 @@
   
   .qualifying-buttons {
     grid-template-columns: 1fr;
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
   
   .action-buttons {
@@ -489,6 +489,6 @@
   }
   
   .confirmation-dialog {
-    padding: 1.5rem;
+    padding: var(--token-space-3xl);
   }
 }

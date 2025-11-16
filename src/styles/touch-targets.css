@@ -63,7 +63,7 @@
 .touch-target-xl {
   min-width: var(--touch-target-xl);
   min-height: var(--touch-target-xl);
-  padding: 18px 28px;
+  padding: 1var(--token-space-md) 2var(--token-space-md);
 }
 
 /**
@@ -154,9 +154,9 @@
  * iOS safe areas
  */
 .thumb-zone-safe {
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
-  padding-left: max(16px, env(safe-area-inset-left));
-  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(var(--token-space-xl), env(safe-area-inset-bottom));
+  padding-left: max(var(--token-space-xl), env(safe-area-inset-left));
+  padding-right: max(var(--token-space-xl), env(safe-area-inset-right));
 }
 
 /**

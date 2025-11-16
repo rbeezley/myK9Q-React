@@ -13,13 +13,13 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--token-space-xl);
 }
 
 /* Hamburger menu container */
 .tv-runorder-menu {
   flex-shrink: 0;
-  padding-left: 0.5rem;
+  padding-left: var(--token-space-md);
 }
 
 /* Announcement ticker (takes remaining space) */
@@ -35,8 +35,8 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 1rem;
-  padding: 1rem;
+  gap: var(--token-space-xl);
+  padding: var(--token-space-xl);
   overflow: hidden;
 }
 
@@ -56,14 +56,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   text-align: center;
 }
 
 .tv-runorder-empty h1 {
   font-size: 2.5rem;
   font-weight: 600;
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--token-space-xl) 0;
   color: var(--foreground);
 }
 
@@ -80,14 +80,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   text-align: center;
 }
 
 .tv-runorder-error h1 {
   font-size: 2.5rem;
   font-weight: 600;
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--token-space-xl) 0;
   color: var(--destructive);
 }
 

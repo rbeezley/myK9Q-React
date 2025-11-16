@@ -13,9 +13,9 @@
 
 .passcode-inputs {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
 }
 
 .input-wrapper {
@@ -101,7 +101,7 @@
   color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 0.75rem;
+  margin-top: var(--token-space-lg);
 }
 
 .reset-button:hover {
@@ -148,6 +148,6 @@
   }
 
   .passcode-inputs {
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
 }

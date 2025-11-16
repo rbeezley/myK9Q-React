@@ -84,7 +84,7 @@
   left: 0;
   right: 0;
   padding: var(--token-space-xl);
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-bottom: max(var(--token-space-xl), env(safe-area-inset-bottom));
   background: white;
   border-top: 1px solid var(--border);
   box-shadow: 0 -2px var(--token-space-md) rgba(0, 0, 0, 0.1);
@@ -93,7 +93,7 @@
 
 /* Ensure content doesn't hide behind fixed actions */
 .one-handed-mode .content-with-actions {
-  padding-bottom: 88px; /* FAB size + padding + safe area */
+  padding-bottom: 8var(--token-space-md); /* FAB size + padding + safe area */
 }
 
 /* ============================================

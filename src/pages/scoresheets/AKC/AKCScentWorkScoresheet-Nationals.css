@@ -337,7 +337,7 @@
 @media (min-width: 769px) and (max-width: 1024px) {
   .nationals-controls {
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    gap: 1var(--token-space-sm);
   }
 
   .counter-controls {

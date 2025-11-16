@@ -16,8 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
-  margin: 1.5rem 0;
+  gap: var(--token-space-4xl);
+  margin: var(--token-space-3xl) 0;
 }
 
 .fault-btn {
@@ -60,20 +60,20 @@
   font-size: 3rem;
   font-weight: bold;
   min-width: 100px;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   background: var(--color-muted, #f3f4f6);
   border-radius: var(--token-space-lg);
   color: var(--color-text, #333);
 }
 
 .fault-info {
-  margin-top: 1rem;
+  margin-top: var(--token-space-xl);
   font-size: 0.95rem;
   color: var(--color-text-secondary, #6b7280);
 }
 
 .fault-info .info-text {
-  padding: 0.5rem 1rem;
+  padding: var(--token-space-md) var(--token-space-xl);
   border-radius: var(--token-space-md);
   background: var(--color-muted, #f3f4f6);
 }
@@ -89,8 +89,8 @@
   font-size: 2rem;
   font-weight: bold;
   text-align: center;
-  margin-top: 1rem;
-  padding: 1rem;
+  margin-top: var(--token-space-xl);
+  padding: var(--token-space-xl);
   background: var(--color-muted, #f3f4f6);
   border-radius: var(--token-space-lg);
   color: var(--color-primary, #6366f1);
@@ -100,12 +100,12 @@
 .qualifying-options {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--token-space-xl);
+  margin-top: var(--token-space-xl);
 }
 
 .result-chip {
-  padding: 1rem;
+  padding: var(--token-space-xl);
   border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
   border-radius: var(--token-space-lg);
   background: var(--color-background, white);
@@ -134,19 +134,19 @@
 
 /* NQ Reason Input */
 .nq-reason {
-  margin-top: 1.5rem;
+  margin-top: var(--token-space-3xl);
 }
 
 .nq-reason label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--token-space-md);
   font-weight: 600;
   color: var(--color-text, #333);
 }
 
 .nq-reason input {
   width: 100%;
-  padding: 0.75rem;
+  padding: var(--token-space-lg);
   border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
   border-radius: var(--token-space-md);
   font-size: 1rem;
@@ -178,32 +178,32 @@
 .confirmation-dialog {
   background: var(--color-background, white);
   border-radius: var(--token-space-xl);
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
   box-shadow: 0 var(--token-space-2xl) 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .confirmation-dialog h2 {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   color: var(--color-text, #333);
 }
 
 .confirmation-details {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  margin-bottom: var(--token-space-3xl);
+  padding: var(--token-space-xl);
   background: var(--color-muted, #f3f4f6);
   border-radius: var(--token-space-md);
 }
 
 .confirmation-details p {
-  margin: 0.5rem 0;
+  margin: var(--token-space-md) 0;
   color: var(--color-text, #333);
 }
 
 .confirmation-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   justify-content: flex-end;
 }
 
@@ -255,7 +255,7 @@
 /* Responsive Design */
 @media (max-width: 640px) {
   .fault-counter {
-    gap: 1rem;
+    gap: var(--token-space-xl);
   }
 
   .fault-btn {

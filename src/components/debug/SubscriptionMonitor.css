@@ -27,8 +27,8 @@
 
 .subscription-monitor-toggle .leak-indicator {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -var(--token-space-sm);
+  right: -var(--token-space-sm);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -44,11 +44,11 @@
 
 .subscription-monitor-toggle .count-badge {
   position: absolute;
-  bottom: -4px;
-  right: -4px;
+  bottom: -var(--token-space-sm);
+  right: -var(--token-space-sm);
   min-width: 20px;
   height: 20px;
-  padding: 0 4px;
+  padding: 0 var(--token-space-sm);
   border-radius: 10px;
   background: var(--badge-bg);
   color: var(--badge-text);

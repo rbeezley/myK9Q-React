@@ -87,7 +87,7 @@
 .app-container {
   min-height: 100vh;
   background: var(--background);
-  padding-bottom: 2rem;
+  padding-bottom: var(--token-space-4xl);
 }
 
 /* Loaded state - enables smooth transitions after content loads */
@@ -104,7 +104,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.75rem;
+  padding: var(--token-space-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -136,7 +136,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: var(--token-space-md);
   background: transparent;
   border: none;
   border-radius: 0.5rem;
@@ -169,7 +169,7 @@
   right: 1.75rem;
   top: 50%;
   transform: translateY(-50%);
-  padding: 0.25rem;
+  padding: var(--token-space-sm);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -220,7 +220,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   transition: all 0.2s ease;
 }
 
@@ -244,7 +244,7 @@
 .badge-base {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
+  padding: var(--token-space-sm) var(--token-space-lg);
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -422,11 +422,11 @@
    ================================================================= */
 
 .section-spacing {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .section-padding {
-  padding: 1rem;
+  padding: var(--token-space-xl);
 }
 
 /* =================================================================

@@ -20,10 +20,10 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
-  margin: 1.5rem 0;
+  margin: var(--token-space-3xl) 0;
 }
 
 .theme-dark .scoring-form {
@@ -32,18 +32,18 @@
 }
 
 .scoring-form h3 {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   font-size: 1.25rem;
   font-weight: 650;
   color: var(--foreground);
   letter-spacing: -0.02em;
   border-bottom: var(--token-space-xs) solid rgba(102, 126, 234, 0.2);
-  padding-bottom: 0.75rem;
+  padding-bottom: var(--token-space-lg);
 }
 
 /* Score Input Section */
 .score-input-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .score-input-section label {
@@ -53,7 +53,7 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--token-space-md);
 }
 
 .points-input {
@@ -61,7 +61,7 @@
   background: var(--input);
   border: 0;
   border-radius: 0.75rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   font-size: 2rem;
   color: var(--foreground);
   text-align: center;
@@ -86,7 +86,7 @@
 .max-points {
   display: block;
   text-align: center;
-  margin-top: 0.5rem;
+  margin-top: var(--token-space-md);
   font-size: 0.875rem;
   color: var(--token-text-secondary);
   font-weight: 500;
@@ -97,10 +97,10 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
-  margin: 1.5rem 0;
+  margin: var(--token-space-3xl) 0;
 }
 
 .theme-dark .qualifying-section {
@@ -112,7 +112,7 @@
   display: block;
   font-size: 0.75rem;
   color: var(--text-tertiary);
-  margin-bottom: 1rem;
+  margin-bottom: var(--token-space-xl);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -121,11 +121,11 @@
 .qualifying-buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: var(--token-space-lg);
 }
 
 .qual-button {
-  padding: 1rem 0.5rem;
+  padding: var(--token-space-xl) var(--token-space-md);
   font-size: 1rem;
   font-weight: 700;
   border: 1px solid var(--border);
@@ -178,10 +178,10 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
-  margin: 1.5rem 0;
+  margin: var(--token-space-3xl) 0;
   animation: slideIn 0.3s ease;
 }
 
@@ -205,7 +205,7 @@
   display: block;
   font-size: 0.75rem;
   color: var(--text-tertiary);
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--token-space-lg);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -216,7 +216,7 @@
   background: var(--input);
   border: 0;
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: var(--token-space-xl);
   font-size: 1rem;
   color: var(--foreground);
   resize: vertical;
@@ -237,14 +237,14 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   align-items: center;
-  margin-top: 1.5rem;
+  margin-top: var(--token-space-3xl);
 }
 
 .theme-dark .action-buttons {
@@ -256,7 +256,7 @@
   background: var(--secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.875rem var(--token-space-3xl);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -282,7 +282,7 @@
   color: white;
   border: none;
   border-radius: 0.75rem;
-  padding: 1rem 2rem;
+  padding: var(--token-space-xl) var(--token-space-4xl);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -332,7 +332,7 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 1.25rem;
-  padding: 2rem;
+  padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
@@ -358,7 +358,7 @@
 }
 
 .confirmation-dialog h2 {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--token-space-3xl) 0;
   font-size: 1.5rem;
   font-weight: 650;
   color: var(--foreground);
@@ -366,11 +366,11 @@
 }
 
 .confirmation-details {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--token-space-3xl);
 }
 
 .confirmation-details p {
-  margin: 0.75rem 0;
+  margin: var(--token-space-lg) 0;
   font-size: 0.9375rem;
   color: var(--token-text-secondary);
   line-height: 1.4;
@@ -383,12 +383,12 @@
 
 .confirmation-buttons {
   display: flex;
-  gap: 1rem;
+  gap: var(--token-space-xl);
   justify-content: flex-end;
 }
 
 .confirmation-buttons button {
-  padding: 0.75rem 1.5rem;
+  padding: var(--token-space-lg) var(--token-space-3xl);
   font-size: 1rem;
   border-radius: 0.75rem;
   cursor: pointer;
@@ -423,13 +423,13 @@
 /* No Entries State */
 .no-entries {
   text-align: center;
-  padding: 3rem 2rem;
+  padding: 3rem var(--token-space-4xl);
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 1rem;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border);
-  margin: 2rem;
+  margin: var(--token-space-4xl);
 }
 
 .theme-dark .no-entries {
@@ -438,26 +438,26 @@
 }
 
 .no-entries h2 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--token-space-xl) 0;
   font-size: 1.25rem;
   font-weight: 650;
   color: var(--foreground);
 }
 
 .no-entries button {
-  margin-top: 1rem;
+  margin-top: var(--token-space-xl);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .points-input {
     font-size: 1.75rem;
-    padding: 1.25rem;
+    padding: var(--token-space-2xl);
   }
   
   .qualifying-buttons {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
   
   .action-buttons {
@@ -482,7 +482,7 @@
   
   .qualifying-buttons {
     grid-template-columns: 1fr;
-    gap: 0.5rem;
+    gap: var(--token-space-md);
   }
   
   .qual-button {
@@ -491,6 +491,6 @@
   }
   
   .confirmation-dialog {
-    padding: 1.5rem;
+    padding: var(--token-space-3xl);
   }
 }
