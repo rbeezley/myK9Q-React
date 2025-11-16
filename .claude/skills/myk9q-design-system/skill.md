@@ -238,6 +238,7 @@ This skill includes:
 - `component-patterns.md` - Library of established UI patterns
 - `status-colors.md` - Status color system and usage
 - `responsive-guidelines.md` - Responsive design rules and testing
+- `escape-hatches.md` - When and how to deviate from design system
 
 ### assets/
 - `card-template.tsx` - Card component template
@@ -256,8 +257,42 @@ This skill includes:
 
 1. **Before starting work**: Reference relevant guides and patterns
 2. **During development**: Use templates and follow architecture rules
-3. **Before committing**: Run applicable checklists
+3. **Before committing**: Run applicable checklists + `npm run audit:design`
 4. **During code review**: Verify compliance with design system
+
+## Automated Auditing
+
+The skill includes an automated audit tool to find design system violations:
+
+```bash
+# Run design system audit
+npm run audit:design
+```
+
+**What it checks:**
+- ❌ Hardcoded colors (use CSS variables instead)
+- ❌ Hardcoded spacing (use design tokens instead)
+- ❌ !important usage (except in utilities.css)
+- ❌ Hardcoded z-index values (use z-index tokens)
+- ❌ Non-standard breakpoints (use 640px, 1024px, 1440px)
+- ❌ Desktop-first approach (use mobile-first min-width)
+- ❌ Duplicate media query blocks (consolidate per breakpoint)
+
+**Example output:**
+```
+🎨 myK9Q Design System Audit Report
+================================================================================
+📁 /src/pages/ClassList/ClassList.css
+  Line 45: Use CSS variable (e.g., var(--foreground)) instead of hardcoded color
+  background: #ffffff
+
+📊 Summary:
+  🟢 hardcoded-color: 1
+  🟡 hardcoded-spacing: 8
+  Total violations: 9
+```
+
+See `tools/README.md` for more details.
 
 ## Tips for Success
 

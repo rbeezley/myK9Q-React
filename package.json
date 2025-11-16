@@ -14,7 +14,8 @@
     "test:offline-first": "vitest run --coverage useOptimisticScoring EntryList offline-first-pattern-consistency",
     "setup": "node scripts/setup-dev.cjs",
     "install-hooks": "node scripts/install-git-hooks.cjs",
-    "postinstall": "node scripts/install-git-hooks.cjs"
+    "postinstall": "node scripts/install-git-hooks.cjs",
+    "audit:design": "node .claude/skills/myk9q-design-system/tools/audit-design-system.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

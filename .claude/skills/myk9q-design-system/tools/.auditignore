@@ -1,0 +1,25 @@
+# Design System Audit Ignore File
+#
+# Use this file to document and ignore legitimate design system violations.
+# Format: filename:line-number:reason
+# OR: filename:pattern:reason (to ignore all instances in a file)
+#
+# Example:
+# src/components/ThirdPartyWidget.css:45:Third-party library requires exact RGB value
+# src/components/LegacyComponent.css:*:Legacy component - scheduled for refactor in Q2
+# src/styles/animations.css:hardcoded-spacing:Precise animation timing required
+
+# Third-party integrations
+# Add third-party CSS files here
+
+# Browser-specific workarounds
+# Document browser bugs that require specific values
+
+# Legacy components (migration in progress)
+# Track components being migrated to design system
+
+# Designer-approved exceptions
+# Document intentional deviations from design system
+
+# Performance optimizations
+# Document cases where specific values improve performance
