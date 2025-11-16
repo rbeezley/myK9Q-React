@@ -8,7 +8,7 @@
  * - Maintains compatibility with regular shows
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
 import { useSettingsStore } from '../../../stores/settingsStore';
@@ -308,7 +308,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     return '3:00';
   };
 
-  const getMaxTimeForArea = (areaIndex: number, entry?: any): string => {
+  const getMaxTimeForArea = useCallback((areaIndex: number, entry?: any): string => {
     const targetEntry = entry || currentEntry;
     if (!targetEntry) {
       // For sample/test mode, use default times
@@ -348,7 +348,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
 
     return maxTime;
-  };
+  }, [currentEntry]);
 
   // Automatic penalty for excused dogs
   useEffect(() => {
@@ -1069,6 +1069,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         element: classData.element,
         level: classData.level,
         section: classData.section,
+        timeLimit: classData.time_limit_seconds ? String(classData.time_limit_seconds) : undefined,
+        timeLimit2: classData.time_limit_area2_seconds ? String(classData.time_limit_area2_seconds) : undefined,
+        timeLimit3: classData.time_limit_area3_seconds ? String(classData.time_limit_area3_seconds) : undefined,
       }));
 
       setEntries(transformedEntries);
