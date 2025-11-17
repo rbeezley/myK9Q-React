@@ -492,11 +492,8 @@
   }
 }
 
-@media (max-width: 640px) {
-  .type-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Mobile-specific adjustments - already handled via mobile-first base styles above */
+/* The .type-grid already uses 1fr on mobile, enhanced to multi-column on desktop */
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {

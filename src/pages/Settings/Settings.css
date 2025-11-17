@@ -714,74 +714,144 @@
   color: var(--token-text-tertiary);
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive - Mobile First */
+/* Mobile base styles */
+.settings-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--token-space-xl);
+  margin-bottom: var(--token-space-3xl);
+}
+
+.settings-header h1 {
+  font-size: 1.75rem;
+}
+
+.reset-all-btn {
+  width: 100%;
+}
+
+.settings-section h2 {
+  font-size: 1rem;
+}
+
+.setting-item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--token-space-xl);
+  padding: var(--token-space-xl) var(--token-space-2xl);
+}
+
+.setting-info {
+  margin-right: 0;
+  width: 100%;
+}
+
+.setting-item select,
+.toggle-switch {
+  align-self: flex-end;
+}
+
+.setting-item select {
+  min-width: auto;
+  width: 100%;
+}
+
+.setting-item.indented {
+  padding-left: var(--token-space-2xl);
+  border-left-width: var(--token-space-xs);
+}
+
+.setting-actions {
+  flex-direction: column;
+  padding: var(--token-space-xl);
+}
+
+.secondary-button,
+.danger-button {
+  width: 100%;
+}
+
+.modal-content {
+  padding: var(--token-space-3xl);
+}
+
+.modal-actions {
+  flex-direction: column-reverse;
+}
+
+.modal-actions button {
+  width: 100%;
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .settings-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--token-space-xl);
-    margin-bottom: var(--token-space-3xl);
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0;
   }
 
   .settings-header h1 {
-    font-size: 1.75rem;
+    font-size: 1.125rem;
   }
 
   .reset-all-btn {
-    width: 100%;
+    width: auto;
   }
 
   .settings-section h2 {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 
   .setting-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--token-space-xl);
-    padding: var(--token-space-xl) var(--token-space-2xl);
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding: var(--token-space-2xl) var(--token-space-3xl);
   }
 
   .setting-info {
-    margin-right: 0;
-    width: 100%;
+    margin-right: var(--token-space-3xl);
+    width: auto;
   }
 
   .setting-item select,
   .toggle-switch {
-    align-self: flex-end;
+    align-self: auto;
   }
 
   .setting-item select {
-    min-width: auto;
-    width: 100%;
+    min-width: 200px;
+    width: auto;
   }
 
   .setting-item.indented {
-    padding-left: var(--token-space-2xl);
-    border-left-width: var(--token-space-xs);
+    padding-left: 3.5rem;
+    border-left-width: var(--token-space-sm);
   }
 
   .setting-actions {
-    flex-direction: column;
-    padding: var(--token-space-xl);
+    flex-direction: row;
+    padding: var(--token-space-2xl) var(--token-space-3xl);
   }
 
   .secondary-button,
   .danger-button {
-    width: 100%;
+    width: auto;
   }
 
   .modal-content {
-    padding: var(--token-space-3xl);
+    padding: var(--token-space-4xl);
   }
 
   .modal-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;
   }
 
   .modal-actions button {
-    width: 100%;
+    width: auto;
   }
 }
 
@@ -950,13 +1020,22 @@
   }
 }
 
-/* Toast Mobile */
-@media (max-width: 640px) {
+/* Toast - Mobile First */
+/* Mobile base styles */
+.toast {
+  left: var(--token-space-xl);
+  right: var(--token-space-xl);
+  min-width: unset;
+  bottom: var(--token-space-xl);
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .toast {
-    left: var(--token-space-xl);
-    right: var(--token-space-xl);
-    min-width: unset;
-    bottom: var(--token-space-xl);
+    left: auto;
+    right: var(--token-space-4xl);
+    min-width: 300px;
+    bottom: var(--token-space-4xl);
   }
 }
 

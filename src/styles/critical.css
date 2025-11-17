@@ -80,41 +80,44 @@ body {
 }
 
 /* Container - Above the fold */
+/* Mobile-first: smaller padding for mobile */
 .container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);
 }
 
 /* Card - Common component */
+/* Mobile-first: smaller padding for mobile */
 .card {
   background: white;
   border-radius: var(--token-space-lg);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: var(--token-space-3xl);
+  padding: var(--token-space-xl);
   margin-bottom: var(--token-space-xl);
 }
 
 /* Typography - Critical for content */
+/* Mobile-first: smaller font sizes for mobile */
 h1, h2, h3, h4, h5, h6 {
   color: var(--foreground);
   font-weight: 700;
 }
 
-h1 { font-size: 2rem; }
-h2 { font-size: 1.5rem; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.25rem; }
 h3 { font-size: 1.25rem; }
 
-/* Mobile Optimizations */
-@media (max-width: 768px) {
+/* Desktop enhancements */
+@media (min-width: 768px) {
   .container {
-    padding: var(--token-space-lg);
-  }
-
-  .card {
     padding: var(--token-space-xl);
   }
 
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
+  .card {
+    padding: var(--token-space-3xl);
+  }
+
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
 }

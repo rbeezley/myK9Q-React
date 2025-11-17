@@ -357,6 +357,26 @@ input:checked + .slider:before {
 }
 
 /* Responsive Design - Mobile First */
+/* Mobile base styles */
+.request-content {
+  flex-direction: column;
+  text-align: center;
+}
+
+.request-text {
+  text-align: center;
+}
+
+.permission-blocked {
+  flex-direction: column;
+  text-align: center;
+}
+
+.time-inputs {
+  flex-direction: column;
+}
+
+/* Desktop enhancements */
 @media (min-width: 640px) {
   .notification-settings {
     padding: var(--token-space-2xl);  /* Desktop: larger padding */
@@ -368,24 +388,22 @@ input:checked + .slider:before {
     align-items: center;  /* Desktop: center alignment */
     gap: 0;  /* Desktop: no gap needed */
   }
-}
 
-@media (max-width: 640px) {
   .request-content {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
   }
 
   .request-text {
-    text-align: center;
+    text-align: left;
   }
 
   .permission-blocked {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
   }
 
   .time-inputs {
-    flex-direction: column;
+    flex-direction: row;
   }
 }

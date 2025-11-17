@@ -323,17 +323,18 @@
   .mobile-simple * {
     animation-duration: 0.3s;  /* Desktop: Standard animation duration */
   }
-}
 
-/* Medium screens (tablet) */
-@media (min-width: 640px) and (max-width: 1024px) {
   .tablet-optimized {
-    /* Moderate effects */
+    /* Moderate effects for tablets */
   }
 }
 
-/* Large screens (desktop) */
+/* Large screens (desktop) - additional enhancements */
 @media (min-width: 1024px) {
+  .tablet-optimized {
+    /* Remove tablet-specific optimizations on desktop */
+  }
+
   .desktop-enhanced {
     /* Full effects on desktop */
   }

@@ -425,8 +425,9 @@
   }
 }
 
-/* Performance Mode for Older Devices */
-@media (max-width: 640px) and (max-resolution: 150dpi) {
+/* Performance Mode for Older Devices - Mobile First */
+/* Only disable filters on mobile with low-res screens for performance */
+@media (max-resolution: 150dpi) {
   .apple-card,
   .entry-card {
     backdrop-filter: none;
@@ -435,6 +436,19 @@
 
   .apple-header {
     backdrop-filter: none;
+  }
+}
+
+/* Re-enable on desktop even with low-res screens */
+@media (min-width: 640px) and (max-resolution: 150dpi) {
+  .apple-card,
+  .entry-card {
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--token-shadow-sm);
+  }
+
+  .apple-header {
+    backdrop-filter: var(--glass-blur);
   }
 }
 
