@@ -12,21 +12,23 @@
   text-align: center;
 }
 
+/* Mobile: Tighter spacing */
 .fault-counter {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--token-space-4xl);
+  gap: var(--token-space-xl);
   margin: var(--token-space-3xl) 0;
 }
 
+/* Mobile: Smaller button size */
 .fault-btn {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
   background: var(--color-background, white);
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
@@ -56,10 +58,11 @@
   border-color: var(--color-success, #10b981);
 }
 
+/* Mobile: Smaller count display */
 .fault-count {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: bold;
-  min-width: 100px;
+  min-width: 80px;
   padding: var(--token-space-xl);
   background: var(--color-muted, #f3f4f6);
   border-radius: var(--token-space-lg);
@@ -85,8 +88,9 @@
 }
 
 /* Time Display */
+/* Mobile: Smaller time font */
 .time-display {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
   margin-top: var(--token-space-xl);
@@ -97,9 +101,10 @@
 }
 
 /* Qualifying Options */
+/* Mobile: Single column */
 .qualifying-options {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--token-space-xl);
   margin-top: var(--token-space-xl);
 }
@@ -252,28 +257,28 @@
   transition: transform 0.05s;
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Desktop: Larger controls and spacing */
+@media (min-width: 640px) {
   .fault-counter {
-    gap: var(--token-space-xl);
+    gap: var(--token-space-4xl);
   }
 
   .fault-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
   }
 
   .fault-count {
-    font-size: 2rem;
-    min-width: 80px;
+    font-size: 3rem;
+    min-width: 100px;
   }
 
   .time-display {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .qualifying-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }

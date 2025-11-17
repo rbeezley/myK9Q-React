@@ -158,22 +158,27 @@
 }
 
 /* Common Grid Layouts */
+/* Mobile: Single column */
 .scoresheet-grid-2 {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--token-space-xl);
 }
 
 .scoresheet-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--token-space-xl);
 }
 
-@media (max-width: 640px) {
-  .scoresheet-grid-2,
+/* Desktop: Two and three columns */
+@media (min-width: 640px) {
+  .scoresheet-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .scoresheet-grid-3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

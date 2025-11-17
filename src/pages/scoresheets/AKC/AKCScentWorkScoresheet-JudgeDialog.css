@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   z-index: var(--token-z-toast);
-  padding: var(--token-space-2xl);
+  padding: var(--token-space-sm);  /* Mobile: smaller padding */
   backdrop-filter: blur(4px);
   overflow: hidden; /* Prevent background scrolling */
 }
@@ -27,10 +27,11 @@ body.dialog-open {
 .judge-confirmation-dialog {
   background: var(--background);
   border-radius: var(--token-space-3xl);
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);  /* Mobile: smaller padding */
   max-width: 450px;
   width: 100%;
-  max-height: 95vh;
+  max-height: 98vh;  /* Mobile: taller */
+  margin: 0;  /* Mobile: no margin */
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
@@ -60,9 +61,9 @@ body.dialog-open {
 .judge-confirmation-dialog .dialog-header {
   display: block;
   text-align: center;
-  margin-bottom: var(--token-space-xl);
+  margin-bottom: var(--token-space-lg);  /* Mobile: smaller margin */
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);  /* Mobile: smaller padding */
   width: 100%;
   flex-direction: column;
   justify-content: center;
@@ -74,10 +75,10 @@ body.dialog-open {
 
 .judge-confirmation-dialog .dialog-header h2 {
   display: block;
-  font-size: var(--token-space-2xl);
+  font-size: 18px;  /* Mobile: smaller font (was 20px) */
   font-weight: bold;
   color: white;
-  margin: 0 auto 6px auto;
+  margin: 0 auto var(--token-space-sm) auto;  /* Mobile: smaller margin */
   text-align: center;
   width: 100%;
 }
@@ -86,7 +87,7 @@ body.dialog-open {
 .judge-confirmation-dialog .trial-info-line {
   display: block;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--token-space-lg);  /* Mobile: 12px */
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
   width: 100%;
@@ -113,7 +114,7 @@ body.dialog-open {
 
 /* Dialog Dog Card Container */
 .dialog-dog-card {
-  margin-bottom: var(--token-space-xl);
+  margin-bottom: var(--token-space-lg);  /* Mobile: smaller margin */
 }
 
 .dialog-dog-card .confirmation-dog-card {
@@ -145,7 +146,9 @@ body.dialog-open {
 .dog-summary {
   display: flex;
   align-items: center;
-  gap: var(--token-space-2xl);
+  flex-direction: column;  /* Mobile: column layout */
+  text-align: center;  /* Mobile: centered text */
+  gap: var(--token-space-lg);  /* Mobile: smaller gap */
   margin-bottom: var(--token-space-3xl);
   padding: var(--token-space-2xl);
   background: rgba(40, 40, 40, 0.8);
@@ -185,7 +188,7 @@ body.dialog-open {
 
 /* Score Details */
 .score-details {
-  margin-bottom: var(--token-space-xl);
+  margin-bottom: var(--token-space-lg);  /* Mobile: smaller margin */
 }
 
 /* Result and Time Grid - Different layouts for regular vs nationals */
@@ -196,9 +199,9 @@ body.dialog-open {
 
 /* Regular show layout - 2x2 grid with explicit positioning */
 .result-time-grid:not(.nationals-mode) {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;  /* Mobile: 2 columns */
   grid-template-rows: auto auto;
-  gap: var(--token-space-lg);
+  gap: 10px;  /* Mobile: smaller gap */
 }
 
 /* Force regular show items into proper grid positions */
@@ -224,7 +227,7 @@ body.dialog-open {
 
 /* Nationals mode layout - 2x2 grid (keep perfect) */
 .result-time-grid.nationals-mode {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;  /* Mobile: 2 columns */
   gap: var(--token-space-md);
 }
 
@@ -277,8 +280,8 @@ body.dialog-open {
 
 /* Nationals Breakdown */
 .nationals-breakdown {
-  margin-top: var(--token-space-lg);
-  padding: var(--token-space-xl);
+  margin-top: var(--token-space-md);  /* Mobile: smaller margin */
+  padding: var(--token-space-lg);  /* Mobile: smaller padding */
   background: rgba(30, 30, 30, 0.8);
   border-radius: var(--token-space-lg);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -294,7 +297,7 @@ body.dialog-open {
 
 .score-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;  /* Mobile: 2x2 grid */
   grid-template-rows: 1fr 1fr;
   gap: var(--token-space-md);
   margin-bottom: var(--token-space-lg);
@@ -324,7 +327,7 @@ body.dialog-open {
 
 /* Make time value larger for better mobile readability */
 .time-container .time-value {
-  font-size: 28px;
+  font-size: var(--token-space-4xl);  /* Mobile: extra large (32px) */
   font-weight: 900;
   color: var(--token-success);
 }
@@ -382,15 +385,15 @@ body.dialog-open {
 .dialog-actions {
   display: flex;
   gap: var(--token-space-md);
-  margin-top: var(--token-space-xl);
+  margin-top: var(--token-space-lg);  /* Mobile: smaller margin */
 }
 
 .dialog-btn {
   flex: 1;
-  height: 44px;
+  height: 40px;  /* Mobile: smaller height */
   border-radius: var(--token-space-md);
   border: none;
-  font-size: 14px;
+  font-size: 13px;  /* Mobile: smaller font */
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -422,83 +425,65 @@ body.dialog-open {
   transform: none;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .judge-confirmation-overlay {
-    padding: var(--token-space-sm);
+    padding: var(--token-space-2xl);  /* Desktop: larger padding */
   }
 
   .judge-confirmation-dialog {
-    padding: var(--token-space-lg);
-    max-height: 98vh;
-    margin: 0;
+    padding: var(--token-space-xl);  /* Desktop: larger padding */
+    max-height: 95vh;  /* Desktop: smaller max-height */
   }
 
   .judge-confirmation-dialog .dialog-header {
-    padding: var(--token-space-lg);
-    margin-bottom: var(--token-space-lg);
+    padding: var(--token-space-xl);  /* Desktop: larger padding */
+    margin-bottom: var(--token-space-xl);  /* Desktop: larger margin */
   }
 
   .judge-confirmation-dialog .dialog-header h2 {
-    font-size: 18px;
-    margin-bottom: var(--token-space-sm);
+    font-size: var(--token-space-2xl);  /* Desktop: larger font (20px) */
+    margin-bottom: 6px;  /* Desktop: smaller margin */
   }
 
   .judge-confirmation-dialog .trial-info-line {
-    font-size: var(--token-space-lg);
+    font-size: 13px;  /* Desktop: larger font */
   }
 
   .dialog-dog-card {
-    margin-bottom: var(--token-space-lg);
+    margin-bottom: var(--token-space-xl);  /* Desktop: larger margin */
   }
 
   .score-details {
-    margin-bottom: var(--token-space-lg);
+    margin-bottom: var(--token-space-xl);  /* Desktop: larger margin */
   }
 
   .nationals-breakdown {
-    padding: var(--token-space-lg);
-    margin-top: var(--token-space-md);
+    padding: var(--token-space-xl);  /* Desktop: larger padding */
+    margin-top: var(--token-space-lg);  /* Desktop: larger margin */
   }
 
   .dialog-actions {
-    margin-top: var(--token-space-lg);
+    margin-top: var(--token-space-xl);  /* Desktop: larger margin */
   }
 
   .dialog-btn {
-    height: 40px;
-    font-size: 13px;
+    height: 44px;  /* Desktop: larger height */
+    font-size: 14px;  /* Desktop: larger font */
   }
 
   .dog-summary {
-    flex-direction: column;
-    text-align: center;
-    gap: var(--token-space-lg);
-  }
-
-  .score-grid {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    flex-direction: row;  /* Desktop: row layout */
+    text-align: left;  /* Desktop: left-aligned */
+    gap: var(--token-space-2xl);  /* Desktop: larger gap */
   }
 
   .result-time-grid:not(.nationals-mode) {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
-  .result-time-grid.nationals-mode {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--token-space-md);
-  }
-
-  /* Make time extra large on mobile for distance reading */
   .time-container .time-value {
-    font-size: var(--token-space-4xl);
-    font-weight: 900;
-  }
-
-  .dialog-actions {
-    gap: var(--token-space-md);
+    font-size: 28px;  /* Desktop: normal size */
   }
 }
 
