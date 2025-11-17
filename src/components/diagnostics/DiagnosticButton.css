@@ -4,10 +4,10 @@
 
 .diagnostic-fab {
   position: fixed;
-  bottom: var(--token-space-3xl);
-  right: var(--token-space-3xl);
-  width: 56px;
-  height: 56px;
+  bottom: var(--token-space-2xl);  /* Mobile: smaller offset */
+  right: var(--token-space-2xl);  /* Mobile: smaller offset */
+  width: 48px;  /* Mobile: smaller button */
+  height: 48px;
   border-radius: 50%;
   background: #ef4444;
   color: white;
@@ -32,8 +32,8 @@
 }
 
 .fab-icon {
-  width: 28px;
-  height: 28px;
+  width: 24px;  /* Mobile: smaller icon */
+  height: 24px;
   position: relative;
   z-index: var(--token-z-raised);
 }
@@ -140,18 +140,18 @@
   height: 18px;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .diagnostic-fab {
-    bottom: var(--token-space-2xl);
-    right: var(--token-space-2xl);
-    width: 48px;
-    height: 48px;
+    bottom: var(--token-space-3xl);  /* Desktop: larger offset */
+    right: var(--token-space-3xl);  /* Desktop: larger offset */
+    width: 56px;  /* Desktop: larger button */
+    height: 56px;
   }
 
   .fab-icon {
-    width: 24px;
-    height: 24px;
+    width: 28px;  /* Desktop: larger icon */
+    height: 28px;
   }
 
   .diagnostic-modal-overlay {

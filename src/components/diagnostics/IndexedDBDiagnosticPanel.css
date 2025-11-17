@@ -4,8 +4,8 @@
 
 .diagnostic-panel {
   max-width: 800px;
-  margin: var(--token-space-3xl) auto;
-  padding: var(--token-space-3xl);
+  margin: var(--token-space-xl);  /* Mobile: smaller margin */
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
   background: var(--card-background);
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color);
@@ -23,7 +23,7 @@
 
 .diagnostic-header h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;  /* Mobile: smaller title */
   color: var(--foreground);
 }
 
@@ -246,15 +246,15 @@
   height: 32px;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .diagnostic-panel {
-    margin: var(--token-space-xl);
-    padding: var(--token-space-xl);
+    margin: var(--token-space-3xl) auto;  /* Desktop: larger margin, centered */
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
   }
 
   .diagnostic-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;  /* Desktop: larger title */
   }
 
   .diagnostic-actions {
