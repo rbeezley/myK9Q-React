@@ -226,18 +226,7 @@
   align-items: center;
 }
 
-/* Desktop enhancements */
-@media (min-width: 640px) {
-  .table-header {
-    grid-template-columns: 90px 160px 90px 100px 70px 70px 70px 70px;  /* Desktop: full columns */
-    gap: var(--token-space-lg);  /* Desktop: wider gap */
-  }
-
-  .table-row {
-    grid-template-columns: 90px 160px 90px 100px 70px 70px 70px 70px;  /* Desktop: full columns */
-    gap: var(--token-space-lg);  /* Desktop: wider gap */
-  }
-}
+/* Tablet/Desktop enhancements removed - consolidated below */
 
 .theme-dark .table-row {
   border-bottom-color: #475569;
@@ -518,23 +507,40 @@
   max-height: none;
 }
 
-/* Tablet enhancements */
+/* ========================================
+   CONSOLIDATED TABLET/DESKTOP STYLES (640px+)
+   ======================================== */
 @media (min-width: 640px) {
+  /* Table layout */
+  .table-header {
+    grid-template-columns: 90px 160px 90px 100px 70px 70px 70px 70px;
+    gap: var(--token-space-lg);
+  }
+
+  .table-row {
+    grid-template-columns: 90px 160px 90px 100px 70px 70px 70px 70px;
+    gap: var(--token-space-lg);
+  }
+
+  /* Metrics header */
   .metrics-header {
     flex-direction: row;
     gap: 0;
     align-items: center;
   }
 
+  /* Stats summary */
   .stats-summary {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 
+  /* Column visibility */
   .col-time,
   .col-lcp {
     display: block;
   }
 
+  /* Metrics grid */
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }

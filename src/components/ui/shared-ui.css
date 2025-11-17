@@ -108,12 +108,6 @@
   font-size: 0.9375rem;
 }
 
-@media (min-width: 640px) and (max-width: 1024px) {
-  .armband-badge.long-number {
-    font-size: 0.875rem;
-  }
-}
-
 /* Enhanced status indicators for high visibility */
 .status-indicator {
   position: absolute;
@@ -146,9 +140,17 @@
   font-size: 0.875rem;
 }
 
-/* Enhanced responsive adjustments - Square design */
-
+/* ========================================
+   CONSOLIDATED TABLET-ONLY STYLES (640px-1024px)
+   Tablet-specific armband badge adjustments
+   ======================================== */
 @media (min-width: 640px) and (max-width: 1024px) {
+  /* Armband badge - long number variant */
+  .armband-badge.long-number {
+    font-size: 0.875rem;
+  }
+
+  /* Armband badge - standard sizing */
   .armband-badge {
     width: 3.25rem;
     height: 3.25rem;

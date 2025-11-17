@@ -784,76 +784,7 @@
   width: 100%;
 }
 
-/* Desktop enhancements */
-@media (min-width: 640px) {
-  .settings-header {
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    margin-bottom: 0;
-  }
-
-  .settings-header h1 {
-    font-size: 1.125rem;
-  }
-
-  .reset-all-btn {
-    width: auto;
-  }
-
-  .settings-section h2 {
-    font-size: 1.125rem;
-  }
-
-  .setting-item {
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    padding: var(--token-space-2xl) var(--token-space-3xl);
-  }
-
-  .setting-info {
-    margin-right: var(--token-space-3xl);
-    width: auto;
-  }
-
-  .setting-item select,
-  .toggle-switch {
-    align-self: auto;
-  }
-
-  .setting-item select {
-    min-width: 200px;
-    width: auto;
-  }
-
-  .setting-item.indented {
-    padding-left: 3.5rem;
-    border-left-width: var(--token-space-sm);
-  }
-
-  .setting-actions {
-    flex-direction: row;
-    padding: var(--token-space-2xl) var(--token-space-3xl);
-  }
-
-  .secondary-button,
-  .danger-button {
-    width: auto;
-  }
-
-  .modal-content {
-    padding: var(--token-space-4xl);
-  }
-
-  .modal-actions {
-    flex-direction: row;
-  }
-
-  .modal-actions button {
-    width: auto;
-  }
-}
+/* Desktop enhancements - Consolidated below */
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
@@ -1029,8 +960,84 @@
   bottom: var(--token-space-xl);
 }
 
-/* Desktop enhancements */
+/* ========================================
+   CONSOLIDATED TABLET/DESKTOP STYLES (640px+)
+   ======================================== */
 @media (min-width: 640px) {
+  /* Settings header */
+  .settings-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  .settings-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .reset-all-btn {
+    width: auto;
+  }
+
+  /* Settings sections */
+  .settings-section h2 {
+    font-size: 1.125rem;
+  }
+
+  /* Setting items */
+  .setting-item {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding: var(--token-space-2xl) var(--token-space-3xl);
+  }
+
+  .setting-info {
+    margin-right: var(--token-space-3xl);
+    width: auto;
+  }
+
+  .setting-item select,
+  .toggle-switch {
+    align-self: auto;
+  }
+
+  .setting-item select {
+    min-width: 200px;
+    width: auto;
+  }
+
+  .setting-item.indented {
+    padding-left: 3.5rem;
+    border-left-width: var(--token-space-sm);
+  }
+
+  /* Setting actions */
+  .setting-actions {
+    flex-direction: row;
+    padding: var(--token-space-2xl) var(--token-space-3xl);
+  }
+
+  .secondary-button,
+  .danger-button {
+    width: auto;
+  }
+
+  /* Modal */
+  .modal-content {
+    padding: var(--token-space-4xl);
+  }
+
+  .modal-actions {
+    flex-direction: row;
+  }
+
+  .modal-actions button {
+    width: auto;
+  }
+
+  /* Toast positioning */
   .toast {
     left: auto;
     right: var(--token-space-4xl);
