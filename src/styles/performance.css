@@ -303,15 +303,25 @@
    Responsive Performance
    ========================================================================== */
 
-/* Small screens (mobile) */
-@media (max-width: 640px) {
+/* Mobile-first: Simplified effects for mobile */
+.mobile-simple {
+  backdrop-filter: none;  /* Mobile: Disable backdrop filters for performance */
+  box-shadow: none;  /* Mobile: Disable shadows for performance */
+}
+
+.mobile-simple * {
+  animation-duration: 0.15s;  /* Mobile: Faster animations */
+}
+
+/* Desktop: Enhanced effects for larger screens */
+@media (min-width: 640px) {
   .mobile-simple {
-    backdrop-filter: none;
-    box-shadow: none;
+    backdrop-filter: blur(10px);  /* Desktop: Enable backdrop blur */
+    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);  /* Desktop: Add shadows */
   }
 
   .mobile-simple * {
-    animation-duration: 0.15s;
+    animation-duration: 0.3s;  /* Desktop: Standard animation duration */
   }
 }
 

@@ -212,17 +212,8 @@ body {
    Scroll Padding (for sticky headers)
    ========================================================================== */
 
-.scroll-padding-top-sm {
-  scroll-padding-top: 60px; /* Account for sticky header */
-}
-
-.scroll-padding-top-md {
-  scroll-padding-top: 80px;
-}
-
-.scroll-padding-top-lg {
-  scroll-padding-top: 100px;
-}
+/* Note: Mobile values defined below at line 390-400 */
+/* Desktop overrides defined at line 403-415 */
 
 /* ==========================================================================
    Pull-to-Refresh Prevention
@@ -376,28 +367,41 @@ body {
    Mobile Specific
    ========================================================================== */
 
-@media (max-width: 640px) {
-  /* Hide scrollbars on mobile for cleaner look */
-  .mobile-hide-scrollbar {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
+/* Mobile-first: Hidden scrollbars and reduced scroll padding */
+.mobile-hide-scrollbar {
+  scrollbar-width: none;  /* Mobile: Hide scrollbar for cleaner look */
+  -ms-overflow-style: none;
+}
 
-  .mobile-hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+.mobile-hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Mobile: Hide webkit scrollbar */
+}
 
-  /* Reduce scroll padding on mobile */
+/* Mobile: Reduced scroll padding */
+.scroll-padding-top-sm {
+  scroll-padding-top: 50px;  /* Mobile: Compact padding for sticky headers */
+}
+
+.scroll-padding-top-md {
+  scroll-padding-top: 60px;  /* Mobile: Medium padding */
+}
+
+.scroll-padding-top-lg {
+  scroll-padding-top: 70px;  /* Mobile: Large padding */
+}
+
+/* Desktop: Increased scroll padding for larger headers */
+@media (min-width: 640px) {
   .scroll-padding-top-sm {
-    scroll-padding-top: 50px;
+    scroll-padding-top: 60px;  /* Desktop: Expanded padding for sticky headers */
   }
 
   .scroll-padding-top-md {
-    scroll-padding-top: 60px;
+    scroll-padding-top: 80px;  /* Desktop: Medium padding */
   }
 
   .scroll-padding-top-lg {
-    scroll-padding-top: 70px;
+    scroll-padding-top: 100px;  /* Desktop: Large padding */
   }
 }
 

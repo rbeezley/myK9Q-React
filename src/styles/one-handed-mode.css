@@ -13,8 +13,8 @@
    ============================================ */
 
 .one-handed-mode {
-  --fab-size: 56px;
-  --fab-offset: var(--token-space-xl);
+  --fab-size: 64px;  /* Mobile: larger FAB */
+  --fab-offset: var(--token-space-2xl);  /* Mobile: larger offset */
 }
 
 /* ============================================
@@ -30,7 +30,7 @@
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   border: none;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px var(--token-space-xl) rgba(99, 102, 241, 0.5);  /* Mobile: more prominent */
   cursor: pointer;
   z-index: var(--token-z-overlay);
   display: flex;
@@ -268,32 +268,32 @@
 
 .one-handed-mode .action-button {
   flex: 1;
-  min-height: 48px;
+  min-height: 56px;  /* Mobile: larger touch target */
   padding: var(--token-space-lg) var(--token-space-xl);
   border-radius: var(--token-space-lg);
-  font-size: 1rem;
+  font-size: 1.125rem;  /* Mobile: larger font */
   font-weight: 500;
 }
 
 /* ============================================
-   MOBILE-SPECIFIC
+   DESKTOP ENHANCEMENTS
    ============================================ */
 
-@media (max-width: 640px) {
+@media (min-width: 640px) {
   .one-handed-mode {
-    --fab-size: 64px;
-    --fab-offset: var(--token-space-2xl);
+    --fab-size: 56px;  /* Desktop: smaller FAB */
+    --fab-offset: var(--token-space-xl);  /* Desktop: smaller offset */
   }
 
-  /* Larger touch targets on mobile */
+  /* Smaller touch targets on desktop (mouse/trackpad) */
   .one-handed-mode .action-button {
-    min-height: 56px;
-    font-size: 1.125rem;
+    min-height: 48px;  /* Desktop: smaller height */
+    font-size: 1rem;  /* Desktop: smaller font */
   }
 
-  /* More prominent FAB on mobile */
+  /* Less prominent FAB on desktop */
   .fab-enabled .floating-action-button {
-    box-shadow: 0 6px var(--token-space-xl) rgba(99, 102, 241, 0.5);
+    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.4);  /* Desktop: subtle shadow */
   }
 }
 

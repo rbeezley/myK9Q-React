@@ -287,27 +287,47 @@
    MOBILE-SPECIFIC OPTIMIZATIONS
    ============================================ */
 
-@media (max-width: 640px) {
-  /* Larger touch targets on mobile */
+/* Mobile-first: Larger touch targets on mobile */
+.touch-target-mobile-large {
+  min-width: var(--touch-target-large);  /* Mobile: Large 56px touch target */
+  min-height: var(--touch-target-large);
+  padding: var(--token-space-xl) var(--token-space-3xl);
+}
+
+/* Mobile: More generous spacing */
+.touch-group-mobile > * + * {
+  margin-top: var(--touch-spacing-comfortable);  /* Mobile: Comfortable spacing */
+}
+
+.touch-group-horizontal-mobile > * + * {
+  margin-left: var(--touch-spacing-comfortable);  /* Mobile: Comfortable spacing */
+}
+
+/* Mobile: Full-width touch targets */
+.touch-target-mobile-full {
+  width: 100%;  /* Mobile: Full width for easy tapping */
+  min-height: var(--touch-target-large);
+}
+
+/* Desktop: Standard touch targets (smaller, more compact) */
+@media (min-width: 640px) {
   .touch-target-mobile-large {
-    min-width: var(--touch-target-large);
-    min-height: var(--touch-target-large);
-    padding: var(--token-space-xl) var(--token-space-3xl);
+    min-width: var(--touch-target-min);  /* Desktop: Standard 44px target */
+    min-height: var(--touch-target-min);
+    padding: var(--token-space-lg) var(--token-space-xl);
   }
 
-  /* More generous spacing on mobile */
   .touch-group-mobile > * + * {
-    margin-top: var(--touch-spacing-comfortable);
+    margin-top: var(--touch-spacing-min);  /* Desktop: Compact spacing */
   }
 
   .touch-group-horizontal-mobile > * + * {
-    margin-left: var(--touch-spacing-comfortable);
+    margin-left: var(--touch-spacing-min);  /* Desktop: Compact spacing */
   }
 
-  /* Full-width touch targets on mobile */
   .touch-target-mobile-full {
-    width: 100%;
-    min-height: var(--touch-target-large);
+    width: auto;  /* Desktop: Auto width */
+    min-height: var(--touch-target-min);
   }
 }
 

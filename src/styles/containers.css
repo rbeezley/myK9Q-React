@@ -67,28 +67,16 @@
 .app-container-wide {
   width: 100%;
   margin: 0 auto;
-  padding: 0 var(--token-space-xl);
+  padding: 0 var(--token-space-md);  /* Mobile: smaller padding for ultra-narrow */
+  min-width: 280px;  /* Mobile: absolute minimum for readability */
 }
 
-/* Ultra-narrow breakpoint for multi-window monitoring (320px-480px) */
-@media (max-width: 640px) {
-  .app-container-wide {
-    padding: 0 var(--token-space-md);
-    min-width: 280px; /* Absolute minimum for readability */
-  }
-}
-
-/* Small mobile optimization (481px-639px) */
-@media (min-width: 640px) and (max-width: 639px) {
-  .app-container-wide {
-    padding: 0 var(--token-space-lg);
-  }
-}
-
+/* Desktop enhancements */
 @media (min-width: 640px) {
   .app-container-wide {
     max-width: 640px;
-    padding: 0 var(--token-space-3xl);
+    padding: 0 var(--token-space-3xl);  /* Desktop: larger padding */
+    min-width: initial;  /* Desktop: reset minimum width */
   }
 }
 

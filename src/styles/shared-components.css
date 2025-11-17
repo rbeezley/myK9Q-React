@@ -327,16 +327,17 @@
 .entries-grid,
 .classes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: 1fr;  /* Mobile: Single column layout */
   gap: var(--token-space-xl);
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);  /* Mobile: Compact padding */
 }
 
-@media (max-width: 640px) {
+/* Desktop: Multi-column layout with expanded padding */
+@media (min-width: 640px) {
   .entries-grid,
   .classes-grid {
-    grid-template-columns: 1fr;
-    padding: var(--token-space-lg);
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));  /* Desktop: Responsive multi-column */
+    padding: var(--token-space-xl);  /* Desktop: Expanded padding */
   }
 }
 

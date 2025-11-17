@@ -21,7 +21,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--token-space-lg);
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);  /* Mobile: smaller padding */
 }
 
 .alert-icon,
@@ -35,7 +35,7 @@
 .alert-message,
 .message-text {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;  /* Mobile: smaller font */
   line-height: 1.5;
 }
 
@@ -243,15 +243,16 @@
    Responsive Design
    ======================== */
 
-@media (max-width: 640px) {
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .alert-content,
   .message-content {
-    padding: var(--token-space-lg);
+    padding: var(--token-space-xl);  /* Desktop: larger padding */
   }
 
   .alert-message,
   .message-text {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;  /* Desktop: larger font */
   }
 }
 
