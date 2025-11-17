@@ -315,6 +315,7 @@
 
 /* Desktop: Enhanced effects for larger screens */
 @media (min-width: 640px) {
+  /* Mobile-simple enhancements */
   .mobile-simple {
     backdrop-filter: blur(10px);  /* Desktop: Enable backdrop blur */
     box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);  /* Desktop: Add shadows */
@@ -323,18 +324,16 @@
   .mobile-simple * {
     animation-duration: 0.3s;  /* Desktop: Standard animation duration */
   }
-
-  .tablet-optimized {
-    /* Moderate effects for tablets */
-  }
 }
 
 /* Large screens (desktop) - additional enhancements */
 @media (min-width: 1024px) {
+  /* Tablet optimization adjustments */
   .tablet-optimized {
     /* Remove tablet-specific optimizations on desktop */
   }
 
+  /* Desktop enhancements */
   .desktop-enhanced {
     /* Full effects on desktop */
   }

@@ -394,15 +394,21 @@
 
 /* Responsive Design - Mobile First */
 @media (min-width: 640px) {
+  /* Card layout */
   .dog-card {
-    padding: var(--token-space-xl);  /* Desktop: larger padding */
-    min-height: 80px;  /* Desktop: larger min-height */
+    padding: 0.875rem;
+    min-height: 80px;
   }
 
   .dog-card-content {
-    gap: var(--token-space-xl);  /* Desktop: larger gap */
+    gap: var(--token-space-xl);  /* Tablet+: larger gap */
   }
 
+  .dog-card-details {
+    padding-right: 60px; /* More space for status badges */
+  }
+
+  /* Typography */
   .dog-card-name {
     font-size: 0.9375rem;
   }
@@ -413,17 +419,6 @@
 
   .dog-card-handler {
     font-size: 0.6875rem;
-  }
-}
-
-/* Tablet and up */
-@media (min-width: 640px) {
-  .dog-card {
-    padding: 0.875rem;
-  }
-
-  .dog-card-details {
-    padding-right: 60px; /* More space for status badges */
   }
 }
 

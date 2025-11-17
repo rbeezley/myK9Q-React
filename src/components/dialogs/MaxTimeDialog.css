@@ -390,8 +390,30 @@
   animation: spin 1s linear infinite;
 }
 
-/* Desktop enhancements (Block 1) */
+/* Desktop enhancements - Consolidated 640px block */
 @media (min-width: 640px) {
+  /* Dialog layout */
+  .max-time-dialog {
+    max-width: 600px;  /* Desktop: constrained width */
+    margin: 0;  /* Desktop: no margin */
+  }
+
+  .max-time-dialog .dialog-footer {
+    flex-direction: row;  /* Desktop: row layout */
+    gap: 0;  /* Desktop: no gap (spacing handled by justify-content) */
+  }
+
+  .time-range-info {
+    flex-direction: row;  /* Desktop: row layout */
+    align-items: center;  /* Desktop: center align */
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
+  }
+
+  .time-inputs-grid {
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
+  }
+
+  /* Time input controls */
   .time-input {
     padding: var(--token-space-xl) 3rem var(--token-space-xl) 3rem;  /* Desktop: smaller padding */
     border-radius: var(--token-space-lg);  /* Desktop: smaller radius */
@@ -433,30 +455,8 @@
     min-width: 3.5rem;  /* Desktop: smaller button */
     border-radius: var(--token-space-md);  /* Desktop: smaller radius */
   }
-}
 
-/* Desktop enhancements (Block 2) */
-@media (min-width: 640px) {
-  .max-time-dialog {
-    max-width: 600px;  /* Desktop: constrained width */
-    margin: 0;  /* Desktop: no margin */
-  }
-
-  .max-time-dialog .dialog-footer {
-    flex-direction: row;  /* Desktop: row layout */
-    gap: 0;  /* Desktop: no gap (spacing handled by justify-content) */
-  }
-
-  .time-range-info {
-    flex-direction: row;  /* Desktop: row layout */
-    align-items: center;  /* Desktop: center align */
-    gap: var(--token-space-lg);  /* Desktop: larger gap */
-  }
-
-  .time-inputs-grid {
-    gap: var(--token-space-3xl);  /* Desktop: larger gap */
-  }
-
+  /* Dictated time display */
   .dictated-time-item {
     flex-direction: row;  /* Desktop: row layout */
     text-align: left;  /* Desktop: left align */
@@ -481,6 +481,7 @@
     padding: var(--token-space-xl);  /* Desktop: larger padding */
   }
 
+  /* Buttons */
   .cancel-button,
   .save-button {
     width: auto;  /* Desktop: auto width */

@@ -47,6 +47,21 @@
     grid-template-rows: repeat(2, 1fr);  /* Desktop: 2 rows */
     overflow: hidden;  /* Desktop: no scroll, fixed grid */
   }
+
+  .tv-runorder-pagination {
+    padding: var(--token-space-xl) var(--token-space-3xl);
+    gap: var(--token-space-2xl);
+  }
+
+  .pagination-nav-btn {
+    width: 56px;
+    height: 56px;
+  }
+
+  .pagination-info {
+    font-size: 1.25rem;
+    min-width: 140px;
+  }
 }
 
 /* Empty state */
@@ -140,22 +155,4 @@
   color: var(--foreground);
   min-width: 120px;
   text-align: center;
-}
-
-/* Desktop: Larger controls */
-@media (min-width: 1024px) {
-  .tv-runorder-pagination {
-    padding: var(--token-space-xl) var(--token-space-3xl);
-    gap: var(--token-space-2xl);
-  }
-
-  .pagination-nav-btn {
-    width: 56px;
-    height: 56px;
-  }
-
-  .pagination-info {
-    font-size: 1.25rem;
-    min-width: 140px;
-  }
 }
