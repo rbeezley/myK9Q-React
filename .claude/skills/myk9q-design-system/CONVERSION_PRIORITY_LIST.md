@@ -3,8 +3,8 @@
 **Generated**: November 16, 2025
 **Last Updated**: November 17, 2025
 **Total Files**: 52
-**Completed**: 19 files ✅ (37% complete)
-**Remaining**: 33 files
+**Completed**: 23 files ✅ (44% complete)
+**Remaining**: 29 files
 
 ---
 
@@ -47,11 +47,11 @@ Each EASY file takes ~5-10 minutes. Each MEDIUM file takes ~15-20 minutes. HARD 
 18. ✅ `/src/pages/DogDetails/DogDetails.css` - **DONE** (Commit: 07d1ee5)
 19. ✅ `/src/pages/MigrationTest/MigrationTest.css` - **DONE** (Commit: 07d1ee5)
 
-### Batch 5: Scoresheets (5 files)
-20. `/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-JudgeDialog.css` - Line 426-429 (2 rules)
-21. `/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Nationals.css` - Line 185-189 (3 rules)
-22. `/src/pages/scoresheets/shared-scoresheet.css` - Line 173-177 (3 rules)
-23. `/src/pages/scoresheets/UKC/UKCNoseworkScoresheet.css` - Line 256-259 (2 rules)
+### Batch 5: Scoresheets (4 files) ✅ **COMPLETE**
+20. ✅ `/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-JudgeDialog.css` - **DONE** (Commit: c042294)
+21. ✅ `/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Nationals.css` - **DONE** (Commit: c042294)
+22. ✅ `/src/pages/scoresheets/shared-scoresheet.css` - **DONE** (Commit: c042294)
+23. ✅ `/src/pages/scoresheets/UKC/UKCNoseworkScoresheet.css` - **DONE** (Commit: c042294)
 
 ### Batch 6: TV Mode (3 files)
 24. `/src/pages/TVRunOrder/components/ClassRunOrder.css` - Line 149-152 (2 rules, **1024px**)
@@ -145,13 +145,13 @@ Each EASY file takes ~5-10 minutes. Each MEDIUM file takes ~15-20 minutes. HARD 
 - [x] **Batch 2: Easy Dialogs** (6/6) ✅ COMPLETE
 - [x] **Batch 3: Easy UI** (3/3) ✅ COMPLETE
 - [x] **Batch 4: Easy Pages** (4/4) ✅ COMPLETE
-- [ ] **Batch 5: Easy Scoresheets** (0/4)
+- [x] **Batch 5: Easy Scoresheets** (4/4) ✅ COMPLETE
 - [ ] **Batch 6: Easy TV Mode** (0/3)
 - [ ] **Batch 7: Easy Styles** (0/8)
 - [ ] **Medium Files** (0/13)
 - [ ] **Hard Files** (0/5)
 
-**Total Progress**: 19 / 52 files (37%)
+**Total Progress**: 23 / 52 files (44%)
 
 ---
 
