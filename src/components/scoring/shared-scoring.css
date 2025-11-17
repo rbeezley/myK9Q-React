@@ -735,7 +735,7 @@
 }
 
 .counter-group.positive .counter-btn.increment {
-  background: #10B981;
+  background: var(--status-checked-in);
   color: white;
   border-color: rgba(16, 185, 129, 0.3);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.3);
@@ -746,7 +746,7 @@
 }
 
 .counter-group.negative .counter-btn.increment {
-  background: #EF4444;
+  background: var(--status-pulled);
   color: white;
   border-color: rgba(239, 68, 68, 0.3);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(239, 68, 68, 0.3);
@@ -879,7 +879,7 @@
 }
 
 .theme-light .counter-group.positive .counter-btn.increment {
-  background: #10B981;
+  background: var(--status-checked-in);
   color: white;
   border-color: rgba(16, 185, 129, 0.3);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(16, 185, 129, 0.3);
@@ -890,7 +890,7 @@
 }
 
 .theme-light .counter-group.negative .counter-btn.increment {
-  background: #EF4444;
+  background: var(--status-pulled);
   color: white;
   border-color: rgba(239, 68, 68, 0.3);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(239, 68, 68, 0.3);

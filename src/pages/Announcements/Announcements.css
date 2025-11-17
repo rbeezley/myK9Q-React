@@ -463,11 +463,11 @@ button.action-btn.active svg {
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-tertiary: rgba(255, 255, 255, 0.5);
   /* Use global theme colors instead of hardcoded blue */
-  --danger: #ef4444;
+  --danger: var(--status-pulled);
   --danger-subtle: rgba(239, 68, 68, 0.1);
-  --success: #10b981;
+  --success: var(--status-checked-in);
   --warning: #fef3c7;
-  --info: #8b5cf6;
+  --info: var(--status-at-gate);
   --info-subtle: rgba(6, 182, 212, 0.1);
 }
 
@@ -481,11 +481,11 @@ button.action-btn.active svg {
   --text-secondary: var(--text-gray);
   --text-tertiary: var(--text-light-gray);
   /* Use global theme colors instead of hardcoded blue */
-  --danger: #ef4444;
+  --danger: var(--status-pulled);
   --danger-subtle: rgba(239, 68, 68, 0.1);
-  --success: #10b981;
+  --success: var(--status-checked-in);
   --warning: #fef3c7;
-  --info: #8b5cf6;
+  --info: var(--status-at-gate);
   --info-subtle: rgba(6, 182, 212, 0.1);
 }
 

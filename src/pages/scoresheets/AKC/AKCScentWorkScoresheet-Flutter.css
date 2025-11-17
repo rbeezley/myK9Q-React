@@ -210,7 +210,7 @@
 .scoresheet-armband {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--checkin-in-ring) 0%, #1d4ed8 100%);
   color: var(--scoresheet-badge-text);
   display: flex;
   align-items: center;
@@ -448,7 +448,7 @@
   top: var(--token-space-2xl);
   right: var(--token-space-2xl);
   background: rgba(16, 185, 129, 0.2);
-  border: var(--token-space-xs) solid #10B981;
+  border: var(--token-space-xs) solid var(--status-checked-in);
   border-radius: var(--token-space-2xl);
   padding: var(--token-space-md) var(--token-space-lg);
   font-size: 14px;
@@ -473,7 +473,7 @@
 
 .timer-warning.warning {
   background: rgba(239, 68, 68, 0.1);
-  border: var(--token-space-xs) solid #EF4444;
+  border: var(--token-space-xs) solid var(--status-pulled);
   color: var(--token-error);
 }
 
@@ -875,7 +875,7 @@
 /* Light theme timer warning styles */
 .theme-light .timer-warning.warning {
   background: rgba(239, 68, 68, 0.05);
-  border: var(--token-space-xs) solid #EF4444;
+  border: var(--token-space-xs) solid var(--status-pulled);
   color: var(--token-error-contrast);
 }
 

@@ -27,7 +27,7 @@
   width: var(--fab-size);
   height: var(--fab-size);
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, var(--status-at-gate));
   color: white;
   border: none;
   box-shadow: 0 6px var(--token-space-xl) rgba(99, 102, 241, 0.5);  /* Mobile: more prominent */

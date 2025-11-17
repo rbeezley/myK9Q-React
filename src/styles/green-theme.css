@@ -12,13 +12,13 @@
   /* ===== PRIMARY COLOR OVERRIDE (Blue → Green) ===== */
 
   /* Primary UI - Emerald Green (matches landing page) */
-  --primary: #10b981 !important;               /* Emerald green */
+  --primary: var(--status-checked-in) !important;               /* Emerald green */
   --primary-hover: #059669 !important;         /* Darker emerald on hover */
   --primary-foreground: #ffffff !important;    /* White text on green */
 
   /* Brand Colors - Update to Green */
-  --brand-blue: #10b981 !important;            /* Now "brand green" */
-  --brand-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%) !important; /* Green → Teal */
+  --brand-blue: var(--status-checked-in) !important;            /* Now "brand green" */
+  --brand-gradient: linear-gradient(135deg, var(--status-checked-in) 0%, #14b8a6 100%) !important; /* Green → Teal */
 
   /* ===== DIFFERENTIATED STATUS GREENS ===== */
   /* These prevent "everything is the same green" problem */
@@ -32,8 +32,8 @@
   --status-qualified-bg: #16a34a !important;
 
   /* Completed - Keep emerald (same as primary is OK for this one) */
-  --status-completed: #10b981 !important;
-  --status-completed-bg: #10b981 !important;
+  --status-completed: var(--status-checked-in) !important;
+  --status-completed-bg: var(--status-checked-in) !important;
 
   /* ===== OPTIONAL: ADJUST COMPLEMENTARY COLORS ===== */
 
@@ -47,16 +47,16 @@
   /* ===== LINKS & INTERACTIVE ELEMENTS ===== */
 
   /* Links that use primary color */
-  --link-color: #10b981 !important;
+  --link-color: var(--status-checked-in) !important;
   --link-hover: #059669 !important;
 
   /* Focus rings */
-  --focus-ring: #10b981 !important;
+  --focus-ring: var(--status-checked-in) !important;
 
   /* ===== GRADIENTS ===== */
 
   /* Hero gradients (for headers, etc) */
-  --gradient-primary: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  --gradient-primary: linear-gradient(135deg, var(--status-checked-in) 0%, #059669 100%) !important;
   --gradient-hero: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%) !important;
 
   /* ===== BUTTON VARIANTS ===== */
@@ -71,14 +71,14 @@
   /* ===== THEME COLOR (PWA/Mobile) ===== */
 
   /* This affects mobile browser chrome color */
-  --theme-color: #10b981 !important;
+  --theme-color: var(--status-checked-in) !important;
 }
 
 /* ===== DARK MODE OVERRIDES ===== */
 
 .theme-dark {
   /* Primary colors stay the same in dark mode */
-  --primary: #10b981 !important;
+  --primary: var(--status-checked-in) !important;
   --primary-hover: #059669 !important;
 
   /* Adjust background tints for dark mode */
@@ -90,7 +90,7 @@
   /* Status colors remain distinct in dark mode */
   --status-checked-in: #22c55e !important;     /* Bright lime */
   --status-qualified: #16a34a !important;      /* Forest green */
-  --status-completed: #10b981 !important;      /* Emerald */
+  --status-completed: var(--status-checked-in) !important;      /* Emerald */
 }
 
 /* ===== COMPONENT-SPECIFIC OVERRIDES ===== */
@@ -149,13 +149,13 @@ ORIGINAL BLUE:
   Hover:   #0051D5
 
 NEW GREEN:
-  Primary: #10b981 (Emerald)
+  Primary: var(--status-checked-in) (Emerald)
   Hover:   #059669 (Dark emerald)
 
 STATUS GREENS (Differentiated):
   Checked-in: #22c55e (Lime - brighter)
   Qualified:  #16a34a (Forest - darker)
-  Completed:  #10b981 (Emerald - same as primary)
+  Completed:  var(--status-checked-in) (Emerald - same as primary)
 
 RATIONALE:
   - Matches landing page branding

@@ -161,17 +161,17 @@
 }
 
 .vital.good {
-  border-left-color: #10b981;
+  border-left-color: var(--status-checked-in);
   background: rgba(16, 185, 129, 0.1);
 }
 
 .vital.needs-improvement {
-  border-left-color: #f59e0b;
+  border-left-color: var(--status-conflict);
   background: rgba(245, 158, 11, 0.1);
 }
 
 .vital.poor {
-  border-left-color: #ef4444;
+  border-left-color: var(--status-pulled);
   background: rgba(239, 68, 68, 0.1);
 }
 
@@ -391,7 +391,7 @@
 }
 
 .summary-item.warning {
-  border-left-color: #ef4444;
+  border-left-color: var(--status-pulled);
   background: rgba(239, 68, 68, 0.1);
 }
 
@@ -466,14 +466,14 @@
   padding: 10px var(--token-space-lg);
   background: #222;
   border-radius: var(--token-space-sm);
-  border-left: 3px solid #ef4444;
+  border-left: 3px solid var(--status-pulled);
   display: flex;
   align-items: center;
   gap: var(--token-space-lg);
 }
 
 .pattern-type {
-  color: #ef4444;
+  color: var(--status-pulled);
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
@@ -495,7 +495,7 @@
 }
 
 .pattern-details .confidence {
-  color: #ef4444;
+  color: var(--status-pulled);
 }
 
 .pattern-time {

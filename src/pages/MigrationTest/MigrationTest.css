@@ -151,7 +151,7 @@
 }
 
 .test-button.clear {
-  background: #ef4444;
+  background: var(--status-pulled);
   color: white;
 }
 

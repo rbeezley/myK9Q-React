@@ -127,7 +127,7 @@
 .status-option:hover {
   transform: translateY(-2px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
-  border-color: var(--status-color, #3b82f6);
+  border-color: var(--status-color, var(--checkin-in-ring));
 }
 
 .status-option:active {
@@ -165,7 +165,7 @@
 .theme-light .status-option:hover {
   transform: translateY(-2px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
-  border-color: var(--status-color, #3b82f6);
+  border-color: var(--status-color, var(--checkin-in-ring));
 }
 
 .theme-light .status-option .status-text {
@@ -288,7 +288,7 @@
 .status-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
-  border-color: var(--status-color, #3b82f6);
+  border-color: var(--status-color, var(--checkin-in-ring));
 }
 
 .status-item:active {
@@ -298,7 +298,7 @@
 
 .status-item:focus {
   outline: none;
-  box-shadow: 0 0 0 var(--token-space-xs) var(--status-color, #3b82f6);
+  box-shadow: 0 0 0 var(--token-space-xs) var(--status-color, var(--checkin-in-ring));
 }
 
 .status-item .status-icon {
@@ -394,7 +394,7 @@
 .theme-light .status-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
-  border-color: var(--status-color, #3b82f6);
+  border-color: var(--status-color, var(--checkin-in-ring));
 }
 
 .theme-light .status-item .status-label {
@@ -415,7 +415,7 @@
   background: var(--background-soft);
   transform: translateY(-2px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
-  border-color: var(--status-color, #3b82f6);
+  border-color: var(--status-color, var(--checkin-in-ring));
 }
 
 .theme-dark .status-item .status-label {

@@ -262,7 +262,7 @@ body.dialog-open {
 
 .score-value.result-absent,
 .item-value.result-absent {
-  color: #F59E0B;
+  color: var(--status-conflict);
 }
 
 .score-value.result-excused,
@@ -275,7 +275,7 @@ body.dialog-open {
 }
 
 .item-value.result-withdrawn {
-  color: #F59E0B;
+  color: var(--status-conflict);
 }
 
 /* Nationals Breakdown */
@@ -335,7 +335,7 @@ body.dialog-open {
 /* Total time styling for multi-area searches */
 .score-item.total-time {
   background: rgba(16, 185, 129, 0.15);
-  border: var(--token-space-xs) solid #10B981;
+  border: var(--token-space-xs) solid var(--status-checked-in);
   grid-column: 1 / -1; /* Span full width */
 }
 
@@ -365,7 +365,7 @@ body.dialog-open {
   align-items: center;
   padding: var(--token-space-xl);
   background: rgba(16, 185, 129, 0.1);
-  border: var(--token-space-xs) solid #10B981;
+  border: var(--token-space-xs) solid var(--status-checked-in);
   border-radius: var(--token-space-md);
 }
 

@@ -8,7 +8,7 @@
   --text-primary: #e8e8e8;
   --text-secondary: #a0a0a0;
   --text-tertiary: #707070;
-  --accent-green: #10b981;
+  --accent-green: var(--status-checked-in);
   --accent-green-hover: #059669;
   --accent-green-dim: rgba(16, 185, 129, 0.1);
   --glass-bg: rgba(255, 255, 255, 0.03);

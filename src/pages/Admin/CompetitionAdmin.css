@@ -29,7 +29,7 @@
   --error: #FF3B30;
 
   /* High contrast status colors */
-  --success-contrast: #10b981;
+  --success-contrast: var(--status-checked-in);
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
 
@@ -51,7 +51,7 @@
   --muted-foreground: #ffffff;
   --border: #4a5568;
   --input: var(--surface-subtle);
-  --primary: #3b82f6;
+  --primary: var(--checkin-in-ring);
   --primary-foreground: #ffffff;
   --secondary: var(--surface-subtle);
   --secondary-foreground: #ffffff;
@@ -62,9 +62,9 @@
   --text-tertiary: #ffffff;
 
   /* High contrast status colors for dark mode */
-  --success-contrast: #10b981;
+  --success-contrast: var(--status-checked-in);
   --warning-contrast: #fef3c7;
-  --error-contrast: #ef4444;
+  --error-contrast: var(--status-pulled);
 }
 
 .theme-dark .class-card {
@@ -457,7 +457,7 @@
 }
 
 .immediate-btn .btn-icon {
-  color: #8b5cf6;
+  color: var(--status-at-gate);
 }
 
 .auto-btn {
@@ -624,8 +624,8 @@
 
 .status-badge.immediate {
   background-color: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-  border: 1px solid #8b5cf6;
+  color: var(--status-at-gate);
+  border: 1px solid var(--status-at-gate);
 }
 
 .status-badge.embargoed,
@@ -638,7 +638,7 @@
 .status-badge.checkin-enabled {
   background-color: rgba(16, 185, 129, 0.1);
   color: var(--token-success);
-  border: 1px solid #10b981;
+  border: 1px solid var(--status-checked-in);
 }
 
 .status-badge.checkin-disabled {

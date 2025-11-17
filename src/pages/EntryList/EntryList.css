@@ -180,12 +180,12 @@
 }
 
 .class-status-badge.status-briefing {
-  background: var(--status-briefing, #3b82f6);
+  background: var(--status-briefing, var(--checkin-in-ring));
   color: white;
 }
 
 .class-status-badge.status-upcoming {
-  background: var(--status-start-time, #8b5cf6);
+  background: var(--status-start-time, var(--status-at-gate));
   color: white;
 }
 

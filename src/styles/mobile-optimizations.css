@@ -235,7 +235,7 @@
 }
 
 .status-button.pulled {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  background: linear-gradient(135deg, #dc2626 0%, var(--status-pulled) 100%);
   border: var(--token-space-xs) solid #b91c1c;
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(220, 38, 38, 0.4);
 }

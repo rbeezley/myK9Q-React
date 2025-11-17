@@ -496,7 +496,7 @@
 }
 
 .theme-dark .areas-badge {
-  background: #f59e0b;
+  background: var(--status-conflict);
   color: white;
 }
 

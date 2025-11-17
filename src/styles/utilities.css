@@ -274,7 +274,7 @@
 }
 
 .badge-danger {
-  background: #ef4444;
+  background: var(--status-pulled);
   color: white;
 }
 
@@ -353,25 +353,25 @@
 /* Entry Check-in Status Colors */
 .status-badge.checked-in,
 .checkin-status.checked-in {
-  background: var(--status-checked-in, #10b981);
+  background: var(--status-checked-in, var(--status-checked-in));
   color: white;
 }
 
 .status-badge.at-gate,
 .checkin-status.at-gate {
-  background: var(--status-at-gate, #8b5cf6);
+  background: var(--status-at-gate, var(--status-at-gate));
   color: white;
 }
 
 .status-badge.conflict,
 .checkin-status.conflict {
-  background: var(--status-conflict, #f59e0b);
+  background: var(--status-conflict, var(--status-conflict));
   color: white;
 }
 
 .status-badge.pulled,
 .checkin-status.pulled {
-  background: var(--status-pulled, #ef4444);
+  background: var(--status-pulled, var(--status-pulled));
   color: white;
 }
 

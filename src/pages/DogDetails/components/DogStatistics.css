@@ -64,19 +64,19 @@
 }
 
 .dog-statistics .card-icon.total {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--checkin-in-ring) 0%, #2563eb 100%);
 }
 
 .dog-statistics .card-icon.qualified {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-checked-in) 0%, #059669 100%);
 }
 
 .dog-statistics .card-icon.fastest {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--status-conflict) 0%, #d97706 100%);
 }
 
 .dog-statistics .card-icon.average {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--status-at-gate) 0%, #7c3aed 100%);
 }
 
 .dog-statistics .card-content {
@@ -277,12 +277,12 @@
 }
 
 .dog-statistics .result-badge.qualified {
-  background: #10b981;
+  background: var(--status-checked-in);
   color: white;
 }
 
 .dog-statistics .result-badge.nq {
-  background: #ef4444;
+  background: var(--status-pulled);
   color: white;
 }
 

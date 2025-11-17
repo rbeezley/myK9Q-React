@@ -339,22 +339,22 @@
 
 .sub-type.type-announcement {
   background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: var(--checkin-in-ring);
 }
 
 .sub-type.type-nationals {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--status-at-gate);
 }
 
 .sub-type.type-entry {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--status-checked-in);
 }
 
 .sub-type.type-sync {
   background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+  color: var(--status-conflict);
 }
 
 .sub-type.type-other {

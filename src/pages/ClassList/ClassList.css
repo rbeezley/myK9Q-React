@@ -1362,7 +1362,7 @@
 }
 
 .class-option-icon.icon-secondary {
-  background: #8b5cf6;
+  background: var(--status-at-gate);
   color: white;
 }
 .theme-dark .class-option-icon.icon-secondary {

@@ -1,7 +1,7 @@
 /* TVEntryCard Component - Compact entry card for TV display */
 
 .tv-entry-card {
-  --status-done: #10b981; /* Green for light mode */
+  --status-done: var(--status-checked-in); /* Green for light mode */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.75rem;

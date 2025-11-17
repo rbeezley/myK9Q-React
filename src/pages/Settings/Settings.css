@@ -147,8 +147,8 @@
 .reset-all-btn {
   padding: 0.625rem var(--token-space-2xl);
   background: transparent;
-  color: var(--danger, #ef4444);
-  border: 1.5px solid var(--danger, #ef4444);
+  color: var(--danger, var(--status-pulled));
+  border: 1.5px solid var(--danger, var(--status-pulled));
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -157,7 +157,7 @@
 }
 
 .reset-all-btn:hover {
-  background: var(--danger, #ef4444);
+  background: var(--danger, var(--status-pulled));
   color: white;
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
@@ -440,9 +440,9 @@
 
 .danger-button {
   padding: var(--token-space-lg) var(--token-space-3xl);
-  background: var(--danger, #ef4444);
+  background: var(--danger, var(--status-pulled));
   color: white;
-  border: 1.5px solid var(--danger, #ef4444);
+  border: 1.5px solid var(--danger, var(--status-pulled));
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -683,13 +683,13 @@
 .theme-light,
 .theme-light .reset-all-btn {
   background: transparent;
-  color: var(--danger, #ef4444);
-  border-color: var(--danger, #ef4444);
+  color: var(--danger, var(--status-pulled));
+  border-color: var(--danger, var(--status-pulled));
 }
 
 .theme-light,
 .theme-light .reset-all-btn:hover {
-  background: var(--danger, #ef4444);
+  background: var(--danger, var(--status-pulled));
   color: white;
 }
 
@@ -890,12 +890,12 @@
 }
 
 .toast-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-checked-in) 0%, #059669 100%);
   border: 1.5px solid #059669;
 }
 
 .toast-error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--status-pulled) 0%, #dc2626 100%);
   border: 1.5px solid #dc2626;
 }
 

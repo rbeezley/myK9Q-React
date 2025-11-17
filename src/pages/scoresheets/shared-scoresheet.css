@@ -220,7 +220,7 @@
 .scoresheet-alert-info {
   background: #dbeafe;
   color: var(--primary);
-  border-left: var(--token-space-sm) solid #3b82f6;
+  border-left: var(--token-space-sm) solid var(--checkin-in-ring);
 }
 
 .scoresheet-alert-warning {
@@ -232,7 +232,7 @@
 .scoresheet-alert-error {
   background: var(--status-not-qualified-bg);
   color: var(--token-error-contrast);
-  border-left: var(--token-space-sm) solid #ef4444;
+  border-left: var(--token-space-sm) solid var(--status-pulled);
 }
 
 /* Common Loading State */

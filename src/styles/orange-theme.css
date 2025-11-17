@@ -24,8 +24,8 @@
   /* These prevent "everything is the same orange" problem */
 
   /* Check-in Status - Use AMBER for check-in (warmer tone) */
-  --status-checked-in: #10b981 !important;     /* Keep green for check-in (good contrast) */
-  --status-checked-in-bg: #10b981 !important;
+  --status-checked-in: var(--status-checked-in) !important;     /* Keep green for check-in (good contrast) */
+  --status-checked-in-bg: var(--status-checked-in) !important;
 
   /* Qualified Results - Use SUCCESS GREEN (don't make everything orange) */
   --status-qualified: #16a34a !important;      /* Forest green for qualified */
@@ -88,7 +88,7 @@
   --muted: #1a0e08 !important;                 /* Dark with orange tint */
 
   /* Status colors remain distinct in dark mode */
-  --status-checked-in: #10b981 !important;     /* Green for check-in */
+  --status-checked-in: var(--status-checked-in) !important;     /* Green for check-in */
   --status-qualified: #16a34a !important;      /* Green for qualified */
   --status-completed: #fb923c !important;      /* Light orange for completed */
 }

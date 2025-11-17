@@ -51,11 +51,11 @@
 }
 
 .fault-btn.increment {
-  border-color: var(--color-danger, #ef4444);
+  border-color: var(--color-danger, var(--status-pulled));
 }
 
 .fault-btn.decrement {
-  border-color: var(--color-success, #10b981);
+  border-color: var(--color-success, var(--status-checked-in));
 }
 
 /* Mobile: Smaller count display */
@@ -83,7 +83,7 @@
 
 .fault-info .warning {
   background: var(--color-danger-light, #fee2e2);
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger, var(--status-pulled));
   font-weight: 600;
 }
 

@@ -215,7 +215,7 @@
 }
 
 .run-order-dialog .dialog-button-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #6366f1 0%, var(--status-at-gate) 100%);
   color: white;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.3);
 }

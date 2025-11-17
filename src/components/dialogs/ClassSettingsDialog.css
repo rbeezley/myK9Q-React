@@ -183,25 +183,25 @@
 .settings-message--success {
   background: #d1fae5;
   color: #065f46;
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--status-checked-in);
 }
 
 .theme-dark .settings-message--success {
   background: rgba(16, 185, 129, 0.15);
   color: #86efac;
-  border-left-color: #10b981;
+  border-left-color: var(--status-checked-in);
 }
 
 .settings-message--error {
   background: #fee2e2;
   color: #991b1b;
-  border-left: 3px solid #ef4444;
+  border-left: 3px solid var(--status-pulled);
 }
 
 .theme-dark .settings-message--error {
   background: rgba(239, 68, 68, 0.15);
   color: #fca5a5;
-  border-left-color: #ef4444;
+  border-left-color: var(--status-pulled);
 }
 
 .settings-message svg {

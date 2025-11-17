@@ -305,7 +305,7 @@
   justify-content: center;
   gap: var(--token-space-md);
   padding: var(--token-space-xl);
-  background: #10b98114;
+  background: var(--status-checked-in)14;
   border: 2px solid var(--status-checked-in);
   border-radius: var(--token-space-lg);
   color: var(--status-checked-in);
@@ -317,8 +317,8 @@
 /* Notification denied warning */
 .onboarding-notification-denied {
   padding: var(--token-space-xl);
-  background: #f59e0b14;
-  border: 2px solid #f59e0b;
+  background: var(--status-conflict)14;
+  border: 2px solid var(--status-conflict);
   border-radius: var(--token-space-lg);
   margin: var(--token-space-3xl) auto;
   max-width: 280px;

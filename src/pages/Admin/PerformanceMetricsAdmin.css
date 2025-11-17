@@ -101,7 +101,7 @@
 }
 
 .stat-card.warning {
-  border-left: var(--token-space-sm) solid #ef4444;
+  border-left: var(--token-space-sm) solid var(--status-pulled);
 }
 
 .stat-label {
@@ -242,7 +242,7 @@
 
 .table-row.has-errors {
   background: var(--status-not-qualified-bg);
-  border-left: 3px solid #ef4444;
+  border-left: 3px solid var(--status-pulled);
 }
 
 .theme-dark .table-row.has-errors {

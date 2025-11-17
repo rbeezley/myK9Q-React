@@ -29,7 +29,7 @@
   --error: #FF3B30;
   
   /* High contrast status colors */
-  --success-contrast: #10b981;
+  --success-contrast: var(--status-checked-in);
   --warning-contrast: #c2410c;
   --error-contrast: #dc2626;
   
@@ -48,7 +48,7 @@
   --muted-foreground: #ffffff;
   --border: #4a5568;
   --input: var(--surface-subtle);
-  --primary: #3b82f6;
+  --primary: var(--checkin-in-ring);
   --primary-foreground: #ffffff;
   --secondary: var(--surface-subtle);
   --secondary-foreground: #ffffff;
@@ -59,9 +59,9 @@
   --text-tertiary: #ffffff;
   
   /* High contrast status colors for dark mode */
-  --success-contrast: #10b981;
+  --success-contrast: var(--status-checked-in);
   --warning-contrast: #fef3c7;
-  --error-contrast: #ef4444;
+  --error-contrast: var(--status-pulled);
 }
 
 /* Base Scoresheet Container - Match Home page structure (no padding) */

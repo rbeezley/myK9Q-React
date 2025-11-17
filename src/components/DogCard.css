@@ -91,7 +91,7 @@
 
 /* Result status borders - based on result type */
 .dog-card.result-qualified {
-  border-left: 3px solid var(--success-contrast, #10b981); /* Green for qualified */
+  border-left: 3px solid var(--success-contrast, var(--status-checked-in)); /* Green for qualified */
 }
 
 .dog-card.result-nq,
@@ -238,9 +238,9 @@
 }
 
 .dog-card-action .favorite-button.favorited {
-  color: #ef4444;
+  color: var(--status-pulled);
   background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
+  border-color: var(--status-pulled);
 }
 
 .theme-dark .dog-card-action .favorite-button.favorited {
@@ -250,9 +250,9 @@
 }
 
 .dog-card-action .favorite-button.favorited:hover {
-  background: #ef4444;
+  background: var(--status-pulled);
   color: white;
-  border-color: #ef4444;
+  border-color: var(--status-pulled);
 }
 
 .theme-dark .dog-card-action .favorite-button.favorited:hover {

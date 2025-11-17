@@ -43,14 +43,14 @@
 
 .diagnostic-status.status-warning {
   background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-  border: 1px solid #f59e0b;
+  color: var(--status-conflict);
+  border: 1px solid var(--status-conflict);
 }
 
 .diagnostic-status.status-error {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  color: var(--status-pulled);
+  border: 1px solid var(--status-pulled);
 }
 
 .diagnostic-loading {
@@ -111,7 +111,7 @@
 }
 
 .recommendation-list li {
-  color: #f59e0b;
+  color: var(--status-conflict);
 }
 
 .diagnostic-actions {
@@ -170,8 +170,8 @@
 
 .cleanup-status.error {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  color: var(--status-pulled);
+  border: 1px solid var(--status-pulled);
 }
 
 .manual-instructions {
@@ -179,12 +179,12 @@
   padding: var(--token-space-2xl);
   background: var(--background-secondary);
   border-radius: var(--border-radius-md);
-  border: 2px solid #f59e0b;
+  border: 2px solid var(--status-conflict);
 }
 
 .manual-instructions h3 {
   margin: 0 0 var(--token-space-xl) 0;
-  color: #f59e0b;
+  color: var(--status-conflict);
   font-size: 1.125rem;
 }
 
@@ -235,13 +235,13 @@
 }
 
 .icon-warning {
-  color: #f59e0b;
+  color: var(--status-conflict);
   width: 32px;
   height: 32px;
 }
 
 .icon-error {
-  color: #ef4444;
+  color: var(--status-pulled);
   width: 32px;
   height: 32px;
 }

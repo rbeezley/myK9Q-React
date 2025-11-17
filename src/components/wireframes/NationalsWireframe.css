@@ -73,7 +73,7 @@
   padding: var(--token-space-lg) 0;
   /* NO background - this is the key! */
   background: transparent;
-  border: var(--token-space-xs) dashed #ef4444;
+  border: var(--token-space-xs) dashed var(--status-pulled);
   border-radius: var(--token-space-md);
   padding: var(--token-space-lg);
 }
@@ -288,7 +288,7 @@
 }
 
 .wireframe-counter-btn.increment.negative {
-  background: #ef4444;
+  background: var(--status-pulled);
 }
 
 .wireframe-counter-value {
@@ -335,7 +335,7 @@
 }
 
 .wireframe-save-btn {
-  background: #8b5cf6;
+  background: var(--status-at-gate);
   color: white;
   border: none;
   padding: var(--token-space-xl) var(--token-space-4xl);
