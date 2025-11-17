@@ -13,7 +13,7 @@
 
 .passcode-inputs {
   display: flex;
-  gap: var(--token-space-lg);
+  gap: var(--token-space-md);  /* Mobile: smaller gap */
   justify-content: center;
   margin-bottom: var(--token-space-xl);
 }
@@ -24,13 +24,13 @@
 
 /* Passcode Input Boxes */
 .passcode-input {
-  width: 60px;
-  height: 60px;
+  width: 50px;  /* Mobile: smaller input */
+  height: 50px;
   border: var(--token-space-xs) solid #d1d5db;
   border-radius: var(--token-space-lg);
   background: white;
   color: var(--foreground);
-  font-size: 1.5rem;
+  font-size: 1.25rem;  /* Mobile: smaller font */
   font-weight: 600;
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -139,15 +139,15 @@
   }
 }
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .passcode-input {
-    width: 50px;
-    height: 50px;
-    font-size: 1.25rem;
+    width: 60px;  /* Desktop: larger input */
+    height: 60px;
+    font-size: 1.5rem;  /* Desktop: larger font */
   }
 
   .passcode-inputs {
-    gap: var(--token-space-md);
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 }

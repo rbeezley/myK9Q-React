@@ -6,13 +6,13 @@
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);  /* Mobile: smaller padding */
   cursor: pointer;
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
-  min-height: 80px;
+  min-height: 70px;  /* Mobile: smaller min-height */
 }
 
 .theme-dark .dog-card {
@@ -108,7 +108,7 @@
 .dog-card-content {
   display: flex;
   align-items: flex-start;
-  gap: var(--token-space-xl);
+  gap: var(--token-space-lg);  /* Mobile: smaller gap */
   position: relative;
 }
 
@@ -392,15 +392,15 @@
   flex-shrink: 0;
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .dog-card {
-    padding: var(--token-space-lg);
-    min-height: 70px;
+    padding: var(--token-space-xl);  /* Desktop: larger padding */
+    min-height: 80px;  /* Desktop: larger min-height */
   }
 
   .dog-card-content {
-    gap: var(--token-space-lg);
+    gap: var(--token-space-xl);  /* Desktop: larger gap */
   }
 
   .dog-card-name {
