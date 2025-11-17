@@ -2,7 +2,7 @@
 /* NOTE: Check-in status colors are now defined in design-tokens.css */
 
 .dog-card {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--overlay-white-heavy);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 1rem;
@@ -16,8 +16,8 @@
 }
 
 .theme-dark .dog-card {
-  background: rgba(26, 29, 35, 0.8);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
+  background: var(--overlay-dark-heavy);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--shadow-medium);
 }
 
 .dog-card::before {
@@ -132,7 +132,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--shadow-subtle);
 }
 
 .section-badge.section-a {
@@ -239,7 +239,7 @@
 
 .dog-card-action .favorite-button.favorited {
   color: var(--status-pulled);
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-error);
   border-color: var(--status-pulled);
 }
 
@@ -354,7 +354,7 @@
 
 .dog-card-action .status-badge:hover:not(.disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--shadow-subtle);
 }
 
 .dog-card-action .status-badge:active:not(.disabled) {

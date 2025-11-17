@@ -57,7 +57,7 @@
 
   /* Hero gradients (for headers, etc) */
   --gradient-primary: linear-gradient(135deg, var(--status-checked-in) 0%, #059669 100%) !important;
-  --gradient-hero: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%) !important;
+  --gradient-hero: linear-gradient(135deg, var(--overlay-success) 0%, transparent 100%) !important;
 
   /* ===== BUTTON VARIANTS ===== */
 

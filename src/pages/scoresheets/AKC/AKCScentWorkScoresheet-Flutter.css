@@ -13,7 +13,7 @@
   --scoresheet-input-bg: var(--input);
   --scoresheet-input-border: var(--border);
   --scoresheet-badge-text: var(--primary-foreground);
-  --scoresheet-hover-overlay: rgba(255, 255, 255, 0.1);
+  --scoresheet-hover-overlay: var(--overlay-white-subtle)(255, 255, 255, 0.1);
 }
 
 .theme-light {
@@ -28,7 +28,7 @@
   --scoresheet-input-bg: var(--input);
   --scoresheet-input-border: var(--border);
   --scoresheet-badge-text: var(--primary-foreground);
-  --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
+  --scoresheet-hover-overlay: var(--overlay-white-subtle)(0, 0, 0, 0.05);
 }
 
 .scoresheet-container {
@@ -204,7 +204,7 @@
   background: var(--scoresheet-card-bg);
   border: 1px solid var(--scoresheet-card-border);
   border-radius: var(--token-space-lg);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.2);
 }
 
 .scoresheet-armband {
@@ -219,7 +219,7 @@
   font-weight: bold;
   border-radius: var(--token-space-lg);
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(59, 130, 246, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(59, 130, 246, 0.3);
 }
 
 .scoresheet-dog-details {
@@ -364,7 +364,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.2);
   z-index: var(--token-z-raised);
 }
 
@@ -382,7 +382,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.2);
 }
 
 .timer-btn-start {
@@ -402,19 +402,19 @@
   justify-content: center;
   gap: var(--token-space-md);
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.25);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.25);
 }
 
 .timer-btn-start.stop {
   background: var(--token-error); /* Keep red for stop */
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(239, 68, 68, 0.3);
 }
 
 .timer-btn-pause:hover:not(:disabled), .timer-btn-reset:hover:not(:disabled) {
   background: var(--text-gray);
   filter: brightness(1.15);
   transform: scale(1.05);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 .timer-btn-pause:active:not(:disabled), .timer-btn-reset:active:not(:disabled) {
@@ -430,7 +430,7 @@
   background: var(--primary);
   filter: brightness(1.1);
   transform: scale(1.05);
-  box-shadow: 0 6px var(--token-space-xl) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px var(--token-space-xl) var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 .timer-btn-start:active {
@@ -440,14 +440,14 @@
 .timer-btn-start.stop:hover {
   filter: brightness(1.1);
   transform: scale(1.05);
-  box-shadow: 0 6px var(--token-space-xl) rgba(239, 68, 68, 0.4);
+  box-shadow: 0 6px var(--token-space-xl) var(--overlay-white-subtle)(239, 68, 68, 0.4);
 }
 
 .timer-secondary {
   position: absolute;
   top: var(--token-space-2xl);
   right: var(--token-space-2xl);
-  background: rgba(16, 185, 129, 0.2);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.2);
   border: var(--token-space-xs) solid var(--status-checked-in);
   border-radius: var(--token-space-2xl);
   padding: var(--token-space-md) var(--token-space-lg);
@@ -472,13 +472,13 @@
 }
 
 .timer-warning.warning {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-white-subtle)(239, 68, 68, 0.1);
   border: var(--token-space-xs) solid var(--status-pulled);
   color: var(--token-error);
 }
 
 .timer-warning.expired {
-  background: rgba(220, 38, 38, 0.2);
+  background: var(--overlay-white-subtle)(220, 38, 38, 0.2);
   border: var(--token-space-xs) solid #DC2626;
   color: var(--token-error-contrast);
   animation: flash 0.5s infinite;
@@ -545,7 +545,7 @@
   background: var(--scoresheet-input-bg);
   border-color: var(--primary);
   font-weight: 600;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(59, 130, 246, 0.1);
 }
 
 .scoresheet-time-clear-button {
@@ -564,7 +564,7 @@
 }
 
 .scoresheet-time-clear-button:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-white-subtle)(239, 68, 68, 0.1);
   color: var(--token-error);
 }
 
@@ -575,7 +575,7 @@
 
 .scoresheet-time-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 4px var(--overlay-white-subtle)(59, 130, 246, 0.2);
   background: var(--scoresheet-input-bg);
 }
 
@@ -593,7 +593,7 @@
 
 /* Area Badge Styles - Compact */
 .area-badge {
-  background: rgba(16, 185, 129, 0.8);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.8);
   color: var(--scoresheet-badge-text);
   padding: 6px 10px;
   border-radius: var(--token-space-xl);
@@ -608,20 +608,20 @@
 }
 
 .area-badge.completed {
-  background: rgba(107, 114, 128, 0.8);
+  background: var(--overlay-white-subtle)(107, 114, 128, 0.8);
   color: var(--scoresheet-badge-text);
 }
 
 .area-badge.pending {
-  background: rgba(16, 185, 129, 0.8);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.8);
   color: var(--scoresheet-badge-text);
 }
 
 /* Max Time Badge Styles */
 .max-time-badge {
-  background: rgba(124, 58, 237, 0.2);
-  border: 1px solid rgba(124, 58, 237, 0.4);
-  color: rgba(124, 58, 237, 1);
+  background: var(--overlay-white-subtle)(124, 58, 237, 0.2);
+  border: 1px solid var(--overlay-white-subtle)(124, 58, 237, 0.4);
+  color: var(--overlay-white-subtle)(124, 58, 237, 1);
   padding: 6px var(--token-space-lg);
   border-radius: var(--token-space-xl);
   font-size: 13px;
@@ -675,7 +675,7 @@
 }
 
 .scoresheet-btn-cancel {
-  background: rgba(107, 114, 128, 0.8);
+  background: var(--overlay-white-subtle)(107, 114, 128, 0.8);
   color: var(--scoresheet-badge-text);
 }
 
@@ -685,7 +685,7 @@
 }
 
 .scoresheet-btn-cancel:hover {
-  background: rgba(107, 114, 128, 1);
+  background: var(--overlay-white-subtle)(107, 114, 128, 1);
   transform: scale(1.02);
 }
 
@@ -867,20 +867,20 @@
 /* Light theme badge styles - colors inherited from base via variables */
 
 .theme-light .max-time-badge {
-  background: rgba(124, 58, 237, 0.1);
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  color: rgba(124, 58, 237, 0.9);
+  background: var(--overlay-white-subtle)(124, 58, 237, 0.1);
+  border: 1px solid var(--overlay-white-subtle)(124, 58, 237, 0.3);
+  color: var(--overlay-white-subtle)(124, 58, 237, 0.9);
 }
 
 /* Light theme timer warning styles */
 .theme-light .timer-warning.warning {
-  background: rgba(239, 68, 68, 0.05);
+  background: var(--overlay-white-subtle)(239, 68, 68, 0.05);
   border: var(--token-space-xs) solid var(--status-pulled);
   color: var(--token-error-contrast);
 }
 
 .theme-light .timer-warning.expired {
-  background: rgba(220, 38, 38, 0.1);
+  background: var(--overlay-white-subtle)(220, 38, 38, 0.1);
   border: var(--token-space-xs) solid #DC2626;
   color: #B91C1C;
 }
@@ -889,8 +889,8 @@
 .timer-expired-indicator {
   padding: var(--token-space-md) var(--token-space-xl);
   border-radius: var(--token-space-lg);
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.5);
+  background: var(--overlay-white-subtle)(239, 68, 68, 0.2);
+  border: 1px solid var(--overlay-white-subtle)(239, 68, 68, 0.5);
   color: var(--token-error);
   font-size: var(--token-space-xl);
   font-weight: 600;
@@ -904,8 +904,8 @@
 }
 
 .theme-light .timer-expired-indicator {
-  background: rgba(220, 38, 38, 0.15);
-  border: 1px solid rgba(220, 38, 38, 0.4);
+  background: var(--overlay-white-subtle)(220, 38, 38, 0.15);
+  border: 1px solid var(--overlay-white-subtle)(220, 38, 38, 0.4);
   color: var(--token-error-contrast);
 }
 

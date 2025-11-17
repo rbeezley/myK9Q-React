@@ -86,7 +86,7 @@
 .settings-time-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(var(--primary-rgb, 59, 130, 246), 0.1);
 }
 
 .settings-time-input::-webkit-calendar-picker-indicator {
@@ -187,7 +187,7 @@
 }
 
 .theme-dark .settings-message--success {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.15);
   color: #86efac;
   border-left-color: var(--status-checked-in);
 }
@@ -199,7 +199,7 @@
 }
 
 .theme-dark .settings-message--error {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--overlay-white-subtle)(239, 68, 68, 0.15);
   color: #fca5a5;
   border-left-color: var(--status-pulled);
 }
@@ -233,7 +233,7 @@
 
 .settings-visibility-option:hover {
   border-color: var(--primary);
-  background: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+  background: var(--overlay-white-subtle)(var(--primary-rgb, 59, 130, 246), 0.05);
 }
 
 .settings-visibility-option input:checked + .settings-visibility-content {

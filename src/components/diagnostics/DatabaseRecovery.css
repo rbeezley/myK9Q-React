@@ -12,7 +12,7 @@
   align-items: center;
   gap: var(--token-space-md);
   z-index: var(--token-z-modal);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .detecting-icon {
@@ -31,7 +31,7 @@
 .database-recovery-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-white-subtle)(0, 0, 0, 0.5);
 }
 
 .database-recovery-content {
@@ -41,7 +41,7 @@
   transform: translate(-50%, -50%);
   background: var(--background);
   border-radius: var(--token-radius-lg);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px var(--overlay-white-subtle)(0, 0, 0, 0.2);
   max-width: 500px;
   width: 90%;
   max-height: 80vh;

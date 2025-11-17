@@ -89,7 +89,7 @@
   background: var(--primary);
   color: var(--primary-foreground);
   border: none;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--shadow-medium);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,7 +274,7 @@
   flex-direction: column;
   gap: var(--token-space-sm);
   z-index: var(--token-z-raised);
-  box-shadow: -2px 0 var(--token-space-md) rgba(0, 0, 0, 0.1);
+  box-shadow: -2px 0 var(--token-space-md) var(--shadow-subtle);
 }
 
 .quick-access-button {
@@ -310,7 +310,7 @@
   display: flex;
   gap: var(--token-space-md);
   z-index: var(--token-z-raised);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--shadow-subtle);
 }
 
 .bulk-action-button {
@@ -371,7 +371,7 @@
 .mobile-loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--shadow-modal);
   display: flex;
   align-items: center;
   justify-content: center;

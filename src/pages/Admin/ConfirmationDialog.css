@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-white-subtle)(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -27,7 +27,7 @@
 .dialog-container {
   background: var(--card);
   border-radius: var(--token-radius-xl);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 50px var(--overlay-white-subtle)(0, 0, 0, 0.5);
   max-width: 500px;
   width: calc(100% - 2rem);  /* Mobile: full width minus padding */
   margin: var(--token-space-xl);  /* Mobile: spacing from edges */
@@ -137,7 +137,7 @@
 }
 
 .success-note {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.1);
   border: 2px solid var(--status-checked-in);
   border-radius: var(--token-radius-lg);
   padding: var(--token-space-2xl);
@@ -186,12 +186,12 @@
 
 .dialog-btn-confirm {
   color: var(--primary-foreground);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
 }
 
 .dialog-btn-confirm:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px var(--token-space-2xl) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px var(--token-space-2xl) var(--overlay-white-subtle)(0, 0, 0, 0.2);
 }
 
 .dialog-btn-primary {
@@ -208,7 +208,7 @@
 }
 
 .dialog-btn-warning:hover {
-  box-shadow: 0 6px var(--token-space-2xl) rgba(245, 158, 11, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) var(--overlay-white-subtle)(245, 158, 11, 0.4);
 }
 
 .dialog-btn-success {
@@ -216,7 +216,7 @@
 }
 
 .dialog-btn-success:hover {
-  box-shadow: 0 6px var(--token-space-2xl) rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) var(--overlay-white-subtle)(16, 185, 129, 0.4);
 }
 
 .dialog-btn-danger {
@@ -224,7 +224,7 @@
 }
 
 .dialog-btn-danger:hover {
-  box-shadow: 0 6px var(--token-space-2xl) rgba(239, 68, 68, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) var(--overlay-white-subtle)(239, 68, 68, 0.4);
 }
 
 /* Admin Name Dialog Specific Styles */

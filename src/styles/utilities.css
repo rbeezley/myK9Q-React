@@ -125,7 +125,7 @@
 .icon-button:hover:not(:disabled) {
   background: var(--muted);
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--shadow-subtle);
 }
 
 .icon-button:active:not(:disabled) {
@@ -236,7 +236,7 @@
 }
 
 .card-base.clickable:hover {
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--shadow-subtle);
   transform: translateY(-2px);
 }
 
@@ -305,7 +305,7 @@
 
 .status-badge.clickable:hover {
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--shadow-subtle);
 }
 
 /* Class Status Colors - Solid backgrounds with white text */
@@ -383,13 +383,13 @@
 
 /* Entry Result Status Colors */
 .status-badge.qualified {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--overlay-success);
   color: var(--token-success);
   border-color: rgba(16, 185, 129, 0.2);
 }
 
 .status-badge.not-qualified {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-error);
   color: var(--token-error);
   border-color: rgba(239, 68, 68, 0.2);
 }
@@ -495,11 +495,11 @@
 
 .theme-dark .card-base {
   background: rgba(30, 30, 30, 0.5);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--overlay-white-subtle);
 }
 
 .theme-dark .card-base.clickable:hover {
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--shadow-medium);
 }
 
 /* =================================================================

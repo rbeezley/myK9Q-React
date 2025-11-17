@@ -124,7 +124,7 @@
 .result-chip:hover {
   border-color: var(--color-primary, #6366f1);
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) 6px var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .result-chip:active {
@@ -162,7 +162,7 @@
 .nq-reason input:focus {
   outline: none;
   border-color: var(--color-primary, #6366f1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(99, 102, 241, 0.1);
 }
 
 /* Confirmation Dialog */
@@ -172,7 +172,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-white-subtle)(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +186,7 @@
   padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 var(--token-space-2xl) 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-2xl) 25px -5px var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .confirmation-dialog h2 {

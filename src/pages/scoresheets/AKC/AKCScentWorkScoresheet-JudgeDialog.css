@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--overlay-white-subtle)(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -34,8 +34,8 @@ body.dialog-open {
   margin: 0;  /* Mobile: no margin */
   overflow-y: auto;
   overflow-x: hidden;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 80px var(--overlay-white-subtle)(0, 0, 0, 0.6);
+  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.2);
   -webkit-border-radius: var(--token-space-3xl);
   -moz-border-radius: var(--token-space-3xl);
   /* Hide scrollbar but allow scrolling */
@@ -62,15 +62,15 @@ body.dialog-open {
   display: block;
   text-align: center;
   margin-bottom: var(--token-space-lg);  /* Mobile: smaller margin */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.2);
   padding: var(--token-space-lg);  /* Mobile: smaller padding */
   width: 100%;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(40, 40, 40, 0.6);
+  background: var(--overlay-white-subtle)(40, 40, 40, 0.6);
   border-radius: var(--token-space-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.1);
 }
 
 .judge-confirmation-dialog .dialog-header h2 {
@@ -88,7 +88,7 @@ body.dialog-open {
   display: block;
   text-align: center;
   font-size: var(--token-space-lg);  /* Mobile: 12px */
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--overlay-white-subtle)(255, 255, 255, 0.8);
   font-weight: 500;
   width: 100%;
   margin: 0;
@@ -103,7 +103,7 @@ body.dialog-open {
 
 .trial-date {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--overlay-white-subtle)(255, 255, 255, 0.7);
 }
 
 .trial-class {
@@ -118,8 +118,8 @@ body.dialog-open {
 }
 
 .dialog-dog-card .confirmation-dog-card {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.2);
+  background: var(--overlay-white-subtle)(40, 40, 40, 0.8);
   margin: 0;
   cursor: default; /* Remove pointer cursor */
   padding: var(--token-space-lg); /* Reduce internal padding */
@@ -151,9 +151,9 @@ body.dialog-open {
   gap: var(--token-space-lg);  /* Mobile: smaller gap */
   margin-bottom: var(--token-space-3xl);
   padding: var(--token-space-2xl);
-  background: rgba(40, 40, 40, 0.8);
+  background: var(--overlay-white-subtle)(40, 40, 40, 0.8);
   border-radius: var(--token-space-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.1);
 }
 
 .armband-large {
@@ -177,13 +177,13 @@ body.dialog-open {
 
 .dog-breed {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--overlay-white-subtle)(255, 255, 255, 0.7);
   margin-bottom: var(--token-space-xs);
 }
 
 .handler-name {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--overlay-white-subtle)(255, 255, 255, 0.6);
 }
 
 /* Score Details */
@@ -236,7 +236,7 @@ body.dialog-open {
   justify-content: space-between;
   align-items: center;
   padding: var(--token-space-lg) 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.1);
 }
 
 .score-row:last-child {
@@ -246,7 +246,7 @@ body.dialog-open {
 .score-label {
   font-size: var(--token-space-xl);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--overlay-white-subtle)(255, 255, 255, 0.8);
 }
 
 .score-value {
@@ -282,9 +282,9 @@ body.dialog-open {
 .nationals-breakdown {
   margin-top: var(--token-space-md);  /* Mobile: smaller margin */
   padding: var(--token-space-lg);  /* Mobile: smaller padding */
-  background: rgba(30, 30, 30, 0.8);
+  background: var(--overlay-white-subtle)(30, 30, 30, 0.8);
   border-radius: var(--token-space-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.1);
 }
 
 .nationals-breakdown h3 {
@@ -308,14 +308,14 @@ body.dialog-open {
   flex-direction: column;
   align-items: center;
   padding: var(--token-space-md);
-  background: rgba(40, 40, 40, 0.6);
+  background: var(--overlay-white-subtle)(40, 40, 40, 0.6);
   border-radius: var(--token-space-md);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.1);
 }
 
 .item-label {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--overlay-white-subtle)(255, 255, 255, 0.7);
   margin-bottom: var(--token-space-xs);
   text-align: center;
 }
@@ -334,7 +334,7 @@ body.dialog-open {
 
 /* Total time styling for multi-area searches */
 .score-item.total-time {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.15);
   border: var(--token-space-xs) solid var(--status-checked-in);
   grid-column: 1 / -1; /* Span full width */
 }
@@ -364,7 +364,7 @@ body.dialog-open {
   justify-content: space-between;
   align-items: center;
   padding: var(--token-space-xl);
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.1);
   border: var(--token-space-xs) solid var(--status-checked-in);
   border-radius: var(--token-space-md);
 }
@@ -400,12 +400,12 @@ body.dialog-open {
 }
 
 .dialog-btn.cancel {
-  background: rgba(107, 114, 128, 0.8);
+  background: var(--overlay-white-subtle)(107, 114, 128, 0.8);
   color: white;
 }
 
 .dialog-btn.cancel:hover {
-  background: rgba(107, 114, 128, 1);
+  background: var(--overlay-white-subtle)(107, 114, 128, 1);
   transform: scale(1.02);
 }
 
@@ -420,7 +420,7 @@ body.dialog-open {
 }
 
 .dialog-btn.confirm:disabled {
-  background: rgba(16, 185, 129, 0.5);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.5);
   cursor: not-allowed;
   transform: none;
 }
@@ -490,13 +490,13 @@ body.dialog-open {
 /* Light Theme Support */
 .theme-light .judge-confirmation-dialog {
   background: white;
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: var(--overlay-white-subtle)(0, 0, 0, 0.15);
   color: var(--foreground);
 }
 
 .theme-light .judge-confirmation-dialog .dialog-header {
-  background: rgba(241, 245, 249, 0.8);
-  border-bottom-color: rgba(0, 0, 0, 0.1);
+  background: var(--overlay-white-subtle)(241, 245, 249, 0.8);
+  border-bottom-color: var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .theme-light .judge-confirmation-dialog .dialog-header h2 {
@@ -504,20 +504,20 @@ body.dialog-open {
 }
 
 .theme-light .judge-confirmation-dialog .trial-info-line {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--overlay-white-subtle)(0, 0, 0, 0.7);
 }
 
 .theme-light .judge-confirmation-dialog .dialog-header .flutter-trial-header-compact {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--overlay-white-subtle)(0, 0, 0, 0.7);
 }
 
 .theme-light .judge-confirmation-dialog .dialog-header .trial-separator {
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--overlay-white-subtle)(0, 0, 0, 0.4);
 }
 
 .theme-light .dialog-dog-card .confirmation-dog-card {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--overlay-white-subtle)(248, 250, 252, 0.8);
+  border-color: var(--overlay-white-subtle)(0, 0, 0, 0.15);
 }
 
 /* Fix DogCard text colors in light mode */
@@ -542,8 +542,8 @@ body.dialog-open {
 
 .theme-light .dog-summary,
 .theme-light .nationals-breakdown {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: var(--overlay-white-subtle)(248, 250, 252, 0.8);
+  border-color: var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .theme-light .dog-name-large {
@@ -564,7 +564,7 @@ body.dialog-open {
 }
 
 .theme-light .score-row {
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .theme-light .nationals-breakdown h3 {
@@ -572,8 +572,8 @@ body.dialog-open {
 }
 
 .theme-light .score-item {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: var(--overlay-white-subtle)(255, 255, 255, 0.8);
+  border-color: var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .theme-light .item-label {
@@ -581,7 +581,7 @@ body.dialog-open {
 }
 
 .theme-light .total-points {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.1);
   border-color: var(--token-success-contrast);
 }
 

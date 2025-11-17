@@ -117,7 +117,7 @@ button, input, select, textarea {
 
 /* Dark mode - visible gray track */
 .theme-dark ::-webkit-scrollbar-track {
-  background: rgba(31, 41, 55, 0.1);
+  background: var(--overlay-white-subtle)(31, 41, 55, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -128,7 +128,7 @@ button, input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);  /* Show on hover */
+  background: var(--overlay-white-subtle)(99, 102, 241, 0.5);  /* Show on hover */
   background-clip: padding-box;
 }
 
@@ -140,7 +140,7 @@ button, input, select, textarea {
 
 /* Firefox dark mode */
 .theme-dark * {
-  scrollbar-color: rgba(99, 102, 241, 0.4) rgba(31, 41, 55, 0.1);
+  scrollbar-color: var(--overlay-white-subtle)(99, 102, 241, 0.4) var(--overlay-white-subtle)(31, 41, 55, 0.1);
 }
 
 /* Global CSS Rehydration Prevention */

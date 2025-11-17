@@ -49,17 +49,17 @@
 }
 
 .permission-status.success {
-  background: rgba(52, 199, 89, 0.1);
+  background: var(--overlay-white-subtle)(52, 199, 89, 0.1);
   color: var(--success);
 }
 
 .permission-status.error {
-  background: rgba(255, 59, 48, 0.1);
+  background: var(--overlay-white-subtle)(255, 59, 48, 0.1);
   color: var(--error);
 }
 
 .permission-status.warning {
-  background: rgba(255, 149, 0, 0.1);
+  background: var(--overlay-white-subtle)(255, 149, 0, 0.1);
   color: var(--warning);
 }
 
@@ -129,8 +129,8 @@
 
 /* Permission Blocked */
 .permission-blocked {
-  background: rgba(255, 59, 48, 0.05);
-  border: 1px solid rgba(255, 59, 48, 0.2);
+  background: var(--overlay-white-subtle)(255, 59, 48, 0.05);
+  border: 1px solid var(--overlay-white-subtle)(255, 59, 48, 0.2);
   border-radius: var(--token-radius-lg);
   padding: var(--token-space-2xl);
   display: flex;
@@ -213,12 +213,12 @@
 }
 
 .priority-badge.urgent {
-  background: rgba(255, 59, 48, 0.1);
+  background: var(--overlay-white-subtle)(255, 59, 48, 0.1);
   color: var(--error);
 }
 
 .priority-badge.high {
-  background: rgba(255, 149, 0, 0.1);
+  background: var(--overlay-white-subtle)(255, 149, 0, 0.1);
   color: var(--warning);
 }
 

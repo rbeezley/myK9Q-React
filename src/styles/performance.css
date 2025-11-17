@@ -100,8 +100,8 @@
 
 .device-tier-high .enhanced-shadow {
   box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 var(--token-space-sm) 6px -2px rgba(0, 0, 0, 0.05);
+    0 10px 15px -3px var(--shadow-subtle),
+    0 var(--token-space-sm) 6px -2px var(--shadow-barely);
 }
 
 /* Smooth 120fps animations */
@@ -318,7 +318,7 @@
   /* Mobile-simple enhancements */
   .mobile-simple {
     backdrop-filter: blur(10px);  /* Desktop: Enable backdrop blur */
-    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);  /* Desktop: Add shadows */
+    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--shadow-subtle);  /* Desktop: Add shadows */
   }
 
   .mobile-simple * {

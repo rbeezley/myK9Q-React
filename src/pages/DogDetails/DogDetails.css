@@ -95,7 +95,7 @@
 .header-menu-button:hover {
   background: var(--muted);
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.08);
 }
 
 /* Dark mode menu button */
@@ -107,7 +107,7 @@
 
 .theme-dark .header-menu-button:hover {
   background: var(--secondary);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 /* ========== DROPDOWN MENU ========== */
@@ -329,7 +329,7 @@
 .class-card.clickable:hover {
   transform: translateY(-2px);
   box-shadow: var(--token-shadow-lg);
-  border-color: rgba(0, 122, 255, 0.2);
+  border-color: var(--overlay-white-subtle)(0, 122, 255, 0.2);
 }
 
 .class-card.clickable:active {
@@ -391,13 +391,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 215, 0, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(255, 215, 0, 0.4);
   animation: glow 2s ease-in-out infinite;
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 215, 0, 0.4); }
-  50% { box-shadow: 0 var(--token-space-sm) var(--token-space-2xl) rgba(255, 215, 0, 0.6); }
+  0%, 100% { box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 var(--token-space-sm) var(--token-space-2xl) var(--overlay-white-subtle)(255, 215, 0, 0.6); }
 }
 
 .position-badge svg {
@@ -565,7 +565,7 @@
 
 .class-card-action .status-badge:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .class-card-action .status-badge:active:not(:disabled) {
@@ -662,7 +662,7 @@
   left: 0;
   right: 0;
   height: 80px;
-  background: rgba(254, 254, 254, 0.95);
+  background: var(--overlay-white-subtle)(254, 254, 254, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
@@ -674,7 +674,7 @@
 }
 
 .theme-dark .bottom-nav {
-  background: rgba(26, 29, 35, 0.95);
+  background: var(--overlay-white-subtle)(26, 29, 35, 0.95);
 }
 
 .nav-button {
@@ -705,7 +705,7 @@
 
 .nav-button.active {
   color: var(--primary);
-  background: rgba(37, 99, 235, 0.1);
+  background: var(--overlay-white-subtle)(37, 99, 235, 0.1);
 }
 
 .nav-button svg {
@@ -833,27 +833,27 @@
 /* ========== DARK MODE ENHANCEMENTS ========== */
 
 .theme-dark .class-card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 .theme-dark .class-card:hover {
-  box-shadow: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-lg) var(--token-space-4xl) var(--overlay-white-subtle)(0, 0, 0, 0.4);
 }
 
 .theme-dark .dog-info-card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 .theme-dark .dog-info-card:hover {
-  box-shadow: 0 var(--token-space-2xl) 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-2xl) 25px -5px var(--overlay-white-subtle)(0, 0, 0, 0.3), 0 10px 10px -5px var(--overlay-white-subtle)(0, 0, 0, 0.2);
 }
 
 .theme-dark .theme-toggle {
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 .theme-dark .theme-toggle:hover {
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.4);
 }
 
 /* ========== PREVENT CSS REHYDRATION ========== */
@@ -1061,13 +1061,13 @@
   .status-button {
     border-width: 3px;
     font-weight: 700;
-    box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.3);
   }
 
   .dog-info-card,
   .class-card {
     border-width: 3px;
-    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+    box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.3);
   }
 }
 

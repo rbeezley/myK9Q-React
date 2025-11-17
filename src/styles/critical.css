@@ -44,7 +44,7 @@ body {
 /* Header - Above the fold */
 .app-header {
   background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--shadow-subtle);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -92,7 +92,7 @@ body {
 .card {
   background: white;
   border-radius: var(--token-space-lg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--shadow-subtle);
   padding: var(--token-space-xl);
   margin-bottom: var(--token-space-xl);
 }

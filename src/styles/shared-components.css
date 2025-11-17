@@ -304,7 +304,7 @@
 }
 
 .status-badge.pulled {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-error);
   color: rgb(239, 68, 68);
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
@@ -468,7 +468,7 @@
 
 .theme-dark .icon-button:hover {
   background: var(--secondary);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--shadow-medium);
 }
 
 /* ========================
@@ -505,7 +505,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px var(--shadow-subtle);
   z-index: var(--token-z-toast); /* Above all page elements including announcement banner */
   min-width: 150px;
 }
@@ -533,7 +533,7 @@
 .theme-dark .reset-menu {
   background: var(--card);
   border-color: var(--border);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 25px var(--shadow-modal);
 }
 
 .theme-dark .reset-option {
@@ -551,7 +551,7 @@
 .reset-dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--shadow-modal);
   z-index: var(--token-z-toast);
   display: flex;
   align-items: center;
@@ -566,7 +566,7 @@
   padding: var(--token-space-3xl);
   max-width: 450px;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px var(--shadow-moderate);
   animation: slideUp 0.2s ease;
 }
 
@@ -657,7 +657,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--shadow-light);
   z-index: var(--token-z-toast);  /* Very high z-index to appear above all content including tabs */
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);  /* Prevent going off screen */

@@ -11,7 +11,7 @@
   background: var(--primary);
   color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px var(--overlay-white-subtle)(0, 0, 0, 0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -22,7 +22,7 @@
 
 .subscription-monitor-toggle:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 16px var(--overlay-white-subtle)(0, 0, 0, 0.3);
 }
 
 .subscription-monitor-toggle .leak-indicator {
@@ -69,7 +69,7 @@
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--border-radius-md);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px var(--overlay-white-subtle)(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   z-index: var(--token-z-toast);
@@ -216,7 +216,7 @@
   align-items: flex-start;
   gap: var(--token-space-lg);
   padding: var(--token-space-xl);
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--overlay-white-subtle)(239, 68, 68, 0.1);
   border: 1px solid var(--status-error);
   border-radius: var(--border-radius-sm);
   color: var(--status-error);
@@ -300,7 +300,7 @@
 
 .subscription-item.old {
   border-color: var(--status-warning);
-  background: rgba(245, 158, 11, 0.05);
+  background: var(--overlay-white-subtle)(245, 158, 11, 0.05);
 }
 
 .subscription-item:hover {
@@ -338,27 +338,27 @@
 }
 
 .sub-type.type-announcement {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--overlay-white-subtle)(59, 130, 246, 0.1);
   color: var(--checkin-in-ring);
 }
 
 .sub-type.type-nationals {
-  background: rgba(139, 92, 246, 0.1);
+  background: var(--overlay-white-subtle)(139, 92, 246, 0.1);
   color: var(--status-at-gate);
 }
 
 .sub-type.type-entry {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--overlay-white-subtle)(16, 185, 129, 0.1);
   color: var(--status-checked-in);
 }
 
 .sub-type.type-sync {
-  background: rgba(245, 158, 11, 0.1);
+  background: var(--overlay-white-subtle)(245, 158, 11, 0.1);
   color: var(--status-conflict);
 }
 
 .sub-type.type-other {
-  background: rgba(107, 114, 128, 0.1);
+  background: var(--overlay-white-subtle)(107, 114, 128, 0.1);
   color: var(--text-gray);
 }
 

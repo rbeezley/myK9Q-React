@@ -32,7 +32,7 @@
 
 .status-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
   border-color: var(--status-color, var(--primary));
 }
 
@@ -180,7 +180,7 @@
 
 .theme-light .status-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
   border-color: var(--status-color, var(--primary));
 }
 
@@ -201,7 +201,7 @@
 .theme-dark .status-item:hover {
   background: var(--background-soft);
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.4);
   border-color: var(--status-color, var(--primary));
 }
 
@@ -294,7 +294,7 @@
 .time-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+  box-shadow: 0 0 0 2px var(--overlay-white-subtle)(var(--primary-rgb, 59, 130, 246), 0.2);
 }
 
 .time-input::placeholder {

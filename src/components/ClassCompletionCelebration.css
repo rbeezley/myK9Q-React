@@ -22,7 +22,7 @@
   padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px var(--shadow-medium);
   animation: slideUp 0.4s ease-out;
 }
 
@@ -105,7 +105,7 @@
 .celebration-close-btn:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-light);
 }
 
 .celebration-close-btn:active {

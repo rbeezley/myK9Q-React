@@ -9,7 +9,7 @@
   z-index: var(--token-z-toast);
   background: linear-gradient(135deg, #6366f1 0%, var(--status-at-gate) 100%);
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px var(--shadow-light);
   animation: slideDown 0.3s ease-out;
 }
 
@@ -80,7 +80,7 @@
 .pwa-banner-install-btn:hover {
   background: #f9fafb;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-subtle);
 }
 
 .pwa-banner-install-btn:active {
@@ -104,7 +104,7 @@
 
 .pwa-banner-close-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--overlay-white-subtle);
 }
 
 /* Tablet */

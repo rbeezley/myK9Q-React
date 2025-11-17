@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--overlay-white-subtle)(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -21,7 +21,7 @@
   padding: var(--token-space-4xl) var(--token-space-3xl); /* Mobile: smaller padding */
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 var(--token-space-2xl) 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-2xl) 60px var(--overlay-white-subtle)(0, 0, 0, 0.3);
   animation: slideUp 0.4s ease-out;
 }
 
@@ -110,7 +110,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(102, 126, 234, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(102, 126, 234, 0.4);
   margin-bottom: var(--token-space-xl);
   width: 100%;  /* Mobile: full width button */
   justify-content: center;
@@ -118,7 +118,7 @@
 
 .redirect-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px var(--token-space-xl) rgba(102, 126, 234, 0.5);
+  box-shadow: 0 6px var(--token-space-xl) var(--overlay-white-subtle)(102, 126, 234, 0.5);
 }
 
 .redirect-button:active {

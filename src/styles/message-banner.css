@@ -106,7 +106,7 @@
 .alert-danger,
 .message-error,
 .error-message {
-  background: var(--destructive-bg, rgba(239, 68, 68, 0.1));
+  background: var(--destructive-bg, var(--overlay-error));
   border-color: var(--destructive-border, rgba(239, 68, 68, 0.3));
   color: var(--destructive-foreground, #b91c1c);
 }

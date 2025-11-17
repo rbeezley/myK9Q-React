@@ -34,7 +34,7 @@
   top: 0;
   z-index: var(--token-z-modal);  /* High z-index to ensure header and its dropdowns appear above announcement banner (z-index: 50) */
   backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--overlay-white-heavy);
   border-bottom: 1px solid var(--border);
   padding: var(--token-space-lg) var(--token-space-lg);  /* 12px vertical and horizontal on mobile */
   display: flex;
@@ -44,7 +44,7 @@
 }
 
 .theme-dark .page-header {
-  background: rgba(26, 29, 35, 0.8);
+  background: var(--overlay-dark-heavy);
 }
 
 /* Title Icon - Standard styling for page header icons */

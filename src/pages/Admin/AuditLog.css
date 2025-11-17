@@ -362,19 +362,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .scope-badge.scope-show-level {
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--overlay-white-subtle)(99, 102, 241, 0.1);
   color: #6366f1;
   border: 1px solid #6366f1;
 }
 
 .scope-badge.scope-trial-level {
-  background: rgba(139, 92, 246, 0.1);
+  background: var(--overlay-white-subtle)(139, 92, 246, 0.1);
   color: var(--status-at-gate);
   border: 1px solid var(--status-at-gate);
 }
 
 .scope-badge.scope-class-level {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--overlay-white-subtle)(59, 130, 246, 0.1);
   color: var(--checkin-in-ring);
   border: 1px solid var(--checkin-in-ring);
 }

@@ -15,7 +15,7 @@
 
 .announcement-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.1);
   border-color: var(--primary-subtle);
 }
 
@@ -152,7 +152,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.1);
   z-index: var(--token-z-raised);
   min-width: 8rem;
   padding: var(--token-space-sm);
@@ -326,7 +326,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(59, 130, 246, 0.05);
+  background: var(--overlay-white-subtle)(59, 130, 246, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -352,7 +352,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) var(--overlay-white-subtle)(0, 0, 0, 0.1);
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
@@ -681,7 +681,7 @@ button.filter-option.high.active {
   background: white;
   border-radius: 50%;
   transition: left 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 .toggle-option input[type="checkbox"]:checked + .toggle-slider {
@@ -717,7 +717,7 @@ button.filter-option.high.active {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-white-subtle)(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -738,7 +738,7 @@ button.filter-option.high.active {
 
 .create-announcement-modal {
   border: 1px solid var(--border);
-  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-md) var(--token-space-4xl) var(--overlay-white-subtle)(0, 0, 0, 0.1);
 }
 
 /* Modal Header */
@@ -1127,12 +1127,12 @@ button.filter-option.high.active {
 /* Color Variables */
 :root {
   --purple: var(--status-at-gate);
-  --purple-subtle: rgba(139, 92, 246, 0.1);
+  --purple-subtle: var(--overlay-white-subtle)(139, 92, 246, 0.1);
   --blue: var(--checkin-in-ring);
-  --blue-subtle: rgba(59, 130, 246, 0.1);
+  --blue-subtle: var(--overlay-white-subtle)(59, 130, 246, 0.1);
   --green: var(--status-checked-in);
-  --green-subtle: rgba(16, 185, 129, 0.1);
-  --warning-subtle: rgba(245, 158, 11, 0.1);
+  --green-subtle: var(--overlay-white-subtle)(16, 185, 129, 0.1);
+  --warning-subtle: var(--overlay-white-subtle)(245, 158, 11, 0.1);
 }
 
 /* Responsive Design - Mobile First */

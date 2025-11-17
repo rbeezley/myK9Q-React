@@ -229,6 +229,30 @@
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-blur: blur(20px);
 
+  /* ===== OPACITY VARIANTS ===== */
+  /* White overlays (for light backgrounds) */
+  --overlay-white-subtle: rgba(255, 255, 255, 0.1);      /* 34x - subtle white overlay */
+  --overlay-white-light: rgba(255, 255, 255, 0.2);       /* 23x - light white overlay */
+  --overlay-white-moderate: rgba(255, 255, 255, 0.3);    /* 21x - moderate white overlay */
+  --overlay-white-strong: rgba(255, 255, 255, 0.6);      /* 13x - strong white overlay */
+  --overlay-white-heavy: rgba(255, 255, 255, 0.8);       /* 32x - very strong white overlay */
+
+  /* Black shadows/overlays (for dark effects) */
+  --shadow-barely: rgba(0, 0, 0, 0.05);                  /* 13x - barely visible shadow */
+  --shadow-subtle: rgba(0, 0, 0, 0.1);                   /* 29x - subtle shadow */
+  --shadow-light: rgba(0, 0, 0, 0.15);                   /* 12x - light shadow */
+  --shadow-moderate: rgba(0, 0, 0, 0.2);                 /* 17x - moderate shadow */
+  --shadow-medium: rgba(0, 0, 0, 0.3);                   /* 26x - medium shadow */
+  --shadow-modal: rgba(0, 0, 0, 0.5);                    /* 19x - modal backdrop */
+
+  /* Status color overlays (for highlights/badges) */
+  --overlay-error: rgba(239, 68, 68, 0.1);               /* 21x - red error highlight */
+  --overlay-info: rgba(99, 102, 241, 0.1);               /* 21x - blue info highlight */
+  --overlay-success: rgba(16, 185, 129, 0.1);            /* 13x - green success highlight */
+
+  /* Dark theme overlays */
+  --overlay-dark-heavy: rgba(26, 29, 35, 0.8);           /* 22x - dark glass morphism */
+
   /* ===== SKELETON LOADERS ===== */
   --skeleton-gradient: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   --skeleton-gradient-dark: linear-gradient(90deg, #2a2a2a 25%, #1a1a1a 50%, #2a2a2a 75%);

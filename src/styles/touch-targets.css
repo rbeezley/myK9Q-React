@@ -145,7 +145,7 @@
   right: 0;
   padding: var(--token-space-xl);
   background: white;
-  box-shadow: 0 -2px var(--token-space-md) rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px var(--token-space-md) var(--shadow-subtle);
   z-index: var(--token-z-overlay);
 }
 
@@ -362,7 +362,7 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--shadow-subtle);
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
 }

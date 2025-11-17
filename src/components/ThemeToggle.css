@@ -11,7 +11,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: var(--token-space-3xl);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px var(--shadow-barely);
 }
 
 .theme-toggle-header {
@@ -83,7 +83,7 @@
   height: 48px;
   border-radius: 8px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px var(--shadow-light);
 }
 
 .theme-option-content {
@@ -127,13 +127,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow-subtle);
 }
 
 .theme-toggle-button:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-light);
 }
 
 .theme-toggle-button:active {
@@ -185,7 +185,7 @@
 /* Dark mode */
 .theme-dark .theme-toggle-card {
   background: var(--card);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 12px var(--shadow-medium);
 }
 
 .theme-dark .theme-notice {

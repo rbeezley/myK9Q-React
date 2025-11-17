@@ -14,7 +14,7 @@
 .scoresheet-card {
   background: white;
   border-radius: var(--token-space-lg);
-  box-shadow: 0 var(--token-space-sm) 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-sm) 6px var(--overlay-white-subtle)(0, 0, 0, 0.1);
   padding: var(--token-space-3xl);
   margin-bottom: var(--token-space-xl);
 }
