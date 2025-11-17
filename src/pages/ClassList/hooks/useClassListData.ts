@@ -338,18 +338,25 @@ async function fetchClasses(
 
           console.log(`✅ [REPLICATION] Loaded ${trialClasses.length} classes from cache (trial_id: ${trialIdNum})`);
 
-          // Get entries for this trial from cache
-          const cachedEntries = await entriesTable.getAll();
+          // If cache is empty, fall back to Supabase (cache may still be syncing)
+          if (trialClasses.length === 0) {
+            console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
+            logger.log('📭 Cache is empty, falling back to Supabase');
+            // Fall through to Supabase query below
+          } else {
+            // Get entries for this trial from cache
+            const cachedEntries = await entriesTable.getAll();
 
-          // Process classes with entry data (same logic as before)
-          const processedClasses = await processClassesWithEntries(
-            trialClasses,
-            cachedEntries,
-            licenseKey
-          );
+            // Process classes with entry data (same logic as before)
+            const processedClasses = await processClassesWithEntries(
+              trialClasses,
+              cachedEntries,
+              licenseKey
+            );
 
-          console.log(`📊 [REPLICATION] Processed ${processedClasses.length} classes`);
-          return processedClasses;
+            console.log(`📊 [REPLICATION] Processed ${processedClasses.length} classes`);
+            return processedClasses;
+          }
 
         } catch (error) {
           logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);

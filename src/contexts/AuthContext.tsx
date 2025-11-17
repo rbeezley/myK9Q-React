@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
+import { initializeReplication } from '@/services/replication/initReplication';
+import { logger } from '@/utils/logger';
 
 interface ShowContext {
   showId: string;
@@ -106,8 +108,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(newAuthState);
     saveAuthToStorage(newAuthState);
 
-    // Replication system already initialized at app startup in main.tsx
-    // No need to re-initialize here (previously caused fourth initialization race condition)
+    // Initialize replication after login
+    // Previously skipped at app startup due to missing license key
+    // Now that license key is available, trigger initialization and sync
+    initializeReplication()
+      .then(() => {
+        logger.log('[Auth] ✅ Replication initialized after login');
+      })
+      .catch((error) => {
+        logger.error('[Auth] ❌ Failed to initialize replication after login:', error);
+        // Don't throw - app should work without replication
+      });
   }, []);
 
   const logout = useCallback(() => {

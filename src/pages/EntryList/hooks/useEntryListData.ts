@@ -112,30 +112,37 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
 
               console.log(`✅ [REPLICATION] Loaded ${classEntries.length} entries from cache (class_id: ${classId})`);
 
-              // Build class info
-              const completedEntries = classEntries.filter((e) => e.isScored).length;
-              const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
+              // If cache is empty, fall back to Supabase (cache may still be syncing)
+              if (classEntries.length === 0) {
+                console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
+                logger.log('📭 Cache is empty, falling back to Supabase');
+                // Fall through to Supabase query below
+              } else {
+                // Build class info
+                const completedEntries = classEntries.filter((e) => e.isScored).length;
+                const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
 
-              const classInfoData: ClassInfo = {
-                className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
-                element: classData.element || '',
-                level: classData.level || '',
-                section: classData.section || '',
-                trialDate: classEntries[0]?.trialDate || '',
-                trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
-                judgeName: classData.judge_name || 'No Judge Assigned',
-                actualClassId: parseInt(classId),
-                selfCheckin: classData.self_checkin_enabled ?? true,
-                classStatus: classData.class_status || 'pending',
-                totalEntries: classEntries.length,
-                completedEntries,
-                timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
-                timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
-                timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-                areas: classData.area_count
-              };
+                const classInfoData: ClassInfo = {
+                  className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
+                  element: classData.element || '',
+                  level: classData.level || '',
+                  section: classData.section || '',
+                  trialDate: classEntries[0]?.trialDate || '',
+                  trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
+                  judgeName: classData.judge_name || 'No Judge Assigned',
+                  actualClassId: parseInt(classId),
+                  selfCheckin: classData.self_checkin_enabled ?? true,
+                  classStatus: classData.class_status || 'pending',
+                  totalEntries: classEntries.length,
+                  completedEntries,
+                  timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
+                  timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
+                  timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
+                  areas: classData.area_count
+                };
 
-              return { entries: classEntries, classInfo: classInfoData };
+                return { entries: classEntries, classInfo: classInfoData };
+              }
             }
           } catch (error) {
             logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
@@ -228,29 +235,36 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
 
               console.log(`✅ [REPLICATION] Loaded ${combinedEntries.length} combined entries from cache (A: ${entriesA.length}, B: ${entriesB.length})`);
 
-              // Build class info
-              const judgeNameA = classDataA.judge_name || 'No Judge Assigned';
-              const judgeNameB = classDataB.judge_name || 'No Judge Assigned';
+              // If cache is empty, fall back to Supabase (cache may still be syncing)
+              if (combinedEntries.length === 0) {
+                console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
+                logger.log('📭 Cache is empty, falling back to Supabase');
+                // Fall through to Supabase query below
+              } else {
+                // Build class info
+                const judgeNameA = classDataA.judge_name || 'No Judge Assigned';
+                const judgeNameB = classDataB.judge_name || 'No Judge Assigned';
 
-              const classInfoData: ClassInfo = {
-                className: `${classDataA.element} ${classDataA.level} A & B`,
-                element: classDataA.element || '',
-                level: classDataA.level || '',
-                trialDate: combinedEntries[0]?.trialDate || '',
-                trialNumber: combinedEntries[0]?.trialNumber ? String(combinedEntries[0].trialNumber) : '',
-                judgeName: judgeNameA,
-                judgeNameB: judgeNameB,
-                actualClassIdA: parseInt(classIdA),
-                actualClassIdB: parseInt(classIdB),
-                selfCheckin: classDataA.self_checkin_enabled ?? true,
-                classStatus: classDataA.class_status || classDataB.class_status || 'pending',
-                timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
-                timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
-                timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
-                areas: classDataA.area_count
-              };
+                const classInfoData: ClassInfo = {
+                  className: `${classDataA.element} ${classDataA.level} A & B`,
+                  element: classDataA.element || '',
+                  level: classDataA.level || '',
+                  trialDate: combinedEntries[0]?.trialDate || '',
+                  trialNumber: combinedEntries[0]?.trialNumber ? String(combinedEntries[0].trialNumber) : '',
+                  judgeName: judgeNameA,
+                  judgeNameB: judgeNameB,
+                  actualClassIdA: parseInt(classIdA),
+                  actualClassIdB: parseInt(classIdB),
+                  selfCheckin: classDataA.self_checkin_enabled ?? true,
+                  classStatus: classDataA.class_status || classDataB.class_status || 'pending',
+                  timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
+                  timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
+                  timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
+                  areas: classDataA.area_count
+                };
 
-              return { entries: combinedEntries, classInfo: classInfoData };
+                return { entries: combinedEntries, classInfo: classInfoData };
+              }
             }
           } catch (error) {
             logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);

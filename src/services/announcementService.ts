@@ -100,13 +100,72 @@ export class AnnouncementService {
 
       console.log(`✅ [AnnouncementService] Loaded ${transformedData.length} announcements from cache`);
 
+      // If cache is empty, fall back to Supabase (cache may still be syncing)
+      if (transformedData.length === 0) {
+        console.log('📭 [AnnouncementService] Cache is empty, falling back to Supabase');
+        // Fall through to Supabase query below
+      } else {
+        return {
+          data: transformedData,
+          count: totalCount
+        };
+      }
+
+    } catch (error) {
+      console.error('Error fetching announcements from cache, falling back to Supabase:', error);
+    }
+
+    // Fall back to original Supabase implementation
+    console.log('📡 [AnnouncementService] Fetching from Supabase...');
+
+    try {
+      let query = supabase
+        .from('announcements')
+        .select('*', { count: 'exact' })
+        .eq('license_key', licenseKey)
+        .eq('is_active', true);
+
+      // Apply filters
+      if (filters.priority) {
+        query = query.eq('priority', filters.priority);
+      }
+
+      if (filters.author_role) {
+        query = query.eq('author_role', filters.author_role);
+      }
+
+      if (filters.searchTerm) {
+        query = query.or(`title.ilike.%${filters.searchTerm}%,content.ilike.%${filters.searchTerm}%,author_name.ilike.%${filters.searchTerm}%`);
+      }
+
+      if (!filters.showExpired) {
+        const now = new Date().toISOString();
+        query = query.or(`expires_at.is.null,expires_at.gt.${now}`);
+      }
+
+      // Apply pagination
+      if (filters.offset) {
+        query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
+      } else if (filters.limit) {
+        query = query.limit(filters.limit);
+      }
+
+      // Sort by created_at descending (newest first)
+      query = query.order('created_at', { ascending: false });
+
+      const { data, count, error } = await query;
+
+      if (error) throw error;
+
+      console.log(`✅ [AnnouncementService] Loaded ${data?.length || 0} announcements from Supabase`);
+
       return {
-        data: transformedData,
-        count: totalCount
+        data: data || [],
+        count: count || 0
       };
 
     } catch (error) {
-      console.error('Error fetching announcements:', error);
+      console.error('Error fetching announcements from Supabase:', error);
       throw error;
     }
   }

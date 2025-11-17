@@ -116,10 +116,11 @@ async function fetchDogDetails(
       entry => entry.armband_number === parseInt(armband)
     );
 
+    // If cache is empty, fall back to Supabase (cache may still be syncing)
     if (dogEntries.length === 0) {
-      logger.log('[REPLICATION] 📭 No dog found with armband:', armband);
-      return { dogInfo: null, classes: [] };
-    }
+      logger.log('[REPLICATION] 📭 No dog found with armband in cache, falling back to Supabase');
+      // Fall through to Supabase query below
+    } else {
 
     logger.log(`[REPLICATION] ✅ Found ${dogEntries.length} entries for armband ${armband}`);
 
@@ -197,10 +198,100 @@ async function fetchDogDetails(
       dogInfo,
       classes: classesWithVisibility
     };
+    }
 
   } catch (error) {
-    logger.error('[REPLICATION] ❌ Error loading dog details from cache:', error);
-    // Re-throw to let React Query handle the error
+    logger.error('[REPLICATION] ❌ Error loading dog details from cache, falling back to Supabase:', error);
+  }
+
+  // Fall back to original Supabase implementation
+  logger.log('[REPLICATION] 📡 Fetching dog details from Supabase...');
+
+  try {
+    // Import supabase for fallback
+    const { supabase } = await import('../../../lib/supabase');
+
+    // Query view_entry_class_join_normalized for this armband
+    const { data: entries, error } = await supabase
+      .from('view_entry_class_join_normalized')
+      .select('*')
+      .eq('armband_number', parseInt(armband))
+      .eq('license_key', licenseKey);
+
+    if (error) throw error;
+
+    if (!entries || entries.length === 0) {
+      logger.log('[REPLICATION] 📭 No dog found with armband in Supabase:', armband);
+      return { dogInfo: null, classes: [] };
+    }
+
+    logger.log(`[REPLICATION] ✅ Loaded ${entries.length} entries from Supabase for armband ${armband}`);
+
+    // Set dog info from first entry
+    const firstEntry = entries[0];
+    const dogInfo: DogInfo = {
+      armband: firstEntry.armband_number,
+      call_name: firstEntry.dog_call_name || 'Unknown',
+      breed: firstEntry.dog_breed || 'Unknown',
+      handler: firstEntry.handler_name || 'Unknown'
+    };
+
+    // Process all entries with visibility
+    const classesWithVisibility = await Promise.all(
+      entries.map(async (entry) => {
+        // Map entry status
+        const statusText = entry.entry_status || 'no-status';
+        const check_in_status: ClassEntry['check_in_status'] =
+          statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
+
+        // Fetch visibility settings for this class (role-based)
+        const visibleFields = await getVisibleResultFields(
+          entry.class_id,
+          entry.trial_id,
+          licenseKey,
+          (currentRole || 'exhibitor') as UserRole,
+          entry.is_completed || false,
+          entry.results_released_at
+        );
+
+        return {
+          id: entry.id, // Entry ID
+          class_id: entry.class_id, // Class ID
+          class_name: entry.element && entry.level
+            ? `${entry.element} ${entry.level}`
+            : 'Unknown Class',
+          class_type: entry.element || 'Unknown',
+          trial_name: entry.trial_element || 'Unknown Trial',
+          trial_date: entry.trial_date || '',
+          search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
+          fault_count: entry.total_faults || null,
+          result_text: entry.result_status || null,
+          is_scored: entry.is_scored || false,
+          checked_in: check_in_status !== 'no-status',
+          check_in_status,
+          position: entry.final_placement,
+          // Additional fields
+          element: entry.element,
+          level: entry.level,
+          section: entry.section,
+          trial_number: entry.trial_number,
+          judge_name: entry.judge_name,
+          // Visibility fields
+          trial_id: entry.trial_id,
+          is_completed: entry.is_completed || false,
+          results_released_at: entry.results_released_at,
+          visibleFields
+        };
+      })
+    );
+
+    return {
+      dogInfo,
+      classes: classesWithVisibility
+    };
+
+  } catch (error) {
+    logger.error('[REPLICATION] ❌ Error loading dog details from Supabase:', error);
     throw error;
   }
 }
