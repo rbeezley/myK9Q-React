@@ -168,13 +168,6 @@
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Desktop - increased horizontal margins to match page-header padding */
-@media (min-width: 1024px) {
-  .dog-info-card {
-    margin: var(--token-space-xl) var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
-  }
-}
-
 .dog-info-card:hover {
   box-shadow: var(--token-shadow-xl);
   transform: none;  /* Mobile: no transform for battery optimization */
@@ -240,24 +233,10 @@
   opacity: 0.9;
 }
 
-/* Desktop - increased horizontal margins to match page-header padding */
-@media (min-width: 1024px) {
-  .results-notice {
-    margin: 0 var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
-  }
-}
-
 /* ========== CLASSES SECTION ========== */
 
 .classes-section {
   padding: 0 var(--token-space-lg);  /* Horizontal padding matches page-header padding */
-}
-
-/* Desktop - increased horizontal padding to match page-header padding */
-@media (min-width: 1024px) {
-  .classes-section {
-    padding: 0 var(--token-space-3xl);
-  }
 }
 
 .classes-header {
@@ -987,18 +966,30 @@
 /* ========== RESPONSIVE: DESKTOP (1024px+) ========== */
 
 @media (min-width: 1024px) {
+  /* Dog Info Card */
+  .dog-info-card {
+    margin: var(--token-space-xl) var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
+  }
+
+  /* Results Notice */
+  .results-notice {
+    margin: 0 var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
+  }
+
+  /* Classes Section */
+  .classes-section {
+    padding: 0 var(--token-space-3xl);
+  }
+
+  /* Classes Grid */
   .classes-grid {
     gap: var(--token-space-2xl);
   }
 
+  /* Class Cards */
   .class-card {
     flex: 1 1 calc(33.333% - var(--token-space-2xl) * 2 / 3);  /* 3 columns with gap */
     padding: var(--token-space-xl);
-  }
-
-  .status-button {
-    min-width: 130px;
-    height: 52px;
   }
 
   .class-name {
@@ -1006,11 +997,19 @@
     font-size: 1.1rem;
   }
 
+  /* Status Button */
+  .status-button {
+    min-width: 130px;
+    height: 52px;
+  }
+
+  /* Dog Details Typography */
   .dog-details h2 {
     font-size: 1.75rem;
     font-weight: 800;
   }
 
+  /* Popup Options */
   .popup-option {
     margin-bottom: var(--token-space-sm);
   }
@@ -1075,6 +1074,7 @@
 /* ========== DESKTOP HOVER ENHANCEMENTS ========== */
 
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  /* Dog Info Card Hover Effects */
   .dog-info-card:hover {
     transform: translateY(-2px);  /* Desktop: enable hover lift effect */
   }

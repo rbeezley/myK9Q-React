@@ -976,41 +976,72 @@
 /* ========== RESPONSIVE: TABLET (640px+) ========== */
 
 @media (min-width: 640px) {
+  /* Container */
   .class-list-container {
     padding: 0 var(--token-space-3xl); /* Desktop: 24px horizontal */
   }
 
+  /* Status Tabs */
   .tab-text {
     display: inline;
-  }
-
-  .dog-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: var(--token-space-lg);
   }
 
   .status-tabs {
     margin: 0 auto var(--token-space-xl);
     max-width: 700px;
   }
+
+  /* Dog Grid */
+  .dog-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--token-space-lg);
+  }
+
+  /* Class Options Grid */
+  .class-options-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--token-space-lg);
+  }
+
+  /* Popup Content */
+  .class-content {
+    padding-bottom: var(--token-space-4xl);  /* Tablet: larger bottom padding */
+  }
+
+  .popup-container {
+    max-width: 500px;  /* Desktop: fixed width */
+    max-height: calc(100vh - 2rem);  /* Desktop: smaller max-height with margin */
+  }
+
+  .popup-content {
+    border-radius: 1rem;  /* Desktop: rounded corners */
+  }
+
+  .class-options-grid {
+    max-height: calc(100vh - 12rem);  /* Desktop: smaller max-height */
+  }
 }
 
 /* ========== RESPONSIVE: DESKTOP (1024px+) ========== */
 
 @media (min-width: 1024px) {
+  /* Dog Grid */
   .dog-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: var(--token-space-xl);
   }
 
+  /* Class Cards */
   .class-card {
     margin-bottom: 0;
   }
 
   .class-content {
     padding: var(--token-space-xl);
+    padding-bottom: 4.5rem;  /* Desktop: extra padding for two-line status badge (72px) */
   }
 
+  /* Class List */
   .class-list {
     margin: 0 var(--token-space-xl) var(--token-space-xl);
   }
@@ -1021,7 +1052,6 @@
     margin-right: var(--token-space-xl);
     margin-top: var(--token-space-xl);
   }
-
 }
 
 /* ========== DROPDOWN MENU ========== */
@@ -1238,13 +1268,6 @@
   max-height: calc(100vh - 8rem);  /* Mobile: taller max-height */
 }
 
-@media (min-width: 640px) {
-  .class-options-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--token-space-lg);
-  }
-}
-
 /* Card-style option items matching status dialog */
 .class-option-item {
   display: grid;
@@ -1374,32 +1397,6 @@
 
 .theme-dark .class-option-description {
   color: var(--token-text-muted);
-}
-
-/* Responsive Design - Mobile First */
-@media (min-width: 640px) {
-  .class-content {
-    padding-bottom: var(--token-space-4xl);  /* Tablet: larger bottom padding */
-  }
-
-  .popup-container {
-    max-width: 500px;  /* Desktop: fixed width */
-    max-height: calc(100vh - 2rem);  /* Desktop: smaller max-height with margin */
-  }
-
-  .popup-content {
-    border-radius: 1rem;  /* Desktop: rounded corners */
-  }
-
-  .class-options-grid {
-    max-height: calc(100vh - 12rem);  /* Desktop: smaller max-height */
-  }
-}
-
-@media (min-width: 1024px) {
-  .class-content {
-    padding-bottom: 4.5rem;  /* Desktop: extra padding for two-line status badge (72px) */
-  }
 }
 
 /* ========== ACCESSIBILITY: REDUCED MOTION ========== */

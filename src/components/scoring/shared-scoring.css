@@ -227,8 +227,9 @@
   text-align: left;  /* Mobile: left aligned */
 }
 
-/* Desktop enhancements - Competitor Card */
+/* Desktop enhancements (640px+) - Consolidated */
 @media (min-width: 640px) {
+  /* Competitor Card */
   .armband-number {
     font-size: 36px;  /* Desktop: larger font */
     width: 70px;  /* Desktop: larger circle */
@@ -247,6 +248,153 @@
 
   .score-item {
     text-align: center;  /* Desktop: centered */
+  }
+
+  /* Multi-Timer */
+  .multi-timer-header {
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
+  }
+
+  .timer-summary h2 {
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
+  }
+
+  .timer-stats {
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
+    flex-direction: row;  /* Desktop: horizontal */
+    align-items: flex-start;
+  }
+
+  .stat-value {
+    font-size: 18px;  /* Desktop: standard font */
+  }
+
+  .global-controls {
+    gap: var(--token-space-lg);  /* Desktop: normal gap */
+    flex-direction: row;  /* Desktop: horizontal */
+  }
+
+  .global-button {
+    padding: var(--token-space-lg) var(--token-space-2xl);  /* Desktop: standard padding */
+    font-size: 14px;  /* Desktop: standard font */
+    width: auto;  /* Desktop: auto width */
+  }
+
+  .timer-grid {
+    gap: var(--token-space-2xl);  /* Desktop: larger gap */
+  }
+
+  .timer-grid.horizontal {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* Desktop: responsive grid */
+    grid-template-rows: 1fr;
+  }
+
+  .timer-grid.grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));  /* Desktop: larger minimum */
+    grid-auto-rows: min-content;
+  }
+
+  .multi-timer-item {
+    min-height: 200px;  /* Desktop: taller height */
+  }
+
+  .stat-item {
+    flex-direction: column;  /* Desktop: vertical stat items */
+  }
+
+  /* Nationals Counter */
+  .counters-grid {
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
+  }
+
+  .counter-group {
+    padding: var(--token-space-2xl);  /* Desktop: larger padding */
+  }
+
+  .counter-btn {
+    width: 64px;  /* Desktop: larger button */
+    height: 64px;
+    font-size: var(--token-space-4xl);  /* Desktop: larger font */
+    border-radius: var(--token-space-4xl);
+  }
+
+  .counter-value {
+    font-size: var(--token-space-4xl);  /* Desktop: larger font */
+    min-width: 40px;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .counter-label {
+    font-size: 14px;  /* Desktop: standard font */
+    font-weight: 600;
+    margin-bottom: var(--token-space-md);
+  }
+
+  .counter-controls {
+    gap: var(--token-space-xl);
+  }
+
+  /* Nationals Point Counter */
+  .nationals-point-counter {
+    margin: var(--token-space-xl) 0;  /* Desktop: larger margin */
+    padding: var(--token-space-xl);  /* Desktop: standard padding */
+  }
+
+  .point-counter-header h3 {
+    font-size: 18px;  /* Desktop: standard font */
+  }
+
+  .point-row {
+    grid-template-columns: 1fr auto auto auto;  /* Desktop: 4 columns */
+    gap: var(--token-space-md);
+  }
+
+  .point-calculation {
+    display: inline;  /* Desktop: show calculation */
+  }
+
+  .total-value {
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
+  }
+
+  .point-rules {
+    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
+    gap: var(--token-space-md);
+  }
+
+  .compact-total {
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
+  }
+
+  /* Result Choice Chips */
+  .result-choice-chips {
+    gap: var(--token-space-md);  /* Desktop: standard gap */
+    margin: 0;  /* Desktop: no margin */
+  }
+
+  .choice-chip {
+    padding: var(--token-space-md) var(--token-space-xl);  /* Desktop: standard padding */
+    font-size: 14px;  /* Desktop: standard font */
+    min-width: 80px;  /* Desktop: wider minimum */
+  }
+
+  /* Timer */
+  .timer-controls {
+    flex-wrap: nowrap;  /* Desktop: don't wrap */
+  }
+
+  .timer-button {
+    flex: initial;  /* Desktop: standard flex */
+    min-width: auto;
+  }
+
+  .timer-time {
+    font-size: var(--token-space-4xl);  /* Desktop: standard font */
+  }
+
+  .timer.large .timer-time {
+    font-size: 48px;  /* Desktop: large timer variant */
   }
 }
 .multi-timer {
@@ -482,60 +630,6 @@
   text-align: center;
 }
 
-/* Tablet and Desktop enhancements - Multi-Timer */
-@media (min-width: 640px) {
-  .multi-timer-header {
-    padding: var(--token-space-3xl);  /* Desktop: larger padding */
-  }
-
-  .timer-summary h2 {
-    font-size: var(--token-space-3xl);  /* Desktop: larger font */
-  }
-
-  .timer-stats {
-    gap: var(--token-space-3xl);  /* Desktop: larger gap */
-    flex-direction: row;  /* Desktop: horizontal */
-    align-items: flex-start;
-  }
-
-  .stat-value {
-    font-size: 18px;  /* Desktop: standard font */
-  }
-
-  .global-controls {
-    gap: var(--token-space-lg);  /* Desktop: normal gap */
-    flex-direction: row;  /* Desktop: horizontal */
-  }
-
-  .global-button {
-    padding: var(--token-space-lg) var(--token-space-2xl);  /* Desktop: standard padding */
-    font-size: 14px;  /* Desktop: standard font */
-    width: auto;  /* Desktop: auto width */
-  }
-
-  .timer-grid {
-    gap: var(--token-space-2xl);  /* Desktop: larger gap */
-  }
-
-  .timer-grid.horizontal {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* Desktop: responsive grid */
-    grid-template-rows: 1fr;
-  }
-
-  .timer-grid.grid {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));  /* Desktop: larger minimum */
-    grid-auto-rows: min-content;
-  }
-
-  .multi-timer-item {
-    min-height: 200px;  /* Desktop: taller height */
-  }
-
-  .stat-item {
-    flex-direction: column;  /* Desktop: vertical stat items */
-  }
-}
-
 /* Tablet specific adjustments */
 .timer-grid.horizontal {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  /* Tablet & below: smaller minimum */
@@ -741,41 +835,6 @@
   gap: var(--token-space-lg);  /* Mobile: standard gap */
   display: flex;
   align-items: center;
-}
-
-/* Desktop enhancements - Nationals Counter */
-@media (min-width: 640px) {
-  .counters-grid {
-    gap: var(--token-space-lg);  /* Desktop: larger gap */
-  }
-
-  .counter-group {
-    padding: var(--token-space-2xl);  /* Desktop: larger padding */
-  }
-
-  .counter-btn {
-    width: 64px;  /* Desktop: larger button */
-    height: 64px;
-    font-size: var(--token-space-4xl);  /* Desktop: larger font */
-    border-radius: var(--token-space-4xl);
-  }
-
-  .counter-value {
-    font-size: var(--token-space-4xl);  /* Desktop: larger font */
-    min-width: 40px;
-    padding: 0;
-    border-radius: 0;
-  }
-
-  .counter-label {
-    font-size: 14px;  /* Desktop: standard font */
-    font-weight: 600;
-    margin-bottom: var(--token-space-md);
-  }
-
-  .counter-controls {
-    gap: var(--token-space-xl);
-  }
 }
 
 /* Light theme support */
@@ -1206,39 +1265,6 @@
   border: var(--token-space-xs) solid;
 }
 
-/* Desktop enhancements - Nationals Point Counter */
-@media (min-width: 640px) {
-  .nationals-point-counter {
-    margin: var(--token-space-xl) 0;  /* Desktop: larger margin */
-    padding: var(--token-space-xl);  /* Desktop: standard padding */
-  }
-
-  .point-counter-header h3 {
-    font-size: 18px;  /* Desktop: standard font */
-  }
-
-  .point-row {
-    grid-template-columns: 1fr auto auto auto;  /* Desktop: 4 columns */
-    gap: var(--token-space-md);
-  }
-
-  .point-calculation {
-    display: inline;  /* Desktop: show calculation */
-  }
-
-  .total-value {
-    font-size: var(--token-space-3xl);  /* Desktop: larger font */
-  }
-
-  .point-rules {
-    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
-    gap: var(--token-space-md);
-  }
-
-  .compact-total {
-    font-size: var(--token-space-3xl);  /* Desktop: larger font */
-  }
-}
 /* Result Choice Chips Styles - Flutter Style */
 
 .result-choice-chips-container {
@@ -1376,19 +1402,6 @@ button.choice-chip.danger.selected {
   padding: 6px var(--token-space-lg);  /* Mobile: smaller padding */
   font-size: 13px;  /* Mobile: smaller font */
   min-width: 70px;
-}
-
-@media (min-width: 640px) {
-  .result-choice-chips {
-    gap: var(--token-space-md);  /* Desktop: standard gap */
-    margin: 0;  /* Desktop: no margin */
-  }
-
-  .choice-chip {
-    padding: var(--token-space-md) var(--token-space-xl);  /* Desktop: standard padding */
-    font-size: 14px;  /* Desktop: standard font */
-    min-width: 80px;  /* Desktop: wider minimum */
-  }
 }
 
 /* Light theme support - removed redundant overrides since CSS variables handle both themes */
@@ -1894,23 +1907,4 @@ button.choice-chip.secondary.selected {
 
 .timer.large .timer-time {
   font-size: 36px;  /* Mobile: large timer variant */
-}
-
-@media (min-width: 640px) {
-  .timer-controls {
-    flex-wrap: nowrap;  /* Desktop: don't wrap */
-  }
-
-  .timer-button {
-    flex: initial;  /* Desktop: standard flex */
-    min-width: auto;
-  }
-
-  .timer-time {
-    font-size: var(--token-space-4xl);  /* Desktop: standard font */
-  }
-
-  .timer.large .timer-time {
-    font-size: 48px;  /* Desktop: large timer variant */
-  }
 }

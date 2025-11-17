@@ -24,13 +24,6 @@
   padding-bottom: 4rem;
 }
 
-/* Desktop - increased padding but NO max-width constraint (full width everywhere) */
-@media (min-width: 1024px) {
-  .page-container {
-    padding: var(--token-space-lg) var(--token-space-3xl);  /* 24px horizontal on desktop */
-  }
-}
-
 /**
  * Global Page Header - Sticky header pattern for all pages
  * Ensures consistent header styling across Home, ClassList, EntryList, etc.
@@ -52,13 +45,6 @@
 
 .theme-dark .page-header {
   background: rgba(26, 29, 35, 0.8);
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .page-header {
-    padding: var(--token-space-lg) var(--token-space-3xl);  /* 12px vertical, 24px horizontal on desktop */
-  }
 }
 
 /* Title Icon - Standard styling for page header icons */
@@ -90,7 +76,19 @@
   padding-bottom: 4rem;
 }
 
+/* Desktop (1024px+) - Consolidated block */
 @media (min-width: 1024px) {
+  /* Page Container */
+  .page-container {
+    padding: var(--token-space-lg) var(--token-space-3xl);  /* 24px horizontal on desktop */
+  }
+
+  /* Page Header */
+  .page-header {
+    padding: var(--token-space-lg) var(--token-space-3xl);  /* 12px vertical, 24px horizontal on desktop */
+  }
+
+  /* Scrollable Container Content */
   .page-container-scroll .page-content {
     padding: var(--token-space-lg) var(--token-space-3xl);  /* 24px horizontal on desktop */
   }
