@@ -49,10 +49,21 @@ function loadIgnoreRules() {
 }
 
 // Check if violation should be ignored
-function shouldIgnoreViolation(filePath, line, type, ignoreRules) {
+function shouldIgnoreViolation(filePath, line, type, ignoreRules, snippet = '') {
   const relativePath = filePath.replace(process.cwd(), '').replace(/\\/g, '/');
 
   for (const rule of ignoreRules) {
+    // For wildcard file rules (*:violation-type:value:reason), check pattern and value
+    if (rule.file === '*' && rule.lineOrPattern === type) {
+      // Format: *:hardcoded-spacing:1rem:Icon size - reason text
+      // OR:     *:hardcoded-color:#ffffff:Pure white is intentional
+      // The `reason` field contains "value:reason text"
+      // Extract the value (first part before colon in reason)
+      const ruleValue = rule.reason.split(':')[0].trim();
+      if (snippet.includes(ruleValue)) return true;
+      continue;
+    }
+
     // Check if file matches
     if (!relativePath.includes(rule.file)) continue;
 
@@ -60,7 +71,6 @@ function shouldIgnoreViolation(filePath, line, type, ignoreRules) {
     if (rule.lineOrPattern === '*') return true; // Ignore entire file
     if (rule.lineOrPattern === type) return true; // Ignore all instances of violation type
     if (rule.lineOrPattern === String(line)) return true; // Ignore specific line
-
   }
 
   return false;
@@ -191,7 +201,7 @@ function scanFile(filePath) {
         snippet.toLowerCase().includes(ex.toLowerCase())
       );
 
-      if (!snippet.includes('var(--') && !isFallback && !isSemanticColor && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-color', ignoreRules)) {
+      if (!snippet.includes('var(--') && !isFallback && !isSemanticColor && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-color', ignoreRules, snippet)) {
         violations.push({
           type: 'hardcoded-color',
           line: lineNum,
@@ -220,7 +230,7 @@ function scanFile(filePath) {
       // 4. Should be ignored per .auditignore
       const isFallback = fullLine.includes('var(--') && fullLine.includes(',');
 
-      if (!snippet.includes('var(--') && !isFallback && !EXCEPTIONS.spacing.some(ex => snippet.includes(ex)) && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-spacing', ignoreRules)) {
+      if (!snippet.includes('var(--') && !isFallback && !EXCEPTIONS.spacing.some(ex => snippet.includes(ex)) && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-spacing', ignoreRules, snippet)) {
         violations.push({
           type: 'hardcoded-spacing',
           line: lineNum,

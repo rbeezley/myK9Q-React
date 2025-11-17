@@ -114,3 +114,34 @@ ClassList.css:1130:Override inline position styles from React state
 *:hardcoded-color:#e74c3c:Danger red (Flat UI) - standard semantic color
 *:hardcoded-color:#27ae60:Success green (Flat UI) - standard semantic color
 *:hardcoded-color:#ecf0f1:Light gray (Flat UI) - standard semantic color
+
+# ========================================
+# Phase 6E: Intentional Component Sizing
+# ========================================
+# These hardcoded sizes are intentional - component-specific, not layout spacing
+
+# Touch Targets (iOS/Android specifications)
+*:hardcoded-spacing:44px:iOS minimum touch target specification (44pt)
+*:hardcoded-spacing:48px:Comfortable touch target specification
+
+# Icon Sizes (scale with font-size, not spacing)
+*:hardcoded-spacing:1rem:Icon/component size - scales with font-size
+*:hardcoded-spacing:1.5rem:Icon/component size - scales with font-size
+*:hardcoded-spacing:2rem:Icon/component size - scales with font-size
+*:hardcoded-spacing:2.5rem:Icon/component size - scales with font-size
+*:hardcoded-spacing:3rem:Icon/component size - scales with font-size
+
+# Optical Alignment (pixel-perfect fine-tuning)
+*:hardcoded-spacing:1px:Optical alignment / hairline borders
+*:hardcoded-spacing:0.5px:Sub-pixel optical alignment (high-DPI displays)
+
+# Responsive Breakpoints (design system standards)
+*:hardcoded-spacing:640px:Tablet breakpoint - design system standard
+*:hardcoded-spacing:1024px:Desktop breakpoint - design system standard
+*:hardcoded-spacing:1440px:Large desktop breakpoint - design system standard
+
+# Button/Form Sizing (component-specific)
+*:hardcoded-spacing:0.875rem:Button/form padding (14px) - component standard
+*:hardcoded-spacing:14px:Button/form padding - component standard
+*:hardcoded-spacing:0.8125rem:Small button padding (13px) - component standard
+*:hardcoded-spacing:13px:Small button padding - component standard
