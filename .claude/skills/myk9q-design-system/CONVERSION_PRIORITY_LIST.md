@@ -1,10 +1,10 @@
 # Desktop-First to Mobile-First Conversion Priority List
 
 **Generated**: November 16, 2025
-**Last Updated**: November 17, 2025
+**Last Updated**: November 17, 2025 (Medium files complete!)
 **Total Files**: 52
-**Completed**: 34 files ✅ (65% complete)
-**Remaining**: 18 files
+**Completed**: 45 files ✅ (87% complete)
+**Remaining**: 7 files
 
 ---
 
@@ -70,59 +70,21 @@ Each EASY file takes ~5-10 minutes. Each MEDIUM file takes ~15-20 minutes. HARD 
 
 ---
 
-## 🟡 MEDIUM FILES (2-3 blocks) - 13 files
+## 🟡 MEDIUM FILES (2-3 blocks) - 12 files ✅ **COMPLETE**
 
-1. `/src/components/dialogs/MaxTimeDialog.css` (2 blocks)
-   - Line 64-70: 5 rules
-   - Line 426-430: 3 rules
-
-2. `/src/components/wireframes/NationalsWireframe.css` (2 blocks)
-   - Line 382-386: 3 rules
-   - Line 439-444: 4 rules
-
-3. `/src/pages/Admin/PerformanceMetricsAdmin.css` (2 blocks)
-   - Line 480-483: 2 rules (1024px)
-   - Line 490-495: 4 rules (640px)
-
-4. `/src/pages/Announcements/Announcements.css` (2 blocks)
-   - Line 525-528: 2 rules
-   - Line 554-557: 2 rules
-
-5. `/src/pages/Login/Login.css` (2 blocks)
-   - Line 450-453: 2 rules
-   - Line 479-485: 5 rules
-
-6. `/src/pages/scoresheets/AKC/AKCFastCatScoresheet.css` (2 blocks)
-   - Line 367-371: 3 rules
-   - Line 411-414: 2 rules
-
-7. `/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Flutter.css` (2 blocks)
-   - Line 713-718: 4 rules
-   - Line 776-781: 4 rules
-
-8. `/src/pages/scoresheets/ASCA/ASCAScentDetectionScoresheet.css` (2 blocks)
-   - Line 396-400: 3 rules
-   - Line 428-431: 2 rules
-
-9. `/src/pages/scoresheets/BaseScoresheet.css` (2 blocks)
-   - Line 829-834: 4 rules
-   - Line 875-878: 2 rules
-
-10. `/src/pages/scoresheets/UKC/UKCObedienceScoresheet.css` (2 blocks)
-    - Line 452-456: 3 rules
-    - Line 478-481: 2 rules
-
-11. `/src/pages/scoresheets/UKC/UKCRallyScoresheet.css` (2 blocks)
-    - Line 451-455: 3 rules
-    - Line 481-484: 2 rules
-
-12. `/src/pages/Settings/Settings.css` (2 blocks)
-    - Line 718-724: 5 rules
-    - Line 954-960: 5 rules
-
-13. `/src/styles/apple-design-system.css` (2 blocks)
-    - Line 364-368: 3 rules
-    - Line 405-410: 4 rules
+1. ✅ `/src/components/dialogs/MaxTimeDialog.css` - **DONE** (Commit: 68752bc)
+2. ⏭️ `/src/components/wireframes/NationalsWireframe.css` - **SKIPPED** (File doesn't exist)
+3. ✅ `/src/pages/Admin/PerformanceMetricsAdmin.css` - **DONE** (Commit: 6dd1722)
+4. ✅ `/src/pages/Announcements/Announcements.css` - **DONE** (Commit: 6dd1722)
+5. ✅ `/src/pages/Login/Login.css` - **DONE** (Commit: 6dd1722)
+6. ✅ `/src/pages/scoresheets/AKC/AKCFastCatScoresheet.css` - **DONE** (Commit: 6dd1722)
+7. ✅ `/src/pages/scoresheets/AKC/AKCScentWorkScoresheet-Flutter.css` - **DONE** (Commit: 6dd1722)
+8. ✅ `/src/pages/scoresheets/ASCA/ASCAScentDetectionScoresheet.css` - **DONE** (Commit: 6dd1722)
+9. ✅ `/src/pages/scoresheets/shared/BaseScoresheet.css` - **DONE** (Commit: 6dd1722)
+10. ✅ `/src/pages/scoresheets/UKC/UKCObedienceScoresheet.css` - **DONE** (Commit: 6dd1722)
+11. ✅ `/src/pages/scoresheets/UKC/UKCRallyScoresheet.css` - **DONE** (Commit: 6dd1722)
+12. ✅ `/src/pages/Settings/Settings.css` - **DONE** (Commit: 6dd1722)
+13. ✅ `/src/styles/apple-design-system.css` - **DONE** (Commit: 6dd1722)
 
 ---
 
@@ -148,10 +110,10 @@ Each EASY file takes ~5-10 minutes. Each MEDIUM file takes ~15-20 minutes. HARD 
 - [x] **Batch 5: Easy Scoresheets** (4/4) ✅ COMPLETE
 - [x] **Batch 6: Easy TV Mode** (3/3) ✅ COMPLETE
 - [x] **Batch 7: Easy Styles** (8/8) ✅ COMPLETE
-- [ ] **Medium Files** (0/13)
+- [x] **Medium Files** (12/12) ✅ COMPLETE (NationalsWireframe.css doesn't exist)
 - [ ] **Hard Files** (0/5)
 
-**Total Progress**: 34 / 52 files (65%)
+**Total Progress**: 45 / 52 files (87%)
 
 ---
 
