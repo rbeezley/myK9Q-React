@@ -380,7 +380,7 @@
 
 .class-content {
   padding: var(--token-space-lg);
-  padding-bottom: 4.5rem;  /* Extra padding for two-line status badge at bottom (72px) */
+  padding-bottom: var(--token-space-3xl);  /* Mobile: smaller bottom padding */
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -1120,8 +1120,8 @@
 .popup-container {
   position: relative;
   width: 100%;
-  max-width: 500px;
-  max-height: calc(100vh - 2rem);
+  max-width: 100%;  /* Mobile: full width */
+  max-height: 100vh;  /* Mobile: full viewport height */
   animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -1158,7 +1158,7 @@
 
 .popup-content {
   background: var(--card);
-  border-radius: 1rem;
+  border-radius: 0;  /* Mobile: no border radius (full screen) */
   box-shadow: var(--token-shadow-xl);
   overflow: hidden;
   display: flex;
@@ -1235,7 +1235,7 @@
   gap: 10px;
   padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
   overflow-y: auto;
-  max-height: calc(100vh - 12rem);
+  max-height: calc(100vh - 8rem);  /* Mobile: taller max-height */
 }
 
 @media (min-width: 640px) {
@@ -1376,30 +1376,29 @@
   color: var(--token-text-muted);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .class-content {
-    padding-bottom: var(--token-space-3xl);  /* Reduce bottom padding on mobile */
+    padding-bottom: var(--token-space-4xl);  /* Tablet: larger bottom padding */
   }
 
   .popup-container {
-    max-width: 100%;
-    max-height: 100vh;
+    max-width: 500px;  /* Desktop: fixed width */
+    max-height: calc(100vh - 2rem);  /* Desktop: smaller max-height with margin */
   }
 
   .popup-content {
-    border-radius: 0;
+    border-radius: 1rem;  /* Desktop: rounded corners */
   }
 
   .class-options-grid {
-    max-height: calc(100vh - 8rem);
+    max-height: calc(100vh - 12rem);  /* Desktop: smaller max-height */
   }
 }
 
-/* 2-column layout adjustments */
-@media (min-width: 640px) and (max-width: 1023px) {
+@media (min-width: 1024px) {
   .class-content {
-    padding-bottom: var(--token-space-4xl);  /* Reduce bottom padding on tablet */
+    padding-bottom: 4.5rem;  /* Desktop: extra padding for two-line status badge (72px) */
   }
 }
 

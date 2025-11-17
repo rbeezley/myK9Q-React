@@ -3,7 +3,7 @@
 .migration-test-container {
   max-width: 1024px;
   margin: 0 auto;
-  padding: var(--token-space-4xl);
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
   background: #f8fafc;
   min-height: 100vh;
 }
@@ -43,7 +43,7 @@
 
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr;  /* Mobile: single column */
   gap: var(--token-space-xl);
 }
 
@@ -112,7 +112,7 @@
   align-items: center;
   gap: var(--token-space-3xl);
   margin-bottom: var(--token-space-3xl);
-  padding: var(--token-space-3xl);
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
   background: var(--muted);
   border-radius: 1rem;
   border: var(--token-space-xs) solid var(--border);
@@ -248,7 +248,8 @@
 
 .result-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;  /* Mobile: flex-start alignment */
+  flex-direction: column;  /* Mobile: column layout */
   gap: var(--token-space-xl);
   margin-bottom: var(--token-space-md);
   flex-wrap: wrap;
@@ -286,7 +287,7 @@
 .result-status {
   font-size: 0.875rem;
   font-weight: 600;
-  margin-left: auto;
+  margin-left: 0;  /* Mobile: no margin */
 }
 
 .result-status.success {
@@ -332,6 +333,7 @@
   justify-content: center;
   gap: var(--token-space-xl);
   margin-top: var(--token-space-4xl);
+  flex-direction: column;  /* Mobile: column layout */
 }
 
 .nav-button {
@@ -344,6 +346,7 @@
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 100%;  /* Mobile: full width */
 }
 
 .nav-button:hover {
@@ -364,34 +367,34 @@
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.25);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .migration-test-container {
-    padding: var(--token-space-xl);
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
   }
 
   .status-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  /* Desktop: auto-fit columns */
   }
 
   .passcode-test-container {
-    padding: var(--token-space-xl);
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
   }
 
   .result-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;  /* Desktop: row layout */
+    align-items: center;  /* Desktop: center alignment */
   }
 
   .result-status {
-    margin-left: 0;
+    margin-left: auto;  /* Desktop: align right */
   }
 
   .navigation-section {
-    flex-direction: column;
+    flex-direction: row;  /* Desktop: row layout */
   }
 
   .nav-button {
-    width: 100%;
+    width: auto;  /* Desktop: auto width */
   }
 }

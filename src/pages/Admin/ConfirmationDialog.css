@@ -29,7 +29,8 @@
   border-radius: var(--token-radius-xl);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
   max-width: 500px;
-  width: 90%;
+  width: calc(100% - 2rem);  /* Mobile: full width minus padding */
+  margin: var(--token-space-xl);  /* Mobile: spacing from edges */
   max-height: 80vh;
   overflow: hidden;
   animation: slideIn 0.3s ease-out;
@@ -66,18 +67,18 @@
   display: flex;
   align-items: center;
   gap: var(--token-space-xl);
-  padding: var(--token-space-4xl) var(--token-space-4xl) var(--token-space-xl) var(--token-space-4xl);
+  padding: var(--token-space-3xl) var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);  /* Mobile: smaller padding */
   border-bottom: 1px solid var(--border);
 }
 
 .dialog-icon {
-  font-size: 2.5rem;
+  font-size: 2rem;  /* Mobile: smaller icon */
   line-height: 1;
 }
 
 .dialog-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;  /* Mobile: smaller title */
   font-weight: 700;
   color: var(--foreground);
   flex: 1;
@@ -85,7 +86,7 @@
 
 /* Dialog Content */
 .dialog-content {
-  padding: var(--token-space-3xl) var(--token-space-4xl);
+  padding: var(--token-space-xl) var(--token-space-3xl);  /* Mobile: smaller padding */
 }
 
 .dialog-message {
@@ -154,9 +155,10 @@
 .dialog-actions {
   display: flex;
   gap: var(--token-space-xl);
-  padding: var(--token-space-3xl) var(--token-space-4xl) var(--token-space-4xl) var(--token-space-4xl);
+  padding: var(--token-space-xl) var(--token-space-3xl) var(--token-space-3xl) var(--token-space-3xl);  /* Mobile: smaller padding */
   background: var(--muted);
   justify-content: flex-end;
+  flex-direction: column;  /* Mobile: column layout */
 }
 
 .dialog-btn {
@@ -168,6 +170,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 100px;
+  width: 100%;  /* Mobile: full width buttons */
 }
 
 .dialog-btn-cancel {
@@ -266,35 +269,35 @@
   color: var(--muted-foreground);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .dialog-container {
-    margin: var(--token-space-xl);
-    width: calc(100% - 2rem);
+    width: 90%;  /* Desktop: centered with 90% width */
+    margin: 0;  /* Desktop: centered by parent, no manual margin */
   }
 
   .dialog-header {
-    padding: var(--token-space-3xl) var(--token-space-3xl) var(--token-space-xl) var(--token-space-3xl);
+    padding: var(--token-space-4xl) var(--token-space-4xl) var(--token-space-xl) var(--token-space-4xl);  /* Desktop: larger padding */
   }
 
   .dialog-content {
-    padding: var(--token-space-xl) var(--token-space-3xl);
+    padding: var(--token-space-3xl) var(--token-space-4xl);  /* Desktop: larger padding */
   }
 
   .dialog-actions {
-    padding: var(--token-space-xl) var(--token-space-3xl) var(--token-space-3xl) var(--token-space-3xl);
-    flex-direction: column;
+    padding: var(--token-space-3xl) var(--token-space-4xl) var(--token-space-4xl) var(--token-space-4xl);  /* Desktop: larger padding */
+    flex-direction: row;  /* Desktop: row layout */
   }
 
   .dialog-btn {
-    width: 100%;
+    width: auto;  /* Desktop: auto width */
   }
 
   .dialog-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;  /* Desktop: larger title */
   }
 
   .dialog-icon {
-    font-size: 2rem;
+    font-size: 2.5rem;  /* Desktop: larger icon */
   }
 }
