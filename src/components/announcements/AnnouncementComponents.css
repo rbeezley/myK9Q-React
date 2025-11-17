@@ -891,7 +891,7 @@ button.filter-option.high.active {
 /* Priority Selector */
 .priority-selector {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-template-columns: 1fr;  /* Mobile: single column */
   gap: var(--token-space-lg);
 }
 
@@ -1135,12 +1135,14 @@ button.filter-option.high.active {
   --warning-subtle: rgba(245, 158, 11, 0.1);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .priority-selector {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));  /* Desktop: multi-column grid */
   }
+}
 
+@media (max-width: 640px) {
   .modal-content {
     margin: var(--token-space-md);
     max-height: 95vh;

@@ -1,16 +1,19 @@
-/* Notification Settings Component */
+/* Notification Settings Component - Mobile First */
 .notification-settings {
   background: var(--card);
   border-radius: var(--token-radius-lg);
   border: 1px solid var(--border);
-  padding: var(--token-space-2xl);
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
+  margin: var(--token-space-xl);  /* Mobile: margin */
   margin-bottom: var(--token-space-xl);
 }
 
 .settings-header {
   display: flex;
-  align-items: center;
+  flex-direction: column;  /* Mobile: column layout */
+  align-items: flex-start;  /* Mobile: align left */
   justify-content: space-between;
+  gap: var(--token-space-md);  /* Mobile: gap for spacing */
   margin-bottom: var(--token-space-2xl);
   padding-bottom: var(--token-space-lg);
   border-bottom: 1px solid var(--border);
@@ -353,19 +356,21 @@ input:checked + .slider:before {
   transform: none;
 }
 
-/* Mobile Optimizations */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .notification-settings {
-    padding: var(--token-space-xl);
-    margin: var(--token-space-xl);
+    padding: var(--token-space-2xl);  /* Desktop: larger padding */
+    margin: 0;  /* Desktop: no margin */
   }
 
   .settings-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--token-space-md);
+    flex-direction: row;  /* Desktop: row layout */
+    align-items: center;  /* Desktop: center alignment */
+    gap: 0;  /* Desktop: no gap needed */
   }
+}
 
+@media (max-width: 640px) {
   .request-content {
     flex-direction: column;
     text-align: center;
