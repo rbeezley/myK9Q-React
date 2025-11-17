@@ -206,26 +206,47 @@
   font-size: var(--token-space-3xl);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Responsive Design - Competitor Card */
+.armband-number {
+  font-size: 28px;  /* Mobile: smaller font */
+  width: 60px;  /* Mobile: smaller circle */
+  height: 60px;
+}
+
+.dog-name {
+  font-size: var(--token-space-2xl);  /* Mobile: smaller font */
+}
+
+.additional-info,
+.score-summary {
+  flex-direction: column;  /* Mobile: stack vertically */
+  gap: var(--token-space-lg);
+}
+
+.score-item {
+  text-align: left;  /* Mobile: left aligned */
+}
+
+/* Desktop enhancements - Competitor Card */
+@media (min-width: 640px) {
   .armband-number {
-    font-size: 28px;
-    width: 60px;
-    height: 60px;
+    font-size: 36px;  /* Desktop: larger font */
+    width: 70px;  /* Desktop: larger circle */
+    height: 70px;
   }
-  
+
   .dog-name {
-    font-size: var(--token-space-2xl);
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
   }
-  
+
   .additional-info,
   .score-summary {
-    flex-direction: column;
-    gap: var(--token-space-lg);
+    flex-direction: row;  /* Desktop: horizontal */
+    gap: var(--token-space-3xl);
   }
-  
+
   .score-item {
-    text-align: left;
+    text-align: center;  /* Desktop: centered */
   }
 }
 .multi-timer {
@@ -397,76 +418,144 @@
   min-height: 200px;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .timer-grid.horizontal {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
-  
-  .timer-grid.grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
+/* Responsive Design - Multi-Timer */
+.multi-timer-header {
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
+  background: white;
+  border-radius: var(--token-space-lg);
+  margin-bottom: var(--token-space-3xl);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
+  border: var(--token-space-xs) solid #e0e0e0;
 }
 
-@media (max-width: 640px) {
+.timer-summary h2 {
+  font-size: var(--token-space-2xl);  /* Mobile: smaller font */
+  margin: 0 0 var(--token-space-xl) 0;
+}
+
+.timer-stats {
+  gap: var(--token-space-xl);  /* Mobile: smaller gap */
+  flex-direction: column;  /* Mobile: vertical layout */
+  align-items: center;
+  margin-bottom: var(--token-space-3xl);
+  flex-wrap: wrap;
+}
+
+.stat-value {
+  font-size: var(--token-space-xl);  /* Mobile: smaller font */
+}
+
+.global-controls {
+  gap: var(--token-space-md);  /* Mobile: small gap */
+  flex-direction: column;  /* Mobile: stack vertically */
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.global-button {
+  padding: 10px var(--token-space-xl);  /* Mobile: smaller padding */
+  font-size: var(--token-space-lg);  /* Mobile: smaller font */
+  width: 100%;  /* Mobile: full width */
+  justify-content: center;
+}
+
+.timer-grid {
+  gap: var(--token-space-xl);  /* Mobile: smaller gap */
+  display: grid;
+}
+
+.timer-grid.horizontal,
+.timer-grid.grid {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+}
+
+.multi-timer-item {
+  min-height: 180px;  /* Mobile: smaller height */
+}
+
+.stat-item {
+  flex-direction: row;  /* Mobile: horizontal stat items */
+  gap: var(--token-space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Tablet and Desktop enhancements - Multi-Timer */
+@media (min-width: 640px) {
   .multi-timer-header {
-    padding: var(--token-space-xl);
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
   }
-  
+
   .timer-summary h2 {
-    font-size: var(--token-space-2xl);
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
   }
-  
+
   .timer-stats {
-    gap: var(--token-space-xl);
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
+    flex-direction: row;  /* Desktop: horizontal */
+    align-items: flex-start;
   }
-  
+
   .stat-value {
-    font-size: var(--token-space-xl);
+    font-size: 18px;  /* Desktop: standard font */
   }
-  
+
   .global-controls {
-    gap: var(--token-space-md);
+    gap: var(--token-space-lg);  /* Desktop: normal gap */
+    flex-direction: row;  /* Desktop: horizontal */
   }
-  
+
   .global-button {
-    padding: 10px var(--token-space-xl);
-    font-size: var(--token-space-lg);
+    padding: var(--token-space-lg) var(--token-space-2xl);  /* Desktop: standard padding */
+    font-size: 14px;  /* Desktop: standard font */
+    width: auto;  /* Desktop: auto width */
   }
-  
+
   .timer-grid {
-    gap: var(--token-space-xl);
+    gap: var(--token-space-2xl);  /* Desktop: larger gap */
   }
-  
-  .timer-grid.horizontal,
+
+  .timer-grid.horizontal {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* Desktop: responsive grid */
+    grid-template-rows: 1fr;
+  }
+
   .timer-grid.grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));  /* Desktop: larger minimum */
+    grid-auto-rows: min-content;
   }
-  
+
   .multi-timer-item {
-    min-height: 180px;
+    min-height: 200px;  /* Desktop: taller height */
+  }
+
+  .stat-item {
+    flex-direction: column;  /* Desktop: vertical stat items */
   }
 }
 
-@media (max-width: 640px) {
-  .timer-stats {
-    flex-direction: column;
-    gap: var(--token-space-lg);
-    align-items: center;
+/* Tablet specific adjustments */
+.timer-grid.horizontal {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  /* Tablet & below: smaller minimum */
+  grid-template-rows: 1fr;
+}
+
+.timer-grid.grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* Tablet & below: smaller minimum */
+  grid-auto-rows: min-content;
+}
+
+@media (min-width: 1024px) {
+  .timer-grid.horizontal {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* Desktop: larger minimum */
+    grid-template-rows: 1fr;
   }
-  
-  .stat-item {
-    flex-direction: row;
-    gap: var(--token-space-md);
-  }
-  
-  .global-controls {
-    flex-direction: column;
-  }
-  
-  .global-button {
-    width: 100%;
-    justify-content: center;
+
+  .timer-grid.grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));  /* Desktop: even larger minimum */
+    grid-auto-rows: min-content;
   }
 }
 /* Simple Nationals Counter Styles - Flutter Style */
@@ -595,38 +684,97 @@
   margin-bottom: var(--token-space-md);
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
+/* Responsive adjustments - Nationals Counter */
+.counters-grid {
+  gap: var(--token-space-md);  /* Mobile: smaller gap */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.counter-group {
+  padding: var(--token-space-xl) var(--token-space-lg);  /* Mobile: smaller padding */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--token-space-xl);
+  background: rgba(20, 20, 25, 0.95);
+  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.counter-btn {
+  width: 58px;  /* Mobile: smaller button */
+  height: 58px;
+  font-size: 28px;  /* Mobile: smaller font */
+  border-radius: 29px;
+  border: var(--token-space-xs) solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+}
+
+.counter-value {
+  font-size: 28px;  /* Mobile: smaller font */
+  min-width: 55px;  /* Mobile: narrower */
+  padding: var(--token-space-md) 14px;  /* Mobile: smaller padding */
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.counter-label {
+  font-size: 13px;  /* Mobile: smaller font */
+  font-weight: 700;
+  margin-bottom: 6px;  /* Mobile: smaller margin */
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.counter-controls {
+  gap: var(--token-space-lg);  /* Mobile: standard gap */
+  display: flex;
+  align-items: center;
+}
+
+/* Desktop enhancements - Nationals Counter */
+@media (min-width: 640px) {
   .counters-grid {
-    gap: var(--token-space-md);
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
   .counter-group {
-    padding: var(--token-space-xl) var(--token-space-lg);
+    padding: var(--token-space-2xl);  /* Desktop: larger padding */
   }
 
   .counter-btn {
-    width: 58px;
-    height: 58px;
-    font-size: 28px;
-    border-radius: 29px;
+    width: 64px;  /* Desktop: larger button */
+    height: 64px;
+    font-size: var(--token-space-4xl);  /* Desktop: larger font */
+    border-radius: var(--token-space-4xl);
   }
 
   .counter-value {
-    font-size: 28px;
-    min-width: 55px;
-    padding: var(--token-space-md) 14px;
-    border-radius: 10px;
+    font-size: var(--token-space-4xl);  /* Desktop: larger font */
+    min-width: 40px;
+    padding: 0;
+    border-radius: 0;
   }
 
   .counter-label {
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 6px;
+    font-size: 14px;  /* Desktop: standard font */
+    font-weight: 600;
+    margin-bottom: var(--token-space-md);
   }
 
   .counter-controls {
-    gap: var(--token-space-lg);
+    gap: var(--token-space-xl);
   }
 }
 
@@ -1000,37 +1148,95 @@
   color: #95a5a6;
 }
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* Mobile Responsive - Nationals Point Counter */
+.nationals-point-counter {
+  margin: var(--token-space-lg) 0;  /* Mobile: standard margin */
+  padding: var(--token-space-lg);  /* Mobile: smaller padding */
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: var(--token-space-xs) solid #007bff;
+  border-radius: var(--token-space-lg);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 123, 255, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.point-counter-header h3 {
+  font-size: var(--token-space-xl);  /* Mobile: smaller font */
+  margin: 0;
+  color: #007bff;
+  text-align: center;
+  flex: 1;
+  font-weight: 700;
+}
+
+.point-row {
+  grid-template-columns: 1fr auto;  /* Mobile: 2 columns */
+  gap: var(--token-space-sm);
+  display: grid;
+  align-items: center;
+  padding: var(--token-space-md) var(--token-space-lg);
+  margin-bottom: var(--token-space-sm);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.point-calculation {
+  display: none;  /* Mobile: hide calculation */
+}
+
+.total-value {
+  font-size: var(--token-space-2xl);  /* Mobile: smaller font */
+  font-weight: 900;
+}
+
+.point-rules {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-sm);
+  display: grid;
+  padding-top: var(--token-space-lg);
+  border-top: 1px solid #dee2e6;
+}
+
+.compact-total {
+  font-size: var(--token-space-2xl);  /* Mobile: smaller font */
+  font-weight: 900;
+  margin-bottom: var(--token-space-md);
+  padding: var(--token-space-md);
+  border-radius: 6px;
+  border: var(--token-space-xs) solid;
+}
+
+/* Desktop enhancements - Nationals Point Counter */
+@media (min-width: 640px) {
   .nationals-point-counter {
-    margin: var(--token-space-lg) 0;
-    padding: var(--token-space-lg);
+    margin: var(--token-space-xl) 0;  /* Desktop: larger margin */
+    padding: var(--token-space-xl);  /* Desktop: standard padding */
   }
 
   .point-counter-header h3 {
-    font-size: var(--token-space-xl);
+    font-size: 18px;  /* Desktop: standard font */
   }
 
   .point-row {
-    grid-template-columns: 1fr auto;
-    gap: var(--token-space-sm);
+    grid-template-columns: 1fr auto auto auto;  /* Desktop: 4 columns */
+    gap: var(--token-space-md);
   }
 
   .point-calculation {
-    display: none; /* Hide calculation on mobile */
+    display: inline;  /* Desktop: show calculation */
   }
 
   .total-value {
-    font-size: var(--token-space-2xl);
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
   }
 
   .point-rules {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-sm);
+    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
+    gap: var(--token-space-md);
   }
 
   .compact-total {
-    font-size: var(--token-space-2xl);
+    font-size: var(--token-space-3xl);  /* Desktop: larger font */
   }
 }
 /* Result Choice Chips Styles - Flutter Style */
@@ -1160,17 +1366,28 @@ button.choice-chip.danger.selected {
   filter: brightness(1.1);
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
+/* Responsive adjustments - Result Choice Chips */
+.result-choice-chips {
+  gap: 6px;  /* Mobile: small gap */
+  margin: var(--token-space-lg) 0;
+}
+
+.choice-chip {
+  padding: 6px var(--token-space-lg);  /* Mobile: smaller padding */
+  font-size: 13px;  /* Mobile: smaller font */
+  min-width: 70px;
+}
+
+@media (min-width: 640px) {
   .result-choice-chips {
-    gap: 6px;
-    margin: var(--token-space-lg) 0;
+    gap: var(--token-space-md);  /* Desktop: standard gap */
+    margin: 0;  /* Desktop: no margin */
   }
 
   .choice-chip {
-    padding: 6px var(--token-space-lg);
-    font-size: 13px;
-    min-width: 70px;
+    padding: var(--token-space-md) var(--token-space-xl);  /* Desktop: standard padding */
+    font-size: 14px;  /* Desktop: standard font */
+    min-width: 80px;  /* Desktop: wider minimum */
   }
 }
 
@@ -1653,22 +1870,47 @@ button.choice-chip.secondary.selected {
   font-size: 14px;
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Responsive Design - Timer */
+.timer-controls {
+  flex-wrap: wrap;  /* Mobile: wrap buttons */
+  display: flex;
+  gap: var(--token-space-md);
+  justify-content: center;
+  margin-bottom: var(--token-space-lg);
+}
+
+.timer-button {
+  flex: 1;  /* Mobile: flex buttons */
+  min-width: 80px;
+}
+
+.timer-time {
+  font-size: 28px;  /* Mobile: smaller font */
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: var(--token-space-md);
+}
+
+.timer.large .timer-time {
+  font-size: 36px;  /* Mobile: large timer variant */
+}
+
+@media (min-width: 640px) {
   .timer-controls {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;  /* Desktop: don't wrap */
   }
-  
+
   .timer-button {
-    flex: 1;
-    min-width: 80px;
+    flex: initial;  /* Desktop: standard flex */
+    min-width: auto;
   }
-  
+
   .timer-time {
-    font-size: 28px;
+    font-size: var(--token-space-4xl);  /* Desktop: standard font */
   }
-  
+
   .timer.large .timer-time {
-    font-size: 36px;
+    font-size: 48px;  /* Desktop: large timer variant */
   }
 }
