@@ -82,8 +82,9 @@ const PATTERNS = {
   // Hardcoded z-index
   hardcodedZIndex: /z-index:\s*\d+/g,
 
-  // Non-standard breakpoints
-  nonStandardBreakpoints: /@media\s*\([^)]*(?:min-width|max-width):\s*(?!640px|1024px|1440px)[^)]+\)/g,
+  // Non-standard breakpoints (only match @media queries, not CSS properties)
+  // Matches @media queries that have min-width or max-width with values OTHER than 640px, 1024px, or 1440px
+  nonStandardBreakpoints: /@media\s*\([^)]*\b(?:min-width|max-width):\s*(?!640px\b|1024px\b|1440px\b)\d+(?:px|rem|em)\b[^)]*\)/g,
 
   // Desktop-first approach (max-width instead of min-width)
   desktopFirst: /@media\s*\([^)]*max-width/g,

@@ -795,7 +795,7 @@
 }
 
 /* Large Desktop: Full 3-column layout */
-@media (min-width: 1280px) {
+@media (min-width: 1440px) {
   .features-grid,
   .capabilities-grid {
     grid-template-columns: repeat(3, 1fr); /* Large desktop: 3 columns */
