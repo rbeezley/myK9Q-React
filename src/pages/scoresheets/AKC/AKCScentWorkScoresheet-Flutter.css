@@ -617,6 +617,63 @@
   color: var(--scoresheet-badge-text);
 }
 
+/* Area recorded badge - green success state */
+.area-badge.recorded {
+  background: var(--status-checked-in);
+  color: white;
+  padding: var(--token-space-md) var(--token-space-xl);
+  border-radius: var(--token-space-md);
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 140px;
+  max-width: none;
+  text-align: center;
+  display: inline-block;
+}
+
+/* Area Record Button - Replaces badge when no time recorded */
+.area-record-btn {
+  background: var(--primary);
+  color: white;
+  padding: var(--token-space-md) var(--token-space-xl);
+  border: none;
+  border-radius: var(--token-space-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Next in sequence - pulse indicator */
+.area-record-btn.next-in-sequence {
+  animation: pulse-glow 2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+/* Hover state */
+.area-record-btn:hover {
+  background: var(--primary);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.area-record-btn:active {
+  transform: translateY(0);
+}
+
 /* Max Time Badge Styles */
 .max-time-badge {
   background: var(--overlay-white-subtle)(124, 58, 237, 0.2);
@@ -742,6 +799,12 @@
   max-width: 60px;  /* Mobile: max width */
 }
 
+.area-record-btn {
+  min-width: 120px;  /* Mobile: smaller width */
+  font-size: var(--token-space-lg);  /* Mobile: font size */
+  padding: var(--token-space-md) var(--token-space-lg);  /* Mobile: padding */
+}
+
 .scoresheet-time-input {
   width: 160px;  /* Mobile: width */
   padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg);  /* Mobile: touch target */
@@ -810,6 +873,16 @@
     max-width: 70px;  /* Desktop: larger max width */
   }
 
+  .area-record-btn {
+    min-width: 160px;  /* Tablet: larger width */
+    font-size: 14px;  /* Tablet: larger font */
+  }
+
+  .area-badge.recorded {
+    min-width: 160px;  /* Tablet: match button width */
+    font-size: 14px;  /* Tablet: larger font */
+  }
+
   .scoresheet-time-input {
     width: 180px;  /* Desktop: larger width */
     padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl);  /* Desktop: larger touch target */
@@ -842,6 +915,18 @@
     flex-wrap: nowrap;  /* Desktop: no wrap */
     justify-content: flex-start;  /* Desktop: default align */
     font-size: 12px;  /* Desktop: larger font */
+  }
+}
+
+/* Desktop: 1024px+ */
+@media (min-width: 1024px) {
+  .area-record-btn {
+    min-width: 180px;  /* Desktop: larger width */
+    padding: var(--token-space-lg) var(--token-space-2xl);  /* Desktop: more padding */
+  }
+
+  .area-badge.recorded {
+    min-width: 180px;  /* Desktop: match button width */
   }
 }
 

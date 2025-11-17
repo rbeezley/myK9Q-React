@@ -126,7 +126,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const [stopwatchTime, setStopwatchTime] = useState(0);
   const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
   const [stopwatchInterval, setStopwatchInterval] = useState<NodeJS.Timeout | null>(null);
-  const [currentAreaIndex, setCurrentAreaIndex] = useState(0);
 
   // Settings for voice announcements
   const settings = useSettingsStore(state => state.settings);
@@ -605,7 +604,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   };
 
   const getRemainingTime = (): string => {
-    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    // Use the first area without a time as the "current" area for timer purposes
+    const activeAreaIndex = getNextEmptyAreaIndex();
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return '';
 
     // Parse max time string (format: "3:00" or "4:00")
@@ -628,8 +630,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       const currentTime = Date.now() - startTime;
       setStopwatchTime(currentTime);
 
-      // Auto-stop when time expires
-      const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+      // Auto-stop when time expires (using first empty area as reference)
+      const activeAreaIndex = getNextEmptyAreaIndex();
+      const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+      const maxTimeStr = getMaxTimeForArea(areaIndex);
       if (maxTimeStr) {
         const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
         const maxTimeMs = (minutes * 60 + seconds) * 1000;
@@ -643,10 +647,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           // Set the exact max time as the final time
           setStopwatchTime(maxTimeMs);
 
-          // Auto-fill the area time field with max time
-          const formattedMaxTime = formatStopwatchTime(maxTimeMs);
-          if (currentAreaIndex < areas.length) {
-            handleAreaUpdate(currentAreaIndex, 'time', formattedMaxTime);
+          // For single-area classes, auto-fill the time field
+          if (areas.length === 1) {
+            const formattedMaxTime = formatStopwatchTime(maxTimeMs);
+            handleAreaUpdate(0, 'time', formattedMaxTime);
           }
         }
       }
@@ -677,40 +681,19 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
 
     // Timer stays paused with current time visible
-    // Judge can resume or move to next area (multi-area only)
+    // Judge can resume or record time for any area
   };
 
-  const recordTimeAndMoveToNextArea = () => {
-    // Record current time to the current area
+  // Record time for a specific area (new multi-area approach)
+  const recordTimeForArea = (areaIndex: number) => {
     const formattedTime = formatStopwatchTime(stopwatchTime);
-    if (currentAreaIndex < areas.length) {
-      handleAreaUpdate(currentAreaIndex, 'time', formattedTime);
-
-      // Move to next area if not on last area
-      if (currentAreaIndex < areas.length - 1) {
-        setCurrentAreaIndex(prev => prev + 1);
-        resetStopwatch();
-      } else {
-        // Last area - just reset timer for clarity
-        resetStopwatch();
-      }
-    }
+    handleAreaUpdate(areaIndex, 'time', formattedTime);
+    resetStopwatch(); // Auto-reset stopwatch after recording (stays stopped)
   };
 
-  const renderRecordTimeButton = () => {
-    if (areas.length <= 1) return null;
-
-    const isLastArea = currentAreaIndex >= areas.length - 1;
-    return (
-      <button
-        className="timer-btn-start next-area"
-        onClick={recordTimeAndMoveToNextArea}
-        title={isLastArea ? "Record time for final area" : "Record time and move to next area"}
-        aria-label={isLastArea ? "Record time for final area" : "Record time and move to next area"}
-      >
-        {isLastArea ? 'Record Time' : 'Record Time / Next Area'}
-      </button>
-    );
+  // Helper to determine "next in sequence" for pulse indicator
+  const getNextEmptyAreaIndex = (): number => {
+    return areas.findIndex(area => !area.time);
   };
 
   const resetStopwatch = () => {
@@ -730,8 +713,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     const level = currentEntry?.level?.toLowerCase() || '';
     if (level === 'master' || level === 'masters') return false;
 
-    // Get max time for current area being timed
-    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    // Get max time for next empty area
+    const activeAreaIndex = getNextEmptyAreaIndex();
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return false;
 
     // Parse max time string (format: "3:00") to milliseconds
@@ -744,7 +729,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   };
 
   const isTimeExpired = (): boolean => {
-    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    const activeAreaIndex = getNextEmptyAreaIndex();
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return false;
 
     // Parse max time string (format: "3:00") to milliseconds
@@ -782,8 +769,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     const level = currentEntry?.level?.toLowerCase() || '';
     if (level === 'master' || level === 'masters') return;
 
-    // Get max time for current area being timed
-    const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
+    // Get max time for next empty area
+    const activeAreaIndex = getNextEmptyAreaIndex();
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return;
 
     // Parse max time string (format: "3:00") to milliseconds
@@ -806,7 +795,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
-  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, currentAreaIndex]);
+  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, areas]);
 
   // Set scoring active state to suppress push notification voices while timing
   useEffect(() => {
@@ -1209,7 +1198,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
           {stopwatchTime > 0 ? (
             <>Remaining: {getRemainingTime()}</>
           ) : (
-            <>Max Time: {getMaxTimeForArea(currentAreaIndex || 0)}</>
+            <>Max Time: {getMaxTimeForArea(getNextEmptyAreaIndex() >= 0 ? getNextEmptyAreaIndex() : 0)}</>
           )}
         </div>
         <div className="timer-controls-flutter">
@@ -1222,40 +1211,14 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
               Stop
             </button>
           ) : stopwatchTime > 0 ? (
-            // Timer is stopped with time recorded
-            (() => {
-              // Check if time has expired (reached max time)
-              const maxTimeStr = getMaxTimeForArea(currentAreaIndex || 0);
-              const hasExpired = maxTimeStr ? (() => {
-                const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-                const maxTimeMs = (minutes * 60 + seconds) * 1000;
-                return stopwatchTime >= maxTimeMs;
-              })() : false;
-
-              if (hasExpired) {
-                // Time expired - show Record Time button for all multi-area classes
-                return (
-                  <>
-                    <div className="timer-expired-indicator">⏱ Time Expired</div>
-                    {renderRecordTimeButton()}
-                  </>
-                );
-              } else {
-                // Timer paused but not expired - show Resume and Record Time button
-                return (
-                  <>
-                    <button
-                      className="timer-btn-start resume"
-                      onClick={startStopwatch}
-                      title="Continue timing current area"
-                    >
-                      Resume
-                    </button>
-                    {renderRecordTimeButton()}
-                  </>
-                );
-              }
-            })()
+            // Timer is stopped with time recorded - show Resume button
+            <button
+              className="timer-btn-start resume"
+              onClick={startStopwatch}
+              title="Continue timing"
+            >
+              Resume
+            </button>
           ) : (
             // Timer is at zero - show Start button (centered)
             <button
@@ -1275,15 +1238,27 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         </div>
       )}
 
-      {/* Time Input - Conditional Badge Based on Area Count */}
+      {/* Time Input - Conditional Badge/Button Based on Area Count */}
       {areas.map((area, index) => (
         <div key={index} className="scoresheet-time-card">
           <div className="time-input-flutter">
-            {/* Only show badge for multi-area elements/levels */}
+            {/* Only show badge/button for multi-area elements/levels */}
             {areas.length > 1 && (
-              <div className={`area-badge ${area.time ? 'completed' : 'pending'}`}>
-                Area {index + 1}
-              </div>
+              <>
+                {!area.time ? (
+                  <button
+                    className={`area-record-btn ${getNextEmptyAreaIndex() === index ? 'next-in-sequence' : ''}`}
+                    onClick={() => recordTimeForArea(index)}
+                    title={`Record time from stopwatch for Area ${index + 1}`}
+                  >
+                    Record Area {index + 1}
+                  </button>
+                ) : (
+                  <div className="area-badge recorded">
+                    Area {index + 1}
+                  </div>
+                )}
+              </>
             )}
             <div className="scoresheet-time-input-wrapper">
               <input
