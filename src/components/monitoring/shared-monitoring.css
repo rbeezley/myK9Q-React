@@ -31,16 +31,6 @@
   overflow: hidden;
 }
 
-@media (min-width: 640px) {
-  .monitoring-dashboard {
-    width: 500px;
-    /* Desktop: fixed width */
-    height: 60vh;
-    /* Desktop: larger height */
-    border-radius: var(--token-space-lg) var(--token-space-lg) 0 0;
-    /* Desktop: rounded top corners */
-  }
-}
 
 /* Header */
 .monitoring-header {
@@ -248,13 +238,6 @@
   align-items: center;
 }
 
-@media (min-width: 640px) {
-  .metrics-header,
-  .metrics-row {
-    grid-template-columns: 1fr 1fr 80px 120px;
-    /* Desktop: four columns */
-  }
-}
 
 .col-name {
   color: #6366f1;
@@ -302,12 +285,6 @@
   gap: var(--token-space-lg);
 }
 
-@media (min-width: 640px) {
-  .info-grid {
-    grid-template-columns: repeat(2, 1fr);
-    /* Desktop: two columns */
-  }
-}
 
 .info-item {
   padding: 10px var(--token-space-lg);
@@ -365,13 +342,6 @@
   align-items: center;
 }
 
-@media (min-width: 640px) {
-  .features-header,
-  .features-row {
-    grid-template-columns: 1fr 60px 100px 80px 80px;
-    /* Desktop: five columns */
-  }
-}
 
 .col-name {
   color: #6366f1;
@@ -412,12 +382,6 @@
   gap: var(--token-space-lg);
 }
 
-@media (min-width: 640px) {
-  .summary-grid {
-    grid-template-columns: repeat(3, 1fr);
-    /* Desktop: three columns */
-  }
-}
 
 .summary-item {
   padding: var(--token-space-lg);
@@ -595,14 +559,6 @@
   overflow: hidden;
 }
 
-@media (min-width: 640px) {
-  .network-inspector {
-    right: 90px;
-    /* Desktop: positioned next to toggle */
-    width: 600px;
-    /* Desktop: fixed width */
-  }
-}
 
 .network-inspector-header {
   display: flex;
@@ -746,16 +702,6 @@
   transition: background 0.2s ease;
 }
 
-@media (min-width: 640px) {
-  .network-request-item {
-    grid-template-columns: 60px 50px 1fr 80px 60px;
-    /* Desktop: five columns */
-    gap: var(--token-space-lg);
-    /* Desktop: normal gap */
-    font-size: var(--token-space-lg);
-    /* Desktop: normal font */
-  }
-}
 
 .network-request-item:hover {
   background: rgba(255, 255, 255, 0.05);
@@ -800,12 +746,6 @@
   /* Mobile: hidden */
 }
 
-@media (min-width: 640px) {
-  .request-time {
-    display: block;
-    /* Desktop: visible */
-  }
-}
 
 /* Mobile responsive styles consolidated into mobile-first declarations above */
 
@@ -860,18 +800,6 @@
   user-select: none;
 }
 
-@media (min-width: 640px) {
-  .performance-monitor {
-    top: 60px;
-    /* Desktop: positioned at top */
-    bottom: auto;
-    /* Desktop: no bottom position */
-    right: var(--token-space-lg);
-    /* Desktop: normal right offset */
-    gap: var(--token-space-md);
-    /* Desktop: normal gap */
-  }
-}
 
 .perf-metric {
   background: rgba(0, 0, 0, 0.85);
@@ -886,14 +814,6 @@
   border-left-style: solid;
 }
 
-@media (min-width: 640px) {
-  .perf-metric {
-    padding: var(--token-space-md) var(--token-space-lg);
-    /* Desktop: normal padding */
-    min-width: 80px;
-    /* Desktop: normal min-width */
-  }
-}
 
 .perf-label {
   font-size: 9px;
@@ -905,12 +825,6 @@
   margin-bottom: var(--token-space-xs);
 }
 
-@media (min-width: 640px) {
-  .perf-label {
-    font-size: 10px;
-    /* Desktop: normal font */
-  }
-}
 
 .perf-value {
   font-size: var(--token-space-xl);
@@ -920,12 +834,6 @@
   line-height: 1.2;
 }
 
-@media (min-width: 640px) {
-  .perf-value {
-    font-size: 18px;
-    /* Desktop: normal font */
-  }
-}
 
 .perf-sublabel {
   font-size: var(--token-space-md);
@@ -935,12 +843,6 @@
   margin-top: var(--token-space-xs);
 }
 
-@media (min-width: 640px) {
-  .perf-sublabel {
-    font-size: 9px;
-    /* Desktop: normal font */
-  }
-}
 
 /* Mobile responsive styles consolidated into mobile-first declarations above */
 
@@ -985,12 +887,6 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-@media (min-width: 640px) {
-  .state-inspector-toggle {
-    bottom: 90px;
-    /* Desktop: normal position */
-  }
-}
 
 .state-inspector-toggle:hover {
   transform: translateY(-2px);
@@ -1019,16 +915,6 @@
   overflow: hidden;
 }
 
-@media (min-width: 640px) {
-  .state-inspector {
-    top: 80px;
-    /* Desktop: normal position */
-    width: 500px;
-    /* Desktop: fixed width */
-    max-height: calc(100vh - 100px);
-    /* Desktop: normal height */
-  }
-}
 
 .state-inspector-header {
   display: flex;
@@ -1133,12 +1019,6 @@
   margin: 0;
 }
 
-@media (min-width: 640px) {
-  .state-json {
-    font-size: 11px;
-    /* Desktop: normal font */
-  }
-}
 
 .change-history {
   flex: 1;
@@ -1206,12 +1086,6 @@
   margin: 0;
 }
 
-@media (min-width: 640px) {
-  .change-data {
-    font-size: 10px;
-    /* Desktop: same size (kept for consistency) */
-  }
-}
 
 /* Mobile responsive styles consolidated into mobile-first declarations above */
 
@@ -1244,6 +1118,110 @@
 .state-json::-webkit-scrollbar-thumb:hover,
 .change-data::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+/* ===================================================================
+   DESKTOP ENHANCEMENTS - Consolidated @media (min-width: 640px) Block
+   All 17 duplicate 640px blocks consolidated into ONE organized block
+   =================================================================== */
+
+@media (min-width: 640px) {
+  /* Section 1: Monitoring Dashboard */
+  .monitoring-dashboard {
+    width: 500px;
+    height: 60vh;
+    border-radius: var(--token-space-lg) var(--token-space-lg) 0 0;
+  }
+
+  /* Section 2: Metrics Table (Dashboard) */
+  .metrics-header,
+  .metrics-row {
+    grid-template-columns: 1fr 1fr 80px 120px;
+  }
+
+  /* Section 3: Info Grid (Analytics Panel) */
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Section 4: Features Table (Analytics Panel) */
+  .features-header,
+  .features-row {
+    grid-template-columns: 1fr 60px 100px 80px 80px;
+  }
+
+  /* Section 5: Summary Grid (Rage Panel) */
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Section 6: Network Inspector Panel */
+  .network-inspector {
+    right: 90px;
+    width: 600px;
+  }
+
+  /* Section 7: Network Request Item */
+  .network-request-item {
+    grid-template-columns: 60px 50px 1fr 80px 60px;
+    gap: var(--token-space-lg);
+    font-size: var(--token-space-lg);
+  }
+
+  /* Section 8: Network Request Time Column */
+  .request-time {
+    display: block;
+  }
+
+  /* Section 9: Performance Monitor Container */
+  .performance-monitor {
+    top: 60px;
+    bottom: auto;
+    right: var(--token-space-lg);
+    gap: var(--token-space-md);
+  }
+
+  /* Section 10: Performance Metric Cards */
+  .perf-metric {
+    padding: var(--token-space-md) var(--token-space-lg);
+    min-width: 80px;
+  }
+
+  /* Section 11: Performance Labels */
+  .perf-label {
+    font-size: 10px;
+  }
+
+  /* Section 12: Performance Values */
+  .perf-value {
+    font-size: 18px;
+  }
+
+  /* Section 13: Performance Sublabels */
+  .perf-sublabel {
+    font-size: 9px;
+  }
+
+  /* Section 14: State Inspector Toggle Button */
+  .state-inspector-toggle {
+    bottom: 90px;
+  }
+
+  /* Section 15: State Inspector Panel */
+  .state-inspector {
+    top: 80px;
+    width: 500px;
+    max-height: calc(100vh - 100px);
+  }
+
+  /* Section 16: State JSON Display */
+  .state-json {
+    font-size: 11px;
+  }
+
+  /* Section 17: Change Data Display */
+  .change-data {
+    font-size: 10px;
+  }
 }
 
 /* Reduce motion */

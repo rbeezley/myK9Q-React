@@ -663,17 +663,7 @@
 }
 
 /* Tablet: 2 columns */
-@media (min-width: 640px) {
-  .classes-grid {
-    display: grid;  /* Tablet: grid layout */
-    grid-template-columns: repeat(2, 1fr);  /* Tablet: 2 columns */
-    gap: var(--token-space-xl);
-  }
-
-  .class-card {
-    margin-bottom: 0;  /* Tablet: remove margin, use gap */
-  }
-}
+/* Consolidated into single 640px media query block at end of file */
 
 /* Desktop: 3 columns */
 @media (min-width: 1024px) {
@@ -971,48 +961,7 @@
 }
 
 /* Desktop enhancements */
-@media (min-width: 640px) {
-  .admin-content {
-    padding: var(--token-space-lg);  /* Desktop: padding */
-  }
-
-  .admin-actions {
-    flex-direction: row;  /* Desktop: horizontal layout */
-    align-items: center;  /* Desktop: centered */
-  }
-
-  .selection-actions {
-    justify-content: center;  /* Desktop: center selection actions */
-  }
-
-  .classes-header {
-    flex-direction: row;  /* Desktop: horizontal */
-    align-items: center;
-  }
-
-  .release-card-btn {
-    padding: var(--token-space-2xl);  /* Desktop: standard padding */
-    gap: var(--token-space-lg);
-  }
-
-  .release-card-btn .btn-icon {
-    font-size: 2rem;  /* Desktop: icon size */
-  }
-
-  .release-card-btn .btn-title {
-    font-size: 1rem;  /* Desktop: title size */
-  }
-
-  .release-card-btn .btn-description {
-    font-size: 0.875rem;  /* Desktop: description size */
-  }
-
-  .checkin-actions,
-  .database-actions {
-    margin-top: var(--token-space-xl);  /* Desktop: add margin */
-    padding-top: var(--token-space-xl);  /* Desktop: add padding */
-  }
-}
+/* Consolidated into single 640px media query block at end of file */
 
 /* Sync Progress Dialog */
 .sync-progress-overlay {
@@ -1449,11 +1398,7 @@
 }
 
 /* Desktop enhancements - Preset Selector */
-@media (min-width: 640px) {
-  .preset-selector {
-    grid-template-columns: repeat(3, 1fr);  /* Desktop: 3 columns */
-  }
-}
+/* Consolidated into single 640px media query block at end of file */
 
 /* ============================================================ */
 /* TRIAL-LEVEL OVERRIDES SECTION */
@@ -1633,37 +1578,7 @@
 }
 
 /* Desktop enhancements - Trial Overrides */
-@media (min-width: 640px) {
-  .trial-row {
-    flex-direction: row;  /* Desktop: horizontal layout */
-    align-items: center;
-    gap: var(--token-space-4xl);  /* Desktop: horizontal gap */
-  }
-
-  .trial-controls {
-    justify-content: flex-end;  /* Desktop: right-aligned */
-  }
-
-  .trial-visibility-selector {
-    flex-direction: row;  /* Desktop: horizontal */
-    align-items: center;
-    gap: var(--token-space-md);
-  }
-
-  .trial-label-text {
-    text-align: left;  /* Desktop: left aligned */
-  }
-
-  .trial-preset-dropdown {
-    width: auto;  /* Desktop: auto width */
-    min-width: 180px;  /* Desktop: minimum width */
-  }
-
-  .reset-btn {
-    width: auto;  /* Desktop: auto width */
-    text-align: left;  /* Desktop: left aligned text */
-  }
-}
+/* Consolidated into single 640px media query block at end of file */
 
 /* ===================================== */
 /* SELF CHECK-IN CASCADE STYLES */
@@ -1835,31 +1750,7 @@
 }
 
 /* Desktop enhancements - Check-in Controls */
-@media (min-width: 640px) {
-  .trial-checkin-selector {
-    flex-direction: row;  /* Desktop: horizontal */
-    align-items: center;
-    gap: var(--token-space-md);
-  }
-
-  .trial-checkin-dropdown {
-    width: auto;  /* Desktop: auto width */
-    min-width: 150px;
-  }
-
-  .checkin-bulk-actions {
-    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
-  }
-
-  .checkin-toggle-btn .btn-icon {
-    width: 48px;  /* Desktop: larger icon */
-    height: 48px;
-  }
-
-  .checkin-toggle-btn .btn-text {
-    font-size: 1.25rem;  /* Desktop: larger text */
-  }
-}
+/* Consolidated into single 640px media query block at end of file */
 
 /* ===================================== */
 /* CLASSES HEADER WITH SELECTION */
@@ -2037,33 +1928,7 @@
 }
 
 /* Desktop enhancements - Toolbar */
-@media (min-width: 640px) {
-  .bulk-operations-container {
-    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
-  }
-
-  .bulk-operations-card {
-    padding: var(--token-space-2xl);  /* Desktop: larger padding */
-  }
-
-  .toolbar-buttons {
-    justify-content: flex-start;  /* Desktop: default alignment */
-  }
-
-  .toolbar-btn {
-    flex: initial;  /* Desktop: no flex */
-    justify-content: center;
-  }
-
-  .classes-header {
-    flex-direction: row;  /* Desktop: horizontal */
-    align-items: center;
-  }
-
-  .selection-actions {
-    justify-content: center;  /* Desktop: centered */
-  }
-}
+/* Consolidated into single 640px media query block at end of file */
 
 /* ===================================== */
 /* COMPACT CLASS CARD REDESIGN */
@@ -2244,7 +2109,147 @@
 }
 
 /* Desktop enhancements - Compact Class Card */
+/* Consolidated into single 640px media query block at end of file */
+
+/* ============================================================ */
+/* CONSOLIDATED TABLET/DESKTOP MEDIA QUERY (640px+) */
+/* All tablet and desktop enhancements in ONE organized block */
+/* ============================================================ */
 @media (min-width: 640px) {
+  /* Section 1: Classes Grid - 2 column grid layout */
+  .classes-grid {
+    display: grid;  /* Tablet: grid layout */
+    grid-template-columns: repeat(2, 1fr);  /* Tablet: 2 columns */
+    gap: var(--token-space-xl);
+  }
+
+  .class-card {
+    margin-bottom: 0;  /* Tablet: remove margin, use gap */
+  }
+
+  /* Section 2: Admin Layout - Content padding and actions */
+  .admin-content {
+    padding: var(--token-space-lg);  /* Desktop: padding */
+  }
+
+  .admin-actions {
+    flex-direction: row;  /* Desktop: horizontal layout */
+    align-items: center;  /* Desktop: centered */
+  }
+
+  .selection-actions {
+    justify-content: center;  /* Desktop: center selection actions */
+  }
+
+  .classes-header {
+    flex-direction: row;  /* Desktop: horizontal */
+    align-items: center;
+  }
+
+  /* Section 3: Release Card Buttons */
+  .release-card-btn {
+    padding: var(--token-space-2xl);  /* Desktop: standard padding */
+    gap: var(--token-space-lg);
+  }
+
+  .release-card-btn .btn-icon {
+    font-size: 2rem;  /* Desktop: icon size */
+  }
+
+  .release-card-btn .btn-title {
+    font-size: 1rem;  /* Desktop: title size */
+  }
+
+  .release-card-btn .btn-description {
+    font-size: 0.875rem;  /* Desktop: description size */
+  }
+
+  .checkin-actions,
+  .database-actions {
+    margin-top: var(--token-space-xl);  /* Desktop: add margin */
+    padding-top: var(--token-space-xl);  /* Desktop: add padding */
+  }
+
+  /* Section 4: Preset Selector - 3 column grid */
+  .preset-selector {
+    grid-template-columns: repeat(3, 1fr);  /* Desktop: 3 columns */
+  }
+
+  /* Section 5: Trial Overrides - Horizontal layout */
+  .trial-row {
+    flex-direction: row;  /* Desktop: horizontal layout */
+    align-items: center;
+    gap: var(--token-space-4xl);  /* Desktop: horizontal gap */
+  }
+
+  .trial-controls {
+    justify-content: flex-end;  /* Desktop: right-aligned */
+  }
+
+  .trial-visibility-selector {
+    flex-direction: row;  /* Desktop: horizontal */
+    align-items: center;
+    gap: var(--token-space-md);
+  }
+
+  .trial-label-text {
+    text-align: left;  /* Desktop: left aligned */
+  }
+
+  .trial-preset-dropdown {
+    width: auto;  /* Desktop: auto width */
+    min-width: 180px;  /* Desktop: minimum width */
+  }
+
+  .reset-btn {
+    width: auto;  /* Desktop: auto width */
+    text-align: left;  /* Desktop: left aligned text */
+  }
+
+  /* Section 6: Check-in Controls */
+  .trial-checkin-selector {
+    flex-direction: row;  /* Desktop: horizontal */
+    align-items: center;
+    gap: var(--token-space-md);
+  }
+
+  .trial-checkin-dropdown {
+    width: auto;  /* Desktop: auto width */
+    min-width: 150px;
+  }
+
+  .checkin-bulk-actions {
+    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
+  }
+
+  .checkin-toggle-btn .btn-icon {
+    width: 48px;  /* Desktop: larger icon */
+    height: 48px;
+  }
+
+  .checkin-toggle-btn .btn-text {
+    font-size: 1.25rem;  /* Desktop: larger text */
+  }
+
+  /* Section 7: Bulk Operations Toolbar */
+  .bulk-operations-container {
+    grid-template-columns: 1fr 1fr;  /* Desktop: 2 columns */
+  }
+
+  .bulk-operations-card {
+    padding: var(--token-space-2xl);  /* Desktop: larger padding */
+  }
+
+  .toolbar-buttons {
+    justify-content: flex-start;  /* Desktop: default alignment */
+  }
+
+  .toolbar-btn {
+    flex: initial;  /* Desktop: no flex */
+    justify-content: center;
+  }
+
+  /* Section 8: Compact Class Card */
   .class-card-compact {
     flex-direction: row;  /* Desktop: horizontal layout */
     align-items: center;
