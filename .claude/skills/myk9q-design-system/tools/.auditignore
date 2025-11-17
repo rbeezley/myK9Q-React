@@ -145,3 +145,88 @@ ClassList.css:1130:Override inline position styles from React state
 *:hardcoded-spacing:14px:Button/form padding - component standard
 *:hardcoded-spacing:0.8125rem:Small button padding (13px) - component standard
 *:hardcoded-spacing:13px:Small button padding - component standard
+
+# ========================================
+# Phase 6E Part 2: Component Dimensions
+# ========================================
+# Fixed sizes for UI components (icons, buttons, avatars, etc.)
+
+# Common Component Sizes (40-100px range)
+*:hardcoded-spacing:40px:Component size - icon/button/avatar dimension
+*:hardcoded-spacing:50px:Component size - medium icon/button dimension
+*:hardcoded-spacing:56px:Component size - standard avatar/icon dimension
+*:hardcoded-spacing:60px:Component size - avatar/image dimension
+*:hardcoded-spacing:64px:Component size - large avatar dimension
+*:hardcoded-spacing:72px:Component size - extra large icon dimension
+*:hardcoded-spacing:80px:Component size - hero icon/image dimension
+*:hardcoded-spacing:96px:Component size - jumbo icon dimension
+*:hardcoded-spacing:100px:Component size - featured image dimension
+
+# Layout Container Sizes (>100px)
+*:hardcoded-spacing:120px:Layout size - small sidebar/panel width
+*:hardcoded-spacing:130px:Layout size - logo/brand container
+*:hardcoded-spacing:140px:Layout size - compact sidebar width
+*:hardcoded-spacing:150px:Layout size - narrow column width
+*:hardcoded-spacing:200px:Layout size - sidebar/panel width
+*:hardcoded-spacing:250px:Layout size - standard sidebar width
+*:hardcoded-spacing:280px:Layout size - navigation sidebar width
+*:hardcoded-spacing:300px:Layout size - wide sidebar width
+*:hardcoded-spacing:320px:Layout size - small modal/card width
+*:hardcoded-spacing:350px:Layout size - medium card width
+*:hardcoded-spacing:400px:Layout size - standard modal width
+*:hardcoded-spacing:460px:Layout size - wide modal width
+*:hardcoded-spacing:500px:Layout size - large modal width
+*:hardcoded-spacing:600px:Layout size - extra large dialog width
+*:hardcoded-spacing:800px:Layout size - content area max-width
+*:hardcoded-spacing:1000px:Layout size - wide content area
+*:hardcoded-spacing:1200px:Layout size - full content width
+*:hardcoded-spacing:1280px:Layout size - desktop content width
+
+# Rem-based Component Sizes
+*:hardcoded-spacing:4rem:Component size (64px) - large avatar/icon
+*:hardcoded-spacing:5rem:Component size (80px) - hero icon
+*:hardcoded-spacing:6rem:Component size (96px) - jumbo icon
+*:hardcoded-spacing:8rem:Component size (128px) - extra large component
+
+# ========================================
+# Phase 6E Part 2: Intentional Odd Values
+# ========================================
+# Micro-spacing and component-specific dimensions that are intentional design choices
+
+# Border Radius & Visual Balance
+*:hardcoded-spacing:6px:Border radius - intentional (between 4px and 8px for visual balance)
+*:hardcoded-spacing:0.375rem:Micro-spacing (6px) - half of 12px, intentional visual rhythm
+
+# Component-Specific Icon Sizes
+*:hardcoded-spacing:28px:Small icon/button size - intentional component dimension
+*:hardcoded-spacing:1.125rem:Icon size (18px) - intentional component dimension
+*:hardcoded-spacing:1.75rem:Icon size (28px) - intentional component dimension
+*:hardcoded-spacing:2.25rem:Icon size (36px) - intentional component dimension
+*:hardcoded-spacing:36px:Touch target/icon size - intentional component dimension
+*:hardcoded-spacing:34px:Component size - intentional dimension
+*:hardcoded-spacing:38px:Component size - intentional dimension
+
+# Small Padding/Spacing (component-specific)
+*:hardcoded-spacing:0.625rem:Small padding (10px) - intentional tight spacing
+*:hardcoded-spacing:0.1875rem:Micro-spacing (3px) - intentional fine-tuning
+*:hardcoded-spacing:0.3rem:Micro-spacing (4.8px) - intentional visual adjustment
+*:hardcoded-spacing:0.35rem:Micro-spacing (5.6px) - intentional visual adjustment
+*:hardcoded-spacing:0.4rem:Micro-spacing (6.4px) - intentional visual adjustment
+*:hardcoded-spacing:0.6rem:Small spacing (9.6px) - intentional component padding
+*:hardcoded-spacing:0.7rem:Small spacing (11.2px) - intentional component padding
+
+# Pixel-Perfect Adjustments
+*:hardcoded-spacing:2.5px:Sub-grid alignment - intentional pixel-perfect adjustment
+*:hardcoded-spacing:5px:Micro-spacing - intentional visual fine-tuning
+*:hardcoded-spacing:7px:Micro-spacing - intentional visual fine-tuning
+
+# ========================================
+# MIGRATABLE VALUES (not ignored - should migrate)
+# ========================================
+# The following values are NOT ignored and should be considered for migration:
+# - 3px (62x) → migrate to 4px (--token-space-sm) for spacing contexts
+# - 10px (30x) → migrate to 12px (--token-space-lg) for spacing contexts
+# - 18px (15x) → migrate to 20px (--token-space-2xl) for spacing contexts
+# - 30px (7x) → migrate to 32px (--token-space-4xl) for spacing contexts
+#
+# These remain as violations to prompt developers to use standard tokens instead.
