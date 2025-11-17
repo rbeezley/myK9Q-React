@@ -709,75 +709,139 @@
   opacity: 0.4;
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 640px) {
+/* Mobile: responsive adjustments - base styles */
+.scoresheet-trial-header-compact {
+  padding: var(--token-space-md) var(--token-space-lg);  /* Mobile: padding */
+  margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);  /* Mobile: margin */
+  font-size: var(--token-space-lg);  /* Mobile: font size */
+}
+
+.trial-info-item {
+  font-size: var(--token-space-lg);  /* Mobile: font size */
+}
+
+.trial-separator {
+  font-size: var(--token-space-lg);  /* Mobile: font size */
+}
+
+.scoresheet-dog-card-compact,
+.scoresheet-dog-info-clean {
+  margin: var(--token-space-lg) var(--token-space-lg) var(--token-space-md) var(--token-space-lg);  /* Mobile: margin */
+  padding: 10px 0;  /* Mobile: padding */
+  gap: 10px;  /* Mobile: gap */
+}
+
+.time-input-flutter {
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.area-badge {
+  padding: 6px var(--token-space-md);  /* Mobile: padding */
+  font-size: 11px;  /* Mobile: font size */
+  min-width: 50px;  /* Mobile: min width */
+  max-width: 60px;  /* Mobile: max width */
+}
+
+.scoresheet-time-input {
+  width: 160px;  /* Mobile: width */
+  padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg);  /* Mobile: touch target */
+  font-size: 15px;  /* Mobile: font size */
+  min-height: 44px;  /* Mobile: touch target standard */
+}
+
+.scoresheet-time-input.single-area {
+  width: auto;  /* Mobile: flexible width */
+  flex: 1;
+}
+
+.max-time-display {
+  font-size: 11px;  /* Mobile: font size */
+}
+
+.dog-name {
+  font-size: var(--token-space-xl);  /* Mobile: font size */
+}
+
+.dog-details {
+  font-size: 13px;  /* Mobile: font size */
+}
+
+.dog-handler {
+  font-size: var(--token-space-lg);  /* Mobile: font size */
+}
+
+.header-trial-info {
+  flex-wrap: wrap;  /* Mobile: wrap */
+  justify-content: center;  /* Mobile: center */
+  font-size: 10px;  /* Mobile: font size */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .scoresheet-trial-header-compact {
-    padding: var(--token-space-md) var(--token-space-lg);
-    margin: 0 var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
-    font-size: var(--token-space-lg);
+    padding: var(--token-space-lg) var(--token-space-xl);  /* Desktop: larger padding */
+    margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);  /* Desktop: larger margin */
+    font-size: 14px;  /* Desktop: larger font */
   }
 
   .trial-info-item {
-    font-size: var(--token-space-lg);
+    font-size: 14px;  /* Desktop: larger font */
   }
 
   .trial-separator {
-    font-size: var(--token-space-lg);
+    font-size: 14px;  /* Desktop: larger font */
   }
 
   .scoresheet-dog-card-compact,
   .scoresheet-dog-info-clean {
-    margin: var(--token-space-lg) var(--token-space-lg) var(--token-space-md) var(--token-space-lg);
-    padding: 10px 0;
-    gap: 10px;
+    margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);  /* Desktop: larger margin */
+    padding: var(--token-space-lg) 0;  /* Desktop: larger padding */
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
   .time-input-flutter {
-    gap: var(--token-space-md);
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
   .area-badge {
-    padding: 6px var(--token-space-md);
-    font-size: 11px;
-    min-width: 50px;
-    max-width: 60px;
+    padding: 6px var(--token-space-lg);  /* Desktop: larger padding */
+    font-size: 12px;  /* Desktop: larger font */
+    min-width: 55px;  /* Desktop: larger min width */
+    max-width: 70px;  /* Desktop: larger max width */
   }
 
   .scoresheet-time-input {
-    width: 160px;
-    padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg); /* Maintain touch target on mobile */
-    font-size: 15px;
-    min-height: 44px; /* Mobile touch target standard */
+    width: 180px;  /* Desktop: larger width */
+    padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl);  /* Desktop: larger touch target */
+    font-size: 16px;  /* Desktop: larger font */
+    min-height: 48px;  /* Desktop: touch target */
   }
 
   .scoresheet-time-input.single-area {
-    width: auto;
+    width: auto;  /* Desktop: flexible */
     flex: 1;
   }
 
   .max-time-display {
-    font-size: 11px;
+    font-size: 14px;  /* Desktop: larger font */
   }
 
   .dog-name {
-    font-size: var(--token-space-xl);
+    font-size: 18px;  /* Desktop: larger font */
   }
 
   .dog-details {
-    font-size: 13px;
+    font-size: 14px;  /* Desktop: larger font */
   }
 
   .dog-handler {
-    font-size: var(--token-space-lg);
+    font-size: 13px;  /* Desktop: font size */
   }
-}
 
-/* Extra small screens */
-@media (max-width: 640px) {
   .header-trial-info {
-    flex-wrap: wrap;
-    justify-content: center;
-    font-size: 10px;
+    flex-wrap: nowrap;  /* Desktop: no wrap */
+    justify-content: flex-start;  /* Desktop: default align */
+    font-size: 12px;  /* Desktop: larger font */
   }
 }
 

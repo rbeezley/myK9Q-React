@@ -825,70 +825,115 @@
   transform: scale(0.95);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .scoresheet-content {
-    padding: var(--token-space-xl);
-    gap: var(--token-space-xl);
-    padding-bottom: 100px; /* Maintain space for action buttons */
-  }
-  
-  .dog-header-card {
-    padding: var(--token-space-3xl);
-  }
-  
-  .armband-number {
-    font-size: 2rem;
-  }
-  
-  .action-buttons {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  
-  .action-buttons .submit-button {
-    grid-column: 1;
-    order: -1;
-  }
-  
-  .qualifying-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .trial-info {
-    justify-content: center;
-  }
-  
-  .class-info {
-    gap: var(--token-space-md);
-  }
-  
-  .confirmation-dialog {
-    padding: var(--token-space-3xl);
-  }
-  
-  .confirmation-buttons {
-    flex-direction: column-reverse;
-  }
+/* Mobile: responsive design - base styles */
+.scoresheet-content {
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
+  gap: var(--token-space-xl);  /* Mobile: gap */
+  padding-bottom: 100px;  /* Mobile: space for buttons */
 }
 
-@media (max-width: 640px) {
+.dog-header-card {
+  padding: var(--token-space-3xl);  /* Mobile: padding */
+}
+
+.scoresheet-header h1 {
+  font-size: 1.125rem;  /* Mobile: title size */
+}
+
+.armband-number {
+  font-size: 1.75rem;  /* Mobile: armband size */
+}
+
+.action-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  text-align: center;  /* Mobile: center text */
+}
+
+.action-buttons .submit-button {
+  grid-column: 1;  /* Mobile: full width */
+  order: -1;  /* Mobile: reorder */
+}
+
+.qualifying-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.qual-button {
+  padding: 0.875rem;  /* Mobile: padding */
+  font-size: 0.8125rem;  /* Mobile: font size */
+}
+
+.trial-info {
+  justify-content: center;  /* Mobile: center */
+}
+
+.class-info {
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.confirmation-dialog {
+  padding: var(--token-space-3xl);  /* Mobile: padding */
+}
+
+.confirmation-buttons {
+  flex-direction: column-reverse;  /* Mobile: reverse order */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
+  .scoresheet-content {
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
+    padding-bottom: 100px;  /* Desktop: maintain button space */
+  }
+
+  .dog-header-card {
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
+  }
+
   .scoresheet-header h1 {
-    font-size: 1.125rem;
+    font-size: 1.25rem;  /* Desktop: larger title */
   }
 
   .armband-number {
-    font-size: 1.75rem;
+    font-size: 2.5rem;  /* Desktop: larger armband */
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr 2fr 1fr;  /* Desktop: three columns */
+    text-align: left;  /* Desktop: default align */
+  }
+
+  .action-buttons .submit-button {
+    grid-column: 2;  /* Desktop: center column */
+    order: 0;  /* Desktop: default order */
   }
 
   .qualifying-buttons {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-md);
+    grid-template-columns: repeat(4, 1fr);  /* Desktop: four columns */
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
   .qual-button {
-    padding: 0.875rem;
-    font-size: 0.8125rem;
+    padding: var(--token-space-xl) var(--token-space-md);  /* Desktop: larger padding */
+    font-size: 0.875rem;  /* Desktop: normal font */
+  }
+
+  .trial-info {
+    justify-content: space-between;  /* Desktop: spread out */
+  }
+
+  .class-info {
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
+  }
+
+  .confirmation-dialog {
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
+  }
+
+  .confirmation-buttons {
+    flex-direction: row;  /* Desktop: default order */
   }
 }
 

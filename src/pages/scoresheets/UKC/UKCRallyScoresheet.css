@@ -447,48 +447,80 @@
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(255, 107, 107, 0.4);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .score-inputs {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-xl);
-  }
-  
-  .final-score h3 {
-    font-size: 1.75rem;
-  }
-  
-  .qualifying-buttons {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-md);
-  }
-  
-  .action-buttons {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  
-  .action-buttons .submit-button {
-    grid-column: 1;
-    order: -1;
-  }
-  
-  .confirmation-buttons {
-    flex-direction: column-reverse;
-  }
+/* Mobile: responsive design - base styles */
+.score-inputs {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-xl);  /* Mobile: gap */
 }
 
-@media (max-width: 640px) {
+.final-score h3 {
+  font-size: 1.5rem;  /* Mobile: smaller font */
+}
+
+.qual-button {
+  padding: 0.875rem;  /* Mobile: padding */
+  font-size: 0.875rem;  /* Mobile: font size */
+}
+
+.qualifying-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.action-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  text-align: center;  /* Mobile: center text */
+}
+
+.action-buttons .submit-button {
+  grid-column: 1;  /* Mobile: full width */
+  order: -1;  /* Mobile: reorder */
+}
+
+.confirmation-dialog {
+  padding: var(--token-space-3xl);  /* Mobile: padding */
+}
+
+.confirmation-buttons {
+  flex-direction: column-reverse;  /* Mobile: reverse order */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
+  .score-inputs {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));  /* Desktop: responsive columns */
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
+  }
+
   .final-score h3 {
-    font-size: 1.5rem;
+    font-size: 2rem;  /* Desktop: larger font */
   }
-  
+
   .qual-button {
-    padding: 0.875rem;
-    font-size: 0.875rem;
+    padding: var(--token-space-xl) var(--token-space-lg);  /* Desktop: larger padding */
+    font-size: 1rem;  /* Desktop: normal font */
   }
-  
+
+  .qualifying-buttons {
+    grid-template-columns: repeat(2, 1fr);  /* Desktop: two columns */
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr 2fr 1fr;  /* Desktop: three columns */
+    text-align: left;  /* Desktop: default align */
+  }
+
+  .action-buttons .submit-button {
+    grid-column: 2;  /* Desktop: center column */
+    order: 0;  /* Desktop: default order */
+  }
+
   .confirmation-dialog {
-    padding: var(--token-space-3xl);
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
+  }
+
+  .confirmation-buttons {
+    flex-direction: row;  /* Desktop: default order */
   }
 }

@@ -1020,14 +1020,23 @@
   color: var(--token-text-secondary);
 }
 
+/* Mobile: responsive design - base styles */
+.settings-content {
+  padding: var(--token-space-xl) var(--token-space-lg);  /* Mobile: 12px horizontal */
+}
+
+.settings-header .dropdown-menu {
+  right: var(--token-space-lg);  /* Mobile: position */
+}
+
 /* Desktop - increase horizontal padding */
 @media (min-width: 1024px) {
   .settings-content {
-    padding: var(--token-space-xl) var(--token-space-3xl); /* Desktop: 24px horizontal */
+    padding: var(--token-space-xl) var(--token-space-3xl);  /* Desktop: 24px horizontal */
   }
 
   .settings-header .dropdown-menu {
-    right: var(--token-space-3xl);
+    right: var(--token-space-3xl);  /* Desktop: larger position */
   }
 }
 

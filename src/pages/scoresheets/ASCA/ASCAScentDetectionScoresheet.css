@@ -392,41 +392,66 @@
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(156, 39, 176, 0.4);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .area-inputs {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-xl);
-  }
-  
-  .total-time-section h3 {
-    font-size: var(--token-space-3xl);
-  }
-  
-  .qualifying-buttons {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--token-space-md);
-  }
-  
-  .action-buttons {
-    grid-template-columns: 1fr;
-  }
-  
-  .nav-button:first-child {
-    order: 2;
-  }
-  
-  .submit-button {
-    order: 1;
-  }
-  
-  .nav-button:last-child {
-    order: 3;
-  }
+/* Mobile: responsive design - base styles */
+.area-inputs {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-xl);  /* Mobile: gap */
 }
 
-@media (max-width: 640px) {
+.total-time-section h3 {
+  font-size: var(--token-space-3xl);  /* Mobile: smaller font */
+}
+
+.qualifying-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.action-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+}
+
+.nav-button:first-child {
+  order: 2;  /* Mobile: reorder */
+}
+
+.submit-button {
+  order: 1;  /* Mobile: reorder */
+}
+
+.nav-button:last-child {
+  order: 3;  /* Mobile: reorder */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
+  .area-inputs {
+    grid-template-columns: 1fr 1fr;  /* Desktop: two columns */
+    gap: var(--token-space-2xl);  /* Desktop: larger gap */
+  }
+
+  .total-time-section h3 {
+    font-size: var(--token-space-4xl);  /* Desktop: larger font */
+  }
+
   .qualifying-buttons {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);  /* Desktop: three columns */
+    gap: var(--token-space-lg);  /* Desktop: normal gap */
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr 2fr 1fr;  /* Desktop: three columns */
+  }
+
+  .nav-button:first-child {
+    order: 0;  /* Desktop: default order */
+  }
+
+  .submit-button {
+    order: 0;  /* Desktop: default order */
+  }
+
+  .nav-button:last-child {
+    order: 0;  /* Desktop: default order */
   }
 }

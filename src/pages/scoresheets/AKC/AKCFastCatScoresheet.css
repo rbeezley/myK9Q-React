@@ -363,57 +363,90 @@
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(255, 152, 0, 0.4);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .results-section {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-xl);
-  }
-  
-  .result-card {
-    padding: var(--token-space-3xl);
-  }
-  
-  .result-value {
-    font-size: 36px;
-  }
-  
-  .time-input input {
-    font-size: var(--token-space-3xl);
-    padding: var(--token-space-xl);
-  }
-  
-  .time-input input::placeholder {
-    font-size: var(--token-space-2xl);
-  }
-  
-  .qualifying-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .action-buttons {
-    grid-template-columns: 1fr;
-  }
-  
-  .nav-button:first-child {
-    order: 2;
-  }
-  
-  .submit-button {
-    order: 1;
-  }
-  
-  .nav-button:last-child {
-    order: 3;
-  }
+/* Mobile: responsive design - base styles */
+.results-section {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-xl);  /* Mobile: gap */
 }
 
-@media (max-width: 640px) {
-  .qualifying-buttons {
-    grid-template-columns: 1fr;
+.result-card {
+  padding: var(--token-space-3xl);  /* Mobile: padding */
+}
+
+.result-value {
+  font-size: 28px;  /* Mobile: smaller font */
+}
+
+.time-input input {
+  font-size: var(--token-space-3xl);  /* Mobile: smaller font */
+  padding: var(--token-space-xl);  /* Mobile: padding */
+}
+
+.time-input input::placeholder {
+  font-size: var(--token-space-2xl);  /* Mobile: smaller placeholder */
+}
+
+.qualifying-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+}
+
+.action-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+}
+
+.nav-button:first-child {
+  order: 2;  /* Mobile: reorder */
+}
+
+.submit-button {
+  order: 1;  /* Mobile: reorder */
+}
+
+.nav-button:last-child {
+  order: 3;  /* Mobile: reorder */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
+  .results-section {
+    grid-template-columns: 1fr 1fr;  /* Desktop: two columns */
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
   }
-  
+
+  .result-card {
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
+  }
+
   .result-value {
-    font-size: 28px;
+    font-size: 48px;  /* Desktop: larger font */
+  }
+
+  .time-input input {
+    font-size: var(--token-space-4xl);  /* Desktop: larger font */
+    padding: var(--token-space-2xl);  /* Desktop: larger padding */
+  }
+
+  .time-input input::placeholder {
+    font-size: 28px;  /* Desktop: larger placeholder */
+  }
+
+  .qualifying-buttons {
+    grid-template-columns: repeat(4, 1fr);  /* Desktop: four columns */
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr 2fr 1fr;  /* Desktop: three columns */
+  }
+
+  .nav-button:first-child {
+    order: 0;  /* Desktop: default order */
+  }
+
+  .submit-button {
+    order: 0;  /* Desktop: default order */
+  }
+
+  .nav-button:last-child {
+    order: 0;  /* Desktop: default order */
   }
 }

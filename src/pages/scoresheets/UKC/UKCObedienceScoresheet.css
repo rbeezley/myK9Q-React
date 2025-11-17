@@ -448,49 +448,72 @@
   margin-top: var(--token-space-xl);
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .points-input {
-    font-size: 1.75rem;
-    padding: var(--token-space-2xl);
-  }
-  
-  .qualifying-buttons {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--token-space-md);
-  }
-  
-  .action-buttons {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  
-  .action-buttons .submit-button {
-    grid-column: 1;
-    order: -1;
-  }
-  
-  .confirmation-buttons {
-    flex-direction: column-reverse;
-  }
+/* Mobile: responsive design - base styles */
+.points-input {
+  font-size: 1.5rem;  /* Mobile: smaller font */
+  padding: var(--token-space-2xl);  /* Mobile: padding */
 }
 
-@media (max-width: 640px) {
+.qualifying-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.qual-button {
+  padding: 0.875rem;  /* Mobile: padding */
+  font-size: 0.875rem;  /* Mobile: font size */
+}
+
+.action-buttons {
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  text-align: center;  /* Mobile: center text */
+}
+
+.action-buttons .submit-button {
+  grid-column: 1;  /* Mobile: full width */
+  order: -1;  /* Mobile: reorder */
+}
+
+.confirmation-dialog {
+  padding: var(--token-space-3xl);  /* Mobile: padding */
+}
+
+.confirmation-buttons {
+  flex-direction: column-reverse;  /* Mobile: reverse order */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .points-input {
-    font-size: 1.5rem;
+    font-size: 2rem;  /* Desktop: larger font */
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
   }
-  
+
   .qualifying-buttons {
-    grid-template-columns: 1fr;
-    gap: var(--token-space-md);
+    grid-template-columns: repeat(4, 1fr);  /* Desktop: four columns */
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
-  
+
   .qual-button {
-    padding: 0.875rem;
-    font-size: 0.875rem;
+    padding: var(--token-space-xl) var(--token-space-md);  /* Desktop: larger padding */
+    font-size: 1rem;  /* Desktop: normal font */
   }
-  
+
+  .action-buttons {
+    grid-template-columns: 1fr 2fr 1fr;  /* Desktop: three columns */
+    text-align: left;  /* Desktop: default align */
+  }
+
+  .action-buttons .submit-button {
+    grid-column: 2;  /* Desktop: center column */
+    order: 0;  /* Desktop: default order */
+  }
+
   .confirmation-dialog {
-    padding: var(--token-space-3xl);
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
+  }
+
+  .confirmation-buttons {
+    flex-direction: row;  /* Desktop: default order */
   }
 }

@@ -446,84 +446,74 @@
   }
 }
 
-/* Responsive Design - Mobile First */
-@media (max-width: 640px) {
+/* Mobile: responsive design - base styles */
+.login-container .app-title {
+  font-size: 3rem;  /* Mobile: title size */
+}
+
+.login-container .tagline {
+  font-size: 2.5rem;  /* Mobile: tagline size */
+}
+
+.logo-img {
+  width: 130px;  /* Mobile: logo size */
+  max-height: 130px;
+}
+
+.passcode-card {
+  padding: 1.75rem var(--token-space-2xl);  /* Mobile: padding */
+}
+
+.passcode-input {
+  width: 50px;  /* Mobile: input size */
+  height: 50px;
+  font-size: 1.2rem;  /* Mobile: font size */
+  border-radius: var(--token-space-lg);  /* Mobile: radius */
+}
+
+.passcode-inputs {
+  gap: var(--token-space-md);  /* Mobile: gap */
+}
+
+.help-button {
+  padding: 0.7rem 1.75rem;  /* Mobile: padding */
+  font-size: 0.95rem;  /* Mobile: font size */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .login-container .app-title {
-    font-size: 3rem;
+    font-size: 3rem;  /* Desktop: keep same */
   }
 
   .login-container .tagline {
-    font-size: 2.5rem;
+    font-size: 2.5rem;  /* Desktop: keep same */
   }
 
   .logo-img {
-    width: 130px;
+    width: 130px;  /* Desktop: keep same */
     max-height: 130px;
   }
 
   .passcode-card {
-    padding: var(--token-space-4xl) var(--token-space-3xl);
+    padding: 3rem 3.5rem;  /* Desktop: larger padding */
+    min-width: 500px;  /* Desktop: min width */
   }
 
   .passcode-input {
-    width: 55px;
-    height: 55px;
-    font-size: 1.3rem;
+    width: 60px;  /* Desktop: larger size */
+    height: 60px;
+    font-size: 1.5rem;  /* Desktop: larger font */
+    border-radius: 14px;  /* Desktop: larger radius */
   }
 
   .passcode-inputs {
-    gap: 0.65rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .passcode-input {
-    width: 50px;
-    height: 50px;
-    font-size: 1.2rem;
-    border-radius: var(--token-space-lg);
-  }
-
-  .passcode-inputs {
-    gap: var(--token-space-md);
-  }
-
-  .login-container .app-title {
-    font-size: 3rem;
-  }
-
-  .login-container .tagline {
-    font-size: 2.5rem;
-  }
-
-  .passcode-card {
-    padding: 1.75rem var(--token-space-2xl);
+    gap: var(--token-space-lg);  /* Desktop: larger gap */
   }
 
   .help-button {
-    padding: 0.7rem 1.75rem;
-    font-size: 0.95rem;
-  }
-}
-
-/* Tablet and Desktop */
-@media (min-width: 640px) {
-  .passcode-card {
-    padding: 3rem 3.5rem;
-    min-width: 500px;
-  }
-
-  .logo-img {
-    width: 130px;
-    max-height: 130px;
-  }
-
-  .login-container .app-title {
-    font-size: 3rem;
-  }
-
-  .login-container .tagline {
-    font-size: 2.5rem;
+    padding: var(--token-space-lg) var(--token-space-4xl);  /* Desktop: standard padding */
+    font-size: 1rem;  /* Desktop: normal font */
   }
 }
 

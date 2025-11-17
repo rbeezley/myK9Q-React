@@ -360,29 +360,53 @@
   box-shadow: var(--token-shadow-lg);
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 640px) {
+/* Mobile: responsive design - base styles */
+.apple-card {
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
+  border-radius: 0.75rem;  /* Mobile: smaller radius */
+}
+
+.apple-header {
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
+}
+
+.apple-armband-badge {
+  width: 2.25rem;  /* Mobile: smaller size */
+  height: 2.25rem;
+  font-size: 0.8125rem;  /* Mobile: smaller font */
+}
+
+.apple-text-title {
+  font-size: 1.5rem;  /* Mobile: smaller size */
+}
+
+.apple-text-heading {
+  font-size: 1.125rem;  /* Mobile: smaller size */
+}
+
+/* Desktop enhancements */
+@media (min-width: 640px) {
   .apple-card {
-    padding: var(--token-space-xl);
-    border-radius: 0.75rem;
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
+    border-radius: 1rem;  /* Desktop: larger radius */
   }
 
   .apple-header {
-    padding: var(--token-space-xl);
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
   }
 
   .apple-armband-badge {
-    width: 2.25rem;
-    height: 2.25rem;
-    font-size: 0.8125rem;
+    width: 2.75rem;  /* Desktop: larger size */
+    height: 2.75rem;
+    font-size: 0.9375rem;  /* Desktop: larger font */
   }
 
   .apple-text-title {
-    font-size: 1.5rem;
+    font-size: 1.875rem;  /* Desktop: larger size */
   }
 
   .apple-text-heading {
-    font-size: 1.125rem;
+    font-size: 1.25rem;  /* Desktop: larger size */
   }
 }
 
