@@ -3,8 +3,8 @@
 **Generated**: November 16, 2025
 **Last Updated**: November 17, 2025
 **Total Files**: 52
-**Completed**: 23 files ✅ (44% complete)
-**Remaining**: 29 files
+**Completed**: 26 files ✅ (50% complete)
+**Remaining**: 26 files
 
 ---
 
@@ -53,10 +53,10 @@ Each EASY file takes ~5-10 minutes. Each MEDIUM file takes ~15-20 minutes. HARD 
 22. ✅ `/src/pages/scoresheets/shared-scoresheet.css` - **DONE** (Commit: c042294)
 23. ✅ `/src/pages/scoresheets/UKC/UKCNoseworkScoresheet.css` - **DONE** (Commit: c042294)
 
-### Batch 6: TV Mode (3 files)
-24. `/src/pages/TVRunOrder/components/ClassRunOrder.css` - Line 149-152 (2 rules, **1024px**)
-25. `/src/pages/TVRunOrder/components/TVEntryCard.css` - Line 233-236 (2 rules, **1024px**)
-26. `/src/pages/TVRunOrder/TVRunOrder.css` - Line 44-49 (4 rules, **1024px**)
+### Batch 6: TV Mode (3 files) ✅ **COMPLETE**
+24. ✅ `/src/pages/TVRunOrder/components/ClassRunOrder.css` - **DONE** (Commit: 9ff989c)
+25. ✅ `/src/pages/TVRunOrder/components/TVEntryCard.css` - **DONE** (Commit: 9ff989c)
+26. ✅ `/src/pages/TVRunOrder/TVRunOrder.css` - **DONE** (Commit: 9ff989c)
 
 ### Batch 7: Styles (8 files)
 27. `/src/styles/containers.css` - Line 74-78 (3 rules)
@@ -146,12 +146,12 @@ Each EASY file takes ~5-10 minutes. Each MEDIUM file takes ~15-20 minutes. HARD 
 - [x] **Batch 3: Easy UI** (3/3) ✅ COMPLETE
 - [x] **Batch 4: Easy Pages** (4/4) ✅ COMPLETE
 - [x] **Batch 5: Easy Scoresheets** (4/4) ✅ COMPLETE
-- [ ] **Batch 6: Easy TV Mode** (0/3)
+- [x] **Batch 6: Easy TV Mode** (3/3) ✅ COMPLETE
 - [ ] **Batch 7: Easy Styles** (0/8)
 - [ ] **Medium Files** (0/13)
 - [ ] **Hard Files** (0/5)
 
-**Total Progress**: 23 / 52 files (44%)
+**Total Progress**: 26 / 52 files (50%)
 
 ---
 
