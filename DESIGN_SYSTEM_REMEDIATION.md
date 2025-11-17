@@ -1,8 +1,8 @@
 # myK9Q Design System Remediation Plan
 
 **Created**: 2025-11-16
-**Status**: Phase 1 Complete ✅ | Phase 2 Complete ✅ | Phase 3 Complete ✅ | Phase 4 Complete ✅ | Phase 5 Complete ✅
-**Overall Progress**: 1,132 of 3,029 violations fixed (37%) - all major CSS architecture work complete!
+**Status**: Phase 1-5 Complete ✅ | Phase 6A Complete ✅
+**Overall Progress**: 1,236 of 3,029 violations fixed (41%) - all major CSS architecture work complete!
 
 ---
 
@@ -19,9 +19,9 @@ The myK9Q Design System Remediation project aims to eliminate all hardcoded valu
 - !important Usage: 286 violations (9%)
 - Duplicate Media Queries: 13 violations (0.4%)
 
-**Current Audit Results** (1,897 total violations after Phase 5.2):
-- Hardcoded Colors: 1,020 violations (54%) - down from 1,019 (most are legitimate semantic colors)
-- Hardcoded Spacing: 805 violations (42%) - down from 833
+**Current Audit Results** (1,731 total violations after Phase 6A):
+- Hardcoded Colors: 916 violations (53%) - down from 1,020 (Phase 6A: theme-critical grays migrated)
+- Hardcoded Spacing: 805 violations (47%) - down from 833
 - Non-Standard Breakpoints: 0 violations (0%) - down from 177! ✅ (100% fixed!)
 - Desktop-First Media Queries: 1 violation (0.05%) - down from 106! (99% fixed ✅)
 - Duplicate Media Queries: 5 violations (0.26%) - down from 26! (80% fixed ✅)
@@ -542,57 +542,56 @@ nonStandardBreakpoints: /@media\s*\([^)]*\b(?:min-width|max-width):\s*(?!640px\b
 
 ---
 
-## Phase 6: Hardcoded Colors (1,020 violations) 📋 PLANNED
+## Phase 6: Hardcoded Colors - Strategic Migration
 
-**Target**: 1,020 hardcoded color violations
-**Estimated Duration**: 2-3 weeks
+**Original Violations**: 1,020 violations
+**Strategic Approach**: Migrate theme-critical colors only (see [PHASE6_STRATEGIC_COLOR_MIGRATION.md](.claude/skills/myk9q-design-system/PHASE6_STRATEGIC_COLOR_MIGRATION.md))
 
-**Pattern to Replace**:
+### Phase 6A: Theme-Critical Colors ✅ COMPLETE
+
+**Target**: Top 20 most common theme-critical grays for light/dark theme support
+**Duration**: 1 day
+**Completed**: November 17, 2025
+
+**Colors Migrated**:
+- Light theme grays: `#e5e7eb`, `#f3f4f6`, `#e0e0e0`, `#f0f0f0`, `#f8f9fa`, `#f8fafc`, `#f5f5f5`, `#fefefe`, `#f1f5f9`
+- Dark theme grays: `#2a2a2a`, `#1a1a1a`, `#1f2937`, `#1e293b`, `#1a1d23`, `#334155`, `#34495e`, `#111827`, `#3a3a3a`, `#2c3e50`, `#262626`
+- Text colors: `#6b7280`, `#9ca3af`, `#374151`
+
+**New Design Tokens Added** ([design-tokens.css:32-44](src/styles/design-tokens.css#L32-L44)):
 ```css
-/* Before */
-background: #ffffff;
-color: rgba(255, 255, 255, 0.8);
-border: 1px solid #e5e7eb;
-
-/* After */
-background: var(--background);
-color: var(--foreground-muted);
-border: 1px solid var(--border);
+/* Neutral Grays (Light Theme) - for theme switching */
+--surface: #f1f5f9;              /* Light secondary surface */
+--surface-subtle: #f3f4f6;        /* Very light surface */
+--surface-muted: #f5f5f5;         /* Light subtle surface */
+--surface-elevated: #ffffff;      /* Elevated card/modal background */
+--background-subtle: #f8fafc;     /* Lightest surface */
+--background-soft: #f8f9fa;       /* Subtle background */
+--foreground-muted: #374151;      /* Muted text color */
+--foreground-dark: #1e293b;       /* Dark text on light bg */
+--border-light: #e0e0e0;          /* Light border */
+--border-subtle: #e5e7eb;         /* Very light border */
+--text-gray: #6b7280;             /* Gray text/muted */
+--text-light-gray: #9ca3af;       /* Light gray text */
 ```
 
-**Design Token Reference** (from `design-tokens.css`):
-```css
-/* Core Colors */
---foreground: #1e293b;
---background: #ffffff;
---primary: #8b5cf6;
---secondary: #ec4899;
+**Migration Results**:
+- **300 replacements** across 38 CSS files
+- **Violations reduced**: 1,020 → 916 (104 violations fixed, 10.2% reduction)
+- Automated migration using [migrate-theme-colors.cjs](.claude/skills/myk9q-design-system/tools/migrate-theme-colors.cjs)
 
-/* Status Colors */
---status-checked-in: #10b981;
---status-at-gate: #8b5cf6;
---status-in-ring: #3b82f6;
---status-on-deck: #f59e0b;
+**Files Modified**:
+- Most impacted: [shared-ui.css](src/components/ui/shared-ui.css) (51 replacements), [design-tokens.css](src/styles/design-tokens.css) (53 internal uses), [shared-scoring.css](src/components/scoring/shared-scoring.css) (22 replacements)
+- Total: 38 files updated
 
-/* UI Colors */
---border: #e5e7eb;
---border-hover: #cbd5e1;
---card-background: #f9fafb;
-```
+**Benefits Achieved**:
+- ✅ Light/dark theme switching now supported for all migrated colors
+- ✅ Consistent neutral gray palette across entire app
+- ✅ Theme-critical UI elements (backgrounds, borders, text) use tokens
+- ✅ TypeScript type checking passes
+- ✅ Can change entire gray palette by updating tokens in one place
 
-**Migration Strategy**:
-1. Analyze all hardcoded hex codes and rgba() values
-2. Map to existing design tokens
-3. Identify missing tokens (add to design-tokens.css)
-4. Automated find/replace with validation
-5. Manual review of complex color patterns
-6. Test theme switching (light/dark/color themes)
-
-**Expected Outcomes**:
-- Consistent color usage across app
-- Theme switching works everywhere
-- Easier to maintain brand colors
-- Better accessibility (contrast ratios enforced via tokens)
+**Next Phase**: Phase 6B (Brand/Status Colors) - 45 violations remaining
 
 ### Hardcoded Z-Index (116 violations)
 

@@ -86,7 +86,7 @@
 }
 
 .print-table th {
-  background-color: #f0f0f0;
+  background-color: var(--surface-muted);
   border: 1px solid #000;
   padding: 6px var(--token-space-md);
   text-align: left;
@@ -248,7 +248,7 @@
   }
 
   .print-table th {
-    background-color: #f0f0f0;
+    background-color: var(--surface-muted);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

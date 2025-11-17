@@ -231,12 +231,12 @@
 }
 
 .theme-dark .help-banner {
-  background: var(--input-dark, #1f2937);
+  background: var(--input-dark, var(--background-subtle));
   border-left-color: var(--primary-dark, #6366f1);
 }
 
 .theme-dark .help-banner p {
-  color: var(--muted-foreground-dark, #9ca3af);
+  color: var(--muted-foreground-dark, var(--text-light-gray));
 }
 
 /* ========================

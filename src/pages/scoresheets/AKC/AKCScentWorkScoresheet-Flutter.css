@@ -355,7 +355,7 @@
   height: 40px;
   border-radius: 20px;
   border: none;
-  background: #6b7280; /* Neutral gray - clearly secondary (works in both themes) */
+  background: var(--text-gray); /* Neutral gray - clearly secondary (works in both themes) */
   color: white;
   font-size: var(--token-space-xl);
   cursor: pointer;
@@ -373,7 +373,7 @@
   height: 56px;
   border-radius: 28px;
   border: none;
-  background: #6b7280;
+  background: var(--text-gray);
   color: white;
   font-size: var(--token-space-2xl);
   cursor: pointer;
@@ -411,7 +411,7 @@
 }
 
 .timer-btn-pause:hover:not(:disabled), .timer-btn-reset:hover:not(:disabled) {
-  background: #6b7280;
+  background: var(--text-gray);
   filter: brightness(1.15);
   transform: scale(1.05);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);

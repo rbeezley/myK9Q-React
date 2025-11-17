@@ -359,7 +359,7 @@
 
 .sub-type.type-other {
   background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
+  color: var(--text-gray);
 }
 
 .sub-license,

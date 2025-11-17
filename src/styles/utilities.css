@@ -377,7 +377,7 @@
 
 .status-badge.pending,
 .checkin-status.none {
-  background: var(--status-not-checked-in, #6b7280);
+  background: var(--status-not-checked-in, var(--text-gray));
   color: white;
 }
 

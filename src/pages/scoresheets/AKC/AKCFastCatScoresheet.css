@@ -44,7 +44,7 @@
 
 .time-input input {
   padding: var(--token-space-2xl);
-  border: 3px solid #e0e0e0;
+  border: 3px solid var(--border-light);
   border-radius: var(--token-space-lg);
   font-size: var(--token-space-4xl);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;

@@ -303,17 +303,17 @@
 
 /* Dark Theme */
 .theme-dark .settings-class-info {
-  background: #1e293b;
+  background: var(--foreground-dark);
   border-left-color: var(--primary);
 }
 
 .theme-dark .settings-item {
-  background: #1e293b;
-  border-color: #334155;
+  background: var(--foreground-dark);
+  border-color: var(--background-soft);
 }
 
 .theme-dark .settings-info-box {
-  background: #1e293b;
+  background: var(--foreground-dark);
   border-left-color: var(--primary);
 }
 

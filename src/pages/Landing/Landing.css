@@ -3,8 +3,8 @@
 :root {
   --dark-bg: #0a0a0a;
   --dark-bg-elevated: #111111;
-  --dark-border: #1a1a1a;
-  --dark-border-strong: #2a2a2a;
+  --dark-border: var(--surface-muted);
+  --dark-border-strong: var(--surface);
   --text-primary: #e8e8e8;
   --text-secondary: #a0a0a0;
   --text-tertiary: #707070;
@@ -350,7 +350,7 @@
   position: relative;
   width: 375px;
   padding: var(--token-space-xl) var(--token-space-lg);
-  background: #1a1a1a;
+  background: var(--surface-muted);
   border-radius: 3rem;
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.6),

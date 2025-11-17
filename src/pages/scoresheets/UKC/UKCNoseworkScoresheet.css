@@ -26,7 +26,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
+  border: var(--token-space-xs) solid var(--color-border, var(--border-light));
   background: var(--color-background, white);
   font-size: 1.5rem;
   font-weight: bold;
@@ -64,7 +64,7 @@
   font-weight: bold;
   min-width: 80px;
   padding: var(--token-space-xl);
-  background: var(--color-muted, #f3f4f6);
+  background: var(--color-muted, var(--surface-subtle));
   border-radius: var(--token-space-lg);
   color: var(--color-text, #333);
 }
@@ -72,13 +72,13 @@
 .fault-info {
   margin-top: var(--token-space-xl);
   font-size: 0.95rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary, var(--text-gray));
 }
 
 .fault-info .info-text {
   padding: var(--token-space-md) var(--token-space-xl);
   border-radius: var(--token-space-md);
-  background: var(--color-muted, #f3f4f6);
+  background: var(--color-muted, var(--surface-subtle));
 }
 
 .fault-info .warning {
@@ -95,7 +95,7 @@
   text-align: center;
   margin-top: var(--token-space-xl);
   padding: var(--token-space-xl);
-  background: var(--color-muted, #f3f4f6);
+  background: var(--color-muted, var(--surface-subtle));
   border-radius: var(--token-space-lg);
   color: var(--color-primary, #6366f1);
 }
@@ -111,7 +111,7 @@
 
 .result-chip {
   padding: var(--token-space-xl);
-  border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
+  border: var(--token-space-xs) solid var(--color-border, var(--border-light));
   border-radius: var(--token-space-lg);
   background: var(--color-background, white);
   cursor: pointer;
@@ -152,7 +152,7 @@
 .nq-reason input {
   width: 100%;
   padding: var(--token-space-lg);
-  border: var(--token-space-xs) solid var(--color-border, #e0e0e0);
+  border: var(--token-space-xs) solid var(--color-border, var(--border-light));
   border-radius: var(--token-space-md);
   font-size: 1rem;
   background: var(--color-background, white);
@@ -197,7 +197,7 @@
 .confirmation-details {
   margin-bottom: var(--token-space-3xl);
   padding: var(--token-space-xl);
-  background: var(--color-muted, #f3f4f6);
+  background: var(--color-muted, var(--surface-subtle));
   border-radius: var(--token-space-md);
 }
 
@@ -216,9 +216,9 @@
 .theme-dark {
   --color-background: var(--card);
   --color-text: #f9fafb;
-  --color-text-secondary: #9ca3af;
-  --color-border: #374151;
-  --color-muted: #374151;
+  --color-text-secondary: var(--text-light-gray);
+  --color-border: var(--foreground-muted);
+  --color-muted: var(--foreground-muted);
   --color-primary: #818cf8;
   --color-danger: #f87171;
   --color-danger-light: #7f1d1d;
@@ -230,11 +230,11 @@
 }
 
 .theme-dark .fault-count {
-  background: #111827;
+  background: var(--foreground);
 }
 
 .theme-dark .time-display {
-  background: #111827;
+  background: var(--foreground);
 }
 
 .theme-dark .result-chip {

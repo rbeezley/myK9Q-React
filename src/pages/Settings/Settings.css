@@ -583,7 +583,7 @@
 
 .theme-light,
 .theme-light .setting-item.indented:hover {
-  background: #e5e7eb;
+  background: var(--border-subtle);
   border-left-color: var(--primary);
 }
 
@@ -628,7 +628,7 @@
 
 .theme-light,
 .theme-light .toggle-slider {
-  background: #e5e7eb;
+  background: var(--border-subtle);
   border-color: var(--border);
 }
 
@@ -701,7 +701,7 @@
 .theme-light,
 .theme-light .modal-content {
   background: white;
-  border-color: #e5e7eb;
+  border-color: var(--border-subtle);
 }
 
 .theme-light,
@@ -1055,7 +1055,7 @@
   border-radius: var(--token-space-md);
   border-left: 3px solid #f97316;
   line-height: 1.6;
-  color: #e5e7eb;
+  color: var(--border-subtle);
 }
 
 .install-instructions-title {
@@ -1067,7 +1067,7 @@
 
 .install-instructions-text {
   margin: 0 0 var(--token-space-md) 0;
-  color: #e5e7eb;
+  color: var(--border-subtle);
 }
 
 .install-instructions-hint {

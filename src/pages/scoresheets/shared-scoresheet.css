@@ -26,7 +26,7 @@
   align-items: center;
   margin-bottom: var(--token-space-3xl);
   padding-bottom: var(--token-space-xl);
-  border-bottom: var(--token-space-xs) solid #e5e7eb;
+  border-bottom: var(--token-space-xs) solid var(--border-subtle);
 }
 
 .scoresheet-title {
@@ -81,7 +81,7 @@
 }
 
 .scoresheet-btn-secondary {
-  background: #6b7280;
+  background: var(--text-gray);
   color: white;
 }
 
@@ -247,7 +247,7 @@
 .scoresheet-spinner {
   width: 40px;
   height: 40px;
-  border: var(--token-space-sm) solid #e5e7eb;
+  border: var(--token-space-sm) solid var(--border-subtle);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

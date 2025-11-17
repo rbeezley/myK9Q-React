@@ -29,6 +29,20 @@
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
 
+  /* Neutral Grays (Light Theme) - for theme switching */
+  --surface: #f1f5f9;              /* Light secondary surface */
+  --surface-subtle: #f3f4f6;        /* Very light surface */
+  --surface-muted: #f5f5f5;         /* Light subtle surface */
+  --surface-elevated: #ffffff;      /* Elevated card/modal background */
+  --background-subtle: #f8fafc;     /* Lightest surface */
+  --background-soft: #f8f9fa;       /* Subtle background */
+  --foreground-muted: #374151;      /* Muted text color */
+  --foreground-dark: #1e293b;       /* Dark text on light bg */
+  --border-light: #e0e0e0;          /* Light border */
+  --border-subtle: #e5e7eb;         /* Very light border */
+  --text-gray: #6b7280;             /* Gray text/muted */
+  --text-light-gray: #9ca3af;       /* Light gray text */
+
   /* ===== STATUS COLORS ===== */
   /* Check-in Status Colors */
   --status-no-status: #9ca3af;
@@ -280,6 +294,20 @@
   --primary-foreground: #ffffff;
   --secondary: #2a2a2a;
   --secondary-foreground: #ffffff;
+
+  /* Neutral Grays (Dark Theme) - for theme switching */
+  --surface: #2a2a2a;              /* Dark surface */
+  --surface-subtle: #262626;        /* Slightly darker surface */
+  --surface-muted: #1a1a1a;         /* Very dark surface */
+  --surface-elevated: #2c3e50;      /* Dark elevated surface */
+  --background-subtle: #1f2937;     /* Dark surface elevated */
+  --background-soft: #334155;       /* Medium dark gray */
+  --foreground-muted: #e5e7eb;      /* Light muted text on dark */
+  --foreground-dark: #ffffff;       /* White text on dark bg */
+  --border-light: #3a3a3a;          /* Dark border */
+  --border-subtle: #4a5568;         /* Subtle dark border */
+  --text-gray: #9ca3af;             /* Gray text on dark */
+  --text-light-gray: #6b7280;       /* Darker gray text */
 
   /* Glass Morphism (Dark Mode) */
   --glass-bg: rgba(26, 29, 35, 0.9);

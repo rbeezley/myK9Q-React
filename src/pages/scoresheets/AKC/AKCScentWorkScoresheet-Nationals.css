@@ -232,7 +232,7 @@
 
 /* Dark Mode Support */
 .theme-dark .nationals-section {
-  background: #2c3e50;
+  background: var(--surface-elevated);
   border-color: #3498db;
 }
 
@@ -261,8 +261,8 @@
 }
 
 .theme-dark .score-summary {
-  background: #2c3e50;
-  border-color: #34495e;
+  background: var(--surface-elevated);
+  border-color: var(--surface-elevated);
 }
 
 .theme-dark .score-summary strong {
@@ -270,8 +270,8 @@
 }
 
 .theme-dark .nationals-summary {
-  background: #2c3e50;
-  border-color: #34495e;
+  background: var(--surface-elevated);
+  border-color: var(--surface-elevated);
 }
 
 /* Animation for Point Updates */

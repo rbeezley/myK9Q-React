@@ -20,11 +20,11 @@
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: var(--token-space-2xl);
-  border-bottom: var(--token-space-xs) solid #e5e7eb;
+  border-bottom: var(--token-space-xs) solid var(--border-subtle);
 }
 
 .theme-dark .metrics-header {
-  border-bottom-color: #1e293b;
+  border-bottom-color: var(--foreground-dark);
 }
 
 .metrics-header h1 {
@@ -237,7 +237,7 @@
 }
 
 .theme-dark .table-row:hover {
-  background: #334155;
+  background: var(--background-soft);
 }
 
 .table-row.has-errors {
@@ -389,7 +389,7 @@
 
 .theme-dark .detail-item,
 .theme-dark .issue-item {
-  background: #334155;
+  background: var(--background-soft);
 }
 
 .detail-item .label,
@@ -437,7 +437,7 @@
 }
 
 .theme-dark .metric-card {
-  background: #334155;
+  background: var(--background-soft);
 }
 
 .metric-name {

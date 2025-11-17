@@ -57,7 +57,7 @@
 }
 
 .device-tier-low .gradient {
-  background: var(--fallback-color, #f3f4f6);
+  background: var(--fallback-color, var(--surface-subtle));
 }
 
 /* Simplify animations */
@@ -295,7 +295,7 @@
   }
 
   .device-tier-low .gradient-dark {
-    background: var(--bg-dark, #1f2937);
+    background: var(--bg-dark, var(--background-subtle));
   }
 }
 
@@ -376,16 +376,16 @@
 .perf-skeleton {
   background: linear-gradient(
     90deg,
-    var(--skeleton-base, #f3f4f6) 0%,
-    var(--skeleton-shimmer, #e5e7eb) 50%,
-    var(--skeleton-base, #f3f4f6) 100%
+    var(--skeleton-base, var(--surface-subtle)) 0%,
+    var(--skeleton-shimmer, var(--border-subtle)) 50%,
+    var(--skeleton-base, var(--surface-subtle)) 100%
   );
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 .device-tier-low .perf-skeleton {
-  background: var(--skeleton-base, #f3f4f6);
+  background: var(--skeleton-base, var(--surface-subtle));
   animation: none;
 }
 
@@ -463,7 +463,7 @@
    ========================================================================== */
 
 img[data-src] {
-  background-color: #f3f4f6;
+  background-color: var(--surface-subtle);
   min-height: 100px;
 }
 

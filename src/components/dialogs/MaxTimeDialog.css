@@ -501,18 +501,18 @@
 }
 
 .theme-dark .dictated-badge {
-  background: #6b7280;
+  background: var(--text-gray);
   color: white;
 }
 
 .theme-dark .time-input-label {
-  color: #f3f4f6;
+  color: var(--surface-subtle);
 }
 
 .theme-dark .time-input {
   background: var(--card);
   border-color: var(--token-text-secondary);
-  color: #f3f4f6;
+  color: var(--surface-subtle);
 }
 
 .theme-dark .time-input:focus {
@@ -531,7 +531,7 @@
 
 .theme-dark .clear-time-btn:hover {
   background: var(--card);
-  color: #f3f4f6;
+  color: var(--surface-subtle);
 }
 
 .theme-dark .clear-time-btn:active {
@@ -539,7 +539,7 @@
 }
 
 .theme-dark .help-text {
-  background: #111827;
+  background: var(--foreground);
   border-left-color: var(--primary);
 }
 
@@ -578,9 +578,9 @@
 }
 
 .theme-dark .time-preset-btn {
-  background: #1f2937;
+  background: var(--background-subtle);
   border-color: #4b5563;
-  color: #e5e7eb;
+  color: var(--border-subtle);
 }
 
 .theme-dark .time-preset-btn:hover {
@@ -604,15 +604,15 @@
 }
 
 .theme-dark .cancel-button {
-  background: #1f2937;
-  color: #e5e7eb;
+  background: var(--background-subtle);
+  color: var(--border-subtle);
   border-color: #4b5563;
 }
 
 .theme-dark .cancel-button:hover {
-  background: #374151;
-  color: #f3f4f6;
-  border-color: #6b7280;
+  background: var(--foreground-muted);
+  color: var(--surface-subtle);
+  border-color: var(--text-gray);
 }
 
 

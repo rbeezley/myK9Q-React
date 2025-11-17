@@ -8,11 +8,11 @@
 .high-contrast {
   /* Enhanced color contrast ratios */
   --text-primary: #000000;
-  --text-secondary: #1a1a1a;
+  --text-secondary: var(--surface-muted);
   --text-inverse: #ffffff;
   --background-primary: #ffffff;
-  --background-secondary: #f0f0f0;
-  --background-tertiary: #e0e0e0;
+  --background-secondary: var(--surface-muted);
+  --background-tertiary: var(--border-light);
 
   /* High contrast borders */
   --border-color: var(--token-text-primary);
@@ -51,7 +51,7 @@
   --text-secondary: #e6e6e6;
   --text-inverse: #000000;
   --background-primary: #000000;
-  --background-secondary: #1a1a1a;
+  --background-secondary: var(--surface-muted);
   --background-tertiary: #2d2d2d;
   --border-color: white;
 

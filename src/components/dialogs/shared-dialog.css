@@ -41,8 +41,8 @@
 }
 
 .theme-dark .dialog-header {
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
+  background: var(--foreground-dark);
+  border-bottom: 1px solid var(--background-soft);
 }
 
 .dialog-title {
@@ -83,7 +83,7 @@
 
 /* Light mode - make X more visible */
 .theme-light .close-button {
-  color: #1a1a1a;
+  color: var(--surface-muted);
   opacity: 0.8;
 }
 
@@ -121,8 +121,8 @@
 }
 
 .theme-dark .dialog-footer {
-  background: #1e293b;
-  border-top: 1px solid #334155;
+  background: var(--foreground-dark);
+  border-top: 1px solid var(--background-soft);
 }
 
 /* Dialog Buttons */

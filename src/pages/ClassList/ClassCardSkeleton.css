@@ -94,7 +94,7 @@
 .theme-dark .skeleton-info-item,
 .theme-dark .skeleton-status-badge,
 .theme-dark .skeleton-preview {
-  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background: linear-gradient(90deg, var(--surface) 25%, var(--border-light) 50%, var(--surface) 75%);
   background-size: 200% 100%;
 }
 
@@ -102,7 +102,7 @@
 @media (prefers-reduced-motion: reduce) {
   .shimmer {
     animation: none;
-    background: #f0f0f0;
+    background: var(--surface-muted);
   }
 
   .theme-dark .shimmer {

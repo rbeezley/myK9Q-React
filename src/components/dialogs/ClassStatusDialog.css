@@ -175,7 +175,7 @@
 /* Light mode overrides - same as default */
 .theme-light .status-item {
   background: white;
-  border-color: #e5e7eb;
+  border-color: var(--border-subtle);
 }
 
 .theme-light .status-item:hover {
@@ -195,11 +195,11 @@
 /* Dark mode overrides */
 .theme-dark .status-item {
   background: var(--card);
-  border-color: #334155;
+  border-color: var(--background-soft);
 }
 
 .theme-dark .status-item:hover {
-  background: #334155;
+  background: var(--background-soft);
   transform: translateY(-2px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
   border-color: var(--status-color, var(--primary));

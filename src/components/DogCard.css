@@ -136,7 +136,7 @@
 }
 
 .section-badge.section-a {
-  background: #6b7280; /* Medium gray - slightly lighter */
+  background: var(--text-gray); /* Medium gray - slightly lighter */
 }
 
 .section-badge.section-b {

@@ -5,8 +5,8 @@
 :root {
   --login-dark-bg: #0a0a0a;
   --login-dark-elevated: #111111;
-  --login-border: #1a1a1a;
-  --login-border-strong: #2a2a2a;
+  --login-border: var(--surface-muted);
+  --login-border-strong: var(--surface);
   --login-text-primary: #e8e8e8;
   --login-text-secondary: #a0a0a0;
   --accent-green: #10b981;

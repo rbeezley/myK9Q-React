@@ -24,7 +24,7 @@
 @media (prefers-contrast: high) {
   :root {
     --text-primary: #000000;
-    --text-secondary: #1a1a1a;
+    --text-secondary: var(--surface-muted);
     --background: var(--card);
     --border: #333333;
     --success-contrast: #0a5d00;
@@ -34,7 +34,7 @@
   
   .theme-dark {
     --text-primary: #ffffff;
-    --text-secondary: #f5f5f5;
+    --text-secondary: var(--surface-muted);
     --background: #000000;
     --border: #cccccc;
   }

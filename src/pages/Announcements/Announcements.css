@@ -455,7 +455,7 @@ button.action-btn.active svg {
 
 /* Dark Theme */
 .theme-dark .announcements-container {
-  --background: #1a1d23;
+  --background: var(--card);
   --surface: rgba(40, 40, 40, 0.8);
   --surface-variant: rgba(60, 60, 60, 0.8);
   --border: rgba(255, 255, 255, 0.1);
@@ -473,13 +473,13 @@ button.action-btn.active svg {
 
 /* Light Theme */
 .theme-light .announcements-container {
-  --background: #fefefe;
+  --background: var(--background);
   --surface: rgba(255, 255, 255, 0.95);
   --surface-variant: rgba(248, 250, 252, 0.8);
   --border: rgba(0, 0, 0, 0.1);
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
+  --text-primary: var(--background-subtle);
+  --text-secondary: var(--text-gray);
+  --text-tertiary: var(--text-light-gray);
   /* Use global theme colors instead of hardcoded blue */
   --danger: #ef4444;
   --danger-subtle: rgba(239, 68, 68, 0.1);

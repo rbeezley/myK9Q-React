@@ -18,7 +18,7 @@
   max-width: 90vw;
   height: 40vh;
   /* Mobile: full width, smaller height */
-  background: #1a1a1a;
+  background: var(--surface-muted);
   border: 1px solid #333;
   border-radius: 0;
   /* Mobile: no border radius */
@@ -108,7 +108,7 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--token-space-xl);
-  background: #1a1a1a;
+  background: var(--surface-muted);
 }
 
 /* Scrollbar */
@@ -429,7 +429,7 @@
 
 .breakdown-item {
   padding: var(--token-space-md);
-  background: #1a1a1a;
+  background: var(--surface-muted);
   border-radius: 3px;
   display: flex;
   justify-content: space-between;
@@ -489,7 +489,7 @@
 }
 
 .pattern-details span {
-  background: #1a1a1a;
+  background: var(--surface-muted);
   padding: var(--token-space-xs) 6px;
   border-radius: var(--token-space-xs);
 }
@@ -517,7 +517,7 @@
   bottom: var(--token-space-2xl);
   right: var(--token-space-2xl);
   z-index: var(--token-z-toast);
-  background: #1f2937;
+  background: var(--background-subtle);
   color: white;
   border: none;
   border-radius: 50%;
@@ -550,7 +550,7 @@
   width: calc(100vw - 40px);
   /* Mobile: responsive width */
   max-height: 500px;
-  background: #1f2937;
+  background: var(--background-subtle);
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
   z-index: var(--token-z-toast);
@@ -906,7 +906,7 @@
   /* Mobile: responsive width */
   max-height: calc(100vh - 160px);
   /* Mobile: smaller height */
-  background: #1f2937;
+  background: var(--background-subtle);
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
   z-index: var(--token-z-toast);

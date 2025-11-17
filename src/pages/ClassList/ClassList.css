@@ -1341,11 +1341,11 @@
 }
 
 .class-option-icon.icon-muted {
-  background: #6b7280;
+  background: var(--text-gray);
   color: white;
 }
 .theme-dark .class-option-icon.icon-muted {
-  background: #9ca3af;
+  background: var(--text-light-gray);
 }
 
 .class-option-icon.icon-success {

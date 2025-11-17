@@ -82,7 +82,7 @@
 /* Static skeletons instead of animated */
 .reduce-motion .skeleton,
 .reduce-motion .loading-skeleton {
-  background: var(--skeleton-base, #f3f4f6) !important;
+  background: var(--skeleton-base, var(--surface-subtle)) !important;
   animation: none !important;
 }
 
