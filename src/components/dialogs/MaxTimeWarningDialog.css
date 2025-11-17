@@ -1,6 +1,8 @@
 /* Max Time Warning Dialog Styles */
 .max-time-warning-dialog {
-  max-width: 500px;
+  max-width: 100%;  /* Mobile: full width */
+  margin: var(--token-space-md);  /* Mobile: smaller margin */
+  max-height: 95vh;  /* Mobile: viewport height limit */
 }
 
 .warning-header {
@@ -18,16 +20,16 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: var(--token-space-3xl);
-  padding: var(--token-space-4xl) var(--token-space-xl);
+  gap: var(--token-space-xl);  /* Mobile: smaller gap */
+  padding: var(--token-space-3xl) var(--token-space-xl);  /* Mobile: smaller padding */
 }
 
 .warning-icon-large {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5rem;
-  height: 5rem;
+  width: 4rem;  /* Mobile: smaller icon */
+  height: 4rem;
   background: var(--status-setup);
   border: 3px solid #fef3c7;
   border-radius: 50%;
@@ -115,27 +117,27 @@
   height: 1.25rem;
 }
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .max-time-warning-dialog {
-    max-width: 100%;
-    margin: var(--token-space-md);
-    max-height: 95vh;
+    max-width: 500px;  /* Desktop: fixed width */
+    margin: 0;  /* Desktop: no margin (centered by parent) */
+    max-height: initial;  /* Desktop: no height limit */
   }
 
   .warning-content {
-    padding: var(--token-space-3xl) var(--token-space-xl);
-    gap: var(--token-space-xl);
+    padding: var(--token-space-4xl) var(--token-space-xl);  /* Desktop: larger padding */
+    gap: var(--token-space-3xl);  /* Desktop: larger gap */
   }
 
   .warning-icon-large {
-    width: 4rem;
-    height: 4rem;
+    width: 5rem;  /* Desktop: larger icon */
+    height: 5rem;
   }
 
   .warning-icon-large .h-12 {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3rem;  /* Desktop: larger inner icon */
+    height: 3rem;
   }
 
   .warning-message h3 {

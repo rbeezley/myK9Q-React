@@ -42,9 +42,9 @@
 /* Settings Item */
 .settings-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--token-space-2xl);
+  flex-direction: column;  /* Mobile: column layout */
+  align-items: flex-start;  /* Mobile: align left */
+  gap: var(--token-space-lg);  /* Mobile: smaller gap */
   padding: var(--token-space-lg);
   background: var(--muted);
   border-radius: var(--token-radius-md);
@@ -103,6 +103,8 @@
   display: flex;
   align-items: center;
   gap: var(--token-space-md);
+  width: 100%;  /* Mobile: full width */
+  justify-content: space-between;  /* Mobile: space between toggle and label */
   flex-shrink: 0;
 }
 
@@ -140,6 +142,7 @@
   font-size: 0.875rem;
   color: var(--muted-foreground);
   font-weight: var(--token-font-weight-medium);
+  flex: 1;  /* Mobile: flexible width */
   min-width: 60px;
 }
 
@@ -326,20 +329,21 @@
   }
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .settings-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--token-space-lg);
+    flex-direction: row;  /* Desktop: row layout */
+    align-items: center;  /* Desktop: center alignment */
+    justify-content: space-between;  /* Desktop: space between */
+    gap: var(--token-space-2xl);  /* Desktop: larger gap */
   }
 
   .settings-toggle-container {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;  /* Desktop: auto width */
+    justify-content: flex-end;  /* Desktop: align right */
   }
 
   .settings-toggle-label {
-    flex: 1;
+    flex: initial;  /* Desktop: no flex */
   }
 }

@@ -4,8 +4,8 @@
 .novice-class-dialog {
   background: var(--card);
   border-radius: 1rem;
-  padding: var(--token-space-4xl);
-  max-width: 400px;
+  padding: var(--token-space-3xl);  /* Mobile: smaller padding */
+  max-width: 90%;  /* Mobile: wider */
   width: 90%;
   box-shadow: 0 var(--token-space-2xl) 60px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
@@ -13,7 +13,7 @@
 
 .novice-class-dialog h2 {
   margin: 0 0 var(--token-space-3xl) 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;  /* Mobile: smaller title */
   font-weight: 600;
   color: var(--foreground);
   text-align: center;
@@ -116,15 +116,15 @@
 
 
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .novice-class-dialog {
-    padding: var(--token-space-3xl);
-    max-width: 90%;
+    padding: var(--token-space-4xl);  /* Desktop: larger padding */
+    max-width: 400px;  /* Desktop: fixed width */
   }
 
   .novice-class-dialog h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;  /* Desktop: larger title */
   }
 
   .dialog-option {

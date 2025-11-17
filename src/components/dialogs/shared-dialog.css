@@ -18,11 +18,11 @@
 
 .dialog-container {
   background: var(--card);
-  border-radius: 1rem;
+  border-radius: 0;  /* Mobile: no border radius (full screen) */
   box-shadow: var(--token-shadow-xl);
-  max-width: 500px;
+  max-width: 100%;  /* Mobile: full width */
   width: 100%;
-  max-height: calc(100vh - 2rem);
+  max-height: 100vh;  /* Mobile: full height */
   overflow: visible;
   display: flex;
   flex-direction: column;
@@ -106,7 +106,7 @@
 /* Dialog Content */
 .dialog-content {
   overflow-y: auto;
-  padding: var(--token-space-3xl);
+  padding: var(--token-space-xl);  /* Mobile: smaller padding */
   max-height: calc(100vh - 200px);
 }
 
@@ -181,6 +181,7 @@
    ======================== */
 .dialog-actions {
   display: flex;
+  flex-direction: column-reverse;  /* Mobile: column layout with reverse order */
   justify-content: flex-end;
   gap: var(--token-space-lg);
   padding: var(--token-space-xl);
@@ -275,20 +276,20 @@
   }
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .dialog-container {
-    max-width: 100%;
-    max-height: 100vh;
-    border-radius: 0;
+    max-width: 500px;  /* Desktop: fixed width */
+    max-height: calc(100vh - 2rem);  /* Desktop: smaller max height */
+    border-radius: 1rem;  /* Desktop: rounded corners */
   }
 
   .dialog-content {
-    padding: var(--token-space-xl);
+    padding: var(--token-space-3xl);  /* Desktop: larger padding */
   }
 
   .dialog-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;  /* Desktop: row layout */
   }
 
   .cancel-button,

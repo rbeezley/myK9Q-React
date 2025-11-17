@@ -3,8 +3,8 @@
 
 
 .run-order-dialog {
-  max-width: 600px;
-  max-height: 90vh;
+  max-width: 95vw;  /* Mobile: wider */
+  max-height: 95vh;  /* Mobile: taller */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -100,7 +100,7 @@
 .run-order-option label {
   display: flex;
   align-items: center;
-  padding: 14px var(--token-space-xl);
+  padding: var(--token-space-lg) 14px;  /* Mobile: smaller padding */
   background: var(--card);
   border: var(--token-space-xs) solid var(--border);
   border-radius: var(--token-space-lg);
@@ -135,12 +135,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;  /* Mobile: smaller icon */
+  height: 36px;
   border-radius: var(--token-space-md);
   background: rgba(99, 102, 241, 0.1);
   color: var(--primary);
-  margin-right: var(--token-space-xl);
+  margin-right: var(--token-space-lg);  /* Mobile: smaller margin */
   flex-shrink: 0;
 }
 
@@ -234,21 +234,21 @@
   cursor: not-allowed;
 }
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (min-width: 640px) {
   .run-order-dialog {
-    max-width: 95vw;
-    max-height: 95vh;
+    max-width: 600px;  /* Desktop: fixed width */
+    max-height: 90vh;  /* Desktop: smaller max height */
   }
 
   .run-order-option label {
-    padding: var(--token-space-lg) 14px;
+    padding: 14px var(--token-space-xl);  /* Desktop: larger padding */
   }
 
   .run-order-icon {
-    width: 36px;
-    height: 36px;
-    margin-right: var(--token-space-lg);
+    width: 40px;  /* Desktop: larger icon */
+    height: 40px;
+    margin-right: var(--token-space-xl);  /* Desktop: larger margin */
   }
 
   .run-order-label {
