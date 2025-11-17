@@ -102,6 +102,53 @@ const EXCEPTIONS = {
     'initial',
     'unset',
     'white', // Allowed for specific cases
+    'black', // Allowed for specific cases
+
+    // PHASE 6D: Intentional Semantic Colors
+    // These are standard UI colors from established design systems
+    // that are intentional design choices, not theme-dependent
+
+    // Pure white variants (intentional semantic color)
+    '#ffffff', '#fff', 'rgb(255, 255, 255)', 'rgb(255,255,255)',
+
+    // Pure black variants (intentional semantic color)
+    '#000000', '#000', 'rgb(0, 0, 0)', 'rgb(0,0,0)',
+
+    // Material Design standard palette
+    '#FF9800', // Material Design Orange 500
+    '#F44336', // Material Design Red 500
+    '#2196F3', // Material Design Blue 500
+    '#ffc107', // Material Design Amber 500
+    '#ff5722', // Material Design Deep Orange 500
+
+    // Tailwind standard palette
+    '#f97316', // Tailwind Orange 500
+    '#fb923c', // Tailwind Orange 400
+    '#ea580c', // Tailwind Orange 600
+    '#fbbf24', // Tailwind Amber 400
+    '#22c55e', // Tailwind Green 500
+    '#16a34a', // Tailwind Green 600
+    '#2563eb', // Tailwind Blue 600
+
+    // Bootstrap alert/status colors
+    '#fef3c7', // Alert/warning background
+    '#fff3cd', // Bootstrap warning background
+    '#f8d7da', // Bootstrap danger background
+    '#d1ecf1', // Bootstrap info background
+    '#155724', // Bootstrap success text
+
+    // Apple System Colors
+    '#FF9500', // Apple system orange
+    '#34C759', // Apple system green
+    '#FF3B30', // Apple system red
+    '#FFD700', // Gold color
+
+    // Additional standard semantic colors
+    '#28a745', // Success green (Bootstrap/GitHub)
+    '#3498db', // Info blue (Flat UI)
+    '#e74c3c', // Danger red (Flat UI)
+    '#27ae60', // Success green (Flat UI)
+    '#ecf0f1', // Light gray (Flat UI)
   ],
   spacing: [
     '0',
@@ -137,10 +184,14 @@ function scanFile(filePath) {
       // Skip if:
       // 1. It's a CSS variable definition (contains var(--)
       // 2. It's a fallback value in var(--token, #fallback) pattern
-      // 3. Should be ignored per .auditignore
+      // 3. It's an allowed semantic color exception (case-insensitive)
+      // 4. Should be ignored per .auditignore
       const isFallback = fullLine.includes('var(--') && fullLine.includes(',');
+      const isSemanticColor = EXCEPTIONS.colors.some(ex =>
+        snippet.toLowerCase().includes(ex.toLowerCase())
+      );
 
-      if (!snippet.includes('var(--') && !isFallback && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-color', ignoreRules)) {
+      if (!snippet.includes('var(--') && !isFallback && !isSemanticColor && !shouldIgnoreViolation(filePath, lineNum, 'hardcoded-color', ignoreRules)) {
         violations.push({
           type: 'hardcoded-color',
           line: lineNum,

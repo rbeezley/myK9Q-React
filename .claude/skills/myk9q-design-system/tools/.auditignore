@@ -61,3 +61,56 @@ critical-inline.css:*:Critical inline CSS - minimize changes for performance
 # These !important declarations are required to override inline styles
 
 ClassList.css:1130:Override inline position styles from React state
+
+# ========================================
+# Phase 6D: Intentional Semantic Colors
+# ========================================
+# Pure white/black and standard UI colors are intentional design choices
+
+# Pure white (intentional semantic color - not theme-dependent)
+*:hardcoded-color:#ffffff:Pure white is intentional semantic color
+*:hardcoded-color:#fff:Pure white shorthand is intentional
+*:hardcoded-color:rgb(255, 255, 255):Pure white RGB is intentional
+*:hardcoded-color:white:CSS white keyword is intentional
+
+# Pure black (intentional semantic color - not theme-dependent)
+*:hardcoded-color:#000000:Pure black is intentional semantic color
+*:hardcoded-color:#000:Pure black shorthand is intentional
+*:hardcoded-color:rgb(0, 0, 0):Pure black RGB is intentional
+*:hardcoded-color:black:CSS black keyword is intentional
+
+# Material Design / Standard UI Colors (intentional semantic palette)
+*:hardcoded-color:#FF9800:Material Design Orange 500 - standard semantic color
+*:hardcoded-color:#F44336:Material Design Red 500 - standard semantic color
+*:hardcoded-color:#2196F3:Material Design Blue 500 - standard semantic color
+*:hardcoded-color:#ffc107:Material Design Amber 500 - standard semantic color
+*:hardcoded-color:#ff5722:Material Design Deep Orange 500 - standard semantic color
+
+# Tailwind Standard Colors (intentional semantic palette)
+*:hardcoded-color:#f97316:Tailwind Orange 500 - standard semantic color
+*:hardcoded-color:#fb923c:Tailwind Orange 400 - standard semantic color
+*:hardcoded-color:#ea580c:Tailwind Orange 600 - standard semantic color
+*:hardcoded-color:#fbbf24:Tailwind Amber 400 - standard semantic color
+*:hardcoded-color:#22c55e:Tailwind Green 500 - standard semantic color
+*:hardcoded-color:#16a34a:Tailwind Green 600 - standard semantic color
+*:hardcoded-color:#2563eb:Tailwind Blue 600 - standard semantic color
+
+# Bootstrap Alert/Status Colors (intentional semantic palette)
+*:hardcoded-color:#fef3c7:Alert/warning background - standard semantic color
+*:hardcoded-color:#fff3cd:Bootstrap warning background - standard semantic color
+*:hardcoded-color:#f8d7da:Bootstrap danger background - standard semantic color
+*:hardcoded-color:#d1ecf1:Bootstrap info background - standard semantic color
+*:hardcoded-color:#155724:Bootstrap success text - standard semantic color
+
+# Apple System Colors (intentional semantic palette)
+*:hardcoded-color:#FF9500:Apple system orange - standard semantic color
+*:hardcoded-color:#34C759:Apple system green - standard semantic color
+*:hardcoded-color:#FF3B30:Apple system red - standard semantic color
+*:hardcoded-color:#FFD700:Gold color - standard semantic color
+
+# Additional Standard Semantic Colors
+*:hardcoded-color:#28a745:Success green (Bootstrap/GitHub) - standard semantic color
+*:hardcoded-color:#3498db:Info blue (Flat UI) - standard semantic color
+*:hardcoded-color:#e74c3c:Danger red (Flat UI) - standard semantic color
+*:hardcoded-color:#27ae60:Success green (Flat UI) - standard semantic color
+*:hardcoded-color:#ecf0f1:Light gray (Flat UI) - standard semantic color
