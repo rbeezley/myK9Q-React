@@ -727,8 +727,8 @@
 .scoresheet-dog-card-compact,
 .scoresheet-dog-info-clean {
   margin: var(--token-space-lg) var(--token-space-lg) var(--token-space-md) var(--token-space-lg);  /* Mobile: margin */
-  padding: 10px 0;  /* Mobile: padding */
-  gap: 10px;  /* Mobile: gap */
+  padding: var(--token-space-lg) 0;  /* Mobile: padding */
+  gap: var(--token-space-lg);  /* Mobile: gap */
 }
 
 .time-input-flutter {

@@ -86,7 +86,7 @@
 .touch-target-icon {
   min-width: var(--touch-target-min);
   min-height: var(--touch-target-min);
-  padding: 10px;
+  padding: var(--token-space-lg);
   display: inline-flex;
   align-items: center;
   justify-content: center;

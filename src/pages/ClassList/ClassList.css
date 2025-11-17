@@ -1262,7 +1262,7 @@
 .class-options-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: var(--token-space-lg);
   padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
   overflow-y: auto;
   max-height: calc(100vh - 8rem);  /* Mobile: taller max-height */

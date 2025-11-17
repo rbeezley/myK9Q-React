@@ -381,7 +381,7 @@
 /* Responsive - Mobile First */
 /* Mobile base styles (applied to elements above) */
 .wireframe-container {
-  margin: 10px;
+  margin: var(--token-space-lg);
   padding: var(--token-space-xl);
 }
 
@@ -394,7 +394,7 @@
 }
 
 .wireframe-counter {
-  padding: 10px;
+  padding: var(--token-space-lg);
 }
 
 .wireframe-action-buttons {
@@ -443,7 +443,7 @@
 .wireframe-counter-value {
   font-size: 18px;
   min-width: 28px;
-  padding: 3px 6px;
+  padding: var(--token-space-sm) 6px;
 }
 
 /* Desktop enhancements */

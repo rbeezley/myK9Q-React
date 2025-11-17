@@ -243,6 +243,7 @@
   --shadow-light: rgba(0, 0, 0, 0.15);                   /* 12x - light shadow */
   --shadow-moderate: rgba(0, 0, 0, 0.2);                 /* 17x - moderate shadow */
   --shadow-medium: rgba(0, 0, 0, 0.3);                   /* 26x - medium shadow */
+  --shadow-strong: rgba(0, 0, 0, 0.4);                   /* 6x - strong shadow/overlay */
   --shadow-modal: rgba(0, 0, 0, 0.5);                    /* 19x - modal backdrop */
 
   /* Status color overlays (for highlights/badges) */
@@ -389,12 +390,12 @@
   --token-text-white: #ffffff;
 
   /* Shadows (Dark Mode - stronger) */
-  --token-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --token-shadow-md: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
-  --token-shadow-lg: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
-  --token-shadow-xl: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
-  --token-hover-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
-  --token-hover-shadow-lg: 0 var(--token-space-lg) var(--token-space-4xl) rgba(0, 0, 0, 0.4);
+  --token-shadow-sm: 0 1px 3px var(--shadow-medium);
+  --token-shadow-md: 0 var(--token-space-xs) var(--token-space-md) var(--shadow-medium);
+  --token-shadow-lg: 0 var(--token-space-md) var(--token-space-3xl) var(--shadow-strong);
+  --token-shadow-xl: 0 var(--token-space-lg) var(--token-space-4xl) var(--shadow-strong);
+  --token-hover-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--shadow-strong);
+  --token-hover-shadow-lg: 0 var(--token-space-lg) var(--token-space-4xl) var(--shadow-strong);
 
   /* Legacy tokens (Dark Mode) */
   --token-status-no-status: var(--status-no-status);
@@ -478,6 +479,6 @@ html.density-spacious .card {
 }
 
 .theme-dark .token-status-in-ring-hover:hover {
-  box-shadow: 0 var(--token-space-lg) var(--token-space-4xl) rgba(249, 115, 22, 0.3), 0 var(--token-space-md) var(--token-space-xl) rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-lg) var(--token-space-4xl) rgba(249, 115, 22, 0.3), 0 var(--token-space-md) var(--token-space-xl) var(--shadow-strong);
   border-color: rgba(249, 115, 22, 0.5);
 }

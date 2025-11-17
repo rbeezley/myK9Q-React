@@ -82,7 +82,7 @@
 }
 
 .monitoring-tabs .tab {
-  padding: 10px var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
   background: transparent;
   color: #888;
   border: none;
@@ -287,7 +287,7 @@
 
 
 .info-item {
-  padding: 10px var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-lg);
   background: #222;
   border-radius: var(--token-space-sm);
   border-left: var(--token-space-xs) solid #666;
@@ -463,7 +463,7 @@
 }
 
 .pattern-item {
-  padding: 10px var(--token-space-lg);
+  padding: var(--token-space-lg) var(--token-space-lg);
   background: #222;
   border-radius: var(--token-space-sm);
   border-left: 3px solid var(--status-pulled);
@@ -879,7 +879,7 @@
   color: white;
   border: none;
   border-radius: var(--token-space-md);
-  padding: 10px var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;

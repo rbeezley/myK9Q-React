@@ -601,7 +601,7 @@
 }
 
 .global-button {
-  padding: 10px var(--token-space-xl);  /* Mobile: smaller padding */
+  padding: var(--token-space-lg) var(--token-space-xl);  /* Mobile: smaller padding */
   font-size: var(--token-space-lg);  /* Mobile: smaller font */
   width: 100%;  /* Mobile: full width */
   justify-content: center;

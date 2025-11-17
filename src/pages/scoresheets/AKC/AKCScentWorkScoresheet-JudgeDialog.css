@@ -201,7 +201,7 @@ body.dialog-open {
 .result-time-grid:not(.nationals-mode) {
   grid-template-columns: 1fr 1fr;  /* Mobile: 2 columns */
   grid-template-rows: auto auto;
-  gap: 10px;  /* Mobile: smaller gap */
+  gap: var(--token-space-lg);  /* Mobile: smaller gap */
 }
 
 /* Force regular show items into proper grid positions */

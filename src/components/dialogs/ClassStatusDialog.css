@@ -3,7 +3,7 @@
 .status-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: var(--token-space-lg);
   padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
 }
 

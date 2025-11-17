@@ -45,7 +45,7 @@
 
 .days-select,
 .export-btn {
-  padding: 10px var(--token-space-xl);
+  padding: var(--token-space-lg) var(--token-space-xl);
   border-radius: var(--token-space-md);
   font-size: 14px;
   font-weight: 600;

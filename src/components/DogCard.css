@@ -40,7 +40,7 @@
 }
 
 .theme-dark .dog-card:hover {
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--shadow-strong);
 }
 
 .dog-card:active {

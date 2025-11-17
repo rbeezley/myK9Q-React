@@ -266,11 +266,11 @@
   .run-order-dialog .dialog-actions {
     padding-top: var(--token-space-2xl);
     margin-top: var(--token-space-2xl);
-    gap: 10px;
+    gap: var(--token-space-lg);
   }
 
   .run-order-dialog .dialog-button {
-    padding: 10px var(--token-space-2xl);
+    padding: var(--token-space-lg) var(--token-space-2xl);
     font-size: 14px;
     min-width: 90px;
   }
