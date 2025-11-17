@@ -33,19 +33,19 @@
 .tv-runorder-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: 1fr;  /* Mobile: single column */
+  grid-template-rows: auto;  /* Mobile: auto rows */
   gap: var(--token-space-xl);
   padding: var(--token-space-xl);
-  overflow: hidden;
+  overflow-y: auto;  /* Mobile: scrollable */
 }
 
-/* Responsive: Fall back to single column on smaller screens */
-@media (max-width: 1024px) {
+/* Desktop enhancements: 2x2 grid layout */
+@media (min-width: 1024px) {
   .tv-runorder-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    overflow-y: auto;
+    grid-template-columns: repeat(2, 1fr);  /* Desktop: 2 columns */
+    grid-template-rows: repeat(2, 1fr);  /* Desktop: 2 rows */
+    overflow: hidden;  /* Desktop: no scroll, fixed grid */
   }
 }
 

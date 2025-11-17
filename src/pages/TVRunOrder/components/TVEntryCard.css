@@ -5,7 +5,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: var(--token-space-md);
+  padding: var(--token-space-lg);  /* Mobile: larger padding */
   display: flex;
   align-items: center;
   gap: var(--token-space-lg);
@@ -42,14 +42,14 @@
 /* Armband badge - matching DogCard style */
 .tv-entry-armband {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 44px;  /* Mobile: smaller badge */
+  height: 44px;
   background: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.125rem;  /* Mobile: smaller font */
   font-weight: 700;
   color: white;
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
@@ -85,7 +85,7 @@
 }
 
 .tv-entry-dog {
-  font-size: 1.125rem;
+  font-size: 1rem;  /* Mobile: smaller font */
   font-weight: 600;
   margin: 0 0 var(--token-space-sm) 0;
   white-space: nowrap;
@@ -95,7 +95,7 @@
 }
 
 .tv-entry-handler {
-  font-size: 1rem;
+  font-size: 0.875rem;  /* Mobile: smaller font */
   color: var(--muted-foreground);
   white-space: nowrap;
   overflow: hidden;
@@ -229,23 +229,23 @@
   line-height: 1;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
+/* Desktop enhancements */
+@media (min-width: 1024px) {
   .tv-entry-card {
-    padding: var(--token-space-lg);
+    padding: var(--token-space-md);  /* Desktop: smaller padding */
   }
 
   .tv-entry-armband {
-    width: 44px;
-    height: 44px;
-    font-size: 1.125rem;
+    width: 48px;  /* Desktop: larger badge */
+    height: 48px;
+    font-size: 1.25rem;  /* Desktop: larger font */
   }
 
   .tv-entry-dog {
-    font-size: 1rem;
+    font-size: 1.125rem;  /* Desktop: larger font */
   }
 
   .tv-entry-handler {
-    font-size: 0.875rem;
+    font-size: 1rem;  /* Desktop: larger font */
   }
 }

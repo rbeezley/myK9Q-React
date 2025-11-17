@@ -30,7 +30,7 @@
 }
 
 .class-runorder-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;  /* Mobile: smaller title */
   font-weight: 600;
   margin: 0;
   color: var(--foreground);
@@ -81,8 +81,9 @@
   color: var(--muted-foreground);
   font-weight: 500;
   display: flex;
-  align-items: center;
+  align-items: flex-start;  /* Mobile: flex-start alignment */
   gap: var(--token-space-lg);
+  flex-direction: column;  /* Mobile: column layout */
   flex-wrap: wrap;
 }
 
@@ -145,15 +146,14 @@
   font-size: 1.125rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
+/* Desktop enhancements */
+@media (min-width: 1024px) {
   .class-runorder-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;  /* Desktop: larger title */
   }
 
   .class-runorder-meta {
-    font-size: 0.875rem;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;  /* Desktop: row layout */
+    align-items: center;  /* Desktop: center alignment */
   }
 }
