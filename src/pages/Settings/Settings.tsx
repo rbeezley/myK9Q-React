@@ -585,8 +585,8 @@ export function Settings() {
                             const registration = await navigator.serviceWorker.ready;
                             await registration.showNotification('myK9Q Test Notification', {
                               body: 'Your notifications are working! You\'ll be notified when your dogs are up next.',
-                              icon: '/icon-192x192.png',
-                              badge: '/icon-192x192.png',
+                              icon: '/myK9Q-notification-icon-192.png',
+                              badge: '/myK9Q-notification-badge-96.png',
                               tag: 'test-notification',
                               requireInteraction: false
                             });
