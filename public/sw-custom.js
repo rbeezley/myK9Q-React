@@ -72,8 +72,8 @@ self.addEventListener('notificationclick', (event) => {
   let urlToOpen = '/announcements'; // Default
 
   if (event.action === 'view-class' && event.notification.data?.classId) {
-    // Navigate to class list
-    urlToOpen = `/class/${event.notification.data.classId}`;
+    // Navigate to entry list (running order for the class)
+    urlToOpen = `/class/${event.notification.data.classId}/entries`;
   } else if (event.action === 'view' || !event.action) {
     // Default view action - use custom URL or announcements
     urlToOpen = event.notification.data?.url || '/announcements';
