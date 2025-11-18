@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
@@ -12,6 +13,8 @@ import { OfflineIndicator, OfflineQueueStatus, DeviceTierToast, AutoLogoutWarnin
 import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
 import { SubscriptionMonitor } from './components/debug/SubscriptionMonitor';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { ToastContainer } from './components/notifications/ToastContainer';
+import { NotificationCenter } from './components/notifications/NotificationCenter';
 import { applyDeviceClasses, startPerformanceMonitoring } from './utils/deviceDetection';
 import developerModeService from './services/developerMode';
 import { initializeSettings } from './stores/settingsStore';
@@ -23,6 +26,7 @@ import { useOneHandedMode } from './hooks/useOneHandedMode';
 import { useAutoLogout } from './hooks/useAutoLogout';
 import { usePushNotificationAutoSwitch } from './hooks/usePushNotificationAutoSwitch';
 import { useOfflineQueueProcessor } from './hooks/useOfflineQueueProcessor';
+import { useServiceWorkerMessages } from './hooks/useServiceWorkerMessages';
 import { useAuth } from './contexts/AuthContext';
 import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
@@ -172,6 +176,9 @@ function AppWithAuth() {
   // Auto-switch push notification subscription when license key changes
   usePushNotificationAutoSwitch(showContext?.licenseKey);
 
+  // Handle service worker messages (notification clicks)
+  useServiceWorkerMessages();
+
   // 🚀 OFFLINE-FIRST: Process offline queue when network returns
   // Automatically syncs pending scores to server when coming back online
   useOfflineQueueProcessor();
@@ -265,6 +272,11 @@ function AppWithAuth() {
           onDismiss={autoLogout.dismissWarning}
         />
       )}
+
+      {/* In-App Notifications */}
+      <ToastContainer />
+      <NotificationCenter />
+
       <OfflineIndicator />
       <OfflineQueueStatus />
       <DeviceTierToast />
@@ -530,7 +542,9 @@ function App() {
       >
         <BrowserRouter>
           <AuthProvider>
-            <AppWithAuth />
+            <NotificationProvider>
+              <AppWithAuth />
+            </NotificationProvider>
           </AuthProvider>
         </BrowserRouter>
       </PersistQueryClientProvider>
