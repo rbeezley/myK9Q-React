@@ -4,7 +4,7 @@ import { ToastNotification } from './ToastNotification';
 import './ToastContainer.css';
 
 export const ToastContainer: React.FC = () => {
-  const { notifications, removeNotification, markAsRead } = useNotifications();
+  const { notifications, markAsRead } = useNotifications();
 
   // Only show the 3 most recent unread notifications as toasts
   const toastsToShow = notifications
@@ -15,13 +15,19 @@ export const ToastContainer: React.FC = () => {
     return null;
   }
 
+  // When toast dismisses, just mark as read (keep in notification center)
+  const handleToastDismiss = (id: string) => {
+    console.log('🍞 [Toast] Dismissing toast - marking as read:', id);
+    markAsRead(id);
+  };
+
   return (
     <div className="toast-container" role="region" aria-label="Notifications">
       {toastsToShow.map(notification => (
         <ToastNotification
           key={notification.id}
           notification={notification}
-          onDismiss={removeNotification}
+          onDismiss={handleToastDismiss}
           onMarkAsRead={markAsRead}
         />
       ))}
