@@ -89,19 +89,30 @@ Dog entries for classes.
 - **armband_number** (text): Unique armband identifier
 - **call_name** (text): Dog's call name
 - **handler** (text): Handler name
-- **entry_status** (text): Check-in status ('checked-in', 'at-gate', 'in-ring')
+- **entry_status** (text): Entry status - Valid values:
+  - `'no-status'` - Default, not checked in
+  - `'checked-in'` - Exhibitor has checked in
+  - `'come-to-gate'` - Steward calling dog to gate (triggers push notification)
+  - `'at-gate'` - Dog is waiting at ring entrance
+  - `'in-ring'` - Dog is currently competing
+  - `'conflict'` - Dog entered in multiple classes
+  - `'pulled'` - Dog withdrawn from class
+  - `'completed'` - Dog finished competing (no score)
 - **result_status** (text): Scoring result ('qualified', 'nq', etc.)
 - **is_scored** (boolean): Whether entry has been scored
 - **time** (numeric): Run time in seconds
 - **faults** (int): Number of faults
 - **placement** (int): Final placement (1st, 2nd, etc.)
 - **score** (numeric): Numeric score
+- **license_key** (text): Multi-tenant isolation key
 - **created_at** (timestamp): Creation timestamp
 - **updated_at** (timestamp): Last update timestamp
 
 **Important Notes**:
 - Migration 039 merged results table into entries (all scoring data is here)
-- `is_scored = true` triggers push notifications via trigger
+- `is_scored = true` triggers "up soon" push notifications
+- `entry_status = 'come-to-gate'` triggers immediate push notification to exhibitors
+- Always filter by `license_key` for multi-tenant isolation
 - Entry status uses text values (not integer codes from legacy system)
 - **ID Type:** bigserial returns as JavaScript number but must be converted to string for IndexedDB keys
 
@@ -384,13 +395,21 @@ These triggers automatically update the `updated_at` column:
 ### Push Notification Triggers (AFTER INSERT/UPDATE)
 - **announcements** (AFTER INSERT): `trigger_notify_announcement_created`
   Sends push notifications when announcements are created.
+  Notifies all users subscribed to announcements for that license_key.
 
 - **classes** (AFTER UPDATE): `trigger_notify_class_started`
-  Sends push notifications when class status changes.
+  Sends push notifications when class status changes to 'briefing' or 'in-progress'.
+  Only notifies users with favorited dogs in that specific class.
 
 - **entries** (AFTER UPDATE): `on_entry_scored`
   Sends "up soon" notifications when is_scored changes to true.
   **Note**: This watches the is_scored column in entries table (after migration 039 merged results into entries).
+
+- **entries** (AFTER UPDATE): `trigger_notify_come_to_gate`
+  Sends immediate high-priority push notifications when entry_status changes to 'come-to-gate'.
+  Only notifies users who have favorited that specific armband number.
+  Prevents duplicate notifications by checking old status.
+  **Added**: Migration 20251117000006
 
 ### Statistics & Rankings Triggers
 - **event_statistics** (AFTER INSERT): `trigger_update_nationals_rankings`
