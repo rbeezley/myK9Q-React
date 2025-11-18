@@ -193,16 +193,16 @@
 }
 
 .hero-brand {
-  font-size: 1.5rem; /* Mobile: increased brand text size */
+  font-size: 3rem; /* Mobile: match login page size */
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.5px;
   color: var(--text-primary);
   margin: var(--token-space-sm) 0 0 0;
 }
 
 /* Queue & Qualify Title */
 .hero-title {
-  font-size: 1.375rem; /* Mobile: increased title size */
+  font-size: 2.5rem; /* Mobile: match login page size */
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.05em;
@@ -211,19 +211,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--token-space-md); /* Mobile: smaller gap */
+  gap: var(--token-space-md);
   flex-wrap: wrap;
 }
 
 .hero-queue {
   color: var(--text-primary);
   letter-spacing: 0.05em;
-  font-size: 1.375rem; /* Mobile: increased text size */
+  font-size: 2.5rem; /* Mobile: match login page size */
 }
 
 .hero-and {
   color: var(--text-tertiary);
-  font-size: 1.125rem; /* Mobile: increased text size */
+  font-size: 1.875rem; /* Mobile: match login page size */
   font-weight: 300;
   margin: 0 var(--token-space-sm);
   opacity: 0.5;
@@ -235,7 +235,7 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.05em;
-  font-size: 1.375rem; /* Mobile: increased text size */
+  font-size: 2.5rem; /* Mobile: match login page size */
 }
 
 .hero-tagline {
@@ -735,20 +735,20 @@
   }
 
   .hero-brand {
-    font-size: 1.875rem; /* Tablet+: larger brand for better prominence */
+    font-size: 3.5rem; /* Tablet+: larger brand matching login page style */
   }
 
   .hero-title {
-    font-size: 1.75rem; /* Tablet+: larger title */
+    font-size: 3rem; /* Tablet+: larger title */
   }
 
   .hero-queue,
   .hero-qualify {
-    font-size: 1.75rem; /* Tablet+: larger text */
+    font-size: 3rem; /* Tablet+: larger text */
   }
 
   .hero-and {
-    font-size: 1.25rem; /* Tablet+: larger text */
+    font-size: 2.25rem; /* Tablet+: larger text */
   }
 
   .hero-tagline {
