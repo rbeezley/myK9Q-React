@@ -86,15 +86,6 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     [classEntry, getContextualPreview]
   );
 
-  // Helper function to get status color for a dog
-  const getDogStatusColor = (dog: typeof classEntry.dogs[0]) => {
-    if (dog.in_ring) return '#3b82f6'; // blue
-    if (dog.is_scored) return '#10b981'; // green
-    if (dog.checkin_status === 2) return '#8b5cf6'; // purple (at gate)
-    if (dog.checkin_status === 1) return '#10b981'; // green (checked in)
-    return '#94a3b8'; // gray (not checked in)
-  };
-
   // Parse contextual preview into pill data
   const previewPills = useMemo(() => {
     const pills: Array<{ text: string; color?: string }> = [];
