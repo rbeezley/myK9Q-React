@@ -9,9 +9,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { subscriptionCleanup, SubscriptionInfo } from '../../services/subscriptionCleanup';
 import { memoryLeakDetector } from '../../utils/memoryLeakDetector';
 import { Activity, AlertTriangle, CheckCircle, RefreshCw, Trash2, X, Database } from 'lucide-react';
+import { useSettingsStore } from '@/stores/settingsStore';
 import './SubscriptionMonitor.css';
 
 export const SubscriptionMonitor: React.FC = () => {
+  const { settings } = useSettingsStore();
   const [isOpen, setIsOpen] = useState(false);
   const [subscriptions, setSubscriptions] = useState<SubscriptionInfo[]>([]);
   const [healthReport, setHealthReport] = useState<any>(null);
@@ -47,8 +49,8 @@ export const SubscriptionMonitor: React.FC = () => {
   // eslint-disable-next-line react-hooks/purity
   const now = useMemo(() => Date.now(), [subscriptions]);
 
-  // Only show in development - check AFTER all hooks
-  if (import.meta.env.PROD) {
+  // Only show in development AND when developer mode is enabled - check AFTER all hooks
+  if (import.meta.env.PROD || !settings.developerMode) {
     return null;
   }
 
