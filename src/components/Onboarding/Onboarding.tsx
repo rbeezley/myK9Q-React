@@ -14,7 +14,7 @@ interface OnboardingScreen {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
-  color: string;
+  colorClass: string;
 }
 
 const screens: OnboardingScreen[] = [
@@ -23,28 +23,28 @@ const screens: OnboardingScreen[] = [
     icon: Heart,
     title: 'Favorite Your Dogs',
     description: 'Mark your dog as a favorite to find them easily and receive run order notifications.',
-    color: '#ef4444'
+    colorClass: 'onboarding-icon-favorites'
   },
   {
     id: 2,
     icon: CheckCircle,
     title: 'Self Check-In',
     description: 'Check in your dog and view results in real-time without waiting in line.',
-    color: '#10b981'
+    colorClass: 'onboarding-icon-checkin'
   },
   {
     id: 3,
     icon: Bell,
     title: 'Stay Updated',
     description: 'Receive important announcements and updates throughout the event.',
-    color: '#3b82f6'
+    colorClass: 'onboarding-icon-updates'
   },
   {
     id: 4,
     icon: Clock,
     title: 'Track Class Status',
     description: 'Monitor class progress with real-time status updates for briefings, breaks, and start times.',
-    color: '#f59e0b'
+    colorClass: 'onboarding-icon-status'
   }
 ];
 
@@ -164,12 +164,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         >
           {/* Logo */}
           <div className="onboarding-logo-container">
-            <div
-              className="onboarding-logo"
-              style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-              }}
-            >
+            <div className="onboarding-logo">
               <img
                 src="/myK9Q-logo-white.png"
                 alt="myK9Q Logo"
@@ -179,10 +174,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
 
           {/* Icon */}
-          <div
-            className="onboarding-icon"
-            style={{ backgroundColor: screen.color }}
-          >
+          <div className={`onboarding-icon ${screen.colorClass}`}>
             <IconComponent className="onboarding-icon-svg" />
           </div>
 
@@ -222,7 +214,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           {/* Notification Denied Warning (Screen 1 only) */}
           {currentScreen === 0 && notificationStatus === 'denied' && (
             <div className="onboarding-notification-denied">
-              <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#f59e0b' }}>
+              <p className="onboarding-notification-denied-text">
                 Permission denied. You can enable notifications later in Settings.
               </p>
             </div>

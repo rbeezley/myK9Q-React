@@ -147,6 +147,13 @@
   --token-warning: #FF9500;
   --token-error: #FF3B30;
   --token-success-contrast: var(--status-checked-in);
+
+  /* Onboarding Colors */
+  --onboarding-color-favorites: var(--status-pulled); /* Red for favorites (Heart icon) */
+  --onboarding-color-checkin: var(--status-checked-in); /* Green for check-in */
+  --onboarding-color-updates: var(--status-in-progress); /* Blue for notifications */
+  --onboarding-color-status: var(--status-conflict); /* Amber for class status */
+  --onboarding-logo-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --token-warning-contrast: #c2410c;
   --token-error-contrast: #dc2626;
 
