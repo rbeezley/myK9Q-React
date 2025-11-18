@@ -172,8 +172,8 @@
 }
 
 .hero-logo-image {
-  width: 80px; /* Mobile: smaller logo */
-  height: 80px;
+  width: 120px; /* Mobile: increased logo size to match login page */
+  height: 120px;
   margin-bottom: var(--token-space-lg);
   display: flex;
   align-items: center;
@@ -193,7 +193,7 @@
 }
 
 .hero-brand {
-  font-size: 1.375rem; /* Mobile: smaller brand text */
+  font-size: 1.5rem; /* Mobile: increased brand text size */
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -202,7 +202,7 @@
 
 /* Queue & Qualify Title */
 .hero-title {
-  font-size: 1.25rem; /* Mobile: smaller title */
+  font-size: 1.375rem; /* Mobile: increased title size */
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.05em;
@@ -218,12 +218,12 @@
 .hero-queue {
   color: var(--text-primary);
   letter-spacing: 0.05em;
-  font-size: 1.25rem; /* Mobile: smaller text */
+  font-size: 1.375rem; /* Mobile: increased text size */
 }
 
 .hero-and {
   color: var(--text-tertiary);
-  font-size: 1rem; /* Mobile: smaller text */
+  font-size: 1.125rem; /* Mobile: increased text size */
   font-weight: 300;
   margin: 0 var(--token-space-sm);
   opacity: 0.5;
@@ -235,7 +235,7 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.05em;
-  font-size: 1.25rem; /* Mobile: smaller text */
+  font-size: 1.375rem; /* Mobile: increased text size */
 }
 
 .hero-tagline {
@@ -730,29 +730,29 @@
   }
 
   .hero-logo-image {
-    width: 96px; /* Tablet+: larger logo */
-    height: 96px;
+    width: 140px; /* Tablet+: larger logo to match login page prominence */
+    height: 140px;
   }
 
   .hero-brand {
-    font-size: 1.625rem; /* Tablet+: larger brand */
+    font-size: 1.875rem; /* Tablet+: larger brand for better prominence */
   }
 
   .hero-title {
-    font-size: 1.5rem; /* Tablet+: larger title */
+    font-size: 1.75rem; /* Tablet+: larger title */
   }
 
   .hero-queue,
   .hero-qualify {
-    font-size: 1.5rem; /* Tablet+: larger text */
+    font-size: 1.75rem; /* Tablet+: larger text */
   }
 
   .hero-and {
-    font-size: 1.125rem; /* Tablet+: larger text */
+    font-size: 1.25rem; /* Tablet+: larger text */
   }
 
   .hero-tagline {
-    font-size: 1.5rem; /* Tablet+: larger tagline */
+    font-size: 1.625rem; /* Tablet+: larger tagline */
   }
 
   .hero-description {
