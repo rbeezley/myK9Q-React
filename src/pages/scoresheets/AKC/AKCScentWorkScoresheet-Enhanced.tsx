@@ -1247,7 +1247,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
               <>
                 {!area.time ? (
                   <button
-                    className={`area-record-btn ${getNextEmptyAreaIndex() === index ? 'next-in-sequence' : ''}`}
+                    className={`area-record-btn ${getNextEmptyAreaIndex() === index && stopwatchTime > 0 && !isStopwatchRunning ? 'next-in-sequence' : ''}`}
                     onClick={() => recordTimeForArea(index)}
                     title={`Record time from stopwatch for Area ${index + 1}`}
                   >

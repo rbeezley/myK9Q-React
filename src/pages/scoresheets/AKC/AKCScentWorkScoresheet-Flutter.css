@@ -766,6 +766,16 @@
   opacity: 0.4;
 }
 
+.theme-light .scoresheet-btn-cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.theme-light .scoresheet-btn-cancel:hover {
+  background: #d1d5db;
+  color: #1f2937;
+}
+
 /* Mobile: responsive adjustments - base styles */
 .scoresheet-trial-header-compact {
   padding: var(--token-space-md) var(--token-space-lg);  /* Mobile: padding */
@@ -806,7 +816,7 @@
 }
 
 .scoresheet-time-input {
-  width: 160px;  /* Mobile: width */
+  width: 200px;  /* Mobile: width - increased to fit placeholder */
   padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg);  /* Mobile: touch target */
   font-size: 15px;  /* Mobile: font size */
   min-height: 44px;  /* Mobile: touch target standard */
@@ -884,7 +894,7 @@
   }
 
   .scoresheet-time-input {
-    width: 180px;  /* Desktop: larger width */
+    width: 220px;  /* Desktop: larger width - increased to fit placeholder */
     padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl);  /* Desktop: larger touch target */
     font-size: 16px;  /* Desktop: larger font */
     min-height: 48px;  /* Desktop: touch target */
