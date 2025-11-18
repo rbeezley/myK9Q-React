@@ -104,6 +104,10 @@
 }
 
 /* Onboarding icon color classes */
+.onboarding-icon-welcome {
+  background: var(--primary);
+}
+
 .onboarding-icon-favorites {
   background: var(--onboarding-color-favorites);
 }

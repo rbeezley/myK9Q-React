@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, CheckCircle, Bell, Clock, ChevronRight } from 'lucide-react';
+import { Heart, CheckCircle, Bell, Clock, ChevronRight, Sparkles } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import PushNotificationService from '@/services/pushNotificationService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,31 +19,38 @@ interface OnboardingScreen {
 
 const screens: OnboardingScreen[] = [
   {
+    id: 0,
+    icon: Sparkles,
+    title: 'Welcome to myK9Q',
+    description: 'Your all-in-one companion for dog sport events. The next few screens will show you the key features that make trial days easier. You\'ll only see this once!',
+    colorClass: 'onboarding-icon-welcome'
+  },
+  {
     id: 1,
     icon: Heart,
-    title: 'Favorite Your Dogs',
-    description: 'Mark your dog as a favorite to find them easily and receive run order notifications.',
+    title: 'Never Miss Your Run',
+    description: 'Favorite your dogs to get instant notifications when they\'re up next—no more constantly checking running order.',
     colorClass: 'onboarding-icon-favorites'
   },
   {
     id: 2,
     icon: CheckCircle,
-    title: 'Self Check-In',
-    description: 'Check in your dog and view results in real-time without waiting in line.',
+    title: 'Skip the Lines',
+    description: 'Check in right from your phone and see results instantly—spend more time ringside, less time waiting.',
     colorClass: 'onboarding-icon-checkin'
   },
   {
     id: 3,
     icon: Bell,
-    title: 'Stay Updated',
-    description: 'Receive important announcements and updates throughout the event.',
+    title: 'Stay in the Loop',
+    description: 'Get important announcements about delays, class changes, and event updates delivered instantly.',
     colorClass: 'onboarding-icon-updates'
   },
   {
     id: 4,
     icon: Clock,
-    title: 'Track Class Status',
-    description: 'Monitor class progress with real-time status updates for briefings, breaks, and start times.',
+    title: 'Know When to Return',
+    description: 'Real-time class updates let you grab lunch or walk your dog without worrying about missing your turn.',
     colorClass: 'onboarding-icon-status'
   }
 ];
