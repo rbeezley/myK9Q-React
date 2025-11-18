@@ -126,7 +126,7 @@ self.addEventListener('notificationclick', (event) => {
           .then((clientList) => {
             // If app is already open, focus it and navigate
             for (const client of clientList) {
-              if (client.url.includes(window.location.origin)) {
+              if (client.url.includes(self.location.origin)) {
                 client.focus();
                 client.postMessage({
                   type: 'NOTIFICATION_CLICK',
@@ -149,7 +149,7 @@ self.addEventListener('notificationclick', (event) => {
         .then((clientList) => {
           // If app is already open, focus it and navigate
           for (const client of clientList) {
-            if (client.url.includes(window.location.origin)) {
+            if (client.url.includes(self.location.origin)) {
               client.focus();
               client.postMessage({
                 type: 'NOTIFICATION_CLICK',
