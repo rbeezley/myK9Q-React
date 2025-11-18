@@ -86,6 +86,52 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     [classEntry, getContextualPreview]
   );
 
+  // Helper function to get status color for a dog
+  const getDogStatusColor = (dog: typeof classEntry.dogs[0]) => {
+    if (dog.in_ring) return '#3b82f6'; // blue
+    if (dog.is_scored) return '#10b981'; // green
+    if (dog.checkin_status === 2) return '#8b5cf6'; // purple (at gate)
+    if (dog.checkin_status === 1) return '#10b981'; // green (checked in)
+    return '#94a3b8'; // gray (not checked in)
+  };
+
+  // Parse contextual preview into pill data
+  const previewPills = useMemo(() => {
+    const pills: Array<{ text: string; color?: string }> = [];
+
+    // Split by bullet and newline
+    const parts = contextualPreview.split(/\s*[•\n]\s*/);
+
+    parts.forEach(part => {
+      if (!part.trim()) return;
+
+      // Extract armband numbers and create pills
+      const armbandMatches = part.match(/(\d+)\s*\(([^)]+)\)/g);
+      if (armbandMatches) {
+        armbandMatches.forEach(match => {
+          const [armband, name] = match.replace(')', '').split('(');
+          pills.push({
+            text: `#${armband.trim()} ${name.trim()}`,
+            color: part.includes('In Ring') ? '#3b82f6' : undefined
+          });
+        });
+      } else if (part.match(/Next:\s*(\d+(?:,\s*\d+)*)/)) {
+        // Handle "Next: 1, 2, 3" format
+        const armbands = part.replace('Next:', '').split(',');
+        armbands.forEach(armband => {
+          if (armband.trim()) {
+            pills.push({ text: `#${armband.trim()}` });
+          }
+        });
+      } else {
+        // Generic text pill
+        pills.push({ text: part.trim() });
+      }
+    });
+
+    return pills;
+  }, [contextualPreview]);
+
   // Format planned start time for display
   const formatPlannedStartTime = (timestamp: string | undefined) => {
     if (!timestamp) return null;
@@ -196,13 +242,13 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 classEntry.area_count && classEntry.area_count > 1 ? (
                   <>
                     {classEntry.time_limit_seconds && (
-                      <span className="time-limit-badge">A1: {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>
+                      <span className="time-limit-badge">1: {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>
                     )}
                     {classEntry.time_limit_area2_seconds && (
-                      <span className="time-limit-badge">A2: {formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}</span>
+                      <span className="time-limit-badge">2: {formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}</span>
                     )}
                     {classEntry.time_limit_area3_seconds && (
-                      <span className="time-limit-badge">A3: {formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}</span>
+                      <span className="time-limit-badge">3: {formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}</span>
                     )}
                   </>
                 ) : (
@@ -271,10 +317,18 @@ export const ClassCard: React.FC<ClassCardProps> = ({
             )}
           </div>
 
-          {/* Preview Text */}
+          {/* Preview Pills */}
           {classEntry.dogs.length > 0 ? (
             <div className="contextual-preview-condensed">
-              {contextualPreview.replace(/\n/g, ' • ')}
+              {previewPills.map((pill, index) => (
+                <span
+                  key={index}
+                  className="preview-pill"
+                  style={pill.color ? { borderLeft: `3px solid ${pill.color}` } : undefined}
+                >
+                  {pill.text}
+                </span>
+              ))}
             </div>
           ) : (
             <div className="no-entries">
