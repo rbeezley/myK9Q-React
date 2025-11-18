@@ -296,7 +296,7 @@ export function Landing() {
         <div className="container">
           <div className="footer-content">
             <div className="footer-brand">
-              <img src="/myK9Q-notification-icon-192.png" alt="myK9Q" className="footer-logo" />
+              <img src="/myK9Q-notification-badge-96.png" alt="myK9Q" className="footer-logo" />
               <span className="footer-title">myK9Q</span>
             </div>
             <p className="footer-copyright">
