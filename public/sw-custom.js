@@ -133,8 +133,8 @@ async function handlePushNotification(event) {
 
     const notificationOptions = {
       body: data.content || data.title,
-      icon: '/myK9Q-logo-white.png',
-      badge: '/myK9Q-logo-white.png',
+      icon: '/myK9Q-notification-icon-512.png',
+      badge: '/myK9Q-notification-icon-192.png',
       tag: `announcement-${data.licenseKey}-${data.id}`,
       requireInteraction: isUrgent, // Persistent for urgent
       silent: false,
@@ -149,12 +149,12 @@ async function handlePushNotification(event) {
         {
           action: 'view',
           title: 'View',
-          icon: '/myK9Q-logo-white.png'
+          icon: '/myK9Q-notification-icon-192.png'
         },
         {
           action: 'dismiss',
           title: 'Dismiss',
-          icon: '/myK9Q-logo-white.png'
+          icon: '/myK9Q-notification-icon-192.png'
         }
       ]
     };

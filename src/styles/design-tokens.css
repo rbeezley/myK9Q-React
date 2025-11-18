@@ -489,3 +489,22 @@ html.density-spacious .card {
   box-shadow: 0 var(--token-space-lg) var(--token-space-4xl) rgba(249, 115, 22, 0.3), 0 var(--token-space-md) var(--token-space-xl) var(--shadow-strong);
   border-color: rgba(249, 115, 22, 0.5);
 }
+
+/* ===================================================================
+   IMAGE RENDERING OPTIMIZATION
+   Ensures crisp logo/icon rendering across all browsers
+   =================================================================== */
+
+/* Optimize notification icons and logos for crisp rendering */
+img[src*="notification-icon"],
+img[src*="logo"] {
+  image-rendering: -webkit-optimize-contrast; /* Webkit/Blink - Safari, Chrome */
+  image-rendering: crisp-edges; /* Standard CSS - Modern browsers */
+  image-rendering: -moz-crisp-edges; /* Firefox */
+}
+
+/* Smooth scaling for larger images (photos, screenshots) */
+img[src*="screenshot"],
+img[src*="photo"] {
+  image-rendering: auto; /* Use default smooth scaling */
+}
