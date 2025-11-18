@@ -166,6 +166,8 @@ self.addEventListener('notificationclick', (event) => {
 
 // Listen for messages from main thread (for tenant isolation)
 self.addEventListener('message', (event) => {
+  console.log('📬 [ServiceWorker] Message received:', event.data?.type);
+
   if (event.data && event.data.type === 'UPDATE_LICENSE_KEY') {
     // Store license key for tenant isolation
     self.currentLicenseKey = event.data.licenseKey;

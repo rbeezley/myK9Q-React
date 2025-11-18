@@ -581,10 +581,41 @@ export function Settings() {
                       <button
                         onClick={async () => {
                           try {
-                            // Send a test notification via simulated push (so it appears in notification center)
+                            // Send a test PUSH notification (system notification only)
+                            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                              const registration = await navigator.serviceWorker.ready;
+                              console.log('[Settings] Sending test push notification...');
+                              await registration.showNotification('myK9Q Push Test', {
+                                body: 'This is a push notification (system only, not in notification center)',
+                                icon: '/myK9Q-notification-icon-192.png',
+                                badge: '/myK9Q-notification-badge-96.png',
+                                tag: 'test-push-notification',
+                                requireInteraction: false
+                              });
+                              showToast('Push notification sent!', 'success');
+                            }
+                          } catch (error) {
+                            console.error('[Settings] Test push notification error:', error);
+                            showToast('Failed to send push notification', 'error');
+                          }
+                        }}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.875rem',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Test Push
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            // Send a test notification via simulated push (appears in both system and notification center)
                             if ('serviceWorker' in navigator && Notification.permission === 'granted') {
                               const registration = await navigator.serviceWorker.ready;
                               if (registration.active) {
+                                console.log('[Settings] Sending simulated push notification...');
                                 registration.active.postMessage({
                                   type: 'SIMULATE_PUSH',
                                   data: {
@@ -598,7 +629,10 @@ export function Settings() {
                                     url: '/announcements'
                                   }
                                 });
-                                showToast('Test notification sent!', 'success');
+                                showToast('Simulated push sent!', 'success');
+                              } else {
+                                console.error('[Settings] No active service worker');
+                                showToast('Service worker not ready', 'error');
                               }
                             }
                           } catch (error) {
@@ -613,7 +647,7 @@ export function Settings() {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        Send Test
+                        Test In-App
                       </button>
                       <button
                         onClick={async () => {
@@ -621,7 +655,9 @@ export function Settings() {
                             // Test notification grouping by sending different notification types
                             if ('serviceWorker' in navigator && Notification.permission === 'granted') {
                               const registration = await navigator.serviceWorker.ready;
-                              const licenseKey = 'test-show-123';
+                              const licenseKey = showContext?.licenseKey || 'test-show-123';
+
+                              console.log('[Settings] Sending 4 test notifications with actions...');
 
                               // Simulate different notification types with different actions
                               const notifications = [
@@ -666,7 +702,7 @@ export function Settings() {
                                     type: 'SIMULATE_PUSH',
                                     data: {
                                       licenseKey: licenseKey,
-                                      showName: 'Test Show',
+                                      showName: showContext?.showName || 'Test Show',
                                       id: `test-${Date.now()}-${i}`,
                                       ...notif
                                     }
@@ -676,7 +712,7 @@ export function Settings() {
                                 await new Promise(r => setTimeout(r, 600));
                               }
 
-                              showToast('Sent 4 test notifications with different actions!', 'success');
+                              showToast('Sent 4 test notifications!', 'success');
                             }
                           } catch (error) {
                             console.error('[Settings] Test grouping error:', error);
