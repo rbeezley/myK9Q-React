@@ -25,8 +25,9 @@ export function initializeThemeBlocking(): void {
     const savedSettings = localStorage.getItem('myK9Q_settings');
 
     if (!savedSettings) {
-      // No saved settings - use defaults (light theme, blue color)
+      // No saved settings - use defaults (light theme, green color)
       applyThemeClass('light');
+      applyThemeColorClass('green');
       return;
     }
 
@@ -44,7 +45,7 @@ export function initializeThemeBlocking(): void {
     }
 
     // Apply theme color class
-    const themeColor = settings.themeColor || 'blue';
+    const themeColor = settings.themeColor || 'green';
     applyThemeColorClass(themeColor);
 
   } catch (error) {

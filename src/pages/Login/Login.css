@@ -296,18 +296,18 @@
 }
 
 .info-text {
-  font-size: 0.9rem;
-  color: var(--login-text-secondary);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
   margin: var(--token-space-md) 0;
-  line-height: 1.4;
-  font-weight: 300;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .website-link {
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin: var(--token-space-lg) 0 0 0;
-  color: var(--login-text-secondary);
-  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
   transition: color 0.2s ease;
   cursor: pointer;
 }

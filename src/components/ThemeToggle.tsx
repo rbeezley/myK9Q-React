@@ -19,7 +19,7 @@ export function ThemeToggle() {
   const [activeTheme, setActiveTheme] = useState<ThemeColor>(() => {
     // Initialize from localStorage
     const saved = localStorage.getItem('myK9Q_themeColor');
-    return (saved as ThemeColor) || 'blue';
+    return (saved as ThemeColor) || 'green';
   });
 
   const applyTheme = useCallback((theme: ThemeColor) => {
