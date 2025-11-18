@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
@@ -50,7 +51,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
   const navigate = useNavigate();
   const { showContext, role, logout } = useAuth();
-  const { unreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
+  const { unreadCount: announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
+  const { unreadCount, togglePanel } = useNotifications();
 
 
   // Initialize announcement store with current show context
@@ -153,8 +155,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               </button>
               
               <button
-                className={`menu-item ${currentPage === 'announcements' ? 'active' : ''}`}
-                onClick={() => handleMenuItemClick(() => navigate('/announcements'))}
+                className="menu-item"
+                onClick={() => handleMenuItemClick(() => togglePanel())}
               >
                 <div className="menu-icon-container">
                   <Bell className="menu-icon" />
@@ -162,6 +164,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                   )}
                 </div>
+                <span>Notifications</span>
+              </button>
+
+              <button
+                className={`menu-item ${currentPage === 'announcements' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/announcements'))}
+              >
+                <BookOpen className="menu-icon" />
                 <span>Announcements</span>
               </button>
 
