@@ -108,7 +108,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
       },
       manifest: {
-        name: 'myK9Q Ring Scoring',
+        name: 'myK9Q',
         short_name: 'myK9Q',
         description: 'Professional dog show ring scoring application',
         theme_color: '#1e40af',
