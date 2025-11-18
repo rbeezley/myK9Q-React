@@ -67,25 +67,30 @@ HTML mockups and prototypes.
 ## 🚀 Quick Start for New Developers
 
 1. **Project Overview**: Read [../README.md](../README.md) in project root
-2. **Claude Instructions**: See [../CLAUDE.md](../CLAUDE.md) for AI coding guidelines
-3. **Push Notifications**: [push-notifications/PUSH_NOTIFICATION_COMPLETE.md](push-notifications/PUSH_NOTIFICATION_COMPLETE.md)
-4. **Database Schema**: [database-schema.md](database-schema.md)
-5. **Architecture**: [ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md)
+2. **Claude Instructions**: [CLAUDE.md](CLAUDE.md) - AI coding guidelines
+3. **Database Reference**: [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) - Complete schema
+4. **CSS Architecture**: [CSS-IMPROVEMENT-ROADMAP.md](CSS-IMPROVEMENT-ROADMAP.md) - Design system
+5. **Security Audit**: [SECURITY_AUDIT_2025-11-17.md](SECURITY_AUDIT_2025-11-17.md) - Latest security fixes
 
-## 📋 Active Work
+## 📋 Core Documentation
 
-Current development focuses:
-- **CSS Improvements**: [../CSS-IMPROVEMENT-ROADMAP.md](../CSS-IMPROVEMENT-ROADMAP.md) (in root)
-- **Push Notifications**: Phases 4-10 remaining (see [push-notifications/](push-notifications/))
+**Essential References:**
+- [CLAUDE.md](CLAUDE.md) - Claude Code AI instructions & project guidelines
+- [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) - Complete database schema (23 tables, 4 views, 43 functions)
+- [CSS-IMPROVEMENT-ROADMAP.md](CSS-IMPROVEMENT-ROADMAP.md) - Design system consolidation roadmap
+- [DESIGN_SYSTEM_REMEDIATION.md](DESIGN_SYSTEM_REMEDIATION.md) - Recent design system fixes
+- [CUSTOMER_PITCH.md](CUSTOMER_PITCH.md) - Marketing & product positioning
+
+**Recent Work:**
+- [SECURITY_AUDIT_2025-11-17.md](SECURITY_AUDIT_2025-11-17.md) - RLS policies, function security, performance optimization
+- [SECURITY_DEFINER_VIEWS.md](SECURITY_DEFINER_VIEWS.md) - Database view security documentation
 
 ## 🗂️ Root Directory Files
 
-Only essential files remain in project root:
+Only ONE file remains in project root:
 - `README.md` - Main project documentation
-- `CLAUDE.md` - Claude Code AI instructions
-- `CSS-IMPROVEMENT-ROADMAP.md` - Active CSS consolidation work
 
-All other documentation has been organized into this `docs/` folder.
+All other documentation is organized in this `docs/` folder for cleaner navigation.
 
 ## 📊 Database Documentation
 
