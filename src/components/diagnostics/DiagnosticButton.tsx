@@ -8,9 +8,11 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { IndexedDBDiagnosticPanel } from './IndexedDBDiagnosticPanel';
+import { useSettingsStore } from '@/stores/settingsStore';
 import './DiagnosticButton.css';
 
 export function DiagnosticButton() {
+  const { settings } = useSettingsStore();
   const [showPanel, setShowPanel] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -49,7 +51,8 @@ export function DiagnosticButton() {
     };
   }, []);
 
-  if (!hasError && !showPanel) {
+  // Only show if developer mode is enabled AND there's an error
+  if (!settings.developerMode || (!hasError && !showPanel)) {
     return null;
   }
 

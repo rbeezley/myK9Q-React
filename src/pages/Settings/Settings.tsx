@@ -248,132 +248,6 @@ export function Settings() {
         autoFocus={false}
       />
 
-      {/* Display Section */}
-      <CollapsibleSection
-        id="display-section"
-        title="Display"
-        description="Customize how the app looks"
-        defaultExpanded={true}
-        badge={4}
-      >
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="fontSize">Font Size</label>
-            <span className="setting-hint">Adjust text size for readability</span>
-          </div>
-          <select
-            id="fontSize"
-            value={settings.fontSize}
-            onChange={(e) => updateSettings({ fontSize: e.target.value as any })}
-          >
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="density">Spacing</label>
-            <span className="setting-hint">How much space between elements</span>
-          </div>
-          <select
-            id="density"
-            value={settings.density}
-            onChange={(e) => updateSettings({ density: e.target.value as any })}
-          >
-            <option value="compact">Compact</option>
-            <option value="comfortable">Comfortable</option>
-            <option value="spacious">Spacious</option>
-          </select>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="reduceMotion">Reduce Motion</label>
-            <span className="setting-hint">Minimize animations and transitions</span>
-          </div>
-          <label className="toggle-switch">
-            <input
-              id="reduceMotion"
-              type="checkbox"
-              checked={settings.reduceMotion}
-              onChange={(e) => updateSettings({ reduceMotion: e.target.checked })}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="highContrast">High Contrast</label>
-            <span className="setting-hint">Increase color contrast for visibility</span>
-          </div>
-          <label className="toggle-switch">
-            <input
-              id="highContrast"
-              type="checkbox"
-              checked={settings.highContrast}
-              onChange={(e) => updateSettings({ highContrast: e.target.checked })}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-      </CollapsibleSection>
-
-      {/* Theme Section */}
-      <CollapsibleSection
-        id="theme-section"
-        title="Theme"
-        description="Choose your primary accent color (Blue, Green, Orange, or Purple)"
-        defaultExpanded={false}
-        badge={1}
-      >
-        <ThemeToggle />
-      </CollapsibleSection>
-
-      {/* Mobile Section */}
-      <CollapsibleSection
-        id="mobile-section"
-        title="Mobile"
-        description="Touch and interaction preferences"
-        defaultExpanded={false}
-        badge={2}
-      >
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="pullToRefresh">Pull to Refresh</label>
-            <span className="setting-hint">Swipe down to reload lists</span>
-          </div>
-          <label className="toggle-switch">
-            <input
-              id="pullToRefresh"
-              type="checkbox"
-              checked={settings.pullToRefresh}
-              onChange={(e) => updateSettings({ pullToRefresh: e.target.checked })}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-info">
-            <label htmlFor="hapticFeedback">Vibration on Touch</label>
-            <span className="setting-hint">Vibrate when tapping buttons</span>
-          </div>
-          <label className="toggle-switch">
-            <input
-              id="hapticFeedback"
-              type="checkbox"
-              checked={settings.hapticFeedback}
-              onChange={(e) => updateSettings({ hapticFeedback: e.target.checked })}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
-      </CollapsibleSection>
-
       {/* Notifications Section */}
       <CollapsibleSection
         id="notifications-section"
@@ -786,6 +660,132 @@ export function Settings() {
             </div>
           </>
         )}
+      </CollapsibleSection>
+
+      {/* Theme Section */}
+      <CollapsibleSection
+        id="theme-section"
+        title="Theme"
+        description="Choose your primary accent color (Blue, Green, Orange, or Purple)"
+        defaultExpanded={false}
+        badge={1}
+      >
+        <ThemeToggle />
+      </CollapsibleSection>
+
+      {/* Display Section */}
+      <CollapsibleSection
+        id="display-section"
+        title="Display"
+        description="Customize how the app looks"
+        defaultExpanded={false}
+        badge={4}
+      >
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="fontSize">Font Size</label>
+            <span className="setting-hint">Adjust text size for readability</span>
+          </div>
+          <select
+            id="fontSize"
+            value={settings.fontSize}
+            onChange={(e) => updateSettings({ fontSize: e.target.value as any })}
+          >
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="density">Spacing</label>
+            <span className="setting-hint">How much space between elements</span>
+          </div>
+          <select
+            id="density"
+            value={settings.density}
+            onChange={(e) => updateSettings({ density: e.target.value as any })}
+          >
+            <option value="compact">Compact</option>
+            <option value="comfortable">Comfortable</option>
+            <option value="spacious">Spacious</option>
+          </select>
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="reduceMotion">Reduce Motion</label>
+            <span className="setting-hint">Minimize animations and transitions</span>
+          </div>
+          <label className="toggle-switch">
+            <input
+              id="reduceMotion"
+              type="checkbox"
+              checked={settings.reduceMotion}
+              onChange={(e) => updateSettings({ reduceMotion: e.target.checked })}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="highContrast">High Contrast</label>
+            <span className="setting-hint">Increase color contrast for visibility</span>
+          </div>
+          <label className="toggle-switch">
+            <input
+              id="highContrast"
+              type="checkbox"
+              checked={settings.highContrast}
+              onChange={(e) => updateSettings({ highContrast: e.target.checked })}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+      </CollapsibleSection>
+
+      {/* Mobile Section */}
+      <CollapsibleSection
+        id="mobile-section"
+        title="Mobile"
+        description="Touch and interaction preferences"
+        defaultExpanded={false}
+        badge={2}
+      >
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="pullToRefresh">Pull to Refresh</label>
+            <span className="setting-hint">Swipe down to reload lists</span>
+          </div>
+          <label className="toggle-switch">
+            <input
+              id="pullToRefresh"
+              type="checkbox"
+              checked={settings.pullToRefresh}
+              onChange={(e) => updateSettings({ pullToRefresh: e.target.checked })}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <label htmlFor="hapticFeedback">Vibration on Touch</label>
+            <span className="setting-hint">Vibrate when tapping buttons</span>
+          </div>
+          <label className="toggle-switch">
+            <input
+              id="hapticFeedback"
+              type="checkbox"
+              checked={settings.hapticFeedback}
+              onChange={(e) => updateSettings({ hapticFeedback: e.target.checked })}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
       </CollapsibleSection>
 
       {/* Scoring Section */}
