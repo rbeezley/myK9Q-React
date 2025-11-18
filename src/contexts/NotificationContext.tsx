@@ -50,13 +50,9 @@ const NOTIFICATION_STORAGE_KEY = 'myK9Q_in_app_notifications';
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { showContext } = useAuth();
-  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
 
-  // Load notifications from localStorage on mount
-  useEffect(() => {
+  // Initialize state from localStorage immediately (not in useEffect)
+  const [notifications, setNotifications] = useState<InAppNotification[]>(() => {
     try {
       const stored = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
       if (stored) {
@@ -64,12 +60,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Filter to only show notifications from the last 24 hours
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         const recent = parsed.filter((n: InAppNotification) => n.timestamp > oneDayAgo);
-        setNotifications(recent);
+        console.log('📂 [NotificationContext] Loaded', recent.length, 'notifications from localStorage');
+        return recent;
       }
     } catch (error) {
       console.error('Error loading notifications from storage:', error);
     }
-  }, []);
+    return [];
+  });
+
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
