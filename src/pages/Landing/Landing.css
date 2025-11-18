@@ -350,7 +350,7 @@
   position: relative;
   width: 375px;
   padding: var(--token-space-xl) var(--token-space-lg);
-  background: var(--surface-muted);
+  background: #1a1a1a; /* Dark phone bezel - hardcoded to prevent light mode conflicts */
   border-radius: 3rem;
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.6),
