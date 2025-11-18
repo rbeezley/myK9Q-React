@@ -300,7 +300,7 @@ export function Landing() {
               <span className="footer-title">myK9Q</span>
             </div>
             <p className="footer-copyright">
-              © 2025 myK9Q Ring Scoring. All rights reserved.
+              © 2025 myK9Q. All rights reserved.
             </p>
           </div>
         </div>
