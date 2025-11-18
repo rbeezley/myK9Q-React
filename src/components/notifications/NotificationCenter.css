@@ -100,23 +100,26 @@
 
 /* Filter Tabs */
 .notif-filter-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0;
   padding: 16px 20px 0 20px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .notif-filter-tab {
-  flex: 1;
-  padding: 12px 16px;
+  padding: 10px 12px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #6b7280;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notif-filter-tab:hover {
@@ -127,6 +130,18 @@
 .notif-filter-tab.active {
   color: #3b82f6;
   border-bottom-color: #3b82f6;
+}
+
+/* Responsive: Stack tabs on mobile */
+@media (max-width: 480px) {
+  .notif-filter-tabs {
+    grid-template-columns: 1fr 1fr;
+    font-size: 12px;
+  }
+
+  .notif-filter-tab {
+    padding: 8px 6px;
+  }
 }
 
 /* Actions */

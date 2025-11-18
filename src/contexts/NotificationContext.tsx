@@ -138,6 +138,51 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const closePanel = useCallback(() => setIsPanelOpen(false), []);
   const togglePanel = useCallback(() => setIsPanelOpen(prev => !prev), []);
 
+  // Listen for push notifications from service worker
+  useEffect(() => {
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'PUSH_RECEIVED') {
+        const data = event.data.data;
+        console.log('📨 [NotificationContext] Push notification received from service worker:', data);
+
+        // Determine notification type based on backend payload
+        let type: 'announcement' | 'dog-alert' | 'system' = 'announcement';
+        if (data.type === 'up_soon' || data.type === 'dog-alert') {
+          type = 'dog-alert';
+        } else if (data.type === 'come_to_gate') {
+          type = 'dog-alert'; // Also a dog-specific alert
+        } else if (data.type === 'announcement') {
+          type = 'announcement';
+        }
+
+        // Add to notification center
+        addNotification({
+          announcementId: data.id || data.announcement_id || 0,
+          title: data.title || 'Notification',
+          content: data.body || data.content || '',
+          priority: (data.priority || 'normal') as 'normal' | 'high' | 'urgent',
+          type,
+          url: data.url || '/announcements',
+          dogId: data.dogId,
+          dogName: data.dog_name || data.dogName,
+          classId: data.class_id || data.classId,
+          licenseKey: data.license_key || data.licenseKey || '',
+          showName: data.show_name || data.showName
+        });
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+      console.log('📡 [NotificationContext] Listening for push notifications from service worker');
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+        console.log('🔌 [NotificationContext] Stopped listening for push notifications');
+      };
+    }
+  }, [addNotification]);
+
   // Set up real-time subscription for announcements
   useEffect(() => {
     if (!showContext?.licenseKey) {

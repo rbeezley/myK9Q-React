@@ -26,11 +26,18 @@ export const NotificationCenter: React.FC = () => {
     clearAll
   } = useNotifications();
 
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | 'announcements' | 'dogs'>('all');
 
-  const filteredNotifications = filter === 'unread'
-    ? notifications.filter(n => !n.isRead)
-    : notifications;
+  const filteredNotifications = notifications.filter(n => {
+    // Filter by read status
+    if (filter === 'unread' && n.isRead) return false;
+
+    // Filter by type
+    if (filter === 'announcements' && n.type !== 'announcement') return false;
+    if (filter === 'dogs' && n.type !== 'dog-alert') return false;
+
+    return true;
+  });
 
   const handleNotificationClick = (notification: typeof notifications[0]) => {
     markAsRead(notification.id);
@@ -134,6 +141,18 @@ export const NotificationCenter: React.FC = () => {
             className={`notif-filter-tab ${filter === 'unread' ? 'active' : ''}`}
           >
             Unread ({unreadCount})
+          </button>
+          <button
+            onClick={() => setFilter('announcements')}
+            className={`notif-filter-tab ${filter === 'announcements' ? 'active' : ''}`}
+          >
+            📢 Announcements ({notifications.filter(n => n.type === 'announcement').length})
+          </button>
+          <button
+            onClick={() => setFilter('dogs')}
+            className={`notif-filter-tab ${filter === 'dogs' ? 'active' : ''}`}
+          >
+            🐕 My Dogs ({notifications.filter(n => n.type === 'dog-alert').length})
           </button>
         </div>
 

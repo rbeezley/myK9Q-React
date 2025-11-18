@@ -36,6 +36,34 @@ const getFromStorage = async (key) => {
 // Push notification handler
 self.addEventListener('push', (event) => {
   event.waitUntil(handlePushNotification(event));
+
+  // Forward push notification to all open clients for notification center
+  event.waitUntil(
+    (async () => {
+      try {
+        const data = event.data ? event.data.json() : null;
+        if (!data) return;
+
+        // Get all active window clients
+        const clientList = await clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true
+        });
+
+        // Forward to each open client
+        clientList.forEach(client => {
+          client.postMessage({
+            type: 'PUSH_RECEIVED',
+            data: data
+          });
+        });
+
+        console.log('📤 [ServiceWorker] Push notification forwarded to', clientList.length, 'clients');
+      } catch (error) {
+        console.error('❌ [ServiceWorker] Failed to forward push notification:', error);
+      }
+    })()
+  );
 });
 
 // Notification click handler
