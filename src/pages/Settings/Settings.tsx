@@ -610,20 +610,48 @@ export function Settings() {
                       <button
                         onClick={async () => {
                           try {
-                            // Test notification grouping by sending 3 notifications rapidly
+                            // Test notification grouping by sending different notification types
                             if ('serviceWorker' in navigator && Notification.permission === 'granted') {
                               const registration = await navigator.serviceWorker.ready;
                               const licenseKey = 'test-show-123';
 
-                              // Simulate 3 grouped announcements
-                              const announcements = [
-                                { title: 'Lunch break announced', content: 'Competition paused for 30 minutes', priority: 'normal' },
-                                { title: 'Weather update', content: 'Light rain expected around 2 PM', priority: 'normal' },
-                                { title: 'Class schedule change', content: 'Novice moved to Ring 2', priority: 'normal' }
+                              // Simulate different notification types with different actions
+                              const notifications = [
+                                // Urgent alert (stays separate with "View Now" + "Got It" actions)
+                                {
+                                  title: 'Ring change',
+                                  content: 'All classes moved to Ring 1 immediately',
+                                  priority: 'urgent',
+                                  type: 'announcement'
+                                },
+                                // Dog alert (stays separate with "View Entry" + "Class List" actions)
+                                {
+                                  title: 'Max is up soon',
+                                  content: 'Your dog is up in 2 dogs',
+                                  priority: 'high',
+                                  type: 'dog-alert',
+                                  dogId: 'test-dog-123',
+                                  dogName: 'Max',
+                                  classId: 'test-class-456',
+                                  entryId: 'test-entry-789'
+                                },
+                                // General announcements (will group with "View" + "Dismiss" actions)
+                                {
+                                  title: 'Lunch break announced',
+                                  content: 'Competition paused for 30 minutes',
+                                  priority: 'normal',
+                                  type: 'announcement'
+                                },
+                                {
+                                  title: 'Weather update',
+                                  content: 'Light rain expected around 2 PM',
+                                  priority: 'normal',
+                                  type: 'announcement'
+                                }
                               ];
 
-                              for (let i = 0; i < announcements.length; i++) {
-                                const ann = announcements[i];
+                              for (let i = 0; i < notifications.length; i++) {
+                                const notif = notifications[i];
                                 // Simulate push notification through service worker
                                 if (registration.active) {
                                   registration.active.postMessage({
@@ -632,22 +660,19 @@ export function Settings() {
                                       licenseKey: licenseKey,
                                       showName: 'Test Show',
                                       id: `test-${Date.now()}-${i}`,
-                                      title: ann.title,
-                                      content: ann.content,
-                                      priority: ann.priority,
-                                      type: 'announcement'
+                                      ...notif
                                     }
                                   });
                                 }
                                 // Small delay between notifications
-                                await new Promise(r => setTimeout(r, 500));
+                                await new Promise(r => setTimeout(r, 600));
                               }
 
-                              showToast('Sent 3 grouped notifications!', 'success');
+                              showToast('Sent 4 test notifications with different actions!', 'success');
                             }
                           } catch (error) {
                             console.error('[Settings] Test grouping error:', error);
-                            showToast('Failed to test grouping', 'error');
+                            showToast('Failed to test notifications', 'error');
                           }
                         }}
                         className="btn btn-secondary"
@@ -657,7 +682,7 @@ export function Settings() {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        Test Grouping
+                        Test Actions
                       </button>
                     </div>
                   </div>

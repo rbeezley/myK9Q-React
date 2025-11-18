@@ -40,10 +40,11 @@ self.addEventListener('push', (event) => {
 
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('🖱️ Notification clicked:', event.notification.data);
+  console.log('🖱️ Notification clicked:', event.notification.data, 'Action:', event.action);
 
   event.notification.close();
 
+  // Handle different action types
   if (event.action === 'dismiss') {
     // If summary notification dismissed, close all grouped notifications
     if (event.notification.data?.isSummary) {
@@ -61,8 +62,25 @@ self.addEventListener('notificationclick', (event) => {
     return; // Just close the notification
   }
 
-  // Default action or 'view' action
-  const urlToOpen = event.notification.data?.url || '/announcements';
+  if (event.action === 'acknowledge') {
+    // User acknowledged urgent alert - just close without opening app
+    console.log('✓ User acknowledged urgent notification');
+    return;
+  }
+
+  // Determine URL based on action and notification data
+  let urlToOpen = '/announcements'; // Default
+
+  if (event.action === 'view-entry' && event.notification.data?.entryId) {
+    // Navigate to specific entry details
+    urlToOpen = `/entry/${event.notification.data.entryId}`;
+  } else if (event.action === 'view-class' && event.notification.data?.classId) {
+    // Navigate to class list
+    urlToOpen = `/class/${event.notification.data.classId}`;
+  } else if (event.action === 'view' || !event.action) {
+    // Default view action - use custom URL or announcements
+    urlToOpen = event.notification.data?.url || '/announcements';
+  }
 
   // If summary notification clicked, close all grouped notifications and navigate
   if (event.notification.data?.isSummary) {
@@ -240,6 +258,58 @@ async function handlePushNotification(event) {
       ? undefined  // No group = standalone notification
       : `show-${data.licenseKey}`;  // Grouped with other announcements
 
+    // Build context-aware action buttons
+    let actions = [];
+
+    if (isDogAlert) {
+      // Dog-specific actions: View entry, View class list, Dismiss
+      actions = [
+        {
+          action: 'view-entry',
+          title: '👁️ View Entry',
+          icon: '/myK9Q-notification-icon-192.png'
+        },
+        {
+          action: 'view-class',
+          title: '📋 Class List',
+          icon: '/myK9Q-notification-icon-192.png'
+        },
+        {
+          action: 'dismiss',
+          title: '✕ Dismiss',
+          icon: '/myK9Q-notification-icon-192.png'
+        }
+      ];
+    } else if (isUrgent) {
+      // Urgent: View immediately, Acknowledge, Remind later
+      actions = [
+        {
+          action: 'view',
+          title: '👁️ View Now',
+          icon: '/myK9Q-notification-icon-192.png'
+        },
+        {
+          action: 'acknowledge',
+          title: '✓ Got It',
+          icon: '/myK9Q-notification-icon-192.png'
+        }
+      ];
+    } else {
+      // General announcements: View, Dismiss
+      actions = [
+        {
+          action: 'view',
+          title: '👁️ View',
+          icon: '/myK9Q-notification-icon-192.png'
+        },
+        {
+          action: 'dismiss',
+          title: '✕ Dismiss',
+          icon: '/myK9Q-notification-icon-192.png'
+        }
+      ];
+    }
+
     const notificationOptions = {
       body: data.content || data.title,
       icon: '/myK9Q-notification-icon-512.png',
@@ -258,20 +328,11 @@ async function handlePushNotification(event) {
         isUrgent: isUrgent,
         isDogAlert: isDogAlert,
         dogId: data.dogId,
-        dogName: data.dogName
+        dogName: data.dogName,
+        classId: data.classId,
+        entryId: data.entryId
       },
-      actions: [
-        {
-          action: 'view',
-          title: isDogAlert ? 'View Entry' : 'View',
-          icon: '/myK9Q-notification-icon-192.png'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss',
-          icon: '/myK9Q-notification-icon-192.png'
-        }
-      ]
+      actions: actions
     };
 
     // Customize title based on priority and show info
