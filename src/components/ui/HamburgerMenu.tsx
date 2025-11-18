@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3 } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import './shared-ui.css';
 import { version } from '../../../package.json';
@@ -42,6 +42,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [_isAnimating, setIsAnimating] = useState(false);
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
+  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -204,36 +205,49 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
               <div className="menu-divider"></div>
 
-              {/* Help Section */}
-              <a
-                href="https://myk9t.com/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="menu-item"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <BookOpen className="menu-icon" />
-                <span>User Guide</span>
-              </a>
-
-              <a
-                href="https://www.youtube.com/watch?v=WRaKZnFPtmI&list=PL6PN3duVGm8-WDKvOobppaZC7Mc_13Xdj"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="menu-item"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Video className="menu-icon" />
-                <span>Video Tutorials</span>
-              </a>
-
+              {/* Collapsible Help Section */}
               <button
-                className="menu-item"
-                onClick={() => handleMenuItemClick(() => setIsAboutDialogOpen(true))}
+                className="menu-collapsible-header"
+                onClick={() => setIsHelpExpanded(!isHelpExpanded)}
               >
-                <Info className="menu-icon" />
-                <span>About</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--token-space-lg)' }}>
+                  <HelpCircle className="menu-icon" />
+                  <span>Help & Support</span>
+                </div>
+                <ChevronDown className={`menu-collapsible-icon ${isHelpExpanded ? 'open' : ''}`} />
               </button>
+
+              <div className={`menu-collapsible-content ${isHelpExpanded ? 'open' : ''}`}>
+                <a
+                  href="https://myk9t.com/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="menu-item"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <BookOpen className="menu-icon" />
+                  <span>User Guide</span>
+                </a>
+
+                <a
+                  href="https://www.youtube.com/watch?v=WRaKZnFPtmI&list=PL6PN3duVGm8-WDKvOobppaZC7Mc_13Xdj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="menu-item"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Video className="menu-icon" />
+                  <span>Video Tutorials</span>
+                </a>
+
+                <button
+                  className="menu-item"
+                  onClick={() => handleMenuItemClick(() => setIsAboutDialogOpen(true))}
+                >
+                  <Info className="menu-icon" />
+                  <span>About</span>
+                </button>
+              </div>
 
               <div className="menu-divider"></div>
 

@@ -2845,6 +2845,9 @@
 .menu-items {
   flex: 1;
   padding: var(--token-space-xl) 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .menu-item {
@@ -2923,6 +2926,50 @@
   height: 1px;
   background: var(--border);
   margin: var(--token-space-md) var(--token-space-3xl);
+}
+
+/* Collapsible Help Section */
+.menu-collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-lg);
+  width: 100%;
+  padding: 0.875rem var(--token-space-3xl);
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  min-height: 48px;
+}
+
+.menu-collapsible-header:hover {
+  background: var(--muted);
+}
+
+.menu-collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.menu-collapsible-content.open {
+  max-height: 200px; /* Enough for 3 help items */
+}
+
+.menu-collapsible-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.menu-collapsible-icon.open {
+  transform: rotate(180deg);
 }
 
 .menu-version {
