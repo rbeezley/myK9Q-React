@@ -38,7 +38,7 @@ export function Landing() {
               <div className="hero-logo-container">
                 <div className="hero-logo-image">
                   <img
-                    src="/myK9Q-logo-white.png"
+                    src="/myK9Q-notification-icon-192.png"
                     alt="myK9Q Logo"
                     className="hero-logo"
                   />
@@ -296,7 +296,7 @@ export function Landing() {
         <div className="container">
           <div className="footer-content">
             <div className="footer-brand">
-              <img src="/myK9Q-logo-white.png" alt="myK9Q" className="footer-logo" />
+              <img src="/myK9Q-notification-icon-192.png" alt="myK9Q" className="footer-logo" />
               <span className="footer-title">myK9Q</span>
             </div>
             <p className="footer-copyright">
