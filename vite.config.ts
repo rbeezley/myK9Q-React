@@ -111,7 +111,7 @@ export default defineConfig({
         name: 'myK9Q',
         short_name: 'myK9Q',
         description: 'Professional dog show ring scoring application',
-        theme_color: '#1e40af',
+        theme_color: '#10b981',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
