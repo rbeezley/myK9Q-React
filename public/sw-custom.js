@@ -71,10 +71,7 @@ self.addEventListener('notificationclick', (event) => {
   // Determine URL based on action and notification data
   let urlToOpen = '/announcements'; // Default
 
-  if (event.action === 'view-entry' && event.notification.data?.entryId) {
-    // Navigate to specific entry details
-    urlToOpen = `/entry/${event.notification.data.entryId}`;
-  } else if (event.action === 'view-class' && event.notification.data?.classId) {
+  if (event.action === 'view-class' && event.notification.data?.classId) {
     // Navigate to class list
     urlToOpen = `/class/${event.notification.data.classId}`;
   } else if (event.action === 'view' || !event.action) {
@@ -262,16 +259,11 @@ async function handlePushNotification(event) {
     let actions = [];
 
     if (isDogAlert) {
-      // Dog-specific actions: View entry, View class list, Dismiss
+      // Dog-specific actions: View class list to see position, Dismiss
       actions = [
         {
-          action: 'view-entry',
-          title: '👁️ View Entry',
-          icon: '/myK9Q-notification-icon-192.png'
-        },
-        {
           action: 'view-class',
-          title: '📋 Class List',
+          title: '👁️ View Class',
           icon: '/myK9Q-notification-icon-192.png'
         },
         {
