@@ -28,6 +28,13 @@ export const NotificationCenter: React.FC = () => {
 
   const [filter, setFilter] = useState<'all' | 'unread' | 'announcements' | 'dogs'>('all');
 
+  // Debug: Log notifications whenever they change
+  React.useEffect(() => {
+    console.log('🎨 [NotificationCenter] Rendering with', notifications.length, 'notifications');
+    console.log('🎨 [NotificationCenter] isPanelOpen:', isPanelOpen);
+    console.log('🎨 [NotificationCenter] Notifications:', notifications);
+  }, [notifications, isPanelOpen]);
+
   const filteredNotifications = notifications.filter(n => {
     // Filter by read status
     if (filter === 'unread' && n.isRead) return false;

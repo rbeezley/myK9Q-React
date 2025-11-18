@@ -138,7 +138,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   // Panel controls
-  const openPanel = useCallback(() => setIsPanelOpen(true), []);
+  const openPanel = useCallback(() => {
+    console.log('🔓 [NotificationContext] Opening panel with', notifications.length, 'notifications');
+    console.log('📋 [NotificationContext] Current notifications:', notifications);
+    setIsPanelOpen(true);
+  }, [notifications]);
   const closePanel = useCallback(() => setIsPanelOpen(false), []);
   const togglePanel = useCallback(() => setIsPanelOpen(prev => !prev), []);
 
