@@ -102,7 +102,10 @@ export default defineConfig({
       registerType: 'prompt', // Changed from 'autoUpdate' to 'prompt' to prevent auto-reload in dev
       devOptions: {
         enabled: true, // Enable for offline testing
-        type: 'module'
+        type: 'classic' // Use classic service worker (not ES module) because we use importScripts
+      },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
       },
       manifest: {
         name: 'myK9Q Ring Scoring',

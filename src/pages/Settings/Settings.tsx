@@ -629,7 +629,7 @@ export function Settings() {
                                     url: '/announcements'
                                   }
                                 });
-                                showToast('Simulated push sent!', 'success');
+                                showToast('Simulated in-app sent!', 'success');
                               } else {
                                 console.error('[Settings] No active service worker');
                                 showToast('Service worker not ready', 'error');
