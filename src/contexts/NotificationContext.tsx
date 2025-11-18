@@ -47,7 +47,6 @@ const NotificationContext = createContext<NotificationContextValue | undefined>(
 
 const MAX_NOTIFICATIONS = 50; // Keep last 50 notifications in memory
 const NOTIFICATION_STORAGE_KEY = 'myK9Q_in_app_notifications';
-const AUTO_DISMISS_DELAY = 8000; // 8 seconds for non-urgent notifications
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { showContext } = useAuth();
@@ -93,20 +92,25 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       timestamp: new Date().toISOString()
     };
 
+    console.log('📝 [NotificationContext] Adding notification to center:', {
+      id: newNotification.id,
+      title: newNotification.title,
+      priority: newNotification.priority,
+      type: newNotification.type
+    });
+
     setNotifications(prev => {
       // Add to beginning of array (newest first)
       const updated = [newNotification, ...prev];
+
+      console.log('📊 [NotificationContext] Notification center updated. Total notifications:', updated.length);
 
       // Keep only MAX_NOTIFICATIONS most recent
       return updated.slice(0, MAX_NOTIFICATIONS);
     });
 
-    // Auto-dismiss non-urgent notifications after delay
-    if (notification.priority !== 'urgent') {
-      setTimeout(() => {
-        setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
-      }, AUTO_DISMISS_DELAY);
-    }
+    // Note: Removed auto-dismiss behavior - notifications stay in center until manually dismissed
+    // Users can clear individual notifications or use "Clear all" button
   }, []);
 
   // Mark notification as read
