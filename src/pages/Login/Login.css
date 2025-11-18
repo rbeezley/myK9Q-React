@@ -11,10 +11,10 @@
   --login-text-secondary: #a0a0a0;
   --accent-green: var(--status-checked-in);
   --accent-green-hover: #059669;
-  --glass-bg: var(--overlay-white-subtle)(255, 255, 255, 0.03);
-  --glass-border: var(--overlay-white-subtle)(255, 255, 255, 0.08);
-  --green-glow: var(--overlay-white-subtle)(16, 185, 129, 0.3);
-  --success-glow: var(--overlay-white-subtle)(16, 185, 129, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --green-glow: rgba(16, 185, 129, 0.3);
+  --success-glow: rgba(16, 185, 129, 0.4);
   --error-color: var(--status-pulled);
 }
 
@@ -44,7 +44,7 @@
   height: 800px;
   background: radial-gradient(
     circle,
-    var(--overlay-white-subtle)(16, 185, 129, 0.06) 0%,
+    rgba(16, 185, 129, 0.06) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -82,7 +82,7 @@
   border: 1px solid var(--login-border-strong);
   border-radius: 2rem;
   padding: var(--token-space-2xl);
-  box-shadow: 0 0 30px var(--overlay-white-subtle)(16, 185, 129, 0.3), 0 0 60px var(--overlay-white-subtle)(16, 185, 129, 0.15);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.15);
 }
 
 .logo-img {
@@ -143,7 +143,7 @@
   border: 1px solid var(--login-border-strong);
   border-radius: var(--token-space-3xl);
   padding: var(--token-space-4xl) var(--token-space-4xl);
-  box-shadow: 0 var(--token-space-lg) 48px var(--overlay-white-subtle)(0, 0, 0, 0.4), 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-lg) 48px rgba(0, 0, 0, 0.4), 0 var(--token-space-sm) var(--token-space-xl) rgba(0, 0, 0, 0.2);
   animation: fadeInScale 0.6s ease-out 0.35s both;
 }
 
@@ -192,7 +192,7 @@
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
-  box-shadow: inset 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.3);
+  box-shadow: inset 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.3);
 }
 
 .passcode-input:focus {
@@ -205,7 +205,7 @@
 /* Success State - All inputs filled */
 .passcode-input.filled {
   border-color: var(--accent-green);
-  background: var(--overlay-white-subtle)(16, 185, 129, 0.08);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .passcode-inputs.all-filled .passcode-input {
@@ -215,7 +215,7 @@
 /* Error State */
 .passcode-input.error {
   border-color: var(--error-color);
-  background: var(--overlay-white-subtle)(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.15);
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
@@ -247,7 +247,7 @@
 .reset-button:hover {
   border-color: var(--accent-green);
   color: var(--login-text-primary);
-  background: var(--overlay-white-subtle)(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.1);
   transform: scale(1.1);
 }
 
@@ -349,10 +349,10 @@
 }
 
 .help-button:hover {
-  background: var(--overlay-white-subtle)(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.1);
   border-color: var(--accent-green);
   transform: translateX(-50%) translateY(-3px);
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--overlay-white-subtle)(16, 185, 129, 0.2);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(16, 185, 129, 0.2);
 }
 
 .help-button:active {

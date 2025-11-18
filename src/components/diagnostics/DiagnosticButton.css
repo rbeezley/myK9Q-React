@@ -13,7 +13,7 @@
   color: white;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(239, 68, 68, 0.4);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@
 
 .diagnostic-fab:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 16px var(--overlay-white-subtle)(239, 68, 68, 0.6);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.6);
 }
 
 .diagnostic-fab:active {
@@ -80,7 +80,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7);
   z-index: var(--token-z-toast);
   display: flex;
   align-items: center;
@@ -97,7 +97,7 @@
   overflow-y: auto;
   background: var(--card-background);
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 20px 40px var(--overlay-white-subtle)(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
 }
 

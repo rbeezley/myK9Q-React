@@ -76,7 +76,7 @@
   height: 100px;
   border-radius: 20px;
   padding: 6px;
-  box-shadow: 0 8px 20px var(--overlay-white-subtle)(16, 185, 129, 0.3);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,7 +98,7 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--token-space-4xl);
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease;
 }
 
@@ -173,19 +173,19 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   min-height: var(--min-touch-target);
 }
 
 .onboarding-button:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px var(--overlay-white-subtle)(16, 185, 129, 0.4);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
 
 .onboarding-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px var(--overlay-white-subtle)(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .onboarding-button-icon {
@@ -331,13 +331,13 @@
 }
 
 .theme-dark .onboarding-icon {
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .theme-dark .onboarding-button {
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
 .theme-dark .onboarding-button:hover {
-  box-shadow: 0 6px 16px var(--overlay-white-subtle)(16, 185, 129, 0.3);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
 }

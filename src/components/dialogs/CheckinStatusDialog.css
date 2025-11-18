@@ -1,6 +1,6 @@
   position: fixed;
   inset: 0;
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -29,7 +29,7 @@
 
 .status-dialog-entry .armband-badge {
   border: none;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
 }
 
 .status-dialog-details {
@@ -82,7 +82,7 @@
 }
 
 .theme-dark .close-button {
-  background: var(--overlay-white-subtle)(51, 65, 85, 0.8);
+  background: rgba(51, 65, 85, 0.8);
   color: #94a3b8;
 }
 
@@ -92,7 +92,7 @@
 }
 
 .theme-dark .close-button:hover {
-  background: var(--overlay-white-subtle)(71, 85, 105, 0.9);
+  background: rgba(71, 85, 105, 0.9);
   color: #cbd5e1;
 }
 
@@ -126,7 +126,7 @@
 
 .status-option:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, var(--checkin-in-ring));
 }
 
@@ -164,7 +164,7 @@
 
 .theme-light .status-option:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, var(--checkin-in-ring));
 }
 
@@ -287,7 +287,7 @@
 
 .status-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, var(--checkin-in-ring));
 }
 
@@ -393,7 +393,7 @@
 
 .theme-light .status-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.15);
   border-color: var(--status-color, var(--checkin-in-ring));
 }
 
@@ -414,7 +414,7 @@
 .theme-dark .status-item:hover {
   background: var(--background-soft);
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.4);
   border-color: var(--status-color, var(--checkin-in-ring));
 }
 

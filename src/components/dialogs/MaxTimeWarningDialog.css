@@ -82,18 +82,18 @@
 .primary-action {
   background: var(--primary);
   color: white;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.3);
 }
 
 .primary-action:hover {
   background: #5855eb;
   transform: translateY(-1px);
-  box-shadow: 0 6px var(--token-space-xl) var(--overlay-white-subtle)(99, 102, 241, 0.4);
+  box-shadow: 0 6px var(--token-space-xl) rgba(99, 102, 241, 0.4);
 }
 
 .primary-action:active {
   transform: translateY(0);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(99, 102, 241, 0.3);
 }
 
 .secondary-action {

@@ -141,7 +141,7 @@
 .time-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .time-input.error {
@@ -151,7 +151,7 @@
 
 .time-input.error:focus {
   border-color: var(--token-error);
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .input-error {
@@ -302,27 +302,27 @@
   background: var(--border);
   border-color: var(--token-text-muted);
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .time-preset-btn:active {
   background: var(--border);
   transform: translateY(0);
-  box-shadow: 0 1px var(--token-space-xs) var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.1);
 }
 
 .time-preset-btn.active {
   background: var(--primary);
   border-color: var(--primary);
   color: white;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(99, 102, 241, 0.3);
 }
 
 .time-preset-btn.active:hover {
   background: #5855eb;
   border-color: #5855eb;
   transform: translateY(-1px);
-  box-shadow: 0 3px 6px var(--overlay-white-subtle)(99, 102, 241, 0.4);
+  box-shadow: 0 3px 6px rgba(99, 102, 241, 0.4);
 }
 
 .time-preset-btn:disabled {

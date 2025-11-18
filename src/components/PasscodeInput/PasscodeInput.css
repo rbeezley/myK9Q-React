@@ -35,14 +35,14 @@
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
-  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .passcode-input:focus {
   border-color: var(--primary);
   background: #fafafa;
   transform: scale(1.05);
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 /* Success State - All inputs filled */

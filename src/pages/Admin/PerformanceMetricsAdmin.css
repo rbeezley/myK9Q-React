@@ -74,7 +74,7 @@
 .export-btn:hover {
   background: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.3);
 }
 
 /* Stats Summary */
@@ -90,14 +90,14 @@
   background: white;
   border-radius: var(--token-space-lg);
   border: 1px solid var(--border);
-  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
 
 .theme-dark .stat-card {
   background: var(--card);
   border-color: #475569;
-  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card.warning {
@@ -161,7 +161,7 @@
   border-radius: var(--token-space-lg);
   overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 3px var(--overlay-white-subtle)(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .theme-dark .sessions-list {
@@ -246,7 +246,7 @@
 }
 
 .theme-dark .table-row.has-errors {
-  background: var(--overlay-white-subtle)(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .col-id code {

@@ -15,7 +15,7 @@
 
 .theme-dark .tv-entry-card {
   --status-done: #34d399; /* Brighter green for dark mode */
-  background: var(--overlay-white-subtle)(26, 29, 35, 0.8);
+  background: rgba(26, 29, 35, 0.8);
 }
 
 /* Status border - matching DogCard.css */
@@ -52,7 +52,7 @@
   font-size: 1.125rem;  /* Mobile: smaller font */
   font-weight: 700;
   color: white;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 /* Section badge (for Novice A & B) - matching DogCard */
@@ -67,7 +67,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .tv-entry-section-badge.section-a {
@@ -190,7 +190,7 @@
   align-items: center;
   gap: var(--token-space-sm);
   padding: var(--token-space-sm) 0.625rem;
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-weight: 700;

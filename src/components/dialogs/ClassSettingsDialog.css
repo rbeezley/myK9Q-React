@@ -187,7 +187,7 @@
 }
 
 .theme-dark .settings-message--success {
-  background: var(--overlay-white-subtle)(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.15);
   color: #86efac;
   border-left-color: var(--status-checked-in);
 }
@@ -199,7 +199,7 @@
 }
 
 .theme-dark .settings-message--error {
-  background: var(--overlay-white-subtle)(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.15);
   color: #fca5a5;
   border-left-color: var(--status-pulled);
 }

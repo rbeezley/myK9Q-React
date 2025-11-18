@@ -73,13 +73,13 @@
 }
 
 .theme-dark .back-button {
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--token-text-white);
-  border-color: var(--overlay-white-subtle)(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .theme-dark .back-button:hover {
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Class/Trial info - Simplified for better mobile UX */
@@ -247,7 +247,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
   z-index: var(--token-z-raised);  /* Inherits stacking context from parent .header-buttons (z-index: 300) */
   min-width: 220px;  /* Increased width to prevent text wrapping */
   max-width: calc(100vw - 2rem);  /* Prevent going off screen */
@@ -256,7 +256,7 @@
 }
 
 .theme-dark .print-dropdown-menu {
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--overlay-white-subtle)(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
 }
 
 .action-menu-item {
@@ -337,21 +337,21 @@
 .status-tab.active {
   background: var(--primary);
   color: var(--primary-foreground);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
 }
 
 .status-tab-count {
   display: inline-block;
   margin-left: 0.375rem;
   padding: var(--token-space-xs) 0.375rem;
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 0.75rem;
   font-size: 0.6875rem;
   font-weight: 700;
 }
 
 .status-tab.active .status-tab-count {
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* Status badges in tabs */
@@ -551,7 +551,7 @@
 .search-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* .search-icon is defined in shared-components.css */
@@ -675,7 +675,7 @@
 .primary-action-button:hover {
   background: var(--token-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(37, 99, 235, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(37, 99, 235, 0.3);
 }
 
 .primary-action-button:active {
@@ -858,7 +858,7 @@
 
 .checkin-status:hover {
   transform: scale(1.05);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
 }
 
 .checkin-status:active {
@@ -926,41 +926,41 @@
   letter-spacing: 0.025em;
   line-height: 1;
   min-height: var(--token-space-4xl);
-  text-shadow: 0 1px var(--token-space-xs) var(--overlay-white-subtle)(0, 0, 0, 0.2);
+  text-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.2);
 }
 
 .result-badge-mobile.qualified,
 .result-badge-mobile.q {
   background: var(--token-success-contrast);
   color: white;
-  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .result-badge-mobile.nq {
   background: var(--token-error-contrast);
   color: white;
-  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .result-badge-mobile.abs,
 .result-badge-mobile.absent {
   background: var(--token-result-absent);
   color: white;
-  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .result-badge-mobile.ex,
 .result-badge-mobile.excused {
   background: var(--token-error-contrast);
   color: white;
-  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .result-badge-mobile.wd,
 .result-badge-mobile.withdrawn {
   background: var(--token-result-withdrawn);
   color: white;
-  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .time-mobile {
@@ -1087,7 +1087,7 @@
   align-items: center;
   gap: var(--token-space-sm);
   padding: var(--token-space-sm) 0.625rem;
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-weight: 700;
@@ -1183,7 +1183,7 @@
 
 .drag-preview {
   transform: rotate(5deg);
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--overlay-white-subtle)(0, 0, 0, 0.2);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.2);
 }
 
 /* ========== EMPTY STATE ========== */
@@ -1262,7 +1262,7 @@
 
 @media (min-width: 1024px) {
   .entry-list-container {
-    box-shadow: 0 0 40px var(--overlay-white-subtle)(0, 0, 0, 0.1);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
   }
 
   .status-tabs {
@@ -1289,7 +1289,7 @@
 
   .checkin-status.mobile-touch-target:hover {
     transform: scale(1.05);
-    box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.15);
+    box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
   }
 }
 

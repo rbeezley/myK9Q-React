@@ -34,7 +34,7 @@
   padding: var(--token-space-xl);
   border: 1px dashed #555;
   border-radius: var(--token-space-md);
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.02);
   box-sizing: border-box;
   width: 100%;
   overflow: hidden;
@@ -56,13 +56,13 @@
   justify-content: center;
   gap: var(--token-space-md);
   padding: var(--token-space-lg);
-  background: var(--overlay-white-subtle)(40, 40, 40, 0.8);
+  background: rgba(40, 40, 40, 0.8);
   border-radius: var(--token-space-md);
   font-size: 14px;
 }
 
 .separator {
-  color: var(--overlay-white-subtle)(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Dog Info Wireframe - NO BACKGROUND */
@@ -111,13 +111,13 @@
 
 .wireframe-dog-breed {
   font-size: 14px;
-  color: var(--overlay-white-subtle)(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.7);
   margin: 0;
 }
 
 .wireframe-dog-handler {
   font-size: 13px;
-  color: var(--overlay-white-subtle)(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -125,7 +125,7 @@
 .wireframe-timer {
   text-align: center;
   padding: var(--token-space-2xl);
-  background: var(--overlay-white-subtle)(40, 40, 40, 0.8);
+  background: rgba(40, 40, 40, 0.8);
   border-radius: var(--token-space-lg);
 }
 
@@ -166,7 +166,7 @@
   align-items: center;
   gap: var(--token-space-lg);
   padding: var(--token-space-lg);
-  background: var(--overlay-white-subtle)(40, 40, 40, 0.8);
+  background: rgba(40, 40, 40, 0.8);
   border-radius: var(--token-space-md);
 }
 
@@ -184,8 +184,8 @@
 }
 
 .wireframe-time-field {
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.3);
-  border: 1px solid var(--overlay-white-subtle)(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   padding: var(--token-space-md) var(--token-space-lg);
   border-radius: 6px;
@@ -203,7 +203,7 @@
 
 .wireframe-max-time {
   font-size: var(--token-space-lg);
-  color: var(--overlay-white-subtle)(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
   font-weight: 500;
 }
@@ -218,7 +218,7 @@
 .wireframe-result-btn {
   flex: 1;
   padding: var(--token-space-lg) var(--token-space-xl);
-  background: var(--overlay-white-subtle)(107, 114, 128, 0.8);
+  background: rgba(107, 114, 128, 0.8);
   color: white;
   border: none;
   border-radius: var(--token-space-md);
@@ -244,7 +244,7 @@
   border-radius: var(--token-space-lg);
   border: var(--token-space-xs) dashed;
   /* ALL should have DARK backgrounds */
-  background: var(--overlay-white-subtle)(20, 20, 25, 0.95);
+  background: rgba(20, 20, 25, 0.95);
   box-sizing: border-box;
   min-width: 0; /* Allow shrinking */
 }
@@ -297,10 +297,10 @@
   color: white;
   min-width: var(--token-space-4xl);
   text-align: center;
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.8);
   padding: var(--token-space-sm) var(--token-space-md);
   border-radius: 6px;
-  border: var(--token-space-xs) solid var(--overlay-white-subtle)(255, 255, 255, 0.2);
+  border: var(--token-space-xs) solid rgba(255, 255, 255, 0.2);
   box-sizing: border-box;
 }
 

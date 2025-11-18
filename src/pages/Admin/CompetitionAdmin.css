@@ -68,12 +68,12 @@
 }
 
 .theme-dark .class-card {
-  background: var(--overlay-white-subtle)(26, 29, 35, 0.8);
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--overlay-white-subtle)(0, 0, 0, 0.3);
+  background: rgba(26, 29, 35, 0.8);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
 .theme-dark .class-card:hover {
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--overlay-white-subtle)(0, 0, 0, 0.4);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
 }
 
 /* Main container */
@@ -158,7 +158,7 @@
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-lg);
-  box-shadow: 0 10px 30px var(--overlay-white-subtle)(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   z-index: var(--token-z-modal);
   overflow: hidden;
 }
@@ -244,7 +244,7 @@
 
 .tip {
   background-color: var(--warning);
-  background-color: var(--overlay-white-subtle)(255, 149, 0, 0.1);
+  background-color: rgba(255, 149, 0, 0.1);
   border: 1px solid var(--warning);
   border-radius: 0.5rem;
   padding: var(--token-space-lg);
@@ -310,17 +310,17 @@
 .admin-input:focus {
   outline: none;
   border-color: var(--brand-blue);
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(0, 122, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 .admin-input-warning {
   border-color: var(--warning);
-  background-color: var(--overlay-white-subtle)(255, 149, 0, 0.05);
+  background-color: rgba(255, 149, 0, 0.05);
 }
 
 .admin-input-warning:focus {
   border-color: var(--warning);
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(255, 149, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
 }
 
 .admin-input-hint {
@@ -328,7 +328,7 @@
   color: var(--warning-contrast);
   margin: 0;
   padding: var(--token-space-md) var(--token-space-lg);
-  background: var(--overlay-white-subtle)(255, 149, 0, 0.1);
+  background: rgba(255, 149, 0, 0.1);
   border-radius: var(--token-radius-md);
   border-left: 3px solid var(--warning);
 }
@@ -408,16 +408,16 @@
   border-radius: var(--token-space-lg);
   cursor: pointer;
   transition: all 0.2s ease;
-  border: var(--token-space-xs) solid var(--overlay-white-subtle)(99, 102, 241, 0.5);
-  background: var(--overlay-white-subtle)(99, 102, 241, 0.1);
+  border: var(--token-space-xs) solid rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.1);
   text-align: center;
 }
 
 .release-card-btn:hover:not(:disabled) {
-  background: var(--overlay-white-subtle)(99, 102, 241, 0.2);
-  border-color: var(--overlay-white-subtle)(99, 102, 241, 0.8);
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(99, 102, 241, 0.3);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(99, 102, 241, 0.3);
 }
 
 .release-card-btn .btn-icon {
@@ -446,14 +446,14 @@
 
 /* Individual button colors - vibrant */
 .immediate-btn {
-  background: var(--overlay-white-subtle)(139, 92, 246, 0.12);
-  border-color: var(--overlay-white-subtle)(139, 92, 246, 0.5);
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
 .immediate-btn:hover:not(:disabled) {
-  background: var(--overlay-white-subtle)(139, 92, 246, 0.2);
-  border-color: var(--overlay-white-subtle)(139, 92, 246, 0.8);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.8);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(139, 92, 246, 0.3);
 }
 
 .immediate-btn .btn-icon {
@@ -461,14 +461,14 @@
 }
 
 .auto-btn {
-  background: var(--overlay-white-subtle)(59, 130, 246, 0.12);
-  border-color: var(--overlay-white-subtle)(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
 .auto-btn:hover:not(:disabled) {
-  background: var(--overlay-white-subtle)(59, 130, 246, 0.2);
-  border-color: var(--overlay-white-subtle)(59, 130, 246, 0.8);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(59, 130, 246, 0.3);
 }
 
 .auto-btn .btn-icon {
@@ -476,14 +476,14 @@
 }
 
 .embargo-btn {
-  background: var(--overlay-white-subtle)(239, 68, 68, 0.12);
-  border-color: var(--overlay-white-subtle)(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
 .embargo-btn:hover:not(:disabled) {
-  background: var(--overlay-white-subtle)(239, 68, 68, 0.2);
-  border-color: var(--overlay-white-subtle)(239, 68, 68, 0.8);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.8);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(239, 68, 68, 0.3);
 }
 
 .embargo-btn .btn-icon {
@@ -491,14 +491,14 @@
 }
 
 .enable-checkin-btn {
-  background: var(--overlay-white-subtle)(16, 185, 129, 0.12);
-  border-color: var(--overlay-white-subtle)(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.5);
 }
 
 .enable-checkin-btn:hover:not(:disabled) {
-  background: var(--overlay-white-subtle)(16, 185, 129, 0.2);
-  border-color: var(--overlay-white-subtle)(16, 185, 129, 0.8);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.8);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(16, 185, 129, 0.3);
 }
 
 .enable-checkin-btn .btn-icon {
@@ -506,14 +506,14 @@
 }
 
 .disable-checkin-btn {
-  background: var(--overlay-white-subtle)(245, 158, 11, 0.12);
-  border-color: var(--overlay-white-subtle)(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.5);
 }
 
 .disable-checkin-btn:hover:not(:disabled) {
-  background: var(--overlay-white-subtle)(245, 158, 11, 0.2);
-  border-color: var(--overlay-white-subtle)(245, 158, 11, 0.8);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) var(--overlay-white-subtle)(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.8);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-xl) rgba(245, 158, 11, 0.3);
 }
 
 .disable-checkin-btn .btn-icon {
@@ -611,38 +611,38 @@
 }
 
 .status-badge.auto {
-  background-color: var(--overlay-white-subtle)(59, 130, 246, 0.1);
+  background-color: rgba(59, 130, 246, 0.1);
   color: var(--auto-color);
   border: 1px solid var(--auto-color);
 }
 
 .status-badge.released {
-  background-color: var(--overlay-white-subtle)(16, 185, 129, 0.1);
+  background-color: rgba(16, 185, 129, 0.1);
   color: var(--release-color);
   border: 1px solid var(--release-color);
 }
 
 .status-badge.immediate {
-  background-color: var(--overlay-white-subtle)(139, 92, 246, 0.1);
+  background-color: rgba(139, 92, 246, 0.1);
   color: var(--status-at-gate);
   border: 1px solid var(--status-at-gate);
 }
 
 .status-badge.embargoed,
 .status-badge.hidden {
-  background-color: var(--overlay-white-subtle)(239, 68, 68, 0.1);
+  background-color: rgba(239, 68, 68, 0.1);
   color: var(--embargo-color);
   border: 1px solid var(--embargo-color);
 }
 
 .status-badge.checkin-enabled {
-  background-color: var(--overlay-white-subtle)(16, 185, 129, 0.1);
+  background-color: rgba(16, 185, 129, 0.1);
   color: var(--token-success);
   border: 1px solid var(--status-checked-in);
 }
 
 .status-badge.checkin-disabled {
-  background-color: var(--overlay-white-subtle)(245, 158, 11, 0.1);
+  background-color: rgba(245, 158, 11, 0.1);
   color: var(--status-setup);
   border: 1px solid #fef3c7;
 }
@@ -674,14 +674,14 @@
 }
 
 .class-card {
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   margin-bottom: var(--token-space-lg);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 1px var(--token-space-sm) var(--overlay-white-subtle)(0, 0, 0, 0.04);
+  box-shadow: 0 1px var(--token-space-sm) rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -690,7 +690,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--overlay-white-subtle)(0, 122, 255, 0.03) 0%, transparent 100%);
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.03) 0%, transparent 100%);
   opacity: 0;
   transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -701,14 +701,14 @@
 
 .class-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) var(--overlay-white-subtle)(0, 0, 0, 0.12);
-  border-color: var(--overlay-white-subtle)(0, 122, 255, 0.3);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 122, 255, 0.3);
 }
 
 .class-card.selected {
   border-color: var(--brand-blue);
-  background-color: var(--overlay-white-subtle)(0, 122, 255, 0.05);
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) var(--overlay-white-subtle)(0, 122, 255, 0.15);
+  background-color: rgba(0, 122, 255, 0.05);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 122, 255, 0.15);
 }
 
 .class-card:active {
@@ -970,7 +970,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--overlay-white-subtle)(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -985,7 +985,7 @@
   padding: var(--token-space-4xl);
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 var(--token-space-2xl) 40px var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 var(--token-space-2xl) 40px rgba(0, 0, 0, 0.15);
 }
 
 .sync-progress-header {
@@ -1083,17 +1083,17 @@
 }
 
 .sync-spinner {
-  background-color: var(--overlay-white-subtle)(88, 86, 214, 0.1);
+  background-color: rgba(88, 86, 214, 0.1);
   color: var(--brand-purple);
 }
 
 .sync-success {
-  background-color: var(--overlay-white-subtle)(52, 199, 89, 0.1);
+  background-color: rgba(52, 199, 89, 0.1);
   color: var(--success);
 }
 
 .sync-error {
-  background-color: var(--overlay-white-subtle)(255, 59, 48, 0.1);
+  background-color: rgba(255, 59, 48, 0.1);
   color: var(--error);
 }
 
@@ -1115,7 +1115,7 @@
   background: var(--card);
   border-radius: var(--token-radius-xl);
   border: 1px solid var(--border);
-  box-shadow: 0 2px 8px var(--overlay-white-subtle)(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .visibility-header {
@@ -1220,7 +1220,7 @@
 .preset-card:hover:not(:disabled) {
   border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .preset-card:disabled {
@@ -1629,7 +1629,7 @@
   background: #0d9e6f;
   border-color: #0d9e6f;
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px var(--overlay-white-subtle)(16, 185, 129, 0.3);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
 }
 
 .checkin-toggle-btn.disabled {
@@ -1643,7 +1643,7 @@
   border-color: var(--muted-foreground);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px var(--overlay-white-subtle)(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .checkin-toggle-btn:disabled {
@@ -1866,7 +1866,7 @@
 
 .toolbar-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .toolbar-btn:disabled {
@@ -1950,13 +1950,13 @@
 
 .class-card-compact:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .class-card-compact.selected {
   border-color: var(--primary);
-  background: var(--primary-light, var(--overlay-white-subtle)(59, 130, 246, 0.05));
-  box-shadow: 0 4px 12px var(--overlay-white-subtle)(59, 130, 246, 0.2);
+  background: var(--primary-light, rgba(59, 130, 246, 0.05));
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 /* Left side: checkbox + info */

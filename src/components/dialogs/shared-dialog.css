@@ -7,7 +7,7 @@
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -88,7 +88,7 @@
 }
 
 .theme-light .close-button:hover {
-  background: var(--overlay-white-subtle)(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   opacity: 1;
 }
 
@@ -99,7 +99,7 @@
 }
 
 .theme-dark .close-button:hover {
-  background: var(--overlay-white-subtle)(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   opacity: 1;
 }
 

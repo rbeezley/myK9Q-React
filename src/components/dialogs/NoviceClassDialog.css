@@ -7,7 +7,7 @@
   padding: var(--token-space-3xl);  /* Mobile: smaller padding */
   max-width: 90%;  /* Mobile: wider */
   width: 90%;
-  box-shadow: 0 var(--token-space-2xl) 60px var(--overlay-white-subtle)(0, 0, 0, 0.3);
+  box-shadow: 0 var(--token-space-2xl) 60px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
 }
 
@@ -21,7 +21,7 @@
 
 /* Judge Warning */
 .judge-warning {
-  background: var(--overlay-white-subtle)(251, 191, 36, 0.1);
+  background: rgba(251, 191, 36, 0.1);
   border: 1px solid var(--warning);
   border-radius: 0.5rem;
   padding: var(--token-space-lg) var(--token-space-xl);
@@ -78,8 +78,8 @@
 
 .dialog-option:has(input:checked) {
   border-color: var(--primary);
-  background: var(--overlay-white-subtle)(59, 130, 246, 0.1); /* Light blue background for selected option */
-  box-shadow: 0 0 0 3px var(--overlay-white-subtle)(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.1); /* Light blue background for selected option */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .dialog-option:has(input:checked) span {
