@@ -2795,6 +2795,8 @@
 
 .menu-header-info {
   flex: 1;
+  min-width: 0; /* Allow flex items to shrink below content size */
+  overflow: hidden; /* Enable text truncation */
 }
 
 .menu-header h3 {
@@ -2802,6 +2804,9 @@
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .show-info-detail {
