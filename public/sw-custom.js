@@ -187,6 +187,27 @@ self.addEventListener('message', (event) => {
 
     // Process the simulated push notification
     handlePushNotification(simulatedEvent);
+
+    // Forward to all open clients for notification center
+    (async () => {
+      try {
+        const clientList = await clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true
+        });
+
+        clientList.forEach(client => {
+          client.postMessage({
+            type: 'PUSH_RECEIVED',
+            data: event.data.data
+          });
+        });
+
+        console.log('📤 [ServiceWorker] Simulated push forwarded to', clientList.length, 'clients');
+      } catch (error) {
+        console.error('❌ [ServiceWorker] Failed to forward simulated push:', error);
+      }
+    })();
   }
 });
 

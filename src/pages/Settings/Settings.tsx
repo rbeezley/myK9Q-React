@@ -581,17 +581,25 @@ export function Settings() {
                       <button
                         onClick={async () => {
                           try {
-                            // Send a test notification
+                            // Send a test notification via simulated push (so it appears in notification center)
                             if ('serviceWorker' in navigator && Notification.permission === 'granted') {
                               const registration = await navigator.serviceWorker.ready;
-                              await registration.showNotification('myK9Q Test Notification', {
-                                body: 'Your notifications are working! You\'ll be notified when your dogs are up next.',
-                                icon: '/myK9Q-notification-icon-192.png',
-                                badge: '/myK9Q-notification-badge-96.png',
-                                tag: 'test-notification',
-                                requireInteraction: false
-                              });
-                              showToast('Test notification sent!', 'success');
+                              if (registration.active) {
+                                registration.active.postMessage({
+                                  type: 'SIMULATE_PUSH',
+                                  data: {
+                                    id: `test-${Date.now()}`,
+                                    licenseKey: showContext?.licenseKey || 'test-show',
+                                    showName: showContext?.showName || 'Test Show',
+                                    title: 'Test Notification',
+                                    content: 'Your notifications are working! You\'ll be notified when your dogs are up next.',
+                                    priority: 'normal',
+                                    type: 'announcement',
+                                    url: '/announcements'
+                                  }
+                                });
+                                showToast('Test notification sent!', 'success');
+                              }
                             }
                           } catch (error) {
                             console.error('[Settings] Test notification error:', error);
