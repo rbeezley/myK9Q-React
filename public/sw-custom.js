@@ -45,32 +45,80 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   if (event.action === 'dismiss') {
+    // If summary notification dismissed, close all grouped notifications
+    if (event.notification.data?.isSummary) {
+      event.waitUntil(
+        self.registration.getNotifications().then(notifications => {
+          const licenseKey = event.notification.data.licenseKey;
+          notifications.forEach(n => {
+            if (n.data?.licenseKey === licenseKey && !n.data?.isUrgent && !n.data?.isDogAlert) {
+              n.close();
+            }
+          });
+        })
+      );
+    }
     return; // Just close the notification
   }
 
   // Default action or 'view' action
   const urlToOpen = event.notification.data?.url || '/announcements';
 
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // If app is already open, focus it and navigate
-        for (const client of clientList) {
-          if (client.url.includes(window.location.origin)) {
-            client.focus();
-            client.postMessage({
-              type: 'NOTIFICATION_CLICK',
-              url: urlToOpen,
-              data: event.notification.data
-            });
-            return;
+  // If summary notification clicked, close all grouped notifications and navigate
+  if (event.notification.data?.isSummary) {
+    event.waitUntil(
+      self.registration.getNotifications().then(notifications => {
+        const licenseKey = event.notification.data.licenseKey;
+        notifications.forEach(n => {
+          if (n.data?.licenseKey === licenseKey && !n.data?.isUrgent && !n.data?.isDogAlert) {
+            n.close();
           }
-        }
+        });
 
-        // If no existing window, open new one
-        return clients.openWindow(urlToOpen);
+        // Then open the app
+        return clients.matchAll({ type: 'window', includeUncontrolled: true })
+          .then((clientList) => {
+            // If app is already open, focus it and navigate
+            for (const client of clientList) {
+              if (client.url.includes(window.location.origin)) {
+                client.focus();
+                client.postMessage({
+                  type: 'NOTIFICATION_CLICK',
+                  url: urlToOpen,
+                  data: event.notification.data
+                });
+                return;
+              }
+            }
+
+            // If no existing window, open new one
+            return clients.openWindow(urlToOpen);
+          });
       })
-  );
+    );
+  } else {
+    // Individual notification clicked
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          // If app is already open, focus it and navigate
+          for (const client of clientList) {
+            if (client.url.includes(window.location.origin)) {
+              client.focus();
+              client.postMessage({
+                type: 'NOTIFICATION_CLICK',
+                url: urlToOpen,
+                data: event.notification.data
+              });
+              return;
+            }
+          }
+
+          // If no existing window, open new one
+          return clients.openWindow(urlToOpen);
+        })
+    );
+  }
 });
 
 // Listen for messages from main thread (for tenant isolation)
@@ -98,6 +146,54 @@ self.addEventListener('message', (event) => {
     handlePushNotification(simulatedEvent);
   }
 });
+
+// Helper function to update notification summary
+async function updateNotificationSummary(licenseKey, showName) {
+  try {
+    // Get all current notifications
+    const allNotifications = await self.registration.getNotifications();
+
+    // Count grouped (non-urgent, non-dog) notifications for this show
+    const groupedNotifications = allNotifications.filter(n =>
+      n.data?.licenseKey === licenseKey &&
+      !n.data?.isUrgent &&
+      !n.data?.isDogAlert &&
+      !n.data?.isSummary
+    );
+
+    const count = groupedNotifications.length;
+
+    // Only show summary if we have 2+ grouped notifications
+    if (count >= 2) {
+      console.log(`📊 Showing summary notification for ${count} grouped alerts`);
+
+      await self.registration.showNotification(
+        `${showName || 'myK9Q'} - ${count} updates`,
+        {
+          body: `Tap to view all announcements`,
+          icon: '/myK9Q-notification-icon-192.png',
+          badge: '/myK9Q-notification-badge-96.png',
+          tag: `show-${licenseKey}-summary`,
+          group: `show-${licenseKey}`,
+          renotify: true,
+          data: {
+            url: '/announcements',
+            licenseKey: licenseKey,
+            isSummary: true
+          }
+        }
+      );
+    } else {
+      // Remove summary if we're down to 1 or 0 grouped notifications
+      const summaryNotifications = allNotifications.filter(n =>
+        n.data?.isSummary && n.data?.licenseKey === licenseKey
+      );
+      summaryNotifications.forEach(n => n.close());
+    }
+  } catch (error) {
+    console.error('Error updating notification summary:', error);
+  }
+}
 
 // Extract push notification logic into a reusable function
 async function handlePushNotification(event) {
@@ -127,28 +223,47 @@ async function handlePushNotification(event) {
       return;
     }
 
-    // Determine notification options based on priority
+    // Determine notification type and priority
     const isUrgent = data.priority === 'urgent';
     const isHigh = data.priority === 'high';
+    const isDogAlert = data.type === 'dog-alert' || data.dogId;
+
+    // Smart grouping strategy:
+    // - Urgent alerts: unique tag (no grouping, always visible)
+    // - Dog alerts: unique tag (no grouping, important to user)
+    // - Normal announcements: grouped by show (reduce clutter)
+    const notificationTag = isUrgent || isDogAlert
+      ? `${data.type || 'announcement'}-${data.licenseKey}-${data.id}`  // Unique = no grouping
+      : `announcement-${data.licenseKey}-${data.id}`;  // Regular tag
+
+    const notificationGroup = isUrgent || isDogAlert
+      ? undefined  // No group = standalone notification
+      : `show-${data.licenseKey}`;  // Grouped with other announcements
 
     const notificationOptions = {
       body: data.content || data.title,
       icon: '/myK9Q-notification-icon-512.png',
-      badge: '/myK9Q-notification-icon-192.png',
-      tag: `announcement-${data.licenseKey}-${data.id}`,
+      badge: '/myK9Q-notification-badge-96.png',
+      tag: notificationTag,
+      group: notificationGroup,  // Enables grouping on Android/Chrome
       requireInteraction: isUrgent, // Persistent for urgent
+      renotify: !isUrgent && notificationGroup !== undefined, // Re-alert for grouped notifications
       silent: false,
       vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
       data: {
-        url: '/announcements',
+        url: data.url || '/announcements',
         licenseKey: data.licenseKey,
         announcementId: data.id,
-        priority: data.priority
+        priority: data.priority,
+        isUrgent: isUrgent,
+        isDogAlert: isDogAlert,
+        dogId: data.dogId,
+        dogName: data.dogName
       },
       actions: [
         {
           action: 'view',
-          title: 'View',
+          title: isDogAlert ? 'View Entry' : 'View',
           icon: '/myK9Q-notification-icon-192.png'
         },
         {
@@ -172,9 +287,17 @@ async function handlePushNotification(event) {
       title = `🚨 ${title}`;
     } else if (isHigh) {
       title = `⚠️ ${title}`;
+    } else if (isDogAlert) {
+      title = `🐕 ${title}`;
     }
 
+    console.log(`📬 Showing notification - Tag: ${notificationTag}, Group: ${notificationGroup || 'none'}`);
     await self.registration.showNotification(title, notificationOptions);
+
+    // Update summary notification for grouped announcements
+    if (notificationGroup && !isUrgent && !isDogAlert) {
+      await updateNotificationSummary(data.licenseKey, data.showName);
+    }
 
   } catch (error) {
     console.error('Error handling push notification:', error);

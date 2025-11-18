@@ -577,35 +577,89 @@ export function Settings() {
                         You'll receive alerts when your favorited dogs are up next
                       </div>
                     </div>
-                    <button
-                      onClick={async () => {
-                        try {
-                          // Send a test notification
-                          if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-                            const registration = await navigator.serviceWorker.ready;
-                            await registration.showNotification('myK9Q Test Notification', {
-                              body: 'Your notifications are working! You\'ll be notified when your dogs are up next.',
-                              icon: '/myK9Q-notification-icon-192.png',
-                              badge: '/myK9Q-notification-badge-96.png',
-                              tag: 'test-notification',
-                              requireInteraction: false
-                            });
-                            showToast('Test notification sent!', 'success');
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={async () => {
+                          try {
+                            // Send a test notification
+                            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                              const registration = await navigator.serviceWorker.ready;
+                              await registration.showNotification('myK9Q Test Notification', {
+                                body: 'Your notifications are working! You\'ll be notified when your dogs are up next.',
+                                icon: '/myK9Q-notification-icon-192.png',
+                                badge: '/myK9Q-notification-badge-96.png',
+                                tag: 'test-notification',
+                                requireInteraction: false
+                              });
+                              showToast('Test notification sent!', 'success');
+                            }
+                          } catch (error) {
+                            console.error('[Settings] Test notification error:', error);
+                            showToast('Failed to send test notification', 'error');
                           }
-                        } catch (error) {
-                          console.error('[Settings] Test notification error:', error);
-                          showToast('Failed to send test notification', 'error');
-                        }
-                      }}
-                      className="btn btn-secondary"
-                      style={{
-                        padding: '0.5rem 1rem',
-                        fontSize: '0.875rem',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      Send Test Notification
-                    </button>
+                        }}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.875rem',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Send Test
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            // Test notification grouping by sending 3 notifications rapidly
+                            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                              const registration = await navigator.serviceWorker.ready;
+                              const licenseKey = 'test-show-123';
+
+                              // Simulate 3 grouped announcements
+                              const announcements = [
+                                { title: 'Lunch break announced', content: 'Competition paused for 30 minutes', priority: 'normal' },
+                                { title: 'Weather update', content: 'Light rain expected around 2 PM', priority: 'normal' },
+                                { title: 'Class schedule change', content: 'Novice moved to Ring 2', priority: 'normal' }
+                              ];
+
+                              for (let i = 0; i < announcements.length; i++) {
+                                const ann = announcements[i];
+                                // Simulate push notification through service worker
+                                if (registration.active) {
+                                  registration.active.postMessage({
+                                    type: 'SIMULATE_PUSH',
+                                    data: {
+                                      licenseKey: licenseKey,
+                                      showName: 'Test Show',
+                                      id: `test-${Date.now()}-${i}`,
+                                      title: ann.title,
+                                      content: ann.content,
+                                      priority: ann.priority,
+                                      type: 'announcement'
+                                    }
+                                  });
+                                }
+                                // Small delay between notifications
+                                await new Promise(r => setTimeout(r, 500));
+                              }
+
+                              showToast('Sent 3 grouped notifications!', 'success');
+                            }
+                          } catch (error) {
+                            console.error('[Settings] Test grouping error:', error);
+                            showToast('Failed to test grouping', 'error');
+                          }
+                        }}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.875rem',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Test Grouping
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
