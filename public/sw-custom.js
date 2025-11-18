@@ -1,11 +1,14 @@
 // Custom Service Worker for Push Notifications
-// This extends the Workbox-generated service worker
+// This uses injectManifest strategy to combine custom logic with Workbox precaching
 
-// Workbox precache manifest injection point
-self.__WB_MANIFEST;
-
-// Import Workbox if available
+// Import Workbox
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.6.0/workbox-sw.js');
+
+// Precache manifest - Vite PWA will inject this during build
+const precacheManifest = self.__WB_MANIFEST || [];
+if (precacheManifest.length > 0) {
+  workbox.precaching.precacheAndRoute(precacheManifest);
+}
 
 // Get current license key from localStorage or session
 const getCurrentLicenseKey = async () => {

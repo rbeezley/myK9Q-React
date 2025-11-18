@@ -96,6 +96,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest', // Use our custom service worker
+      srcDir: 'public',
+      filename: 'sw-custom.js',
       registerType: 'prompt', // Changed from 'autoUpdate' to 'prompt' to prevent auto-reload in dev
       devOptions: {
         enabled: true, // Enable for offline testing
