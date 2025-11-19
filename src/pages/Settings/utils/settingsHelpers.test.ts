@@ -78,7 +78,9 @@ describe('exportSettingsToFile', () => {
 
 describe('importSettingsFromFile', () => {
   test('should import valid settings file', async () => {
-    const mockFile = new File(['{"theme":"dark"}'], 'settings.json', { type: 'application/json' });
+    const mockFile = {
+      text: vi.fn().mockResolvedValue('{"theme":"dark"}')
+    } as any;
     const mockImportSettings = vi.fn().mockReturnValue(true);
     const showToast = vi.fn();
 
@@ -90,7 +92,9 @@ describe('importSettingsFromFile', () => {
   });
 
   test('should handle invalid settings file', async () => {
-    const mockFile = new File(['invalid'], 'settings.json', { type: 'application/json' });
+    const mockFile = {
+      text: vi.fn().mockResolvedValue('invalid')
+    } as any;
     const mockImportSettings = vi.fn().mockReturnValue(false);
     const showToast = vi.fn();
 
@@ -107,33 +111,48 @@ describe('importSettingsFromFile', () => {
 describe('resetOnboarding', () => {
   test('should remove onboarding flag and schedule reload', () => {
     const showToast = vi.fn();
-    const removeItem = vi.spyOn(Storage.prototype, 'removeItem');
+    const removeItemSpy = vi.fn();
+    const originalRemoveItem = localStorage.removeItem;
+    localStorage.removeItem = removeItemSpy;
+
+    // Mock window.location.reload
+    const reloadSpy = vi.fn();
+    const originalLocation = window.location;
+    // @ts-expect-error - mocking location
+    window.location = { ...originalLocation, reload: reloadSpy };
+
     vi.useFakeTimers();
 
     resetOnboarding(showToast, 100);
 
-    expect(removeItem).toHaveBeenCalledWith('onboarding_completed');
+    expect(removeItemSpy).toHaveBeenCalledWith('onboarding_completed');
     expect(showToast).toHaveBeenCalledWith(
       'Onboarding will show when you refresh or reopen the app',
       'info'
     );
 
     vi.advanceTimersByTime(100);
+    expect(reloadSpy).toHaveBeenCalled();
 
     vi.useRealTimers();
-    removeItem.mockRestore();
+    localStorage.removeItem = originalRemoveItem;
+    // @ts-expect-error - restoring location
+    window.location = originalLocation;
   });
 });
 
 describe('reloadPage', () => {
   test('should call window.location.reload', () => {
-    const originalReload = window.location.reload;
-    window.location.reload = vi.fn();
+    const reloadSpy = vi.fn();
+    const originalLocation = window.location;
+    // @ts-expect-error - mocking location
+    window.location = { ...originalLocation, reload: reloadSpy };
 
     reloadPage();
 
-    expect(window.location.reload).toHaveBeenCalled();
+    expect(reloadSpy).toHaveBeenCalled();
 
-    window.location.reload = originalReload;
+    // @ts-expect-error - restoring location
+    window.location = originalLocation;
   });
 });

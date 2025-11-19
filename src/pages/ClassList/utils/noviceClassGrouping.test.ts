@@ -89,13 +89,18 @@ describe('groupNoviceClasses', () => {
 
 describe('isCombinedNoviceEntry', () => {
   test('should identify combined entries', () => {
-    const combined = createMockClass({ section: 'A & B' });
+    const combined = createMockClass({ section: 'A & B', pairedClassId: 2 });
     expect(isCombinedNoviceEntry(combined)).toBe(true);
   });
 
   test('should return false for single sections', () => {
     const single = createMockClass({ section: 'A' });
     expect(isCombinedNoviceEntry(single)).toBe(false);
+  });
+
+  test('should return false if section is A & B but no pairedClassId', () => {
+    const incompleteCombined = createMockClass({ section: 'A & B' });
+    expect(isCombinedNoviceEntry(incompleteCombined)).toBe(false);
   });
 });
 
