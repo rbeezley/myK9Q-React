@@ -763,11 +763,16 @@ Phase 0: Nationals Split
       Status: ⬜ Not Started
 
 Phase 1: Foundation Utilities
-  [x] Week 3: 4 of 11 extractions ✅ COMPLETE
+  [~] Week 3: 4 of 11 extractions ✅ CORE COMPLETE, 7 REMAINING
       Actual: 1,164 LOC created
       Tests: 172 (164 passing = 95.3%)
       Committed: 3 utilities (localStorageUtils, favoritesUtils, classFilterUtils)
-      Status: ✅ Core utilities complete (2025-01-19)
+      Remaining: 7 utilities (~320 LOC savings, 70-85 tests)
+        - notification-delivery.ts, notification-voice.ts
+        - NotificationAnalytics, NotificationQueue classes
+        - nationals-scoring-utils.ts, admin-data-utils.ts
+        - status-utils.ts consolidation
+      Status: 🔄 Core complete, remaining utilities IN PROGRESS (2025-01-19)
 
 Phase 2: Standalone Hooks
   [x] Week 4: 7 of 9 extractions ✅ COMPLETE
@@ -1055,5 +1060,5 @@ Phase 4: UI Components
 ---
 
 **Last Updated**: 2025-01-19
-**Status**: ✅ Phase 0 Week 1 COMPLETE | ✅ Phase 1 Week 3 COMPLETE | ✅ Phase 2 Week 4 COMPLETE
-**Next Step**: Begin Phase 3 integrated hooks (useNotificationSettings, useVisibilitySettings, etc.)
+**Status**: ✅ Phase 0 Week 1 COMPLETE | 🔄 Phase 1 (4/11 complete) | ✅ Phase 2 Week 4 COMPLETE
+**Next Step**: Complete remaining Phase 1 utilities (7 items: notification-delivery, notification-voice, NotificationAnalytics, NotificationQueue, nationals-scoring-utils, admin-data-utils, status-utils consolidation)
