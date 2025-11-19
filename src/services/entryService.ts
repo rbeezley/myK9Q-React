@@ -11,6 +11,7 @@ import type { Class } from '@/services/replication/tables/ReplicatedClassesTable
 import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
+import { convertResultTextToStatus } from '@/utils/transformationUtils';
 
 /**
  * Service for managing entries and scores
@@ -388,19 +389,8 @@ export async function submitScore(
 ): Promise<boolean> {
   console.log('🎯 submitScore CALLED for entry:', entryId, 'with data:', scoreData);
   try {
-    // Map the result text to the valid enum values
-    let resultStatus = 'pending';
-    if (scoreData.resultText === 'Qualified' || scoreData.resultText === 'Q') {
-      resultStatus = 'qualified';
-    } else if (scoreData.resultText === 'Not Qualified' || scoreData.resultText === 'NQ') {
-      resultStatus = 'nq';
-    } else if (scoreData.resultText === 'Absent' || scoreData.resultText === 'ABS') {
-      resultStatus = 'absent';
-    } else if (scoreData.resultText === 'Excused' || scoreData.resultText === 'EX') {
-      resultStatus = 'excused';
-    } else if (scoreData.resultText === 'Withdrawn' || scoreData.resultText === 'WD') {
-      resultStatus = 'withdrawn';
-    }
+    // Map the result text to the valid enum values using utility function
+    const resultStatus = convertResultTextToStatus(scoreData.resultText);
 
     // Prepare score data for entries table
     // NOTE: After migration 039, scores are stored directly in entries table (not results)
