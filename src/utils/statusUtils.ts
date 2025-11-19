@@ -5,6 +5,10 @@
  * Provides consistent status display across the application.
  */
 
+// Entry status type is imported from entryStore (single source of truth)
+import type { EntryStatus } from '../stores/entryStore';
+export type { EntryStatus } from '../stores/entryStore';
+
 // Type definitions
 export type ClassStatus = 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed' | 'no-status';
 export type EntryCheckInStatus = 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'pending';
@@ -240,4 +244,39 @@ export function getCheckInStatusIcon(checkInStatus?: string): 'Circle' | 'Check'
     default:
       return 'Circle';
   }
+}
+
+/**
+ * Determine entry status from database row data
+ * Handles both simple entry_status field and complex logic with is_in_ring fallback
+ *
+ * @param entryStatus - Entry status from database (entry_status field)
+ * @param isInRing - Whether the entry is currently in the ring (optional)
+ * @returns Resolved entry status
+ *
+ * @example
+ * // Simple status determination
+ * determineEntryStatus('checked-in') // 'checked-in'
+ *
+ * @example
+ * // With fallback to in-ring
+ * determineEntryStatus(undefined, true) // 'in-ring'
+ * determineEntryStatus(undefined, false) // 'no-status'
+ */
+export function determineEntryStatus(
+  entryStatus?: string | null,
+  isInRing?: boolean
+): EntryStatus {
+  // If entry_status exists, use it directly
+  if (entryStatus) {
+    return entryStatus as EntryStatus;
+  }
+
+  // Fallback: check if entry is in ring
+  if (isInRing) {
+    return 'in-ring';
+  }
+
+  // Default fallback
+  return 'no-status';
 }

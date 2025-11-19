@@ -10,6 +10,7 @@ import type { Entry as ReplicatedEntry } from '@/services/replication/tables/Rep
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
+import { determineEntryStatus } from '@/utils/statusUtils';
 
 /**
  * Service for managing entries and scores
@@ -101,7 +102,7 @@ export async function getClassEntries(
 
             // Transform replicated entries to Entry format
             const mappedEntries = classEntries.map(entry => {
-              const status = (entry.entry_status as EntryStatus) || 'no-status';
+              const status = determineEntryStatus(entry.entry_status);
 
               return {
                 id: parseInt(entry.id, 10),
@@ -217,7 +218,7 @@ export async function getClassEntries(
       }
 
       // Determine unified status using entry_status from view
-      const status = (row.entry_status as EntryStatus) || 'no-status';
+      const status = determineEntryStatus(row.entry_status);
 
       return {
         id: row.id,
@@ -318,8 +319,7 @@ export async function getTrialEntries(
       const result = row.results?.[0];
 
       // Determine status
-      const status = (row.entry_status as EntryStatus | undefined) ||
-                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'no-status' as EntryStatus);
+      const status = determineEntryStatus(row.entry_status, result?.is_in_ring);
 
       return {
         id: row.id,
@@ -1189,8 +1189,7 @@ export async function getEntriesByArmband(
       const result = row.results?.[0];
 
       // Determine status
-      const status = (row.entry_status as EntryStatus | undefined) ||
-                     (result?.is_in_ring ? 'in-ring' as EntryStatus : 'no-status' as EntryStatus);
+      const status = determineEntryStatus(row.entry_status, result?.is_in_ring);
 
       return {
         id: row.id,
