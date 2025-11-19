@@ -13,6 +13,7 @@ import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
+import { mapDatabaseRowToEntry } from '@/utils/entryMappers';
 
 /**
  * Service for managing entries and scores
@@ -320,37 +321,12 @@ export async function getTrialEntries(
       // Get result if exists
       const result = row.results?.[0];
 
-      // Determine status
+      // Determine status and className for Entry mapping
       const status = determineEntryStatus(row.entry_status, result?.is_in_ring);
+      const className = buildClassName(row.element, row.level, row.section);
 
-      return {
-        id: row.id,
-        armband: row.armband,
-        callName: row.call_name,
-        breed: row.breed,
-        handler: row.handler,
-        jumpHeight: row.jump_height,
-        preferredTime: row.preferred_time,
-        isScored: row.is_scored || false,
-
-        // New unified status
-        status,
-
-        // Deprecated fields (backward compatibility)
-        inRing: status === 'in-ring',
-        checkedIn: status !== 'no-status',
-        checkinStatus: status,
-
-        resultText: row.result_text,
-        searchTime: row.search_time,
-        faultCount: row.fault_count,
-        placement: row.placement,
-        classId: row.class_id,
-        className: buildClassName(row.element, row.level, row.section),
-        section: row.section,
-        element: row.element,
-        level: row.level
-      };
+      // Use utility mapper for consistent Entry object creation
+      return mapDatabaseRowToEntry(row, status, className);
     });
   } catch (error) {
     console.error('Error in getTrialEntries:', error);
@@ -1177,37 +1153,12 @@ export async function getEntriesByArmband(
       // Get result if exists
       const result = row.results?.[0];
 
-      // Determine status
+      // Determine status and className for Entry mapping
       const status = determineEntryStatus(row.entry_status, result?.is_in_ring);
+      const className = buildClassName(row.element, row.level, row.section);
 
-      return {
-        id: row.id,
-        armband: row.armband,
-        callName: row.call_name,
-        breed: row.breed,
-        handler: row.handler,
-        jumpHeight: row.jump_height,
-        preferredTime: row.preferred_time,
-        isScored: row.is_scored || false,
-
-        // New unified status
-        status,
-
-        // Deprecated fields (backward compatibility)
-        inRing: status === 'in-ring',
-        checkedIn: status !== 'no-status',
-        checkinStatus: status,
-
-        resultText: row.result_text,
-        searchTime: row.search_time,
-        faultCount: row.fault_count,
-        placement: row.placement,
-        classId: row.class_id,
-        className: buildClassName(row.element, row.level, row.section),
-        section: row.section,
-        element: row.element,
-        level: row.level
-      };
+      // Use utility mapper for consistent Entry object creation
+      return mapDatabaseRowToEntry(row, status, className);
     });
   } catch (error) {
     console.error('Error in getEntriesByArmband:', error);
