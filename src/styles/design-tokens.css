@@ -24,7 +24,8 @@
   --muted-foreground: #6b7280;
   --border: #e5e7eb;
   --input: #f3f4f6;
-  --primary: #007AFF;
+  --primary: #10b981;
+  --primary-hover: #059669;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -322,7 +323,8 @@
   --muted-foreground: #ffffff;
   --border: #4a5568;
   --input: #2a2a2a;
-  --primary: #007AFF;
+  --primary: #10b981;
+  --primary-hover: #059669;
   --primary-foreground: #ffffff;
   --secondary: #2a2a2a;
   --secondary-foreground: #ffffff;
