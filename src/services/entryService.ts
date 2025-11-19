@@ -8,6 +8,7 @@ import { syncManager } from './syncManager';
 import { getReplicationManager } from '@/services/replication';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
+import { buildClassName } from '@/utils/stringUtils';
 
 /**
  * Service for managing entries and scores
@@ -139,7 +140,7 @@ export async function getClassEntries(
                 excusedReason: undefined,
                 withdrawnReason: undefined,
                 classId: parseInt(entry.class_id, 10),
-                className: `${cachedClass.element} ${cachedClass.level}` + (cachedClass.section && cachedClass.section !== '-' ? ` ${cachedClass.section}` : ''),
+                className: buildClassName(cachedClass.element, cachedClass.level, cachedClass.section),
                 section: cachedClass.section || '',
                 element: cachedClass.element,
                 level: cachedClass.level,
@@ -270,7 +271,7 @@ export async function getClassEntries(
         excusedReason: row.excuse_reason || undefined,
         withdrawnReason: row.withdrawal_reason || undefined,
         classId: row.class_id,
-        className: `${row.classes.element} ${row.classes.level}` + (row.classes.section && row.classes.section !== '-' ? ` ${row.classes.section}` : ''),
+        className: buildClassName(row.classes.element, row.classes.level, row.classes.section),
         section: row.classes.section,
         element: row.classes.element,
         level: row.classes.level,
@@ -365,7 +366,7 @@ export async function getTrialEntries(
         faultCount: row.fault_count,
         placement: row.placement,
         classId: row.class_id,
-        className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
+        className: buildClassName(row.element, row.level, row.section),
         section: row.section,
         element: row.element,
         level: row.level
@@ -944,7 +945,7 @@ export async function getClassInfo(
 
     return {
       id: classData.id,
-      className: `${classData.element} ${classData.level}` + (classData.section ? ` ${classData.section}` : ''),
+      className: buildClassName(classData.element, classData.level, classData.section),
       classType: classData.class_status,
       trialId: classData.trial_id,
       judgeId: classData.judge_name,
@@ -1236,7 +1237,7 @@ export async function getEntriesByArmband(
         faultCount: row.fault_count,
         placement: row.placement,
         classId: row.class_id,
-        className: `${row.element} ${row.level}` + (row.section ? ` ${row.section}` : ''),
+        className: buildClassName(row.element, row.level, row.section),
         section: row.section,
         element: row.element,
         level: row.level
