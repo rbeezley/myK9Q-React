@@ -30,6 +30,8 @@ import { X, ClipboardCheck } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
+import { parseSmartTime } from '../../../utils/timeInputParsing';
+import { initializeAreas, type AreaScore } from '../../../services/scoresheets/areaInitialization';
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
 import './AKCScentWorkScoresheet-Flutter.css';
@@ -38,13 +40,6 @@ import '../../../styles/containers.css';
 import '../../../components/wireframes/NationalsWireframe.css';
 
 import { QualifyingResult } from '../../../stores/scoringStore';
-
-interface AreaScore {
-  areaName: string;
-  time: string;
-  found: boolean;
-  correct: boolean;
-}
 
 // Nationals-specific qualifying results (simplified for Nationals)
 type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
@@ -164,68 +159,9 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     };
   }, []); // Empty dependency array ensures this only runs on unmount
 
-  // Initialize areas based on element and level (existing logic)
-  const initializeAreas = (element: string, level: string): AreaScore[] => {
-    const elementLower = element?.toLowerCase() || '';
-    const levelLower = level?.toLowerCase() || '';
-
-    // For nationals mode, everything except Handler Discrimination has single area
-    if (isNationalsMode) {
-      if (elementLower === 'handler discrimination' || elementLower === 'handlerdiscrimination') {
-        // Handler Discrimination in nationals still follows regular rules
-        if (levelLower === 'master' || levelLower === 'masters') {
-          return [
-            { areaName: 'Handler Discrimination Area 1', time: '', found: false, correct: false },
-            { areaName: 'Handler Discrimination Area 2', time: '', found: false, correct: false }
-          ];
-        } else {
-          return [
-            { areaName: 'Handler Discrimination', time: '', found: false, correct: false }
-          ];
-        }
-      } else {
-        // All other elements in nationals have single area regardless of level
-        return [
-          { areaName: element || 'Search Area', time: '', found: false, correct: false }
-        ];
-      }
-    }
-
-    // Regular show logic (non-nationals)
-    if (elementLower === 'interior') {
-      if (levelLower === 'excellent') {
-        return [
-          { areaName: 'Interior Area 1', time: '', found: false, correct: false },
-          { areaName: 'Interior Area 2', time: '', found: false, correct: false }
-        ];
-      } else if (levelLower === 'master' || levelLower === 'masters') {
-        return [
-          { areaName: 'Interior Area 1', time: '', found: false, correct: false },
-          { areaName: 'Interior Area 2', time: '', found: false, correct: false },
-          { areaName: 'Interior Area 3', time: '', found: false, correct: false }
-        ];
-      } else {
-        return [
-          { areaName: 'Interior', time: '', found: false, correct: false }
-        ];
-      }
-    } else if (elementLower === 'handler discrimination' || elementLower === 'handlerdiscrimination') {
-      if (levelLower === 'master' || levelLower === 'masters') {
-        return [
-          { areaName: 'Handler Discrimination Area 1', time: '', found: false, correct: false },
-          { areaName: 'Handler Discrimination Area 2', time: '', found: false, correct: false }
-        ];
-      } else {
-        return [
-          { areaName: 'Handler Discrimination', time: '', found: false, correct: false }
-        ];
-      }
-    } else {
-      // Container, Exterior, Buried - single area for all levels in regular shows
-      return [
-        { areaName: element || 'Search Area', time: '', found: false, correct: false }
-      ];
-    }
+  // Initialize areas based on element and level using utility function
+  const initializeAreasForClass = (element: string, level: string): AreaScore[] => {
+    return initializeAreas(element, level, isNationalsMode);
   };
 
   // Calculate Nationals points in real-time
@@ -556,7 +492,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   };
 
   const _resetForm = (entry?: any) => {
-    const nextEntryAreas = initializeAreas(entry?.element || '', entry?.level || '');
+    const nextEntryAreas = initializeAreasForClass(entry?.element || '', entry?.level || '');
     setAreas(nextEntryAreas);
     setQualifying('');
     setNonQualifyingReason('');
@@ -823,114 +759,7 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     handleAreaUpdate(index, 'time', '');
   };
 
-  // Smart time parsing function - handles multiple input formats
-  const parseSmartTime = (input: string): string => {
-    if (!input || input.trim() === '') return '';
-
-    const cleaned = input.trim();
-
-    // If already in MM:SS.HH format, validate and return
-    const fullFormatMatch = cleaned.match(/^(\d{1,2}):(\d{2})\.(\d{2})$/);
-    if (fullFormatMatch) {
-      const [, minutes, seconds, hundredths] = fullFormatMatch;
-      const min = parseInt(minutes);
-      const sec = parseInt(seconds);
-      const hun = parseInt(hundredths);
-
-      if (min <= 59 && sec <= 59 && hun <= 99) {
-        return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.${hun.toString().padStart(2, '0')}`;
-      }
-    }
-
-    // Handle MM:SS format (no hundredths)
-    const timeFormatMatch = cleaned.match(/^(\d{1,2}):(\d{2})$/);
-    if (timeFormatMatch) {
-      const [, minutes, seconds] = timeFormatMatch;
-      const min = parseInt(minutes);
-      const sec = parseInt(seconds);
-
-      if (min <= 59 && sec <= 59) {
-        return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.00`;
-      }
-    }
-
-    // Handle decimal format like 123.45
-    const decimalMatch = cleaned.match(/^(\d{1,3})\.(\d{1,2})$/);
-    if (decimalMatch) {
-      const [, wholePart, decimalPart] = decimalMatch;
-      const totalSeconds = parseInt(wholePart);
-      const hundredths = decimalPart.padEnd(2, '0').slice(0, 2);
-
-      if (totalSeconds <= 3599) { // Max 59:59
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths}`;
-      }
-    }
-
-    // Handle pure digit strings
-    const digitsOnly = cleaned.replace(/\D/g, '');
-    if (digitsOnly.length === 0) return '';
-
-    const digits = digitsOnly.slice(0, 6); // Max 6 digits
-
-    if (digits.length === 5) {
-      // 5 digits: MSSYY format (1:23.45)
-      const minutes = digits.slice(0, 1);
-      const seconds = digits.slice(1, 3);
-      const hundredths = digits.slice(3, 5);
-
-      const min = parseInt(minutes);
-      const sec = parseInt(seconds);
-
-      if (min <= 9 && sec <= 59) {
-        return `0${minutes}:${seconds}.${hundredths}`;
-      }
-    } else if (digits.length >= 6) {
-      // 6+ digits: MMSSYY format
-      const minutes = digits.slice(0, 2);
-      const seconds = digits.slice(2, 4);
-      const hundredths = digits.slice(4, 6).padEnd(2, '0');
-
-      const min = parseInt(minutes);
-      const sec = parseInt(seconds);
-
-      if (min <= 59 && sec <= 59) {
-        return `${minutes}:${seconds}.${hundredths}`;
-      }
-    } else if (digits.length === 4) {
-      // 4 digits: SSYY format (under 1 minute)
-      const seconds = digits.slice(0, 2);
-      const hundredths = digits.slice(2, 4);
-
-      const sec = parseInt(seconds);
-      if (sec <= 59) {
-        return `00:${seconds}.${hundredths}`;
-      }
-    } else if (digits.length === 3) {
-      // 3 digits: SYY format (S.YY seconds)
-      const seconds = digits.slice(0, 1);
-      const hundredths = digits.slice(1, 3);
-
-      const sec = parseInt(seconds);
-      if (sec <= 9) {
-        return `00:0${seconds}.${hundredths}`;
-      }
-    } else if (digits.length === 2) {
-      // 2 digits: treat as hundredths of a second (0.YY)
-      const hundredths = digits;
-      return `00:00.${hundredths}`;
-    } else if (digits.length === 1) {
-      // 1 digit: treat as minutes
-      const minutes = parseInt(digits);
-      if (minutes <= 9) {
-        return `0${minutes}:00.00`;
-      }
-    }
-
-    // If no valid format found, return original input for user to continue typing
-    return cleaned;
-  };
+  // Smart time parsing - uses imported utility function
 
   // Enhanced time input handler with smart parsing
   const handleSmartTimeInput = (index: number, rawInput: string) => {
@@ -1077,13 +906,13 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
         if (targetEntry) {
           setCurrentEntry(targetEntry);
           await markInRing(targetEntry.id, true);
-          const initialAreas = initializeAreas(targetEntry.element || '', targetEntry.level || '');
+          const initialAreas = initializeAreasForClass(targetEntry.element || '', targetEntry.level || '');
           setAreas(initialAreas);
         }
       } else if (transformedEntries.length > 0) {
         setCurrentEntry(transformedEntries[0]);
         await markInRing(transformedEntries[0].id, true);
-        const initialAreas = initializeAreas(transformedEntries[0].element || '', transformedEntries[0].level || '');
+        const initialAreas = initializeAreasForClass(transformedEntries[0].element || '', transformedEntries[0].level || '');
         setAreas(initialAreas);
       }
 

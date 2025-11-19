@@ -13,12 +13,20 @@ import {
   SettingsSearch,
   useSearchableSettings
 } from '@/components/ui';
-import { exportPersonalData, clearAllData, getStorageUsage, formatBytes } from '@/services/dataExportService';
+import { getStorageUsage, formatBytes } from '@/services/dataExportService';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
 import { Download, AlertCircle, Database, Trash2, Volume2, MoreVertical, RefreshCw, Settings as SettingsIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PushNotificationService from '@/services/pushNotificationService';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  exportPersonalDataHelper,
+  clearAllDataHelper,
+  exportSettingsToFile,
+  importSettingsFromFile,
+  resetOnboarding,
+  reloadPage
+} from './utils/settingsHelpers';
 import './Settings.css';
 
 export function Settings() {
@@ -98,15 +106,7 @@ export function Settings() {
 
   // Export personal data
   const handleExportData = async () => {
-    try {
-      const authData = localStorage.getItem('myK9Q_auth');
-      const licenseKey = authData ? JSON.parse(authData).licenseKey : undefined;
-      await exportPersonalData(licenseKey);
-      showToast('Your data has been exported successfully!');
-    } catch (error) {
-      showToast('Failed to export your data', 'error');
-      console.error('Export data error:', error);
-    }
+    await exportPersonalDataHelper(showToast);
   };
 
   // Clear all data
@@ -115,15 +115,14 @@ export function Settings() {
     setIsClearing(true);
 
     try {
-      await clearAllData({ keepAuth: true, keepSettings: false, keepFavorites: false });
-      showToast('All data cleared successfully! You remain logged in.', 'success');
-
-      // Refresh storage usage
-      const usage = await getStorageUsage();
+      const usage = await clearAllDataHelper(showToast, {
+        keepAuth: true,
+        keepSettings: false,
+        keepFavorites: false
+      });
       setStorageUsage(usage);
     } catch (error) {
-      showToast('Failed to clear data', 'error');
-      console.error('Clear data error:', error);
+      // Error already handled by helper
     } finally {
       setIsClearing(false);
     }
@@ -131,22 +130,7 @@ export function Settings() {
 
   // Export settings
   const handleExport = () => {
-    try {
-      const json = exportSettings();
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `myK9Q-settings-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      showToast('Settings exported successfully!');
-    } catch (error) {
-      showToast('Failed to export settings', 'error');
-      console.error('Export error:', error);
-    }
+    exportSettingsToFile(exportSettings, showToast);
   };
 
   // Import settings
@@ -158,38 +142,17 @@ export function Settings() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    try {
-      const text = await file.text();
-      const success = importSettings(text);
-
-      if (success) {
-        showToast('Settings imported successfully!');
-        // Reset file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      } else {
-        showToast('Failed to import settings - invalid file format', 'error');
-      }
-    } catch (error) {
-      showToast('Failed to read settings file', 'error');
-      console.error('Import error:', error);
-    }
+    await importSettingsFromFile(file, importSettings, showToast, fileInputRef);
   };
 
   // Refresh function
   const handleRefresh = () => {
-    window.location.reload();
+    reloadPage();
   };
 
   // Show onboarding again
   const handleShowOnboarding = () => {
-    localStorage.removeItem('onboarding_completed');
-    showToast('Onboarding will show when you refresh or reopen the app', 'info');
-    // Optional: Auto-reload after a delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+    resetOnboarding(showToast);
   };
 
   return (

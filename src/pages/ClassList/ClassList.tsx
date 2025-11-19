@@ -22,6 +22,8 @@ import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
+import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
+import { getContextualPreview, getFormattedStatus, getStatusColor } from './utils/statusFormatting';
 
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
@@ -319,23 +321,8 @@ export const ClassList: React.FC = () => {
   };
 
   // Helper function to find the paired Novice class (A pairs with B, and vice versa)
-  const findPairedNoviceClass = useCallback((clickedClass: ClassEntry): ClassEntry | null => {
-    // Only proceed if this is a Novice level class
-    if (clickedClass.level !== 'Novice') {
-      return null;
-    }
-
-    // Determine the paired section (A <-> B)
-    const pairedSection = clickedClass.section === 'A' ? 'B' : 'A';
-
-    // Find the matching class with same element, level, but different section
-    const paired = classes.find(c =>
-      c.element === clickedClass.element &&
-      c.level === clickedClass.level &&
-      c.section === pairedSection
-    );
-
-    return paired || null;
+  const findPaired = useCallback((clickedClass: ClassEntry): ClassEntry | null => {
+    return findPairedNoviceClass(clickedClass, classes);
   }, [classes]);
 
   // Prefetch class entry data when hovering/touching class card
@@ -386,7 +373,7 @@ export const ClassList: React.FC = () => {
 
     // Fallback: Check if this is a Novice class and has a paired class
     if (classEntry.level === 'Novice' && (classEntry.section === 'A' || classEntry.section === 'B')) {
-      const paired = findPairedNoviceClass(classEntry);
+      const paired = findPaired(classEntry);
       if (paired) {
         // Navigate directly to combined view with both class IDs (no dialog)
         navigate(`/class/${classEntry.id}/${paired.id}/entries/combined`);
@@ -769,61 +756,15 @@ export const ClassList: React.FC = () => {
   }, []);
 
   // Helper function to group Novice A/B classes into combined entries
-  const groupNoviceClasses = useCallback((classList: ClassEntry[]): ClassEntry[] => {
-    const grouped: ClassEntry[] = [];
-    const processedIds = new Set<number>();
-
-    for (const classEntry of classList) {
-      // Skip if already processed as part of a pair
-      if (processedIds.has(classEntry.id)) continue;
-
-      // Check if this is a Novice class with section A or B
-      if (classEntry.level === 'Novice' && (classEntry.section === 'A' || classEntry.section === 'B')) {
-        // Find the paired class
-        const paired = findPairedNoviceClass(classEntry);
-
-        if (paired) {
-          // Mark both as processed
-          processedIds.add(classEntry.id);
-          processedIds.add(paired.id);
-
-          // Determine which class comes first (use class_order or section)
-          const first = classEntry.section === 'A' ? classEntry : paired;
-          const second = classEntry.section === 'A' ? paired : classEntry;
-
-          // Create combined entry
-          const combined: ClassEntry = {
-            ...first, // Use first class as base
-            id: first.id, // Primary ID for navigation
-            section: 'A & B', // Combined section label
-            class_name: `${first.element} ${first.level} A & B`, // Combined name
-            entry_count: first.entry_count + second.entry_count, // Sum entries
-            completed_count: first.completed_count + second.completed_count, // Sum completed
-            dogs: [...first.dogs, ...second.dogs], // Merge dogs array
-            is_favorite: first.is_favorite || second.is_favorite, // Favorite if either is favorited
-            // Store paired ID for navigation
-            pairedClassId: second.id
-          };
-
-          grouped.push(combined);
-        } else {
-          // No pair found, add as-is
-          grouped.push(classEntry);
-        }
-      } else {
-        // Not a Novice A/B class, add as-is
-        grouped.push(classEntry);
-      }
-    }
-
-    return grouped;
-  }, [findPairedNoviceClass]);
+  const groupNoviceClassesCached = useCallback((classList: ClassEntry[]): ClassEntry[] => {
+    return groupNoviceClasses(classList, findPaired);
+  }, [findPaired]);
 
   // Search and sort functionality
   // Memoized filtered and sorted classes for performance optimization
   const filteredClasses = useMemo(() => {
     // First, group Novice A/B classes together
-    const groupedClasses = groupNoviceClasses(classes);
+    const groupedClasses = groupNoviceClassesCached(classes);
 
     const filtered = groupedClasses.filter(classEntry => {
       // Use the same logic as getClassDisplayStatus to respect manual status
