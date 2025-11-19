@@ -15,6 +15,7 @@ import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
 import { mapDatabaseRowToEntry } from '@/utils/entryMappers';
 import { shouldCheckCompletion } from '@/utils/validationUtils';
+import { calculateTotalAreaTime } from '@/utils/calculationUtils';
 
 /**
  * Service for managing entries and scores
@@ -433,14 +434,12 @@ export async function submitScore(
         scoreUpdateData.area3_time_seconds = areaTimeSeconds[2];
       }
 
-      // Calculate total search time as sum of all applicable areas
-      let totalTime = 0;
-      if (scoreUpdateData.area1_time_seconds) totalTime += scoreUpdateData.area1_time_seconds;
-      if (scoreUpdateData.area2_time_seconds) totalTime += scoreUpdateData.area2_time_seconds;
-      if (scoreUpdateData.area3_time_seconds) totalTime += scoreUpdateData.area3_time_seconds;
-
-      // Update the total search time
-      scoreUpdateData.search_time_seconds = totalTime;
+      // Calculate total search time using utility function (moved to @/utils/calculationUtils)
+      scoreUpdateData.search_time_seconds = calculateTotalAreaTime(
+        scoreUpdateData.area1_time_seconds,
+        scoreUpdateData.area2_time_seconds,
+        scoreUpdateData.area3_time_seconds
+      );
     }
 
     console.log('📝 Updating entry with score:', scoreUpdateData);
