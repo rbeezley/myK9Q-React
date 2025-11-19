@@ -13,8 +13,8 @@
   --accent-green-hover: #059669;
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --green-glow: rgba(16, 185, 129, 0.3);
-  --success-glow: rgba(16, 185, 129, 0.4);
+  --green-glow: rgba(62, 161, 115, 0.3);
+  --success-glow: rgba(62, 161, 115, 0.4);
   --error-color: var(--status-pulled);
 }
 
@@ -44,7 +44,7 @@
   height: 800px;
   background: radial-gradient(
     circle,
-    rgba(16, 185, 129, 0.06) 0%,
+    rgba(62, 161, 115, 0.06) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -82,8 +82,8 @@
   border: none;
   border-radius: 2rem;
   padding: 0;
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.15);
-  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.4));
+  box-shadow: 0 0 30px rgba(62, 161, 115, 0.3), 0 0 60px rgba(62, 161, 115, 0.15);
+  filter: drop-shadow(0 4px 12px rgba(62, 161, 115, 0.4));
 }
 
 .logo-img {
@@ -206,7 +206,7 @@
 /* Success State - All inputs filled */
 .passcode-input.filled {
   border-color: var(--accent-green);
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(62, 161, 115, 0.08);
 }
 
 .passcode-inputs.all-filled .passcode-input {
@@ -248,7 +248,7 @@
 .reset-button:hover {
   border-color: var(--accent-green);
   color: var(--login-text-primary);
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(62, 161, 115, 0.1);
   transform: scale(1.1);
 }
 
@@ -350,10 +350,10 @@
 }
 
 .help-button:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(62, 161, 115, 0.1);
   border-color: var(--accent-green);
   transform: translateX(-50%) translateY(-3px);
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(16, 185, 129, 0.2);
+  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(62, 161, 115, 0.2);
 }
 
 .help-button:active {
