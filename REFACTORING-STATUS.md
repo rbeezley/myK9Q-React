@@ -9,6 +9,7 @@
 
 ### Planning Documents
 - **[Master Refactoring Plan](docs/architecture/REFACTORING_PLAN.md)** - Overall strategy (Phases 1-3)
+- **[Large File Refactoring Plan](docs/architecture/LARGE-FILE-REFACTORING-PLAN.md)** - 7-week plan for 5 large files (NEW!)
 - **[entryService.ts Analysis](docs/architecture/ENTRYSERVICE-ANALYSIS.md)** - Week 3 roadmap
 - **[Phase 1, Week 2 Documentation](REFACTORING-PHASE1-WEEK2.md)** - Week 2 completed work
 
