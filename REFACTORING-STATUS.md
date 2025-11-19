@@ -1,7 +1,7 @@
 # myK9Q-React Refactoring Status
 
 > **Last Updated**: 2025-01-19
-> **Current Phase**: Phase 1, Week 3 (entryService.ts Optimization - 3 Extractions Complete)
+> **Current Phase**: Phase 1, Week 3 (entryService.ts Optimization - All High & Medium Priority Complete)
 
 ---
 
@@ -15,10 +15,9 @@
 ### Current Work Status
 - ✅ **Phase 1, Week 1**: Utility extraction complete (dateUtils, organizationUtils, etc.)
 - ✅ **Phase 1, Week 2 (All Parts)**: Cache/queue/idle utilities + usePrefetch refactoring + entryService analysis
-- ✅ **Phase 1, Week 3 - Part 1**: buildClassName() extraction (5 duplicates eliminated)
-- ✅ **Phase 1, Week 3 - Part 2**: formatTimeLimitSeconds() consolidation (2 duplicates eliminated)
-- ✅ **Phase 1, Week 3 - Part 3**: determineEntryStatus() extraction (4 duplicates eliminated)
-- 🎯 **Next**: Push commits to remote, then continue with remaining entryService extractions
+- ✅ **Phase 1, Week 3 - High Priority**: buildClassName, formatTimeLimitSeconds, determineEntryStatus (3 extractions)
+- ✅ **Phase 1, Week 3 - Medium Priority**: convertResultTextToStatus, determineAreasForClass, Entry mappers (3 extractions)
+- 🎯 **Next**: Lower-priority entryService extractions or new focus area
 
 ---
 
@@ -43,11 +42,19 @@
 - ✅ Part 4: Analyzed entryService.ts (609-line analysis document created)
 - ✅ Part 5: Pushed all commits to remote
 
-**Week 3 Progress** (High-priority extractions):
-- ✅ Extracted buildClassName() → stringUtils.ts (5 duplicates, ~40 lines saved)
-- ✅ Consolidated formatTimeLimitSeconds() → timeUtils.ts (2 duplicates, ~30 lines saved)
-- ✅ Extracted determineEntryStatus() → statusUtils.ts (4 duplicates, ~20 lines saved)
-- 📊 **Total**: 11 duplicates eliminated, ~90 lines saved, 37 tests added
+**Week 3 Progress** (High & Medium priority extractions):
+
+**High Priority Complete** (3 extractions):
+- ✅ buildClassName() → stringUtils.ts (5 duplicates, ~40 lines saved)
+- ✅ formatTimeLimitSeconds() → timeUtils.ts (2 duplicates, ~30 lines saved)
+- ✅ determineEntryStatus() → statusUtils.ts (4 duplicates, ~20 lines saved)
+
+**Medium Priority Complete** (3 extractions):
+- ✅ convertResultTextToStatus() → transformationUtils.ts (~12 lines saved)
+- ✅ determineAreasForClass() → classUtils.ts (~7 lines saved)
+- ✅ Entry object mapping factory → entryMappers.ts (2 instances, ~50 lines saved)
+
+**Week 3 Total**: 15 duplicates eliminated, ~159 lines saved, 88 tests added
 
 ---
 
@@ -85,19 +92,19 @@ npm run typecheck && npm run build
 |--------|--------|
 | TypeScript Errors | ✅ 0 |
 | ESLint Errors | ✅ 0 |
-| Test Pass Rate | ✅ 100% (296/296) |
+| Test Pass Rate | ✅ 100% (347/347) |
 | Production Build | ✅ Success |
 
 ### Week 3 Contributions (entryService.ts Optimization)
 | Metric | Value |
 |--------|-------|
-| New Utility Functions | 3 functions |
-| New Test Files | 3 files |
-| Duplicates Eliminated | 11 instances |
-| Code Saved | ~90 lines |
-| Tests Added | 37 tests (100% passing) |
-| Commits | 3 detailed commits |
-| Time Invested | ~2 hours |
+| New Utility Modules | 6 modules (stringUtils, timeUtils, statusUtils, transformationUtils, classUtils, entryMappers) |
+| New Test Files | 6 files |
+| Duplicates Eliminated | 15 instances |
+| Code Saved | ~159 lines |
+| Tests Added | 88 tests (100% passing) |
+| Commits | 6 detailed commits (all pushed) |
+| Time Invested | ~4 hours |
 
 ### Week 2 Contributions (Cache/Queue/Idle + usePrefetch)
 | Metric | Value |
@@ -111,31 +118,32 @@ npm run typecheck && npm run build
 ### Total Refactoring (All Phases)
 | Metric | Value |
 |--------|-------|
-| Code Eliminated | ~984 lines + 21 files |
-| New Utilities | 11 modules |
+| Code Eliminated | ~1,143 lines + 21 files |
+| New Utilities | 14 modules |
 | New Services | 2 modules |
 | New Components | 8 reusable |
-| Total Tests | 296 (100% passing) |
+| Total Tests | 347 (100% passing) |
 | Bundle Size | 1484.11 KiB (optimized) |
-| Total Time | ~28.5 hours |
+| Total Time | ~30.5 hours |
 
 ---
 
 ## 🎯 Next Milestones
 
-### Week 3 Remaining Work (from entryService.ts Analysis)
-**High Priority** (Quick wins, immediate duplicates):
-- [x] buildClassName() - 5 duplicates → stringUtils.ts ✅
-- [x] formatTimeLimitSeconds() - 2 duplicates → timeUtils.ts ✅
-- [x] determineEntryStatus() - 4 duplicates → statusUtils.ts ✅
-- [ ] **Push commits to remote** (4 commits ready)
+### Week 3 Completed Work (from entryService.ts Analysis)
+**High Priority** - All Complete ✅:
+- [x] buildClassName() → stringUtils.ts (5 duplicates eliminated)
+- [x] formatTimeLimitSeconds() → timeUtils.ts (2 duplicates eliminated)
+- [x] determineEntryStatus() → statusUtils.ts (4 duplicates eliminated)
+- [x] **All commits pushed to remote**
 
-**Medium Priority** (Moderate complexity):
-- [ ] convertResultTextToStatus() - Extract from submitScore function
-- [ ] determineAreasForClass() - Extract area determination logic
-- [ ] Entry object mapping pattern - Create factory function
+**Medium Priority** - All Complete ✅:
+- [x] convertResultTextToStatus() → transformationUtils.ts (eliminated nested conditionals)
+- [x] determineAreasForClass() → classUtils.ts (extracted AKC Scent Work rules)
+- [x] Entry object mapping factory → entryMappers.ts (2 instances eliminated)
 
-**Lower Priority** (Complex refactoring):
+### Remaining Lower Priority Work
+**Complex refactoring** (Would benefit from additional planning):
 - [ ] Scoresheet initialization logic consolidation
 - [ ] Query building patterns extraction
 - [ ] Error handling patterns standardization
@@ -162,19 +170,25 @@ myK9Q-React-new/
 │       └── ENTRYSERVICE-ANALYSIS.md         ← Week 3 roadmap (609 lines)
 ├── src/
 │   ├── utils/
-│   │   ├── stringUtils.ts                   ← Week 3: buildClassName()
-│   │   ├── stringUtils.test.ts              ← Week 3: 9 tests
-│   │   ├── timeUtils.ts                     ← Week 3: formatTimeLimitSeconds()
-│   │   ├── timeUtils.test.ts                ← Week 3: 21 tests
-│   │   ├── statusUtils.ts                   ← Week 3: determineEntryStatus()
-│   │   ├── statusUtils.test.ts              ← Week 3: 7 tests
+│   │   ├── stringUtils.ts                   ← Week 3 High: buildClassName()
+│   │   ├── stringUtils.test.ts              ← Week 3 High: 9 tests
+│   │   ├── timeUtils.ts                     ← Week 3 High: formatTimeLimitSeconds()
+│   │   ├── timeUtils.test.ts                ← Week 3 High: 21 tests
+│   │   ├── statusUtils.ts                   ← Week 3 High: determineEntryStatus()
+│   │   ├── statusUtils.test.ts              ← Week 3 High: 7 tests
+│   │   ├── transformationUtils.ts           ← Week 3 Med: convertResultTextToStatus()
+│   │   ├── transformationUtils.test.ts      ← Week 3 Med: 16 tests
+│   │   ├── classUtils.ts                    ← Week 3 Med: determineAreasForClass()
+│   │   ├── classUtils.test.ts               ← Week 3 Med: 20 tests
+│   │   ├── entryMappers.ts                  ← Week 3 Med: Entry object factory
+│   │   ├── entryMappers.test.ts             ← Week 3 Med: 15 tests
 │   │   ├── cacheHelpers.ts                  ← Week 2: Cache utilities
 │   │   ├── queueHelpers.ts                  ← Week 2: Queue utilities
 │   │   └── idleCallbackHelpers.ts           ← Week 2: Idle callback utilities
 │   ├── hooks/
 │   │   └── usePrefetch.ts                   ← Week 2: Refactored to use utilities
 │   └── services/
-│       └── entryService.ts                  ← Week 3: 11 duplicates removed
+│       └── entryService.ts                  ← Week 3: 15 duplicates removed
 ```
 
 ---
@@ -182,31 +196,33 @@ myK9Q-React-new/
 ## 🔄 Git Status
 
 **Branch**: `main`
-**Status**: 4 commits ahead of origin/main (Week 3 work)
+**Status**: Up to date with origin/main
 **Working Tree**: Modified (REFACTORING-STATUS.md being updated)
 
-**Recent Commits** (Week 3):
+**Recent Commits** (Week 3 - All Pushed):
 ```
+cec0df7 refactor: Extract Entry object mapping to entryMappers utility
+31cd2bf refactor: Extract area determination logic to classUtils module
+2d2e5ea refactor: Extract convertResultTextToStatus() from submitScore function
 ad05c4e refactor: Extract determineEntryStatus() utility to eliminate 4 duplicates
 30153fc refactor: Consolidate time formatting utilities and eliminate duplicates
 557d928 refactor: Extract buildClassName() utility to eliminate 5 duplicates
-9935357 chore: Upgrade dependencies to latest versions (pushed)
 ```
 
-**Ready to Push**: Yes (after committing this status update)
+**Ready to Push**: Yes (status update commit pending)
 
 ---
 
 ## ✅ Quality Checklist
 
-- ✅ All tests passing (296/296 - includes 37 new Week 3 tests)
+- ✅ All tests passing (347/347 - includes 88 new Week 3 tests)
 - ✅ TypeScript strict mode (0 errors)
 - ✅ ESLint validation (0 errors/warnings)
 - ✅ Production build successful
 - ✅ Documentation comprehensive (status doc updated)
 - ✅ Code reviewed and clean
-- ✅ Commit messages clear and detailed (3 commits)
-- ✅ Ready to push (4 commits waiting)
+- ✅ Commit messages clear and detailed (6 commits)
+- ✅ All commits pushed to remote
 
 ---
 
