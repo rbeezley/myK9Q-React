@@ -14,6 +14,7 @@ import { determineEntryStatus } from '@/utils/statusUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
 import { mapDatabaseRowToEntry } from '@/utils/entryMappers';
+import { shouldCheckCompletion } from '@/utils/validationUtils';
 
 /**
  * Service for managing entries and scores
@@ -549,26 +550,7 @@ export async function submitScore(
   }
 }
 
-/**
- * Helper function to determine if we should check class completion
- * Only check on first dog (to mark as in_progress) and last dog (to mark as completed)
- *
- * @param scoredCount - Number of dogs scored
- * @param totalCount - Total number of dogs in class
- * @returns true if we should check completion, false to skip
- */
-function shouldCheckCompletion(scoredCount: number, totalCount: number): boolean {
-  if (scoredCount === 1) {
-    console.log('✅ First dog scored - checking to mark class as in_progress');
-    return true;
-  }
-  if (scoredCount === totalCount) {
-    console.log('✅ All dogs scored - checking to mark class as completed');
-    return true;
-  }
-  console.log(`⏭️ Skipping completion check (${scoredCount}/${totalCount} - not first or last)`);
-  return false;
-}
+// shouldCheckCompletion() moved to @/utils/validationUtils
 
 /**
  * Check if all entries in a class are completed and update class status
