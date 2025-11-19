@@ -1,7 +1,7 @@
 # myK9Q-React Refactoring Status
 
 > **Last Updated**: 2025-01-19
-> **Current Phase**: Phase 1, Week 3 (entryService.ts Optimization - All High & Medium Priority Complete)
+> **Current Phase**: Phase 1, Week 3 (entryService.ts Optimization - All High, Medium & Phase 2 Complete)
 
 ---
 
@@ -17,7 +17,8 @@
 - ✅ **Phase 1, Week 2 (All Parts)**: Cache/queue/idle utilities + usePrefetch refactoring + entryService analysis
 - ✅ **Phase 1, Week 3 - High Priority**: buildClassName, formatTimeLimitSeconds, determineEntryStatus (3 extractions)
 - ✅ **Phase 1, Week 3 - Medium Priority**: convertResultTextToStatus, determineAreasForClass, Entry mappers (3 extractions)
-- 🎯 **Next**: Lower-priority entryService extractions or new focus area
+- ✅ **Phase 1, Week 3 - Phase 2**: shouldCheckCompletion, calculateTotalAreaTime (2 extractions)
+- 🎯 **Next**: New focus area or lower-priority entryService extractions
 
 ---
 
@@ -42,7 +43,7 @@
 - ✅ Part 4: Analyzed entryService.ts (609-line analysis document created)
 - ✅ Part 5: Pushed all commits to remote
 
-**Week 3 Progress** (High & Medium priority extractions):
+**Week 3 Progress** (High, Medium, and Phase 2 extractions):
 
 **High Priority Complete** (3 extractions):
 - ✅ buildClassName() → stringUtils.ts (5 duplicates, ~40 lines saved)
@@ -54,7 +55,11 @@
 - ✅ determineAreasForClass() → classUtils.ts (~7 lines saved)
 - ✅ Entry object mapping factory → entryMappers.ts (2 instances, ~50 lines saved)
 
-**Week 3 Total**: 15 duplicates eliminated, ~159 lines saved, 88 tests added
+**Phase 2 Complete** (2 extractions):
+- ✅ shouldCheckCompletion() → validationUtils.ts (~7 lines saved)
+- ✅ calculateTotalAreaTime() → calculationUtils.ts (~7 lines saved)
+
+**Week 3 Total**: 15 duplicates eliminated, ~173 lines saved, 134 tests added (100% passing)
 
 ---
 
@@ -92,19 +97,19 @@ npm run typecheck && npm run build
 |--------|--------|
 | TypeScript Errors | ✅ 0 |
 | ESLint Errors | ✅ 0 |
-| Test Pass Rate | ✅ 100% (347/347) |
+| Test Pass Rate | ✅ 100% (393/393) |
 | Production Build | ✅ Success |
 
 ### Week 3 Contributions (entryService.ts Optimization)
 | Metric | Value |
 |--------|-------|
-| New Utility Modules | 6 modules (stringUtils, timeUtils, statusUtils, transformationUtils, classUtils, entryMappers) |
-| New Test Files | 6 files |
+| New Utility Modules | 8 modules (stringUtils, timeUtils, statusUtils, transformationUtils, classUtils, entryMappers, validationUtils, calculationUtils) |
+| New Test Files | 8 files |
 | Duplicates Eliminated | 15 instances |
-| Code Saved | ~159 lines |
-| Tests Added | 88 tests (100% passing) |
-| Commits | 6 detailed commits (all pushed) |
-| Time Invested | ~4 hours |
+| Code Saved | ~173 lines |
+| Tests Added | 134 tests (100% passing) |
+| Commits | 8 detailed commits (all pushed) |
+| Time Invested | ~5 hours |
 
 ### Week 2 Contributions (Cache/Queue/Idle + usePrefetch)
 | Metric | Value |
@@ -119,10 +124,10 @@ npm run typecheck && npm run build
 | Metric | Value |
 |--------|-------|
 | Code Eliminated | ~1,143 lines + 21 files |
-| New Utilities | 14 modules |
+| New Utilities | 16 modules |
 | New Services | 2 modules |
 | New Components | 8 reusable |
-| Total Tests | 347 (100% passing) |
+| Total Tests | 393 (100% passing) |
 | Bundle Size | 1484.11 KiB (optimized) |
 | Total Time | ~30.5 hours |
 
@@ -141,6 +146,10 @@ npm run typecheck && npm run build
 - [x] convertResultTextToStatus() → transformationUtils.ts (eliminated nested conditionals)
 - [x] determineAreasForClass() → classUtils.ts (extracted AKC Scent Work rules)
 - [x] Entry object mapping factory → entryMappers.ts (2 instances eliminated)
+
+**Phase 2** - All Complete ✅:
+- [x] shouldCheckCompletion() → validationUtils.ts (performance optimization logic)
+- [x] calculateTotalAreaTime() → calculationUtils.ts (area time calculation)
 
 ### Remaining Lower Priority Work
 **Complex refactoring** (Would benefit from additional planning):
@@ -182,6 +191,10 @@ myK9Q-React-new/
 │   │   ├── classUtils.test.ts               ← Week 3 Med: 20 tests
 │   │   ├── entryMappers.ts                  ← Week 3 Med: Entry object factory
 │   │   ├── entryMappers.test.ts             ← Week 3 Med: 15 tests
+│   │   ├── validationUtils.ts               ← Week 3 Phase 2: shouldCheckCompletion()
+│   │   ├── validationUtils.test.ts          ← Week 3 Phase 2: 19 tests
+│   │   ├── calculationUtils.ts              ← Week 3 Phase 2: calculateTotalAreaTime()
+│   │   ├── calculationUtils.test.ts         ← Week 3 Phase 2: 27 tests
 │   │   ├── cacheHelpers.ts                  ← Week 2: Cache utilities
 │   │   ├── queueHelpers.ts                  ← Week 2: Queue utilities
 │   │   └── idleCallbackHelpers.ts           ← Week 2: Idle callback utilities
@@ -201,12 +214,14 @@ myK9Q-React-new/
 
 **Recent Commits** (Week 3 - All Pushed):
 ```
+3dff4d0 refactor: Extract calculateTotalAreaTime() to calculationUtils module
+2ea4b7b refactor: Extract shouldCheckCompletion() to validationUtils module
+28f48f5 docs: Update REFACTORING-STATUS.md with completed medium-priority work
 cec0df7 refactor: Extract Entry object mapping to entryMappers utility
 31cd2bf refactor: Extract area determination logic to classUtils module
 2d2e5ea refactor: Extract convertResultTextToStatus() from submitScore function
 ad05c4e refactor: Extract determineEntryStatus() utility to eliminate 4 duplicates
 30153fc refactor: Consolidate time formatting utilities and eliminate duplicates
-557d928 refactor: Extract buildClassName() utility to eliminate 5 duplicates
 ```
 
 **Ready to Push**: Yes (status update commit pending)
@@ -215,13 +230,13 @@ ad05c4e refactor: Extract determineEntryStatus() utility to eliminate 4 duplicat
 
 ## ✅ Quality Checklist
 
-- ✅ All tests passing (347/347 - includes 88 new Week 3 tests)
+- ✅ All tests passing (393/393 - includes 134 new Week 3 tests)
 - ✅ TypeScript strict mode (0 errors)
 - ✅ ESLint validation (0 errors/warnings)
 - ✅ Production build successful
 - ✅ Documentation comprehensive (status doc updated)
 - ✅ Code reviewed and clean
-- ✅ Commit messages clear and detailed (6 commits)
+- ✅ Commit messages clear and detailed (8 commits)
 - ✅ All commits pushed to remote
 
 ---
