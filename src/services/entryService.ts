@@ -12,6 +12,7 @@ import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
+import { determineAreasForClass } from '@/utils/classUtils';
 
 /**
  * Service for managing entries and scores
@@ -437,22 +438,20 @@ export async function submitScore(
       // Convert area times to seconds
       const areaTimeSeconds = scoreData.areaTimes.map(time => convertTimeToSeconds(time));
 
+      // Determine which areas are applicable for this class using utility function
+      const { useArea1, useArea2, useArea3 } = determineAreasForClass(element, level);
+
       // Area 1 is always used
-      if (areaTimeSeconds[0] !== undefined) {
+      if (useArea1 && areaTimeSeconds[0] !== undefined) {
         scoreUpdateData.area1_time_seconds = areaTimeSeconds[0];
       }
 
-      // Area 2 is for Interior Excellent, Interior Master, and Handler Discrimination Master
-      const useArea2 = (element.toLowerCase() === 'interior' && (level.toLowerCase() === 'excellent' || level.toLowerCase() === 'master')) ||
-                       (element.toLowerCase() === 'handler discrimination' && level.toLowerCase() === 'master');
-
+      // Area 2 (Interior Excellent/Master, Handler Discrimination Master)
       if (useArea2 && areaTimeSeconds[1] !== undefined) {
         scoreUpdateData.area2_time_seconds = areaTimeSeconds[1];
       }
 
-      // Area 3 is only for Interior Master
-      const useArea3 = element.toLowerCase() === 'interior' && level.toLowerCase() === 'master';
-
+      // Area 3 (Interior Master only)
       if (useArea3 && areaTimeSeconds[2] !== undefined) {
         scoreUpdateData.area3_time_seconds = areaTimeSeconds[2];
       }
