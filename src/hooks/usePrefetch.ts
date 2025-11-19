@@ -29,6 +29,19 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { cache as idbCache } from '@/utils/indexedDB';
+import {
+  isCacheValid,
+  createCacheEntry,
+  type CachedData,
+} from '@/utils/cacheHelpers';
+import {
+  insertWithPriority,
+  updatePriorityIfHigher,
+  dequeueN,
+  hasKey,
+  type PriorityQueueItem,
+} from '@/utils/queueHelpers';
+import { scheduleIdleTask } from '@/utils/idleCallbackHelpers';
 
 interface PrefetchOptions {
   /** Priority of this prefetch (higher = more important) */
@@ -43,17 +56,11 @@ interface PrefetchOptions {
   persist?: boolean;
 }
 
-interface CachedData<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
-
-interface PrefetchQueueItem {
-  key: string;
+/**
+ * Extended queue item with fetcher function
+ */
+interface PrefetchQueueData {
   fetcher: () => Promise<any>;
-  priority: number;
-  timestamp: number;
 }
 
 /**
@@ -63,8 +70,9 @@ const prefetchCache = new Map<string, CachedData<any>>();
 
 /**
  * Global prefetch queue (for prioritization)
+ * Using PriorityQueueItem from queueHelpers with fetcher data
  */
-const prefetchQueue: PrefetchQueueItem[] = [];
+const prefetchQueue: PriorityQueueItem<PrefetchQueueData>[] = [];
 
 /**
  * Currently active prefetches (to avoid duplicates)
@@ -85,10 +93,8 @@ export function usePrefetch() {
     const cached = prefetchCache.get(key);
     if (!cached) return null;
 
-    const now = Date.now();
-    const age = (now - cached.timestamp) / 1000; // seconds
-
-    if (age > cached.ttl) {
+    // Use cache helper to validate TTL
+    if (!isCacheValid(cached)) {
       // Expired - remove from cache
       prefetchCache.delete(key);
       return null;
@@ -109,23 +115,23 @@ export function usePrefetch() {
     try {
       const idbCached = await idbCache.get<T>(key);
       if (idbCached && idbCached.data) {
-        const now = Date.now();
-        const age = (now - idbCached.timestamp) / 1000; // seconds
-
-        // Check if expired (TTL is in milliseconds in IndexedDB)
+        // Convert TTL from milliseconds to seconds for validation
         const ttlSeconds = (idbCached.ttl || 60000) / 1000;
-        if (age > ttlSeconds) {
+        const cacheEntry: CachedData<T> = {
+          data: idbCached.data as T,
+          timestamp: idbCached.timestamp,
+          ttl: ttlSeconds,
+        };
+
+        // Use cache helper to validate TTL
+        if (!isCacheValid(cacheEntry)) {
           // Expired - delete
           await idbCache.delete(key);
           return null;
         }
 
         // Populate L1 cache
-        prefetchCache.set(key, {
-          data: idbCached.data,
-          timestamp: idbCached.timestamp,
-          ttl: ttlSeconds,
-        });
+        prefetchCache.set(key, cacheEntry);
 
         console.log(`💾 Loaded from IndexedDB prefetch cache: ${key}`);
         return idbCached.data as T;
@@ -141,14 +147,11 @@ export function usePrefetch() {
    * Store data in cache (L1 + L2)
    */
   const setCached = useCallback(async <T,>(key: string, data: T, ttl: number, persist: boolean = true) => {
-    const timestamp = Date.now();
+    // Use cache helper to create entry
+    const cacheEntry = createCacheEntry(data, ttl);
 
     // L1: Store in memory
-    prefetchCache.set(key, {
-      data,
-      timestamp,
-      ttl,
-    });
+    prefetchCache.set(key, cacheEntry);
 
     // L2: Store in IndexedDB (async, non-blocking)
     if (persist) {
@@ -245,36 +248,31 @@ export function usePrefetch() {
     // Don't queue if already cached
     if (getCached(key)) return;
 
-    // Don't queue if already in queue
-    const existing = prefetchQueue.find(item => item.key === key);
-    if (existing) {
-      // Update priority if higher
-      if (priority > existing.priority) {
-        existing.priority = priority;
-      }
+    // Use queue helpers for priority management
+    if (hasKey(prefetchQueue, key)) {
+      // Update priority if higher (queue helper handles this)
+      updatePriorityIfHigher(prefetchQueue, key, priority);
       return;
     }
 
-    // Add to queue
-    prefetchQueue.push({
+    // Insert with priority (queue helper maintains sort order)
+    insertWithPriority(prefetchQueue, {
       key,
-      fetcher,
+      data: { fetcher },
       priority,
       timestamp: Date.now(),
     });
-
-    // Sort by priority (highest first)
-    prefetchQueue.sort((a, b) => b.priority - a.priority);
   }, [getCached]);
 
   /**
    * Process prefetch queue (call this during idle time)
    */
   const processQueue = useCallback(async (maxItems: number = 3) => {
-    const items = prefetchQueue.splice(0, maxItems);
+    // Use queue helper to dequeue N highest priority items
+    const items = dequeueN(prefetchQueue, maxItems);
 
     await Promise.all(
-      items.map(item => prefetch(item.key, item.fetcher, { priority: item.priority }))
+      items.map(item => prefetch(item.key, item.data.fetcher, { priority: item.priority }))
     );
   }, [prefetch]);
 
@@ -402,15 +400,11 @@ export function useIdleCallback(callback: () => void) {
     callbackRef.current = callback;
   }, [callback]);
 
-  const scheduleIdleCallback = useCallback(() => {
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => callbackRef.current());
-    } else {
-      // Fallback for Safari
-      setTimeout(() => callbackRef.current(), 1);
-    }
+  const scheduleCallback = useCallback(() => {
+    // Use idle callback helper (handles cross-browser compatibility)
+    scheduleIdleTask(() => callbackRef.current());
   }, []);
 
   // Run during idle time
-  return scheduleIdleCallback;
+  return scheduleCallback;
 }
