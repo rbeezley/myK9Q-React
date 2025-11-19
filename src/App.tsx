@@ -72,8 +72,10 @@ const UKCNoseworkScoresheet = React.lazy(() =>
     default: module.UKCNoseworkScoresheet
   }))
 );
-const AKCScentWorkScoresheet = React.lazy(() =>
-  import('./pages/scoresheets/AKC/AKCScentWorkScoresheet-Enhanced')
+const AKCScentWorkScoresheetRouter = React.lazy(() =>
+  import('./pages/scoresheets/AKC/AKCScentWorkScoresheetRouter').then(module => ({
+    default: module.AKCScentWorkScoresheetRouter
+  }))
 );
 const AKCFastCatScoresheet = React.lazy(() => 
   import('./pages/scoresheets/AKC/AKCFastCatScoresheet').then(module => ({ 
@@ -427,12 +429,12 @@ function AppWithAuth() {
             }
           />
           <Route
-            path="/scoresheet/akc-scent-work/:classId/:entryId" 
+            path="/scoresheet/akc-scent-work/:classId/:entryId"
             element={
               <ProtectedRoute>
                 <ScoresheetErrorBoundary>
                   <Suspense fallback={<ScoresheetLoader />}>
-                    <AKCScentWorkScoresheet />
+                    <AKCScentWorkScoresheetRouter />
                   </Suspense>
                 </ScoresheetErrorBoundary>
               </ProtectedRoute>
