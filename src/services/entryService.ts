@@ -9,6 +9,7 @@ import { getReplicationManager } from '@/services/replication';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import { buildClassName } from '@/utils/stringUtils';
+import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 
 /**
  * Service for managing entries and scores
@@ -102,14 +103,6 @@ export async function getClassEntries(
             const mappedEntries = classEntries.map(entry => {
               const status = (entry.entry_status as EntryStatus) || 'no-status';
 
-              // Helper function to convert seconds to MM:SS format
-              const secondsToTimeString = (seconds?: number | null): string => {
-                if (!seconds || seconds === 0) return '';
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-              };
-
               return {
                 id: parseInt(entry.id, 10),
                 armband: entry.armband_number,
@@ -144,9 +137,9 @@ export async function getClassEntries(
                 section: cachedClass.section || '',
                 element: cachedClass.element,
                 level: cachedClass.level,
-                timeLimit: secondsToTimeString(cachedClass.time_limit_seconds),
-                timeLimit2: secondsToTimeString(cachedClass.time_limit_area2_seconds),
-                timeLimit3: secondsToTimeString(cachedClass.time_limit_area3_seconds),
+                timeLimit: formatTimeLimitSeconds(cachedClass.time_limit_seconds),
+                timeLimit2: formatTimeLimitSeconds(cachedClass.time_limit_area2_seconds),
+                timeLimit3: formatTimeLimitSeconds(cachedClass.time_limit_area3_seconds),
                 areas: cachedClass.area_count,
                 exhibitorOrder: 0, // Not in replicated schema yet
                 actualClassId: parseInt(entry.class_id, 10),
@@ -212,21 +205,6 @@ export async function getClassEntries(
       return [];
     }
 
-    // Helper function to convert seconds to MM:SS format
-    const secondsToTimeString = (seconds?: number | null): string => {
-      if (!seconds || seconds === 0) return '';
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      const formatted = `${mins}:${secs.toString().padStart(2, '0')}`;
-
-      // Debug logging for Container Master time limit
-      if (classData.element === 'Container' && classData.level === 'Master') {
-        console.log(`🐛 Converting time limit for Container Master: ${seconds} seconds -> ${formatted}`);
-      }
-
-      return formatted;
-    };
-
     // Map view columns to Entry interface (results already pre-joined in view)
     const mappedEntries = viewData.map(row => {
       // Debug logging for specific entries
@@ -275,9 +253,9 @@ export async function getClassEntries(
         section: row.classes.section,
         element: row.classes.element,
         level: row.classes.level,
-        timeLimit: secondsToTimeString(classData.time_limit_seconds),
-        timeLimit2: secondsToTimeString(classData.time_limit_area2_seconds),
-        timeLimit3: secondsToTimeString(classData.time_limit_area3_seconds),
+        timeLimit: formatTimeLimitSeconds(classData.time_limit_seconds),
+        timeLimit2: formatTimeLimitSeconds(classData.time_limit_area2_seconds),
+        timeLimit3: formatTimeLimitSeconds(classData.time_limit_area3_seconds),
         areas: classData.area_count,
         exhibitorOrder: row.exhibitor_order,
         actualClassId: row.class_id,

@@ -81,3 +81,23 @@ export function formatTimeForDisplay(time: string | number | null): string {
   // Otherwise, treat it as seconds and format it
   return formatSecondsToTime(timeStr);
 }
+
+/**
+ * Convert seconds to M:SS format (single-digit minutes, used for time limits)
+ * Returns empty string for null, undefined, or 0 (indicating no time limit)
+ *
+ * @param seconds - Time in seconds (integer)
+ * @returns Formatted time string in M:SS format, or empty string if no limit
+ *
+ * @example
+ * formatTimeLimitSeconds(125) // "2:05"
+ * formatTimeLimitSeconds(65)  // "1:05"
+ * formatTimeLimitSeconds(0)   // ""
+ * formatTimeLimitSeconds(null) // ""
+ */
+export function formatTimeLimitSeconds(seconds?: number | null): string {
+  if (!seconds || seconds === 0) return '';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
