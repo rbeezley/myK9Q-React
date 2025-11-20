@@ -179,26 +179,29 @@ This proves the extraction pattern works!
     Benefits: Groups all status-changing operations
     Status: ⬜ Not Started
 
-[ ] 2.3: Extract Class Completion Logic
-    File: src/services/entry/classCompletion.ts
-    LOC: 150-180 lines
+[✓] 2.3: Extract Class Completion Logic
+    File: src/services/entry/classCompletionService.ts
+    LOC: 253 lines (includes comprehensive docs)
     Functions:
       - checkAndUpdateClassCompletion(classId, pairedClassId)
-      - updateSingleClassCompletion(classId)
-      - calculateCompletionStatus(scoredCount, totalCount)
-      - triggerPlacementCalculation(classId)
+      - manuallyCheckClassCompletion(classId)
+      - updateSingleClassCompletion(classId) [private]
+      - markClassCompleted(classId) [private]
+      - markClassInProgress(classId, scoredCount, totalCount) [private]
+      - recalculateFinalPlacements(classId) [private]
     Risk: MEDIUM ⚠️
-    Dependencies: placementService.ts, entryDataLayer.ts
-    Testing: Completion rules, paired classes, placement triggers
-    Notes: Complex orchestration logic (132 LOC)
-    Status: ⬜ Not Started
+    Dependencies: placementService.ts, shouldCheckCompletion (utils)
+    Testing: 8 unit tests ✅ (classCompletionService.test.ts)
+    Notes: Handles automatic class status updates: not_started → in_progress → completed
+    Status: ✅ COMPLETE (commit 9cca1fa)
+    Date: 2025-01-20
 ```
 
 **Phase 2 Deliverables**:
-- ✅ 3 new modules (430-530 LOC total)
-- ✅ Isolated scoring complexity
-- ✅ Test coverage: 95%+ for scoring, 85%+ for status
-- ✅ ~500 LOC removed from entryService.ts
+- 🔄 3 new modules (430-530 LOC total) - **1/3 complete**
+- 🔄 Isolated scoring complexity
+- 🔄 Test coverage: 95%+ for scoring, 85%+ for status - **8 tests for completion ✅**
+- 🔄 ~500 LOC removed from entryService.ts - **~143 LOC removed so far**
 
 ---
 
@@ -547,14 +550,14 @@ Phase 5 (Migration) - Depends on all above:
 
 ### Overall Progress
 - **Phases Complete**: 1/5 (20%)
-- **Tasks Complete**: 3/12 (25%)
-- **Test Coverage**: 19 tests for data layer ✅ → Target: 85-95%
-- **LOC Reduced**: ~60 lines from entryService.ts → Target: 983-1,033 lines
+- **Tasks Complete**: 4/12 (33%)
+- **Test Coverage**: 27 tests (19 data layer + 8 class completion) ✅ → Target: 85-95%
+- **LOC Reduced**: ~203 lines from entryService.ts → Target: 983-1,033 lines
 
 ### Phase Status
 ```
 Phase 1: ✅✅✅ (3/3 tasks) ✅ COMPLETE
-Phase 2: ⬜⬜⬜ (0/3 tasks)
+Phase 2: ⬜⬜✅ (1/3 tasks) 🔄 IN PROGRESS
 Phase 3: ⬜ (0/1 tasks)
 Phase 4: ⬜⬜ (0/2 tasks)
 Phase 5: ⬜⬜⬜ (0/3 tasks)
@@ -610,8 +613,8 @@ Phase 2 (Scoring & Status) is highest risk and highest value.
 ---
 
 **Last Updated**: 2025-01-20
-**Status**: Phase 1 Complete ✅ | Ready for Phase 2
-**Next Step**: Begin Phase 2 - Task 2.1 (Extract scoreSubmission.ts)
+**Status**: Phase 1 Complete ✅ | Phase 2 In Progress 🔄 (Task 2.3 Complete)
+**Next Step**: Continue Phase 2 - Task 2.1 (Extract scoreSubmission.ts) or Task 2.2 (Extract status management)
 
 ## 🎉 Phase 1 Complete Summary
 
@@ -636,3 +639,47 @@ Phase 2 (Scoring & Status) is highest risk and highest value.
 - ✅ Configurable behavior (logging, cache bypass)
 - ✅ ~60 LOC removed from entryService.ts
 - ✅ Zero breaking changes to consumers
+
+---
+
+## 🎉 Phase 2 Task 2.3 Complete Summary
+
+**Completed**: 2025-01-20
+**Duration**: ~2 hours
+**Test Coverage**: 8 unit tests passing ✅
+**Commit**: 9cca1fa
+
+**Files Created**:
+- ✅ `src/services/entry/classCompletionService.ts` (253 LOC) + 8 tests
+- ✅ `src/services/entry/classCompletionService.test.ts` (346 LOC)
+
+**Files Modified**:
+- ✅ `src/services/entryService.ts` - Removed 143 LOC, now imports from classCompletionService
+- ✅ `src/services/entry/index.ts` - Added class completion exports
+
+**Functions Extracted**:
+- ✅ `checkAndUpdateClassCompletion()` - Main entry point (public)
+- ✅ `manuallyCheckClassCompletion()` - Manual trigger (public)
+- ✅ `updateSingleClassCompletion()` - Core logic (private)
+- ✅ `markClassCompleted()` - Handles completion + placement calc (private)
+- ✅ `markClassInProgress()` - Handles progress updates (private)
+- ✅ `recalculateFinalPlacements()` - Placement orchestration (private)
+
+**Benefits Achieved**:
+- ✅ Isolated class completion logic from scoring
+- ✅ Clear separation of concerns
+- ✅ Testable business rules (8 comprehensive tests)
+- ✅ Handles optimization (shouldCheckCompletion)
+- ✅ Supports paired Novice A & B classes
+- ✅ Automatic placement calculation on completion
+- ✅ ~143 LOC removed from entryService.ts
+- ✅ Zero breaking changes to consumers
+
+**Test Coverage**:
+- ✅ Single class completion check
+- ✅ Paired class completion (Novice A & B combined views)
+- ✅ Error handling (database errors, placement calc errors)
+- ✅ In-progress status updates
+- ✅ Optimization skip logic (middle dogs)
+- ✅ Empty class handling
+- ✅ Manual completion trigger
