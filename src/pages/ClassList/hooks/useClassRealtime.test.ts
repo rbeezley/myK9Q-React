@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { useClassDialogs } from './useClassDialogs';
 import type { ClassEntry } from './useClassListData';
 

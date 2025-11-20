@@ -10,7 +10,7 @@
  * - Sync with Supabase
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { vi } from 'vitest';
 import { ReplicatedEntriesTable, type Entry } from '../ReplicatedEntriesTable';
 import { deleteDB } from 'idb';
 import './setup'; // Use custom setup with real IndexedDB

@@ -2,7 +2,7 @@
  * Tests for settings store
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import { useSettingsStore, AppSettings, SETTINGS_VERSION, initializeSettings } from './settingsStore';
 
 // Mock localStorage

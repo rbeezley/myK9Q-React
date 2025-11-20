@@ -2,7 +2,7 @@
  * Tests for smart defaults service
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 import {
   detectDefaultsContext,
   generateSmartDefaults,

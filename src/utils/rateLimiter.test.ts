@@ -2,7 +2,7 @@
  * Tests for rate limiter (brute force protection)
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import {
   checkRateLimit,
   recordFailedAttempt,

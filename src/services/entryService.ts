@@ -6,6 +6,11 @@ import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
 import { syncManager } from './syncManager';
 import { getEntriesFromReplicationCache, triggerImmediateEntrySync } from './entryReplication';
+import {
+  fetchClassEntriesFromDatabase,
+  fetchTrialEntriesFromDatabase,
+  fetchEntriesByArmbandFromDatabase,
+} from './entryDataFetching';
 import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
@@ -84,115 +89,8 @@ export async function getClassEntries(
       // Fall through to Supabase query if cache miss
     }
 
-    // Fall back to original Supabase implementation
-    console.log('🔍 Fetching class entries from Supabase...');
-
-    // Get class data to determine element, level, section for filtering
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('element, level, section, area_count, time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds')
-      .eq('id', primaryClassId)
-      .single();
-
-    if (classError || !classData) {
-      console.error('Error fetching class data:', classError);
-      throw new Error('Could not find class');
-    }
-
-    // Use view_entry_with_results for pre-joined data (entries + results in one query)
-    const { data: viewData, error: viewError } = await supabase
-      .from('view_entry_with_results')
-      .select(`
-        *,
-        classes!inner (
-          element,
-          level,
-          section,
-          trials!inner (
-            trial_date,
-            trial_number,
-            shows!inner (
-              license_key
-            )
-          )
-        )
-      `)
-      .in('class_id', classIdArray)
-      .eq('classes.trials.shows.license_key', licenseKey)
-      .order('armband_number', { ascending: true});
-
-    if (viewError) {
-      console.error('Error fetching class entries from view:', viewError);
-      throw viewError;
-    }
-
-    if (!viewData || viewData.length === 0) {
-      return [];
-    }
-
-    // Map view columns to Entry interface (results already pre-joined in view)
-    const mappedEntries = viewData.map(row => {
-      // Debug logging for specific entries
-      if (row.id === 6714 || row.id === 6715) {
-        console.log(`🐛 MAPPING ENTRY ${row.id} (${row.armband_number}):`, {
-          isScored: row.is_scored,
-          entryStatus: row.entry_status,
-          resultStatus: row.result_status
-        });
-      }
-
-      // Determine unified status using entry_status from view
-      const status = determineEntryStatus(row.entry_status);
-
-      return {
-        id: row.id,
-        armband: row.armband_number,
-        callName: row.dog_call_name,
-        breed: row.dog_breed,
-        handler: row.handler_name,
-        jumpHeight: '', // Not in normalized schema yet
-        preferredTime: '', // Not in normalized schema yet
-        isScored: row.is_scored || false,
-
-        // New unified status field
-        status,
-
-        // Deprecated fields (backward compatibility)
-        inRing: status === 'in-ring',
-        checkedIn: status !== 'no-status',
-        checkinStatus: status,
-
-        resultText: row.result_status || 'pending',
-        searchTime: row.search_time_seconds?.toString() || '0.00',
-        faultCount: row.total_faults || 0,
-        placement: row.final_placement ?? undefined,
-        correctFinds: row.total_correct_finds || 0,
-        incorrectFinds: row.total_incorrect_finds || 0,
-        noFinishCount: row.no_finish_count || 0,
-        totalPoints: row.points_earned || 0,
-        nqReason: row.disqualification_reason || undefined,
-        excusedReason: row.excuse_reason || undefined,
-        withdrawnReason: row.withdrawal_reason || undefined,
-        classId: row.class_id,
-        className: buildClassName(row.classes.element, row.classes.level, row.classes.section),
-        section: row.classes.section,
-        element: row.classes.element,
-        level: row.classes.level,
-        timeLimit: formatTimeLimitSeconds(classData.time_limit_seconds),
-        timeLimit2: formatTimeLimitSeconds(classData.time_limit_area2_seconds),
-        timeLimit3: formatTimeLimitSeconds(classData.time_limit_area3_seconds),
-        areas: classData.area_count,
-        exhibitorOrder: row.exhibitor_order,
-        actualClassId: row.class_id,
-        trialDate: row.classes.trials.trial_date,
-        trialNumber: row.classes.trials.trial_number.toString()
-      };
-    });
-
-    // Return entries directly - replication layer handles caching and pending changes
-    console.log(`📊 Returning ${mappedEntries.length} entries from Supabase fallback`);
-
-    return mappedEntries;
+    // Fall back to database query (uses extracted entryDataFetching module)
+    return await fetchClassEntriesFromDatabase(classIdArray, primaryClassId, licenseKey);
   } catch (error) {
     console.error('Error in getClassEntries:', error);
     throw error;
@@ -207,48 +105,7 @@ export async function getTrialEntries(
   licenseKey: string
 ): Promise<Entry[]> {
   try {
-    const { data, error } = await supabase
-      .from('entries')
-      .select(`
-        *,
-        classes!inner (
-          element,
-          level,
-          section,
-          trials!inner (
-            trial_date,
-            trial_number,
-            shows!inner (
-              license_key
-            )
-          )
-        )
-      `)
-      .eq('classes.trials.shows.license_key', licenseKey)
-      .eq('classes.trials.id', trialId)
-      .order('classes.element', { ascending: true })
-      .order('armband', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching trial entries:', error);
-      throw error;
-    }
-
-    if (!data) {
-      return [];
-    }
-
-    return data.map(row => {
-      // Get result if exists
-      const result = row.results?.[0];
-
-      // Determine status and className for Entry mapping
-      const status = determineEntryStatus(row.entry_status, result?.is_in_ring);
-      const className = buildClassName(row.element, row.level, row.section);
-
-      // Use utility mapper for consistent Entry object creation
-      return mapDatabaseRowToEntry(row, status, className);
-    });
+    return await fetchTrialEntriesFromDatabase(trialId, licenseKey);
   } catch (error) {
     console.error('Error in getTrialEntries:', error);
     throw error;
@@ -983,47 +840,7 @@ export async function getEntriesByArmband(
   licenseKey: string
 ): Promise<Entry[]> {
   try {
-    const { data, error } = await supabase
-      .from('entries')
-      .select(`
-        *,
-        classes!inner (
-          element,
-          level,
-          section,
-          trials!inner (
-            trial_date,
-            trial_number,
-            shows!inner (
-              license_key
-            )
-          )
-        )
-      `)
-      .eq('classes.trials.shows.license_key', licenseKey)
-      .eq('armband', armband)
-      .order('classes.element', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching entries by armband:', error);
-      throw error;
-    }
-
-    if (!data) {
-      return [];
-    }
-
-    return data.map(row => {
-      // Get result if exists
-      const result = row.results?.[0];
-
-      // Determine status and className for Entry mapping
-      const status = determineEntryStatus(row.entry_status, result?.is_in_ring);
-      const className = buildClassName(row.element, row.level, row.section);
-
-      // Use utility mapper for consistent Entry object creation
-      return mapDatabaseRowToEntry(row, status, className);
-    });
+    return await fetchEntriesByArmbandFromDatabase(armband, licenseKey);
   } catch (error) {
     console.error('Error in getEntriesByArmband:', error);
     throw error;

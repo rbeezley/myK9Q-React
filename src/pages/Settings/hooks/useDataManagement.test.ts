@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { useDataManagement } from './useDataManagement';
 import * as dataExportService from '@/services/dataExportService';
 import * as settingsHelpers from '../utils/settingsHelpers';

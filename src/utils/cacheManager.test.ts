@@ -2,7 +2,7 @@
  * Tests for cache manager utility
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import {
   clearScrollPositions,
   clearAllCaches,

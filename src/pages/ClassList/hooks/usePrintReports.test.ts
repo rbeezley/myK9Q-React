@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { usePrintReports } from './usePrintReports';
 import * as reportService from '@/services/reportService';
 import * as entryService from '@/services/entryService';

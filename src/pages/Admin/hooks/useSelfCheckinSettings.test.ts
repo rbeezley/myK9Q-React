@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { useSelfCheckinSettings } from './useSelfCheckinSettings';
 import * as resultVisibilityService from '@/services/resultVisibilityService';
 

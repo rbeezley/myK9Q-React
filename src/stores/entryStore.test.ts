@@ -2,7 +2,7 @@
  * Tests for entry store
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { useEntryStore } from './entryStore';
 import { Entry } from './entryStore';
 

@@ -4,7 +4,7 @@
  * Tests cache reads, data transformation, and sync operations.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { vi } from 'vitest';
 import { getEntriesFromReplicationCache, triggerImmediateEntrySync } from './entryReplication';
 import { getReplicationManager } from '@/services/replication';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';

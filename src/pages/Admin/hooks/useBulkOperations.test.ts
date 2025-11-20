@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { vi } from 'vitest';
 import { useBulkOperations } from './useBulkOperations';
 import * as resultVisibilityService from '@/services/resultVisibilityService';
 import type { ClassInfo } from './useCompetitionAdminData';
