@@ -857,7 +857,7 @@ Status: ⬜⬜⬜⬜⬜⬜⬜⬜ (0/8)
 
 **CompetitionAdmin.tsx (1,292 lines)**
 ```
-[ ] Extract admin-data-utils.ts
+[x] Extract admin-data-utils.ts ✅
 [x] Extract useAdminName hook ✅
 [x] Extract useClassSelection hook ✅
 [ ] Extract useVisibilitySettings hook
