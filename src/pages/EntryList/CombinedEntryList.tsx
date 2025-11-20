@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
-import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState, TabBar, Tab } from '../../components/ui';
+import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, TabBar, Tab } from '../../components/ui';
 import { DogCard } from '../../components/DogCard';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
@@ -663,8 +663,6 @@ export const CombinedEntryList: React.FC = () => {
           </div>
         </div>
       </header>
-
-      <HeaderTicker />
 
       {/* Search and Sort Header */}
       <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>

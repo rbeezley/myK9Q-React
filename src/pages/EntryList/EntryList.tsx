@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, HeaderTicker, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh, TabBar, Tab } from '../../components/ui';
+import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh, TabBar, Tab } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
@@ -826,8 +826,6 @@ export const EntryList: React.FC = () => {
           </div>
         </div>
       </header>
-
-      <HeaderTicker />
 
       {/* Search and Sort Header - STICKY */}
       <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>

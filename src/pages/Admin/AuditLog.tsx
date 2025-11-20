@@ -13,7 +13,7 @@ import {
   type AuditLogFilters,
 } from '@/services/auditLogService';
 import { useAuditLogData } from './hooks/useAuditLogData';
-import { HamburgerMenu, HeaderTicker } from '@/components/ui';
+import { HamburgerMenu } from '@/components/ui';
 import { Clock, Filter, X, User, Calendar, Settings } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import './AuditLog.css';
@@ -81,9 +81,6 @@ const AuditLog: React.FC = () => {
           Track all changes to competition settings including result visibility and self check-in configuration.
         </p>
       </div>
-
-      {/* Header Ticker */}
-      <HeaderTicker />
 
       {/* Controls */}
       <div className="audit-log-controls">

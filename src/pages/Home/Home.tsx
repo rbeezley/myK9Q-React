@@ -6,7 +6,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
+import { HamburgerMenu, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
 import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -349,10 +349,6 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
-      <HeaderTicker />
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* PWA Install Prompt - Only shown to exhibitors with favorited dogs */}
       {role === 'exhibitor' && favoriteDogs.size > 0 && settings.enableNotifications && (

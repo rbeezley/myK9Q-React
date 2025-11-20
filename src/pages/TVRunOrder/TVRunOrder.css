@@ -8,7 +8,7 @@
   overflow: hidden;
 }
 
-/* Header bar with menu and ticker */
+/* Header bar with menu */
 .tv-runorder-header-bar {
   flex-shrink: 0;
   display: flex;
@@ -20,13 +20,6 @@
 .tv-runorder-menu {
   flex-shrink: 0;
   padding-left: var(--token-space-md);
-}
-
-/* Announcement ticker (takes remaining space) */
-.tv-runorder-ticker {
-  flex: 1;
-  min-width: 0; /* Allow ticker to shrink */
-  /* HeaderTicker handles its own styling */
 }
 
 /* 2x2 grid layout */

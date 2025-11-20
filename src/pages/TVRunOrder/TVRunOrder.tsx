@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { HeaderTicker, HamburgerMenu } from '../../components/ui';
+import { HamburgerMenu } from '../../components/ui';
 import { useTVData } from './hooks/useTVData';
 import { ClassRunOrder } from './components/ClassRunOrder';
 import './TVRunOrder.css';
@@ -87,9 +87,6 @@ export const TVRunOrder: React.FC = () => {
           <div className="tv-runorder-menu">
             <HamburgerMenu currentPage="tv" />
           </div>
-          <div className="tv-runorder-ticker">
-            <HeaderTicker />
-          </div>
         </div>
         <div className="tv-runorder-empty">
           <h1>No Classes Available</h1>
@@ -101,13 +98,10 @@ export const TVRunOrder: React.FC = () => {
 
   return (
     <div className="tv-runorder-container">
-      {/* Header bar with hamburger menu and announcement ticker */}
+      {/* Header bar with hamburger menu */}
       <div className="tv-runorder-header-bar">
         <div className="tv-runorder-menu">
           <HamburgerMenu currentPage="tv" />
-        </div>
-        <div className="tv-runorder-ticker">
-          <HeaderTicker />
         </div>
       </div>
 

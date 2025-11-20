@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, HeaderTicker } from '../../components/ui';
+import { HamburgerMenu } from '../../components/ui';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SuccessDialog } from './SuccessDialog';
 import {
@@ -779,10 +779,6 @@ export const CompetitionAdmin: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
-      <HeaderTicker />
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Main content container */}
       <div className="admin-content">

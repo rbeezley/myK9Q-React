@@ -5,7 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, HeaderTicker, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
+import { HamburgerMenu, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
@@ -23,7 +23,7 @@ import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
-import { getContextualPreview, getFormattedStatus, getStatusColor } from './utils/statusFormatting';
+import { getContextualPreview } from './utils/statusFormatting';
 
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
@@ -812,7 +812,7 @@ export const ClassList: React.FC = () => {
     });
 
     return filtered;
-  }, [classes, combinedFilter, searchTerm, sortOrder, groupNoviceClasses]);
+  }, [classes, combinedFilter, searchTerm, sortOrder, groupNoviceClassesCached]);
 
   // Show loading skeleton only if actively loading and no data exists
   if (isLoading && !trialInfo && classes.length === 0) {
@@ -925,10 +925,6 @@ export const ClassList: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION START ===== */}
-      <HeaderTicker />
-      {/* ===== HEADER TICKER - EASILY REMOVABLE SECTION END ===== */}
 
       {/* Search, Sort, and Filter Controls - STICKY */}
       <ClassFilters
