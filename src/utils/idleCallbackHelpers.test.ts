@@ -25,31 +25,25 @@ describe('hasIdleCallbackSupport', () => {
   afterEach(() => {
     // Clean restoration
     if (originalRequestIdleCallback !== undefined) {
-      // @ts-expect-error - restoring browser API
       window.requestIdleCallback = originalRequestIdleCallback;
     } else {
-      // @ts-expect-error - removing browser API
-      delete window.requestIdleCallback;
+      Reflect.deleteProperty(window, "requestIdleCallback");
     }
 
     if (originalCancelIdleCallback !== undefined) {
-      // @ts-expect-error - restoring browser API
       window.cancelIdleCallback = originalCancelIdleCallback;
     } else {
-      // @ts-expect-error - removing browser API
-      delete window.cancelIdleCallback;
+      Reflect.deleteProperty(window, "cancelIdleCallback");
     }
   });
 
   test('should return true when requestIdleCallback exists', () => {
-    // @ts-expect-error - mocking browser API
     window.requestIdleCallback = vi.fn();
     expect(hasIdleCallbackSupport()).toBe(true);
   });
 
   test('should return false when requestIdleCallback does not exist', () => {
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
     expect(hasIdleCallbackSupport()).toBe(false);
   });
 });
@@ -68,19 +62,15 @@ describe('scheduleIdleTask', () => {
 
     // Clean restoration
     if (originalRequestIdleCallback !== undefined) {
-      // @ts-expect-error - restoring browser API
       window.requestIdleCallback = originalRequestIdleCallback;
     } else {
-      // @ts-expect-error - removing browser API
-      delete window.requestIdleCallback;
+      Reflect.deleteProperty(window, "requestIdleCallback");
     }
 
     if (originalCancelIdleCallback !== undefined) {
-      // @ts-expect-error - restoring browser API
       window.cancelIdleCallback = originalCancelIdleCallback;
     } else {
-      // @ts-expect-error - removing browser API
-      delete window.cancelIdleCallback;
+      Reflect.deleteProperty(window, "cancelIdleCallback");
     }
   });
 
@@ -89,7 +79,6 @@ describe('scheduleIdleTask', () => {
     const mockRequestIdleCallback = vi.fn().mockReturnValue(123);
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - mocking browser API
     window.requestIdleCallback = mockRequestIdleCallback;
 
     const id = scheduleIdleTask(callback);
@@ -97,7 +86,6 @@ describe('scheduleIdleTask', () => {
     expect(mockRequestIdleCallback).toHaveBeenCalledWith(callback, {});
     expect(id).toBe(123);
 
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -115,14 +103,12 @@ describe('scheduleIdleTask', () => {
     const mockRequestIdleCallback = vi.fn().mockReturnValue(123);
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - mocking browser API
     window.requestIdleCallback = mockRequestIdleCallback;
 
     scheduleIdleTask(callback, options);
 
     expect(mockRequestIdleCallback).toHaveBeenCalledWith(callback, options);
 
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 });
@@ -132,14 +118,12 @@ describe('cancelIdleTask', () => {
     const mockCancelIdleCallback = vi.fn();
     const originalCancelIdleCallback = window.cancelIdleCallback;
 
-    // @ts-expect-error - mocking browser API
     window.cancelIdleCallback = mockCancelIdleCallback;
 
     cancelIdleTask(123);
 
     expect(mockCancelIdleCallback).toHaveBeenCalledWith(123);
 
-    // @ts-expect-error - restoring browser API
     window.cancelIdleCallback = originalCancelIdleCallback;
   });
 
@@ -149,9 +133,7 @@ describe('cancelIdleTask', () => {
     const originalClearTimeout = window.clearTimeout;
     const mockClearTimeout = vi.fn();
 
-    // @ts-expect-error - removing browser API
-    delete window.cancelIdleCallback;
-    // @ts-expect-error - mocking browser API
+    Reflect.deleteProperty(window, "cancelIdleCallback");
     window.clearTimeout = mockClearTimeout;
 
     cancelIdleTask(123);
@@ -159,7 +141,6 @@ describe('cancelIdleTask', () => {
     expect(mockClearTimeout).toHaveBeenCalledWith(123);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.cancelIdleCallback = originalCancelIdleCallback;
     window.clearTimeout = originalClearTimeout;
   });
@@ -179,19 +160,15 @@ describe('scheduleIdleTasks', () => {
 
     // Clean restoration
     if (originalRequestIdleCallback !== undefined) {
-      // @ts-expect-error - restoring browser API
       window.requestIdleCallback = originalRequestIdleCallback;
     } else {
-      // @ts-expect-error - removing browser API
-      delete window.requestIdleCallback;
+      Reflect.deleteProperty(window, "requestIdleCallback");
     }
 
     if (originalCancelIdleCallback !== undefined) {
-      // @ts-expect-error - restoring browser API
       window.cancelIdleCallback = originalCancelIdleCallback;
     } else {
-      // @ts-expect-error - removing browser API
-      delete window.cancelIdleCallback;
+      Reflect.deleteProperty(window, "cancelIdleCallback");
     }
   });
 
@@ -201,10 +178,8 @@ describe('scheduleIdleTasks', () => {
     const originalRequestIdleCallback = window.requestIdleCallback;
     const originalCancelIdleCallback = window.cancelIdleCallback;
 
-    // @ts-expect-error - removing browser API to force setTimeout
-    delete window.requestIdleCallback;
-    // @ts-expect-error - also remove cancel
-    delete window.cancelIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
+    Reflect.deleteProperty(window, "cancelIdleCallback");
 
     const tasks = [
       { callback: () => executionOrder.push(1), priority: 1 },
@@ -222,9 +197,7 @@ describe('scheduleIdleTasks', () => {
     expect(executionOrder).toEqual([10, 5, 1]);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
-    // @ts-expect-error - restoring cancelIdleCallback
     window.cancelIdleCallback = originalCancelIdleCallback;
   });
 
@@ -250,7 +223,6 @@ describe('scheduleIdleTasks', () => {
     const mockRequestIdleCallback = vi.fn((cb, opts) => 123);
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - mocking browser API
     window.requestIdleCallback = mockRequestIdleCallback;
 
     const tasks = [
@@ -270,7 +242,6 @@ describe('scheduleIdleTasks', () => {
       { timeout: 2000 }
     );
 
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 });
@@ -289,7 +260,6 @@ describe('scheduleIdleTaskWithTimeout', () => {
     });
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - mocking browser API
     window.requestIdleCallback = mockRequestIdleCallback;
 
     scheduleIdleTaskWithTimeout(callback, 5000);
@@ -297,7 +267,6 @@ describe('scheduleIdleTaskWithTimeout', () => {
     expect(callback).toHaveBeenCalledTimes(1);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -307,10 +276,8 @@ describe('scheduleIdleTaskWithTimeout', () => {
     const originalRequestIdleCallback = window.requestIdleCallback;
     const originalCancelIdleCallback = window.cancelIdleCallback;
 
-    // @ts-expect-error - removing browser API to force setTimeout
-    delete window.requestIdleCallback;
-    // @ts-expect-error - also remove cancel
-    delete window.cancelIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
+    Reflect.deleteProperty(window, "cancelIdleCallback");
 
     scheduleIdleTaskWithTimeout(callback, 2000);
 
@@ -321,9 +288,7 @@ describe('scheduleIdleTaskWithTimeout', () => {
     expect(callback).toHaveBeenCalledTimes(1);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
-    // @ts-expect-error - restoring cancelIdleCallback
     window.cancelIdleCallback = originalCancelIdleCallback;
   });
 
@@ -333,10 +298,8 @@ describe('scheduleIdleTaskWithTimeout', () => {
     const originalRequestIdleCallback = window.requestIdleCallback;
     const originalCancelIdleCallback = window.cancelIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
-    // @ts-expect-error - also remove cancel
-    delete window.cancelIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
+    Reflect.deleteProperty(window, "cancelIdleCallback");
 
     scheduleIdleTaskWithTimeout(callback, 5000);
 
@@ -349,9 +312,7 @@ describe('scheduleIdleTaskWithTimeout', () => {
     expect(callback).toHaveBeenCalledTimes(1);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
-    // @ts-expect-error - restoring cancelIdleCallback
     window.cancelIdleCallback = originalCancelIdleCallback;
   });
 
@@ -361,10 +322,8 @@ describe('scheduleIdleTaskWithTimeout', () => {
     const originalRequestIdleCallback = window.requestIdleCallback;
     const originalCancelIdleCallback = window.cancelIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
-    // @ts-expect-error - also remove cancel
-    delete window.cancelIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
+    Reflect.deleteProperty(window, "cancelIdleCallback");
 
     scheduleIdleTaskWithTimeout(callback);
 
@@ -372,9 +331,7 @@ describe('scheduleIdleTaskWithTimeout', () => {
     expect(callback).toHaveBeenCalledTimes(1); // Already called via idle fallback
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
-    // @ts-expect-error - restoring cancelIdleCallback
     window.cancelIdleCallback = originalCancelIdleCallback;
   });
 });
@@ -390,12 +347,11 @@ describe('processInIdle', () => {
     const processed: number[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API to force setTimeout
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     const promise = processInIdle(
       items,
-      (item) => processed.push(item),
+      (item) => { processed.push(item); },
       3 // batch size
     );
 
@@ -406,7 +362,6 @@ describe('processInIdle', () => {
     expect(processed).toEqual(items);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -416,8 +371,7 @@ describe('processInIdle', () => {
     const progressUpdates: number[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     const promise = processInIdle(
       items,
@@ -432,7 +386,6 @@ describe('processInIdle', () => {
     expect(progressUpdates).toEqual([40, 80, 100]);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -442,8 +395,7 @@ describe('processInIdle', () => {
     const processed: number[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     const asyncProcessor = async (item: number) => {
       await Promise.resolve();
@@ -458,7 +410,6 @@ describe('processInIdle', () => {
     expect(processed).toEqual([2, 4, 6]);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -468,12 +419,11 @@ describe('processInIdle', () => {
     const indices: number[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     const promise = processInIdle(
       items,
-      (_, index) => indices.push(index),
+      (_, index) => { indices.push(index); },
       2
     );
 
@@ -483,7 +433,6 @@ describe('processInIdle', () => {
     expect(indices).toEqual([0, 1, 2]);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -492,12 +441,11 @@ describe('processInIdle', () => {
     const processed: any[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     const promise = processInIdle(
       [],
-      (item) => processed.push(item),
+      (item) => { processed.push(item); },
       10
     );
 
@@ -507,7 +455,6 @@ describe('processInIdle', () => {
     expect(processed).toEqual([]);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 
@@ -517,8 +464,7 @@ describe('processInIdle', () => {
     const batches: number[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     let currentBatch = 0;
     const promise = processInIdle(
@@ -541,7 +487,6 @@ describe('processInIdle', () => {
     expect(batches.length).toBeGreaterThan(0);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 });
@@ -557,10 +502,8 @@ describe('Integration: Complete idle workflow', () => {
     const originalRequestIdleCallback = window.requestIdleCallback;
     const originalCancelIdleCallback = window.cancelIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
-    // @ts-expect-error - also remove cancel
-    delete window.cancelIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
+    Reflect.deleteProperty(window, "cancelIdleCallback");
 
     const id = scheduleIdleTask(callback);
     expect(callback).not.toHaveBeenCalled();
@@ -571,9 +514,7 @@ describe('Integration: Complete idle workflow', () => {
     expect(callback).not.toHaveBeenCalled();
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
-    // @ts-expect-error - restoring cancelIdleCallback
     window.cancelIdleCallback = originalCancelIdleCallback;
   });
 
@@ -583,12 +524,11 @@ describe('Integration: Complete idle workflow', () => {
     const processed: number[] = [];
     const originalRequestIdleCallback = window.requestIdleCallback;
 
-    // @ts-expect-error - removing browser API
-    delete window.requestIdleCallback;
+    Reflect.deleteProperty(window, "requestIdleCallback");
 
     const promise = processInIdle(
       largeDataset,
-      (item) => processed.push(item * 2),
+      (item) => { processed.push(item * 2); },
       10
     );
 
@@ -600,7 +540,6 @@ describe('Integration: Complete idle workflow', () => {
     expect(processed[99]).toBe(198);
 
     vi.useRealTimers();
-    // @ts-expect-error - restoring browser API
     window.requestIdleCallback = originalRequestIdleCallback;
   });
 });

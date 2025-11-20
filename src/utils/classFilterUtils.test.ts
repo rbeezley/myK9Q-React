@@ -10,8 +10,8 @@ import {
   classMatchesSearch,
   type ClassFilter,
   type ClassSortOrder,
+  type ClassEntry,
 } from './classFilterUtils';
-import type { ClassEntry } from './statusUtils';
 
 // Mock class entries for testing
 const createMockClass = (

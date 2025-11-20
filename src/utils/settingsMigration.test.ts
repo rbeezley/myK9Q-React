@@ -28,7 +28,6 @@ const createMockSettings = (overrides: Partial<AppSettings> = {}): AppSettings =
   theme: 'dark',
   fontSize: 'medium',
   density: 'comfortable',
-  performanceMode: 'auto',
   reduceMotion: false,
   highContrast: false,
   realTimeSync: true,
@@ -352,7 +351,7 @@ describe('settingsMigration', () => {
       } as any;
 
       const result = repairSettings(settingsWithExtra, defaults);
-      expect(result.customField).toBe('preserved');
+      expect((result as any).customField).toBe('preserved');
     });
   });
 });

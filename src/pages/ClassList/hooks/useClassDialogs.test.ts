@@ -10,27 +10,35 @@ import type { ClassEntry } from './useClassListData';
 // Sample test data
 const mockClassEntry: ClassEntry = {
   id: 1,
-  trial_id: 1,
   element: 'Agility',
   level: 'Novice',
   section: 'A',
+  class_name: 'Agility Novice A',
+  class_order: 1,
   judge_name: 'Judge Smith',
-  class_status: 'not-started',
-  trial_date: '2025-01-20',
-  trial_number: 1,
-} as ClassEntry;
+  entry_count: 10,
+  completed_count: 0,
+  class_status: 'no-status',
+  is_completed: false,
+  is_favorite: false,
+  dogs: [],
+};
 
 const mockClassEntry2: ClassEntry = {
   id: 2,
-  trial_id: 1,
   element: 'Jumping',
   level: 'Open',
   section: 'B',
+  class_name: 'Jumping Open B',
+  class_order: 2,
   judge_name: 'Judge Jones',
-  class_status: 'in-progress',
-  trial_date: '2025-01-20',
-  trial_number: 1,
-} as ClassEntry;
+  entry_count: 8,
+  completed_count: 4,
+  class_status: 'in_progress',
+  is_completed: false,
+  is_favorite: false,
+  dogs: [],
+};
 
 describe('useClassDialogs', () => {
   beforeEach(() => {

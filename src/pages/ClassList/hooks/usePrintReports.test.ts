@@ -25,10 +25,16 @@ const mockClasses: ClassEntry[] = [
     level: 'Novice',
     section: 'A',
     class_name: 'Novice A Agility',
+    class_order: 1,
     judge_name: 'Judge Smith',
+    entry_count: 0,
+    completed_count: 0,
     class_status: 'completed',
+    is_completed: true,
+    is_favorite: false,
     trial_date: '2025-01-20',
     trial_number: 1,
+    dogs: [],
   } as ClassEntry,
   {
     id: 2,
@@ -37,19 +43,26 @@ const mockClasses: ClassEntry[] = [
     level: 'Open',
     section: 'B',
     class_name: 'Open B Jumping',
+    class_order: 2,
     judge_name: 'Judge Jones',
-    class_status: 'in-progress',
+    entry_count: 0,
+    completed_count: 0,
+    class_status: 'in_progress',
+    is_completed: false,
+    is_favorite: false,
     trial_date: '2025-01-20',
     trial_number: 1,
+    dogs: [],
   } as ClassEntry,
 ];
 
 const mockTrialInfo: TrialInfo = {
-  trial_id: 1,
+  trial_name: 'Test Trial',
   trial_date: '2025-01-20',
   trial_number: 1,
-  judges: ['Judge Smith', 'Judge Jones'],
-  class_count: 2,
+  total_classes: 2,
+  pending_classes: 1,
+  completed_classes: 1,
 };
 
 const mockEntries: Entry[] = [

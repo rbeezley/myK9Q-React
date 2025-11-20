@@ -14,10 +14,17 @@ const mockClassEntry: ClassEntry = {
   element: 'Agility',
   level: 'Novice',
   section: 'A',
+  class_name: 'Novice A Agility',
+  class_order: 1,
   judge_name: 'Judge Smith',
-  class_status: 'not-started',
+  entry_count: 0,
+  completed_count: 0,
+  class_status: 'no-status',
+  is_completed: false,
+  is_favorite: false,
   trial_date: '2025-01-20',
   trial_number: 1,
+  dogs: [],
 } as ClassEntry;
 
 const mockClassEntry2: ClassEntry = {
@@ -26,10 +33,17 @@ const mockClassEntry2: ClassEntry = {
   element: 'Jumping',
   level: 'Open',
   section: 'B',
+  class_name: 'Open B Jumping',
+  class_order: 2,
   judge_name: 'Judge Jones',
-  class_status: 'in-progress',
+  entry_count: 0,
+  completed_count: 0,
+  class_status: 'in_progress',
+  is_completed: false,
+  is_favorite: false,
   trial_date: '2025-01-20',
   trial_number: 1,
+  dogs: [],
 } as ClassEntry;
 
 describe('useClassDialogs', () => {

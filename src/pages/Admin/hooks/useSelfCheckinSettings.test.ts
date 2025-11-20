@@ -382,7 +382,7 @@ describe('useSelfCheckinSettings', () => {
       await act(async () => {
         result1 = await result.current.handleSetShowSelfCheckin(false, 'license-123');
       });
-      expect(result1.success).toBe(false);
+      expect(result1!.success).toBe(false);
       expect(result.current.showSelfCheckinEnabled).toBe(true);
 
       // Retry succeeds
@@ -390,7 +390,7 @@ describe('useSelfCheckinSettings', () => {
       await act(async () => {
         result2 = await result.current.handleSetShowSelfCheckin(false, 'license-123');
       });
-      expect(result2.success).toBe(true);
+      expect(result2!.success).toBe(true);
       expect(result.current.showSelfCheckinEnabled).toBe(false);
 
       consoleErrorSpy.mockRestore();

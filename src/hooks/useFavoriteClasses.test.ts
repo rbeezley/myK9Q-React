@@ -277,7 +277,7 @@ describe('useFavoriteClasses', () => {
       vi.mocked(saveFavoritesToLocalStorage).mockClear();
 
       // Remove licenseKey
-      rerender({ licenseKey: null, trialId: mockTrialId });
+      rerender({ licenseKey: null as string | null, trialId: mockTrialId });
 
       act(() => {
         result.current.addFavorite(2);

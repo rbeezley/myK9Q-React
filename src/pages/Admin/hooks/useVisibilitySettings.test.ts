@@ -60,7 +60,7 @@ describe('useVisibilitySettings', () => {
 
       let setResult;
       await act(async () => {
-        setResult = await result.current.handleSetShowVisibility('locked', 'Jane Smith', 'license-456');
+        setResult = await result.current.handleSetShowVisibility('review', 'Jane Smith', 'license-456');
       });
 
       expect(setResult).toEqual({
@@ -84,11 +84,11 @@ describe('useVisibilitySettings', () => {
       });
       expect(result.current.showVisibilityPreset).toBe('open');
 
-      // Change to 'locked'
+      // Change to 'review'
       await act(async () => {
-        await result.current.handleSetShowVisibility('locked', 'Admin', 'license-123');
+        await result.current.handleSetShowVisibility('review', 'Admin', 'license-123');
       });
-      expect(result.current.showVisibilityPreset).toBe('locked');
+      expect(result.current.showVisibilityPreset).toBe('review');
 
       // Change to 'standard'
       await act(async () => {
@@ -106,12 +106,12 @@ describe('useVisibilitySettings', () => {
 
       let setResult;
       await act(async () => {
-        setResult = await result.current.handleSetTrialVisibility(1, 'locked', 'Admin', 'Trial 1');
+        setResult = await result.current.handleSetTrialVisibility(1, 'review', 'Admin', 'Trial 1');
       });
 
       expect(setResult).toEqual({ success: true });
-      expect(result.current.trialVisibilitySettings.get(1)).toBe('locked');
-      expect(resultVisibilityService.setTrialVisibility).toHaveBeenCalledWith(1, 'locked', 'Admin');
+      expect(result.current.trialVisibilitySettings.get(1)).toBe('review');
+      expect(resultVisibilityService.setTrialVisibility).toHaveBeenCalledWith(1, 'review', 'Admin');
     });
 
     it('should handle trial visibility errors', async () => {
@@ -147,7 +147,7 @@ describe('useVisibilitySettings', () => {
 
       // Set trial 2
       await act(async () => {
-        await result.current.handleSetTrialVisibility(2, 'locked', 'Admin', 'Trial 2');
+        await result.current.handleSetTrialVisibility(2, 'review', 'Admin', 'Trial 2');
       });
 
       // Set trial 3
@@ -156,7 +156,7 @@ describe('useVisibilitySettings', () => {
       });
 
       expect(result.current.trialVisibilitySettings.get(1)).toBe('open');
-      expect(result.current.trialVisibilitySettings.get(2)).toBe('locked');
+      expect(result.current.trialVisibilitySettings.get(2)).toBe('review');
       expect(result.current.trialVisibilitySettings.get(3)).toBe('standard');
       expect(result.current.trialVisibilitySettings.size).toBe(3);
     });
@@ -174,9 +174,9 @@ describe('useVisibilitySettings', () => {
 
       // Update to different value
       await act(async () => {
-        await result.current.handleSetTrialVisibility(1, 'locked', 'Admin', 'Trial 1');
+        await result.current.handleSetTrialVisibility(1, 'review', 'Admin', 'Trial 1');
       });
-      expect(result.current.trialVisibilitySettings.get(1)).toBe('locked');
+      expect(result.current.trialVisibilitySettings.get(1)).toBe('review');
       expect(result.current.trialVisibilitySettings.size).toBe(1); // Still only 1 entry
     });
   });
@@ -190,7 +190,7 @@ describe('useVisibilitySettings', () => {
 
       // First, set an override
       await act(async () => {
-        await result.current.handleSetTrialVisibility(1, 'locked', 'Admin', 'Trial 1');
+        await result.current.handleSetTrialVisibility(1, 'review', 'Admin', 'Trial 1');
       });
       expect(result.current.trialVisibilitySettings.has(1)).toBe(true);
 
@@ -214,7 +214,7 @@ describe('useVisibilitySettings', () => {
 
       // Set an override first
       await act(async () => {
-        await result.current.handleSetTrialVisibility(1, 'locked', 'Admin', 'Trial 1');
+        await result.current.handleSetTrialVisibility(1, 'review', 'Admin', 'Trial 1');
       });
 
       // Try to remove it (should fail)
@@ -257,7 +257,7 @@ describe('useVisibilitySettings', () => {
       // Set multiple trials
       await act(async () => {
         await result.current.handleSetTrialVisibility(1, 'open', 'Admin', 'Trial 1');
-        await result.current.handleSetTrialVisibility(2, 'locked', 'Admin', 'Trial 2');
+        await result.current.handleSetTrialVisibility(2, 'review', 'Admin', 'Trial 2');
         await result.current.handleSetTrialVisibility(3, 'standard', 'Admin', 'Trial 3');
       });
 
@@ -280,9 +280,9 @@ describe('useVisibilitySettings', () => {
       const { result } = renderHook(() => useVisibilitySettings());
 
       act(() => {
-        result.current.setShowVisibilityPreset('locked');
+        result.current.setShowVisibilityPreset('review');
       });
-      expect(result.current.showVisibilityPreset).toBe('locked');
+      expect(result.current.showVisibilityPreset).toBe('review');
 
       act(() => {
         const newMap = new Map([[1, 'open' as const], [2, 'standard' as const]]);
@@ -304,12 +304,12 @@ describe('useVisibilitySettings', () => {
 
       // Set show and trial settings
       await act(async () => {
-        await result.current.handleSetShowVisibility('locked', 'Admin', 'license-123');
+        await result.current.handleSetShowVisibility('review', 'Admin', 'license-123');
         await result.current.handleSetTrialVisibility(1, 'open', 'Admin', 'Trial 1');
       });
 
       // Both should be set independently
-      expect(result.current.showVisibilityPreset).toBe('locked');
+      expect(result.current.showVisibilityPreset).toBe('review');
       expect(result.current.trialVisibilitySettings.get(1)).toBe('open');
     });
   });
@@ -328,9 +328,9 @@ describe('useVisibilitySettings', () => {
         expect(result1.success).toBe(true);
       });
 
-      // 2. Override trial 1 to 'locked'
+      // 2. Override trial 1 to 'review'
       await act(async () => {
-        const result2 = await result.current.handleSetTrialVisibility(1, 'locked', 'Admin', 'Trial 1');
+        const result2 = await result.current.handleSetTrialVisibility(1, 'review', 'Admin', 'Trial 1');
         expect(result2.success).toBe(true);
       });
 
@@ -371,18 +371,18 @@ describe('useVisibilitySettings', () => {
       // First attempt fails
       let result1;
       await act(async () => {
-        result1 = await result.current.handleSetShowVisibility('locked', 'Admin', 'license-123');
+        result1 = await result.current.handleSetShowVisibility('review', 'Admin', 'license-123');
       });
-      expect(result1.success).toBe(false);
+      expect(result1!.success).toBe(false);
       expect(result.current.showVisibilityPreset).toBe('standard');
 
       // Retry succeeds
       let result2;
       await act(async () => {
-        result2 = await result.current.handleSetShowVisibility('locked', 'Admin', 'license-123');
+        result2 = await result.current.handleSetShowVisibility('review', 'Admin', 'license-123');
       });
-      expect(result2.success).toBe(true);
-      expect(result.current.showVisibilityPreset).toBe('locked');
+      expect(result2!.success).toBe(true);
+      expect(result.current.showVisibilityPreset).toBe('review');
 
       consoleErrorSpy.mockRestore();
     });

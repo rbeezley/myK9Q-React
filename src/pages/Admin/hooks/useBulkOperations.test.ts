@@ -209,9 +209,9 @@ describe('useBulkOperations', () => {
       });
 
       expect(bulkResult).toMatchObject({ success: true });
-      expect(bulkResult.affectedClasses).toHaveLength(2);
-      expect(bulkResult.affectedClasses).toContain('Agility (Novice • A)');
-      expect(bulkResult.affectedClasses).toContain('Jumping (Novice • A)');
+      expect(bulkResult!.affectedClasses).toHaveLength(2);
+      expect(bulkResult!.affectedClasses).toContain('Agility (Novice • A)');
+      expect(bulkResult!.affectedClasses).toContain('Jumping (Novice • A)');
       expect(resultVisibilityService.bulkSetClassVisibility).toHaveBeenCalledWith([1, 2], 'open', 'Admin');
       expect(result.current.selectedClasses.size).toBe(0); // Selection cleared after operation
     });
@@ -221,7 +221,7 @@ describe('useBulkOperations', () => {
 
       let bulkResult;
       await act(async () => {
-        bulkResult = await result.current.handleBulkSetClassVisibility('locked', mockClasses, 'Admin');
+        bulkResult = await result.current.handleBulkSetClassVisibility('review', mockClasses, 'Admin');
       });
 
       expect(bulkResult).toEqual({
@@ -274,9 +274,9 @@ describe('useBulkOperations', () => {
       });
 
       expect(bulkResult).toMatchObject({ success: true });
-      expect(bulkResult.affectedClasses).toHaveLength(2);
-      expect(bulkResult.affectedClasses).toContain('Agility (Novice • A)');
-      expect(bulkResult.affectedClasses).toContain('Agility (Open • B)');
+      expect(bulkResult!.affectedClasses).toHaveLength(2);
+      expect(bulkResult!.affectedClasses).toContain('Agility (Novice • A)');
+      expect(bulkResult!.affectedClasses).toContain('Agility (Open • B)');
       expect(resultVisibilityService.bulkSetClassSelfCheckin).toHaveBeenCalledWith([1, 3], true);
       expect(result.current.selectedClasses.size).toBe(0); // Selection cleared after operation
     });
@@ -337,9 +337,9 @@ describe('useBulkOperations', () => {
       });
 
       expect(bulkResult).toMatchObject({ success: true });
-      expect(bulkResult.affectedClasses).toHaveLength(2);
-      expect(bulkResult.affectedClasses).toContain('Agility (Novice • A)');
-      expect(bulkResult.affectedClasses).toContain('Jumping (Novice • A)');
+      expect(bulkResult!.affectedClasses).toHaveLength(2);
+      expect(bulkResult!.affectedClasses).toContain('Agility (Novice • A)');
+      expect(bulkResult!.affectedClasses).toContain('Jumping (Novice • A)');
       expect(mockSupabaseClient.from).toHaveBeenCalled();
       expect(result.current.selectedClasses.size).toBe(0); // Selection cleared after operation
     });
@@ -439,7 +439,7 @@ describe('useBulkOperations', () => {
 
       // Failed operation
       await act(async () => {
-        const result1 = await result.current.handleBulkSetClassVisibility('locked', mockClasses, 'Admin');
+        const result1 = await result.current.handleBulkSetClassVisibility('review', mockClasses, 'Admin');
         expect(result1.success).toBe(false);
       });
 

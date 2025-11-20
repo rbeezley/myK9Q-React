@@ -24,11 +24,18 @@ const mockClasses: ClassEntry[] = [
     element: 'Agility',
     level: 'Novice',
     section: 'A',
+    class_name: 'Novice A Agility',
+    class_order: 1,
     judge_name: 'Judge Smith',
-    class_status: 'not-started',
+    entry_count: 0,
+    completed_count: 0,
+    class_status: 'no-status',
+    is_completed: false,
+    is_favorite: false,
     trial_date: '2025-01-20',
     trial_number: 1,
     pairedClassId: 2, // Paired with class 2
+    dogs: [],
   } as ClassEntry,
   {
     id: 2,
@@ -36,11 +43,18 @@ const mockClasses: ClassEntry[] = [
     element: 'Agility',
     level: 'Novice',
     section: 'B',
+    class_name: 'Novice B Agility',
+    class_order: 2,
     judge_name: 'Judge Smith',
-    class_status: 'not-started',
+    entry_count: 0,
+    completed_count: 0,
+    class_status: 'no-status',
+    is_completed: false,
+    is_favorite: false,
     trial_date: '2025-01-20',
     trial_number: 1,
     pairedClassId: 1, // Paired with class 1
+    dogs: [],
   } as ClassEntry,
   {
     id: 3,
@@ -48,11 +62,18 @@ const mockClasses: ClassEntry[] = [
     element: 'Jumping',
     level: 'Open',
     section: 'A',
+    class_name: 'Open A Jumping',
+    class_order: 3,
     judge_name: 'Judge Jones',
-    class_status: 'not-started',
+    entry_count: 0,
+    completed_count: 0,
+    class_status: 'no-status',
+    is_completed: false,
+    is_favorite: false,
     trial_date: '2025-01-20',
     trial_number: 1,
     pairedClassId: undefined, // No pairing
+    dogs: [],
   } as ClassEntry,
 ];
 
@@ -148,7 +169,7 @@ describe('useClassStatus', () => {
       await act(async () => {
         statusResult = await result.current.handleStatusChange(
           3, // Class without pairing
-          'in-progress',
+          'in_progress',
           mockClasses,
           mockSetClasses,
           mockSupabase as any,
@@ -225,7 +246,7 @@ describe('useClassStatus', () => {
       await act(async () => {
         statusResult = await result.current.handleStatusChange(
           3,
-          'in-progress',
+          'in_progress',
           mockClasses,
           mockSetClasses,
           mockSupabase as any,
@@ -454,11 +475,11 @@ describe('useClassStatus', () => {
       });
       expect(result.current.statusDialogOpen).toBe(false);
 
-      // 3. Change to in-progress
+      // 3. Change to in_progress
       await act(async () => {
         const result2 = await result.current.handleStatusChange(
           1,
-          'in-progress',
+          'in_progress',
           mockClasses,
           mockSetClasses,
           mockSupabase as any,
