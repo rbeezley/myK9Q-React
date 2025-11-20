@@ -17,8 +17,15 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--token-space-xl) var(--token-space-lg); /* Mobile-first: 12px horizontal */
+  padding: var(--token-space-xl) var(--token-space-lg);
+  /* Mobile-first: 12px horizontal */
   padding-bottom: 4rem;
+}
+
+.settings-layout-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Custom Scrollbar Styling */
@@ -67,6 +74,16 @@
   color: var(--foreground);
   margin: 0;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  /* Add spacing between icon and text */
+}
+
+.title-icon {
+  color: var(--primary);
+  width: 20px;
+  height: 20px;
 }
 
 /* Header Menu Button */
@@ -169,12 +186,14 @@
 
 /* Sections */
 .settings-section {
-  margin-bottom: 2.5rem; /* 40px - between sections */
+  margin-bottom: 2.5rem;
+  /* 40px - between sections */
   padding: 0;
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  text-align: left; /* Force left alignment */
+  text-align: left;
+  /* Force left alignment */
 }
 
 .settings-section h2 {
@@ -184,13 +203,15 @@
   margin: 0 0 var(--token-space-lg) 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  opacity: 1; /* Increased from 0.9 for better visibility */
+  opacity: 1;
+  /* Increased from 0.9 for better visibility */
   text-align: left;
 }
 
 .section-description {
   font-size: 0.875rem;
-  color: var(--muted-foreground); /* Better contrast than token-text-secondary */
+  color: var(--muted-foreground);
+  /* Better contrast than token-text-secondary */
   margin: 0 0 var(--token-space-xl) 0;
   font-weight: 400;
   text-align: left;
@@ -199,7 +220,8 @@
 .subsection-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--muted-foreground); /* Better contrast in dark mode */
+  color: var(--muted-foreground);
+  /* Better contrast in dark mode */
   margin: var(--token-space-3xl) 0 var(--token-space-md) 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -273,7 +295,8 @@
 
 .setting-hint {
   font-size: 0.8125rem;
-  color: var(--muted-foreground); /* Better contrast in dark mode */
+  color: var(--muted-foreground);
+  /* Better contrast in dark mode */
   line-height: 1.5;
   font-weight: 400;
   text-align: left;
@@ -282,11 +305,11 @@
 /* Select Dropdowns */
 .setting-item select {
   padding: 0.625rem 2.5rem 0.625rem var(--token-space-xl);
-  background: rgba(31, 41, 55, 0.8);
-  border: 1.5px solid rgba(75, 85, 99, 0.8);
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
   border-radius: 10px;
   font-size: 0.875rem;
-  color: var(--foreground);
+  color: var(--input-text);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f9fafb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -298,16 +321,22 @@
   font-weight: 500;
 }
 
+/* Ensure options inherit the dark background */
+.setting-item select option {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
 .setting-item select:hover {
   border-color: var(--primary);
-  background: rgba(31, 41, 55, 1);
+  background: var(--input-bg-hover);
 }
 
 .setting-item select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
-  background: rgba(31, 41, 55, 1);
+  background: var(--input-bg);
 }
 
 /* Toggle Switch - Modern Design */
@@ -351,21 +380,21 @@
   box-shadow: 0 var(--token-space-xs) 6px rgba(0, 0, 0, 0.3);
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background: var(--primary);
   border-color: var(--primary);
 }
 
-.toggle-switch input:checked + .toggle-slider::before {
+.toggle-switch input:checked+.toggle-slider::before {
   transform: translateX(24px);
 }
 
-.toggle-switch input:disabled + .toggle-slider {
+.toggle-switch input:disabled+.toggle-slider {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.toggle-switch input:focus + .toggle-slider {
+.toggle-switch input:focus+.toggle-slider {
   box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
 }
 
@@ -482,6 +511,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -503,6 +533,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -639,7 +670,7 @@
 }
 
 .theme-light,
-.theme-light .toggle-switch input:checked + .toggle-slider {
+.theme-light .toggle-switch input:checked+.toggle-slider {
   background: var(--primary);
   border-color: var(--primary);
 }
@@ -788,6 +819,7 @@
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
+
   .toggle-slider,
   .toggle-slider::before {
     transition: none;
@@ -834,7 +866,7 @@
     bottom: var(--token-space-xs);
   }
 
-  .toggle-switch input:checked + .toggle-slider::before {
+  .toggle-switch input:checked+.toggle-slider::before {
     transform: translateX(28px);
   }
 
@@ -874,6 +906,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -884,6 +917,7 @@
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
   }
@@ -936,6 +970,7 @@
 
 /* Print Styles */
 @media print {
+
   .settings-header button,
   .link-button,
   .setting-actions,
@@ -964,6 +999,7 @@
    CONSOLIDATED TABLET/DESKTOP STYLES (640px+)
    ======================================== */
 @media (min-width: 640px) {
+
   /* Settings header */
   .settings-header {
     flex-direction: row;
@@ -1108,21 +1144,25 @@
 
 /* Mobile: responsive design - base styles */
 .settings-content {
-  padding: var(--token-space-xl) var(--token-space-lg);  /* Mobile: 12px horizontal */
+  padding: var(--token-space-xl) var(--token-space-lg);
+  /* Mobile: 12px horizontal */
 }
 
 .settings-header .dropdown-menu {
-  right: var(--token-space-lg);  /* Mobile: position */
+  right: var(--token-space-lg);
+  /* Mobile: position */
 }
 
 /* Desktop - increase horizontal padding */
 @media (min-width: 1024px) {
   .settings-content {
-    padding: var(--token-space-xl) var(--token-space-3xl);  /* Desktop: 24px horizontal */
+    padding: var(--token-space-xl) var(--token-space-3xl);
+    /* Desktop: 24px horizontal */
   }
 
   .settings-header .dropdown-menu {
-    right: var(--token-space-3xl);  /* Desktop: larger position */
+    right: var(--token-space-3xl);
+    /* Desktop: larger position */
   }
 }
 

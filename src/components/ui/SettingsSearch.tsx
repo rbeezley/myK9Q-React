@@ -49,6 +49,12 @@ export interface SettingsSearchProps {
 
   /** Auto-focus on mount */
   autoFocus?: boolean;
+
+  /** Controlled selected category */
+  selectedCategory?: string;
+
+  /** Callback when category changes */
+  onCategoryChange?: (category: string) => void;
 }
 
 export function SettingsSearch({
@@ -59,8 +65,20 @@ export function SettingsSearch({
   showCategoryFilter = true,
   placeholder = 'Search settings...',
   autoFocus = false,
+  selectedCategory: controlledCategory,
+  onCategoryChange,
 }: SettingsSearchProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [internalCategory, setInternalCategory] = useState<string>('all');
+
+  const selectedCategory = controlledCategory !== undefined ? controlledCategory : internalCategory;
+  const setSelectedCategory = (category: string) => {
+    if (onCategoryChange) {
+      onCategoryChange(category);
+    } else {
+      setInternalCategory(category);
+    }
+  };
+
   const [showResults, setShowResults] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -253,6 +271,23 @@ export function SettingsSearch({
               </option>
             ))}
           </select>
+          <svg
+            className="category-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 6l4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
       )}
 
@@ -331,19 +366,19 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
   return useMemo(
     () => [
       // Display settings (theme removed - now in hamburger menu only)
-      { id: 'fontSize', title: 'Font Size', description: 'Adjust text size for readability', category: 'Display', sectionId: 'display-section', keywords: ['text', 'size', 'accessibility'] },
-      { id: 'density', title: 'Spacing', description: 'How much space between elements', category: 'Display', sectionId: 'display-section', keywords: ['compact', 'comfortable', 'spacious'] },
-      { id: 'reduceMotion', title: 'Reduce Motion', description: 'Minimize animations and transitions', category: 'Display', sectionId: 'display-section', keywords: ['animation', 'accessibility', 'performance'] },
-      { id: 'highContrast', title: 'High Contrast', description: 'Increase color contrast for visibility', category: 'Display', sectionId: 'display-section', keywords: ['accessibility', 'contrast', 'visibility'] },
+      { id: 'fontSize', title: 'Font Size', description: 'Adjust text size for readability', category: 'Appearance', sectionId: 'appearance-section', keywords: ['text', 'size', 'accessibility'] },
+      { id: 'density', title: 'Spacing', description: 'How much space between elements', category: 'Appearance', sectionId: 'appearance-section', keywords: ['compact', 'comfortable', 'spacious'] },
+      { id: 'reduceMotion', title: 'Reduce Motion', description: 'Minimize animations and transitions', category: 'Appearance', sectionId: 'appearance-section', keywords: ['animation', 'accessibility', 'performance'] },
+      { id: 'highContrast', title: 'High Contrast', description: 'Increase color contrast for visibility', category: 'Appearance', sectionId: 'appearance-section', keywords: ['accessibility', 'contrast', 'visibility'] },
 
       // Performance settings
 
       // Mobile settings
-      { id: 'oneHandedMode', title: 'One-Handed Mode', description: 'Optimize for thumb reach', category: 'Mobile', sectionId: 'mobile-section', keywords: ['accessibility', 'thumb', 'reachability'] },
-      { id: 'handPreference', title: 'Hand Preference', description: 'Which hand do you use?', category: 'Mobile', sectionId: 'mobile-section', keywords: ['left', 'right', 'hand'] },
-      { id: 'pullToRefresh', title: 'Pull to Refresh', description: 'Swipe down to reload', category: 'Mobile', sectionId: 'mobile-section', keywords: ['swipe', 'reload', 'refresh'] },
-      { id: 'pullSensitivity', title: 'Pull Sensitivity', description: 'How far to pull', category: 'Mobile', sectionId: 'mobile-section', keywords: ['swipe', 'sensitivity'] },
-      { id: 'hapticFeedback', title: 'Haptic Feedback', description: 'Vibration on touch', category: 'Mobile', sectionId: 'mobile-section', keywords: ['vibration', 'touch', 'feedback'] },
+      { id: 'oneHandedMode', title: 'One-Handed Mode', description: 'Optimize for thumb reach', category: 'General', sectionId: 'general-section', keywords: ['accessibility', 'thumb', 'reachability'] },
+      { id: 'handPreference', title: 'Hand Preference', description: 'Which hand do you use?', category: 'General', sectionId: 'general-section', keywords: ['left', 'right', 'hand'] },
+      { id: 'pullToRefresh', title: 'Pull to Refresh', description: 'Swipe down to reload', category: 'General', sectionId: 'general-section', keywords: ['swipe', 'reload', 'refresh'] },
+      { id: 'pullSensitivity', title: 'Pull Sensitivity', description: 'How far to pull', category: 'General', sectionId: 'general-section', keywords: ['swipe', 'sensitivity'] },
+      { id: 'hapticFeedback', title: 'Haptic Feedback', description: 'Vibration on touch', category: 'General', sectionId: 'general-section', keywords: ['vibration', 'touch', 'feedback'] },
 
       // Notification settings
       { id: 'enableNotifications', title: 'Enable Notifications', description: 'Show push notifications', category: 'Notifications', sectionId: 'notifications-section', keywords: ['notifications', 'push', 'alerts'] },
@@ -360,8 +395,8 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
       { id: 'voiceAnnouncements', title: 'Voice Announcements', description: 'Speak timer warnings aloud', category: 'Scoring', sectionId: 'scoring-section', keywords: ['voice', 'audio', 'timer'] },
 
       // Privacy & Security settings
-      { id: 'rememberMe', title: 'Remember Me', description: 'Stay logged in on this device', category: 'Privacy & Security', sectionId: 'privacy-section', keywords: ['remember', 'login', 'session'] },
-      { id: 'biometricLogin', title: 'Biometric Login', description: 'Use fingerprint/face ID', category: 'Privacy & Security', sectionId: 'privacy-section', keywords: ['biometric', 'fingerprint', 'face'] },
+      { id: 'rememberMe', title: 'Remember Me', description: 'Stay logged in on this device', category: 'Privacy', sectionId: 'privacy-section', keywords: ['remember', 'login', 'session'] },
+      { id: 'biometricLogin', title: 'Biometric Login', description: 'Use fingerprint/face ID', category: 'Privacy', sectionId: 'privacy-section', keywords: ['biometric', 'fingerprint', 'face'] },
 
       // Advanced settings
       { id: 'developerMode', title: 'Developer Mode', description: 'Enable debugging tools', category: 'Advanced', sectionId: 'advanced-section', keywords: ['developer', 'debug', 'tools'] },

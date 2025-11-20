@@ -18,6 +18,7 @@ export interface AppSettings {
   reduceMotion: boolean;
   highContrast: boolean;
   density: 'compact' | 'comfortable' | 'spacious';
+  accentColor: 'green' | 'blue' | 'orange' | 'purple';
 
   // Performance
   enableAnimations: boolean | null; // null = auto-detect
@@ -83,6 +84,7 @@ const defaultSettings: AppSettings = {
   reduceMotion: false,
   highContrast: false,
   density: 'comfortable',
+  accentColor: 'green',
 
   // Performance
   enableAnimations: null,
@@ -164,6 +166,11 @@ export const useSettingsStore = create<SettingsState>()(
           if (updates.highContrast !== undefined) {
             applyHighContrast(updates.highContrast);
           }
+
+          // Apply accent color immediately
+          if (updates.accentColor) {
+            applyAccentColor(updates.accentColor);
+          }
         },
 
         resetSettings: () => {
@@ -173,6 +180,7 @@ export const useSettingsStore = create<SettingsState>()(
           applyDensity('comfortable');
           applyReduceMotion(false);
           applyHighContrast(false);
+          applyAccentColor('green');
         },
 
         resetSection: (section) => {
@@ -216,6 +224,7 @@ export const useSettingsStore = create<SettingsState>()(
             applyDensity(newSettings.density);
             applyReduceMotion(newSettings.reduceMotion);
             applyHighContrast(newSettings.highContrast);
+            applyAccentColor(newSettings.accentColor || 'green');
 
             return true;
           } catch (error) {
@@ -304,4 +313,14 @@ export function initializeSettings() {
   applyDensity(settings.density);
   applyReduceMotion(settings.reduceMotion);
   applyHighContrast(settings.highContrast);
+  applyAccentColor(settings.accentColor || 'green');
+}
+
+/**
+ * Apply accent color to document
+ */
+function applyAccentColor(color: 'green' | 'blue' | 'orange' | 'purple') {
+  const root = document.documentElement;
+  root.classList.remove('accent-green', 'accent-blue', 'accent-orange', 'accent-purple');
+  root.classList.add(`accent-${color}`);
 }
