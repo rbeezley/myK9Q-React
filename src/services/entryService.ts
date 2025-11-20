@@ -10,6 +10,7 @@ import {
   getClassEntries as getClassEntriesFromDataLayer,
   getTrialEntries as getTrialEntriesFromDataLayer,
   getEntriesByArmband as getEntriesByArmbandFromDataLayer,
+  checkAndUpdateClassCompletion,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
@@ -288,148 +289,10 @@ export async function submitScore(
   }
 }
 
-// shouldCheckCompletion() moved to @/utils/validationUtils
-
 /**
- * Check if all entries in a class are completed and update class status
- * Optionally also checks paired Novice class (A/B) when in combined view
- *
- * @param classId - The class ID to check completion for
- * @param pairedClassId - Optional paired class ID (only provided when scoring from combined Novice A & B view)
+ * Class completion checking moved to classCompletionService.ts (Phase 2, Task 2.3)
+ * Import via: import { checkAndUpdateClassCompletion } from './entry';
  */
-async function checkAndUpdateClassCompletion(
-  classId: number,
-  pairedClassId?: number
-): Promise<void> {
-  console.log('🔍 Checking class completion status for class', classId);
-
-  // Update status for the primary class
-  await updateSingleClassCompletion(classId);
-
-  // Only update paired class if explicitly provided (i.e., scoring from combined view)
-  if (pairedClassId) {
-    console.log(`🔄 Also updating paired Novice class ${pairedClassId} (combined view context)`);
-    await updateSingleClassCompletion(pairedClassId);
-  }
-}
-
-/**
- * Update completion status for a single class
- */
-async function updateSingleClassCompletion(classId: number): Promise<void> {
-  // Get all entries for this class
-  const { data: entries, error: entriesError } = await supabase
-    .from('entries')
-    .select('id')
-    .eq('class_id', classId);
-
-  if (entriesError || !entries || entries.length === 0) {
-    console.log('⚠️ No entries found for class', classId);
-    return;
-  }
-
-  const entryIds = entries.map(e => e.id);
-
-  // Check how many entries are scored (results merged into entries table)
-  const { data: scoredEntries, error: resultsError } = await supabase
-    .from('entries')
-    .select('id, is_scored')
-    .in('id', entryIds)
-    .eq('is_scored', true);
-
-  if (resultsError) {
-    console.error('Error fetching scored entries:', resultsError);
-    return;
-  }
-
-  const scoredCount = scoredEntries?.length || 0;
-  const totalCount = entries.length;
-
-  console.log(`📊 Class ${classId}: ${scoredCount}/${totalCount} entries scored`);
-
-  // Check if we should skip this update (optimization: only check first and last dog)
-  if (!shouldCheckCompletion(scoredCount, totalCount)) {
-    return; // Skip unnecessary update
-  }
-
-  // If all entries are scored, mark class as completed
-  if (scoredCount === totalCount && totalCount > 0) {
-    const { error: updateError } = await supabase
-      .from('classes')
-      .update({
-        is_completed: true,
-        class_status: 'completed'
-      })
-      .eq('id', classId);
-
-    if (updateError) {
-      console.error('❌ Error updating class completion:', updateError);
-      console.error('❌ Error message:', updateError.message);
-      console.error('❌ Error details:', updateError.details);
-      console.error('❌ Error hint:', updateError.hint);
-      console.error('❌ Error code:', updateError.code);
-    } else {
-      console.log('✅ Class', classId, 'marked as completed');
-
-      // Recalculate placements now that class is complete
-      try {
-        console.log('🏆 Calculating final placements for completed class', classId);
-
-        // Get show_id and license_key for this class
-        const { data: classData } = await supabase
-          .from('classes')
-          .select(`
-            id,
-            trial_id,
-            trials!inner (
-              show_id,
-              shows!inner (
-                license_key,
-                show_type
-              )
-            )
-          `)
-          .eq('id', classId)
-          .single();
-
-        if (classData && classData.trials) {
-          const trial = classData.trials as any;
-          const show = trial.shows;
-          const licenseKey = show.license_key;
-          const isNationals = show.show_type?.toLowerCase().includes('national') || false;
-
-          await recalculatePlacementsForClass(classId, licenseKey, isNationals);
-          console.log('✅ Final placements calculated for class', classId);
-        }
-      } catch (placementError) {
-        console.error('⚠️ Failed to calculate final placements:', placementError);
-      }
-    }
-  } else if (scoredCount > 0 && scoredCount < totalCount) {
-    // If some entries are scored (but not all), mark class as in_progress
-    console.log(`🔄 Updating class ${classId} status to 'in_progress' (${scoredCount}/${totalCount} scored)`);
-
-    const { error: updateError } = await supabase
-      .from('classes')
-      .update({
-        is_completed: false,
-        class_status: 'in_progress'
-      })
-      .eq('id', classId);
-
-    if (updateError) {
-      console.error('❌ Error updating class status to in_progress:', updateError);
-      console.error('❌ Error message:', updateError.message);
-      console.error('❌ Error details:', updateError.details);
-      console.error('❌ Error hint:', updateError.hint);
-      console.error('❌ Error code:', updateError.code);
-    } else {
-      console.log(`✅ Class ${classId} status updated to 'in_progress'`);
-    }
-  } else {
-    console.log(`ℹ️ No status update needed for class ${classId} (${scoredCount}/${totalCount} scored)`);
-  }
-}
 
 /**
  * Submit multiple scores from offline queue
