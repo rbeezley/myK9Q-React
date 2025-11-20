@@ -5,12 +5,12 @@ import { recalculatePlacementsForClass } from './placementService';
 import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
 import { syncManager } from './syncManager';
-import { getEntriesFromReplicationCache, triggerImmediateEntrySync } from './entryReplication';
+import { triggerImmediateEntrySync } from './entryReplication';
 import {
-  fetchClassEntriesFromDatabase,
-  fetchTrialEntriesFromDatabase,
-  fetchEntriesByArmbandFromDatabase,
-} from './entryDataFetching';
+  getClassEntries as getClassEntriesFromDataLayer,
+  getTrialEntries as getTrialEntriesFromDataLayer,
+  getEntriesByArmband as getEntriesByArmbandFromDataLayer,
+} from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
@@ -60,6 +60,9 @@ export interface ResultData {
 
 /**
  * Fetch all entries for a specific class or multiple classes
+ *
+ * **Phase 1 Complete**: Now uses unified entryDataLayer for cleaner abstraction
+ *
  * @param classIds - Single class ID or array of class IDs (for combined Novice A & B view)
  * @param licenseKey - License key for tenant isolation
  */
@@ -67,46 +70,21 @@ export async function getClassEntries(
   classIds: number | number[],
   licenseKey: string
 ): Promise<Entry[]> {
-  try {
-    // Normalize to array for consistent handling
-    const classIdArray = Array.isArray(classIds) ? classIds : [classIds];
-
-    // For single class, use first ID for backward compatibility
-    const primaryClassId = classIdArray[0];
-
-    // Always use replication (no feature flags - development only, no existing users)
-    const isReplicationEnabled = true;
-
-    if (isReplicationEnabled) {
-      // Try to fetch from replicated cache first
-      const cachedEntries = await getEntriesFromReplicationCache(classIdArray, primaryClassId);
-      if (cachedEntries !== null) {
-        return cachedEntries;
-      }
-      // Fall through to Supabase query if cache miss
-    }
-
-    // Fall back to database query (uses extracted entryDataFetching module)
-    return await fetchClassEntriesFromDatabase(classIdArray, primaryClassId, licenseKey);
-  } catch (error) {
-    console.error('Error in getClassEntries:', error);
-    throw error;
-  }
+  // Delegate to unified data layer (Phase 1, Task 1.3)
+  return getClassEntriesFromDataLayer(classIds, licenseKey);
 }
 
 /**
  * Fetch entries for a specific trial
+ *
+ * **Phase 1 Complete**: Now uses unified entryDataLayer
  */
 export async function getTrialEntries(
   trialId: number,
   licenseKey: string
 ): Promise<Entry[]> {
-  try {
-    return await fetchTrialEntriesFromDatabase(trialId, licenseKey);
-  } catch (error) {
-    console.error('Error in getTrialEntries:', error);
-    throw error;
-  }
+  // Delegate to unified data layer (Phase 1, Task 1.3)
+  return getTrialEntriesFromDataLayer(trialId, licenseKey);
 }
 
 /**
@@ -832,16 +810,17 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
 /**
  * Get entries by armband across all classes
  */
+/**
+ * Fetch entries by armband number
+ *
+ * **Phase 1 Complete**: Now uses unified entryDataLayer
+ */
 export async function getEntriesByArmband(
   armband: number,
   licenseKey: string
 ): Promise<Entry[]> {
-  try {
-    return await fetchEntriesByArmbandFromDatabase(armband, licenseKey);
-  } catch (error) {
-    console.error('Error in getEntriesByArmband:', error);
-    throw error;
-  }
+  // Delegate to unified data layer (Phase 1, Task 1.3)
+  return getEntriesByArmbandFromDataLayer(armband, licenseKey);
 }
 
 /**
