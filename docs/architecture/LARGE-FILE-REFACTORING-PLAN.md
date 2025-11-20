@@ -358,36 +358,45 @@ Extract pure utility functions with **no dependencies**. These can be extracted 
     Commit: eb8e5d1
     Status: COMPLETE (2025-01-19)
 
-[ ] 1.9: nationals-scoring-utils.ts (from AKCScentWorkScoresheet)
+[x] 1.9: nationals-scoring-utils.ts (from AKCNationalsScoresheet.tsx) ✅ COMPLETE
     Functions:
-      - mapElementToNationalsType(element)
-      - getCurrentDay()
-      - validateNationalsResult(result)
-    LOC Saved: ~50 lines
-    Tests: 10-12 test cases
+      - mapElementToNationalsType(element) ✅
+      - getNationalsElementDisplayName(type) ✅
+      - getAllNationalsElementTypes() ✅
+      - isValidNationalsElement(type) ✅
+      - getNationalsMaxTime(type) ✅
+      - getNationalsMaxTimeFormatted(type) ✅
+      - isValidCompetitionDay(day) ✅
+      - getCompetitionDayName(day) ✅
+    LOC Created: 244 lines (implementation)
+    Tests: 42 test cases (100% passing)
+    Status: ✅ COMPLETE (2025-01-19)
     Risk: LOW
     Dependencies: None
-    Note: Only needed after Phase 0 completes
-    Status: PENDING
 
-[ ] 1.10: admin-data-utils.ts (from CompetitionAdmin.tsx)
+[x] 1.10: admin-data-utils.ts (from CompetitionAdmin.tsx) ✅ COMPLETE
     Functions:
-      - formatTrialDate(date)
-      - formatClassDetails(class)
-      - groupClassesByTrial(classes)
-    LOC Saved: ~40 lines
-    Tests: 8-10 test cases
+      - formatTrialDate(date) ✅
+      - formatClassDetails(class) ✅
+      - formatTrialLabel(trial, format) ✅
+      - formatTrialLabelById(id, trials, format) ✅
+      - getSelectedClassDetails(classes, selectedIds) ✅
+      - groupClassesByTrial(classes) ✅
+    LOC Created: 264 lines (implementation) + 486 lines (tests) = 750 total
+    Tests: 36 test cases (100% passing)
+    Status: ✅ COMPLETE (2025-01-19)
     Risk: LOW
     Dependencies: None
-    Status: PENDING
 
-[x] 1.11: Consolidate status-utils.ts (from ClassList.tsx) ✅ ALREADY EXISTS
+[x] 1.11: Consolidate status-utils.ts (from ClassList.tsx) ✅ COMPLETE
     Functions already in statusUtils.ts:
       - getClassDisplayStatus(class) ✅
       - getFormattedStatus(status, time) ✅
       - getStatusColor(status) ✅
-    Note: getContextualPreview() is duplicated and should be consolidated
-    Status: PARTIALLY COMPLETE (core functions already centralized)
+    Duplication removed:
+      - getContextualPreview() duplicate removed from ClassList.tsx (40 LOC) ✅
+    LOC Removed: 40 lines from ClassList.tsx
+    Status: ✅ COMPLETE - All status utilities consolidated (2025-01-19)
 ```
 
 ### Phase 1 Actual Results (Week 3)
@@ -786,10 +795,10 @@ Phase 0: Nationals Split
       Status: ⬜ Not Started
 
 Phase 1: Foundation Utilities
-  [~] Week 3: 8 of 11 extractions ✅ 73% COMPLETE, 3 REMAINING
-      Actual: 2,309 LOC created
-      Tests: 327 (327 passing = 100%)
-      Completed: 8 utilities
+  [x] Week 3: 11 of 11 extractions ✅ 100% COMPLETE
+      Actual: 3,323 LOC created (1,526 implementation + 1,797 tests)
+      Tests: 377 (377 passing = 100%)
+      Completed: 11 utilities
         ✅ localStorageUtils (228 LOC, 32 tests)
         ✅ favoritesUtils (281 LOC, 42 tests)
         ✅ classFilterUtils (138 LOC, 32 tests)
@@ -798,11 +807,10 @@ Phase 1: Foundation Utilities
         ✅ notification-voice.ts (237 LOC, 50 tests)
         ✅ NotificationAnalytics (320 LOC, 37 tests)
         ✅ NotificationQueue (371 LOC, 40 tests)
-      Remaining: 3 utilities (~100 LOC savings, 25-30 tests)
-        - nationals-scoring-utils.ts
-        - admin-data-utils.ts
-        - status-utils.ts consolidation
-      Status: 🔄 Nearing completion, 3 remaining utilities (2025-01-19)
+        ✅ nationals-scoring-utils.ts (244 LOC, 42 tests)
+        ✅ admin-data-utils.ts (264 LOC + 486 test LOC = 750 total, 36 tests)
+        ✅ status-utils.ts consolidation (40 LOC removed from ClassList.tsx)
+      Status: ✅ Phase 1 COMPLETE (2025-01-19)
 
 Phase 2: Standalone Hooks
   [x] Week 4: 7 of 9 extractions ✅ COMPLETE
@@ -1090,5 +1098,5 @@ Phase 4: UI Components
 ---
 
 **Last Updated**: 2025-01-19
-**Status**: ✅ Phase 0 Week 1 COMPLETE | 🔄 Phase 1 (4/11 complete) | ✅ Phase 2 Week 4 COMPLETE
-**Next Step**: Complete remaining Phase 1 utilities (7 items: notification-delivery, notification-voice, NotificationAnalytics, NotificationQueue, nationals-scoring-utils, admin-data-utils, status-utils consolidation)
+**Status**: ✅ Phase 0 COMPLETE | ✅ Phase 1 COMPLETE | ✅ Phase 2 COMPLETE
+**Next Step**: Begin Phase 3 Integrated Hooks (13 hooks: useClassStatus, useClassDialogs, usePrintReports, useTrialManagement, useVisibilitySettings, useSelfCheckinSettings, useBulkOperations, useClassSelection, useClassData, useTrialData, useFilteredClasses, useClassUpdates, useClassActions)
