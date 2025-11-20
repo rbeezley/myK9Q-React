@@ -757,34 +757,37 @@ Extract presentational components. These are the **lowest risk** extractions wit
 ### Extractions
 
 ```
-[ ] 4.1: NationalsPointsDisplay (from AKCNationalsScoresheet.tsx)
-    Props: alertsCorrect, alertsIncorrect, finishCallErrors, totalPoints
-    Display: Points breakdown, calculation explanation
-    LOC: ~40 lines
-    Tests: Component tests (6-8 cases)
+[x] 4.1: NationalsPointsDisplay (from AKCNationalsScoresheet.tsx) ✅
+    Props: alertsCorrect, alertsIncorrect, faultCount, finishCallErrors, totalPoints
+    Display: Nationals scoring breakdown with color-coded values
+    Features: Correct calls (+10 green), incorrect calls (-5 red), faults (-5 red), finish errors (-5 red)
+    LOC: 95 lines impl + 261 tests
+    Tests: 8 test suites (rendering, score values, CSS classes, real-world scenarios)
     Risk: LOW
     Dependencies: None
-    Note: ✅ Phase 0 complete - ready for extraction
+    Status: COMPLETE (2025-01-19)
 
-[ ] 4.2: TimerDisplay (from AKCScentWorkScoresheet - after split)
-    Props: time, isRunning, warningState, maxTime
-    Display: Timer UI with countdown, warning states
-    Controls: Start/stop/reset buttons
-    LOC: ~60 lines
-    Tests: Component tests (10-12 cases)
+[x] 4.2: TimerDisplay (from AKCScentWorkScoresheet.tsx) ✅
+    Props: time, isRunning, warningState, maxTime, remainingTime, warningMessage, handlers
+    Display: Flutter-style timer with large M:SS.ss display, countdown, warning states
+    Controls: Start/Stop/Resume button (smart state), Reset button (top-right)
+    Features: Warning states (normal/yellow/red), pulse animation, disabled reset during run
+    LOC: 144 lines impl + 197 tests
+    Tests: 8 test suites (initial state, formatting, running/paused states, button interactions, warnings)
     Risk: LOW
-    Dependencies: None
-    Note: ✅ Phase 0 complete - ready for extraction
+    Dependencies: lucide-react (RotateCcw icon)
+    Status: COMPLETE (2025-01-19)
 
-[ ] 4.3: AreaInputs (from AKCScentWorkScoresheet - after split)
-    Props: areas, onChange, element, level
-    Display: Area time inputs with badges
-    Smart input handling
-    LOC: ~50 lines
-    Tests: Component tests (8-10 cases)
+[x] 4.3: AreaInputs (from AKCScentWorkScoresheet.tsx) ✅
+    Props: areas, stopwatchTime, isStopwatchRunning, handlers (onSmartTimeInput, onTimeInputBlur, onClearTime, onRecordTime), getters
+    Display: Multi-area time input cards with smart formatting (12345 or 1:23.45)
+    Features: Record buttons (multi-area), area badges (filled), next-in-sequence highlight, clear buttons, max time display
+    Smart behavior: Single-area mode (no buttons), multi-area mode (buttons/badges), conditional UI
+    LOC: 148 lines impl + 367 tests
+    Tests: 8 test suites (single/multi rendering, next-in-sequence, input interactions, max time, real-world workflows)
     Risk: LOW
-    Dependencies: None
-    Note: ✅ Phase 0 complete - ready for extraction
+    Dependencies: lucide-react (X icon)
+    Status: COMPLETE (2025-01-19)
 
 [x] 4.4: AdminNameDialog (from CompetitionAdmin.tsx) ✅
     Props: isOpen, tempAdminName, onAdminNameChange, onConfirm, onCancel
