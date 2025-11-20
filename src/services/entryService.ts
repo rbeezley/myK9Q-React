@@ -17,6 +17,7 @@ import {
   resetEntryScore as resetEntryScoreFromStatusModule,
   submitScore as submitScoreFromSubmissionModule,
   submitBatchScores as submitBatchScoresFromSubmissionModule,
+  subscribeToEntryUpdates as subscribeToEntryUpdatesFromSubscriptionsModule,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
@@ -229,66 +230,15 @@ export async function getClassInfo(
 /**
  * Subscribe to real-time entry updates
  * Real-time sync is always enabled for multi-user trials
+ *
+ * @deprecated This function now delegates to entry/entrySubscriptions module (Phase 3, Task 3.1)
  */
 export function subscribeToEntryUpdates(
   actualClassId: number,
   licenseKey: string,
   onUpdate: (payload: any) => void
-) {
-  // Use the syncManager imported at the top of this file (no dynamic import needed)
-  const key = `entries:${actualClassId}`;
-
-  console.log('🔌 Setting up subscription via syncManager for class_id:', actualClassId);
-  console.log('🔍 Using correct column name: class_id (matching the main query)');
-
-  syncManager.subscribeToUpdates(
-    key,
-    'entries',
-    `class_id=eq.${actualClassId}`,
-    (payload) => {
-      console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
-      console.log('🔄 Event type:', payload.eventType);
-      console.log('🔄 Table:', payload.table);
-      console.log('🔄 Schema:', payload.schema);
-      console.log('🔄 Timestamp:', new Date().toISOString());
-      console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
-
-      if (payload.new) {
-        console.log('📈 NEW record data:', JSON.stringify(payload.new, null, 2));
-      }
-      if (payload.old) {
-        console.log('📉 OLD record data:', JSON.stringify(payload.old, null, 2));
-      }
-
-      // Log specific field changes for in_ring updates
-      if (payload.new && payload.old) {
-        console.log('📊 FIELD CHANGES DETECTED:');
-        const oldData = payload.old as any;
-        const newData = payload.new as any;
-        console.log('  🎯 in_ring changed:', oldData.in_ring, '->', newData.in_ring);
-        console.log('  🆔 entry_id:', newData.id);
-        console.log('  🏷️ armband:', newData.armband);
-        console.log('  📂 class_id:', newData.class_id);
-
-        // Check if this is specifically an in_ring change
-        if (oldData.in_ring !== newData.in_ring) {
-          console.log('🎯 THIS IS AN IN_RING STATUS CHANGE!');
-          console.log(`  Dog #${newData.armband} (ID: ${newData.id}) is now ${newData.in_ring ? 'IN RING' : 'NOT IN RING'}`);
-        }
-      }
-
-      console.log('✅ About to call onUpdate callback...');
-      onUpdate(payload);
-      console.log('✅ onUpdate callback completed');
-      console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
-    }
-  );
-
-  // Return unsubscribe function
-  return () => {
-    console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
-    syncManager.unsubscribe(key);
-  };
+): () => void {
+  return subscribeToEntryUpdatesFromSubscriptionsModule(actualClassId, licenseKey, onUpdate);
 }
 
 /**

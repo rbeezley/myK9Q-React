@@ -14,6 +14,9 @@
  * - entryStatusManagement.ts - Status update operations (Task 2.2)
  * - classCompletionService.ts - Class completion tracking (Task 2.3)
  *
+ * **Phase 3 - Real-time Features** (Complete ✅):
+ * - entrySubscriptions.ts - Real-time entry subscriptions (Task 3.1)
+ *
  * **Usage**:
  * ```ts
  * // Data fetching
@@ -27,6 +30,9 @@
  *
  * // Class completion
  * import { checkAndUpdateClassCompletion } from '@/services/entry';
+ *
+ * // Real-time subscriptions
+ * import { subscribeToEntryUpdates } from '@/services/entry';
  * ```
  *
  * See: docs/architecture/ENTRYSERVICE-REFACTORING-PLAN.md
@@ -60,6 +66,12 @@ export {
   submitBatchScores,
 } from './scoreSubmission';
 
+// Real-time Subscriptions API (Phase 3, Task 3.1)
+export {
+  subscribeToEntryUpdates,
+} from './entrySubscriptions';
+
 // Re-export types
 export type { Entry } from './entryDataLayer';
 export type { ScoreData, ResultData } from './scoreSubmission';
+export type { RealtimePayload } from './entrySubscriptions';
