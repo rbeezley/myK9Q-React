@@ -1,0 +1,610 @@
+# EntryService Refactoring Plan
+
+> **Created**: 2025-01-19
+> **Status**: Ready for Implementation
+> **Scope**: entryService.ts (1,183 LOC)
+> **Target**: 9 focused modules (~144-167 LOC each)
+> **Duration**: 7 weeks
+
+---
+
+## 🎯 Executive Summary
+
+This plan addresses the refactoring of **entryService.ts** (1,183 lines) - a monolithic service handling data fetching, caching, scoring, status updates, and real-time subscriptions. The refactoring will split this into **9 focused modules** with **85-95% test coverage**, following the successful pattern from the Large File Refactoring Plan.
+
+### Critical Issues
+- ⚠️ **Zero test coverage** - High risk for regressions
+- ⚠️ **Multiple responsibilities** - Data, scoring, status, real-time all in one file
+- ⚠️ **17 consumer files** - Wide-reaching changes required
+- ⚠️ **Complex scoring logic** - 207 LOC in single function
+
+### Planned Outcome
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **Main file LOC** | 1,183 | 150-200 | -83% to -87% |
+| **Avg file size** | 1,183 | 144-167 | -86% |
+| **Test coverage** | 0% | 85-95% | +85-95% |
+| **Number of files** | 1 | 9 | Better organization |
+| **Functions per file** | 14 | 1.5-2 | Single responsibility |
+
+---
+
+## 📊 Current State Analysis
+
+### File Metrics
+- **Total Lines**: 1,183 LOC
+- **Exported Functions**: 12 public functions
+- **Exported Interfaces**: 2 (ClassData, ResultData)
+- **Private Functions**: 2 (checkAndUpdateClassCompletion, updateSingleClassCompletion)
+- **Dependencies**: 18 imports from 13 different modules
+- **Consumer Files**: 17 files import from entryService
+- **Tests**: None found ⚠️ **HIGH RISK**
+
+### Function Breakdown
+
+**Data Fetching** (336 LOC):
+- `getClassEntries()` - 216 LOC - Dual-mode replication + Supabase fallback
+- `getTrialEntries()` - 80 LOC - Trial-level entry fetching
+- `getEntriesByArmband()` - 40 LOC - Armband lookup
+
+**Scoring & Status** (407 LOC):
+- `submitScore()` - 207 LOC - Complex scoring with background tasks
+- `markInRing()` - 40 LOC - In-ring status updates
+- `markEntryCompleted()` - 35 LOC - Manual completion
+- `updateEntryCheckinStatus()` - 45 LOC - Check-in status
+- `resetEntryScore()` - 80 LOC - Score reset logic
+
+**Class Completion** (132 LOC):
+- `checkAndUpdateClassCompletion()` - 132 LOC - Complex orchestration (private)
+
+**Real-time** (60 LOC):
+- `subscribeToEntryUpdates()` - 60 LOC - Subscription management
+
+**Utilities** (248 LOC):
+- Helper functions, type guards, transformations
+
+### Consumer Files (17 total)
+- `useEntryListData.ts` - Data fetching
+- `useEntryListActions.ts` - Status updates
+- `useOptimisticScoring.ts` - Scoring operations
+- `useEntryListSubscriptions.ts` - Real-time subscriptions
+- All scoresheet files (6+) - Score submission
+- Admin hooks (3+) - Various operations
+
+### Existing Utility Extractions ✅
+Good news - the codebase already has excellent utility extraction:
+- `stringUtils.ts` - buildClassName()
+- `timeUtils.ts` - formatTimeLimitSeconds()
+- `statusUtils.ts` - determineEntryStatus()
+- `transformationUtils.ts` - convertResultTextToStatus()
+- `classUtils.ts` - determineAreasForClass()
+- `entryMappers.ts` - mapDatabaseRowToEntry()
+- `validationUtils.ts` - shouldCheckCompletion()
+- `calculationUtils.ts` - calculateTotalAreaTime()
+
+This proves the extraction pattern works!
+
+---
+
+## 📋 Refactoring Phases
+
+### Phase 1: Data Fetching & Caching Layer (Week 1-2)
+
+**Goal**: Extract replication and Supabase data fetching into separate modules with unified interface.
+
+```
+[ ] 1.1: Extract Replication Data Fetching
+    File: src/services/entry/entryReplication.ts
+    LOC: 150-180 lines
+    Functions:
+      - fetchEntriesFromReplication(classIds, licenseKey)
+      - fetchClassFromReplication(classId)
+      - transformReplicatedEntry(entry, classData)
+      - shouldUseReplication()
+    Risk: LOW
+    Dependencies: replicationManager
+    Testing: Replication vs Supabase paths
+    Status: ⬜ Not Started
+
+[ ] 1.2: Extract Supabase Data Fetching
+    File: src/services/entry/entryDataFetching.ts
+    LOC: 120-150 lines
+    Functions:
+      - fetchEntriesFromSupabase(classIds, licenseKey)
+      - fetchClassInfoFromSupabase(classId, licenseKey)
+      - fetchTrialEntriesFromSupabase(trialId, licenseKey)
+    Risk: LOW
+    Dependencies: supabase
+    Testing: Query construction, error handling
+    Status: ⬜ Not Started
+
+[ ] 1.3: Create Unified Data Layer Interface
+    File: src/services/entry/entryDataLayer.ts
+    LOC: 80-100 lines
+    Purpose: Single interface over replication + Supabase
+    Interface:
+      - getClassEntries(classIds, licenseKey): Promise<Entry[]>
+      - getTrialEntries(trialId, licenseKey): Promise<Entry[]>
+      - getClassInfo(classId, licenseKey): Promise<ClassInfo>
+    Risk: LOW
+    Dependencies: entryReplication.ts, entryDataFetching.ts
+    Benefits: Single source of truth, easy to mock, testable
+    Status: ⬜ Not Started
+```
+
+**Phase 1 Deliverables**:
+- ✅ 3 new modules (350-430 LOC total)
+- ✅ Unified data access pattern
+- ✅ Test coverage: 90%+ for data fetching paths
+- ✅ ~350 LOC removed from entryService.ts
+
+---
+
+### Phase 2: Scoring & Status Management (Week 3-4)
+
+**Goal**: Extract complex scoring and status update logic into focused modules.
+
+```
+[ ] 2.1: Extract Score Submission Logic
+    File: src/services/entry/scoreSubmission.ts
+    LOC: 180-220 lines
+    Functions:
+      - submitScore(entryId, scoreData) - Main scoring function
+      - prepareScoreData(scoreData) - Data transformation
+      - updateEntryWithScore(entryId, scoreData) - Database update
+      - triggerImmediateSync(tableName) - Replication sync helper
+      - calculateAreaTimes(areaTimes, element, level) - Area time logic
+    Risk: MEDIUM ⚠️
+    Dependencies: entryDataLayer.ts, placementService.ts
+    Testing: CRITICAL - Scoring calculations, sync triggering
+    Notes: Most complex function (207 LOC), high value extraction
+    Status: ⬜ Not Started
+
+[ ] 2.2: Extract Status Management
+    File: src/services/entry/entryStatusManagement.ts
+    LOC: 100-130 lines
+    Functions:
+      - markInRing(entryId, inRing)
+      - markEntryCompleted(entryId)
+      - updateEntryCheckinStatus(entryId, status)
+      - resetEntryScore(entryId)
+    Risk: LOW
+    Dependencies: entryDataLayer.ts
+    Testing: Status transitions, edge cases
+    Benefits: Groups all status-changing operations
+    Status: ⬜ Not Started
+
+[ ] 2.3: Extract Class Completion Logic
+    File: src/services/entry/classCompletion.ts
+    LOC: 150-180 lines
+    Functions:
+      - checkAndUpdateClassCompletion(classId, pairedClassId)
+      - updateSingleClassCompletion(classId)
+      - calculateCompletionStatus(scoredCount, totalCount)
+      - triggerPlacementCalculation(classId)
+    Risk: MEDIUM ⚠️
+    Dependencies: placementService.ts, entryDataLayer.ts
+    Testing: Completion rules, paired classes, placement triggers
+    Notes: Complex orchestration logic (132 LOC)
+    Status: ⬜ Not Started
+```
+
+**Phase 2 Deliverables**:
+- ✅ 3 new modules (430-530 LOC total)
+- ✅ Isolated scoring complexity
+- ✅ Test coverage: 95%+ for scoring, 85%+ for status
+- ✅ ~500 LOC removed from entryService.ts
+
+---
+
+### Phase 3: Real-time Subscriptions (Week 5)
+
+**Goal**: Extract real-time subscription management into dedicated module.
+
+```
+[ ] 3.1: Extract Real-time Subscription Logic
+    File: src/services/entry/entrySubscriptions.ts
+    LOC: 80-100 lines
+    Functions:
+      - subscribeToEntryUpdates(classId, licenseKey, onUpdate)
+      - createSubscriptionKey(classId)
+      - handleSubscriptionPayload(payload)
+      - unsubscribeAll()
+    Risk: LOW
+    Dependencies: syncManager
+    Testing: Subscription lifecycle, payload processing, cleanup
+    Benefits: Centralizes real-time logic, easier debugging
+    Status: ⬜ Not Started
+```
+
+**Phase 3 Deliverables**:
+- ✅ 1 new module (80-100 LOC)
+- ✅ Consistent with syncManager pattern
+- ✅ Test coverage: 85%+ for subscriptions
+- ✅ ~60 LOC removed from entryService.ts
+
+---
+
+### Phase 4: Batch Operations & Utilities (Week 6)
+
+**Goal**: Extract batch operations and lookup utilities.
+
+```
+[ ] 4.1: Extract Batch Operations
+    File: src/services/entry/entryBatchOperations.ts
+    LOC: 60-80 lines
+    Functions:
+      - submitBatchScores(scores)
+      - updateExhibitorOrder(entries)
+      - batchUpdateStatus(entryIds, status) [Future]
+    Risk: LOW
+    Dependencies: scoreSubmission.ts, entryStatusManagement.ts
+    Testing: Batch processing, error handling, transactions
+    Benefits: Consistent batch patterns
+    Status: ⬜ Not Started
+
+[ ] 4.2: Extract Lookup Functions
+    File: src/services/entry/entryLookup.ts
+    LOC: 40-60 lines
+    Functions:
+      - getEntriesByArmband(armband, licenseKey)
+      - getClassInfo(classId, licenseKey)
+      - getEntryById(entryId) [Future]
+    Risk: LOW
+    Dependencies: entryDataLayer.ts
+    Testing: Query patterns, error handling
+    Benefits: Clear lookup API, easier caching
+    Status: ⬜ Not Started
+```
+
+**Phase 4 Deliverables**:
+- ✅ 2 new modules (100-140 LOC total)
+- ✅ Batch operation patterns
+- ✅ Test coverage: 85%+ for batch/lookup
+- ✅ ~100 LOC removed from entryService.ts
+
+---
+
+### Phase 5: Testing & Cleanup (Week 7)
+
+**Goal**: Add comprehensive test coverage and migrate consumer files.
+
+```
+[ ] 5.1: Create Comprehensive Test Suite
+    Files:
+      - tests/services/entry/entryReplication.test.ts (100-120 LOC)
+      - tests/services/entry/scoreSubmission.test.ts (150-180 LOC)
+      - tests/services/entry/classCompletion.test.ts (100-120 LOC)
+      - tests/services/entry/entryStatusManagement.test.ts (80-100 LOC)
+      - tests/services/entry/entrySubscriptions.test.ts (70-90 LOC)
+    Total Test LOC: 500-610 lines
+    Coverage Targets:
+      - Replication fallback: 90%+
+      - Scoring calculations: 95%+
+      - Completion logic: 90%+
+      - Status updates: 85%+
+      - Subscriptions: 85%+
+    Risk: LOW
+    Status: ⬜ Not Started
+
+[ ] 5.2: Update Consumer Files (17 files)
+    Strategy: Update incrementally, test each consumer
+    Files:
+      - useEntryListData.ts → Use entryDataLayer
+      - useEntryListActions.ts → Use entryStatusManagement
+      - useOptimisticScoring.ts → Use scoreSubmission
+      - useEntryListSubscriptions.ts → Use entrySubscriptions
+      - All scoresheet files → Use scoreSubmission
+      - Admin hooks → Use appropriate modules
+    Risk: MEDIUM ⚠️
+    Testing: Run tests after each file update
+    Status: ⬜ Not Started
+
+[ ] 5.3: Final Cleanup & Documentation
+    Create: src/services/entry/README.md (50-80 LOC)
+    Documentation:
+      - Module structure overview
+      - Migration guide from old entryService
+      - When to use each module
+      - Common patterns and examples
+    Cleanup:
+      - Deprecate old entryService.ts (re-export from new modules)
+      - Move entryDebug.ts to src/services/debug/ (optional)
+      - Update architecture docs
+    Risk: LOW
+    Status: ⬜ Not Started
+```
+
+**Phase 5 Deliverables**:
+- ✅ 500-610 LOC of tests
+- ✅ All 17 consumers migrated
+- ✅ Documentation complete
+- ✅ Old entryService.ts deprecated
+
+---
+
+## 📁 New File Structure
+
+```
+src/services/entry/
+├── README.md                      # Documentation (50-80 LOC)
+├── index.ts                       # Re-exports for clean imports (20-30 LOC)
+├── entryDataLayer.ts             # Unified data interface (80-100 LOC)
+├── entryReplication.ts           # Replication fetching (150-180 LOC)
+├── entryDataFetching.ts          # Supabase fetching (120-150 LOC)
+├── scoreSubmission.ts            # Scoring logic (180-220 LOC)
+├── entryStatusManagement.ts      # Status updates (100-130 LOC)
+├── classCompletion.ts            # Completion orchestration (150-180 LOC)
+├── entrySubscriptions.ts         # Real-time subscriptions (80-100 LOC)
+├── entryBatchOperations.ts       # Batch operations (60-80 LOC)
+└── entryLookup.ts                # Lookup functions (40-60 LOC)
+
+src/services/
+├── entryService.ts               # DEPRECATED - re-exports only (50-80 LOC)
+└── entryDebug.ts                 # Keep or move to debug/ (346 LOC)
+
+tests/services/entry/
+├── entryReplication.test.ts      # Replication tests (100-120 LOC)
+├── scoreSubmission.test.ts       # Scoring tests (150-180 LOC)
+├── classCompletion.test.ts       # Completion tests (100-120 LOC)
+├── entryStatusManagement.test.ts # Status tests (80-100 LOC)
+└── entrySubscriptions.test.ts    # Subscription tests (70-90 LOC)
+```
+
+---
+
+## 📈 Expected Outcomes
+
+### Code Metrics
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| **entryService.ts LOC** | 1,183 | 150-200 | -83% to -87% |
+| **Total LOC (with modules)** | 1,183 | 1,300-1,500 | +10% to +27% |
+| **Number of files** | 1 | 9 | +800% |
+| **Average file size** | 1,183 | 144-167 | -86% |
+| **Functions per file** | 14 | 1.5-2 | -85% |
+| **Test LOC** | 0 | 500-610 | +500-610 |
+| **Test coverage** | 0% | 85-95% | +85-95% |
+
+### Benefits
+
+**Maintainability**:
+- ✅ **86% smaller files** - Much easier to understand
+- ✅ **Single responsibility** - Each module has one purpose
+- ✅ **Faster debugging** - Smaller surface area per file
+- ✅ **Better IDE performance** - Faster autocomplete
+
+**Testability**:
+- ✅ **85-95% coverage** - Up from 0%
+- ✅ **Isolated testing** - Mock individual modules
+- ✅ **Faster tests** - Smaller units execute faster
+- ✅ **Better error messages** - Specific test failures
+
+**Performance**:
+- ✅ **Code splitting** - Can lazy load modules
+- ✅ **Bundle size** - Tree-shaking eliminates unused code
+- ✅ **Runtime** - No change (logic identical)
+
+**Developer Experience**:
+- ✅ **Clear API surface** - Know which module to import
+- ✅ **Type safety** - Narrower types per module
+- ✅ **Documentation** - Each module documents purpose
+- ✅ **Faster onboarding** - Smaller files easier to grasp
+
+---
+
+## ⚠️ Risk Management
+
+### Risk Matrix
+
+| Phase | Risk Level | Primary Risks | Mitigation |
+|-------|-----------|---------------|------------|
+| Phase 1 | LOW | Data fetching paths | Test replication vs Supabase |
+| Phase 2 | MEDIUM | Scoring regression | Extensive tests, byte-for-byte comparison |
+| Phase 3 | LOW | Subscription cleanup | Test lifecycle carefully |
+| Phase 4 | LOW | Batch processing | Transaction tests |
+| Phase 5 | MEDIUM | Breaking changes | Incremental migration, feature flags |
+
+### Critical Risks
+
+**Risk 1: No Existing Tests ⚠️ CRITICAL**
+- **Impact**: HIGH - Zero safety net for refactoring
+- **Mitigation**:
+  1. Write tests BEFORE extracting (characterization tests)
+  2. Compare outputs byte-for-byte (old vs new)
+  3. Extensive manual testing of all workflows
+  4. Gradual rollout with feature flags
+
+**Risk 2: Breaking 17 Consumer Files**
+- **Impact**: HIGH - Wide-reaching changes
+- **Mitigation**:
+  1. Keep old entryService.ts as re-export wrapper
+  2. Update consumers incrementally (one per commit)
+  3. Run typecheck + tests after each update
+  4. Feature flag new modules
+
+**Risk 3: Scoring Regression**
+- **Impact**: CRITICAL - Core business logic
+- **Mitigation**:
+  1. Write comprehensive scoring tests first
+  2. Test all scoring types (Novice, Open, Excellence, Nationals)
+  3. Test edge cases (paired classes, tie-breakers)
+  4. Manual testing with real trial data
+
+**Risk 4: Circular Dependencies**
+- **Impact**: MEDIUM - Could block compilation
+- **Mitigation**:
+  1. Follow strict phase order (1 → 2 → 3 → 4 → 5)
+  2. Use entryDataLayer as abstraction barrier
+  3. Run madge or dependency-cruiser to detect cycles
+  4. No cross-imports between sibling modules
+
+---
+
+## 🔄 Dependency Graph
+
+```
+External Dependencies:
+├── supabase (database)
+├── syncManager (real-time)
+├── placementService (calculations)
+└── replicationManager (offline cache)
+
+Phase 1 (Data Layer) - NO internal dependencies:
+├── entryReplication.ts
+├── entryDataFetching.ts
+└── entryDataLayer.ts (depends on above 2)
+
+Phase 2 (Business Logic) - Depends on Phase 1:
+├── scoreSubmission.ts → entryDataLayer, placementService
+├── entryStatusManagement.ts → entryDataLayer
+└── classCompletion.ts → entryDataLayer, placementService
+
+Phase 3 (Real-time) - Depends on syncManager only:
+└── entrySubscriptions.ts → syncManager
+
+Phase 4 (Utilities) - Depends on Phase 2:
+├── entryBatchOperations.ts → scoreSubmission, entryStatusManagement
+└── entryLookup.ts → entryDataLayer
+
+Phase 5 (Migration) - Depends on all above:
+└── 17 consumer files → Import from new modules
+```
+
+---
+
+## 📅 Implementation Timeline
+
+### Week 1-2: Data Layer (Phase 1)
+- **Day 1-2**: Task 1.1 - Extract entryReplication.ts
+- **Day 3-4**: Task 1.2 - Extract entryDataFetching.ts
+- **Day 5-6**: Task 1.3 - Create entryDataLayer.ts
+- **Day 7-8**: Write tests for Phase 1 modules
+- **Checkpoint**: All data fetching paths tested, typecheck passes
+
+### Week 3-4: Scoring & Status (Phase 2)
+- **Day 1-3**: Task 2.1 - Extract scoreSubmission.ts (complex!)
+- **Day 4-5**: Task 2.2 - Extract entryStatusManagement.ts
+- **Day 6-8**: Task 2.3 - Extract classCompletion.ts
+- **Day 9-12**: Write comprehensive tests for Phase 2
+- **Checkpoint**: 95%+ coverage on scoring, all tests passing
+
+### Week 5: Real-time (Phase 3)
+- **Day 1-2**: Task 3.1 - Extract entrySubscriptions.ts
+- **Day 3**: Write subscription tests
+- **Day 4-5**: Buffer for Phase 2/3 issues
+- **Checkpoint**: Subscriptions working, cleanup tested
+
+### Week 6: Batch Operations (Phase 4)
+- **Day 1-2**: Task 4.1 - Extract entryBatchOperations.ts
+- **Day 3**: Task 4.2 - Extract entryLookup.ts
+- **Day 4**: Write tests for Phase 4
+- **Day 5**: Buffer for issues
+- **Checkpoint**: All extractions complete
+
+### Week 7: Testing & Cleanup (Phase 5)
+- **Day 1-2**: Task 5.1 - Fill test coverage gaps
+- **Day 3-5**: Task 5.2 - Update 17 consumer files
+- **Day 6-7**: Task 5.3 - Documentation + cleanup
+- **Final Checkpoint**: All consumers migrated, docs complete
+
+**Total Duration**: 7 weeks (35 working days)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+1. Create feature branch: `git checkout -b refactor/entry-service-phase1`
+2. Install testing dependencies (if needed)
+3. Review current entryService.ts behavior
+4. Identify test data sources
+
+### Phase 1 - Task 1.1 Steps
+1. **Create test file first**: `entryReplication.test.ts`
+2. **Write characterization tests**: Capture current behavior
+3. **Create new file**: `src/services/entry/entryReplication.ts`
+4. **Extract functions**: Move replication logic
+5. **Update imports**: Fix entryService.ts imports
+6. **Run tests**: Ensure behavior unchanged
+7. **Commit**: "refactor: Extract entryReplication module"
+
+### Success Criteria for Phase 1
+- ✅ All tests passing (100%)
+- ✅ TypeScript compiles (0 errors)
+- ✅ No behavior changes (byte-for-byte comparison)
+- ✅ Consumer files still work (run integration tests)
+
+---
+
+## 📝 Progress Tracking
+
+### Overall Progress
+- **Phases Complete**: 0/5 (0%)
+- **Tasks Complete**: 0/12 (0%)
+- **Test Coverage**: 0% → Target: 85-95%
+- **LOC Reduced**: 0 → Target: 983-1,033 lines
+
+### Phase Status
+```
+Phase 1: ⬜⬜⬜ (0/3 tasks)
+Phase 2: ⬜⬜⬜ (0/3 tasks)
+Phase 3: ⬜ (0/1 tasks)
+Phase 4: ⬜⬜ (0/2 tasks)
+Phase 5: ⬜⬜⬜ (0/3 tasks)
+```
+
+---
+
+## 📚 Reference Documents
+
+- [LARGE-FILE-REFACTORING-PLAN.md](LARGE-FILE-REFACTORING-PLAN.md) - Successful refactoring pattern
+- [DATABASE_REFERENCE.md](../../DATABASE_REFERENCE.md) - Schema reference
+- [docs/CLAUDE.md](../../docs/CLAUDE.md) - Development standards
+- [src/services/entryService.ts](../../src/services/entryService.ts) - Source file
+
+---
+
+## 🎓 Lessons from Previous Refactoring
+
+### What Worked Well
+✅ **Dependency-first order** - Start with utilities, then hooks, then components
+✅ **Comprehensive tests** - 665+ tests prevented regressions
+✅ **Incremental commits** - Each extraction committed separately
+✅ **Clear documentation** - Everyone knew the plan
+✅ **Progress tracking** - Checkboxes kept us organized
+
+### What to Apply Here
+✅ **Test-first approach** - Critical since entryService has 0 tests
+✅ **Small extractions** - One module at a time
+✅ **Frequent commits** - Don't batch multiple extractions
+✅ **Consumer updates** - Update incrementally, not all at once
+✅ **Risk mitigation** - Feature flags for gradual rollout
+
+---
+
+## 💡 Notes
+
+### Already Extracted Utilities (Proof of Pattern) ✅
+The codebase already successfully extracted:
+- stringUtils.ts, timeUtils.ts, statusUtils.ts
+- transformationUtils.ts, classUtils.ts, entryMappers.ts
+- validationUtils.ts, calculationUtils.ts
+
+**This proves the extraction pattern works!**
+
+### Debug Functions
+`entryDebug.ts` (346 LOC) is already separate - excellent!
+Consider moving to `src/services/debug/` for clarity.
+
+### Critical Path
+**Scoring → Completion → Placement** is the critical business flow.
+Phase 2 (Scoring & Status) is highest risk and highest value.
+
+---
+
+**Last Updated**: 2025-01-19
+**Status**: Ready for Phase 1
+**Next Step**: Create Phase 1 branch and start Task 1.1 (entryReplication.ts)
