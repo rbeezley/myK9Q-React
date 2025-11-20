@@ -741,3 +741,64 @@ Phase 2 (Scoring & Status) is highest risk and highest value.
 - ✅ 100ms write propagation delay for check-in status updates
 - ✅ Check class completion after score resets
 - ✅ Gracefully handle class completion check failures (don't block score reset)
+
+---
+
+## 🎉 Phase 3 Complete Summary - Real-time Subscriptions
+
+**Completed**: 2025-01-20
+**Duration**: ~2 hours (quick win as expected!)
+**Test Coverage**: 23 unit tests passing ✅
+**Commit**: d4fd0a1
+
+**Files Created**:
+- ✅ `src/services/entry/entrySubscriptions.ts` (191 LOC)
+- ✅ `src/services/entry/entrySubscriptions.test.ts` (467 LOC, 23 tests)
+
+**Files Modified**:
+- ✅ `src/services/entryService.ts` - Removed 50 LOC (364 → 314 LOC)
+- ✅ `src/services/entry/index.ts` - Added Phase 3 exports and documentation
+
+**Functions Extracted**:
+- ✅ `subscribeToEntryUpdates()` - Main subscription function with comprehensive logging
+- ✅ `createSubscriptionKey()` - Helper (exposed for testing)
+- ✅ `createClassFilter()` - PostgREST filter builder (exposed for testing)
+
+**Interface Extracted**:
+- ✅ `RealtimePayload` - Type-safe payload structure for INSERT/UPDATE/DELETE events
+
+**Benefits Achieved**:
+- ✅ Isolated real-time subscription logic from entryService
+- ✅ Comprehensive debugging logs for troubleshooting real-time issues
+- ✅ Field-level change detection (especially for `in_ring` status)
+- ✅ Clean integration with syncManager
+- ✅ 100% test coverage for subscription lifecycle
+- ✅ ~50 LOC removed from entryService.ts
+- ✅ Zero breaking changes to consumers
+
+**Test Coverage**:
+- ✅ Subscription creation with correct parameters
+- ✅ Callback invocation on payload receipt
+- ✅ Unsubscribe functionality
+- ✅ Comprehensive payload logging (INSERT/UPDATE/DELETE)
+- ✅ In-ring status change detection (true → false, false → true)
+- ✅ NEW/OLD record data logging
+- ✅ Callback completion tracking
+- ✅ Helper function testing (createSubscriptionKey, createClassFilter)
+- ✅ Multiple payloads to same subscription
+- ✅ Multiple subscriptions for different classes
+- ✅ Full subscription lifecycle (subscribe → receive → unsubscribe)
+- ✅ TypeScript type validation for RealtimePayload
+
+**Key Features**:
+- ✅ **Database-level filtering**: `class_id=eq.{classId}` ensures efficient subscriptions
+- ✅ **Extensive debugging**: Logs event type, timestamp, field changes, in_ring status
+- ✅ **Special detection**: Identifies in_ring status changes with human-readable messages
+- ✅ **Clean lifecycle**: Simple subscribe/unsubscribe pattern
+- ✅ **Type safety**: RealtimePayload interface for INSERT/UPDATE/DELETE events
+
+**Real-world Use Cases**:
+- ✅ Multi-user ringside scoring (changes visible across all devices)
+- ✅ Live class roster updates (entries move between tabs in real-time)
+- ✅ In-ring status synchronization (judge marks dog in ring, visible to secretary)
+- ✅ Real-time score updates (scored entries appear immediately on all screens)
