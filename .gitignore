@@ -115,3 +115,4 @@ screenshots/
 # Build artifacts and temporary files
 dist.zip
 nul
+src/backups/
