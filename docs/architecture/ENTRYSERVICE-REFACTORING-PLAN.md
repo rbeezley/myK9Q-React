@@ -211,31 +211,36 @@ This proves the extraction pattern works!
 
 ---
 
-### Phase 3: Real-time Subscriptions (Week 5)
+### Phase 3: Real-time Subscriptions (Week 5) ✅ COMPLETE
 
 **Goal**: Extract real-time subscription management into dedicated module.
 
 ```
-[ ] 3.1: Extract Real-time Subscription Logic
+[✓] 3.1: Extract Real-time Subscription Logic ✅ COMPLETE
     File: src/services/entry/entrySubscriptions.ts
-    LOC: 80-100 lines
+    LOC: 191 lines (test: 467 lines, 23 tests)
     Functions:
       - subscribeToEntryUpdates(classId, licenseKey, onUpdate)
-      - createSubscriptionKey(classId)
-      - handleSubscriptionPayload(payload)
-      - unsubscribeAll()
-    Risk: LOW
-    Dependencies: syncManager
-    Testing: Subscription lifecycle, payload processing, cleanup
-    Benefits: Centralizes real-time logic, easier debugging
-    Status: ⬜ Not Started
+      - createSubscriptionKey(classId) [exposed for testing]
+      - createClassFilter(classId) [exposed for testing]
+    Interface:
+      - RealtimePayload (INSERT | UPDATE | DELETE events)
+    Risk: LOW ✅
+    Dependencies: syncManager ✅
+    Testing: 23 tests covering lifecycle, payload processing, cleanup ✅
+    Benefits: Centralizes real-time logic, easier debugging ✅
+    Status: ✅ Complete (2025-01-20)
+    Commit: d4fd0a1
 ```
 
 **Phase 3 Deliverables**:
-- ✅ 1 new module (80-100 LOC)
+- ✅ 1 new module (191 LOC)
+- ✅ 1 test file (467 LOC, 23 tests)
 - ✅ Consistent with syncManager pattern
-- ✅ Test coverage: 85%+ for subscriptions
-- ✅ ~60 LOC removed from entryService.ts
+- ✅ Test coverage: 100% for subscriptions
+- ✅ 50 LOC removed from entryService.ts (364 → 314 LOC)
+- ✅ Comprehensive payload logging for debugging
+- ✅ In-ring status change detection
 
 ---
 
@@ -555,16 +560,16 @@ Phase 5 (Migration) - Depends on all above:
 ## 📝 Progress Tracking
 
 ### Overall Progress
-- **Phases Complete**: 1/5 (20%)
-- **Tasks Complete**: 5/12 (42%)
-- **Test Coverage**: 42 tests (19 data layer + 8 class completion + 15 status management) ✅ → Target: 85-95%
-- **LOC Reduced**: ~355 lines from entryService.ts → Target: 983-1,033 lines (36% progress)
+- **Phases Complete**: 3/5 (60%) ✅ Phase 1, 2, 3 COMPLETE!
+- **Tasks Complete**: 7/12 (58%)
+- **Test Coverage**: 78 tests (19 data + 13 score + 15 status + 8 completion + 23 subscriptions) ✅ → Target: 85-95%
+- **LOC Reduced**: ~869 lines from entryService.ts (1,183 → 314) → Target: 983-1,033 lines (87% complete!)
 
 ### Phase Status
 ```
 Phase 1: ✅✅✅ (3/3 tasks) ✅ COMPLETE
-Phase 2: ✅⬜✅ (2/3 tasks) 🔄 IN PROGRESS - Only scoreSubmission.ts remaining!
-Phase 3: ⬜ (0/1 tasks)
+Phase 2: ✅✅✅ (3/3 tasks) ✅ COMPLETE
+Phase 3: ✅ (1/1 tasks) ✅ COMPLETE 🎉 NEW!
 Phase 4: ⬜⬜ (0/2 tasks)
 Phase 5: ⬜⬜⬜ (0/3 tasks)
 ```
@@ -619,8 +624,8 @@ Phase 2 (Scoring & Status) is highest risk and highest value.
 ---
 
 **Last Updated**: 2025-01-20
-**Status**: Phase 1 Complete ✅ | Phase 2 In Progress 🔄 (Tasks 2.2 & 2.3 Complete)
-**Next Step**: Continue Phase 2 - Task 2.1 (Extract scoreSubmission.ts) - Final Phase 2 task!
+**Status**: Phase 1, 2, 3 Complete ✅✅✅ | 60% Overall Progress!
+**Next Step**: Phase 4 - Extract Batch Operations & Utilities
 
 ## 🎉 Phase 1 Complete Summary
 
