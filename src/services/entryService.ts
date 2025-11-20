@@ -1,16 +1,11 @@
 import { supabase } from '../lib/supabase';
 import { Entry, EntryStatus } from '../stores/entryStore';
 import { QueuedScore } from '../stores/offlineQueueStore';
-import { recalculatePlacementsForClass } from './placementService';
-import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
-import { syncManager } from './syncManager';
-import { triggerImmediateEntrySync } from './entryReplication';
 import {
   getClassEntries as getClassEntriesFromDataLayer,
   getTrialEntries as getTrialEntriesFromDataLayer,
   getEntriesByArmband as getEntriesByArmbandFromDataLayer,
-  checkAndUpdateClassCompletion,
   markInRing as markInRingFromStatusModule,
   markEntryCompleted as markEntryCompletedFromStatusModule,
   updateEntryCheckinStatus as updateEntryCheckinStatusFromStatusModule,
@@ -21,10 +16,6 @@ import {
   updateExhibitorOrder as updateExhibitorOrderFromBatchModule,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
-import { convertResultTextToStatus } from '@/utils/transformationUtils';
-import { determineAreasForClass } from '@/utils/classUtils';
-import { shouldCheckCompletion } from '@/utils/validationUtils';
-import { calculateTotalAreaTime } from '@/utils/calculationUtils';
 
 /**
  * Service for managing entries and scores

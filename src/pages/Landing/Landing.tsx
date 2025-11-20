@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Users, Award, Shield,
@@ -9,11 +9,7 @@ import './Landing.css';
 
 export function Landing() {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
+  const [isVisible] = useState(true);
 
   const handleGetStarted = () => {
     navigate('/login');
