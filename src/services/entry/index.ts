@@ -17,6 +17,9 @@
  * **Phase 3 - Real-time Features** (Complete ✅):
  * - entrySubscriptions.ts - Real-time entry subscriptions (Task 3.1)
  *
+ * **Phase 4 - Batch Operations** (Complete ✅):
+ * - entryBatchOperations.ts - Batch update operations (Task 4.1)
+ *
  * **Usage**:
  * ```ts
  * // Data fetching
@@ -33,6 +36,9 @@
  *
  * // Real-time subscriptions
  * import { subscribeToEntryUpdates } from '@/services/entry';
+ *
+ * // Batch operations
+ * import { updateExhibitorOrder } from '@/services/entry';
  * ```
  *
  * See: docs/architecture/ENTRYSERVICE-REFACTORING-PLAN.md
@@ -70,6 +76,11 @@ export {
 export {
   subscribeToEntryUpdates,
 } from './entrySubscriptions';
+
+// Batch Operations API (Phase 4, Task 4.1)
+export {
+  updateExhibitorOrder,
+} from './entryBatchOperations';
 
 // Re-export types
 export type { Entry } from './entryDataLayer';

@@ -18,6 +18,7 @@ import {
   submitScore as submitScoreFromSubmissionModule,
   submitBatchScores as submitBatchScoresFromSubmissionModule,
   subscribeToEntryUpdates as subscribeToEntryUpdatesFromSubscriptionsModule,
+  updateExhibitorOrder as updateExhibitorOrderFromBatchModule,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
@@ -44,27 +45,9 @@ export interface ClassData {
 }
 
 /**
- * Result data for inserting/updating scores in the database
+ * ResultData interface has been moved to scoreSubmission.ts (Phase 2, Task 2.1)
+ * Import via: import { ResultData } from '@/services/entry';
  */
-export interface ResultData {
-  entry_id: number;
-  result_status: string;
-  search_time_seconds: number;
-  is_scored: boolean;
-  is_in_ring: boolean;
-  scoring_completed_at: string | null;
-  total_faults?: number;
-  disqualification_reason?: string;
-  points_earned?: number;
-  total_score?: number;
-  total_correct_finds?: number;
-  total_incorrect_finds?: number;
-  no_finish_count?: number;
-  area1_time_seconds?: number;
-  area2_time_seconds?: number;
-  area3_time_seconds?: number;
-  area4_time_seconds?: number;
-}
 
 /**
  * Fetch all entries for a specific class or multiple classes
@@ -281,35 +264,11 @@ export async function getEntriesByArmband(
 /**
  * Update exhibitor order for multiple entries (for drag and drop reordering)
  * This updates the database so all users see the new order
+ *
+ * **Phase 4 Task 4.1**: Delegates to entryBatchOperations module
  */
 export async function updateExhibitorOrder(
   reorderedEntries: Entry[]
 ): Promise<boolean> {
-  try {
-    // Update each entry with its new position (1-based indexing)
-    const updates = reorderedEntries.map(async (entry, index) => {
-      const newExhibitorOrder = index + 1;
-      
-      const { error } = await supabase
-        .from('entries')
-        .update({ exhibitor_order: newExhibitorOrder })
-        .eq('id', entry.id);
-
-      if (error) {
-        console.error(`Failed to update entry ${entry.id}:`, error);
-        throw error;
-      }
-      
-      return { id: entry.id, newOrder: newExhibitorOrder };
-    });
-
-    // Execute all updates
-    await Promise.all(updates);
-    
-    console.log(`✅ Successfully updated exhibitor_order for ${reorderedEntries.length} entries`);
-    return true;
-  } catch (error) {
-    console.error('Error in updateExhibitorOrder:', error);
-    throw error;
-  }
+  return updateExhibitorOrderFromBatchModule(reorderedEntries);
 }
