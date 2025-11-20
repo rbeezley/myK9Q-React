@@ -154,6 +154,17 @@ export async function markEntryCompleted(entryId: number): Promise<boolean> {
 
 /**
  * Get class information
+ *
+ * @deprecated This function is not currently used in the codebase.
+ * Consider using getClassEntries() + manual aggregation, or extracting to a dedicated module if needed.
+ *
+ * **Usage**: Not found in codebase (searched 2025-01-20)
+ * **Alternatives**:
+ * - Use `getClassEntries(classId, licenseKey)` to get entries
+ * - Calculate counts and status from entry list
+ * - Query classes table directly if needed
+ *
+ * **Retention**: Kept for backward compatibility in case external code depends on it.
  */
 export async function getClassInfo(
   classId: number,
