@@ -15,6 +15,8 @@ import {
   markEntryCompleted as markEntryCompletedFromStatusModule,
   updateEntryCheckinStatus as updateEntryCheckinStatusFromStatusModule,
   resetEntryScore as resetEntryScoreFromStatusModule,
+  submitScore as submitScoreFromSubmissionModule,
+  submitBatchScores as submitBatchScoresFromSubmissionModule,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
@@ -96,6 +98,8 @@ export async function getTrialEntries(
  * Submit a score for an entry
  * @param pairedClassId - Optional paired class ID for combined Novice A & B view (updates both classes' status)
  * @param classId - Optional class ID to avoid database lookup (performance optimization)
+ *
+ * **Phase 2 Task 2.1**: Delegates to scoreSubmission module
  */
 export async function submitScore(
   entryId: number,
@@ -119,178 +123,10 @@ export async function submitScore(
     element?: string;
     level?: string;
   },
-  pairedClassId?: number,  // Optional paired class ID for combined Novice A & B view
-  classId?: number  // Optional class ID to avoid database lookup (performance optimization)
+  pairedClassId?: number,
+  classId?: number
 ): Promise<boolean> {
-  console.log('🎯 submitScore CALLED for entry:', entryId, 'with data:', scoreData);
-  try {
-    // Map the result text to the valid enum values using utility function
-    const resultStatus = convertResultTextToStatus(scoreData.resultText);
-
-    // Prepare score data for entries table
-    // NOTE: After migration 039, scores are stored directly in entries table (not results)
-    // Only mark as scored if we have a valid result status (not 'pending')
-    const isActuallyScored = resultStatus !== 'pending';
-
-    const scoreUpdateData: Partial<ResultData> = {
-      entry_id: entryId, // Kept for interface compatibility, but we update by ID
-      result_status: resultStatus,
-      search_time_seconds: scoreData.searchTime ? convertTimeToSeconds(scoreData.searchTime) : 0,
-      is_scored: isActuallyScored,
-      is_in_ring: false, // Mark as no longer in ring when score is submitted
-      scoring_completed_at: isActuallyScored ? new Date().toISOString() : null
-    };
-
-    // Add optional fields if they exist
-    if (scoreData.faultCount !== undefined) {
-      scoreUpdateData.total_faults = scoreData.faultCount;
-    }
-    if (scoreData.nonQualifyingReason) {
-      scoreUpdateData.disqualification_reason = scoreData.nonQualifyingReason;
-    }
-    if (scoreData.points !== undefined) {
-      scoreUpdateData.points_earned = scoreData.points;
-    }
-    if (scoreData.score !== undefined) {
-      scoreUpdateData.total_score = parseFloat(scoreData.score.toString());
-    }
-    if (scoreData.correctCount !== undefined) {
-      scoreUpdateData.total_correct_finds = scoreData.correctCount;
-    }
-    if (scoreData.incorrectCount !== undefined) {
-      scoreUpdateData.total_incorrect_finds = scoreData.incorrectCount;
-    }
-    if (scoreData.finishCallErrors !== undefined) {
-      scoreUpdateData.no_finish_count = scoreData.finishCallErrors;
-    }
-
-    // Handle AKC Scent Work area times
-    if (scoreData.areaTimes && scoreData.areaTimes.length > 0) {
-      const element = scoreData.element || '';
-      const level = scoreData.level || '';
-
-      // Convert area times to seconds
-      const areaTimeSeconds = scoreData.areaTimes.map(time => convertTimeToSeconds(time));
-
-      // Determine which areas are applicable for this class using utility function
-      const { useArea1, useArea2, useArea3 } = determineAreasForClass(element, level);
-
-      // Area 1 is always used
-      if (useArea1 && areaTimeSeconds[0] !== undefined) {
-        scoreUpdateData.area1_time_seconds = areaTimeSeconds[0];
-      }
-
-      // Area 2 (Interior Excellent/Master, Handler Discrimination Master)
-      if (useArea2 && areaTimeSeconds[1] !== undefined) {
-        scoreUpdateData.area2_time_seconds = areaTimeSeconds[1];
-      }
-
-      // Area 3 (Interior Master only)
-      if (useArea3 && areaTimeSeconds[2] !== undefined) {
-        scoreUpdateData.area3_time_seconds = areaTimeSeconds[2];
-      }
-
-      // Calculate total search time using utility function (moved to @/utils/calculationUtils)
-      scoreUpdateData.search_time_seconds = calculateTotalAreaTime(
-        scoreUpdateData.area1_time_seconds,
-        scoreUpdateData.area2_time_seconds,
-        scoreUpdateData.area3_time_seconds
-      );
-    }
-
-    console.log('📝 Updating entry with score:', scoreUpdateData);
-    console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
-    console.log('🔍 Entry ID:', entryId);
-
-    // Remove entry_id from update data (we filter by id instead)
-    const { entry_id: _entry_id, ...updateFields } = scoreUpdateData;
-
-    // Update entries table directly with score data AND entry_status
-    // After migration 039, this is a SINGLE write instead of two separate writes!
-    const updateData = {
-      ...updateFields,
-      entry_status: isActuallyScored ? ('completed' as const) : ('in-ring' as const)
-    };
-
-    const { error: updateError, data: updatedData } = await supabase
-      .from('entries')
-      .update(updateData)
-      .eq('id', entryId)
-      .select();
-
-    if (updateError) {
-      console.error('❌ Entries table update error:', {
-        error: updateError,
-        errorMessage: updateError.message,
-        errorCode: updateError.code,
-        errorDetails: updateError.details,
-        errorHint: updateError.hint,
-        entryId,
-        updateData
-      });
-      throw updateError;
-    }
-
-    console.log('✅ Entry updated with score successfully:', updatedData);
-    if (updatedData && updatedData[0]) {
-      console.log('🔍 Saved result_status in database:', updatedData[0].result_status);
-      console.log('🔍 Saved entry_status in database:', updatedData[0].entry_status);
-    }
-
-    // CRITICAL: Trigger immediate sync to update UI without refresh
-    // This ensures the scored dog moves to completed tab immediately
-    await triggerImmediateEntrySync('submitScore');
-
-    // OPTIMIZATION: Run placement calculation and class completion checks in background
-    // This allows the save to complete quickly (~100ms) while background tasks run
-    // Users can navigate away immediately without waiting for these operations
-
-    // Use provided classId if available, otherwise query database
-    if (classId) {
-      console.log('✅ Using provided class_id:', classId);
-      // Fire and forget - check class completion in background
-      (async () => {
-        try {
-          await checkAndUpdateClassCompletion(classId, pairedClassId);
-          console.log('✅ [Background] Class completion checked');
-        } catch (error) {
-          console.error('⚠️ [Background] Failed to check class completion:', error);
-        }
-      })();
-      console.log('✅ Score saved - background task running');
-    } else {
-      // Fallback: Query database for class_id (backward compatibility)
-      console.log('⚠️ No classId provided, querying database (slower path)');
-      const { data: entryData } = await supabase
-        .from('view_entry_class_join_normalized')
-        .select('class_id, license_key, show_id')
-        .eq('id', entryId)
-        .single();
-
-      if (entryData) {
-        // Fire and forget - check class completion in background
-        // Placement calculation will happen automatically when class is marked "completed"
-        (async () => {
-          try {
-            await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
-            console.log('✅ [Background] Class completion checked');
-          } catch (error) {
-            console.error('⚠️ [Background] Failed to check class completion:', error);
-          }
-        })();
-
-        console.log('✅ Score saved - background task running');
-      } else {
-        console.warn('⚠️ Could not fetch entry data for background processing');
-      }
-    }
-
-    console.log('✅ Score submitted successfully');
-    return true;
-  } catch (error) {
-    console.error('Error in submitScore:', error);
-    throw error;
-  }
+  return submitScoreFromSubmissionModule(entryId, scoreData, pairedClassId, classId);
 }
 
 /**
@@ -300,25 +136,13 @@ export async function submitScore(
 
 /**
  * Submit multiple scores from offline queue
+ *
+ * **Phase 2 Task 2.1**: Delegates to scoreSubmission module
  */
 export async function submitBatchScores(
   scores: QueuedScore[]
 ): Promise<{ successful: string[]; failed: string[] }> {
-  const successful: string[] = [];
-  const failed: string[] = [];
-
-  // Process scores sequentially to avoid overwhelming the server
-  for (const score of scores) {
-    try {
-      await submitScore(score.entryId, score.scoreData);
-      successful.push(score.id);
-    } catch (error) {
-      console.error(`Failed to submit score ${score.id}:`, error);
-      failed.push(score.id);
-    }
-  }
-
-  return { successful, failed };
+  return submitBatchScoresFromSubmissionModule(scores);
 }
 
 /**
