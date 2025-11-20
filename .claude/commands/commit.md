@@ -1,3 +1,7 @@
+---
+description: Commit and push changes to GitHub with quality checks
+---
+
 You are helping me commit and push changes to GitHub. Follow this workflow exactly:
 
 ## Step 1: Verify Build Quality
