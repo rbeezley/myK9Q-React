@@ -5,9 +5,7 @@ import { recalculatePlacementsForClass } from './placementService';
 import { convertTimeToSeconds } from './entryTransformers';
 import { initializeDebugFunctions } from './entryDebug';
 import { syncManager } from './syncManager';
-import { getReplicationManager } from '@/services/replication';
-import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
-import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
+import { getEntriesFromReplicationCache, triggerImmediateEntrySync } from './entryReplication';
 import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
@@ -78,91 +76,12 @@ export async function getClassEntries(
     const isReplicationEnabled = true;
 
     if (isReplicationEnabled) {
-      console.log('🔄 [REPLICATION] Fetching class entries from replicated cache...');
-
-      const manager = getReplicationManager();
-      if (manager) {
-        const entriesTable = manager.getTable<ReplicatedEntry>('entries');
-        const classesTable = manager.getTable<Class>('classes');
-
-        if (entriesTable && classesTable) {
-          try {
-            // Get class data from cache
-            const cachedClass = await classesTable.get(primaryClassId.toString());
-
-            if (!cachedClass) {
-              console.warn(`[REPLICATION] Class ${primaryClassId} not found in cache, falling back to Supabase`);
-              throw new Error('Class not in cache');
-            }
-
-            console.log(`✅ [REPLICATION] Found class ${primaryClassId} in cache`);
-
-            // Get all entries from cache and filter for this class
-            const cachedEntries = await entriesTable.getAll();
-            const classEntries = cachedEntries.filter(entry =>
-              classIdArray.includes(parseInt(entry.class_id, 10))
-            );
-
-            console.log(`✅ [REPLICATION] Loaded ${classEntries.length} entries from cache for class(es) ${classIdArray.join(', ')}`);
-
-            // Transform replicated entries to Entry format
-            const mappedEntries = classEntries.map(entry => {
-              const status = determineEntryStatus(entry.entry_status);
-
-              return {
-                id: parseInt(entry.id, 10),
-                armband: entry.armband_number,
-                callName: entry.dog_call_name,
-                breed: entry.dog_breed || '',
-                handler: entry.handler_name,
-                jumpHeight: '',
-                preferredTime: '',
-                isScored: entry.is_scored || false,
-
-                // Unified status field
-                status,
-
-                // Deprecated fields (backward compatibility)
-                inRing: status === 'in-ring',
-                checkedIn: status !== 'no-status',
-                checkinStatus: status,
-
-                resultText: entry.result_status || 'pending',
-                searchTime: entry.search_time_seconds?.toString() || '0.00',
-                faultCount: entry.total_faults || 0,
-                placement: entry.final_placement ?? undefined,
-                correctFinds: 0, // Not in replicated schema yet
-                incorrectFinds: 0,
-                noFinishCount: 0,
-                totalPoints: 0,
-                nqReason: undefined,
-                excusedReason: undefined,
-                withdrawnReason: undefined,
-                classId: parseInt(entry.class_id, 10),
-                className: buildClassName(cachedClass.element, cachedClass.level, cachedClass.section),
-                section: cachedClass.section || '',
-                element: cachedClass.element,
-                level: cachedClass.level,
-                timeLimit: formatTimeLimitSeconds(cachedClass.time_limit_seconds),
-                timeLimit2: formatTimeLimitSeconds(cachedClass.time_limit_area2_seconds),
-                timeLimit3: formatTimeLimitSeconds(cachedClass.time_limit_area3_seconds),
-                areas: cachedClass.area_count,
-                exhibitorOrder: 0, // Not in replicated schema yet
-                actualClassId: parseInt(entry.class_id, 10),
-                trialDate: '', // Would need to join with trials table
-                trialNumber: ''
-              };
-            }).sort((a, b) => a.armband - b.armband);
-
-            console.log(`📊 [REPLICATION] Returning ${mappedEntries.length} entries from cache`);
-            return mappedEntries;
-
-          } catch (error) {
-            console.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
-            // Fall through to Supabase query
-          }
-        }
+      // Try to fetch from replicated cache first
+      const cachedEntries = await getEntriesFromReplicationCache(classIdArray, primaryClassId);
+      if (cachedEntries !== null) {
+        return cachedEntries;
       }
+      // Fall through to Supabase query if cache miss
     }
 
     // Fall back to original Supabase implementation
@@ -483,19 +402,7 @@ export async function submitScore(
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the scored dog moves to completed tab immediately
-    try {
-      const { getReplicationManager } = await import('./replication');
-      const manager = getReplicationManager();
-      if (manager) {
-        console.log('[submitScore] Triggering immediate sync of entries table...');
-        await manager.syncTable('entries', { forceFullSync: false });
-        console.log('[submitScore] ✅ Immediate sync complete');
-      } else {
-        console.warn('[submitScore] Replication manager not available, UI may not update until next sync');
-      }
-    } catch (syncError) {
-      console.warn('[submitScore] Failed to trigger immediate sync (non-critical):', syncError);
-    }
+    await triggerImmediateEntrySync('submitScore');
 
     // OPTIMIZATION: Run placement calculation and class completion checks in background
     // This allows the save to complete quickly (~100ms) while background tasks run
@@ -989,19 +896,7 @@ export async function updateEntryCheckinStatus(
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the status change reflects in the replication cache immediately
-    try {
-      const { getReplicationManager } = await import('./replication');
-      const manager = getReplicationManager();
-      if (manager) {
-        console.log('[updateEntryCheckinStatus] Triggering immediate sync of entries table...');
-        await manager.syncTable('entries', { forceFullSync: false });
-        console.log('[updateEntryCheckinStatus] ✅ Immediate sync complete');
-      } else {
-        console.warn('[updateEntryCheckinStatus] Replication manager not available, UI may not update until next sync');
-      }
-    } catch (syncError) {
-      console.warn('[updateEntryCheckinStatus] Failed to trigger immediate sync (non-critical):', syncError);
-    }
+    await triggerImmediateEntrySync('updateEntryCheckinStatus');
 
     // Small delay to ensure write has propagated (fixes immediate refresh race condition)
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -1062,19 +957,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the entry moves back to pending/checked-in tab immediately
-    try {
-      const { getReplicationManager } = await import('./replication');
-      const manager = getReplicationManager();
-      if (manager) {
-        console.log('[resetEntryScore] Triggering immediate sync of entries table...');
-        await manager.syncTable('entries', { forceFullSync: false });
-        console.log('[resetEntryScore] ✅ Immediate sync complete');
-      } else {
-        console.warn('[resetEntryScore] Replication manager not available, UI may not update until next sync');
-      }
-    } catch (syncError) {
-      console.warn('[resetEntryScore] Failed to trigger immediate sync (non-critical):', syncError);
-    }
+    await triggerImmediateEntrySync('resetEntryScore');
 
     // Check if class should be marked as incomplete
     if (entryData?.class_id) {
