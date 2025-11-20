@@ -183,7 +183,7 @@ export function useBulkOperations(): UseBulkOperationsReturn {
   const handleBulkSetClassSelfCheckin = useCallback(async (
     enabled: boolean,
     classes: ClassInfo[],
-    adminName: string
+    _adminName: string
   ): Promise<BulkOperationResult> => {
     if (selectedClasses.size === 0) {
       return {

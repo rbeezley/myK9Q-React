@@ -108,7 +108,9 @@ export function useSettingsLogic() {
                 const savedFavorites = localStorage.getItem(favoritesKey);
                 let favoriteArmbands: number[] = [];
                 if (savedFavorites) {
-                    try { favoriteArmbands = JSON.parse(savedFavorites); } catch (e) { }
+                    try { favoriteArmbands = JSON.parse(savedFavorites); } catch (_e) {
+                        // Ignore parse errors
+                    }
                 }
 
                 const success = await PushNotificationService.subscribe(role, showContext.licenseKey, favoriteArmbands);
@@ -134,7 +136,7 @@ export function useSettingsLogic() {
                 await PushNotificationService.unsubscribe();
                 setIsPushSubscribed(false);
                 showToastMessage('Push notifications disabled', 'info');
-            } catch (error) {
+            } catch (_error) {
                 showToastMessage('Failed to disable push notifications', 'error');
                 updateSettings({ enableNotifications: true });
             } finally {

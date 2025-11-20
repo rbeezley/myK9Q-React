@@ -28,7 +28,6 @@ import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
 import { DogCard } from '../../../components/DogCard';
 import { X, ClipboardCheck } from 'lucide-react';
-import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
 import { initializeAreas, type AreaScore } from '../../../services/scoresheets/areaInitialization';
@@ -147,17 +146,6 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   // Initialize areas based on element and level using utility function
   const initializeAreasForClass = (element: string, level: string): AreaScore[] => {
     return initializeAreas(element, level, false);
-  };
-
-  // Helper function: Convert time string to seconds
-  const convertTimeToSeconds = (timeString: string): number => {
-    const parts = timeString.split(':');
-    if (parts.length === 2) {
-      const minutes = parseInt(parts[0]) || 0;
-      const seconds = parseFloat(parts[1]) || 0;
-      return Math.round(minutes * 60 + seconds);
-    }
-    return Math.round(parseFloat(timeString) || 0);
   };
 
   // Failsafe: Get correct max time based on AKC Scent Work requirements

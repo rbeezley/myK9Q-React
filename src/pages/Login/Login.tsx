@@ -283,7 +283,7 @@ export const Login: React.FC = () => {
         <div className="logo-container">
           <div className="logo-image">
             <img
-              src="/myK9Q-notification-icon-192.png"
+              src="/myK9Q-teal-192.png"
               alt="myK9Q Logo"
               className="logo-img"
             />

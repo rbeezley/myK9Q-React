@@ -24,8 +24,8 @@
   --muted-foreground: #6b7280;
   --border: #e5e7eb;
   --input: #f3f4f6;
-  --primary: #3ea173;
-  --primary-hover: #32855f;
+  --primary: #14b8a6;
+  --primary-hover: #0d9488;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -50,8 +50,8 @@
   --status-no-status-bg: #9ca3af;
   --status-no-status-text: #ffffff;
 
-  --status-checked-in: #3ea173;
-  --status-checked-in-bg: #3ea173;
+  --status-checked-in: #14b8a6;
+  --status-checked-in-bg: #14b8a6;
   --status-checked-in-text: #ffffff;
 
   --status-at-gate: #8b5cf6;
@@ -149,12 +149,12 @@
   --token-error: #FF3B30;
   --token-success-contrast: var(--status-checked-in);
 
-  /* Onboarding Colors - All Green for Brand Consistency */
-  --onboarding-color-favorites: #3ea173; /* Green for favorites (Heart icon) */
-  --onboarding-color-checkin: #3ea173; /* Green for check-in */
-  --onboarding-color-updates: #3ea173; /* Green for notifications */
-  --onboarding-color-status: #3ea173; /* Green for class status */
-  --onboarding-logo-gradient: linear-gradient(135deg, #3ea173 0%, #32855f 100%);
+  /* Onboarding Colors - All Teal for Brand Consistency */
+  --onboarding-color-favorites: #14b8a6; /* Teal for favorites (Heart icon) */
+  --onboarding-color-checkin: #14b8a6; /* Teal for check-in */
+  --onboarding-color-updates: #14b8a6; /* Teal for notifications */
+  --onboarding-color-status: #14b8a6; /* Teal for class status */
+  --onboarding-logo-gradient: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
   --token-warning-contrast: #c2410c;
   --token-error-contrast: #dc2626;
 
@@ -323,8 +323,8 @@
   --muted-foreground: #ffffff;
   --border: #4a5568;
   --input: #2a2a2a;
-  --primary: #3ea173;
-  --primary-hover: #32855f;
+  --primary: #14b8a6;
+  --primary-hover: #0d9488;
   --primary-foreground: #ffffff;
   --secondary: #2a2a2a;
   --secondary-foreground: #ffffff;
@@ -354,8 +354,8 @@
   --status-no-status: #6b7280;
   --status-no-status-bg: #6b7280;
 
-  --status-checked-in: #3ea173;
-  --status-checked-in-bg: #3ea173;
+  --status-checked-in: #14b8a6;
+  --status-checked-in-bg: #14b8a6;
 
   --status-at-gate: #8b5cf6;
   --status-at-gate-bg: #8b5cf6;
@@ -509,4 +509,13 @@ img[src*="logo"] {
 img[src*="screenshot"],
 img[src*="photo"] {
   image-rendering: auto; /* Use default smooth scaling */
+}
+
+/* ===================================================================
+   LOGO COLOR TRANSFORMATION - Green to Teal
+   Shifts the green (#3ea173) logos to teal (#14b8a6) brand color
+   =================================================================== */
+
+.logo-teal-filter {
+  filter: hue-rotate(-55deg) saturate(1.4) brightness(1.05);
 }

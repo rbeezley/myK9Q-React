@@ -1,0 +1,52 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer teal circle -->
+  <circle cx="256" cy="256" r="235" fill="#14b8a6"/>
+
+  <!-- Inner white circle -->
+  <circle cx="256" cy="256" r="203" fill="white"/>
+
+  <!-- Dog illustration - sitting, facing right -->
+  <g transform="translate(186, 138)" stroke="#14b8a6" stroke-width="5.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Head profile facing right -->
+    <path d="M 75 21 L 75 11 L 85 5 L 107 5 L 117 11 L 128 21 L 128 43 L 123 53 L 112 59" />
+
+    <!-- Ear (pointing up) -->
+    <path d="M 85 5 L 80 -5 L 85 11" />
+
+    <!-- Snout/nose area -->
+    <path d="M 123 53 L 133 53 L 139 48" />
+    <circle cx="128" cy="48" r="4" fill="#14b8a6" />
+
+    <!-- Eye -->
+    <circle cx="107" cy="27" r="4.8" fill="#14b8a6" />
+
+    <!-- Neck connecting to body -->
+    <path d="M 101 59 L 96 69" />
+
+    <!-- Body (sitting position) -->
+    <ellipse cx="75" cy="107" rx="37" ry="48" />
+
+    <!-- Front leg (sitting) -->
+    <path d="M 85 139 L 85 165 L 91 171" />
+    <line x1="80" y1="171" x2="96" y2="171" stroke-width="6.5" stroke-linecap="round" />
+
+    <!-- Back leg (sitting, bent) -->
+    <path d="M 48 128 L 37 144 L 37 165 L 43 171" />
+    <line x1="37" y1="171" x2="48" y2="171" stroke-width="6.5" stroke-linecap="round" />
+
+    <!-- Tail (curved up and around) -->
+    <path d="M 43 96 Q 27 85 21 96 Q 16 107 21 117 Q 27 123 37 117" stroke-width="5.3" />
+
+    <!-- Tech circuit nodes on body -->
+    <circle cx="69" cy="101" r="4.8" fill="#14b8a6" />
+    <circle cx="80" cy="117" r="4.8" fill="#14b8a6" />
+    <circle cx="64" cy="123" r="4.8" fill="#14b8a6" />
+
+    <!-- Connection lines between nodes -->
+    <line x1="69" y1="101" x2="80" y2="117" stroke-width="3.2" />
+    <line x1="80" y1="117" x2="64" y2="123" stroke-width="3.2" />
+  </g>
+
+  <!-- Swoosh accent from bottom right of circle -->
+  <path d="M 448 379 Q 475 395 497 416" stroke="#14b8a6" stroke-width="16" fill="none" stroke-linecap="round" opacity="0.9"/>
+</svg>

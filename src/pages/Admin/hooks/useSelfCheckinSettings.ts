@@ -117,7 +117,7 @@ export function useSelfCheckinSettings(): UseSelfCheckinSettingsReturn {
   const handleSetTrialSelfCheckin = useCallback(async (
     trialId: number,
     enabled: boolean,
-    trialLabel: string
+    _trialLabel: string
   ): Promise<Result> => {
     try {
       await setTrialSelfCheckin(trialId, enabled);
@@ -140,7 +140,7 @@ export function useSelfCheckinSettings(): UseSelfCheckinSettingsReturn {
    */
   const handleRemoveTrialSelfCheckin = useCallback(async (
     trialId: number,
-    trialLabel: string
+    _trialLabel: string
   ): Promise<Result> => {
     try {
       await removeTrialSelfCheckinOverride(trialId);

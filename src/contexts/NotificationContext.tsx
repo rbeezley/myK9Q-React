@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
@@ -71,7 +71,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
@@ -196,12 +196,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Set up real-time subscription for announcements
   useEffect(() => {
     if (!showContext?.licenseKey) {
-      // Clean up if no license key
-      if (realtimeChannel) {
-        realtimeChannel.unsubscribe();
-        setRealtimeChannel(null);
-        setIsConnected(false);
-      }
+      // No license key - cleanup will be handled by the cleanup function
       return;
     }
 
@@ -248,13 +243,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setIsConnected(status === 'SUBSCRIBED');
       });
 
-    setRealtimeChannel(channel);
+    realtimeChannelRef.current = channel;
 
     // Cleanup on unmount or license key change
     return () => {
       console.log('🔌 [NotificationContext] Cleaning up real-time subscription');
-      channel.unsubscribe();
-      setRealtimeChannel(null);
+      if (realtimeChannelRef.current) {
+        realtimeChannelRef.current.unsubscribe();
+        realtimeChannelRef.current = null;
+      }
       setIsConnected(false);
     };
   }, [showContext?.licenseKey, showContext?.showName, addNotification]);
@@ -281,6 +278,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {

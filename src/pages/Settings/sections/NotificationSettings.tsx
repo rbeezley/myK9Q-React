@@ -18,7 +18,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     isSubscribing,
     permissionState,
     onPushToggle,
-    browserCompatibility
+    browserCompatibility: _browserCompatibility
 }) => {
     const { settings, updateSettings } = useSettingsStore();
 

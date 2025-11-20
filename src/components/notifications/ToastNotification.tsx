@@ -18,6 +18,13 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
   const navigate = useNavigate();
   const [isExiting, setIsExiting] = useState(false);
 
+  const handleDismiss = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onDismiss(notification.id);
+    }, 300); // Match CSS animation duration
+  };
+
   // Auto-dismiss non-urgent notifications after 8 seconds
   useEffect(() => {
     if (notification.priority !== 'urgent') {
@@ -27,14 +34,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
 
       return () => clearTimeout(timer);
     }
-  }, [notification.priority]);
-
-  const handleDismiss = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      onDismiss(notification.id);
-    }, 300); // Match CSS animation duration
-  };
+  }, [notification.priority, handleDismiss]);
 
   const handleView = () => {
     onMarkAsRead(notification.id);

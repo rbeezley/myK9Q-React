@@ -1,14 +1,19 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Trophy, Users, Award, CheckCircle, Shield,
+  Trophy, Users, Award, Shield,
   Cloud, ChevronRight, Timer, Bell, Settings, Wifi, Zap, UserCheck,
-  BookOpen, Video, ExternalLink
+  BookOpen, Video, ExternalLink, ArrowRight
 } from 'lucide-react';
 import './Landing.css';
 
 export function Landing() {
   const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const handleGetStarted = () => {
     navigate('/login');
@@ -16,179 +21,219 @@ export function Landing() {
 
   return (
     <div className="landing-page">
-      {/* Hero Section with Side-by-Side Layout */}
+      {/* Hero Section with Diagonal Energy */}
       <section className="hero-section">
+        <div className="hero-background">
+          <div className="hero-diagonal"></div>
+          <div className="hero-grid"></div>
+        </div>
+
         <div className="hero-container">
           <div className="hero-layout">
-            {/* Left Side - Phone Mockup */}
-            <div className="hero-visual">
-              <div className="screenshot-wrapper">
-                <img
-                  src="/home-page-screenshot.png"
-                  alt="myK9Q App Home Page"
-                  className="screenshot-image"
-                />
-                <div className="screenshot-overlay"></div>
+            {/* Left Side - Content with Kinetic Typography */}
+            <div className={`hero-content ${isVisible ? 'visible' : ''}`}>
+              <div className="hero-badge">
+                <Trophy className="badge-icon" />
+                <span>2025 AKC Nationals</span>
               </div>
-            </div>
 
-            {/* Right Side - Content */}
-            <div className="hero-content">
-              {/* Logo */}
-              <div className="hero-logo-container">
-                <div className="hero-logo-image">
+              <div className="hero-logo-section">
+                <div className="logo-frame">
                   <img
-                    src="/myK9Q-notification-icon-192.png"
-                    alt="myK9Q Logo"
+                    src="/myK9Q-teal-192.png"
+                    alt="myK9Q"
                     className="hero-logo"
                   />
                 </div>
                 <h1 className="hero-brand">myK9Q</h1>
               </div>
 
-              {/* Queue and Qualify Messaging */}
-              <h2 className="hero-title">
-                <span className="hero-queue">Queue</span>
-                <span className="hero-and">&</span>
-                <span className="hero-qualify">Qualify</span>
-              </h2>
+              {/* Kinetic Typography - Queue to Qualify */}
+              <div className="hero-kinetic">
+                <div className="kinetic-line">
+                  <span className="kinetic-queue">Queue</span>
+                  <div className="kinetic-arrow">
+                    <ArrowRight className="arrow-icon" />
+                  </div>
+                  <span className="kinetic-qualify">Qualify</span>
+                </div>
+                <div className="kinetic-underline"></div>
+              </div>
 
               <p className="hero-tagline">
-                Manage run order and score at ring side
+                Precision scoring at ring side.<br />
+                Real-time sync. Offline reliability.
               </p>
 
-              <p className="hero-description">
-                The complete scoring solution for AKC and UKC trials. Built for judges,
-                stewards, and exhibitors who demand precision and reliability.
-              </p>
+              <div className="hero-stats">
+                <div className="stat-item">
+                  <div className="stat-number">100+</div>
+                  <div className="stat-label">Clubs</div>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
+                  <div className="stat-number">1000+</div>
+                  <div className="stat-label">Events</div>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
+                  <div className="stat-number">99.9%</div>
+                  <div className="stat-label">Uptime</div>
+                </div>
+              </div>
 
               <div className="hero-actions">
                 <button onClick={handleGetStarted} className="btn-primary">
-                  Get Started
+                  <span>Get Started</span>
                   <ChevronRight className="btn-icon" />
                 </button>
               </div>
 
-              {/* Nationals Badge */}
-              <div className="hero-nationals-badge">
-                <Trophy className="nationals-badge-icon" />
-                <span>Used at the 2025 AKC Scent Work Nationals</span>
+              <div className="hero-features-compact">
+                <div className="feature-compact">
+                  <UserCheck className="feature-icon-compact" />
+                  <span>Self Check-in</span>
+                </div>
+                <div className="feature-compact">
+                  <Zap className="feature-icon-compact" />
+                  <span>Auto-Calculate</span>
+                </div>
+                <div className="feature-compact">
+                  <Cloud className="feature-icon-compact" />
+                  <span>Real-time</span>
+                </div>
               </div>
+            </div>
 
-              {/* Feature Highlights */}
-              <div className="hero-features">
-                <div className="hero-feature">
-                  <UserCheck className="hero-feature-icon" />
-                  <span>Exhibitor Self Check-in</span>
+            {/* Right Side - Phone Mockup with Depth */}
+            <div className={`hero-visual ${isVisible ? 'visible' : ''}`}>
+              <div className="phone-frame">
+                <div className="phone-screen">
+                  <img
+                    src="/home-page-screenshot.png"
+                    alt="myK9Q App"
+                    className="phone-screenshot"
+                  />
                 </div>
-                <div className="hero-feature">
-                  <Zap className="hero-feature-icon" />
-                  <span>Auto-Calculate Results</span>
-                </div>
-                <div className="hero-feature">
-                  <Cloud className="hero-feature-icon" />
-                  <span>Real-time Sync</span>
-                </div>
+                <div className="phone-reflection"></div>
               </div>
+              <div className="visual-accent"></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features-section">
+      {/* Roles Section - Asymmetric Grid */}
+      <section className="roles-section">
         <div className="container">
-          <h2 className="features-title">Everything you need to run a show</h2>
+          <div className="section-header">
+            <h2 className="section-title">Built for every role</h2>
+            <div className="title-accent"></div>
+          </div>
 
-          <div className="features-grid">
-            {/* Exhibitors */}
-            <div className="feature-card">
-              <div className="feature-header">
-                <Users className="feature-icon-header" />
-                <h3>For Exhibitors</h3>
+          <div className="roles-grid">
+            <div className="role-card role-large">
+              <div className="role-number">01</div>
+              <div className="role-icon-wrapper">
+                <Award className="role-icon" />
               </div>
-              <ul className="feature-list">
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Real-time results and placements
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Push notifications for your runs
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Track performance across trials
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Self check-in when enabled
-                </li>
+              <h3 className="role-title">Judges</h3>
+              <ul className="role-features">
+                <li>Multi-timer precision system</li>
+                <li>Digital scoresheets (AKC/UKC)</li>
+                <li>Quick fault marking</li>
+                <li>Auto placement calculation</li>
               </ul>
             </div>
 
-            {/* Judges */}
-            <div className="feature-card">
-              <div className="feature-header">
-                <Award className="feature-icon-header" />
-                <h3>For Judges</h3>
+            <div className="role-card">
+              <div className="role-number">02</div>
+              <div className="role-icon-wrapper">
+                <Users className="role-icon" />
               </div>
-              <ul className="feature-list">
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Precision multi-timer system
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Digital scoresheets (AKC, UKC)
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Quick fault marking and notes
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Automatic placement calculation
-                </li>
+              <h3 className="role-title">Exhibitors</h3>
+              <ul className="role-features">
+                <li>Real-time results</li>
+                <li>Push notifications</li>
+                <li>Performance tracking</li>
+                <li>Self check-in</li>
               </ul>
             </div>
 
-            {/* Secretaries */}
-            <div className="feature-card">
-              <div className="feature-header">
-                <Settings className="feature-icon-header" />
-                <h3>For Show Secretaries</h3>
+            <div className="role-card">
+              <div className="role-number">03</div>
+              <div className="role-icon-wrapper">
+                <Settings className="role-icon" />
               </div>
-              <ul className="feature-list">
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Complete show management
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Automatic data synchronization
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Export results instantly
-                </li>
-                <li>
-                  <CheckCircle className="feature-check" />
-                  Role-based access control
-                </li>
+              <h3 className="role-title">Secretaries</h3>
+              <ul className="role-features">
+                <li>Complete show management</li>
+                <li>Auto synchronization</li>
+                <li>Instant exports</li>
+                <li>Access control</li>
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Learning Resources Section */}
+      {/* Capabilities - Icon Grid */}
+      <section className="capabilities-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Enterprise-grade reliability</h2>
+            <div className="title-accent"></div>
+          </div>
+
+          <div className="capabilities-grid">
+            <div className="capability-card">
+              <div className="capability-icon-bg">
+                <Wifi className="capability-icon" />
+              </div>
+              <h4 className="capability-title">Offline First</h4>
+              <p className="capability-desc">Works perfectly without internet. Syncs when connected.</p>
+            </div>
+
+            <div className="capability-card">
+              <Cloud className="capability-icon" />
+              <h4 className="capability-title">Cloud Sync</h4>
+              <p className="capability-desc">Real-time synchronization across all devices.</p>
+            </div>
+
+            <div className="capability-card">
+              <Timer className="capability-icon" />
+              <h4 className="capability-title">Multi-Timer</h4>
+              <p className="capability-desc">Precision timing with concurrent timers.</p>
+            </div>
+
+            <div className="capability-card">
+              <Bell className="capability-icon" />
+              <h4 className="capability-title">Notifications</h4>
+              <p className="capability-desc">Instant alerts for class changes and results.</p>
+            </div>
+
+            <div className="capability-card">
+              <Trophy className="capability-icon" />
+              <h4 className="capability-title">AKC & UKC</h4>
+              <p className="capability-desc">All major organization formats supported.</p>
+            </div>
+
+            <div className="capability-card">
+              <Shield className="capability-icon" />
+              <h4 className="capability-title">Secure</h4>
+              <p className="capability-desc">Role-based permissions and authentication.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Resources Section */}
       <section className="resources-section">
         <div className="container">
-          <h2 className="resources-title">Learn myK9Q</h2>
-          <p className="resources-subtitle">
-            Everything you need to get started and master the platform
-          </p>
+          <div className="section-header">
+            <h2 className="section-title">Learn myK9Q</h2>
+            <div className="title-accent"></div>
+          </div>
 
           <div className="resources-grid">
             <a
@@ -197,16 +242,16 @@ export function Landing() {
               rel="noopener noreferrer"
               className="resource-card"
             >
-              <div className="resource-icon-wrapper">
+              <div className="resource-icon-frame">
                 <BookOpen className="resource-icon" />
               </div>
-              <h3 className="resource-title">User Guide</h3>
-              <p className="resource-description">
-                Helpful guides and instructions to maximize your myK9Q experience
-              </p>
-              <div className="resource-link">
-                View Docs <ExternalLink className="resource-link-icon" />
+              <div className="resource-content">
+                <h3 className="resource-title">User Guide</h3>
+                <p className="resource-desc">
+                  Complete documentation and tutorials
+                </p>
               </div>
+              <ExternalLink className="resource-arrow" />
             </a>
 
             <a
@@ -215,79 +260,35 @@ export function Landing() {
               rel="noopener noreferrer"
               className="resource-card"
             >
-              <div className="resource-icon-wrapper">
+              <div className="resource-icon-frame">
                 <Video className="resource-icon" />
               </div>
-              <h3 className="resource-title">Video Tutorials</h3>
-              <p className="resource-description">
-                myK9Q explainer videos - your guide to understanding and using the app
-              </p>
-              <div className="resource-link">
-                Watch Playlist <ExternalLink className="resource-link-icon" />
+              <div className="resource-content">
+                <h3 className="resource-title">Video Tutorials</h3>
+                <p className="resource-desc">
+                  Step-by-step explainer videos
+                </p>
               </div>
+              <ExternalLink className="resource-arrow" />
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Capabilities Section */}
-      <section className="capabilities-section">
-        <div className="container">
-          <h2 className="capabilities-title">Built for reliability</h2>
-
-          <div className="capabilities-grid">
-            <div className="capability-item">
-              <Wifi className="capability-icon" />
-              <h4>Offline First</h4>
-              <p>Works perfectly without internet. Syncs when connected.</p>
-            </div>
-
-            <div className="capability-item">
-              <Cloud className="capability-icon" />
-              <h4>Cloud Sync</h4>
-              <p>Real-time synchronization across all devices.</p>
-            </div>
-
-            <div className="capability-item">
-              <Timer className="capability-icon" />
-              <h4>Multi-Timer</h4>
-              <p>Precision timing with concurrent timers.</p>
-            </div>
-
-            <div className="capability-item">
-              <Bell className="capability-icon" />
-              <h4>Push Notifications</h4>
-              <p>Instant alerts for class changes and results.</p>
-            </div>
-
-            <div className="capability-item">
-              <Trophy className="capability-icon" />
-              <h4>All Organizations</h4>
-              <p>AKC and UKC scoring formats supported.</p>
-            </div>
-
-            <div className="capability-item">
-              <Shield className="capability-icon" />
-              <h4>Secure Access</h4>
-              <p>Role-based permissions and authentication.</p>
-            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="cta-section">
-        <div className="container">
+        <div className="cta-container">
           <div className="cta-content">
-            <h2 className="cta-title">Start scoring smarter</h2>
-            <p className="cta-description">
-              Join hundreds of clubs using myK9Q for faster, more accurate scoring.
+            <h2 className="cta-title">Ready to transform your scoring?</h2>
+            <p className="cta-subtitle">
+              Join hundreds of clubs using myK9Q for faster, more accurate events.
             </p>
             <button onClick={handleGetStarted} className="btn-cta">
-              Get Started
+              <span>Get Started Now</span>
               <ChevronRight className="btn-icon" />
             </button>
           </div>
+          <div className="cta-decoration"></div>
         </div>
       </section>
 
@@ -296,7 +297,7 @@ export function Landing() {
         <div className="container">
           <div className="footer-content">
             <div className="footer-brand">
-              <img src="/myK9Q-notification-badge-96.png" alt="myK9Q" className="footer-logo" />
+              <img src="/myK9Q-teal-96.png" alt="myK9Q" className="footer-logo" />
               <span className="footer-title">myK9Q</span>
             </div>
             <p className="footer-copyright">

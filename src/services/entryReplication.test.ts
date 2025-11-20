@@ -4,7 +4,8 @@
  * Tests cache reads, data transformation, and sync operations.
  */
 
-import { vi } from 'vitest';
+/// <reference types="vitest" />
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getEntriesFromReplicationCache, triggerImmediateEntrySync } from './entryReplication';
 import { getReplicationManager } from '@/services/replication';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
@@ -85,9 +86,10 @@ describe('entryReplication', () => {
       section: 'A',
       area_count: 1,
       time_limit_seconds: 180,
-      time_limit_area2_seconds: null,
-      time_limit_area3_seconds: null,
-      trial_id: '456',
+      time_limit_area2_seconds: undefined,
+      time_limit_area3_seconds: undefined,
+      trial_id: 456,
+      license_key: 'TEST-KEY',
       judge_name: 'Judge Smith',
       is_completed: false,
       class_status: 'not_started',
@@ -105,12 +107,12 @@ describe('entryReplication', () => {
         handler_name: 'John Doe',
         entry_status: 'completed',
         is_scored: true,
+        is_in_ring: false,
         result_status: 'qualified',
         search_time_seconds: 45.5,
         total_faults: 0,
         final_placement: 1,
         license_key: 'TEST-KEY',
-        show_id: '789',
         created_at: '2025-01-19T00:00:00Z',
         updated_at: '2025-01-19T00:00:00Z'
       },
@@ -123,12 +125,12 @@ describe('entryReplication', () => {
         handler_name: 'Jane Smith',
         entry_status: 'in-ring',
         is_scored: false,
+        is_in_ring: true,
         result_status: 'pending',
         search_time_seconds: 0,
         total_faults: 0,
-        final_placement: null,
+        final_placement: undefined,
         license_key: 'TEST-KEY',
-        show_id: '789',
         created_at: '2025-01-19T00:00:00Z',
         updated_at: '2025-01-19T00:00:00Z'
       }
@@ -251,7 +253,7 @@ describe('entryReplication', () => {
     it('should handle missing breed field', async () => {
       const entryWithoutBreed: ReplicatedEntry = {
         ...mockReplicatedEntries[0],
-        dog_breed: null
+        dog_breed: undefined
       };
 
       mockClassesTable.get.mockResolvedValue(mockClass);
@@ -395,8 +397,9 @@ describe('entryReplication', () => {
       area_count: 2,
       time_limit_seconds: 240,
       time_limit_area2_seconds: 180,
-      time_limit_area3_seconds: null,
-      trial_id: '456',
+      time_limit_area3_seconds: undefined,
+      trial_id: 456,
+      license_key: 'TEST-KEY',
       judge_name: 'Judge Smith',
       is_completed: false,
       class_status: 'not_started',
@@ -413,12 +416,12 @@ describe('entryReplication', () => {
       handler_name: 'John Doe',
       entry_status: 'completed',
       is_scored: true,
+      is_in_ring: false,
       result_status: 'qualified',
       search_time_seconds: 45.5,
       total_faults: 0,
       final_placement: 1,
       license_key: 'TEST-KEY',
-      show_id: '789',
       created_at: '2025-01-19T00:00:00Z',
       updated_at: '2025-01-19T00:00:00Z'
     };
@@ -426,7 +429,7 @@ describe('entryReplication', () => {
     it('should transform entry with null placement', async () => {
       const entryWithNullPlacement: ReplicatedEntry = {
         ...baseReplicatedEntry,
-        final_placement: null
+        final_placement: undefined
       };
 
       mockClassesTable.get.mockResolvedValue(mockClass);

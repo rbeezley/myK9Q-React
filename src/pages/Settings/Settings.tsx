@@ -22,7 +22,7 @@ import './Settings.css';
 
 export function Settings() {
   const {
-    settings,
+    settings: _settings,
     toast,
     showResetConfirm,
     showClearDataConfirm,

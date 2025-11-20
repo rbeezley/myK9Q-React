@@ -12,11 +12,8 @@ import {
   fetchEntriesByArmbandFromDatabase,
 } from './entryDataFetching';
 import { buildClassName } from '@/utils/stringUtils';
-import { formatTimeLimitSeconds } from '@/utils/timeUtils';
-import { determineEntryStatus } from '@/utils/statusUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
-import { mapDatabaseRowToEntry } from '@/utils/entryMappers';
 import { shouldCheckCompletion } from '@/utils/validationUtils';
 import { calculateTotalAreaTime } from '@/utils/calculationUtils';
 

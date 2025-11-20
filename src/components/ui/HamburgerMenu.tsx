@@ -51,7 +51,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
   const navigate = useNavigate();
   const { showContext, role, logout } = useAuth();
-  const { unreadCount: announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
+  const { unreadCount: _announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
   const { unreadCount, togglePanel } = useNotifications();
 
 

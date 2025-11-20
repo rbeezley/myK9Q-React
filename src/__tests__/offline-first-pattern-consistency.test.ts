@@ -12,6 +12,8 @@
  * This test suite compares the three operations to ensure consistency.
  */
 
+/// <reference types="vitest" />
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOptimisticScoring } from '@/hooks/useOptimisticScoring';
 import { localStateManager } from '@/services/localStateManager';

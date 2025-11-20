@@ -112,7 +112,7 @@ export function useVisibilitySettings(): UseVisibilitySettingsReturn {
     trialId: number,
     preset: VisibilityPreset,
     adminName: string,
-    trialLabel: string
+    _trialLabel: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       await setTrialVisibility(trialId, preset, adminName);
@@ -135,7 +135,7 @@ export function useVisibilitySettings(): UseVisibilitySettingsReturn {
    */
   const handleRemoveTrialVisibility = useCallback(async (
     trialId: number,
-    trialLabel: string
+    _trialLabel: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       await removeTrialVisibilityOverride(trialId);

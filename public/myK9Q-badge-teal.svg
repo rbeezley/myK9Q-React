@@ -1,0 +1,48 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer teal circle -->
+  <circle cx="48" cy="48" r="44" fill="#14b8a6"/>
+
+  <!-- Inner white circle -->
+  <circle cx="48" cy="48" r="38" fill="white"/>
+
+  <!-- Simplified sitting dog facing right -->
+  <g transform="translate(35, 26)" stroke="#14b8a6" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Head -->
+    <path d="M 14 4 L 14 2 L 16 1 L 20 1 L 22 2 L 24 4 L 24 8 L 23 10 L 21 11" />
+
+    <!-- Ear -->
+    <path d="M 16 1 L 15 -1 L 16 2" stroke-width="1.5" />
+
+    <!-- Snout -->
+    <path d="M 23 10 L 25 10" stroke-width="1.5" />
+    <circle cx="24" cy="9" r="0.8" fill="#14b8a6" />
+
+    <!-- Eye -->
+    <circle cx="20" cy="5" r="1" fill="#14b8a6" />
+
+    <!-- Neck -->
+    <path d="M 19 11 L 18 13" />
+
+    <!-- Body -->
+    <ellipse cx="14" cy="20" rx="7" ry="9" />
+
+    <!-- Front leg -->
+    <path d="M 16 26 L 16 31" />
+    <line x1="15" y1="31" x2="18" y2="31" stroke-width="2" stroke-linecap="round" />
+
+    <!-- Back leg -->
+    <path d="M 9 24 L 7 27 L 7 31" />
+    <line x1="7" y1="31" x2="9" y2="31" stroke-width="2" stroke-linecap="round" />
+
+    <!-- Tail -->
+    <path d="M 8 18 Q 5 16 4 18 Q 3 20 4 22 Q 5 23 7 22" stroke-width="1.5" />
+
+    <!-- Tech nodes (simplified) -->
+    <circle cx="13" cy="19" r="1" fill="#14b8a6" />
+    <circle cx="15" cy="22" r="1" fill="#14b8a6" />
+    <line x1="13" y1="19" x2="15" y2="22" stroke-width="0.8" />
+  </g>
+
+  <!-- Swoosh -->
+  <path d="M 84 71 Q 89 74 93 78" stroke="#14b8a6" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+</svg>

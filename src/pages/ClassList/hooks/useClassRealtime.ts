@@ -21,14 +21,6 @@ export interface RealtimePayload {
 }
 
 /**
- * Hook return type
- */
-export interface UseClassRealtimeReturn {
-  // The hook manages subscriptions internally via useEffect
-  // No return values needed - side effects only
-}
-
-/**
  * Custom hook for managing real-time class updates
  *
  * Provides real-time synchronization for:

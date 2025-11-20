@@ -3,7 +3,7 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Shield, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 export const PrivacySettings: React.FC = () => {
     const { settings, updateSettings } = useSettingsStore();
