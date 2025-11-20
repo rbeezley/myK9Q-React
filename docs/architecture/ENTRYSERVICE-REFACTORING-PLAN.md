@@ -165,19 +165,25 @@ This proves the extraction pattern works!
     Notes: Most complex function (207 LOC), high value extraction
     Status: ⬜ Not Started
 
-[ ] 2.2: Extract Status Management
+[✓] 2.2: Extract Status Management
     File: src/services/entry/entryStatusManagement.ts
-    LOC: 100-130 lines
+    LOC: 344 lines (includes comprehensive docs)
     Functions:
-      - markInRing(entryId, inRing)
-      - markEntryCompleted(entryId)
-      - updateEntryCheckinStatus(entryId, status)
-      - resetEntryScore(entryId)
+      - markInRing(entryId, inRing) - In-ring status toggle
+      - markEntryCompleted(entryId) - Manual completion by gate stewards
+      - updateEntryCheckinStatus(entryId, status) - Check-in desk operations
+      - resetEntryScore(entryId) - Reset score and trigger class completion check
     Risk: LOW
-    Dependencies: entryDataLayer.ts
-    Testing: Status transitions, edge cases
-    Benefits: Groups all status-changing operations
-    Status: ⬜ Not Started
+    Dependencies: supabase, entryReplication (triggerImmediateEntrySync), classCompletionService
+    Testing: 15 unit tests ✅ (entryStatusManagement.test.ts)
+    Benefits: Centralized status management with business rule enforcement
+    Business Rules:
+      - Never downgrade completed status to lower status
+      - Preserve completed when removing scored entries from ring
+      - Trigger immediate sync after status changes
+      - Check class completion after score resets
+    Status: ✅ COMPLETE (commit pending)
+    Date: 2025-01-20
 
 [✓] 2.3: Extract Class Completion Logic
     File: src/services/entry/classCompletionService.ts
@@ -198,10 +204,10 @@ This proves the extraction pattern works!
 ```
 
 **Phase 2 Deliverables**:
-- 🔄 3 new modules (430-530 LOC total) - **1/3 complete**
-- 🔄 Isolated scoring complexity
-- 🔄 Test coverage: 95%+ for scoring, 85%+ for status - **8 tests for completion ✅**
-- 🔄 ~500 LOC removed from entryService.ts - **~143 LOC removed so far**
+- 🔄 3 new modules (430-530 LOC total) - **2/3 complete** ✅
+- 🔄 Isolated scoring complexity - **Status management ✅, Completion ✅**
+- 🔄 Test coverage: 95%+ for scoring, 85%+ for status - **23 tests total ✅ (8 completion + 15 status)**
+- 🔄 ~500 LOC removed from entryService.ts - **~355 LOC removed so far** (143 completion + 212 status)
 
 ---
 
@@ -550,14 +556,14 @@ Phase 5 (Migration) - Depends on all above:
 
 ### Overall Progress
 - **Phases Complete**: 1/5 (20%)
-- **Tasks Complete**: 4/12 (33%)
-- **Test Coverage**: 27 tests (19 data layer + 8 class completion) ✅ → Target: 85-95%
-- **LOC Reduced**: ~203 lines from entryService.ts → Target: 983-1,033 lines
+- **Tasks Complete**: 5/12 (42%)
+- **Test Coverage**: 42 tests (19 data layer + 8 class completion + 15 status management) ✅ → Target: 85-95%
+- **LOC Reduced**: ~355 lines from entryService.ts → Target: 983-1,033 lines (36% progress)
 
 ### Phase Status
 ```
 Phase 1: ✅✅✅ (3/3 tasks) ✅ COMPLETE
-Phase 2: ⬜⬜✅ (1/3 tasks) 🔄 IN PROGRESS
+Phase 2: ✅⬜✅ (2/3 tasks) 🔄 IN PROGRESS - Only scoreSubmission.ts remaining!
 Phase 3: ⬜ (0/1 tasks)
 Phase 4: ⬜⬜ (0/2 tasks)
 Phase 5: ⬜⬜⬜ (0/3 tasks)
@@ -613,8 +619,8 @@ Phase 2 (Scoring & Status) is highest risk and highest value.
 ---
 
 **Last Updated**: 2025-01-20
-**Status**: Phase 1 Complete ✅ | Phase 2 In Progress 🔄 (Task 2.3 Complete)
-**Next Step**: Continue Phase 2 - Task 2.1 (Extract scoreSubmission.ts) or Task 2.2 (Extract status management)
+**Status**: Phase 1 Complete ✅ | Phase 2 In Progress 🔄 (Tasks 2.2 & 2.3 Complete)
+**Next Step**: Continue Phase 2 - Task 2.1 (Extract scoreSubmission.ts) - Final Phase 2 task!
 
 ## 🎉 Phase 1 Complete Summary
 
@@ -683,3 +689,50 @@ Phase 2 (Scoring & Status) is highest risk and highest value.
 - ✅ Optimization skip logic (middle dogs)
 - ✅ Empty class handling
 - ✅ Manual completion trigger
+
+---
+
+## 🎉 Phase 2 Task 2.2 Complete Summary
+
+**Completed**: 2025-01-20
+**Duration**: ~3 hours
+**Test Coverage**: 15 unit tests passing ✅
+**Commit**: Pending
+
+**Files Created**:
+- ✅ `src/services/entry/entryStatusManagement.ts` (344 LOC) + 15 tests
+- ✅ `src/services/entry/entryStatusManagement.test.ts` (532 LOC)
+
+**Files Modified**:
+- ✅ `src/services/entryService.ts` - Removed 212 LOC, now delegates to entryStatusManagement
+- ✅ `src/services/entry/index.ts` - Added status management exports
+
+**Functions Extracted**:
+- ✅ `markInRing()` - In-ring status toggle (54 LOC → 4 LOC delegation)
+- ✅ `markEntryCompleted()` - Manual completion (46 LOC → 3 LOC delegation)
+- ✅ `updateEntryCheckinStatus()` - Check-in operations (50 LOC → 3 LOC delegation)
+- ✅ `resetEntryScore()` - Score reset + class completion check (62 LOC → 3 LOC delegation)
+
+**Benefits Achieved**:
+- ✅ Centralized status management with clear business rules
+- ✅ Never downgrade completed status (critical business rule enforced)
+- ✅ Automatic replication sync after status changes
+- ✅ Class completion checks after score resets
+- ✅ ~212 LOC removed from entryService.ts (total: 355 LOC removed)
+- ✅ Zero breaking changes to consumers
+- ✅ Testable business rules (15 comprehensive tests)
+
+**Test Coverage**:
+- ✅ markInRing: 4 tests (in-ring, remove, preserve completed, errors)
+- ✅ markEntryCompleted: 4 tests (mark completed, skip scored, PGRST116 handling, errors)
+- ✅ updateEntryCheckinStatus: 3 tests (update, verify, errors with detailed logging)
+- ✅ resetEntryScore: 5 tests (reset, field values, completion check errors, db errors, no class_id)
+- ✅ Integration: 1 test (full lifecycle: check-in → in-ring → completed → reset)
+
+**Business Rules Enforced**:
+- ✅ Never downgrade from 'completed' to lower status
+- ✅ Preserve 'completed' when removing scored entries from ring
+- ✅ Trigger immediate sync after all status changes
+- ✅ 100ms write propagation delay for check-in status updates
+- ✅ Check class completion after score resets
+- ✅ Gracefully handle class completion check failures (don't block score reset)

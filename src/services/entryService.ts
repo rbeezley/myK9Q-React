@@ -11,6 +11,10 @@ import {
   getTrialEntries as getTrialEntriesFromDataLayer,
   getEntriesByArmband as getEntriesByArmbandFromDataLayer,
   checkAndUpdateClassCompletion,
+  markInRing as markInRingFromStatusModule,
+  markEntryCompleted as markEntryCompletedFromStatusModule,
+  updateEntryCheckinStatus as updateEntryCheckinStatusFromStatusModule,
+  resetEntryScore as resetEntryScoreFromStatusModule,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
@@ -320,111 +324,24 @@ export async function submitBatchScores(
 /**
  * Mark an entry as being in the ring
  * IMPORTANT: Does not overwrite 'completed' status - only changes 'no-status' <-> 'in-ring'
+ *
+ * **Phase 2 Task 2.2**: Delegates to entryStatusManagement module
  */
 export async function markInRing(
   entryId: number,
   inRing: boolean = true
 ): Promise<boolean> {
-  try {
-    // Replication handles pending mutations and syncing automatically
-
-    // When removing from ring (inRing=false), check if entry is already scored
-    // If scored, don't change status back to 'no-status' - keep it as 'completed'
-    if (!inRing) {
-      // Check if entry has a score (results merged into entries table)
-      const { data: entry } = await supabase
-        .from('entries')
-        .select('is_scored')
-        .eq('id', entryId)
-        .maybeSingle();
-
-      if (entry?.is_scored) {
-        console.log(`⏭️ Entry ${entryId} is already scored - keeping status as 'completed'`);
-        // Update to completed status instead of no-status
-        const { error } = await supabase
-          .from('entries')
-          .update({ entry_status: 'completed' })
-          .eq('id', entryId)
-          .select();
-
-        if (error) {
-          console.error('❌ markInRing database error:', error);
-          throw error;
-        }
-        return true;
-      }
-    }
-
-    // Normal behavior: toggle between 'no-status' and 'in-ring'
-    const newStatus: EntryStatus = inRing ? 'in-ring' : 'no-status';
-
-    const { error } = await supabase
-      .from('entries')
-      .update({ entry_status: newStatus })
-      .eq('id', entryId)
-      .select();
-
-    if (error) {
-      console.error('❌ markInRing database error:', error);
-      throw error;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('❌ markInRing error:', error);
-    throw error;
-  }
+  return markInRingFromStatusModule(entryId, inRing);
 }
 
 /**
  * Mark an entry as completed without full scoring details
  * This is used for manual completion by gate stewards when not using ringside scoring
+ *
+ * **Phase 2 Task 2.2**: Delegates to entryStatusManagement module
  */
 export async function markEntryCompleted(entryId: number): Promise<boolean> {
-  console.log(`🔄 markEntryCompleted called: entryId=${entryId}`);
-
-  try {
-    // Check if entry is already scored with actual data (results merged into entries table)
-    const { data: existingEntry, error: checkError } = await supabase
-      .from('entries')
-      .select('id, is_scored')
-      .eq('id', entryId)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('❌ Error checking existing entry:', checkError);
-      throw checkError;
-    }
-
-    if (existingEntry && existingEntry.is_scored) {
-      console.warn('⚠️ Entry is already scored - skipping manual completion');
-      return true; // Don't overwrite existing score
-    }
-
-    // Update the entry with completed status and score flag
-    const { error: statusError } = await supabase
-      .from('entries')
-      .update({
-        entry_status: 'completed',
-        is_scored: true,
-        result_status: 'manual_complete',
-        scoring_completed_at: new Date().toISOString()
-      })
-      .eq('id', entryId)
-      .select();
-
-    if (statusError) {
-      console.error('❌ markEntryCompleted database error:', statusError);
-      throw statusError;
-    }
-
-    console.log(`✅ markEntryCompleted successful: entry ${entryId} set to completed`)
-
-    return true;
-  } catch (error) {
-    console.error('Error in markEntryCompleted:', error);
-    throw error;
-  }
+  return markEntryCompletedFromStatusModule(entryId);
 }
 
 /**
@@ -552,122 +469,23 @@ export function subscribeToEntryUpdates(
 
 /**
  * Update check-in status for an entry
+ *
+ * **Phase 2 Task 2.2**: Delegates to entryStatusManagement module
  */
 export async function updateEntryCheckinStatus(
   entryId: number,
   checkinStatus: EntryStatus
 ): Promise<boolean> {
-  try {
-    // Update the unified entry_status field
-    const updateData = {
-      entry_status: checkinStatus
-    };
-
-    console.log('🔄 Updating entry status:', updateData);
-
-    const { error } = await supabase
-      .from('entries')
-      .update(updateData)
-      .eq('id', entryId)
-      .select();
-
-    if (error) {
-      console.error('❌ Database error updating entry status:', error);
-      console.error('❌ Error details:', JSON.stringify(error, null, 2));
-      console.error('❌ Update data that failed:', updateData);
-      throw new Error(`Database update failed: ${error.message || error.code || 'Unknown database error'}`);
-    }
-
-    console.log('✅ Entry status updated successfully');
-
-    // Verify the update by reading it back
-    const { data: verifyData } = await supabase
-      .from('entries')
-      .select('id, entry_status')
-      .eq('id', entryId)
-      .single();
-
-    console.log('🔍 Verified updated status:', verifyData);
-
-    // CRITICAL: Trigger immediate sync to update UI without refresh
-    // This ensures the status change reflects in the replication cache immediately
-    await triggerImmediateEntrySync('updateEntryCheckinStatus');
-
-    // Small delay to ensure write has propagated (fixes immediate refresh race condition)
-    await new Promise(resolve => setTimeout(resolve, 100));
-    console.log('✅ Write propagation complete - safe to refresh');
-
-    return true;
-  } catch (error) {
-    console.error('Error in updateEntryCheckinStatus:', error);
-    throw error;
-  }
+  return updateEntryCheckinStatusFromStatusModule(entryId, checkinStatus);
 }
 
 /**
  * Reset a dog's score and return them to pending status
+ *
+ * **Phase 2 Task 2.2**: Delegates to entryStatusManagement module
  */
 export async function resetEntryScore(entryId: number): Promise<boolean> {
-  try {
-    // Get the class_id before deleting the result
-    const { data: entryData } = await supabase
-      .from('entries')
-      .select('class_id')
-      .eq('id', entryId)
-      .single();
-
-    // Reset score fields in the entries table (results merged into entries)
-    const { error } = await supabase
-      .from('entries')
-      .update({
-        is_scored: false,
-        result_status: 'pending',
-        entry_status: 'no-status', // Reset entry status when score is cleared
-        search_time_seconds: 0,
-        total_correct_finds: 0,
-        total_incorrect_finds: 0,
-        total_faults: 0,
-        final_placement: 0,
-        total_score: 0,
-        points_earned: 0,
-        scoring_completed_at: null,
-        ring_entry_time: null,
-        ring_exit_time: null
-      })
-      .eq('id', entryId);
-
-    if (error) {
-      console.error('❌ Database error resetting score:', {
-        error,
-        errorMessage: error.message,
-        errorCode: error.code,
-        errorDetails: error.details,
-        errorHint: error.hint,
-        entryId
-      });
-      throw new Error(`Database reset failed: ${error.message || error.code || 'Unknown database error'}`);
-    }
-
-    console.log('✅ Score reset successfully - reset score fields for entry', entryId);
-
-    // CRITICAL: Trigger immediate sync to update UI without refresh
-    // This ensures the entry moves back to pending/checked-in tab immediately
-    await triggerImmediateEntrySync('resetEntryScore');
-
-    // Check if class should be marked as incomplete
-    if (entryData?.class_id) {
-      try {
-        await checkAndUpdateClassCompletion(entryData.class_id);
-      } catch (completionError) {
-        console.error('⚠️ Failed to check class completion:', completionError);
-      }
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error in resetEntryScore:', error);
-    throw error;
-  }
+  return resetEntryScoreFromStatusModule(entryId);
 }
 
 /**

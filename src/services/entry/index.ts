@@ -38,5 +38,13 @@ export {
   manuallyCheckClassCompletion,
 } from './classCompletionService';
 
+// Entry Status Management API (Phase 2, Task 2.2)
+export {
+  markInRing,
+  markEntryCompleted,
+  updateEntryCheckinStatus,
+  resetEntryScore,
+} from './entryStatusManagement';
+
 // Re-export types
 export type { Entry } from './entryDataLayer';
