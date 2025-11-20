@@ -590,26 +590,32 @@ Extract hooks with **multiple dependencies** on services or other hooks. These r
     Risk: MEDIUM (cascade logic critical)
     Dependencies: resultVisibilityService
 
-[ ] 3.4: useSelfCheckinSettings (from CompetitionAdmin.tsx)
-    State: show/trial/class self check-in settings
-    CRUD: setShowSelfCheckin(), setTrialSelfCheckin(), bulkSetClassSelfCheckin()
-    Cascade logic: Show → Trial → Class
-    LOC Saved: ~100 lines
-    Tests: 15-18 test cases
-    Risk: MEDIUM (cascade logic)
-    Dependencies: self check-in service
+[✓] 3.4: useSelfCheckinSettings (from CompetitionAdmin.tsx) ✅
+    State: show/trial/class self check-in settings ✓
+    CRUD: setShowSelfCheckin(), setTrialSelfCheckin(), removeTrialSelfCheckinOverride() ✓
+    Cascade logic: Show → Trial → Class ✓
+    LOC Created: 163 lines implementation
+    Tests: 18 test cases (all scenarios covered)
+    Risk: MEDIUM (cascade logic) ✓
+    Dependencies: resultVisibilityService ✓
 
-[ ] 3.5: useBulkOperations (from CompetitionAdmin.tsx)
-    Bulk visibility updates
-    Bulk self check-in updates
-    Success/error handling
-    LOC Saved: ~60 lines
-    Tests: 10-12 test cases
-    Risk: MEDIUM
-    Dependencies: visibility/checkin services
+[✓] 3.5: useBulkOperations (from CompetitionAdmin.tsx) ✅
+    Selection management (toggle, selectAll, clear) ✓
+    Bulk visibility updates ✓
+    Bulk self check-in updates ✓
+    Bulk results release ✓
+    Success/error handling with affectedClasses ✓
+    LOC Created: 259 lines implementation
+    Tests: 21 test cases (comprehensive coverage)
+    Risk: MEDIUM ✓
+    Dependencies: resultVisibilityService, Supabase ✓
 ```
 
-**Week 5 Progress**: 1/5 hooks complete (~236 lines created, 21 tests passing)
+**Week 5 Progress**: 3/5 hooks complete
+- usePushNotifications: 236 LOC, 21 tests ✓
+- useSelfCheckinSettings: 163 LOC, 18 tests ✓
+- useBulkOperations: 259 LOC, 21 tests ✓
+- **Total: 658 LOC created, 60 test cases passing**
 
 ### Week 6: Data & State Management Hooks
 
