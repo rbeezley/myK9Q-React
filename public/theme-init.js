@@ -25,17 +25,11 @@
     let settings = {};
     if (persistedData.state && persistedData.state.settings) {
       settings = persistedData.state.settings;
-      console.log('📘 theme-init.js: Using state.settings structure');
     } else if (persistedData.settings) {
       settings = persistedData.settings;
-      console.log('📘 theme-init.js: Using settings structure');
     } else {
       settings = persistedData;
-      console.log('📘 theme-init.js: Using direct structure');
     }
-
-    console.log('📘 theme-init.js: accentColor =', settings.accentColor);
-    console.log('📘 theme-init.js: theme =', settings.theme);
 
     // Apply theme mode (light/dark/auto)
     const themeMode = settings.theme || 'auto';
