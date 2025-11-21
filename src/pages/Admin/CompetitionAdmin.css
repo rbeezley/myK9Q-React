@@ -79,7 +79,7 @@
 /* Main container */
 .competition-admin {
   min-height: 100vh;
-  background-color: var(--background);
+  background: var(--bg-app); /* Light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }

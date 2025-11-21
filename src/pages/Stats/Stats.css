@@ -3,7 +3,7 @@
 /* Base/Mobile Styles */
 .stats-container {
   min-height: 100vh;
-  background: var(--background);
+  background: var(--bg-app); /* Light gray background for better contrast with white containers */
   padding-bottom: var(--token-space-4xl);
 }
 
