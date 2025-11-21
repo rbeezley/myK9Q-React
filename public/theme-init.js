@@ -3,6 +3,7 @@
  * This runs BEFORE React to prevent FOUC
  *
  * CRITICAL: Must be loaded as blocking script in index.html
+ * VERSION: 2.0 - Updated for accent color system
  */
 
 (function() {
@@ -11,17 +12,35 @@
     const savedSettings = localStorage.getItem('myK9Q_settings');
 
     if (!savedSettings) {
-      // No saved settings - use defaults
+      // No saved settings - use defaults (light theme, green accent)
       applyThemeClass('light');
+      applyAccentColorClass('green');
       return;
     }
 
-    const settings = JSON.parse(savedSettings);
+    // Zustand v5 persist stores data in { state: { settings: {...} } } format
+    const persistedData = JSON.parse(savedSettings);
 
-    // Apply theme mode (light/dark/system)
-    const themeMode = settings.theme || 'light';
+    // Extract settings from Zustand persist structure
+    let settings = {};
+    if (persistedData.state && persistedData.state.settings) {
+      settings = persistedData.state.settings;
+      console.log('📘 theme-init.js: Using state.settings structure');
+    } else if (persistedData.settings) {
+      settings = persistedData.settings;
+      console.log('📘 theme-init.js: Using settings structure');
+    } else {
+      settings = persistedData;
+      console.log('📘 theme-init.js: Using direct structure');
+    }
 
-    if (themeMode === 'system') {
+    console.log('📘 theme-init.js: accentColor =', settings.accentColor);
+    console.log('📘 theme-init.js: theme =', settings.theme);
+
+    // Apply theme mode (light/dark/auto)
+    const themeMode = settings.theme || 'auto';
+
+    if (themeMode === 'auto') {
       // Detect system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       applyThemeClass(prefersDark ? 'dark' : 'light');
@@ -29,9 +48,9 @@
       applyThemeClass(themeMode);
     }
 
-    // Apply theme color class
-    const themeColor = settings.themeColor || 'blue';
-    applyThemeColorClass(themeColor);
+    // Apply accent color class (new system)
+    const accentColor = settings.accentColor || 'green';
+    applyAccentColorClass(accentColor);
 
   } catch (error) {
     // Fail silently - use default light theme
@@ -51,13 +70,13 @@
     }
   }
 
-  function applyThemeColorClass(color) {
+  function applyAccentColorClass(color) {
     const html = document.documentElement;
 
-    // Remove all theme color classes
-    html.classList.remove('theme-blue', 'theme-green', 'theme-orange');
+    // Remove all accent color classes
+    html.classList.remove('accent-blue', 'accent-green', 'accent-orange', 'accent-purple');
 
-    // Add selected theme color class
-    html.classList.add('theme-' + color);
+    // Add selected accent color class
+    html.classList.add('accent-' + color);
   }
 })();

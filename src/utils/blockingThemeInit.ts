@@ -10,7 +10,7 @@
 
 interface ThemeSettings {
   theme?: 'light' | 'dark' | 'system';
-  themeColor?: 'blue' | 'green' | 'orange';
+  accentColor?: 'blue' | 'green' | 'orange' | 'purple';
 }
 
 /**
@@ -27,11 +27,22 @@ export function initializeThemeBlocking(): void {
     if (!savedSettings) {
       // No saved settings - use defaults (light theme, green color)
       applyThemeClass('light');
-      applyThemeColorClass('green');
+      applyAccentColorClass('green');
       return;
     }
 
-    const settings: ThemeSettings = JSON.parse(savedSettings);
+    // Zustand v5 persist stores data in { state: { settings: {...} } } format
+    const persistedData = JSON.parse(savedSettings);
+
+    // Extract settings from Zustand persist structure
+    let settings: ThemeSettings = {};
+    if (persistedData.state?.settings) {
+      settings = persistedData.state.settings;
+    } else if (persistedData.settings) {
+      settings = persistedData.settings;
+    } else {
+      settings = persistedData;
+    }
 
     // Apply theme mode (light/dark/system)
     const themeMode = settings.theme || 'light';
@@ -44,9 +55,9 @@ export function initializeThemeBlocking(): void {
       applyThemeClass(themeMode);
     }
 
-    // Apply theme color class
-    const themeColor = settings.themeColor || 'green';
-    applyThemeColorClass(themeColor);
+    // Apply accent color class
+    const accentColor = settings.accentColor || 'green';
+    applyAccentColorClass(accentColor);
 
   } catch (error) {
     // Fail silently - use default light theme
@@ -71,16 +82,16 @@ function applyThemeClass(theme: 'light' | 'dark'): void {
 }
 
 /**
- * Apply theme color class to HTML element
+ * Apply accent color class to HTML element
  */
-function applyThemeColorClass(color: 'blue' | 'green' | 'orange'): void {
+function applyAccentColorClass(color: 'blue' | 'green' | 'orange' | 'purple'): void {
   const html = document.documentElement;
 
-  // Remove all theme color classes
-  html.classList.remove('theme-blue', 'theme-green', 'theme-orange');
+  // Remove all accent color classes
+  html.classList.remove('accent-blue', 'accent-green', 'accent-orange', 'accent-purple');
 
-  // Add selected theme color class
-  html.classList.add(`theme-${color}`);
+  // Add selected accent color class
+  html.classList.add(`accent-${color}`);
 }
 
 // Auto-run if called directly (when imported as script in HTML)
