@@ -46,7 +46,8 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  max-width: 100%;
+  max-width: 800px; /* Constrain width on desktop for better readability, consistent with Settings page */
+  margin: 0 auto; /* Center content on desktop */
   overflow-y: auto;
   overflow-x: hidden;
 }
