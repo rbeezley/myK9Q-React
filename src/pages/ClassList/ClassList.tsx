@@ -1171,6 +1171,8 @@ export const ClassList: React.FC = () => {
         }}
       />
 
+      </PullToRefresh>
+
       {/* Class Status Dialog */}
       <ClassStatusDialog
         isOpen={statusDialogOpen}
@@ -1220,8 +1222,6 @@ export const ClassList: React.FC = () => {
           refetch();
         }}
       />
-
-      </PullToRefresh>
     </div>
   );
 };

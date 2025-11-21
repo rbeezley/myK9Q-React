@@ -83,7 +83,7 @@
 
 /* Light mode - make X more visible */
 .theme-light .close-button {
-  color: var(--surface-muted);
+  color: var(--foreground-muted);
   opacity: 0.8;
 }
 
