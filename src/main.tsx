@@ -6,6 +6,10 @@ import { registerSW } from 'virtual:pwa-register'
 import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 import { initializeReplication } from './services/replication/initReplication'
 
+// App version for debugging cache issues
+const APP_VERSION = '2024-11-21-v3';
+console.log(`🔍 App Version: ${APP_VERSION} | Build Time: ${new Date().toISOString()}`);
+
 // Track if user has been prompted about this update
 let updatePromptShown = false
 

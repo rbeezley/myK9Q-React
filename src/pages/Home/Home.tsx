@@ -62,6 +62,11 @@ export const Home: React.FC = () => {
   // Calculate number of columns based on viewport width
   const [columnCount, setColumnCount] = useState(1);
 
+  // Log version on mount
+  useEffect(() => {
+    console.log('🔍 Home component version: 2024-11-21-v3 (PTR disabled by default)');
+  }, []);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

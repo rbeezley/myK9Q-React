@@ -22,6 +22,7 @@ export const Login: React.FC = () => {
 
   // Focus first input on mount
   useEffect(() => {
+    console.log('🔍 Login component version: 2024-11-21-v3 (inputMode=email)');
     inputRefs.current[0]?.focus();
   }, []);
 
