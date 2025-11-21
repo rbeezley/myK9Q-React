@@ -434,6 +434,13 @@ export function startPerformanceMonitoring(): () => void {
   let lastTime = performance.now();
   let frameCount = 0;
   let fps = 60;
+  let lowFpsOptimized = false; // Track if we've already optimized
+
+  // Check if user has already been shown the optimization dialog
+  const hasOptimized = localStorage.getItem('myK9Q_fps_optimized') === 'true';
+  if (hasOptimized) {
+    lowFpsOptimized = true;
+  }
 
   const checkPerformance = (currentTime: number) => {
     frameCount++;
@@ -444,13 +451,18 @@ export function startPerformanceMonitoring(): () => void {
       lastTime = currentTime;
 
       // If FPS drops below 20, switch to low-performance mode
-      if (fps < 20 && performanceSettings && performanceSettings.animations) {
+      // Only show warning once per session
+      if (fps < 20 && performanceSettings && performanceSettings.animations && !lowFpsOptimized) {
         console.warn('Low FPS detected, reducing performance settings');
         setPerformanceOverrides({
           animations: false,
           blurEffects: false,
           shadows: false,
         });
+
+        // Mark as optimized to prevent repeated warnings
+        lowFpsOptimized = true;
+        localStorage.setItem('myK9Q_fps_optimized', 'true');
       }
     }
 

@@ -6,9 +6,10 @@ import './DatabaseRecovery.css';
 
 interface DatabaseRecoveryProps {
   onRecovered?: () => void;
+  onDismiss?: () => void;
 }
 
-export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered }) => {
+export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered, onDismiss }) => {
   const [isDetecting, setIsDetecting] = useState(true);
   const [isCorrupted, setIsCorrupted] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
@@ -16,6 +17,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
   const [showManualInstructions, setShowManualInstructions] = useState(false);
   const [autoRecoveryAttempted, setAutoRecoveryAttempted] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   // Listen for online/offline events
   useEffect(() => {
@@ -263,10 +265,20 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
     setShowManualInstructions(true);
   };
 
-  // Don't show anything if database is healthy
+  // Don't show anything if database is healthy or user dismissed
   if (!isDetecting && !isCorrupted) {
     return null;
   }
+
+  // Don't show if user dismissed the dialog
+  if (isDismissed) {
+    return null;
+  }
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    onDismiss?.();
+  };
 
   // Show subtle loading indicator during detection
   if (isDetecting) {
@@ -326,11 +338,28 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
 
   return (
     <div className="database-recovery-modal">
-      <div className="database-recovery-overlay" />
+      <div className="database-recovery-overlay" onClick={handleDismiss} />
       <div className="database-recovery-content">
         <div className="recovery-header">
           <RefreshCw className="warning-icon" />
           <h2>Optimizing Your Experience</h2>
+          <button
+            className="close-button"
+            onClick={handleDismiss}
+            aria-label="Close"
+            style={{
+              marginLeft: 'auto',
+              background: 'transparent',
+              border: 'none',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              color: 'var(--foreground-secondary)',
+              padding: '0.25rem',
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
         </div>
 
         <div className="recovery-body">
@@ -363,6 +392,13 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered 
                 onClick={handleManualRecovery}
               >
                 More Options
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={handleDismiss}
+                style={{ marginTop: '0.5rem' }}
+              >
+                Not Now
               </button>
             </div>
           )}
