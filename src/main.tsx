@@ -6,6 +6,9 @@ import { registerSW } from 'virtual:pwa-register'
 import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 import { initializeReplication } from './services/replication/initReplication'
 
+// Track if user has been prompted about this update
+let updatePromptShown = false
+
 const updateSW = registerSW({
   onNeedRefresh() {
     // In development, don't auto-prompt for refresh to avoid interrupting work
@@ -13,6 +16,14 @@ const updateSW = registerSW({
       console.log('🔄 New service worker available (auto-refresh disabled in dev mode)')
       return
     }
+
+    // Only show the prompt once per update
+    if (updatePromptShown) {
+      console.log('🔄 Update already prompted, skipping...')
+      return
+    }
+
+    updatePromptShown = true
 
     // In production, prompt user for update
     if (confirm('New content available. Reload?')) {
