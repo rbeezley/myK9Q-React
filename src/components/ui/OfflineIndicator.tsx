@@ -68,6 +68,17 @@ export function OfflineIndicator() {
     };
   }, []);
 
+  // Auto-dismiss slow connection warning after 5 seconds
+  useEffect(() => {
+    if (connectionQuality === 'slow' && !slowConnectionDismissed) {
+      const timer = setTimeout(() => {
+        setSlowConnectionDismissed(true);
+      }, 5000); // 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [connectionQuality, slowConnectionDismissed]);
+
   // Show slow connection warning even if online and no sync issues
   if (isOnline && connectionQuality === 'slow' && pendingCount === 0 && syncingCount === 0 && failedCount === 0 && !slowConnectionDismissed) {
     return (
