@@ -838,7 +838,8 @@ export const AKCScentWorkScoresheet: React.FC = () => {
         </div>
       </header>
 
-
+      {/* Content Wrapper - Constrained width on desktop */}
+      <div className="scoresheet-content-wrapper">
       {/* Dog Info Card - Production Styling */}
       <div className="scoresheet-dog-info-card">
         <ArmbandBadge number={currentEntry.armband} />
@@ -1130,8 +1131,9 @@ export const AKCScentWorkScoresheet: React.FC = () => {
           </div>
         </div>
       )}
-      </div>
-    </div>
+      </div> {/* End scoresheet-content-wrapper */}
+      </div> {/* End scoresheet */}
+    </div> {/* End scoresheet-container */}
     </>
   );
 };

@@ -46,13 +46,18 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  max-width: 800px; /* Constrain width on desktop for better readability, consistent with Settings page */
-  margin: 0 auto; /* Center content on desktop */
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Header - Matching Flutter */
+/* Scoresheet content wrapper - constrain width on desktop for better readability */
+.scoresheet-content-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Header - Matching Flutter - Full width, not constrained */
 .mobile-header {
   background: var(--scoresheet-header-bg);
   /* Padding inherited from .page-header (12px mobile, 24px desktop) for consistency */
@@ -64,6 +69,7 @@
   border-radius: var(--token-space-lg);
   position: relative;
   z-index: var(--token-z-raised);
+  width: 100%; /* Keep header full width */
 }
 
 .header-content {
