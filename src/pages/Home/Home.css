@@ -95,7 +95,7 @@
 }
 
 .theme-dark .show-info {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -749,7 +749,7 @@
 }
 
 .theme-dark .no-favorites {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -808,7 +808,7 @@
 }
 
 .theme-dark .entry-card {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -1018,7 +1018,7 @@
 }
 
 .theme-dark .skeleton-card {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .skeleton-card-content {

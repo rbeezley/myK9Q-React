@@ -15,7 +15,7 @@
 
 .theme-dark .tv-entry-card {
   --status-done: #34d399; /* Brighter green for dark mode */
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 /* Status border - matching DogCard.css */

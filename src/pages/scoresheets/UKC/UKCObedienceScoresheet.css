@@ -27,7 +27,7 @@
 }
 
 .theme-dark .scoring-form {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -104,7 +104,7 @@
 }
 
 .theme-dark .qualifying-section {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -186,7 +186,7 @@
 }
 
 .theme-dark .reason-section {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -248,7 +248,7 @@
 }
 
 .theme-dark .action-buttons {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -343,7 +343,7 @@
 }
 
 .theme-dark .confirmation-dialog {
-  background: rgba(26, 29, 35, 0.95);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 @keyframes slideUp {
@@ -433,7 +433,7 @@
 }
 
 .theme-dark .no-entries {
-  background: rgba(26, 29, 35, 0.8);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
