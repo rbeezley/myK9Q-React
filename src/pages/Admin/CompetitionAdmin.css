@@ -1,7 +1,7 @@
 /* MyK9Show Competition Administration - Apple-inspired Light/Dark Mode with Enhanced Outdoor Visibility */
 
 /* CSS Variables - Enhanced for outdoor trial readability */
-:root {
+.competition-admin {
   /* Light theme */
   --background: var(--background);
   --foreground: #0a0a0a;
@@ -41,7 +41,7 @@
   --auto-color: var(--primary);
 }
 
-.theme-dark {
+.theme-dark .competition-admin {
   /* Dark theme - Enhanced for Outdoor Visibility */
   --background: var(--card);
   --foreground: #ffffff;
@@ -67,12 +67,12 @@
   --error-contrast: var(--status-pulled);
 }
 
-.theme-dark .class-card {
+.theme-dark .competition-admin .class-card {
   background: rgba(26, 29, 35, 0.8);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 
-.theme-dark .class-card:hover {
+.theme-dark .competition-admin .class-card:hover {
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
 }
 
