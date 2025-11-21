@@ -1,43 +1,50 @@
 /* Mobile-Optimized Scoresheet - React Implementation */
 
-/* CSS Variables for theming - now using global design tokens */
+/* CSS Variables for theming - explicit values for light mode */
 :root {
-  --scoresheet-bg: var(--bg-app); /* Light gray background for better contrast with white containers */
-  --scoresheet-text: var(--foreground);
-  --scoresheet-text-secondary: var(--token-text-secondary);
-  --scoresheet-text-tertiary: var(--token-text-tertiary);
-  --scoresheet-text-placeholder: var(--token-text-placeholder);
-  --scoresheet-card-bg: var(--card); /* White cards on gray background */
-  --scoresheet-card-border: var(--border);
-  --scoresheet-header-bg: var(--card); /* White header on gray background */
-  --scoresheet-input-bg: var(--input);
-  --scoresheet-input-border: var(--border);
-  --scoresheet-badge-text: var(--primary-foreground);
-  --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
+  /* Dark mode defaults (will be overridden by .theme-light) */
+  --scoresheet-bg: #0f172a;
+  --scoresheet-text: #ffffff;
+  --scoresheet-text-secondary: rgba(255, 255, 255, 0.7);
+  --scoresheet-text-tertiary: rgba(255, 255, 255, 0.5);
+  --scoresheet-text-placeholder: rgba(255, 255, 255, 0.3);
+  --scoresheet-card-bg: #1a1d23;
+  --scoresheet-card-border: rgba(255, 255, 255, 0.1);
+  --scoresheet-header-bg: #1a1d23;
+  --scoresheet-input-bg: #2a2a2a;
+  --scoresheet-input-border: rgba(255, 255, 255, 0.2);
+  --scoresheet-badge-text: #ffffff;
+  --scoresheet-hover-overlay: rgba(255, 255, 255, 0.05);
 }
 
 .theme-light {
-  --scoresheet-bg: var(--bg-app);
-  --scoresheet-text: var(--foreground);
-  --scoresheet-text-secondary: var(--token-text-secondary);
-  --scoresheet-text-tertiary: var(--token-text-tertiary);
-  --scoresheet-text-placeholder: var(--token-text-placeholder);
-  --scoresheet-card-bg: var(--card); /* White cards on gray background */
-  --scoresheet-card-border: var(--border);
-  --scoresheet-header-bg: var(--card); /* White header on gray background */
-  --scoresheet-input-bg: var(--input);
-  --scoresheet-input-border: var(--border);
-  --scoresheet-badge-text: var(--primary-foreground);
+  /* Light mode: gray background (#f1f5f9) + white cards (#ffffff) */
+  --scoresheet-bg: #f1f5f9; /* Light gray background */
+  --scoresheet-text: #0a0a0a;
+  --scoresheet-text-secondary: #6b7280;
+  --scoresheet-text-tertiary: #9ca3af;
+  --scoresheet-text-placeholder: #d1d5db;
+  --scoresheet-card-bg: #ffffff; /* White cards */
+  --scoresheet-card-border: #e5e7eb;
+  --scoresheet-header-bg: #ffffff; /* White header */
+  --scoresheet-input-bg: #ffffff;
+  --scoresheet-input-border: #d1d5db;
+  --scoresheet-badge-text: #ffffff;
   --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
 }
 
 .scoresheet-container {
   height: 100vh;
-  background: var(--scoresheet-bg);
+  background: #0f172a; /* Dark mode default */
   color: var(--scoresheet-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow: hidden;
   width: 100%;
+}
+
+/* Light mode override - gray background */
+.theme-light .scoresheet-container {
+  background: #f1f5f9; /* Light gray background */
 }
 
 .scoresheet {
@@ -48,6 +55,7 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  background: transparent; /* Let container background show through */
 }
 
 /* Scoresheet content wrapper - constrain width on desktop for better readability */
@@ -953,13 +961,11 @@
 /* Removed max-width constraint to match layout standards (24px hamburger position) */
 
 /* Light theme support */
-.theme-light .scoresheet-container {
-  background: var(--background);
-  color: var(--foreground);
-}
+/* NOTE: .scoresheet-container background is defined at line 46-47 above */
+/* This avoids duplicate definitions and CSS cascade conflicts */
 
 .theme-light .scoresheet {
-  background: var(--background);
+  background: transparent; /* Let container background show through */
 }
 
 /* Light mode - all text colors now handled by CSS variables above */
@@ -1023,8 +1029,5 @@
 }
 
 /* Light theme responsive backgrounds */
-@media (min-width: 1440px) {
-  .theme-light .scoresheet-container {
-    background: var(--background);
-  }
-}
+/* NOTE: Background color is consistent across all breakpoints - defined at line 46-47 */
+/* No need for responsive background overrides */

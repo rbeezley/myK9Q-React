@@ -1277,7 +1277,7 @@
 
 /* Results section wrapper - scoresheet container */
 .results-section {
-  background: var(--muted);
+  background: var(--card); /* White container in light mode, dark in dark mode */
   border-radius: var(--token-space-lg);
   border: 1px solid var(--border);
   padding: var(--token-space-2xl);
@@ -1290,7 +1290,7 @@
 .reason-selection {
   display: flex;
   padding: var(--token-space-lg);
-  background: var(--muted);
+  background: transparent; /* No background - parent container provides white background */
   border-radius: var(--token-space-lg);
   width: 100%;
   box-sizing: border-box;
