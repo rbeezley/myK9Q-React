@@ -51,7 +51,7 @@
   justify-content: space-between;
   padding: 20px;
   border-bottom: 1px solid #e5e7eb;
-  background: var(--brand-gradient, linear-gradient(135deg, #3b82f6 0%, #2563eb 100%));
+  background: var(--brand-gradient);
   color: white;
 }
 
@@ -412,7 +412,7 @@
 
 .theme-dark .notif-panel-header {
   border-bottom-color: #2a2a2a;
-  background: var(--brand-gradient, linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%));
+  background: var(--brand-gradient-dark);
 }
 
 .theme-dark .notif-filter-tabs {

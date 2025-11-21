@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar, Circle } from 'lucide-react';
 import './shared-dialog.css';
 import './ClassStatusDialog.css';
@@ -291,7 +292,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const dialogContent = (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
@@ -442,4 +443,6 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 };

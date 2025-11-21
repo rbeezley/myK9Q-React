@@ -41,7 +41,7 @@
 }
 
 .theme-dark .dialog-header {
-  background: var(--foreground-dark);
+  background: var(--muted);
   border-bottom: 1px solid var(--background-soft);
 }
 
@@ -121,7 +121,7 @@
 }
 
 .theme-dark .dialog-footer {
-  background: var(--foreground-dark);
+  background: var(--muted);
   border-top: 1px solid var(--background-soft);
 }
 

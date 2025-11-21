@@ -171,23 +171,31 @@ html.font-large {
 
 /* Accent Color Themes */
 :root.accent-green {
-  --accent-primary: #10b981;
-  --accent-glow: rgba(16, 185, 129, 0.3);
+  --accent-primary: #14b8a6;
+  --accent-glow: rgba(20, 184, 166, 0.3);
+  --brand-gradient: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  --brand-gradient-dark: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
 }
 
 :root.accent-blue {
   --accent-primary: #3b82f6;
   --accent-glow: rgba(59, 130, 246, 0.3);
+  --brand-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --brand-gradient-dark: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 :root.accent-orange {
   --accent-primary: #f97316;
   --accent-glow: rgba(249, 115, 22, 0.3);
+  --brand-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  --brand-gradient-dark: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
 }
 
 :root.accent-purple {
   --accent-primary: #8b5cf6;
   --accent-glow: rgba(139, 92, 246, 0.3);
+  --brand-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --brand-gradient-dark: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
 }
 
 body {

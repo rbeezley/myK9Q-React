@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Bell, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import './shared-ui.css';
 import { version } from '../../../package.json';
@@ -159,12 +159,12 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 onClick={() => handleMenuItemClick(() => togglePanel())}
               >
                 <div className="menu-icon-container">
-                  <Bell className="menu-icon" />
+                  <Inbox className="menu-icon" />
                   {unreadCount > 0 && (
                     <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                   )}
                 </div>
-                <span>Notifications</span>
+                <span>Inbox</span>
               </button>
 
               <button

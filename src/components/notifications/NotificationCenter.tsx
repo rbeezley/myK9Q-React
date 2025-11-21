@@ -3,7 +3,7 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
-  Bell,
+  Inbox,
   CheckCircle,
   Trash2,
   AlertCircle,
@@ -65,7 +65,7 @@ export const NotificationCenter: React.FC = () => {
       case 'high':
         return <AlertTriangle className="notif-icon high-icon" />;
       default:
-        return <Bell className="notif-icon normal-icon" />;
+        return <Inbox className="notif-icon normal-icon" />;
     }
   };
 
@@ -115,13 +115,13 @@ export const NotificationCenter: React.FC = () => {
       <aside
         className="notif-panel"
         role="complementary"
-        aria-label="Notification Center"
+        aria-label="Inbox"
       >
         {/* Header */}
         <div className="notif-panel-header">
           <div className="notif-panel-title">
-            <Bell size={24} />
-            <h2>Notifications</h2>
+            <Inbox size={24} />
+            <h2>Inbox</h2>
             {unreadCount > 0 && (
               <span className="notif-unread-badge">{unreadCount}</span>
             )}
@@ -183,8 +183,8 @@ export const NotificationCenter: React.FC = () => {
         <div className="notif-panel-content">
           {filteredNotifications.length === 0 ? (
             <div className="notif-empty-state">
-              <Bell className="notif-empty-icon" />
-              <h3>No notifications</h3>
+              <Inbox className="notif-empty-icon" />
+              <h3>Inbox empty</h3>
               <p>
                 {filter === 'unread'
                   ? "You're all caught up!"

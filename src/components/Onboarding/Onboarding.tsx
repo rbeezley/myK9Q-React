@@ -173,7 +173,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           <div className="onboarding-logo-container">
             <div className="onboarding-logo">
               <img
-                src="/myK9Q-notification-icon-192.png"
+                src="/myK9Q-logo-teal.svg"
                 alt="myK9Q Logo"
                 className="onboarding-logo-img"
               />

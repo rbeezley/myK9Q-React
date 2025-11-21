@@ -212,11 +212,11 @@
 }
 
 .dialog-btn-success {
-  background: linear-gradient(135deg, var(--status-checked-in) 0%, #059669 100%);
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
 }
 
 .dialog-btn-success:hover {
-  box-shadow: 0 6px var(--token-space-2xl) rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(20, 184, 166, 0.4);
 }
 
 .dialog-btn-danger {

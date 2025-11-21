@@ -301,8 +301,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                     console.log('📱 Showing fallback browser notification');
                     new Notification(data.title, {
                       body: data.content,
-                      icon: '/myK9Q-notification-icon-512.png',
-                      badge: '/myK9Q-notification-icon-512.png',
+                      icon: '/myK9Q-icon-teal.svg',
+                      badge: '/myK9Q-badge-teal.svg',
                     });
                   }
                   return;
@@ -331,8 +331,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                   const title = isUrgent ? `🚨 ${data.title}` : data.title;
                   new Notification(title, {
                     body: data.content,
-                    icon: '/myK9Q-notification-icon-512.png',
-                    badge: '/myK9Q-notification-icon-512.png',
+                    icon: '/myK9Q-icon-teal.svg',
+                    badge: '/myK9Q-badge-teal.svg',
                     requireInteraction: isUrgent,
                   });
                 } else {

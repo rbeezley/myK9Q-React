@@ -132,8 +132,8 @@ self.addEventListener('push', (event: PushEvent) => {
 
     const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
       body: payload.body,
-      icon: '/myK9Q-notification-icon-512.png',
-      badge: '/myK9Q-notification-icon-512.png',
+      icon: '/myK9Q-icon-teal.svg',
+      badge: '/myK9Q-badge-teal.svg',
       vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100], // More prominent vibration for urgent/class started
       data: {
         url: payload.url || '/',
@@ -297,8 +297,8 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 
     const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
       body: pushPayload.body,
-      icon: '/myK9Q-notification-icon-512.png',
-      badge: '/myK9Q-notification-icon-512.png',
+      icon: '/myK9Q-icon-teal.svg',
+      badge: '/myK9Q-badge-teal.svg',
       vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
       data: {
         url: pushPayload.url,

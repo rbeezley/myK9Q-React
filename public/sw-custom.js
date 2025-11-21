@@ -240,8 +240,8 @@ async function updateNotificationSummary(licenseKey, showName) {
         `${showName || 'myK9Q'} - ${count} updates`,
         {
           body: `Tap to view all announcements`,
-          icon: '/myK9Q-notification-icon-192.png',
-          badge: '/myK9Q-notification-badge-96.png',
+          icon: '/myK9Q-logo-teal.svg',
+          badge: '/myK9Q-badge-teal.svg',
           tag: `show-${licenseKey}-summary`,
           group: `show-${licenseKey}`,
           renotify: true,
@@ -318,12 +318,12 @@ async function handlePushNotification(event) {
         {
           action: 'view-class',
           title: '👁️ View Class',
-          icon: '/myK9Q-notification-icon-192.png'
+          icon: '/myK9Q-logo-teal.svg'
         },
         {
           action: 'dismiss',
           title: '✕ Dismiss',
-          icon: '/myK9Q-notification-icon-192.png'
+          icon: '/myK9Q-logo-teal.svg'
         }
       ];
     } else if (isUrgent) {
@@ -332,12 +332,12 @@ async function handlePushNotification(event) {
         {
           action: 'view',
           title: '👁️ View Now',
-          icon: '/myK9Q-notification-icon-192.png'
+          icon: '/myK9Q-logo-teal.svg'
         },
         {
           action: 'acknowledge',
           title: '✓ Got It',
-          icon: '/myK9Q-notification-icon-192.png'
+          icon: '/myK9Q-logo-teal.svg'
         }
       ];
     } else {
@@ -346,20 +346,20 @@ async function handlePushNotification(event) {
         {
           action: 'view',
           title: '👁️ View',
-          icon: '/myK9Q-notification-icon-192.png'
+          icon: '/myK9Q-logo-teal.svg'
         },
         {
           action: 'dismiss',
           title: '✕ Dismiss',
-          icon: '/myK9Q-notification-icon-192.png'
+          icon: '/myK9Q-logo-teal.svg'
         }
       ];
     }
 
     const notificationOptions = {
       body: data.content || data.title,
-      icon: '/myK9Q-notification-icon-512.png',
-      badge: '/myK9Q-notification-badge-96.png',
+      icon: '/myK9Q-icon-teal.svg',
+      badge: '/myK9Q-badge-teal.svg',
       tag: notificationTag,
       group: notificationGroup,  // Enables grouping on Android/Chrome
       requireInteraction: isUrgent, // Persistent for urgent

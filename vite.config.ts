@@ -120,15 +120,15 @@ export default defineConfig({
         categories: ['sports', 'utilities'],
         icons: [
           {
-            src: '/myK9Q-notification-icon-192.png',
+            src: '/myK9Q-logo-teal.svg',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/svg+xml',
             purpose: 'any maskable'
           },
           {
-            src: '/myK9Q-notification-icon-512.png',
+            src: '/myK9Q-icon-teal.svg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/svg+xml',
             purpose: 'any maskable'
           }
         ],

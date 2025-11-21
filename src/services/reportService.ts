@@ -49,7 +49,7 @@ const PRINT_STYLES = `
 .print-table tbody tr:nth-child(even) { background-color: #fafafa; }
 .checkbox-cell { text-align: center; padding: 4px; }
 .checkbox-square { display: inline-block; width: 16px; height: 16px; border: 2px solid #000; vertical-align: middle; }
-.qualified-text { color: #10b981; font-weight: bold; }
+.qualified-text { color: #14b8a6; font-weight: bold; }
 .nq-text { color: #ef4444; font-weight: bold; }
 .place-cell { font-weight: bold; text-align: center; }
 .time-cell { font-family: 'Courier New', monospace; }
@@ -58,7 +58,7 @@ const PRINT_STYLES = `
 @media print {
   .print-table th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-table tbody tr:nth-child(even) { background-color: #fafafa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .qualified-text { color: #10b981 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .qualified-text { color: #14b8a6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .nq-text { color: #ef4444 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 `;
