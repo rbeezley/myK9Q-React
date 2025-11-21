@@ -235,17 +235,18 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   // Automatic penalty for excused dogs
   useEffect(() => {
     if (qualifying === 'EX') {
-      // Regular shows: search time should be 00:00.00, all counts zero
+      // Regular shows: clear faults and found/correct flags, but preserve time data
+      // (judges may accidentally click Excused and need to recover without losing timing)
       setFaultCount(0);
 
       const updatedAreas = areas.map((area) => ({
         ...area,
-        time: '00:00.00',
+        // Keep time intact - don't clear it
         found: false,
         correct: false
       }));
       setAreas(updatedAreas);
-      setTotalTime('00:00.00');
+      // Don't clear total time either - let judges keep their data
     }
   }, [qualifying, areas.length]); // Re-run when qualifying changes or areas are initialized
 
