@@ -234,16 +234,19 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--token-space-2xl) var(--token-space-3xl);
-  background: rgba(55, 65, 81, 0.5);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-bottom: none;
   min-height: auto;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
   margin-bottom: var(--token-space-md);
   border-radius: var(--token-space-lg);
+  box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.1);
 }
 
 .setting-item:hover {
-  background: rgba(55, 65, 81, 0.7);
+  background: var(--muted);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
 }
 
 .setting-item:last-child {
@@ -252,7 +255,7 @@
 
 .setting-item.indented {
   padding-left: 3.5rem;
-  background: rgba(31, 41, 55, 0.7);
+  background: var(--muted);
   margin-left: var(--token-space-3xl);
   margin-right: 0;
   border-left: var(--token-space-sm) solid var(--primary);
@@ -273,8 +276,9 @@
 } */
 
 .setting-item.indented:hover {
-  background: rgba(31, 41, 55, 0.85);
+  background: var(--accent);
   border-left-color: var(--primary);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.15);
 }
 
 .setting-info {
@@ -302,16 +306,18 @@
   text-align: left;
 }
 
-/* Select Dropdowns */
+/* Select Dropdowns - Simplified to match working SettingsSearch dropdown */
 .setting-item select {
   padding: 0.625rem 2.5rem 0.625rem var(--token-space-xl);
-  background: var(--input-bg);
   border: 1.5px solid var(--input-border);
   border-radius: 10px;
   font-size: 0.875rem;
   color: var(--input-text);
+  background-color: var(--input-bg);
   cursor: pointer;
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f9fafb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
@@ -319,12 +325,6 @@
   transition: all 0.2s ease;
   min-width: 200px;
   font-weight: 500;
-}
-
-/* Ensure options inherit the dark background */
-.setting-item select option {
-  background-color: var(--input-bg);
-  color: var(--input-text);
 }
 
 .setting-item select:hover {
@@ -743,6 +743,29 @@
 .theme-light,
 .theme-light .modal-content p {
   color: var(--token-text-tertiary);
+}
+
+/* Dark Mode Overrides */
+.theme-dark .setting-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px var(--token-space-xs) rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .setting-item:hover {
+  background: var(--muted);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark .setting-item.indented {
+  background: var(--muted);
+  border-left: var(--token-space-sm) solid var(--primary);
+}
+
+.theme-dark .setting-item.indented:hover {
+  background: var(--accent);
+  border-left-color: var(--primary);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.4);
 }
 
 /* Responsive - Mobile First */

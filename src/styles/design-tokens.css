@@ -24,6 +24,10 @@
   --muted-foreground: #6b7280;
   --border: #e5e7eb;
   --input: #f3f4f6;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-text: #111827;
+  --input-bg-hover: #fafbfc;
   --primary: #14b8a6;
   --primary-hover: #0d9488;
   --primary-foreground: #ffffff;
@@ -323,6 +327,10 @@
   --muted-foreground: #ffffff;
   --border: #4a5568;
   --input: #2a2a2a;
+  --input-bg: #1f2937;
+  --input-border: #374151;
+  --input-text: #f9fafb;
+  --input-bg-hover: #374151;
   --primary: #14b8a6;
   --primary-hover: #0d9488;
   --primary-foreground: #ffffff;

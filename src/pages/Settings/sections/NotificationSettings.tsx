@@ -92,9 +92,9 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                                 onChange={(e) => updateSettings({ notifyYourTurnLeadDogs: parseInt(e.target.value) as any })}
                                 className="settings-select"
                                 style={{
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid var(--border-glass)',
-                                    color: 'var(--text-primary)',
+                                    backgroundColor: 'var(--input-bg)',
+                                    border: '1px solid var(--input-border)',
+                                    color: 'var(--input-text)',
                                     padding: '6px 12px',
                                     borderRadius: '8px'
                                 }}
