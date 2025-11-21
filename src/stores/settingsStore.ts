@@ -92,7 +92,7 @@ const defaultSettings: AppSettings = {
   enableShadows: null,
 
   // Mobile
-  pullToRefresh: true,
+  pullToRefresh: false, // Disabled due to interference with scrolling
   hapticFeedback: true,
 
   // Notifications
