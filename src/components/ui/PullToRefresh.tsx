@@ -57,27 +57,49 @@ export function PullToRefresh({
     const container = containerRef.current;
     if (!container) return;
 
-    // Only start if at top of scroll
-    if (container.scrollTop > 0) return;
+    // CRITICAL: Only start if EXACTLY at top of scroll (scrollTop === 0)
+    // Using strict equality to avoid any edge cases
+    if (container.scrollTop !== 0) return;
 
     startYRef.current = e.touches[0].pageY;
     currentYRef.current = startYRef.current;
-    isPullingRef.current = true;
-    setPullState('pulling');
+    // Don't set isPullingRef yet - wait for touchmove to confirm downward pull
+    // This prevents interference when user touches at top but then scrolls normally
   }, [enabled, isRefreshing]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!enabled || !isPullingRef.current || isRefreshing) return;
+    if (!enabled || isRefreshing) return;
 
     const container = containerRef.current;
     if (!container) return;
 
+    // If not pulling yet, check if we should start
+    if (!isPullingRef.current) {
+      // Only consider starting PTR if still at top AND startY was recorded
+      if (container.scrollTop !== 0 || startYRef.current === 0) return;
+
+      currentYRef.current = e.touches[0].pageY;
+      const deltaY = currentYRef.current - startYRef.current;
+
+      // Require minimum downward pull before activating PTR
+      const activationThreshold = 20;
+      if (deltaY < activationThreshold) {
+        // Not pulled down enough yet - allow normal behavior
+        return;
+      }
+
+      // User is pulling down from top - activate PTR
+      isPullingRef.current = true;
+      setPullState('pulling');
+    }
+
     // CRITICAL: Only allow PTR if we're still at the very top
     // If user has scrolled at all, immediately cancel PTR
-    if (container.scrollTop > 0) {
+    if (container.scrollTop !== 0) {
       isPullingRef.current = false;
       setPullState('idle');
       setPullDistance(0);
+      startYRef.current = 0; // Reset start position
       return;
     }
 
@@ -86,8 +108,10 @@ export function PullToRefresh({
 
     // Only pull down (positive deltaY)
     if (deltaY <= 0) {
+      isPullingRef.current = false;
       setPullState('idle');
       setPullDistance(0);
+      startYRef.current = 0;
       return;
     }
 
@@ -118,9 +142,13 @@ export function PullToRefresh({
   }, [enabled, threshold, maxPullDistance, isRefreshing]);
 
   const handleTouchEnd = useCallback(async () => {
-    if (!enabled || !isPullingRef.current || isRefreshing) return;
+    if (!enabled || isRefreshing) return;
 
+    const wasPulling = isPullingRef.current;
     isPullingRef.current = false;
+    startYRef.current = 0; // Reset start position
+
+    if (!wasPulling) return;
 
     if (pullState === 'ready') {
       // Trigger refresh
