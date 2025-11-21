@@ -82,14 +82,23 @@ export function PullToRefresh({
       return;
     }
 
-    // Prevent default scroll when pulling
-    if (container.scrollTop === 0 && deltaY > 0) {
+    // Require minimum pull distance before activating PTR
+    // This prevents accidental activation during normal scrolling
+    const activationThreshold = 20; // User must pull 20px before PTR engages
+    if (deltaY < activationThreshold) {
+      // Allow normal scroll - don't interfere
+      return;
+    }
+
+    // Prevent default scroll when pulling (only after activation threshold)
+    if (container.scrollTop === 0 && deltaY > activationThreshold) {
       e.preventDefault();
     }
 
     // Apply resistance (harder to pull as you go further)
+    // Subtract activation threshold so progress starts from 0 after threshold
     const resistance = 0.5;
-    const distance = Math.min(deltaY * resistance, maxPullDistance);
+    const distance = Math.min((deltaY - activationThreshold) * resistance, maxPullDistance);
 
     setPullDistance(distance);
 
@@ -160,8 +169,14 @@ export function PullToRefresh({
       return;
     }
 
+    // Same activation threshold for desktop consistency
+    const activationThreshold = 20;
+    if (deltaY < activationThreshold) {
+      return;
+    }
+
     const resistance = 0.5;
-    const distance = Math.min(deltaY * resistance, maxPullDistance);
+    const distance = Math.min((deltaY - activationThreshold) * resistance, maxPullDistance);
 
     setPullDistance(distance);
 

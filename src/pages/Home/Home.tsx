@@ -367,7 +367,8 @@ export const Home: React.FC = () => {
       <PullToRefresh
         onRefresh={handleRefresh}
         enabled={settings.pullToRefresh}
-        threshold={80}
+        threshold={100}
+        maxPullDistance={140}
       >
       <div className="home-scrollable-content">
       {/* Enhanced Active Trials Section */}
