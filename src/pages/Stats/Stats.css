@@ -9,7 +9,7 @@
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .stats-container {
-  background: #0f172a; /* Deep slate - darker than cards (#1a1d23) */
+  background: #1a1d23; /* Matches Settings page - lighter dark mode */
 }
 
 /* Header Section - Using page-header from shared styles */

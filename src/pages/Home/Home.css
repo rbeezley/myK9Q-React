@@ -20,7 +20,7 @@
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .home-container {
-  background: #0f172a; /* Deep slate - darker than cards (#1a1d23) */
+  background: #1a1d23; /* Matches Settings page - lighter dark mode */
 }
 
 /* Scrollable content wrapper - contains everything that can scroll */
