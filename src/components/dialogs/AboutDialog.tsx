@@ -61,21 +61,21 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
               marginBottom: '1rem'
             }}>
               <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                padding: '4px',
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                width: '96px',
+                height: '96px',
+                borderRadius: '20px',
+                background: 'var(--muted)',
+                padding: '12px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '2px solid var(--border)'
               }}>
                 <img
-                  src="/myK9Q-logo-white.png"
+                  src="/myK9Q-teal-192.png"
                   alt="myK9Q Logo"
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'contain',
-                    borderRadius: '12px'
+                    objectFit: 'contain'
                   }}
                 />
               </div>

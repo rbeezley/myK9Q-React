@@ -120,15 +120,15 @@ export default defineConfig({
         categories: ['sports', 'utilities'],
         icons: [
           {
-            src: '/myK9Q-logo-teal.svg',
+            src: '/myK9Q-teal-192.png',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/myK9Q-icon-teal.svg',
+            src: '/myK9Q-teal-192.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ],
@@ -138,7 +138,7 @@ export default defineConfig({
             short_name: 'Score',
             description: 'Start scoring a new dog',
             url: '/score/new',
-            icons: [{ src: '/myK9Q-notification-icon-192.png', sizes: '192x192' }]
+            icons: [{ src: '/myK9Q-teal-192.png', sizes: '192x192' }]
           }
         ]
       },

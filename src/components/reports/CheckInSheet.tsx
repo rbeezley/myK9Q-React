@@ -31,7 +31,7 @@ export const CheckInSheet: React.FC<CheckInSheetProps> = ({ classInfo, entries }
       {/* Header */}
       <div className="print-header">
         <div className="print-logo">
-          <img src="/myK9Q-logo-teal.svg" alt="myK9Q Logo" className="logo-img" />
+          <img src="/myK9Q-teal-192.png" alt="myK9Q Logo" className="logo-img" />
           <span className="logo-text">myK9Q</span>
         </div>
         <h1 className="print-title">{orgTitle} Check-in</h1>

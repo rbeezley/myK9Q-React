@@ -240,8 +240,8 @@ async function updateNotificationSummary(licenseKey, showName) {
         `${showName || 'myK9Q'} - ${count} updates`,
         {
           body: `Tap to view all announcements`,
-          icon: '/myK9Q-logo-teal.svg',
-          badge: '/myK9Q-badge-teal.svg',
+          icon: '/myK9Q-teal-192.png',
+          badge: '/myK9Q-teal-192.png',
           tag: `show-${licenseKey}-summary`,
           group: `show-${licenseKey}`,
           renotify: true,
@@ -318,12 +318,12 @@ async function handlePushNotification(event) {
         {
           action: 'view-class',
           title: '👁️ View Class',
-          icon: '/myK9Q-logo-teal.svg'
+          icon: '/myK9Q-teal-192.png'
         },
         {
           action: 'dismiss',
           title: '✕ Dismiss',
-          icon: '/myK9Q-logo-teal.svg'
+          icon: '/myK9Q-teal-192.png'
         }
       ];
     } else if (isUrgent) {
@@ -332,12 +332,12 @@ async function handlePushNotification(event) {
         {
           action: 'view',
           title: '👁️ View Now',
-          icon: '/myK9Q-logo-teal.svg'
+          icon: '/myK9Q-teal-192.png'
         },
         {
           action: 'acknowledge',
           title: '✓ Got It',
-          icon: '/myK9Q-logo-teal.svg'
+          icon: '/myK9Q-teal-192.png'
         }
       ];
     } else {
@@ -346,20 +346,20 @@ async function handlePushNotification(event) {
         {
           action: 'view',
           title: '👁️ View',
-          icon: '/myK9Q-logo-teal.svg'
+          icon: '/myK9Q-teal-192.png'
         },
         {
           action: 'dismiss',
           title: '✕ Dismiss',
-          icon: '/myK9Q-logo-teal.svg'
+          icon: '/myK9Q-teal-192.png'
         }
       ];
     }
 
     const notificationOptions = {
       body: data.content || data.title,
-      icon: '/myK9Q-icon-teal.svg',
-      badge: '/myK9Q-badge-teal.svg',
+      icon: '/myK9Q-teal-192.png',
+      badge: '/myK9Q-teal-192.png',
       tag: notificationTag,
       group: notificationGroup,  // Enables grouping on Android/Chrome
       requireInteraction: isUrgent, // Persistent for urgent

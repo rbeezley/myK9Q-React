@@ -388,8 +388,8 @@ class NotificationService {
       // Create notification options
       const options: NotificationOptions = {
         body: payload.body,
-        icon: payload.icon || '/myK9Q-icon-teal.svg',
-        badge: payload.badge || '/myK9Q-badge-teal.svg',
+        icon: payload.icon || '/myK9Q-teal-192.png',
+        badge: payload.badge || '/myK9Q-teal-192.png',
         tag: payload.tag || `notification-${notificationId}`,
         data: {
           ...payload.data,
