@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { WifiOff, Wifi, CloudOff, CloudUpload, AlertCircle, SignalLow } from 'lucide-react';
+import { WifiOff, Wifi, CloudOff, CloudUpload, AlertCircle, SignalLow, X } from 'lucide-react';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { networkDetectionService } from '@/services/networkDetectionService';
 import './shared-ui.css';
@@ -16,6 +16,7 @@ export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [connectionQuality, setConnectionQuality] = useState<'slow' | 'medium' | 'fast' | null>(null);
   const [connectionType, setConnectionType] = useState<string>('');
+  const [slowConnectionDismissed, setSlowConnectionDismissed] = useState(false);
   const { queue, isSyncing, failedItems } = useOfflineQueueStore();
 
   const pendingCount = queue.filter(q => q.status === 'pending').length;
@@ -68,7 +69,7 @@ export function OfflineIndicator() {
   }, []);
 
   // Show slow connection warning even if online and no sync issues
-  if (isOnline && connectionQuality === 'slow' && pendingCount === 0 && syncingCount === 0 && failedCount === 0) {
+  if (isOnline && connectionQuality === 'slow' && pendingCount === 0 && syncingCount === 0 && failedCount === 0 && !slowConnectionDismissed) {
     return (
       <div className="offline-indicator slow-connection-mode">
         <div className="offline-indicator-content">
@@ -79,6 +80,27 @@ export function OfflineIndicator() {
               {connectionType} - App may be slow
             </span>
           </div>
+          <button
+            onClick={() => setSlowConnectionDismissed(true)}
+            className="offline-dismiss-btn"
+            aria-label="Dismiss slow connection warning"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: 0.8,
+              transition: 'opacity 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+          >
+            <X size={20} style={{ width: '20px', height: '20px' }} />
+          </button>
         </div>
       </div>
     );
