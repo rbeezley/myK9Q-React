@@ -20,18 +20,23 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
     isDestructive = false,
     className = ''
 }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
     return (
         <div
             className={`settings-row ${className} ${onClick ? 'clickable' : ''}`}
             onClick={onClick}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             style={{
                 display: 'flex',
                 alignItems: 'center',
                 padding: '16px 20px',
                 minHeight: '72px',
                 cursor: onClick ? 'pointer' : 'default',
-                borderBottom: '1px solid var(--border-glass)',
-                background: 'transparent',
+                borderBottom: '1px solid var(--border)',
+                background: isHovered ? 'var(--muted)' : 'transparent',
+                transition: 'all 0.15s ease',
             }}
         >
             {icon && (

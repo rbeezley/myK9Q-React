@@ -6,18 +6,20 @@ interface SettingsCardProps {
 }
 
 export const SettingsCard: React.FC<SettingsCardProps> = ({ children, className = '' }) => {
+    // Check if we're in dark mode
+    const isDarkMode = document.documentElement.classList.contains('theme-dark');
+
     return (
         <div
             className={`settings-card ${className}`}
             style={{
-                background: 'var(--bg-card)',
-                backdropFilter: 'blur(var(--glass-blur))',
-                WebkitBackdropFilter: 'blur(var(--glass-blur))',
-                border: '1px solid var(--border-glass)',
-                borderRadius: '16px',
+                // Dark mode: slightly lighter than page background, Light mode: white card
+                background: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
                 overflow: 'hidden',
-                boxShadow: 'var(--glass-shadow)',
-                transition: 'background 0.3s ease, transform 0.2s ease',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                transition: 'background 0.3s ease',
             }}
         >
             {children}
