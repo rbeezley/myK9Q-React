@@ -54,7 +54,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const { unreadCount: _announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
   const { unreadCount, togglePanel } = useNotifications();
 
-
   // Initialize announcement store with current show context
   useEffect(() => {
     if (showContext?.licenseKey && currentLicenseKey !== showContext.licenseKey) {
@@ -81,8 +80,10 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   };
 
   const handleMenuItemClick = (action: () => void) => {
-    action();
+    // Close menu first to prevent click-through to underlying elements
     setIsMenuOpen(false);
+    // Execute action after a brief delay to ensure menu is unmounting
+    setTimeout(() => action(), 50);
   };
 
   // Handle menu opening with animation
@@ -109,7 +110,10 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
       {/* Menu Overlay - Rendered at document root using Portal */}
       {isMenuOpen && createPortal(
-        <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}>
+        <div
+          className="menu-overlay"
+          onClick={() => setIsMenuOpen(false)}
+        >
           <nav
             className="hamburger-menu"
             onClick={(e) => e.stopPropagation()}
