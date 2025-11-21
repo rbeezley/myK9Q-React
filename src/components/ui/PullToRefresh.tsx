@@ -72,6 +72,15 @@ export function PullToRefresh({
     const container = containerRef.current;
     if (!container) return;
 
+    // CRITICAL: Only allow PTR if we're still at the very top
+    // If user has scrolled at all, immediately cancel PTR
+    if (container.scrollTop > 0) {
+      isPullingRef.current = false;
+      setPullState('idle');
+      setPullDistance(0);
+      return;
+    }
+
     currentYRef.current = e.touches[0].pageY;
     const deltaY = currentYRef.current - startYRef.current;
 
@@ -91,9 +100,7 @@ export function PullToRefresh({
     }
 
     // Prevent default scroll when pulling (only after activation threshold)
-    if (container.scrollTop === 0 && deltaY > activationThreshold) {
-      e.preventDefault();
-    }
+    e.preventDefault();
 
     // Apply resistance (harder to pull as you go further)
     // Subtract activation threshold so progress starts from 0 after threshold
