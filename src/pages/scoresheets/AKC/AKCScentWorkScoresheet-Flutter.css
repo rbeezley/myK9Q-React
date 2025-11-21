@@ -2,29 +2,29 @@
 
 /* CSS Variables for theming - now using global design tokens */
 :root {
-  --scoresheet-bg: var(--background);
+  --scoresheet-bg: var(--bg-app); /* Light gray background for better contrast with white containers */
   --scoresheet-text: var(--foreground);
   --scoresheet-text-secondary: var(--token-text-secondary);
   --scoresheet-text-tertiary: var(--token-text-tertiary);
   --scoresheet-text-placeholder: var(--token-text-placeholder);
-  --scoresheet-card-bg: var(--muted);
+  --scoresheet-card-bg: var(--card); /* White cards on gray background */
   --scoresheet-card-border: var(--border);
-  --scoresheet-header-bg: var(--muted);
+  --scoresheet-header-bg: var(--card); /* White header on gray background */
   --scoresheet-input-bg: var(--input);
   --scoresheet-input-border: var(--border);
   --scoresheet-badge-text: var(--primary-foreground);
-  --scoresheet-hover-overlay: rgba(255, 255, 255, 0.1);
+  --scoresheet-hover-overlay: rgba(0, 0, 0, 0.05);
 }
 
 .theme-light {
-  --scoresheet-bg: var(--background);
+  --scoresheet-bg: var(--bg-app);
   --scoresheet-text: var(--foreground);
   --scoresheet-text-secondary: var(--token-text-secondary);
   --scoresheet-text-tertiary: var(--token-text-tertiary);
   --scoresheet-text-placeholder: var(--token-text-placeholder);
-  --scoresheet-card-bg: var(--muted);
+  --scoresheet-card-bg: var(--card); /* White cards on gray background */
   --scoresheet-card-border: var(--border);
-  --scoresheet-header-bg: var(--muted);
+  --scoresheet-header-bg: var(--card); /* White header on gray background */
   --scoresheet-input-bg: var(--input);
   --scoresheet-input-border: var(--border);
   --scoresheet-badge-text: var(--primary-foreground);

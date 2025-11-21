@@ -8,7 +8,7 @@
   height: 100vh;
   width: 100%;
   overflow: hidden; /* No scrolling on container - only on entry-grid-virtual */
-  background: var(--background);
+  background: var(--bg-app); /* Light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif);
   transition: background-color var(--token-transition-normal);
