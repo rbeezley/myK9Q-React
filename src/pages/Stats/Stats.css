@@ -3,8 +3,13 @@
 /* Base/Mobile Styles */
 .stats-container {
   min-height: 100vh;
-  background: var(--bg-app); /* Light gray background for better contrast with white containers */
+  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
   padding-bottom: var(--token-space-4xl);
+}
+
+/* Dark mode: darker background for contrast with cards */
+.theme-dark .stats-container {
+  background: #0f172a; /* Deep slate - darker than cards (#1a1d23) */
 }
 
 /* Header Section - Using page-header from shared styles */

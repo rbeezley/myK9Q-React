@@ -8,7 +8,7 @@
   height: 100vh;
   width: 100%;
   overflow: hidden; /* No scrolling on container - only on entry-grid-virtual */
-  background: var(--bg-app); /* Light gray background for better contrast with white containers */
+  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif);
   transition: background-color var(--token-transition-normal);
@@ -16,6 +16,11 @@
   flex-direction: column;
   margin: 0;
   padding: 0 var(--token-space-lg); /* Add horizontal padding: 12px mobile */
+}
+
+/* Dark mode: darker background for contrast with cards */
+.theme-dark .home-container {
+  background: #0f172a; /* Deep slate - darker than cards (#1a1d23) */
 }
 
 /* Scrollable content wrapper - contains everything that can scroll */

@@ -3,7 +3,12 @@
 .announcements-container {
   min-height: 100vh;
   padding: 0 var(--token-space-lg) 2rem; /* Add horizontal padding: 12px mobile */
-  background: var(--bg-app); /* Light gray background for better contrast with white containers */
+  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
+}
+
+/* Dark mode: darker background for contrast with cards */
+.theme-dark .announcements-container {
+  background: #0f172a; /* Deep slate - darker than cards (#1a1d23) */
 }
 
 /* Header - inherits from global .page-header in page-container.css */

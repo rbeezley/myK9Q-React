@@ -7,13 +7,18 @@
 .entry-list-container {
   height: 100vh;
   overflow: hidden;
-  background: var(--bg-app); /* Light gray background for better contrast with white containers */
+  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;
   padding: 0 var(--token-space-lg); /* Add horizontal padding: 12px mobile */
+}
+
+/* Dark mode: darker background for contrast with cards */
+.theme-dark .entry-list-container {
+  background: #0f172a; /* Deep slate - darker than cards (#1a1d23) */
 }
 
 /* Scrollable content wrapper - contains entry grid that can scroll */
