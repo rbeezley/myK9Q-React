@@ -84,6 +84,12 @@ describe('useBulkOperations', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    // Clean up after each test to prevent contamination
+    // This is critical when multiple test files mock the same services
+    vi.clearAllMocks();
+  });
+
   describe('Initialization', () => {
     it('should initialize with empty selection', () => {
       const { result } = renderHook(() => useBulkOperations());

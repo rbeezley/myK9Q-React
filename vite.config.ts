@@ -11,6 +11,17 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     hookTimeout: 30000, // Increase from default 10s to 30s for IndexedDB cleanup
     testTimeout: 15000, // 15s timeout for individual tests
+
+    // Test isolation configuration - prevents cross-file mock contamination
+    // Uses process forks instead of threads for better isolation between test files
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: false, // Allow parallelism for performance
+        maxForks: 4, // Limit concurrent test files to reduce mock contention
+      },
+    },
+
     exclude: [
       'node_modules/**',
       'dist/**',

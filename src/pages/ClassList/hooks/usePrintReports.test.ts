@@ -115,6 +115,14 @@ describe('usePrintReports', () => {
     vi.mocked(reportService.generateResultsSheet).mockReturnValue();
   });
 
+  afterEach(async () => {
+    // Clean up after each test to prevent contamination
+    // Flush any pending promises/timers before clearing mocks
+    await vi.waitFor(() => Promise.resolve(), { timeout: 100 }).catch(() => {});
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+  });
+
   describe('Initialization', () => {
     it('should provide report generation methods', () => {
       const { result } = renderHook(() => usePrintReports());
