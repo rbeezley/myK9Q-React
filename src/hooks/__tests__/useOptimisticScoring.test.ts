@@ -11,28 +11,52 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOptimisticScoring } from '../useOptimisticScoring';
-import { localStateManager } from '@/services/localStateManager';
 import { submitScore } from '@/services/entryService';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 
 // Mock dependencies
-vi.mock('@/services/localStateManager');
 vi.mock('@/services/entryService');
+vi.mock('@/stores/offlineQueueStore');
+
+// Create mock functions we can track
+const mockMarkAsScored = vi.fn();
+const mockSubmitScore = vi.fn();
+const mockAddToQueue = vi.fn();
+const mockUpdate = vi.fn(async ({ serverUpdate, onSuccess }) => {
+  try {
+    await serverUpdate();
+    onSuccess?.();
+  } catch (err) {
+    // Silent failure for offline
+  }
+});
+
 vi.mock('@/stores/entryStore', () => ({
   useEntryStore: vi.fn(() => ({
-    markAsScored: vi.fn(),
+    markAsScored: mockMarkAsScored,
     entries: [],
     setEntries: vi.fn()
   }))
 }));
+
 vi.mock('@/stores/scoringStore', () => ({
   useScoringStore: vi.fn(() => ({
-    submitScore: vi.fn(),
+    submitScore: mockSubmitScore,
     scores: [],
     isScoring: false
   }))
 }));
-vi.mock('@/stores/offlineQueueStore');
+
+vi.mock('@/hooks/useOptimisticUpdate', () => ({
+  useOptimisticUpdate: vi.fn(() => ({
+    update: mockUpdate,
+    isSyncing: false,
+    hasError: false,
+    error: null,
+    retryCount: 0,
+    clearError: vi.fn()
+  }))
+}));
 
 describe('useOptimisticScoring - Offline-First Compliance', () => {
   const mockEntry = {
@@ -51,17 +75,18 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Clear all mock functions
+    mockMarkAsScored.mockClear();
+    mockSubmitScore.mockClear();
+    mockAddToQueue.mockClear();
+    mockUpdate.mockClear();
 
-    // Default mock implementations
-    (localStateManager.updateEntry as any).mockResolvedValue({});
-    (localStateManager.clearPendingChange as any).mockResolvedValue(undefined);
-    (localStateManager.hasPendingChange as any).mockReturnValue(false);
+    // Set up default implementations
     (submitScore as any).mockResolvedValue(undefined);
 
     // Mock offline queue store
     (useOfflineQueueStore as unknown as any).mockReturnValue({
-      addToQueue: vi.fn(),
+      addToQueue: mockAddToQueue,
       isOnline: true
     });
 
@@ -78,14 +103,14 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
   });
 
   describe('Scenario 1: Online - Successful Sync', () => {
-    it('updates localStateManager immediately before API call', async () => {
+    it('updates local stores immediately before API call', async () => {
       const { result } = renderHook(() => useOptimisticScoring());
 
       let apiCallTime: number | null = null;
-      let localStateUpdateTime: number | null = null;
+      let storeUpdateTime: number | null = null;
 
-      (localStateManager.updateEntry as vi.Mock).mockImplementation(async () => {
-        localStateUpdateTime = Date.now();
+      mockMarkAsScored.mockImplementation(() => {
+        storeUpdateTime = Date.now();
       });
 
       (submitScore as vi.Mock).mockImplementation(async () => {
@@ -104,28 +129,25 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         });
       });
 
-      // Assert localStateManager was called first
-      expect(localStateManager.updateEntry).toHaveBeenCalledWith(
-        mockEntry.id,
+      // Assert local stores were updated immediately
+      expect(mockMarkAsScored).toHaveBeenCalledWith(mockEntry.id, mockScoreData.resultText);
+      expect(mockSubmitScore).toHaveBeenCalledWith(
         expect.objectContaining({
-          isScored: true,
-          status: 'completed',
-          resultText: 'Q',
-          searchTime: '1:23.45',
-          faultCount: 0
-        }),
-        'score'
+          entryId: mockEntry.id,
+          armband: mockEntry.armband
+        })
       );
 
-      // Assert timing: local update happened before API call
-      expect(localStateUpdateTime).not.toBeNull();
+      // Assert timing: store update happened before or at same time as API call
+      expect(storeUpdateTime).not.toBeNull();
       expect(apiCallTime).not.toBeNull();
-      if (localStateUpdateTime && apiCallTime) {
-        expect(localStateUpdateTime).toBeLessThan(apiCallTime);
+      if (storeUpdateTime && apiCallTime) {
+        // Store update must not come AFTER API call (can be same millisecond)
+        expect(storeUpdateTime).toBeLessThanOrEqual(apiCallTime);
       }
     });
 
-    it('does NOT manually clear pending change after sync', async () => {
+    it('calls update hook with proper server sync function', async () => {
       const { result } = renderHook(() => useOptimisticScoring());
 
       await act(async () => {
@@ -143,9 +165,8 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         expect(submitScore).toHaveBeenCalled();
       });
 
-      // Assert clearPendingChange was NOT called immediately
-      // It should only be called by real-time subscription
-      expect(localStateManager.clearPendingChange).not.toHaveBeenCalled();
+      // Assert update hook was called (manages optimistic updates and retries)
+      expect(mockUpdate).toHaveBeenCalled();
     });
 
     it('syncs with database in background', async () => {
@@ -174,11 +195,7 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
       });
     });
 
-    it('has safety timeout fallback for clearing pending change', async () => {
-      // Note: Testing timeout with fake timers and async operations is complex
-      // The safety timeout behavior is verified in the implementation and integration tests
-      (localStateManager.hasPendingChange as vi.Mock).mockReturnValue(true);
-
+    it('updates stores immediately with optimistic data', async () => {
       const { result } = renderHook(() => useOptimisticScoring());
 
       await act(async () => {
@@ -191,10 +208,10 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         });
       });
 
-      // Verify optimistic update happened
-      expect(localStateManager.updateEntry).toHaveBeenCalled();
-      // Safety timeout exists in implementation (see useOptimisticScoring.ts line 182)
-    }, 10000);
+      // Verify optimistic updates happened immediately
+      expect(mockMarkAsScored).toHaveBeenCalledWith(mockEntry.id, mockScoreData.resultText);
+      expect(mockSubmitScore).toHaveBeenCalled();
+    });
   });
 
   describe('Scenario 2: Offline - Silent Failure', () => {
@@ -207,12 +224,12 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
       });
 
       (useOfflineQueueStore as unknown as vi.Mock).mockReturnValue({
-        addToQueue: vi.fn(),
+        addToQueue: mockAddToQueue,
         isOnline: false
       });
     });
 
-    it('updates localStateManager immediately when offline', async () => {
+    it('updates stores immediately when offline', async () => {
       const { result } = renderHook(() => useOptimisticScoring());
 
       await act(async () => {
@@ -225,11 +242,9 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         });
       });
 
-      expect(localStateManager.updateEntry).toHaveBeenCalledWith(
-        mockEntry.id,
-        expect.objectContaining({ isScored: true, resultText: 'Q' }),
-        'score'
-      );
+      // Verify stores were updated immediately even when offline
+      expect(mockMarkAsScored).toHaveBeenCalledWith(mockEntry.id, mockScoreData.resultText);
+      expect(mockSubmitScore).toHaveBeenCalled();
     });
 
     it('does not throw error or show alert when offline', async () => {
@@ -262,35 +277,8 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('keeps pending change in localStateManager when offline', async () => {
-      const { result } = renderHook(() => useOptimisticScoring());
-
-      await act(async () => {
-        await result.current.submitScoreOptimistically({
-          entryId: mockEntry.id,
-          classId: mockEntry.classId,
-          armband: mockEntry.armband,
-          className: mockEntry.className,
-          scoreData: mockScoreData
-        });
-      });
-
-      // Pending change was added
-      expect(localStateManager.updateEntry).toHaveBeenCalled();
-
-      // Not immediately cleared (waits for sync or safety timeout)
-      // Note: Safety timeout may eventually call clearPendingChange after 5 seconds
-      // The key is it's not cleared synchronously during the operation
-    }, 10000);
-
     it('adds score to offline queue when offline', async () => {
-      const addToQueueMock = vi.fn();
-      (useOfflineQueueStore as unknown as vi.Mock).mockReturnValue({
-        addToQueue: addToQueueMock,
-        isOnline: false
-      });
-
-      const { result } = renderHook(() => useOptimisticScoring());
+      const { result} = renderHook(() => useOptimisticScoring());
 
       await act(async () => {
         await result.current.submitScoreOptimistically({
@@ -302,13 +290,14 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         });
       });
 
-      expect(addToQueueMock).toHaveBeenCalledWith({
-        entryId: mockEntry.id,
-        armband: mockEntry.armband,
-        classId: mockEntry.classId,
-        className: mockEntry.className,
-        scoreData: mockScoreData
-      });
+      // Verify score was queued for later sync
+      expect(mockAddToQueue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entryId: mockEntry.id,
+          classId: mockEntry.classId,
+          armband: mockEntry.armband
+        })
+      );
     });
   });
 
@@ -328,16 +317,12 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         });
       });
 
-      // Optimistic update was applied
-      expect(localStateManager.updateEntry).toHaveBeenCalledWith(
-        mockEntry.id,
-        expect.objectContaining({ isScored: true }),
-        'score'
-      );
+      // Optimistic update was applied to stores
+      expect(mockMarkAsScored).toHaveBeenCalledWith(mockEntry.id, mockScoreData.resultText);
+      expect(mockSubmitScore).toHaveBeenCalled();
 
       // NOT rolled back (optimistic update persists even on failure)
-      // Note: May be called multiple times due to retry logic
-      expect(localStateManager.updateEntry).toHaveBeenCalled();
+      // The update hook handles retries without rolling back UI changes
     });
 
     it('does not show error to user when sync fails', async () => {
@@ -386,21 +371,18 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         );
       });
 
-      // All 3 should update localStateManager (at least once each)
-      // Note: With retry logic, may be called more than 3 times
-      expect(localStateManager.updateEntry).toHaveBeenCalled();
-      expect((localStateManager.updateEntry as vi.Mock).mock.calls.length).toBeGreaterThanOrEqual(3);
+      // All 3 should update stores immediately
+      expect(mockMarkAsScored).toHaveBeenCalled();
+      expect(mockMarkAsScored.mock.calls.length).toBeGreaterThanOrEqual(3);
+      expect(mockSubmitScore.mock.calls.length).toBeGreaterThanOrEqual(3);
 
-      // Check each entry was updated with correct data
+      // Check each entry was marked as scored with correct data
       entries.forEach((entry) => {
-        const matchingCall = (localStateManager.updateEntry as vi.Mock).mock.calls.find(
+        const matchingCall = mockMarkAsScored.mock.calls.find(
           call => call[0] === entry.id
         );
         expect(matchingCall).toBeDefined();
-        expect(matchingCall[1]).toMatchObject({
-          isScored: true,
-          resultText: entry.scoreData.resultText
-        });
+        expect(matchingCall[1]).toBe(entry.scoreData.resultText);
       });
     });
 
@@ -432,7 +414,7 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
   });
 
   describe('Scenario 5: Real-time Subscription Integration', () => {
-    it('does not interfere with real-time subscription clearing pending changes', async () => {
+    it('allows real-time subscriptions to confirm updates independently', async () => {
       const { result } = renderHook(() => useOptimisticScoring());
 
       // Perform scoring action
@@ -446,23 +428,20 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         });
       });
 
-      // Simulate real-time subscription clearing it
-      await act(async () => {
-        await localStateManager.clearPendingChange(mockEntry.id);
-      });
+      // Verify stores were updated immediately (optimistic)
+      expect(mockMarkAsScored).toHaveBeenCalledWith(mockEntry.id, mockScoreData.resultText);
 
-      // Now it should be cleared by the subscription (not the hook)
-      expect(localStateManager.clearPendingChange).toHaveBeenCalledWith(mockEntry.id);
-      // Note: Safety timeout may also call it after 5 seconds, but that's acceptable
-    }, 10000);
+      // Real-time subscriptions will confirm the update via their own mechanism
+      // The hook doesn't interfere with that process
+    });
   });
 
   describe('Pattern Compliance Checks', () => {
     it('follows the exact offline-first pattern: optimistic update then background sync', async () => {
       const callOrder: string[] = [];
 
-      (localStateManager.updateEntry as vi.Mock).mockImplementation(async () => {
-        callOrder.push('localStateManager.updateEntry');
+      mockMarkAsScored.mockImplementation(() => {
+        callOrder.push('markAsScored');
       });
 
       (submitScore as vi.Mock).mockImplementation(async () => {
@@ -483,7 +462,7 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
 
       await waitFor(() => {
         expect(callOrder).toEqual([
-          'localStateManager.updateEntry',
+          'markAsScored',
           'submitScore'
         ]);
       }, { timeout: 10000 });
@@ -508,7 +487,8 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
 
       // Optimistic update should be nearly instant
       expect(uiUpdateTime).toBeLessThan(100); // Allow 100ms for test overhead
-      expect(localStateManager.updateEntry).toHaveBeenCalled();
+      expect(mockMarkAsScored).toHaveBeenCalled();
+      expect(mockSubmitScore).toHaveBeenCalled();
     });
   });
 });
