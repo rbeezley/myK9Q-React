@@ -73,9 +73,12 @@ export function formatTimeInputTo12Hour(value: string): string {
   if (numStr.length <= 2) {
     // 1-2 digits: treat as hour
     let hour = num;
+    // Handle hour 0 as midnight (12 AM) before period detection
+    if (hour === 0) {
+      return `12:00 ${period || 'AM'}`;
+    }
     const defaultPeriod = period || getSmartPeriod(hour);
     if (hour > 12) hour = hour % 12 || 12;
-    if (hour === 0) hour = 12;
     return `${hour}:00 ${defaultPeriod}`;
   } else if (numStr.length === 3) {
     // 3 digits: first digit as hour, last two as minutes (e.g., 130 = 1:30)
@@ -93,13 +96,18 @@ export function formatTimeInputTo12Hour(value: string): string {
     // 4+ digits: treat as HHMM format
     let hour = Math.floor(num / 100);
     const minutes = num % 100;
+
+    // Handle midnight (hour 0) specially
+    if (hour === 0) {
+      const finalMinutes = minutes < 60 ? minutes : 0;
+      return `12:${finalMinutes.toString().padStart(2, '0')} ${period || 'AM'}`;
+    }
+
     const defaultPeriod = period || (hour >= 13 ? 'PM' : getSmartPeriod(hour % 12 || 12));
 
     // Convert 24-hour to 12-hour
     if (hour > 12) {
       hour = hour - 12;
-    } else if (hour === 0) {
-      hour = 12;
     }
 
     const finalMinutes = minutes < 60 ? minutes : 0;
@@ -140,7 +148,9 @@ export function formatTimeInputTo12Hour(value: string): string {
  * formatTimeInputToMMSS("invalid")// ""
  * ```
  */
-export function formatTimeInputToMMSS(value: string, maxMinutes: number = 5): string {
+export function formatTimeInputToMMSS(value: string, maxMinutes?: number): string {
+  // Use default max of 5 for formatted inputs (3-4 digits, colon), but not for simple 1-2 digit inputs
+  const defaultMax = 5;
   // Remove non-digits and colons
   const cleaned = value.replace(/[^\d:]/g, '');
 
@@ -159,9 +169,13 @@ export function formatTimeInputToMMSS(value: string, maxMinutes: number = 5): st
       seconds = seconds % 60;
     }
 
-    // Cap at maximum
-    if (minutes > maxMinutes) {
-      minutes = maxMinutes;
+    // Cap at maximum - if at or over max, zero out seconds
+    const effectiveMax = maxMinutes !== undefined ? maxMinutes : defaultMax;
+    if (minutes > effectiveMax) {
+      minutes = effectiveMax;
+      seconds = 0;
+    } else if (minutes === effectiveMax && seconds > 0) {
+      // Exactly at max minutes but with extra seconds - cap at max:00
       seconds = 0;
     }
 
@@ -174,8 +188,9 @@ export function formatTimeInputToMMSS(value: string, maxMinutes: number = 5): st
 
   if (cleaned.length <= 2) {
     // 1-2 digits: treat as minutes
-    const minutes = Math.min(numValue, maxMinutes);
-    return `${minutes.toString().padStart(2, '0')}:00`;
+    // Only cap if maxMinutes was explicitly provided
+    const finalMinutes = maxMinutes !== undefined ? Math.min(numValue, maxMinutes) : numValue;
+    return `${finalMinutes.toString().padStart(2, '0')}:00`;
   } else if (cleaned.length === 3) {
     // 3 digits: first digit as minutes, last two as seconds (e.g., 130 = 1:30)
     const minutes = Math.floor(numValue / 100);
@@ -183,17 +198,18 @@ export function formatTimeInputToMMSS(value: string, maxMinutes: number = 5): st
     if (seconds < 60) {
       return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     } else {
-      // Invalid seconds, treat as minutes
-      const totalMinutes = Math.min(Math.floor(numValue / 60), maxMinutes);
-      return `${totalMinutes.toString().padStart(2, '0')}:00`;
+      // Invalid seconds (>= 60), use just the minutes part and zero out seconds
+      return `${minutes.toString().padStart(2, '0')}:00`;
     }
   } else {
     // 4+ digits: treat as MMSS format
     const minutes = Math.floor(numValue / 100);
     const seconds = numValue % 100;
-    const finalMinutes = Math.min(minutes, maxMinutes);
-    const finalSeconds = seconds < 60 ? seconds : 0;
-    return `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}`;
+    const effectiveMax = maxMinutes !== undefined ? maxMinutes : defaultMax;
+    const cappedMinutes = Math.min(minutes, effectiveMax);
+    // If we're capping minutes, zero out seconds; otherwise keep valid seconds
+    const finalSeconds = minutes > effectiveMax ? 0 : (seconds < 60 ? seconds : 0);
+    return `${cappedMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}`;
   }
 }
 
@@ -235,8 +251,14 @@ export function addMinutesToTime(timeString: string, minutesToAdd: number): stri
       const timeParts = timeString.match(/(\d+):?(\d+)?\s*(am|pm)?/i);
       if (timeParts) {
         let hours = parseInt(timeParts[1]);
-        const mins = parseInt(timeParts[2] || '0');
+        let mins = parseInt(timeParts[2] || '0');
         const period = timeParts[3]?.toLowerCase();
+
+        // If no colon and hours > 99, treat as HHMM format (e.g., "930" = 9:30)
+        if (!timeParts[2] && hours > 99) {
+          mins = hours % 100;
+          hours = Math.floor(hours / 100);
+        }
 
         // Convert to 24-hour format
         if (period === 'pm' && hours !== 12) {
