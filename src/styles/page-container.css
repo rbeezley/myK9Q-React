@@ -49,10 +49,18 @@
 
 /* Title Icon - Standard styling for page header icons */
 .title-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: var(--primary);
   flex-shrink: 0;
+}
+
+/* Page Header H1 - Standard styling with icon gap */
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md); /* 8px gap between icon and text */
+  margin: 0;
 }
 
 /**

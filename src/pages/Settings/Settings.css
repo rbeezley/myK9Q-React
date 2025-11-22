@@ -72,18 +72,9 @@
   font-size: 1.125rem;
   font-weight: 590;
   color: var(--foreground);
-  margin: 0;
   letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-  gap: var(--token-space-md);
-  /* Add spacing between icon and text */
-}
-
-.title-icon {
-  color: var(--primary);
-  width: 20px;
-  height: 20px;
+  /* display, align-items, gap, margin inherited from global .page-header h1 */
+  /* title-icon size inherited from global .title-icon */
 }
 
 /* Header Menu Button */

@@ -44,11 +44,7 @@
   font-weight: 500;
 }
 
-.title-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--primary);
-}
+/* title-icon size and color inherited from global .title-icon (20px) */
 
 /* Header Menu Button */
 .stats-page-header .header-menu-button {
@@ -516,6 +512,22 @@
   .chart-hint-mobile {
     display: none;
   }
+}
+
+/* ===== RECHARTS THEME FIXES ===== */
+/* Fix Recharts default tooltip cursor white background in dark mode */
+.recharts-tooltip-cursor {
+  fill: transparent !important; /* Remove white background on hover */
+}
+
+/* Additional Recharts dark mode fixes */
+.theme-dark .recharts-default-tooltip {
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+}
+
+.theme-dark .recharts-tooltip-wrapper {
+  outline: none !important;
 }
 
 /* Accessibility */
