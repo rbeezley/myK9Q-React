@@ -205,16 +205,18 @@ describe('usePushNotifications', () => {
 
       expect(result.current.isSubscribing).toBe(false);
 
-      const subscribePromise = act(async () => {
-        await result.current.subscribe();
-      });
+      // Start the subscription (don't await yet)
+      const subscribePromise = result.current.subscribe();
 
       // Check that isSubscribing is true during the operation
       await waitFor(() => {
         expect(result.current.isSubscribing).toBe(true);
       });
 
-      await subscribePromise;
+      // Wait for completion
+      await act(async () => {
+        await subscribePromise;
+      });
 
       expect(result.current.isSubscribing).toBe(false);
     });
@@ -224,9 +226,8 @@ describe('usePushNotifications', () => {
 
       const { result } = renderHook(() => usePushNotifications());
 
-      let subscribeResult;
-      await act(async () => {
-        subscribeResult = await result.current.subscribe();
+      const subscribeResult = await act(async () => {
+        return await result.current.subscribe();
       });
 
       expect(subscribeResult).toEqual({
@@ -243,9 +244,8 @@ describe('usePushNotifications', () => {
 
       const { result } = renderHook(() => usePushNotifications());
 
-      let subscribeResult;
-      await act(async () => {
-        subscribeResult = await result.current.subscribe();
+      const subscribeResult = await act(async () => {
+        return await result.current.subscribe();
       });
 
       expect(subscribeResult).toEqual({
@@ -271,9 +271,8 @@ describe('usePushNotifications', () => {
         expect(result.current.isPushSubscribed).toBe(true);
       });
 
-      let unsubscribeResult;
-      await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+      const unsubscribeResult = await act(async () => {
+        return await result.current.unsubscribe();
       });
 
       expect(unsubscribeResult).toEqual({ success: true });
@@ -290,15 +289,18 @@ describe('usePushNotifications', () => {
 
       expect(result.current.isSubscribing).toBe(false);
 
-      const unsubscribePromise = act(async () => {
-        await result.current.unsubscribe();
-      });
+      // Start the unsubscription (don't await yet)
+      const unsubscribePromise = result.current.unsubscribe();
 
+      // Check that isSubscribing is true during the operation
       await waitFor(() => {
         expect(result.current.isSubscribing).toBe(true);
       });
 
-      await unsubscribePromise;
+      // Wait for completion
+      await act(async () => {
+        await unsubscribePromise;
+      });
 
       expect(result.current.isSubscribing).toBe(false);
     });
@@ -309,9 +311,8 @@ describe('usePushNotifications', () => {
 
       const { result } = renderHook(() => usePushNotifications());
 
-      let unsubscribeResult;
-      await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+      const unsubscribeResult = await act(async () => {
+        return await result.current.unsubscribe();
       });
 
       expect(unsubscribeResult).toEqual({
@@ -339,7 +340,7 @@ describe('usePushNotifications', () => {
       vi.mocked(PushNotificationService.getPermissionState).mockResolvedValue('granted');
 
       await act(async () => {
-        await result.current.refreshStatus();
+        return await result.current.refreshStatus();
       });
 
       expect(result.current.isPushSubscribed).toBe(true);
@@ -353,7 +354,7 @@ describe('usePushNotifications', () => {
       const { result } = renderHook(() => usePushNotifications());
 
       await act(async () => {
-        await result.current.refreshStatus();
+        return await result.current.refreshStatus();
       });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -375,19 +376,19 @@ describe('usePushNotifications', () => {
       });
 
       // Subscribe
-      await act(async () => {
-        const subscribeResult = await result.current.subscribe();
-        expect(subscribeResult.success).toBe(true);
+      const subscribeResult = await act(async () => {
+        return await result.current.subscribe();
       });
+      expect(subscribeResult.success).toBe(true);
 
       expect(result.current.isPushSubscribed).toBe(true);
       expect(result.current.permissionState).toBe('granted');
 
       // Unsubscribe
-      await act(async () => {
-        const unsubscribeResult = await result.current.unsubscribe();
-        expect(unsubscribeResult.success).toBe(true);
+      const unsubscribeResult = await act(async () => {
+        return await result.current.unsubscribe();
       });
+      expect(unsubscribeResult.success).toBe(true);
 
       expect(result.current.isPushSubscribed).toBe(false);
     });
