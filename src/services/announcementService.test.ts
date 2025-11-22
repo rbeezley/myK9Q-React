@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { AnnouncementService } from './announcementService';
 import { supabase } from '../lib/supabase';
+import { replicatedAnnouncementsTable } from './replication';
 import type { Announcement } from '../stores/announcementStore';
 
 // Mock the supabase client
@@ -8,6 +9,23 @@ vi.mock('../lib/supabase', () => ({
   supabase: {
     from: vi.fn()
   }
+}));
+
+// Mock replication module to force Supabase fallback for easier testing
+vi.mock('./replication', () => ({
+  replicatedAnnouncementsTable: {
+    getAll: vi.fn().mockResolvedValue([]), // Return empty to trigger Supabase fallback
+    get: vi.fn().mockResolvedValue(null), // Return null to simulate not found
+    getActive: vi.fn().mockResolvedValue([]),
+    getByPriority: vi.fn().mockResolvedValue([]),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+  replicatedAnnouncementReadsTable: {
+    getByUser: vi.fn().mockResolvedValue([]),
+    put: vi.fn(),
+  },
+  getReplicationManager: vi.fn().mockReturnValue(null), // Disable auto-sync in tests
 }));
 
 describe('AnnouncementService', () => {
@@ -28,7 +46,7 @@ describe('AnnouncementService', () => {
       license_key: mockLicenseKey,
       is_active: true,
       created_at: '2025-01-01T10:00:00Z',
-      expires_at: null
+      expires_at: undefined
     },
     {
       id: 2,
@@ -145,16 +163,11 @@ describe('AnnouncementService', () => {
     });
 
     test('should apply pagination', async () => {
-      const mockFrom = vi.fn().mockReturnThis();
       const mockSelect = vi.fn().mockReturnThis();
       const mockEq = vi.fn().mockReturnThis();
       const mockOr = vi.fn().mockReturnThis();
-      const mockOrder = vi.fn().mockReturnThis();
-      const mockLimit = vi.fn().mockReturnThis();
-      const mockRange = vi.fn();
-
-      // Mock the final query result after range
-      mockRange.mockResolvedValue({
+      const mockRange = vi.fn().mockReturnThis();
+      const mockOrder = vi.fn().mockResolvedValue({
         data: mockAnnouncements,
         error: null,
         count: 2
@@ -164,9 +177,8 @@ describe('AnnouncementService', () => {
         select: mockSelect,
         eq: mockEq,
         or: mockOr,
-        order: mockOrder,
-        limit: mockLimit,
-        range: mockRange
+        range: mockRange,
+        order: mockOrder
       } as any);
 
       await AnnouncementService.getAnnouncements(mockLicenseKey, {
@@ -174,8 +186,8 @@ describe('AnnouncementService', () => {
         offset: 20
       });
 
-      expect(mockLimit).toHaveBeenCalledWith(10);
       expect(mockRange).toHaveBeenCalledWith(20, 29);
+      expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
     });
 
     test('should throw error when query fails', async () => {
@@ -227,66 +239,37 @@ describe('AnnouncementService', () => {
 
   describe('getAnnouncement', () => {
     test('should fetch a specific announcement', async () => {
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[0],
-        error: null
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        single: mockSingle
+      // Mock replicated table to return announcement
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[0],
+        id: '1', // Replicated table uses string IDs
       } as any);
 
       const result = await AnnouncementService.getAnnouncement(1, mockLicenseKey);
 
       expect(result).toEqual(mockAnnouncements[0]);
-      expect(mockEq).toHaveBeenCalledWith('id', 1);
-      expect(mockEq).toHaveBeenCalledWith('license_key', mockLicenseKey);
-      expect(mockEq).toHaveBeenCalledWith('is_active', true);
+      expect(replicatedAnnouncementsTable.get).toHaveBeenCalledWith('1');
     });
 
     test('should return null when announcement not found', async () => {
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn().mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Not found' }
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        single: mockSingle
-      } as any);
+      // Mock replicated table returns null by default (not found)
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce(null);
 
       const result = await AnnouncementService.getAnnouncement(999, mockLicenseKey);
 
       expect(result).toBeNull();
+      expect(replicatedAnnouncementsTable.get).toHaveBeenCalledWith('999');
     });
 
     test('should throw error for other database errors', async () => {
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn().mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST301', message: 'Database error' }
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        single: mockSingle
-      } as any);
+      // Mock replicated table to throw an error
+      vi.mocked(replicatedAnnouncementsTable.get).mockRejectedValueOnce(
+        new Error('Database error')
+      );
 
       await expect(
         AnnouncementService.getAnnouncement(1, mockLicenseKey)
-      ).rejects.toThrow();
+      ).rejects.toThrow('Database error');
     });
   });
 
@@ -354,37 +337,27 @@ describe('AnnouncementService', () => {
       const updates = { title: 'Updated Title' };
       const updatedAnnouncement = { ...mockAnnouncements[0], ...updates };
 
-      // Mock getAnnouncement
-      const mockFromGet = vi.fn().mockReturnThis();
-      const mockSelectGet = vi.fn().mockReturnThis();
-      const mockEqGet = vi.fn().mockReturnThis();
-      const mockSingleGet = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[0],
-        error: null
-      });
+      // Mock getAnnouncement (uses replicated table)
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[0],
+        id: '1', // Replicated table uses string IDs
+      } as any);
 
       // Mock update
-      const mockFromUpdate = vi.fn().mockReturnThis();
       const mockUpdate = vi.fn().mockReturnThis();
-      const mockEqUpdate = vi.fn().mockReturnThis();
-      const mockSelectUpdate = vi.fn().mockReturnThis();
-      const mockSingleUpdate = vi.fn().mockResolvedValue({
+      const mockEq = vi.fn().mockReturnThis();
+      const mockSelect = vi.fn().mockReturnThis();
+      const mockSingle = vi.fn().mockResolvedValue({
         data: updatedAnnouncement,
         error: null
       });
 
-      vi.mocked(supabase.from)
-        .mockReturnValueOnce({
-          select: mockSelectGet,
-          eq: mockEqGet,
-          single: mockSingleGet
-        } as any)
-        .mockReturnValueOnce({
-          update: mockUpdate,
-          eq: mockEqUpdate,
-          select: mockSelectUpdate,
-          single: mockSingleUpdate
-        } as any);
+      vi.mocked(supabase.from).mockReturnValue({
+        update: mockUpdate,
+        eq: mockEq,
+        select: mockSelect,
+        single: mockSingle
+      } as any);
 
       const result = await AnnouncementService.updateAnnouncement(
         1,
@@ -401,35 +374,27 @@ describe('AnnouncementService', () => {
       const updates = { title: 'Updated by Judge' };
       const updatedAnnouncement = { ...mockAnnouncements[1], ...updates };
 
-      const mockFromGet = vi.fn().mockReturnThis();
-      const mockSelectGet = vi.fn().mockReturnThis();
-      const mockEqGet = vi.fn().mockReturnThis();
-      const mockSingleGet = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[1], // author_role is 'judge'
-        error: null
-      });
+      // Mock getAnnouncement (uses replicated table)
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[1], // author_role is 'judge'
+        id: '2', // Replicated table uses string IDs
+      } as any);
 
-      const mockFromUpdate = vi.fn().mockReturnThis();
+      // Mock update
       const mockUpdate = vi.fn().mockReturnThis();
-      const mockEqUpdate = vi.fn().mockReturnThis();
-      const mockSelectUpdate = vi.fn().mockReturnThis();
-      const mockSingleUpdate = vi.fn().mockResolvedValue({
+      const mockEq = vi.fn().mockReturnThis();
+      const mockSelect = vi.fn().mockReturnThis();
+      const mockSingle = vi.fn().mockResolvedValue({
         data: updatedAnnouncement,
         error: null
       });
 
-      vi.mocked(supabase.from)
-        .mockReturnValueOnce({
-          select: mockSelectGet,
-          eq: mockEqGet,
-          single: mockSingleGet
-        } as any)
-        .mockReturnValueOnce({
-          update: mockUpdate,
-          eq: mockEqUpdate,
-          select: mockSelectUpdate,
-          single: mockSingleUpdate
-        } as any);
+      vi.mocked(supabase.from).mockReturnValue({
+        update: mockUpdate,
+        eq: mockEq,
+        select: mockSelect,
+        single: mockSingle
+      } as any);
 
       const result = await AnnouncementService.updateAnnouncement(
         2,
@@ -444,18 +409,10 @@ describe('AnnouncementService', () => {
     test('should throw error when user lacks permission', async () => {
       const updates = { title: 'Unauthorized Update' };
 
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[0], // author_role is 'admin'
-        error: null
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        single: mockSingle
+      // Mock getAnnouncement to return admin announcement
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[0], // author_role is 'admin'
+        id: '1',
       } as any);
 
       await expect(
@@ -471,19 +428,8 @@ describe('AnnouncementService', () => {
     test('should throw error when announcement not found', async () => {
       const updates = { title: 'Updated Title' };
 
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn().mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116' }
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        single: mockSingle
-      } as any);
+      // Mock getAnnouncement to return null (not found)
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce(null);
 
       await expect(
         AnnouncementService.updateAnnouncement(999, updates, mockLicenseKey, 'admin')
@@ -493,31 +439,23 @@ describe('AnnouncementService', () => {
 
   describe('deleteAnnouncement', () => {
     test('should soft delete announcement when user has admin role', async () => {
-      const mockFromGet = vi.fn().mockReturnThis();
-      const mockSelectGet = vi.fn().mockReturnThis();
-      const mockEqGet = vi.fn().mockReturnThis();
-      const mockSingleGet = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[0],
-        error: null
-      });
+      // Mock getAnnouncement (uses replicated table)
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[0],
+        id: '1',
+      } as any);
 
-      const mockFromUpdate = vi.fn().mockReturnThis();
+      // Mock update (soft delete)
       const mockUpdate = vi.fn().mockReturnThis();
       const mockEqFirst = vi.fn().mockReturnThis();
       const mockEqSecond = vi.fn().mockResolvedValue({
         error: null
       });
 
-      vi.mocked(supabase.from)
-        .mockReturnValueOnce({
-          select: mockSelectGet,
-          eq: mockEqGet,
-          single: mockSingleGet
-        } as any)
-        .mockReturnValueOnce({
-          update: mockUpdate,
-          eq: mockEqFirst
-        } as any);
+      vi.mocked(supabase.from).mockReturnValue({
+        update: mockUpdate,
+        eq: mockEqFirst
+      } as any);
 
       // Mock the second .eq() call in the chain
       mockEqFirst.mockReturnValue({
@@ -532,31 +470,23 @@ describe('AnnouncementService', () => {
     });
 
     test('should allow user to delete their own role announcements', async () => {
-      const mockFromGet = vi.fn().mockReturnThis();
-      const mockSelectGet = vi.fn().mockReturnThis();
-      const mockEqGet = vi.fn().mockReturnThis();
-      const mockSingleGet = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[1], // author_role is 'judge'
-        error: null
-      });
+      // Mock getAnnouncement (uses replicated table)
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[1], // author_role is 'judge'
+        id: '2',
+      } as any);
 
-      const mockFromUpdate = vi.fn().mockReturnThis();
+      // Mock update (soft delete)
       const mockUpdate = vi.fn().mockReturnThis();
       const mockEqFirst = vi.fn().mockReturnThis();
       const mockEqSecond = vi.fn().mockResolvedValue({
         error: null
       });
 
-      vi.mocked(supabase.from)
-        .mockReturnValueOnce({
-          select: mockSelectGet,
-          eq: mockEqGet,
-          single: mockSingleGet
-        } as any)
-        .mockReturnValueOnce({
-          update: mockUpdate,
-          eq: mockEqFirst
-        } as any);
+      vi.mocked(supabase.from).mockReturnValue({
+        update: mockUpdate,
+        eq: mockEqFirst
+      } as any);
 
       // Mock the second .eq() call in the chain
       mockEqFirst.mockReturnValue({
@@ -571,18 +501,10 @@ describe('AnnouncementService', () => {
     });
 
     test('should throw error when user lacks permission to delete', async () => {
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn().mockResolvedValue({
-        data: mockAnnouncements[0], // author_role is 'admin'
-        error: null
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: mockSelect,
-        eq: mockEq,
-        single: mockSingle
+      // Mock getAnnouncement to return admin announcement
+      vi.mocked(replicatedAnnouncementsTable.get).mockResolvedValueOnce({
+        ...mockAnnouncements[0], // author_role is 'admin'
+        id: '1',
       } as any);
 
       await expect(
