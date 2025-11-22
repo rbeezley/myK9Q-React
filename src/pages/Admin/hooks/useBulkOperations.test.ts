@@ -80,14 +80,18 @@ const mockClasses: ClassInfo[] = [
 
 describe('useBulkOperations', () => {
   beforeEach(() => {
-    // Clear all mock call counts (but preserve implementations)
-    vi.clearAllMocks();
+    // IMPORTANT: Use resetAllMocks to fully reset mock state (clears calls AND implementations)
+    // This prevents async operations from previous tests polluting current test
+    vi.resetAllMocks();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Clean up after each test to prevent contamination
-    // This is critical when multiple test files mock the same services
-    vi.clearAllMocks();
+    // Flush any pending promises/timers before resetting mocks
+    await vi.runOnlyPendingTimersAsync().catch(() => {});
+    await new Promise(resolve => setTimeout(resolve, 0)); // Flush microtask queue
+    vi.resetAllMocks();
+    vi.clearAllTimers();
   });
 
   describe('Initialization', () => {
@@ -224,6 +228,9 @@ describe('useBulkOperations', () => {
     });
 
     it('should fail when no classes selected', async () => {
+      // Explicitly reset mocks at test start to ensure clean state
+      vi.mocked(resultVisibilityService.bulkSetClassVisibility).mockClear();
+
       const { result } = renderHook(() => useBulkOperations());
 
       let bulkResult;
@@ -289,6 +296,9 @@ describe('useBulkOperations', () => {
     });
 
     it('should fail when no classes selected', async () => {
+      // Explicitly reset mocks at test start to ensure clean state
+      vi.mocked(resultVisibilityService.bulkSetClassSelfCheckin).mockClear();
+
       const { result } = renderHook(() => useBulkOperations());
 
       let bulkResult;

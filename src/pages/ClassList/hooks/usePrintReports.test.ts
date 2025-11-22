@@ -102,13 +102,14 @@ describe('usePrintReports', () => {
   let mockOnComplete: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    // Clear all mock call counts (but preserve implementations)
-    vi.clearAllMocks();
+    // IMPORTANT: Use resetAllMocks to fully reset mock state (clears calls AND implementations)
+    // This prevents async operations from previous tests polluting current test
+    vi.resetAllMocks();
 
     // Create fresh callback mock
     mockOnComplete = vi.fn();
 
-    // Re-apply default mock implementations (in case they were cleared)
+    // Re-apply default mock implementations after reset
     vi.mocked(entryService.getClassEntries).mockResolvedValue(mockEntries);
     vi.mocked(organizationUtils.parseOrganizationData).mockReturnValue(mockOrgData);
     vi.mocked(reportService.generateCheckInSheet).mockReturnValue();
@@ -117,9 +118,10 @@ describe('usePrintReports', () => {
 
   afterEach(async () => {
     // Clean up after each test to prevent contamination
-    // Flush any pending promises/timers before clearing mocks
-    await vi.waitFor(() => Promise.resolve(), { timeout: 100 }).catch(() => {});
-    vi.clearAllMocks();
+    // Flush any pending promises/timers before resetting mocks
+    await vi.runOnlyPendingTimersAsync().catch(() => {});
+    await new Promise(resolve => setTimeout(resolve, 0)); // Flush microtask queue
+    vi.resetAllMocks();
     vi.clearAllTimers();
   });
 
@@ -164,6 +166,10 @@ describe('usePrintReports', () => {
     });
 
     it('should handle missing class', async () => {
+      // Explicitly reset mocks at test start to ensure clean state
+      vi.mocked(entryService.getClassEntries).mockClear();
+      vi.mocked(mockOnComplete).mockClear();
+
       const { result } = renderHook(() => usePrintReports());
 
       let reportResult;
@@ -187,6 +193,9 @@ describe('usePrintReports', () => {
     });
 
     it('should handle missing license key', async () => {
+      // Explicitly reset mocks at test start to ensure clean state
+      vi.mocked(entryService.getClassEntries).mockClear();
+
       const { result } = renderHook(() => usePrintReports());
 
       let reportResult;
@@ -307,6 +316,9 @@ describe('usePrintReports', () => {
     });
 
     it('should validate that scored entries exist', async () => {
+      // Explicitly reset mocks at test start to ensure clean state
+      vi.mocked(reportService.generateResultsSheet).mockClear();
+
       // Mock entries with no scored entries
       vi.mocked(entryService.getClassEntries).mockResolvedValue([
         { id: 1, armband: '101', isScored: false } as Entry,
@@ -430,6 +442,10 @@ describe('usePrintReports', () => {
 
   describe('Real-world scenarios', () => {
     it('should handle complete check-in workflow', async () => {
+      // Explicitly reset mocks at test start to ensure clean state
+      vi.mocked(reportService.generateCheckInSheet).mockClear();
+      vi.mocked(mockOnComplete).mockClear();
+
       const { result } = renderHook(() => usePrintReports());
 
       // 1. Generate check-in sheet
