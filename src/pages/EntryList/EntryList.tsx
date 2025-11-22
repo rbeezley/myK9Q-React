@@ -128,7 +128,11 @@ export const EntryList: React.FC = () => {
 
   // Drag and drop sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px of movement before drag starts
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -143,8 +147,26 @@ export const EntryList: React.FC = () => {
       const newIndex = currentEntries.findIndex(entry => entry.id === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
+        // Prevent moving dogs before in-ring dogs
+        const inRingDogs = currentEntries.filter(e => e.inRing || e.status === 'in-ring');
+        if (inRingDogs.length > 0 && newIndex === 0) {
+          // Don't allow non-in-ring dogs to be dropped at position 0 if there's an in-ring dog
+          const draggedEntry = currentEntries[oldIndex];
+          if (!draggedEntry.inRing && draggedEntry.status !== 'in-ring') {
+            console.log('⚠️ Cannot move dog before in-ring dog');
+            return;
+          }
+        }
+
         // Create new reordered array
-        const reorderedCurrentEntries = arrayMove(currentEntries, oldIndex, newIndex);
+        let reorderedCurrentEntries = arrayMove(currentEntries, oldIndex, newIndex);
+
+        // Ensure in-ring dogs always stay at the top
+        const inRingEntries = reorderedCurrentEntries.filter(e => e.inRing || e.status === 'in-ring');
+        const otherEntriesInOrder = reorderedCurrentEntries.filter(e => !e.inRing && e.status !== 'in-ring');
+        if (inRingEntries.length > 0) {
+          reorderedCurrentEntries = [...inRingEntries, ...otherEntriesInOrder];
+        }
 
         // Update local state immediately for smooth UX
         const otherEntries = localEntries.filter(entry => !currentEntries.find(ce => ce.id === entry.id));
@@ -581,8 +603,10 @@ export const EntryList: React.FC = () => {
       })
       .sort((a, b) => {
         // PRIORITY 1: In-ring dogs ALWAYS come first
-        if (a.inRing && !b.inRing) return -1;
-        if (!a.inRing && b.inRing) return 1;
+        const aIsInRing = a.inRing || a.status === 'in-ring';
+        const bIsInRing = b.inRing || b.status === 'in-ring';
+        if (aIsInRing && !bIsInRing) return -1;
+        if (!aIsInRing && bIsInRing) return 1;
 
         // PRIORITY 2: Apply normal sorting for dogs not in ring
         if (sortOrder === 'manual') {

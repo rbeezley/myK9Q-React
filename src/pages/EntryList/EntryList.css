@@ -1180,16 +1180,22 @@
 
 /* ========== DRAG AND DROP ========== */
 
+.sortable-item {
+  position: relative; /* Positioning context for drag handle */
+}
+
 .drag-handle-external {
   position: absolute;
-  left: -var(--token-space-4xl);
-  top: 50%;
-  transform: translateY(-50%);
+  left: var(--token-space-sm);
+  top: var(--token-space-sm);
   cursor: grab;
   color: var(--token-text-secondary);
-  padding: var(--token-space-md);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  padding: var(--token-space-sm);
+  background: var(--muted);
+  border-radius: var(--token-space-sm);
+  opacity: 0.9; /* Always visible in drag mode for clear affordance */
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
 .entry-card:hover .drag-handle-external {

@@ -43,7 +43,10 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: entry.id });
+  } = useSortable({
+    id: entry.id,
+    disabled: entry.inRing || entry.status === 'in-ring' // Disable dragging for in-ring dogs
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -51,9 +54,11 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isInRing = entry.inRing || entry.status === 'in-ring';
+
   return (
     <div ref={setNodeRef} style={style} className={isDragMode ? 'sortable-item' : ''}>
-      {isDragMode && (
+      {isDragMode && !isInRing && (
         <div {...attributes} {...listeners} className="drag-handle-external">
           <GripVertical size={24} />
         </div>

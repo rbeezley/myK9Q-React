@@ -215,14 +215,15 @@
 }
 
 .run-order-dialog .dialog-button-primary {
-  background: linear-gradient(135deg, #6366f1 0%, var(--status-at-gate) 100%);
-  color: white;
-  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(99, 102, 241, 0.3);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.2);
 }
 
 .run-order-dialog .dialog-button-primary:hover:not(:disabled) {
+  background: var(--token-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px var(--token-space-2xl) rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px var(--token-space-2xl) rgba(0, 0, 0, 0.3);
 }
 
 .run-order-dialog .dialog-button-primary:active:not(:disabled) {
