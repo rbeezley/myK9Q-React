@@ -88,6 +88,9 @@ describe('useNotificationPermissions', () => {
 
   describe('Request permission', () => {
     test('should request permission successfully', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockResolvedValue('granted');
 
@@ -101,9 +104,14 @@ describe('useNotificationPermissions', () => {
       expect(permission).toBe('granted');
       expect(mockNotification.requestPermission).toHaveBeenCalled();
       expect(result.current.isGranted).toBe(true);
+
+      vi.useFakeTimers();
     });
 
     test('should handle permission denial', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockResolvedValue('denied');
 
@@ -116,9 +124,14 @@ describe('useNotificationPermissions', () => {
 
       expect(permission).toBe('denied');
       expect(result.current.isDenied).toBe(true);
+
+      vi.useFakeTimers();
     });
 
     test('should return granted if already granted', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'granted';
 
       const { result } = renderHook(() => useNotificationPermissions());
@@ -130,9 +143,14 @@ describe('useNotificationPermissions', () => {
 
       expect(permission).toBe('granted');
       expect(mockNotification.requestPermission).not.toHaveBeenCalled();
+
+      vi.useFakeTimers();
     });
 
     test('should return denied if already denied', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'denied';
 
       const { result } = renderHook(() => useNotificationPermissions());
@@ -144,9 +162,14 @@ describe('useNotificationPermissions', () => {
 
       expect(permission).toBe('denied');
       expect(mockNotification.requestPermission).not.toHaveBeenCalled();
+
+      vi.useFakeTimers();
     });
 
     test('should return denied if notifications not supported', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       // @ts-expect-error - Testing unsupported browser
       delete global.Notification;
 
@@ -158,9 +181,14 @@ describe('useNotificationPermissions', () => {
       });
 
       expect(permission).toBe('denied');
+
+      vi.useFakeTimers();
     });
 
     test('should handle requestPermission errors', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockRejectedValue(new Error('User denied'));
 
@@ -172,6 +200,8 @@ describe('useNotificationPermissions', () => {
       });
 
       expect(permission).toBe('denied');
+
+      vi.useFakeTimers();
     });
   });
 
@@ -214,6 +244,9 @@ describe('useNotificationPermissions', () => {
 
   describe('onPermissionChange callback', () => {
     test('should call callback when permission granted', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockResolvedValue('granted');
       const onPermissionChange = vi.fn();
@@ -227,6 +260,8 @@ describe('useNotificationPermissions', () => {
       });
 
       expect(onPermissionChange).toHaveBeenCalledWith('granted');
+
+      vi.useFakeTimers();
     });
 
     test.skip('should call callback when permission changes via polling', async () => {
@@ -304,6 +339,9 @@ describe('useNotificationPermissions', () => {
 
   describe('Real-world Settings.tsx workflow', () => {
     test('should handle notification enable workflow', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockResolvedValue('granted');
 
@@ -321,6 +359,8 @@ describe('useNotificationPermissions', () => {
       // Permission granted
       expect(result.current.isGranted).toBe(true);
       expect(result.current.canRequest).toBe(false);
+
+      vi.useFakeTimers();
     });
 
     test('should handle already granted permissions', () => {
@@ -333,6 +373,9 @@ describe('useNotificationPermissions', () => {
     });
 
     test('should handle user denying permission', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockResolvedValue('denied');
 
@@ -344,11 +387,16 @@ describe('useNotificationPermissions', () => {
 
       expect(result.current.isDenied).toBe(true);
       expect(result.current.canRequest).toBe(false);
+
+      vi.useFakeTimers();
     });
   });
 
   describe('Edge cases', () => {
     test('should handle multiple rapid permission requests', async () => {
+      // Use real timers for async operations
+      vi.useRealTimers();
+
       mockNotification.permission = 'default';
       mockNotification.requestPermission.mockResolvedValue('granted');
 
@@ -368,6 +416,8 @@ describe('useNotificationPermissions', () => {
       // All should return granted
       const results = await Promise.all(promises);
       expect(results).toEqual(['granted', 'granted', 'granted']);
+
+      vi.useFakeTimers();
     });
 
     test('should cleanup interval on unmount', () => {
