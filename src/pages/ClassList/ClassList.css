@@ -145,7 +145,7 @@
 }
 
 .theme-dark .trial-info-card {
-  background: var(--card);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -321,6 +321,7 @@
 }
 
 .theme-dark .class-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
 }
 

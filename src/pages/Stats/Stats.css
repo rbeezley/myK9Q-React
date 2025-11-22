@@ -153,6 +153,10 @@
   transition: all 0.2s ease;
 }
 
+.theme-dark .stats-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 .stats-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -228,6 +232,10 @@
   border-radius: var(--token-space-lg);
   padding: var(--token-space-xl);
   margin-bottom: var(--token-space-xl);
+}
+
+.theme-dark .chart-container {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .chart-title {

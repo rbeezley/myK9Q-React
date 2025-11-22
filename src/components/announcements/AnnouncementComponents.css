@@ -13,6 +13,10 @@
   overflow: hidden;
 }
 
+.theme-dark .announcement-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 .announcement-card:hover {
   transform: translateY(-1px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.1);
