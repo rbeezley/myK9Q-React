@@ -430,26 +430,26 @@ describe('settingsStore', () => {
   });
 
   describe('initializeSettings', () => {
-    it('should apply all settings on initialization', () => {
+    it('should apply non-theme settings on initialization', () => {
       mockClassList.add.mockClear();
       mockClassList.remove.mockClear();
 
       initializeSettings();
 
-      // Should apply theme, font size, density
+      // Should apply font size, density, etc. (theme is applied by blocking script in index.html)
       expect(mockClassList.add).toHaveBeenCalled();
       expect(mockClassList.remove).toHaveBeenCalled();
+      // Note: initializeSettings intentionally does NOT apply theme (done by blocking script)
+      expect(mockClassList.add).toHaveBeenCalledWith('font-medium');
+      expect(mockClassList.add).toHaveBeenCalledWith('density-comfortable');
     });
 
-    it('should detect system theme preference for auto theme', () => {
-      const store = useSettingsStore.getState();
-      store.updateSettings({ theme: 'auto' });
-
+    it('should apply accent color on initialization', () => {
       mockClassList.add.mockClear();
       initializeSettings();
 
-      // Should apply theme-dark (based on our mock)
-      expect(mockClassList.add).toHaveBeenCalledWith('theme-dark');
+      // Should apply default accent color
+      expect(mockClassList.add).toHaveBeenCalledWith('accent-green');
     });
   });
 

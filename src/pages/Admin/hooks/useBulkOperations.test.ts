@@ -80,6 +80,7 @@ const mockClasses: ClassInfo[] = [
 
 describe('useBulkOperations', () => {
   beforeEach(() => {
+    // Clear all mock call counts (but preserve implementations)
     vi.clearAllMocks();
   });
 

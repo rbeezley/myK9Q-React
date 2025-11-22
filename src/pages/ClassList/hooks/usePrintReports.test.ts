@@ -102,10 +102,13 @@ describe('usePrintReports', () => {
   let mockOnComplete: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    // Clear all mock call counts (but preserve implementations)
     vi.clearAllMocks();
+
+    // Create fresh callback mock
     mockOnComplete = vi.fn();
 
-    // Default mock implementations
+    // Re-apply default mock implementations (in case they were cleared)
     vi.mocked(entryService.getClassEntries).mockResolvedValue(mockEntries);
     vi.mocked(organizationUtils.parseOrganizationData).mockReturnValue(mockOrgData);
     vi.mocked(reportService.generateCheckInSheet).mockReturnValue();
