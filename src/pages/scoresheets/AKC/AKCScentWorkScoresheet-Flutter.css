@@ -134,6 +134,10 @@
   border: 1px solid var(--scoresheet-card-border);
 }
 
+.theme-dark .scoresheet-trial-header {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 /* Compact Trial Header - One Line */
 .scoresheet-trial-header-compact {
   text-align: center;
@@ -147,6 +151,10 @@
   justify-content: center;
   gap: var(--token-space-md);
   flex-wrap: wrap;
+}
+
+.theme-dark .scoresheet-trial-header-compact {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .trial-info-item {
@@ -185,6 +193,10 @@
   gap: var(--token-space-xl);
 }
 
+.theme-dark .scoresheet-dog-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 /* Compact Dog Info Card */
 .scoresheet-dog-card-compact {
   background: transparent;
@@ -220,6 +232,10 @@
   border: 1px solid var(--scoresheet-card-border);
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark .scoresheet-dog-info-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .scoresheet-armband {
@@ -324,6 +340,10 @@
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
   position: relative; /* For absolute positioning of reset button */
+}
+
+.theme-dark .scoresheet-timer-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .timer-display-large {
@@ -517,6 +537,10 @@
   border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
+}
+
+.theme-dark .scoresheet-time-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .time-input-flutter {

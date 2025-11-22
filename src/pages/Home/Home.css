@@ -277,7 +277,7 @@
 }
 
 .theme-dark .trial-card {
-  background: var(--card);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -645,7 +645,7 @@
 }
 
 .theme-dark .search-controls-header {
-  background: var(--card);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   border-bottom-color: var(--border);
 }
 
@@ -654,7 +654,21 @@
 }
 
 .theme-dark .search-sort-container {
-  background: var(--card);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
+.theme-dark .search-input-full {
+  background: #26292e; /* Match card background */
+  border-color: #2d3139;
+}
+
+.theme-dark .sort-btn {
+  background: #26292e; /* Match card background */
+  border-color: #2d3139;
+}
+
+.theme-dark .sort-btn:hover {
+  background: #2d3139;
 }
 
 /* ========== ENTRY LIST ========== */

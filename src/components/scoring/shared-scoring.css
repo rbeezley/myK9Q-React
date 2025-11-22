@@ -1284,6 +1284,10 @@
   margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
 }
 
+.theme-dark .results-section {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 /* Shared container styles for consistency */
 .result-choice-chips,
 .fault-counter-section,

@@ -42,6 +42,10 @@
   transition: all 0.2s ease;
 }
 
+.theme-dark .dog-statistics .stat-card {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 .dog-statistics .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -114,6 +118,10 @@
   margin-bottom: var(--token-space-xl);
 }
 
+.theme-dark .dog-statistics .chart-section {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
 .dog-statistics .chart-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -128,6 +136,10 @@
   border-radius: var(--token-space-lg);
   padding: var(--token-space-xl);
   margin: 0 var(--token-space-lg) var(--token-space-2xl) var(--token-space-lg);
+}
+
+.theme-dark .dog-statistics .results-table-section {
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
 }
 
 .dog-statistics .results-table-container {
