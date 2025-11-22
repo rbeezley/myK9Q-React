@@ -386,21 +386,23 @@
   position: absolute;
   top: var(--token-space-lg);
   right: var(--token-space-lg);
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  border: none;
-  background: var(--text-gray); /* Neutral gray - clearly secondary (works in both themes) */
-  color: white;
-  font-size: var(--token-space-xl);
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.15);
+  backdrop-filter: blur(10px);
+  color: var(--scoresheet-text);
+  font-size: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: var(--token-z-raised);
+  font-weight: 600;
 }
 
 .timer-btn-pause {
@@ -445,20 +447,39 @@
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(239, 68, 68, 0.3);
 }
 
-.timer-btn-pause:hover:not(:disabled), .timer-btn-reset:hover:not(:disabled) {
+.timer-btn-pause:hover:not(:disabled) {
   background: var(--text-gray);
   filter: brightness(1.15);
   transform: scale(1.05);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
-.timer-btn-pause:active:not(:disabled), .timer-btn-reset:active:not(:disabled) {
+.timer-btn-reset:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.25);
+  border-color: rgba(148, 163, 184, 0.5);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.timer-btn-pause:active:not(:disabled) {
   transform: scale(0.95);
 }
 
-.timer-btn-pause:disabled, .timer-btn-reset:disabled {
+.timer-btn-reset:active:not(:disabled) {
+  transform: scale(0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timer-btn-pause:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.timer-btn-reset:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(148, 163, 184, 0.15);
+  background: rgba(148, 163, 184, 0.05);
 }
 
 .timer-btn-start:hover:not(.stop) {
@@ -995,6 +1016,26 @@
 /* Light mode - all text colors now handled by CSS variables above */
 
 /* Light mode button styles - colors inherited from base via variables */
+
+/* Light mode reset button - lighter, more subtle appearance */
+.theme-light .timer-btn-reset {
+  background: rgba(71, 85, 105, 0.08);
+  border-color: rgba(71, 85, 105, 0.2);
+  color: #475569;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.theme-light .timer-btn-reset:hover:not(:disabled) {
+  background: rgba(71, 85, 105, 0.15);
+  border-color: rgba(71, 85, 105, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.theme-light .timer-btn-reset:disabled {
+  background: rgba(71, 85, 105, 0.03);
+  border-color: rgba(71, 85, 105, 0.1);
+  color: #cbd5e1;
+}
 
 /* Light theme badge styles - colors inherited from base via variables */
 

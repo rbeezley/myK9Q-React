@@ -16,7 +16,7 @@
 }
 
 .theme-dark .dog-card {
-  background: var(--overlay-dark-heavy);
+  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) var(--shadow-medium);
 }
 

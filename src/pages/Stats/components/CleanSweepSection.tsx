@@ -18,15 +18,9 @@ const CleanSweepSection: React.FC<CleanSweepSectionProps> = ({ dogs, onDogClick 
         {dogs.map((dog) => (
           <div
             key={`${dog.armbandNumber}-${dog.dogCallName}`}
+            className="clean-sweep-card"
             style={{
-              backgroundColor: 'var(--card)',
-              border: '2px solid var(--primary)',
-              borderRadius: 'var(--token-space-lg)',
-              padding: 'var(--token-space-xl)',
-              cursor: onDogClick ? 'pointer' : 'default',
-              transition: 'all 0.2s ease',
-              position: 'relative',
-              overflow: 'hidden'
+              cursor: onDogClick ? 'pointer' : 'default'
             }}
             onClick={() => onDogClick && onDogClick(dog.armbandNumber)}
             onMouseEnter={(e) => {

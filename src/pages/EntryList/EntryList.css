@@ -1,6 +1,7 @@
 /* ========== ENTRY LIST PAGE STYLES ========== */
 /* Mobile-first design with consolidated media queries */
 /* Design tokens imported from src/styles/design-tokens.css */
+/* Dark mode card background fix applied */
 
 /* ========== CONTAINER & LAYOUT ========== */
 
@@ -720,6 +721,19 @@
 
 .theme-dark .entry-card {
   background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+}
+
+/* Dark mode: Override status-specific backgrounds */
+.theme-dark .entry-card.status-in-ring {
+  background: var(--token-status-in-ring-bg);
+}
+
+.theme-dark .entry-card.status-in-ring:hover {
+  background: var(--token-status-in-ring-bg);
+}
+
+.theme-dark .entry-card.status-conflict {
+  background: var(--token-status-conflict-bg);
 }
 
 .entry-card:hover {

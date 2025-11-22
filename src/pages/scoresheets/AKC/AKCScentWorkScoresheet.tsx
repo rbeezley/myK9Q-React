@@ -682,10 +682,10 @@ export const AKCScentWorkScoresheet: React.FC = () => {
         // Format date as mm/dd/yyyy
         const rawDate = trialData.trial_date || '';
         if (rawDate) {
-          const date = new Date(rawDate);
-          const formatted = (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
-                           date.getDate().toString().padStart(2, '0') + '/' +
-                           date.getFullYear();
+          // Parse date manually to avoid timezone conversion issues
+          // Assumes YYYY-MM-DD format from database
+          const [year, month, day] = rawDate.split('T')[0].split('-');
+          const formatted = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
           setTrialDate(formatted);
         }
         setTrialNumber('1'); // trial_number not in Trial schema yet
