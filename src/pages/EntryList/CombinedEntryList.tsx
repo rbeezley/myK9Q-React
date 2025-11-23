@@ -99,7 +99,7 @@ export const CombinedEntryList: React.FC = () => {
         const manager = await ensureReplicationManager();
 
         // Subscribe to cache updates for entries table
-        unsubscribe = manager.onCacheUpdate('entries', (tableName) => {
+        unsubscribe = manager.onCacheUpdate('entries', (tableName: string) => {
           console.log(`✅ [CombinedEntryList] Cache updated for ${tableName}, refreshing UI`);
           refresh();
         });
