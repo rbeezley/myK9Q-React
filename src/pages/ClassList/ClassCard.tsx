@@ -143,7 +143,6 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               type="button"
               className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
               onClick={(e) => {
-                console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
                 e.preventDefault();
                 e.stopPropagation();
                 e.nativeEvent.stopImmediatePropagation();
