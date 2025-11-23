@@ -725,11 +725,22 @@
 
 /* Dark mode: Override status-specific backgrounds */
 .theme-dark .entry-card.status-in-ring {
-  background: var(--token-status-in-ring-bg);
+  box-shadow:
+    0 0 0 1px var(--token-status-in-ring),
+    0 4px 12px rgba(59, 130, 246, 0.25),
+    inset -2px 0 8px rgba(59, 130, 246, 0.12);
+  background: linear-gradient(
+    to right,
+    rgba(59, 130, 246, 0.08) 0%,
+    transparent 40%
+  );
 }
 
 .theme-dark .entry-card.status-in-ring:hover {
-  background: var(--token-status-in-ring-bg);
+  box-shadow:
+    0 0 0 1px var(--token-status-in-ring),
+    0 6px 16px rgba(59, 130, 246, 0.3),
+    inset -2px 0 8px rgba(59, 130, 246, 0.12);
 }
 
 .theme-dark .entry-card.status-conflict {
@@ -760,12 +771,25 @@
 }
 
 .entry-card.status-in-ring {
-  border-left: 3px solid var(--token-status-in-ring);
-  background: var(--token-status-in-ring-bg);
+  border-left: 5px solid var(--token-status-in-ring);
+  border-color: var(--token-status-in-ring);
+  box-shadow:
+    0 0 0 1px var(--token-status-in-ring),
+    0 4px 12px rgba(37, 99, 235, 0.15),
+    inset -2px 0 8px rgba(37, 99, 235, 0.08);
+  background: linear-gradient(
+    to right,
+    rgba(37, 99, 235, 0.04) 0%,
+    transparent 40%
+  );
+  position: relative;
 }
 
 .entry-card.status-in-ring:hover {
-  background: var(--token-status-in-ring-bg);
+  box-shadow:
+    0 0 0 1px var(--token-status-in-ring),
+    0 6px 16px rgba(37, 99, 235, 0.2),
+    inset -2px 0 8px rgba(37, 99, 235, 0.08);
 }
 
 .entry-card.status-done {

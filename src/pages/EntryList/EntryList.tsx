@@ -19,7 +19,8 @@ import { applyRunOrderPreset } from '../../services/runOrderService';
 import { manuallyRecalculatePlacements } from '../../services/placementService';
 import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
 import { Entry } from '../../stores/entryStore';
-import { useEntryListData, useEntryListActions, useEntryListSubscriptions } from './hooks';
+import { useEntryListData, useEntryListActions } from './hooks';
+import { logger } from '@/utils/logger';
 import {
   DndContext,
   closestCenter,
@@ -77,26 +78,39 @@ export const EntryList: React.FC = () => {
     [actualClassId]
   );
 
-  // Callback to handle real-time entry updates
-  const handleEntryUpdate = useCallback((payload: any) => {
-    console.log('🔥 handleEntryUpdate called with payload:', payload);
+  // Subscribe to cache updates from ReplicationManager (replaces old syncManager subscriptions)
+  // When ReplicationManager updates the cache via real-time events, we refresh the UI
+  useEffect(() => {
+    if (!classIds.length) return;
 
-    // For local-first architecture, we need to refresh from entryService
-    // which will merge server updates with pending local changes
-    if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-      console.log('🔥 Real-time update detected, refreshing to get latest data');
-      // Refresh to get latest data from replication cache
-      refresh();
-    }
-  }, [refresh]);
+    let unsubscribe: (() => void) | null = null;
 
-  useEntryListSubscriptions({
-    classIds,
-    licenseKey: showContext?.licenseKey || '',
-    onRefresh: refresh,
-    onEntryUpdate: handleEntryUpdate,
-    enabled: classIds.length > 0
-  });
+    const setupCacheListener = async () => {
+      try {
+        const { ensureReplicationManager } = await import('@/utils/replicationHelper');
+        const manager = await ensureReplicationManager();
+
+        // Subscribe to cache updates for entries table
+        unsubscribe = manager.onCacheUpdate('entries', (tableName) => {
+          console.log(`✅ [EntryList] Cache updated for ${tableName}, refreshing UI`);
+          refresh();
+        });
+
+        logger.log('[EntryList] Subscribed to cache updates from ReplicationManager');
+      } catch (error) {
+        logger.error('[EntryList] Failed to subscribe to cache updates:', error);
+      }
+    };
+
+    setupCacheListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+        logger.log('[EntryList] Unsubscribed from cache updates');
+      }
+    };
+  }, [classIds, refresh]);
 
   // Local state for UI and features unique to EntryList
   const [localEntries, setLocalEntries] = useState<Entry[]>([]);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -10,9 +10,10 @@ import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, Refres
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
-import { useEntryListData, useEntryListActions, useEntryListFilters, useEntryListSubscriptions } from './hooks';
+import { useEntryListData, useEntryListActions, useEntryListFilters } from './hooks';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { formatTrialDate } from '../../utils/dateUtils';
+import { logger } from '@/utils/logger';
 import './EntryList.css';
 
 export const CombinedEntryList: React.FC = () => {
@@ -85,28 +86,39 @@ export const CombinedEntryList: React.FC = () => {
     [classIdA, classIdB]
   );
 
-  // Callback to handle real-time entry updates
-  const handleEntryUpdate = useCallback((payload: any) => {
-    console.log('🔥🔥🔥 CombinedEntryList handleEntryUpdate CALLED');
-    console.log('🔥 payload:', payload);
-    console.log('🔥 payload.eventType:', payload.eventType);
+  // Subscribe to cache updates from ReplicationManager (replaces old syncManager subscriptions)
+  // When ReplicationManager updates the cache via real-time events, we refresh the UI
+  useEffect(() => {
+    if (!classIds.length) return;
 
-    // For local-first architecture, we need to refresh from entryService
-    // which will merge server updates with pending local changes
-    if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-      console.log('🔥 Real-time update detected, refreshing from entryService (will merge with pending changes)');
-      // Use refresh which goes through entryService -> localStateManager
-      refresh();
-    }
-  }, [refresh]);
+    let unsubscribe: (() => void) | null = null;
 
-  useEntryListSubscriptions({
-    classIds,
-    licenseKey: showContext?.licenseKey || '',
-    onRefresh: refresh,
-    onEntryUpdate: handleEntryUpdate,
-    enabled: classIds.length > 0
-  });
+    const setupCacheListener = async () => {
+      try {
+        const { ensureReplicationManager } = await import('@/utils/replicationHelper');
+        const manager = await ensureReplicationManager();
+
+        // Subscribe to cache updates for entries table
+        unsubscribe = manager.onCacheUpdate('entries', (tableName) => {
+          console.log(`✅ [CombinedEntryList] Cache updated for ${tableName}, refreshing UI`);
+          refresh();
+        });
+
+        logger.log('[CombinedEntryList] Subscribed to cache updates from ReplicationManager');
+      } catch (error) {
+        logger.error('[CombinedEntryList] Failed to subscribe to cache updates:', error);
+      }
+    };
+
+    setupCacheListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+        logger.log('[CombinedEntryList] Unsubscribed from cache updates');
+      }
+    };
+  }, [classIds, refresh]);
 
   // Sync local entries with fetched data - now simple since LocalStateManager handles merging
   useEffect(() => {

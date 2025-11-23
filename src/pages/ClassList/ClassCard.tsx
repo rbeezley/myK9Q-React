@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar, Eye, UserSquare } from 'lucide-react';
+import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
 
@@ -49,7 +49,6 @@ interface ClassCardProps {
   activePopup: number | null;
   getStatusColor: (status: ClassEntry['class_status'], classEntry?: ClassEntry) => string;
   getFormattedStatus: (classEntry: ClassEntry) => { label: string; time: string | null };
-  getContextualPreview: (classEntry: ClassEntry) => string;
   onMenuClick?: (classId: number, position: { top: number; left: number }) => void;
   onPrefetch?: () => void;
 }
@@ -65,7 +64,6 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   activePopup,
   getStatusColor,
   getFormattedStatus,
-  getContextualPreview,
   onMenuClick,
   onPrefetch,
 }) => {
@@ -82,48 +80,6 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     () => getFormattedStatus(classEntry),
     [classEntry, getFormattedStatus]
   );
-
-  const contextualPreview = useMemo(
-    () => getContextualPreview(classEntry),
-    [classEntry, getContextualPreview]
-  );
-
-  // Parse contextual preview into pill data
-  const previewPills = useMemo(() => {
-    const pills: Array<{ text: string; color?: string }> = [];
-
-    // Split by bullet and newline
-    const parts = contextualPreview.split(/\s*[•\n]\s*/);
-
-    parts.forEach(part => {
-      if (!part.trim()) return;
-
-      // Extract armband numbers and create pills
-      const armbandMatches = part.match(/(\d+)\s*\(([^)]+)\)/g);
-      if (armbandMatches) {
-        armbandMatches.forEach(match => {
-          const [armband, name] = match.replace(')', '').split('(');
-          pills.push({
-            text: `#${armband.trim()} ${name.trim()}`,
-            color: part.includes('In Ring') ? '#3b82f6' : undefined
-          });
-        });
-      } else if (part.match(/Next:\s*(\d+(?:,\s*\d+)*)/)) {
-        // Handle "Next: 1, 2, 3" format
-        const armbands = part.replace('Next:', '').split(',');
-        armbands.forEach(armband => {
-          if (armband.trim()) {
-            pills.push({ text: `#${armband.trim()}` });
-          }
-        });
-      } else {
-        // Generic text pill
-        pills.push({ text: part.trim() });
-      }
-    });
-
-    return pills;
-  }, [contextualPreview]);
 
   // Format planned start time for display
   const formatPlannedStartTime = (timestamp: string | undefined) => {
@@ -173,105 +129,115 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     >
       <div className="class-content">
         <div className="class-header">
-          {/* Action buttons and badges - positioned absolutely in top-right */}
+          {/* Action buttons - positioned absolutely in top-right, horizontal layout */}
           <div className="class-actions">
-            {/* Button group - can be horizontal on larger screens */}
-            <div className="action-buttons-group">
-              <button
-                type="button"
-                className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
-                onClick={(e) => {
-                  console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
-                  e.preventDefault();
-                  e.stopPropagation();
-                  e.nativeEvent.stopImmediatePropagation();
-                  toggleFavorite(classEntry.id);
-                  return false;
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                style={{ zIndex: 15 }}
-              >
-                <Heart className="favorite-icon" />
-              </button>
+            <button
+              type="button"
+              className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
+              onClick={(e) => {
+                console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                toggleFavorite(classEntry.id);
+                return false;
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              style={{ zIndex: 15 }}
+            >
+              <Heart className="favorite-icon" />
+            </button>
 
-              <button
-                className="class-menu-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (activePopup === classEntry.id) {
-                    setActivePopup(null);
-                  } else {
-                    const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
-                    // Position dialog below button, centered on screen
-                    // But use button's Y position so it follows scroll
-                    onMenuClick?.(classEntry.id, {
-                      top: Math.max(16, rect.bottom + 16), // Below button with padding, min 16px from top
-                      left: 50 // Centered horizontally
-                    });
-                    setActivePopup(classEntry.id);
-                  }
-                }}
-              >
-                <MoreHorizontal className="menu-icon" />
-              </button>
-            </div>
-
-            {/* Release Control Badges - always stacked below action buttons */}
-            <div className="release-control-badges">
-              {/* Visibility Badge */}
-              <span className={`release-badge visibility-badge visibility-${classEntry.visibility_preset || 'standard'}`} title={`Visibility: ${classEntry.visibility_preset || 'standard'}`}>
-                <Eye size={6} style={{ width: '6px', height: '6px', flexShrink: 0 }} />
-                <span className="badge-text">{(classEntry.visibility_preset || 'standard').substring(0, 3).toUpperCase()}</span>
-              </span>
-
-              {/* Check-in Mode Badge */}
-              <span className={`release-badge checkin-badge ${classEntry.self_checkin_enabled ? 'self-checkin' : 'table-checkin'}`} title={`Check-in: ${classEntry.self_checkin_enabled ? 'Self' : 'Table'}`}>
-                <UserSquare size={6} style={{ width: '6px', height: '6px', flexShrink: 0 }} />
-                <span className="badge-text">{classEntry.self_checkin_enabled ? 'SLF' : 'TBL'}</span>
-              </span>
-            </div>
+            <button
+              className="class-menu-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (activePopup === classEntry.id) {
+                  setActivePopup(null);
+                } else {
+                  const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                  // Position dialog below button, centered on screen
+                  // But use button's Y position so it follows scroll
+                  onMenuClick?.(classEntry.id, {
+                    top: Math.max(16, rect.bottom + 16), // Below button with padding, min 16px from top
+                    left: 50 // Centered horizontally
+                  });
+                  setActivePopup(classEntry.id);
+                }
+              }}
+            >
+              <MoreHorizontal className="menu-icon" />
+            </button>
           </div>
 
-          {/* Class name and judge grouped together */}
+          {/* Class name and metadata section */}
           <div className="class-title-section">
             <h3 className="class-name">{classEntry.class_name}</h3>
-            <p className="class-judge">
-              <UserCheck />
-              Judge: {classEntry.judge_name}
-            </p>
 
-            <div className="class-time-limits">
-              <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-              <span className="time-limit-label">Max Time:</span>
-              {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
-                classEntry.area_count && classEntry.area_count > 1 ? (
-                  <>
-                    {classEntry.time_limit_seconds && (
-                      <span className="time-limit-badge">1: {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>
-                    )}
-                    {classEntry.time_limit_area2_seconds && (
-                      <span className="time-limit-badge">2: {formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}</span>
-                    )}
-                    {classEntry.time_limit_area3_seconds && (
-                      <span className="time-limit-badge">3: {formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}</span>
-                    )}
-                  </>
-                ) : (
-                  classEntry.time_limit_seconds && (
-                    <span className="time-limit-badge">{formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>
-                  )
-                )
-              ) : (
-                <span className="time-limit-badge time-limit-tbd">TBD</span>
-              )}
+            {/* Metadata Section - Judge, Time, Release Control */}
+            <div className="metadata-section">
+              {/* Judge */}
+              <div className="meta-row">
+                <UserCheck size={14} />
+                Judge: {classEntry.judge_name}
+              </div>
+
+              {/* Max Time */}
+              <div className="meta-row time">
+                <Clock size={14} />
+                Max Time:{' '}
+                <span className="time-value">
+                  {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
+                    classEntry.area_count && classEntry.area_count > 1 ? (
+                      <>
+                        {classEntry.time_limit_seconds && `1: ${formatSecondsToMMSS(classEntry.time_limit_seconds)}`}
+                        {classEntry.time_limit_area2_seconds && ` 2: ${formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}`}
+                        {classEntry.time_limit_area3_seconds && ` 3: ${formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}`}
+                      </>
+                    ) : (
+                      classEntry.time_limit_seconds ? formatSecondsToMMSS(classEntry.time_limit_seconds) : 'TBD'
+                    )
+                  ) : (
+                    'TBD'
+                  )}
+                </span>
+              </div>
+
+              {/* Release Control Badges */}
+              <div className="badges-row">
+                <span className="badge-label">Release:</span>
+                <span
+                  className={`release-badge visibility-badge visibility-${classEntry.visibility_preset || 'standard'}`}
+                  data-tooltip={
+                    classEntry.visibility_preset === 'open'
+                      ? 'Q/NQ, time, and faults visible immediately'
+                      : classEntry.visibility_preset === 'review'
+                      ? 'All results hidden until manually released'
+                      : 'Q/NQ visible immediately, time/faults when class completes'
+                  }
+                >
+                  {(classEntry.visibility_preset || 'standard').substring(0, 3).toUpperCase()}
+                </span>
+                <span
+                  className={`release-badge checkin-badge ${classEntry.self_checkin_enabled ? 'self-checkin' : 'table-checkin'}`}
+                  data-tooltip={
+                    classEntry.self_checkin_enabled
+                      ? 'Handlers check in themselves using the app'
+                      : 'Handlers must check in at the ring table'
+                  }
+                >
+                  {classEntry.self_checkin_enabled ? 'SELF' : 'TBL'}
+                </span>
+              </div>
             </div>
+
             {classEntry.planned_start_time && (
               <div className="class-planned-time">
                 <Calendar size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
@@ -329,18 +295,42 @@ export const ClassCard: React.FC<ClassCardProps> = ({
             )}
           </div>
 
-          {/* Preview Pills */}
+          {/* Contextual Preview - Display actual dog armband numbers */}
           {classEntry.dogs.length > 0 ? (
             <div className="contextual-preview-condensed">
-              {previewPills.map((pill, index) => (
-                <span
-                  key={index}
-                  className="preview-pill"
-                  style={pill.color ? { borderLeft: `3px solid ${pill.color}` } : undefined}
-                >
-                  {pill.text}
+              {/* Display actual armband numbers from dogs array (not parsed from string) */}
+              {(() => {
+                const inRingDog = classEntry.dogs.find(dog => dog.in_ring);
+                const nextDogs = classEntry.dogs
+                  .filter(dog =>
+                    !dog.is_scored &&
+                    !dog.in_ring &&
+                    dog.checkin_status !== 3 // Exclude pulled dogs (checkin_status 3 = pulled)
+                  )
+                  .slice(0, 3);
+
+                // Show in-ring dog + next 2, or just next 3
+                const dogsToShow = inRingDog
+                  ? [inRingDog, ...nextDogs.slice(0, 2)]
+                  : nextDogs;
+
+                return dogsToShow.map((dog) => (
+                  <span key={dog.id} className="armband-number">
+                    #{dog.armband}
+                  </span>
+                ));
+              })()}
+              {/* Show remaining count */}
+              {classEntry.entry_count - classEntry.completed_count > 0 && (
+                <span style={{ marginLeft: 'auto', color: '#94a3b8' }}>
+                  {classEntry.entry_count - classEntry.completed_count} of {classEntry.entry_count} remaining
                 </span>
-              ))}
+              )}
+              {classEntry.class_status === 'completed' && (
+                <span style={{ marginLeft: 'auto', color: '#94a3b8' }}>
+                  All complete
+                </span>
+              )}
             </div>
           ) : (
             <div className="no-entries">

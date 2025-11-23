@@ -56,7 +56,11 @@ export function getContextualPreview(classEntry: ClassEntry): string {
     case 'in-progress': {
       const inRingDog = classEntry.dogs.find(dog => dog.in_ring);
       const nextDogs = classEntry.dogs
-        .filter(dog => !dog.is_scored && !dog.in_ring)
+        .filter(dog =>
+          !dog.is_scored &&
+          !dog.in_ring &&
+          dog.checkin_status !== 3 // Exclude pulled dogs from "next up" preview
+        )
         .slice(0, 3);
 
       let preview = '';

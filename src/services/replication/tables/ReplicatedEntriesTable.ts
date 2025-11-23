@@ -44,8 +44,8 @@ export interface Entry {
   created_at?: string;
   updated_at?: string;
 
-  // Multi-tenant isolation
-  license_key?: string;     // Should be set by API, but included for safety
+  // Multi-tenant isolation (denormalized for real-time subscription filtering)
+  license_key: string;      // Auto-populated by database trigger from classes->trials->shows
 }
 
 /**
@@ -146,9 +146,19 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
       // Step 3: Merge remote changes with local cache (conflict resolution)
       if (remoteEntries && remoteEntries.length > 0) {
+        console.log(`[${this.tableName}] 🔍 Processing ${remoteEntries.length} entries from server:`);
+
         for (const rawEntry of remoteEntries) {
           // Flatten the response (remove nested classes/trials/shows objects)
           const { classes: _classes, ...remoteEntry } = rawEntry as any;
+
+          // DEBUG: Log the entry data we're processing
+          console.log(`[${this.tableName}] 📦 Entry ${remoteEntry.id}:`, {
+            armband: remoteEntry.armband_number,
+            entry_status: remoteEntry.entry_status,
+            is_in_ring: remoteEntry.is_in_ring,
+            is_scored: remoteEntry.is_scored
+          });
 
           // Convert ID to string for consistent IndexedDB key format (bigserial returns as number)
           const entryId = String(remoteEntry.id);
@@ -156,11 +166,18 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
           if (localEntry) {
             // Conflict: both local and remote have data
+            console.log(`[${this.tableName}] 🔄 Resolving conflict for entry ${entryId}`);
             const resolved = this.resolveConflict(localEntry, remoteEntry as Entry);
+            console.log(`[${this.tableName}] ✅ Resolved entry ${entryId}:`, {
+              old_status: localEntry.entry_status,
+              new_status: remoteEntry.entry_status,
+              resolved_status: resolved.entry_status
+            });
             await this.set(entryId, resolved, false); // Not dirty after merge
             conflictsResolved++;
           } else {
             // No conflict: just cache the remote entry
+            console.log(`[${this.tableName}] 📝 Caching new entry ${entryId} with status: ${remoteEntry.entry_status}`);
             await this.set(entryId, remoteEntry as Entry, false);
           }
 
@@ -177,7 +194,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         lastIncrementalSyncAt: Date.now(),
         syncStatus: 'idle',
         errorMessage: undefined,
-        conflictCount: (metadata?.conflictCount || 0) + conflictsResolved,
+        conflictCount: conflictsResolved, // Fixed: Don't accumulate, just set current count
       });
 
       const duration = Date.now() - startTime;
@@ -219,17 +236,34 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
    * Resolve conflicts between local and remote data
    *
    * Strategy for entries:
-   * - Client-authoritative: entry_status (check-in state controlled by user)
-   * - Server-authoritative: result_status, final_placement, search_time_seconds, total_faults (judge's scoring)
+   * - Client-authoritative: User self-check-in states (checked-in, at-gate)
+   * - Server-authoritative: Admin-controlled states (in-ring, completed) and scoring results
    * - Last-write-wins: other fields (compare updated_at)
    */
   protected resolveConflict(local: Entry, remote: Entry): Entry {
     // Start with remote data as base (server is source of truth)
     const resolved: Entry = { ...remote };
 
-    // Client wins for check-in status (user controls this)
-    resolved.entry_status = local.entry_status;
-    resolved.is_in_ring = local.is_in_ring;
+    // Smart conflict resolution for entry_status:
+    // - Server wins for admin-controlled states: 'in-ring' and 'completed'
+    // - Client wins for user self-check-in states: 'checked-in' and 'at-gate'
+    // - Server wins for 'no-status' (admin clearing status)
+    const serverAuthoritativeStates = ['in-ring', 'completed', 'no-status'];
+    const clientAuthoritativeStates = ['checked-in', 'at-gate'];
+
+    if (serverAuthoritativeStates.includes(remote.entry_status)) {
+      // Server wins - admin is changing ring status or scoring
+      resolved.entry_status = remote.entry_status;
+      resolved.is_in_ring = remote.entry_status === 'in-ring';
+    } else if (clientAuthoritativeStates.includes(local.entry_status)) {
+      // Client wins - user is self-checking in
+      resolved.entry_status = local.entry_status;
+      resolved.is_in_ring = local.is_in_ring;
+    } else {
+      // Default: server wins (safest fallback)
+      resolved.entry_status = remote.entry_status;
+      resolved.is_in_ring = remote.entry_status === 'in-ring';
+    }
 
     // Server always wins for scoring results (judge is authoritative)
     // (These are already in `remote`, so no override needed)
@@ -238,7 +272,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
     if (local.entry_status !== remote.entry_status) {
       logger.log(
         `[${this.tableName}] Conflict resolved for entry ${local.id}:`,
-        `local status="${local.entry_status}", remote status="${remote.entry_status}", resolved="${resolved.entry_status}"`
+        `local="${local.entry_status}", remote="${remote.entry_status}", resolved="${resolved.entry_status}"`
       );
     }
 
@@ -253,6 +287,19 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
   async getByClassId(classId: string, licenseKey?: string): Promise<Entry[]> {
     // Use indexed query for much better performance
     const entries = await this.queryByField('class_id', classId);
+
+    console.log(`[${this.tableName}] 🔎 getByClassId(${classId}) returned ${entries.length} entries`);
+
+    // DEBUG: Log first few entries with their status
+    if (entries.length > 0) {
+      const sample = entries.slice(0, 3).map(e => ({
+        id: e.id,
+        armband: e.armband_number,
+        entry_status: e.entry_status,
+        is_in_ring: e.is_in_ring
+      }));
+      console.log(`[${this.tableName}] 📋 Sample entries:`, sample);
+    }
 
     // Filter by license_key if needed (for multi-tenant isolation)
     if (licenseKey) {

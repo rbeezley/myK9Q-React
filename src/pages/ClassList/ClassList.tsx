@@ -665,15 +665,6 @@ export const ClassList: React.FC = () => {
       }
     })();
 
-    console.log('📊 getFormattedStatus:', {
-      classId: classEntry.id,
-      status,
-      briefing_time: classEntry.briefing_time,
-      break_until: classEntry.break_until,
-      start_time: classEntry.start_time,
-      result
-    });
-
     return result;
   }, []);
 
@@ -965,7 +956,6 @@ export const ClassList: React.FC = () => {
               activePopup={activePopup}
               getStatusColor={getStatusColor}
               getFormattedStatus={getFormattedStatus}
-              getContextualPreview={getContextualPreview}
               onMenuClick={(classId, position) => {
                 setActivePopup(null); // Close any existing popup
                 setPopupPosition(position);

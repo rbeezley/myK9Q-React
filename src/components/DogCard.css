@@ -69,8 +69,30 @@
 }
 
 .dog-card.in-ring {
-  border-left: 3px solid var(--checkin-in-ring);
+  border-left: 5px solid var(--checkin-in-ring);
   border-color: var(--checkin-in-ring);
+  box-shadow:
+    0 0 0 1px var(--checkin-in-ring),
+    0 4px 12px rgba(37, 99, 235, 0.15),
+    inset -2px 0 8px rgba(37, 99, 235, 0.08);
+  background: linear-gradient(
+    to right,
+    rgba(37, 99, 235, 0.04) 0%,
+    transparent 40%
+  );
+  position: relative;
+}
+
+.theme-dark .dog-card.in-ring {
+  box-shadow:
+    0 0 0 1px var(--checkin-in-ring),
+    0 4px 12px rgba(59, 130, 246, 0.25),
+    inset -2px 0 8px rgba(59, 130, 246, 0.12);
+  background: linear-gradient(
+    to right,
+    rgba(59, 130, 246, 0.08) 0%,
+    transparent 40%
+  );
 }
 
 .dog-card.scored {

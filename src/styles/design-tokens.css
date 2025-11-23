@@ -66,6 +66,11 @@
   --status-come-to-gate-bg: #3b82f6;
   --status-come-to-gate-text: #ffffff;
 
+  /* In Ring Status - Vibrant Blue for active competing */
+  --status-in-ring: #2563eb;
+  --status-in-ring-bg: #2563eb;
+  --status-in-ring-text: #ffffff;
+
   --status-conflict: #f59e0b;
   --status-conflict-bg: #f59e0b;
   --status-conflict-text: #ffffff;
@@ -183,8 +188,8 @@
   --token-text-white: #ffffff;
 
   /* In Ring: Blue (active competing) */
-  --checkin-in-ring: var(--checkin-in-ring);
-  --checkin-in-ring-text: #ffffff;
+  --checkin-in-ring: var(--status-in-ring);
+  --checkin-in-ring-text: var(--status-in-ring-text);
 
   /* Legacy Token Names (backwards compatibility) */
   --token-status-no-status: var(--status-no-status);
@@ -370,6 +375,9 @@
 
   --status-come-to-gate: #3b82f6;
   --status-come-to-gate-bg: #3b82f6;
+
+  --status-in-ring: #3b82f6;
+  --status-in-ring-bg: #3b82f6;
 
   --status-conflict: #f59e0b;
   --status-conflict-bg: #f59e0b;
