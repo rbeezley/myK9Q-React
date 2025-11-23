@@ -105,7 +105,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
               <div className="nationals-scoresheet-improved">
                 {/* Header Row: Placement, Time, and Result badges */}
                 <div className="nationals-header-row">
-                  {entry.placement && (
+                  {entry.showPlacement !== false && entry.placement && (
                     <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
                       {entry.placement <= 4 && (
                         <span className="placement-badge-icon">
@@ -115,18 +115,22 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                       <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
                     </span>
                   )}
-                  <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
-                  <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
-                    {(() => {
-                      const result = (entry.resultText || '').toLowerCase();
-                      if (result === 'q' || result === 'qualified') return 'Q';
-                      if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                      if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                      if (result === 'ex' || result === 'excused') return 'EX';
-                      if (result === 'wd' || result === 'withdrawn') return 'WD';
-                      return entry.resultText || 'N/A';
-                    })()}
-                  </span>
+                  {entry.showTime !== false && (
+                    <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+                  )}
+                  {entry.showQualification !== false && (
+                    <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
+                      {(() => {
+                        const result = (entry.resultText || '').toLowerCase();
+                        if (result === 'q' || result === 'qualified') return 'Q';
+                        if (result === 'nq' || result === 'non-qualifying') return 'NQ';
+                        if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
+                        if (result === 'ex' || result === 'excused') return 'EX';
+                        if (result === 'wd' || result === 'withdrawn') return 'WD';
+                        return entry.resultText || 'N/A';
+                      })()}
+                    </span>
+                  )}
                 </div>
 
                 {/* Stats Grid: 2x2 for Calls and Faults */}
@@ -139,10 +143,12 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                     <span className="nationals-stat-label">Incorrect</span>
                     <span className="nationals-stat-value">{entry.incorrectFinds || 0}</span>
                   </div>
-                  <div className="nationals-stat-item">
-                    <span className="nationals-stat-label">Faults</span>
-                    <span className="nationals-stat-value">{entry.faultCount || 0}</span>
-                  </div>
+                  {entry.showFaults !== false && (
+                    <div className="nationals-stat-item">
+                      <span className="nationals-stat-label">Faults</span>
+                      <span className="nationals-stat-value">{entry.faultCount || 0}</span>
+                    </div>
+                  )}
                   <div className="nationals-stat-item">
                     <span className="nationals-stat-label">No Finish</span>
                     <span className="nationals-stat-value">{entry.noFinishCount || 0}</span>
@@ -169,8 +175,8 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                                            resultLower.includes('ex') || resultLower.includes('excused') ||
                                            resultLower.includes('wd') || resultLower.includes('withdrawn');
 
-                    // Show placement badge for all qualified placements
-                    if (entry.placement && !isNonQualifying) {
+                    // Show placement badge for all qualified placements (if visibility allows)
+                    if (entry.showPlacement !== false && entry.placement && !isNonQualifying) {
                       return (
                         <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
                           {entry.placement <= 4 && (
@@ -185,7 +191,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                     return null;
                   })()}
 
-                  {entry.resultText && (
+                  {entry.showQualification !== false && entry.resultText && (
                     <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
                       {(() => {
                         const result = entry.resultText.toLowerCase();
@@ -199,9 +205,13 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
                     </span>
                   )}
 
-                  <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+                  {entry.showTime !== false && (
+                    <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+                  )}
 
-                  <span className="faults-badge-subtle">{entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}</span>
+                  {entry.showFaults !== false && (
+                    <span className="faults-badge-subtle">{entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}</span>
+                  )}
                 </div>
               ) : undefined
             )

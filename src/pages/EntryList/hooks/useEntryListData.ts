@@ -7,6 +7,8 @@ import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
 import { logger } from '@/utils/logger';
+import { getVisibleResultFields } from '@/services/resultVisibilityService';
+import type { VisibleResultFields } from '@/types/visibility';
 
 export interface ClassInfo {
   className: string;
@@ -42,11 +44,34 @@ interface UseEntryListDataOptions {
 }
 
 /**
+ * Apply visibility flags to an entry based on visibility settings
+ */
+function applyVisibilityFlags(entry: Entry, visibilityFlags: VisibleResultFields): Entry {
+  return {
+    ...entry,
+    showPlacement: visibilityFlags.showPlacement,
+    showQualification: visibilityFlags.showQualification,
+    showTime: visibilityFlags.showTime,
+    showFaults: visibilityFlags.showFaults
+  };
+}
+
+/**
  * Transform replicated entry to Entry format
  */
 function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): Entry {
   // Map entry_status to the status field
   const status = entry.entry_status || 'pending';
+
+  // DEBUG: Log transformation for entry 793 (armband 121)
+  if (entry.armband_number === 121) {
+    console.log(`[transformReplicatedEntry] 🔍 Armband 121 (ID ${entry.id}):`, {
+      entry_status: entry.entry_status,
+      is_in_ring_deprecated: entry.is_in_ring,
+      computed_inRing: entry.entry_status === 'in-ring',
+      computed_status: status
+    });
+  }
 
   return {
     id: parseInt(entry.id, 10),
@@ -56,8 +81,8 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
     handler: entry.handler_name,
     isScored: entry.is_scored || false,
     status: status as any, // New unified status field
-    // Deprecated fields for backward compatibility
-    inRing: entry.is_in_ring || false,
+    // Derive inRing from entry_status (not the deprecated is_in_ring field)
+    inRing: entry.entry_status === 'in-ring',
     classId: parseInt(entry.class_id, 10),
     className: classData?.element && classData?.level
       ? `${classData.element} ${classData.level}${classData.section && classData.section !== '-' ? ` ${classData.section}` : ''}`.trim()
@@ -68,6 +93,11 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
     timeLimit: classData?.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
     timeLimit2: classData?.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classData?.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
+    // Map result fields from replicated format to UI format
+    resultText: entry.result_status,
+    placement: entry.final_placement,
+    searchTime: entry.search_time_seconds?.toString(),
+    faultCount: entry.total_faults,
   };
 }
 
@@ -76,7 +106,7 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
  * Supports both single class and combined class views.
  */
 export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDataOptions) => {
-  const { showContext } = useAuth();
+  const { showContext, role } = useAuth();
 
   const isCombinedView = !!(classIdA && classIdB);
 
@@ -106,7 +136,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
             if (classData) {
               // Get entries for this class from cache
               const cachedEntries = await entriesTable.getAll();
-              const classEntries = cachedEntries
+              let classEntries = cachedEntries
                 .filter((entry) => String(entry.class_id) === classId)
                 .map((entry) => transformReplicatedEntry(entry, classData));
 
@@ -118,6 +148,45 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
                 logger.log('📭 Cache is empty, falling back to Supabase');
                 // Fall through to Supabase query below
               } else {
+                // Fetch visibility settings and apply to entries
+                try {
+                  const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
+                  const visibilityFlags = await getVisibleResultFields(
+                    parseInt(classId),
+                    classData.trial_id,
+                    showContext.licenseKey,
+                    role || 'exhibitor',
+                    isClassComplete,
+                    classData.results_released_at || null
+                  );
+
+                  // Apply visibility flags to all entries
+                  classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
+                  console.log('✅ [VISIBILITY] Applied visibility flags:', visibilityFlags);
+
+                  // Debug: Log entries 106 and 192 to check data
+                  const debugEntries = classEntries.filter(e => e.armband === 106 || e.armband === 192);
+                  if (debugEntries.length > 0) {
+                    console.log('🔍 [DEBUG] Entries 106/192:', debugEntries.map(e => ({
+                      armband: e.armband,
+                      resultText: e.resultText,
+                      searchTime: e.searchTime,
+                      faultCount: e.faultCount,
+                      placement: e.placement,
+                      isScored: e.isScored
+                    })));
+                  }
+                } catch (visError) {
+                  logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
+                  // On error, default to showing everything (fail open for better UX)
+                  const defaultFlags: VisibleResultFields = {
+                    showPlacement: true,
+                    showQualification: true,
+                    showTime: true,
+                    showFaults: true
+                  };
+                  classEntries = classEntries.map(entry => applyVisibilityFlags(entry, defaultFlags));
+                }
                 // Build class info
                 const completedEntries = classEntries.filter((e) => e.isScored).length;
                 const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
@@ -156,19 +225,46 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
     }
 
     // Fall back to original Supabase implementation
-    const classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
+    let classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
 
     // Get class info from first entry and fetch additional class data
     let classInfoData: ClassInfo | null = null;
     if (classEntries.length > 0) {
       const firstEntry = classEntries[0];
 
-      // Fetch additional class data
+      // Fetch additional class data including fields needed for visibility
       const { data: classData } = await supabase
         .from('classes')
-        .select('judge_name, self_checkin_enabled, class_status')
+        .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
         .eq('id', parseInt(classId))
         .single();
+
+      // Apply visibility flags to entries
+      if (classData) {
+        try {
+          const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
+          const visibilityFlags = await getVisibleResultFields(
+            parseInt(classId),
+            classData.trial_id,
+            showContext.licenseKey,
+            role || 'exhibitor',
+            isClassComplete,
+            classData.results_released_at || null
+          );
+
+          classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
+          console.log('✅ [VISIBILITY] Applied visibility flags (Supabase path):', visibilityFlags);
+        } catch (visError) {
+          logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
+          const defaultFlags: VisibleResultFields = {
+            showPlacement: true,
+            showQualification: true,
+            showTime: true,
+            showFaults: true
+          };
+          classEntries = classEntries.map(entry => applyVisibilityFlags(entry, defaultFlags));
+        }
+      }
 
       const completedEntries = classEntries.filter(
         (e) => e.isScored
@@ -195,7 +291,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
     }
 
     return { entries: classEntries, classInfo: classInfoData };
-  }, [showContext, classId]);
+  }, [showContext, role, classId]);
 
   // Fetch function for combined class view
   const fetchCombinedClasses = useCallback(async (): Promise<EntryListData> => {
@@ -224,23 +320,59 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
             if (classDataA && classDataB) {
               // Get entries for both classes from cache
               const cachedEntries = await entriesTable.getAll();
-              const entriesA = cachedEntries
+              let entriesA = cachedEntries
                 .filter((entry) => String(entry.class_id) === classIdA)
                 .map((entry) => transformReplicatedEntry(entry, classDataA));
-              const entriesB = cachedEntries
+              let entriesB = cachedEntries
                 .filter((entry) => String(entry.class_id) === classIdB)
                 .map((entry) => transformReplicatedEntry(entry, classDataB));
 
-              const combinedEntries = [...entriesA, ...entriesB];
-
-              console.log(`✅ [REPLICATION] Loaded ${combinedEntries.length} combined entries from cache (A: ${entriesA.length}, B: ${entriesB.length})`);
+              console.log(`✅ [REPLICATION] Loaded ${entriesA.length + entriesB.length} combined entries from cache (A: ${entriesA.length}, B: ${entriesB.length})`);
 
               // If cache is empty, fall back to Supabase (cache may still be syncing)
-              if (combinedEntries.length === 0) {
+              if (entriesA.length === 0 && entriesB.length === 0) {
                 console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
                 logger.log('📭 Cache is empty, falling back to Supabase');
                 // Fall through to Supabase query below
               } else {
+                // Apply visibility flags to entries from both classes
+                try {
+                  const isClassAComplete = classDataA.class_status === 'completed' || classDataA.is_completed === true;
+                  const visibilityFlagsA = await getVisibleResultFields(
+                    parseInt(classIdA),
+                    classDataA.trial_id,
+                    showContext.licenseKey,
+                    role || 'exhibitor',
+                    isClassAComplete,
+                    classDataA.results_released_at || null
+                  );
+                  entriesA = entriesA.map(entry => applyVisibilityFlags(entry, visibilityFlagsA));
+
+                  const isClassBComplete = classDataB.class_status === 'completed' || classDataB.is_completed === true;
+                  const visibilityFlagsB = await getVisibleResultFields(
+                    parseInt(classIdB),
+                    classDataB.trial_id,
+                    showContext.licenseKey,
+                    role || 'exhibitor',
+                    isClassBComplete,
+                    classDataB.results_released_at || null
+                  );
+                  entriesB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
+
+                  console.log('✅ [VISIBILITY] Applied visibility flags to combined view');
+                } catch (visError) {
+                  logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
+                  const defaultFlags: VisibleResultFields = {
+                    showPlacement: true,
+                    showQualification: true,
+                    showTime: true,
+                    showFaults: true
+                  };
+                  entriesA = entriesA.map(entry => applyVisibilityFlags(entry, defaultFlags));
+                  entriesB = entriesB.map(entry => applyVisibilityFlags(entry, defaultFlags));
+                }
+
+                const combinedEntries = [...entriesA, ...entriesB];
                 // Build class info
                 const judgeNameA = classDataA.judge_name || 'No Judge Assigned';
                 const judgeNameB = classDataB.judge_name || 'No Judge Assigned';
@@ -280,25 +412,69 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
     // Fall back to original Supabase implementation
     // Load entries from both classes
     const classIdsArray = [parseInt(classIdA), parseInt(classIdB)];
-    const combinedEntries = await getClassEntries(classIdsArray, showContext.licenseKey);
+    let combinedEntries = await getClassEntries(classIdsArray, showContext.licenseKey);
 
     // Get class info from both classes
     let classInfoData: ClassInfo | null = null;
     if (combinedEntries.length > 0) {
       const firstEntry = combinedEntries[0];
 
-      // Fetch class data for both classes
+      // Fetch class data for both classes including visibility fields
       const { data: classDataA } = await supabase
         .from('classes')
-        .select('judge_name, self_checkin_enabled, class_status')
+        .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
         .eq('id', parseInt(classIdA))
         .single();
 
       const { data: classDataB } = await supabase
         .from('classes')
-        .select('judge_name, class_status')
+        .select('judge_name, class_status, trial_id, is_completed, results_released_at')
         .eq('id', parseInt(classIdB))
         .single();
+
+      // Apply visibility flags to entries from both classes
+      if (classDataA && classDataB) {
+        try {
+          // Split entries by class, apply visibility, then recombine
+          const entriesA = combinedEntries.filter(e => e.actualClassId === parseInt(classIdA));
+          const entriesB = combinedEntries.filter(e => e.actualClassId === parseInt(classIdB));
+
+          const isClassAComplete = classDataA.class_status === 'completed' || classDataA.is_completed === true;
+          const visibilityFlagsA = await getVisibleResultFields(
+            parseInt(classIdA),
+            classDataA.trial_id,
+            showContext.licenseKey,
+            role || 'exhibitor',
+            isClassAComplete,
+            classDataA.results_released_at || null
+          );
+
+          const isClassBComplete = classDataB.class_status === 'completed' || classDataB.is_completed === true;
+          const visibilityFlagsB = await getVisibleResultFields(
+            parseInt(classIdB),
+            classDataB.trial_id,
+            showContext.licenseKey,
+            role || 'exhibitor',
+            isClassBComplete,
+            classDataB.results_released_at || null
+          );
+
+          const processedEntriesA = entriesA.map(entry => applyVisibilityFlags(entry, visibilityFlagsA));
+          const processedEntriesB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
+
+          combinedEntries = [...processedEntriesA, ...processedEntriesB];
+          console.log('✅ [VISIBILITY] Applied visibility flags to combined view (Supabase path)');
+        } catch (visError) {
+          logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
+          const defaultFlags: VisibleResultFields = {
+            showPlacement: true,
+            showQualification: true,
+            showTime: true,
+            showFaults: true
+          };
+          combinedEntries = combinedEntries.map(entry => applyVisibilityFlags(entry, defaultFlags));
+        }
+      }
 
       const judgeNameA = classDataA?.judge_name || 'No Judge Assigned';
       const judgeNameB = classDataB?.judge_name || 'No Judge Assigned';
@@ -323,7 +499,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
     }
 
     return { entries: combinedEntries, classInfo: classInfoData };
-  }, [showContext, classIdA, classIdB]);
+  }, [showContext, role, classIdA, classIdB]);
 
   // Use the appropriate fetch function
   const fetchFunction = isCombinedView ? fetchCombinedClasses : fetchSingleClass;

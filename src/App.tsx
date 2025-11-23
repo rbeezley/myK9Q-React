@@ -493,18 +493,6 @@ function AppWithAuth() {
           }
         />
         <Route
-          path="/demo/card-redesign"
-          element={
-            <div className="min-h-screen bg-black p-10 flex items-center justify-center">
-              <div className="w-full max-w-md">
-                <Suspense fallback={<div>Loading...</div>}>
-                  {React.createElement(React.lazy(() => import('./components/ClassCardRedesign').then(m => ({ default: m.ClassCardRedesign }))))}
-                </Suspense>
-              </div>
-            </div>
-          }
-        />
-        <Route
           path="/tv/:licenseKey"
           element={
             <Suspense fallback={<PageLoader message="Loading TV Display..." />}>

@@ -58,6 +58,11 @@ export interface Entry {
   nqReason?: string;
   excusedReason?: string;
   withdrawnReason?: string;
+  // Visibility flags - control what results are visible based on user role and timing settings
+  showPlacement?: boolean;
+  showQualification?: boolean;
+  showTime?: boolean;
+  showFaults?: boolean;
 }
 
 interface EntryFilters {

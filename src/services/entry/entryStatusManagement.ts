@@ -82,6 +82,10 @@ export async function markInRing(
           console.error('❌ markInRing database error:', error);
           throw error;
         }
+
+        // Trigger sync for scored entry status update
+        await triggerImmediateEntrySync('markInRing');
+
         return true;
       }
     }
@@ -101,6 +105,11 @@ export async function markInRing(
     }
 
     console.log(`✅ Entry ${entryId} marked as ${newStatus}`);
+
+    // CRITICAL: Trigger immediate sync to update UI without refresh
+    // This ensures all connected clients see the in-ring status change in real-time
+    await triggerImmediateEntrySync('markInRing');
+
     return true;
   } catch (error) {
     console.error('❌ markInRing error:', error);

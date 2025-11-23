@@ -210,7 +210,8 @@ export const CompetitionAdmin: React.FC = () => {
         supabase
           .from('classes')
           .update({
-            results_released_by: adminName.trim()
+            results_released_by: adminName.trim(),
+            results_released_at: new Date().toISOString()
           })
           .eq('id', classId)
       );

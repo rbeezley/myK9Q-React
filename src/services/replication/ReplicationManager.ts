@@ -88,6 +88,9 @@ export class ReplicationManager {
   private syncQueue: Array<() => Promise<void>> = [];
   private isProcessingQueue: boolean = false;
 
+  /** Cache update listeners for UI notification */
+  private cacheUpdateListeners: Map<string, Set<(tableName: string) => void>> = new Map();
+
   constructor(config: ReplicationManagerConfig) {
     this.config = config;
 
@@ -262,6 +265,11 @@ export class ReplicationManager {
     // Day 27: Record sync result in monitor
     const monitor = getReplicationMonitor();
     monitor.recordSync(result);
+
+    // Notify UI listeners that cache has been updated (if sync was successful)
+    if (result.success) {
+      this.notifyCacheUpdated(tableName);
+    }
 
     return result;
   }
@@ -875,20 +883,26 @@ export class ReplicationManager {
               event: '*', // INSERT, UPDATE, DELETE
               schema: 'public',
               table: tableName,
+              // All replicated tables now have license_key column for efficient filtering
               filter: `license_key=eq.${this.config.licenseKey}`,
             },
-            (payload) => {
+            async (payload) => {
               logger.log(`[ReplicationManager] Real-time change detected in ${tableName}:`, payload.eventType);
 
-              // Trigger incremental sync for this table
+              // Trigger incremental sync for this table and WAIT for it to complete
+              // This ensures cache is updated before UI refreshes
               const table = this.getTable(tableName);
               if (table) {
-                this.syncTable(tableName, { forceFullSync: false }).catch((error) => {
+                try {
+                  console.log(`[ReplicationManager] 🔄 Starting sync for ${tableName} (triggered by real-time event)`);
+                  await this.syncTable(tableName, { forceFullSync: false });
+                  console.log(`[ReplicationManager] ✅ Sync completed for ${tableName}, cache is now up-to-date`);
+                } catch (error) {
                   logger.error(`[ReplicationManager] Real-time sync failed for ${tableName}:`, error);
-                });
+                }
               }
 
-              // Notify other tabs via BroadcastChannel
+              // Notify other tabs via BroadcastChannel (AFTER sync completes)
               // Issue #8 Fix: Include originTabId to prevent echo
               if (this.broadcastChannel) {
                 this.broadcastChannel.postMessage({
@@ -932,6 +946,80 @@ export class ReplicationManager {
   }
 
   /**
+   * Subscribe to cache update notifications for UI refresh
+   *
+   * When the cache is updated (via sync), all registered listeners will be notified.
+   * This allows UI components to refresh without maintaining separate real-time subscriptions.
+   *
+   * @param tableName - Table to listen for updates (e.g., 'entries', 'classes')
+   * @param listener - Callback function invoked when cache is updated
+   * @returns Unsubscribe function
+   *
+   * @example
+   * ```typescript
+   * const unsubscribe = manager.onCacheUpdate('entries', (tableName) => {
+   *   console.log(`Cache updated for ${tableName}, refreshing UI`);
+   *   refresh();
+   * });
+   *
+   * // Later: cleanup
+   * unsubscribe();
+   * ```
+   */
+  onCacheUpdate(tableName: string, listener: (tableName: string) => void): () => void {
+    if (!this.cacheUpdateListeners.has(tableName)) {
+      this.cacheUpdateListeners.set(tableName, new Set());
+    }
+
+    const listeners = this.cacheUpdateListeners.get(tableName)!;
+    listeners.add(listener);
+
+    logger.log(`[ReplicationManager] Registered cache update listener for ${tableName} (${listeners.size} total)`);
+
+    // Return unsubscribe function
+    return () => this.offCacheUpdate(tableName, listener);
+  }
+
+  /**
+   * Unsubscribe from cache update notifications
+   *
+   * @param tableName - Table name
+   * @param listener - Listener function to remove
+   */
+  offCacheUpdate(tableName: string, listener: (tableName: string) => void): void {
+    const listeners = this.cacheUpdateListeners.get(tableName);
+    if (listeners) {
+      listeners.delete(listener);
+      logger.log(`[ReplicationManager] Removed cache update listener for ${tableName} (${listeners.size} remaining)`);
+
+      // Clean up empty sets
+      if (listeners.size === 0) {
+        this.cacheUpdateListeners.delete(tableName);
+      }
+    }
+  }
+
+  /**
+   * Notify all listeners that a table's cache has been updated
+   *
+   * @private
+   * @param tableName - Table that was updated
+   */
+  private notifyCacheUpdated(tableName: string): void {
+    const listeners = this.cacheUpdateListeners.get(tableName);
+    if (listeners && listeners.size > 0) {
+      logger.log(`[ReplicationManager] Notifying ${listeners.size} listeners that ${tableName} cache was updated`);
+      listeners.forEach(listener => {
+        try {
+          listener(tableName);
+        } catch (error) {
+          logger.error(`[ReplicationManager] Error in cache update listener for ${tableName}:`, error);
+        }
+      });
+    }
+  }
+
+  /**
    * Cleanup resources
    * Day 25-26 MEDIUM Fix: Also clean up real-time subscriptions
    */
@@ -956,6 +1044,9 @@ export class ReplicationManager {
       this.broadcastChannel.close();
       this.broadcastChannel = null;
     }
+
+    // Clean up cache update listeners
+    this.cacheUpdateListeners.clear();
 
     this.syncEngine.destroy();
     this.tables.clear();
