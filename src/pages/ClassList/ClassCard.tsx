@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
+import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar, Eye, UserSquare } from 'lucide-react';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
 
@@ -24,6 +24,8 @@ interface ClassEntry {
   briefing_time?: string;
   break_until?: string;
   planned_start_time?: string;
+  self_checkin_enabled?: boolean;
+  visibility_preset?: 'open' | 'standard' | 'review';
   dogs: {
     id: number;
     armband: number;
@@ -171,52 +173,70 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     >
       <div className="class-content">
         <div className="class-header">
-          {/* Action buttons - positioned absolutely in top-right */}
+          {/* Action buttons and badges - positioned absolutely in top-right */}
           <div className="class-actions">
-            <button
-              type="button"
-              className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
-              onClick={(e) => {
-                console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
-                e.preventDefault();
-                e.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
-                toggleFavorite(classEntry.id);
-                return false;
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              style={{ zIndex: 15 }}
-            >
-              <Heart className="favorite-icon" />
-            </button>
+            {/* Button group - can be horizontal on larger screens */}
+            <div className="action-buttons-group">
+              <button
+                type="button"
+                className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
+                onClick={(e) => {
+                  console.log('🚨 Heart button clicked! Class ID:', classEntry.id, 'Target:', e.target);
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                  toggleFavorite(classEntry.id);
+                  return false;
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                style={{ zIndex: 15 }}
+              >
+                <Heart className="favorite-icon" />
+              </button>
 
-            <button
-              className="class-menu-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (activePopup === classEntry.id) {
-                  setActivePopup(null);
-                } else {
-                  const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
-                  // Position dialog below button, centered on screen
-                  // But use button's Y position so it follows scroll
-                  onMenuClick?.(classEntry.id, {
-                    top: Math.max(16, rect.bottom + 16), // Below button with padding, min 16px from top
-                    left: 50 // Centered horizontally
-                  });
-                  setActivePopup(classEntry.id);
-                }
-              }}
-            >
-              <MoreHorizontal className="menu-icon" />
-            </button>
+              <button
+                className="class-menu-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (activePopup === classEntry.id) {
+                    setActivePopup(null);
+                  } else {
+                    const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                    // Position dialog below button, centered on screen
+                    // But use button's Y position so it follows scroll
+                    onMenuClick?.(classEntry.id, {
+                      top: Math.max(16, rect.bottom + 16), // Below button with padding, min 16px from top
+                      left: 50 // Centered horizontally
+                    });
+                    setActivePopup(classEntry.id);
+                  }
+                }}
+              >
+                <MoreHorizontal className="menu-icon" />
+              </button>
+            </div>
+
+            {/* Release Control Badges - always stacked below action buttons */}
+            <div className="release-control-badges">
+              {/* Visibility Badge */}
+              <span className={`release-badge visibility-badge visibility-${classEntry.visibility_preset || 'standard'}`} title={`Visibility: ${classEntry.visibility_preset || 'standard'}`}>
+                <Eye size={6} style={{ width: '6px', height: '6px', flexShrink: 0 }} />
+                <span className="badge-text">{(classEntry.visibility_preset || 'standard').substring(0, 3).toUpperCase()}</span>
+              </span>
+
+              {/* Check-in Mode Badge */}
+              <span className={`release-badge checkin-badge ${classEntry.self_checkin_enabled ? 'self-checkin' : 'table-checkin'}`} title={`Check-in: ${classEntry.self_checkin_enabled ? 'Self' : 'Table'}`}>
+                <UserSquare size={6} style={{ width: '6px', height: '6px', flexShrink: 0 }} />
+                <span className="badge-text">{classEntry.self_checkin_enabled ? 'SLF' : 'TBL'}</span>
+              </span>
+            </div>
           </div>
 
           {/* Class name and judge grouped together */}
@@ -226,6 +246,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               <UserCheck />
               Judge: {classEntry.judge_name}
             </p>
+
             <div className="class-time-limits">
               <Clock size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
               <span className="time-limit-label">Max Time:</span>

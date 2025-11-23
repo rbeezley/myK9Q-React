@@ -416,14 +416,19 @@
   font-size: 1.125rem;
   font-weight: 590;
   color: var(--foreground);
-  line-height: 1.2;
+  line-height: 1.3;
   letter-spacing: -0.02em;
   transition: color 0.3s;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: calc(100% - 80px); /* Reserve space for action buttons */
+  /* Allow wrapping to show full class name with level */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  /* Limit to 2 lines to prevent excessive height */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .class-card:hover .class-name {
@@ -448,6 +453,111 @@
   opacity: 0.7;
 }
 
+/* ========== RELEASE CONTROL BADGES ========== */
+
+.release-control-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.release-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.3125rem;  /* 5px - smaller font */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0.6;  /* Slightly more visible for readability */
+  transition: opacity 0.2s;
+}
+
+.class-card:hover .release-badge {
+  opacity: 0.85;
+}
+
+.release-badge svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.release-badge .badge-text {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Visibility Badge Colors - more subtle */
+.visibility-badge.visibility-standard {
+  background: rgba(224, 242, 254, 0.4);
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.theme-dark .visibility-badge.visibility-standard {
+  background: rgba(12, 74, 110, 0.4);
+  color: #7dd3fc;
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+.visibility-badge.visibility-open {
+  background: rgba(219, 234, 254, 0.4);
+  color: #1e40af;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.theme-dark .visibility-badge.visibility-open {
+  background: rgba(30, 58, 138, 0.4);
+  color: #93c5fd;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.visibility-badge.visibility-review {
+  background: rgba(254, 226, 226, 0.4);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.theme-dark .visibility-badge.visibility-review {
+  background: rgba(127, 29, 29, 0.4);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Check-in Mode Badge Colors - more subtle */
+.checkin-badge.self-checkin {
+  background: rgba(220, 252, 231, 0.4);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.theme-dark .checkin-badge.self-checkin {
+  background: rgba(20, 83, 45, 0.4);
+  color: #86efac;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.checkin-badge.table-checkin {
+  background: rgba(254, 243, 199, 0.4);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.theme-dark .checkin-badge.table-checkin {
+  background: rgba(120, 53, 15, 0.4);
+  color: #fcd34d;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
 /* ========== CLASS ACTIONS ========== */
 
 .class-actions {
@@ -455,10 +565,18 @@
   top: 1.75rem;
   right: var(--token-space-md);
   display: flex;
-  flex-direction: column;
-  gap: var(--token-space-md);
-  align-items: center;
+  flex-direction: column; /* Always column - badges always below buttons */
+  gap: 6px;
+  align-items: flex-end;
   z-index: var(--token-z-raised);
+}
+
+/* Button group container - can be horizontal on larger screens */
+.action-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
 }
 
 /* Corner badge container - positioned in top-right */
@@ -1070,9 +1188,12 @@
     display: flex;
   }
 
-  /* Horizontal action buttons on tablet+ */
-  .class-actions {
+  /* Horizontal action buttons on tablet+ - only the button group, not the whole container */
+  .action-buttons-group {
     flex-direction: row;
+  }
+
+  .class-actions {
     top: var(--token-space-lg);
   }
 }

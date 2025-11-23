@@ -45,6 +45,8 @@ export interface ClassEntry {
   briefing_time?: string;
   break_until?: string;
   pairedClassId?: number; // For combined Novice A & B classes
+  self_checkin_enabled?: boolean; // Check-in mode
+  visibility_preset?: 'open' | 'standard' | 'review'; // Result visibility setting
   dogs: {
     id: number;
     armband: number;
@@ -265,6 +267,8 @@ async function processClassesWithEntries(
       briefing_time: cls.briefing_time || undefined,
       break_until: cls.break_until || undefined,
       start_time: cls.start_time || undefined,
+      self_checkin_enabled: cls.self_checkin_enabled ?? true, // Default to true (self check-in)
+      visibility_preset: 'standard' as const, // Will be populated by fetchClasses
       dogs: dogs,
     };
   });
@@ -355,6 +359,30 @@ async function fetchClasses(
             );
 
             console.log(`📊 [REPLICATION] Processed ${processedClasses.length} classes`);
+
+            // Fetch visibility presets for all classes
+            try {
+              const classIds = processedClasses.map(c => c.id);
+              const { data: visibilityData } = await supabase
+                .from('class_result_visibility_overrides')
+                .select('class_id, preset_name')
+                .in('class_id', classIds);
+
+              // Create map of class_id to preset_name
+              const visibilityMap = new Map<number, 'open' | 'standard' | 'review'>();
+              (visibilityData || []).forEach((override: any) => {
+                visibilityMap.set(override.class_id, override.preset_name);
+              });
+
+              // Update classes with their visibility presets
+              processedClasses.forEach(cls => {
+                cls.visibility_preset = visibilityMap.get(cls.id) || 'standard';
+              });
+            } catch (error) {
+              logger.error('❌ Error fetching visibility presets:', error);
+              // Continue with default 'standard' preset
+            }
+
             return processedClasses;
           }
 
@@ -475,6 +503,8 @@ async function fetchClasses(
       briefing_time: cls.briefing_time || undefined,
       break_until: cls.break_until || undefined,
       start_time: cls.start_time || undefined,
+      self_checkin_enabled: cls.self_checkin_enabled ?? true, // Default to true (self check-in)
+      visibility_preset: 'standard', // Will be populated below
       dogs: dogs
     };
   });
@@ -507,6 +537,29 @@ async function fetchClasses(
     // Quaternary sort: section (alphabetical)
     return a.section.localeCompare(b.section);
   });
+
+  // Fetch visibility presets for all classes
+  try {
+    const classIds = sortedClasses.map((c: any) => c.id);
+    const { data: visibilityData } = await supabase
+      .from('class_result_visibility_overrides')
+      .select('class_id, preset_name')
+      .in('class_id', classIds);
+
+    // Create map of class_id to preset_name
+    const visibilityMap = new Map<number, 'open' | 'standard' | 'review'>();
+    (visibilityData || []).forEach((override: any) => {
+      visibilityMap.set(override.class_id, override.preset_name);
+    });
+
+    // Update classes with their visibility presets
+    sortedClasses.forEach((cls: any) => {
+      cls.visibility_preset = visibilityMap.get(cls.id) || 'standard';
+    });
+  } catch (error) {
+    logger.error('❌ Error fetching visibility presets:', error);
+    // Continue with default 'standard' preset
+  }
 
   return sortedClasses;
 }

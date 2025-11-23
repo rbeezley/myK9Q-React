@@ -1,0 +1,267 @@
+/* Class Card Redesign Styles */
+.class-card-redesign {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem; /* 12px */
+  border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.1));
+  background-color: var(--bg-card, rgba(30, 41, 59, 0.7));
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  transition: all 0.3s ease;
+  box-shadow: var(--glass-shadow, 0 8px 32px 0 rgba(0, 0, 0, 0.3));
+  color: var(--text-primary, #f8fafc);
+  cursor: pointer;
+}
+
+.class-card-redesign:hover {
+  transform: scale(1.01);
+  border-color: var(--accent-glow, rgba(59, 130, 246, 0.3));
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Glow Effect */
+.glow-effect {
+  position: absolute;
+  top: -5rem;
+  left: -5rem;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  background-color: var(--accent-glow, rgba(59, 130, 246, 0.1));
+  filter: blur(40px);
+  transition: background-color 0.3s ease;
+  pointer-events: none;
+}
+
+.class-card-redesign:hover .glow-effect {
+  background-color: var(--accent-glow, rgba(59, 130, 246, 0.2));
+}
+
+.card-content {
+  position: relative;
+  padding: 1.25rem; /* 20px */
+}
+
+/* Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-title {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-primary, #fff);
+  margin: 0;
+}
+
+.sub-title {
+  font-size: 0.875rem; /* 14px */
+  color: var(--text-secondary, #94a3b8);
+  margin: 0;
+}
+
+/* Status Pill */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background-color: #60a5fa;
+  margin-right: 0.375rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+/* Actions */
+.card-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.class-card-redesign:hover .card-actions {
+  opacity: 1;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #fff);
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.info-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary, #64748b);
+  margin: 0;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #f8fafc);
+  margin: 0;
+}
+
+/* Badges */
+.badge-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(30, 41, 59, 0.5);
+  color: var(--text-secondary, #94a3b8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  margin: 1rem 0;
+}
+
+/* Footer */
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.next-up-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.next-up-label {
+  color: var(--text-tertiary, #64748b);
+}
+
+.chips-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary, #cbd5e1);
+}
+
+/* Progress Bar */
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-tertiary, #64748b);
+}
+
+.progress-track {
+  height: 0.375rem;
+  width: 100%;
+  background-color: rgba(30, 41, 59, 1);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 9999px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}

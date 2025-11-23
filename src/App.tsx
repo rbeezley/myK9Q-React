@@ -9,15 +9,29 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScoresheetErrorBoundary } from './components/ScoresheetErrorBoundary';
 import { PageLoader, ScoresheetLoader } from './components/LoadingSpinner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { OfflineIndicator, OfflineQueueStatus, AutoLogoutWarning } from './components/ui';
+import { MonitoringDashboard, PerformanceMonitor, NetworkInspector, StateInspector } from './components/monitoring';
+import { SubscriptionMonitor } from './components/debug/SubscriptionMonitor';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { ToastContainer } from './components/notifications/ToastContainer';
+import { NotificationCenter } from './components/notifications/NotificationCenter';
+import { applyDeviceClasses, startPerformanceMonitoring } from './utils/deviceDetection';
+import developerModeService from './services/developerMode';
+import { initializeSettings } from './stores/settingsStore';
+import { performanceMonitor } from './services/performanceMonitor';
+import { analyticsService } from './services/analyticsService';
+import { metricsApiService } from './services/metricsApiService';
+import { useSettingsStore } from './stores/settingsStore';
 import { useOneHandedMode } from './hooks/useOneHandedMode';
 import { useAutoLogout } from './hooks/useAutoLogout';
 import { usePushNotificationAutoSwitch } from './hooks/usePushNotificationAutoSwitch';
 import { useOfflineQueueProcessor } from './hooks/useOfflineQueueProcessor';
 import { useServiceWorkerMessages } from './hooks/useServiceWorkerMessages';
-import { useAppInitialization } from './hooks/useAppInitialization';
 import { useAuth } from './contexts/AuthContext';
-import { MainLayout } from './components/layout/MainLayout';
+import { notificationIntegration } from './services/notificationIntegration';
+import { scheduleAutoCleanup } from './utils/cacheManager';
 import { subscriptionCleanup } from './services/subscriptionCleanup';
+import { DatabaseRecovery } from './components/diagnostics/DatabaseRecovery';
 import './utils/quickRecovery'; // Auto-setup recovery functions
 // memoryLeakDetector auto-starts via its module initialization (dev mode only)
 
@@ -43,9 +57,9 @@ const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin
 const StatusPopupDemo = React.lazy(() => import('./demo/StatusPopupDemo'));
 
 // Lazy load scoresheets (grouped by organization for better chunking)
-const UKCObedienceScoresheet = React.lazy(() => 
-  import('./pages/scoresheets/UKC/UKCObedienceScoresheet').then(module => ({ 
-    default: module.UKCObedienceScoresheet 
+const UKCObedienceScoresheet = React.lazy(() =>
+  import('./pages/scoresheets/UKC/UKCObedienceScoresheet').then(module => ({
+    default: module.UKCObedienceScoresheet
   }))
 );
 const UKCRallyScoresheet = React.lazy(() =>
@@ -63,14 +77,14 @@ const AKCScentWorkScoresheetRouter = React.lazy(() =>
     default: module.AKCScentWorkScoresheetRouter
   }))
 );
-const AKCFastCatScoresheet = React.lazy(() => 
-  import('./pages/scoresheets/AKC/AKCFastCatScoresheet').then(module => ({ 
-    default: module.AKCFastCatScoresheet 
+const AKCFastCatScoresheet = React.lazy(() =>
+  import('./pages/scoresheets/AKC/AKCFastCatScoresheet').then(module => ({
+    default: module.AKCFastCatScoresheet
   }))
 );
-const ASCAScentDetectionScoresheet = React.lazy(() => 
-  import('./pages/scoresheets/ASCA/ASCAScentDetectionScoresheet').then(module => ({ 
-    default: module.ASCAScentDetectionScoresheet 
+const ASCAScentDetectionScoresheet = React.lazy(() =>
+  import('./pages/scoresheets/ASCA/ASCAScentDetectionScoresheet').then(module => ({
+    default: module.ASCAScentDetectionScoresheet
   }))
 );
 const TestScoresheet = React.lazy(() =>
@@ -174,253 +188,361 @@ function AppWithAuth() {
   // Clean up subscriptions on route changes
   useRouteChangeCleanup();
 
-  // Initialize device detection, performance monitoring, analytics, and other app services
-  useAppInitialization();
+  // Initialize device detection and performance monitoring
+  useEffect(() => {
+    // Prevent double initialization in React StrictMode
+    let cancelled = false;
+
+    if (!cancelled) {
+      // Initialize user settings (theme, font size, density, etc.)
+      initializeSettings();
+
+      // Replication handles all data caching and pending changes
+    }
+
+    // Apply device-specific CSS classes
+    applyDeviceClasses();
+
+    // Start monitoring performance and auto-adjust if needed
+    const stopMonitoring = startPerformanceMonitoring();
+
+    // Initialize performance and analytics monitoring
+    performanceMonitor.setEnabled(true);
+    analyticsService.setEnabled(true);
+
+    // Track initial page view
+    analyticsService.trackPageView(window.location.pathname);
+
+    // Initialize notification integration
+    notificationIntegration.initialize();
+
+    // Initialize developer tools
+    developerModeService.initialize();
+
+    // Schedule auto-cleanup of old cached data (runs daily)
+    scheduleAutoCleanup();
+
+    // Replication handles garbage collection of pending mutations
+
+    // 🧹 Start auto-cleanup for subscriptions (checks every 30 minutes)
+    const stopAutoCleanup = subscriptionCleanup.startAutoCleanup(30);
+
+    // 🔍 Start memory leak detection (development only, auto-starts via memoryLeakDetector.ts)
+    // The detector will warn in console if memory grows abnormally
+
+    // Send performance report on page unload (if monitoring enabled and has problems)
+    const handleBeforeUnload = async () => {
+      const { settings } = useSettingsStore.getState();
+
+      if (settings.enablePerformanceMonitoring) {
+        // Smart batching: only send if there are errors or poor performance
+        if (performanceMonitor.hasProblems()) {
+          const report = performanceMonitor.generateReport();
+          // Note: License key would need to come from auth context for proper implementation
+          // For now, send with generic ID
+          await metricsApiService.sendPerformanceReport(report, 'unknown');
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      cancelled = true;
+      stopMonitoring();
+      stopAutoCleanup();
+      notificationIntegration.destroy();
+      subscriptionCleanup.cleanupAll(); // Final cleanup on app unmount
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return (
-    <MainLayout autoLogout={autoLogout}>
+    <>
+      {/* PWA Install Banner - Smart banner that auto-hides when installed */}
+      <PWAInstallBanner />
+
+      {/* Database recovery component (shows only when corruption detected) */}
+      <DatabaseRecovery />
+
+      {/* Auto-logout warning modal */}
+      {autoLogout.showWarning && (
+        <AutoLogoutWarning
+          secondsRemaining={autoLogout.secondsRemaining}
+          onExtend={autoLogout.extendSession}
+          onLogoutNow={autoLogout.logoutNow}
+          onDismiss={autoLogout.dismissWarning}
+        />
+      )}
+
+      {/* In-App Notifications */}
+      <ToastContainer />
+      <NotificationCenter />
+
+      <OfflineIndicator />
+      <OfflineQueueStatus />
+      <MonitoringDashboard />
+
+      {/* Developer Tools (only in development mode) */}
+      <PerformanceMonitor />
+      <NetworkInspector />
+      <StateInspector />
+      <SubscriptionMonitor />
+
       <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route 
-            path="/home" 
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading dashboard..." />}>
-                  <Home />
-                </Suspense>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/dog/:armband" 
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading dog details..." />}>
-                  <DogDetails />
-                </Suspense>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/trial/:trialId/classes" 
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading classes..." />}>
-                  <ClassList />
-                </Suspense>
-              </ProtectedRoute>
-            } 
-          />
-          <Route
-            path="/class/:classId/entries"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading entries..." />}>
-                  <EntryList />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/class/:classIdA/:classIdB/entries/combined"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading combined entries..." />}>
-                  <CombinedEntryList />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/announcements"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading announcements..." />}>
-                  <Announcements />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading settings..." />}>
-                  <Settings />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stats"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading statistics..." />}>
-                  <Stats />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stats/trial/:trialId"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading trial statistics..." />}>
-                  <Stats />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stats/trial/:trialId/class/:classId"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading class statistics..." />}>
-                  <Stats />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/scoresheet/ukc-obedience/:classId/:entryId"
-            element={
-              <ProtectedRoute>
-                <ScoresheetErrorBoundary>
-                  <Suspense fallback={<ScoresheetLoader />}>
-                    <UKCObedienceScoresheet />
-                  </Suspense>
-                </ScoresheetErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route
-            path="/scoresheet/ukc-rally/:classId/:entryId"
-            element={
-              <ProtectedRoute>
-                <ScoresheetErrorBoundary>
-                  <Suspense fallback={<ScoresheetLoader />}>
-                    <UKCRallyScoresheet />
-                  </Suspense>
-                </ScoresheetErrorBoundary>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/scoresheet/ukc-nosework/:classId/:entryId"
-            element={
-              <ProtectedRoute>
-                <ScoresheetErrorBoundary>
-                  <Suspense fallback={<ScoresheetLoader />}>
-                    <UKCNoseworkScoresheet />
-                  </Suspense>
-                </ScoresheetErrorBoundary>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/scoresheet/akc-scent-work/:classId/:entryId"
-            element={
-              <ProtectedRoute>
-                <ScoresheetErrorBoundary>
-                  <Suspense fallback={<ScoresheetLoader />}>
-                    <AKCScentWorkScoresheetRouter />
-                  </Suspense>
-                </ScoresheetErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route
-            path="/test/scoresheet"
-            element={
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading dashboard..." />}>
+                <Home />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dog/:armband"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading dog details..." />}>
+                <DogDetails />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trial/:trialId/classes"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading classes..." />}>
+                <ClassList />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/class/:classId/entries"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading entries..." />}>
+                <EntryList />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/class/:classIdA/:classIdB/entries/combined"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading combined entries..." />}>
+                <CombinedEntryList />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading announcements..." />}>
+                <Announcements />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading settings..." />}>
+                <Settings />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stats"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading statistics..." />}>
+                <Stats />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stats/trial/:trialId"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading trial statistics..." />}>
+                <Stats />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stats/trial/:trialId/class/:classId"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading class statistics..." />}>
+                <Stats />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scoresheet/ukc-obedience/:classId/:entryId"
+          element={
+            <ProtectedRoute>
               <ScoresheetErrorBoundary>
                 <Suspense fallback={<ScoresheetLoader />}>
-                  <TestScoresheet />
+                  <UKCObedienceScoresheet />
                 </Suspense>
               </ScoresheetErrorBoundary>
-            }
-          />
-          <Route
-            path="/wireframe/nationals"
-            element={
-              <Suspense fallback={<PageLoader message="Loading wireframe..." />}>
-                <NationalsWireframe />
-              </Suspense>
-            }
-          />
-          <Route 
-            path="/scoresheet/akc-fastcat/:classId/:entryId" 
-            element={
-              <ProtectedRoute>
-                <ScoresheetErrorBoundary>
-                  <Suspense fallback={<ScoresheetLoader />}>
-                    <AKCFastCatScoresheet />
-                  </Suspense>
-                </ScoresheetErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/scoresheet/asca-scent-detection/:classId/:entryId" 
-            element={
-              <ProtectedRoute>
-                <ScoresheetErrorBoundary>
-                  <Suspense fallback={<ScoresheetLoader />}>
-                    <ASCAScentDetectionScoresheet />
-                  </Suspense>
-                </ScoresheetErrorBoundary>
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="/debug" element={<DatabaseTest />} />
-          <Route path="/test-connections" element={<TestConnections />} />
-          <Route path="/migration-test" element={<MigrationTest />} />
-          <Route
-            path="/demo/status-popup"
-            element={
-              <Suspense fallback={<PageLoader message="Loading demo..." />}>
-                <StatusPopupDemo />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/tv/:licenseKey"
-            element={
-              <Suspense fallback={<PageLoader message="Loading TV Display..." />}>
-                <TVRunOrder />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/:licenseKey"
-            element={
-              <Suspense fallback={<PageLoader message="Loading Competition Admin..." />}>
-                <CompetitionAdmin />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/metrics"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading Performance Metrics..." />}>
-                  <PerformanceMetricsAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scoresheet/ukc-rally/:classId/:entryId"
+          element={
+            <ProtectedRoute>
+              <ScoresheetErrorBoundary>
+                <Suspense fallback={<ScoresheetLoader />}>
+                  <UKCRallyScoresheet />
                 </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/:licenseKey/audit-log"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader message="Loading Audit Log..." />}>
-                  <AuditLog />
+              </ScoresheetErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scoresheet/ukc-nosework/:classId/:entryId"
+          element={
+            <ProtectedRoute>
+              <ScoresheetErrorBoundary>
+                <Suspense fallback={<ScoresheetLoader />}>
+                  <UKCNoseworkScoresheet />
                 </Suspense>
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/" element={<Landing />} />
+              </ScoresheetErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scoresheet/akc-scent-work/:classId/:entryId"
+          element={
+            <ProtectedRoute>
+              <ScoresheetErrorBoundary>
+                <Suspense fallback={<ScoresheetLoader />}>
+                  <AKCScentWorkScoresheetRouter />
+                </Suspense>
+              </ScoresheetErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/test/scoresheet"
+          element={
+            <ScoresheetErrorBoundary>
+              <Suspense fallback={<ScoresheetLoader />}>
+                <TestScoresheet />
+              </Suspense>
+            </ScoresheetErrorBoundary>
+          }
+        />
+        <Route
+          path="/wireframe/nationals"
+          element={
+            <Suspense fallback={<PageLoader message="Loading wireframe..." />}>
+              <NationalsWireframe />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/scoresheet/akc-fastcat/:classId/:entryId"
+          element={
+            <ProtectedRoute>
+              <ScoresheetErrorBoundary>
+                <Suspense fallback={<ScoresheetLoader />}>
+                  <AKCFastCatScoresheet />
+                </Suspense>
+              </ScoresheetErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scoresheet/asca-scent-detection/:classId/:entryId"
+          element={
+            <ProtectedRoute>
+              <ScoresheetErrorBoundary>
+                <Suspense fallback={<ScoresheetLoader />}>
+                  <ASCAScentDetectionScoresheet />
+                </Suspense>
+              </ScoresheetErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/debug" element={<DatabaseTest />} />
+        <Route path="/test-connections" element={<TestConnections />} />
+        <Route path="/migration-test" element={<MigrationTest />} />
+        <Route
+          path="/demo/status-popup"
+          element={
+            <Suspense fallback={<PageLoader message="Loading demo..." />}>
+              <StatusPopupDemo />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/demo/card-redesign"
+          element={
+            <div className="min-h-screen bg-black p-10 flex items-center justify-center">
+              <div className="w-full max-w-md">
+                <Suspense fallback={<div>Loading...</div>}>
+                  {React.createElement(React.lazy(() => import('./components/ClassCardRedesign').then(m => ({ default: m.ClassCardRedesign }))))}
+                </Suspense>
+              </div>
+            </div>
+          }
+        />
+        <Route
+          path="/tv/:licenseKey"
+          element={
+            <Suspense fallback={<PageLoader message="Loading TV Display..." />}>
+              <TVRunOrder />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/:licenseKey"
+          element={
+            <Suspense fallback={<PageLoader message="Loading Competition Admin..." />}>
+              <CompetitionAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/metrics"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading Performance Metrics..." />}>
+                <PerformanceMetricsAdmin />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/:licenseKey/audit-log"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading Audit Log..." />}>
+                <AuditLog />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Landing />} />
       </Routes>
-    </MainLayout>
+    </>
   );
 }
 
