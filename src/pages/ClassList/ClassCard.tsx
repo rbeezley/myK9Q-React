@@ -49,7 +49,7 @@ interface ClassCardProps {
   activePopup: number | null;
   getStatusColor: (status: ClassEntry['class_status'], classEntry?: ClassEntry) => string;
   getFormattedStatus: (classEntry: ClassEntry) => { label: string; time: string | null };
-  onMenuClick?: (classId: number, position: { top: number; left: number }) => void;
+  onMenuClick?: (classId: number) => void;
   onPrefetch?: () => void;
 }
 
@@ -169,14 +169,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 if (activePopup === classEntry.id) {
                   setActivePopup(null);
                 } else {
-                  const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
-                  // Position dialog below button, centered on screen
-                  // But use button's Y position so it follows scroll
-                  onMenuClick?.(classEntry.id, {
-                    top: Math.max(16, rect.bottom + 16), // Below button with padding, min 16px from top
-                    left: 50 // Centered horizontally
-                  });
-                  setActivePopup(classEntry.id);
+                  onMenuClick?.(classEntry.id);
                 }
               }}
             >

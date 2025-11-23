@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Clock, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -514,7 +515,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const dialogContent = (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog-container max-time-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
@@ -755,4 +756,6 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -53,7 +54,6 @@ export const ClassList: React.FC = () => {
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
   const [activePopup, setActivePopup] = useState<number | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
   const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
@@ -955,11 +955,8 @@ export const ClassList: React.FC = () => {
               activePopup={activePopup}
               getStatusColor={getStatusColor}
               getFormattedStatus={getFormattedStatus}
-              onMenuClick={(classId, position) => {
-                setActivePopup(null); // Close any existing popup
-                setPopupPosition(position);
-                // Re-open with new position
-                setTimeout(() => setActivePopup(classId), 0);
+              onMenuClick={(classId) => {
+                setActivePopup(classId);
               }}
               onPrefetch={() => handleClassPrefetch(classEntry.id)}
             />
@@ -968,41 +965,38 @@ export const ClassList: React.FC = () => {
       </div>
 
       {/* Navigation Menu Popup */}
-      {activePopup !== null && (
+      {activePopup !== null && createPortal(
         <div
-          className={`popup-overlay ${popupPosition ? 'popup-overlay--positioned' : ''}`}
+          className="dialog-overlay"
           onClick={() => setActivePopup(null)}
         >
           <div
-            className="popup-container"
+            className="dialog-container"
             onClick={(e) => e.stopPropagation()}
-            style={popupPosition ? {
-              position: 'fixed',
-              top: `${popupPosition.top}px`,
-              left: `${popupPosition.left}%`,
-              transform: 'translateX(-50%)',
-              margin: 0
-            } : {}}
           >
-            <div className="popup-content">
-              <h3>
-                <div className="popup-header-content">
-                  <div className="popup-title">Class Options</div>
-                  <div className="popup-subtitle">
-                    {classes.find(c => c.id === activePopup)?.class_name || ''}
-                  </div>
-                </div>
-                <button
-                  className="popup-close-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActivePopup(null);
-                  }}
-                  aria-label="Close"
-                >
-                  <X size={20} />
-                </button>
-              </h3>
+            <div className="dialog-header">
+              <div className="dialog-title">
+                <List className="title-icon" />
+                <span>Class Options</span>
+              </div>
+              <button
+                className="close-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActivePopup(null);
+                }}
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="dialog-content">
+              {/* Class Info Header */}
+              <div className="class-info-header">
+                <h3 className="class-title">
+                  {classes.find(c => c.id === activePopup)?.class_name || ''}
+                </h3>
+              </div>
               <div className="class-options-grid">
                 <button
                   className="class-option-item"
@@ -1113,7 +1107,8 @@ export const ClassList: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Class Requirements Dialog */}

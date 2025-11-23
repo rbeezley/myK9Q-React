@@ -1319,9 +1319,6 @@
     border-radius: 1rem;  /* Desktop: rounded corners */
   }
 
-  .class-options-grid {
-    max-height: calc(100vh - 12rem);  /* Desktop: smaller max-height */
-  }
 
   /* Show planned start time on tablet+ */
   .class-planned-time {
@@ -1573,11 +1570,9 @@
 /* Grid layout matching status dialog */
 .class-options-grid {
   display: grid;
-  grid-template-columns: 1fr;
   gap: var(--token-space-lg);
-  padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
-  overflow-y: auto;
-  max-height: calc(100vh - 8rem);  /* Mobile: taller max-height */
+  /* No padding - inherited from dialog-content wrapper */
+  /* grid-template-columns set in media query: 1fr (mobile), repeat(2, 1fr) (tablet+) */
 }
 
 /* Card-style option items matching status dialog */

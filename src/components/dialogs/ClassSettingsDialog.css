@@ -4,76 +4,73 @@
 .settings-form {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-lg);
+  gap: var(--token-space-sm); /* Compact layout */
 }
 
-/* Class Info Display */
-.settings-class-info {
-  background: var(--muted);
-  border-radius: var(--token-radius-md);
-  padding: var(--token-space-lg) var(--token-space-xl);
-  border-left: 4px solid var(--primary);
-  margin-bottom: var(--token-space-sm);
-}
-
-.settings-info-label {
-  font-size: 0.8rem;
-  color: var(--muted-foreground);
-  font-weight: var(--token-font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0;
-}
-
-.settings-info-value {
-  font-size: 1.05rem;
-  color: var(--foreground);
-  font-weight: var(--token-font-weight-semibold);
-  margin: var(--token-space-xs) 0 0 0;
-}
+/* Class Info Header - uses shared styles from ClassRequirementsDialog.css */
 
 /* Settings Section */
 .settings-section {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-md);
+  gap: var(--token-space-sm);
+}
+
+/* Compact Section - For Planned Start Time */
+.settings-section--compact {
+  gap: var(--token-space-xs);
+}
+
+.settings-optional {
+  font-size: 0.8rem;
+  font-weight: var(--token-font-weight-normal);
+  color: var(--muted-foreground);
 }
 
 /* Settings Item */
 .settings-item {
   display: flex;
-  flex-direction: column;  /* Mobile: column layout */
-  align-items: flex-start;  /* Mobile: align left */
-  gap: var(--token-space-lg);  /* Mobile: smaller gap */
-  padding: var(--token-space-lg);
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-sm) var(--token-space-lg);
   background: var(--muted);
   border-radius: var(--token-radius-md);
   border: 1px solid var(--border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .settings-item-header {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px; /* Tight spacing for single-row feel */
 }
 
 .settings-label {
   display: block;
   font-weight: var(--token-font-weight-semibold);
   color: var(--foreground);
-  margin: 0 0 var(--token-space-sm) 0;
-  font-size: 0.95rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .settings-description {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.4;
+  opacity: 0.85;
 }
 
 /* Time Input */
 .settings-time-input {
   width: 100%;
-  padding: var(--token-space-md) var(--token-space-lg);
+  padding: var(--token-space-sm) var(--token-space-md);
   border: 1px solid var(--border);
   border-radius: var(--token-radius-md);
   background: var(--background);
@@ -91,59 +88,112 @@
 
 .settings-time-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: var(--icon-filter, none);
+  opacity: 0.6;
+}
+
+.settings-time-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 .theme-dark .settings-time-input::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
 }
 
-/* Toggle Switch */
+.theme-dark .settings-time-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Toggle Switch - Professional & Refined */
 .settings-toggle-container {
   display: flex;
   align-items: center;
   gap: var(--token-space-md);
-  width: 100%;  /* Mobile: full width */
-  justify-content: space-between;  /* Mobile: space between toggle and label */
   flex-shrink: 0;
 }
 
 .settings-toggle {
   position: relative;
-  width: 40px;
-  height: 16px;
-  background: #cbd5e1;
+  width: 52px;
+  height: 28px;
+  background: linear-gradient(135deg, #cbd5e1 0%, #b0bcc9 100%);
   border: none;
-  border-radius: 8px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: background 0.25s ease;
-  padding: 1px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   flex-shrink: 0;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.settings-toggle:hover {
+  transform: scale(1.02);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.settings-toggle:active {
+  transform: scale(0.98);
+}
+
+.theme-dark .settings-toggle {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .settings-toggle--on {
-  background: var(--primary);
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(20, 184, 166, 0.4),
+    0 0 12px rgba(20, 184, 166, 0.2);
   justify-content: flex-end;
 }
 
+.theme-dark .settings-toggle--on {
+  background: linear-gradient(135deg, #14b8a6 0%, #0ea599 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(20, 184, 166, 0.5),
+    0 0 16px rgba(20, 184, 166, 0.3);
+}
+
 .settings-toggle-thumb {
-  width: 16px;
-  height: 16px;
-  background: white;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 50%;
-  transition: all 0.25s ease;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.15),
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.settings-toggle--on .settings-toggle-thumb {
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.15),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .settings-toggle-label {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  color: var(--foreground);
   font-weight: var(--token-font-weight-medium);
-  flex: 1;  /* Mobile: flexible width */
-  min-width: 60px;
+  white-space: nowrap;
+  opacity: 0.9;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease;
 }
 
 /* Info Box */
@@ -210,20 +260,20 @@
 
 /* Results Visibility Section */
 .settings-visibility-header {
-  margin-bottom: var(--token-space-sm);
+  margin-bottom: var(--token-space-xs);
 }
 
 .settings-visibility-options {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-md);
+  gap: var(--token-space-sm);
 }
 
 .settings-visibility-option {
   display: flex;
   align-items: flex-start;
-  gap: var(--token-space-lg);
-  padding: var(--token-space-md) var(--token-space-lg);
+  gap: var(--token-space-md);
+  padding: var(--token-space-sm) var(--token-space-md);
   background: var(--muted);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-md);
@@ -241,10 +291,10 @@
 }
 
 .settings-radio-input {
-  margin-top: var(--token-space-sm);
+  margin-top: 2px;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
   accent-color: var(--primary);
 }
@@ -253,34 +303,38 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-sm);
+  gap: 2px;
 }
 
 .settings-visibility-title {
   display: flex;
   align-items: center;
-  gap: var(--token-space-sm);
+  gap: var(--token-space-xs);
   font-weight: var(--token-font-weight-semibold);
   color: var(--foreground);
-  font-size: 0.95rem;
+  font-size: 0.875rem;
+  line-height: 1.3;
 }
 
 .settings-visibility-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .settings-visibility-description {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--foreground);
   font-weight: var(--token-font-weight-medium);
+  line-height: 1.3;
 }
 
 .settings-visibility-details {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
-  line-height: 1.4;
+  line-height: 1.35;
+  opacity: 0.85;
 }
 
 /* Selected state */
@@ -302,19 +356,24 @@
 }
 
 /* Dark Theme */
-.theme-dark .settings-class-info {
-  background: var(--foreground-dark);
-  border-left-color: var(--primary);
-}
-
 .theme-dark .settings-item {
-  background: var(--foreground-dark);
-  border-color: var(--background-soft);
+  background: var(--card);
+  border-color: var(--border);
 }
 
 .theme-dark .settings-info-box {
-  background: var(--foreground-dark);
+  background: var(--card);
   border-left-color: var(--primary);
+}
+
+.theme-dark .settings-visibility-option {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.theme-dark .settings-visibility-option:hover {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
 }
 
 /* Animations */
@@ -331,19 +390,5 @@
 
 /* Responsive Design - Mobile First */
 @media (min-width: 640px) {
-  .settings-item {
-    flex-direction: row;  /* Desktop: row layout */
-    align-items: center;  /* Desktop: center alignment */
-    justify-content: space-between;  /* Desktop: space between */
-    gap: var(--token-space-2xl);  /* Desktop: larger gap */
-  }
-
-  .settings-toggle-container {
-    width: auto;  /* Desktop: auto width */
-    justify-content: flex-end;  /* Desktop: align right */
-  }
-
-  .settings-toggle-label {
-    flex: initial;  /* Desktop: no flex */
-  }
+  /* Settings item already uses row layout at all screen sizes */
 }

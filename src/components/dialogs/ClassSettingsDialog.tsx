@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Settings, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { setClassVisibility } from '../../services/resultVisibilityService';
@@ -63,13 +64,12 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       if (data) {
         setSelfCheckinEnabled(data.self_checkin_enabled ?? true);
 
-        // Convert ISO timestamp to datetime-local format (YYYY-MM-DDTHH:MM)
+        // Extract just the time portion from ISO timestamp (HH:MM format)
         if (data.planned_start_time) {
           const date = new Date(data.planned_start_time);
-          const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 16);
-          setPlannedStartTime(localDateTime);
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          setPlannedStartTime(`${hours}:${minutes}`);
         } else {
           setPlannedStartTime('');
         }
@@ -102,12 +102,21 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       setErrorMessage('');
 
       // Update self check-in setting and planned start time
+      let plannedTimestamp: string | null = null;
+      if (plannedStartTime) {
+        // Convert time (HH:MM) to ISO timestamp using today's date
+        const [hours, minutes] = plannedStartTime.split(':');
+        const date = new Date();
+        date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        plannedTimestamp = date.toISOString();
+      }
+
       const updateData: {
         self_checkin_enabled: boolean;
         planned_start_time: string | null;
       } = {
         self_checkin_enabled: selfCheckinEnabled,
-        planned_start_time: plannedStartTime ? new Date(plannedStartTime).toISOString() : null
+        planned_start_time: plannedTimestamp
       };
 
       const { error: checkinError } = await supabase
@@ -151,21 +160,21 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const dialogContent = (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="dialog-header">
-          <h2 className="dialog-title">
-            <Settings size={24} />
-            Class Settings
-          </h2>
+          <div className="dialog-title">
+            <Settings className="title-icon" />
+            <span>Class Settings</span>
+          </div>
           <button
             className="close-button"
             onClick={onClose}
             aria-label="Close dialog"
           >
-            <X size={20} />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -177,10 +186,23 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
             </div>
           ) : (
             <div className="settings-form">
-              {/* Class Info */}
-              <div className="settings-class-info">
-                <p className="settings-info-label">{classData.element}</p>
-                <p className="settings-info-value">{classData.class_name}</p>
+              {/* Class Info Header */}
+              <div className="class-info-header">
+                <h3 className="class-title">{classData.class_name}</h3>
+              </div>
+
+              {/* Planned Start Time - Compact */}
+              <div className="settings-section settings-section--compact">
+                <label className="settings-label" htmlFor="planned-start-time">
+                  Planned Start Time <span className="settings-optional">(optional)</span>
+                </label>
+                <input
+                  id="planned-start-time"
+                  type="time"
+                  className="settings-time-input"
+                  value={plannedStartTime}
+                  onChange={(e) => setPlannedStartTime(e.target.value)}
+                />
               </div>
 
               {/* Self Check-in Toggle */}
@@ -206,27 +228,6 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       {selfCheckinEnabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
-                </div>
-              </div>
-
-              {/* Planned Start Time */}
-              <div className="settings-section">
-                <div className="settings-item">
-                  <div className="settings-item-header">
-                    <label className="settings-label" htmlFor="planned-start-time">
-                      Planned Start Time
-                    </label>
-                    <p className="settings-description">
-                      Scheduled start time for this class (optional)
-                    </p>
-                  </div>
-                  <input
-                    id="planned-start-time"
-                    type="datetime-local"
-                    className="settings-time-input"
-                    value={plannedStartTime}
-                    onChange={(e) => setPlannedStartTime(e.target.value)}
-                  />
                 </div>
               </div>
 
@@ -308,4 +309,6 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 };

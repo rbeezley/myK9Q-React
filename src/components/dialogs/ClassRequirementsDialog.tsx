@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Clock, Users, MapPin, AlertTriangle, Target, Ruler, Package, Speech } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -177,7 +178,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
   if (!isOpen) return null;
 
-  return (
+  const dialogContent = (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
@@ -335,4 +336,6 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 };
