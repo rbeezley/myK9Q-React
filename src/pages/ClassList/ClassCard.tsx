@@ -123,9 +123,13 @@ export const ClassCard: React.FC<ClassCardProps> = ({
       onMouseEnter={() => onPrefetch?.()}
       onTouchStart={() => onPrefetch?.()}
       onClick={(e) => {
-        // Don't navigate if clicking on interactive elements (buttons)
+        // Don't navigate if clicking on interactive elements (buttons) or status badge
         const target = e.target as HTMLElement;
-        if (target.closest('button')) {
+        if (
+          target.closest('button') ||
+          target.closest('.class-card-status-action') ||
+          target.closest('.status-badge')
+        ) {
           return;
         }
         handleViewEntries(classEntry);
