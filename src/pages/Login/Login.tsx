@@ -275,9 +275,12 @@ export const Login: React.FC = () => {
       )}
 
       {/* Login page */}
-      <div className="login-container">
-      {/* Purple gradient background matching Flutter */}
-      <div className="login-background" />
+      <div className="login-container page-transition">
+      {/* Integrated background matching Landing page */}
+      <div className="login-background">
+        <div className="background-diagonal"></div>
+        <div className="background-grid"></div>
+      </div>
       
       <div className="login-content">
         {/* Logo and Branding */}

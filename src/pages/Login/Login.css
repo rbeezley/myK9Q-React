@@ -1,5 +1,11 @@
 /* Modern Login Screen - Dark with Green Accents (Matches Landing Page) */
-/* Updated: 2025-11-01 - Typography sizing adjustments */
+/* Updated: 2025-11-22 - Integrated landing page background design */
+
+/* Import shared background styles */
+@import url('../../styles/landing-background.css');
+
+/* Import page transition animations */
+@import url('../../styles/page-transitions.css');
 
 /* Color Variables */
 :root {
@@ -26,28 +32,13 @@
   overflow: hidden;
 }
 
+/* Use shared background system with darker variant */
 .login-background {
   position: absolute;
   inset: 0;
   background: var(--login-dark-bg);
   z-index: var(--token-z-base);
-}
-
-/* Subtle green glow effect like landing page */
-.login-background::before {
-  content: '';
-  position: absolute;
-  top: -30%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(
-    circle,
-    rgba(62, 161, 115, 0.06) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
+  overflow: hidden;
 }
 
 .login-content {
@@ -68,7 +59,8 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 2.5rem;
-  animation: fadeInDown 0.6s ease-out;
+  /* Disable during page transition to avoid conflict */
+  /* animation: fadeInDown 0.6s ease-out; */
 }
 
 .logo-image {
@@ -99,7 +91,8 @@
   margin: var(--token-space-sm) 0 var(--token-space-md) 0;
   letter-spacing: -0.5px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  animation: fadeIn 0.6s ease-out 0.15s both;
+  /* Disabled to use page transition instead */
+  /* animation: fadeIn 0.6s ease-out 0.15s both; */
 }
 
 .login-container .tagline {
@@ -107,7 +100,8 @@
   font-weight: 600;
   margin: var(--token-space-md) 0;
   letter-spacing: 0.05em;
-  animation: fadeIn 0.6s ease-out 0.2s both;
+  /* Disabled to use page transition instead */
+  /* animation: fadeIn 0.6s ease-out 0.2s both; */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,7 +139,8 @@
   border-radius: var(--token-space-3xl);
   padding: var(--token-space-4xl) var(--token-space-4xl);
   box-shadow: 0 var(--token-space-lg) 48px rgba(0, 0, 0, 0.4), 0 var(--token-space-sm) var(--token-space-xl) rgba(0, 0, 0, 0.2);
-  animation: fadeInScale 0.6s ease-out 0.35s both;
+  /* Disabled to use page transition instead */
+  /* animation: fadeInScale 0.6s ease-out 0.35s both; */
 }
 
 .passcode-section {
@@ -276,6 +271,7 @@
   font-size: 0.9rem;
   margin-top: var(--token-space-xl);
   font-weight: 400;
+  /* Keep this animation - it's for errors after page loads */
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -293,7 +289,8 @@
   text-align: center;
   margin: var(--token-space-3xl) 0 var(--token-space-3xl) 0;
   padding: 0 var(--token-space-xl);
-  animation: fadeIn 0.6s ease-out 0.5s both;
+  /* Disabled to use page transition instead */
+  /* animation: fadeIn 0.6s ease-out 0.5s both; */
 }
 
 .info-text {
@@ -346,7 +343,8 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: var(--token-z-raised);
   backdrop-filter: blur(10px);
-  animation: fadeIn 0.6s ease-out 0.65s both;
+  /* Disabled to use page transition instead */
+  /* animation: fadeIn 0.6s ease-out 0.65s both; */
 }
 
 .help-button:hover {

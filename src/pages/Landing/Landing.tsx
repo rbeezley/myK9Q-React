@@ -3,22 +3,76 @@ import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Users, Award, Shield,
   Cloud, ChevronRight, Timer, Bell, Settings, Wifi, Zap, UserCheck,
-  BookOpen, Video, ExternalLink, ArrowRight
+  BookOpen, Video, ExternalLink, ArrowRight, Check, DollarSign, Menu, X
 } from 'lucide-react';
 import './Landing.css';
 
 export function Landing() {
   const navigate = useNavigate();
   const [isVisible] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleGetStarted = () => {
     navigate('/login');
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   return (
     <div className="landing-page">
+      {/* Sticky Navigation */}
+      <nav className="landing-nav">
+        <div className="nav-container">
+          <div className="nav-logo" onClick={() => scrollToSection('hero')}>
+            <img src="/myK9Q-teal-96.png" alt="myK9Q" className="nav-logo-img" />
+            <span className="nav-brand">myK9Q</span>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="nav-links">
+            <button onClick={() => scrollToSection('features')} className="nav-link">Features</button>
+            <button onClick={() => scrollToSection('capabilities')} className="nav-link">Capabilities</button>
+            <button onClick={() => scrollToSection('pricing')} className="nav-link">Pricing</button>
+            <button onClick={() => scrollToSection('resources')} className="nav-link">Resources</button>
+          </div>
+
+          <div className="nav-actions">
+            <button onClick={handleGetStarted} className="nav-cta">
+              <span>Get Started</span>
+              <ChevronRight className="nav-cta-icon" />
+            </button>
+            <button
+              className="nav-mobile-toggle"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="nav-mobile-menu">
+            <button onClick={() => scrollToSection('features')} className="nav-mobile-link">Features</button>
+            <button onClick={() => scrollToSection('capabilities')} className="nav-mobile-link">Capabilities</button>
+            <button onClick={() => scrollToSection('pricing')} className="nav-mobile-link">Pricing</button>
+            <button onClick={() => scrollToSection('resources')} className="nav-mobile-link">Resources</button>
+            <button onClick={handleGetStarted} className="nav-mobile-cta">
+              Get Started
+            </button>
+          </div>
+        )}
+      </nav>
+
       {/* Hero Section with Diagonal Energy */}
-      <section className="hero-section">
+      <section id="hero" className="hero-section">
         <div className="hero-background">
           <div className="hero-diagonal"></div>
           <div className="hero-grid"></div>
@@ -120,7 +174,7 @@ export function Landing() {
       </section>
 
       {/* Roles Section - Asymmetric Grid */}
-      <section className="roles-section">
+      <section id="features" className="roles-section">
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Built for every role</h2>
@@ -174,7 +228,7 @@ export function Landing() {
       </section>
 
       {/* Capabilities - Icon Grid */}
-      <section className="capabilities-section">
+      <section id="capabilities" className="capabilities-section">
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Enterprise-grade reliability</h2>
@@ -223,8 +277,100 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="pricing-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Simple, transparent pricing</h2>
+            <div className="title-accent"></div>
+          </div>
+
+          <div className="pricing-grid">
+            {/* Exhibitor Card - Free */}
+            <div className="pricing-card pricing-card-free">
+              <div className="pricing-badge">Most Popular</div>
+              <div className="pricing-icon-wrapper">
+                <Users className="pricing-icon" />
+              </div>
+              <h3 className="pricing-title">Exhibitors</h3>
+              <div className="pricing-price">
+                <span className="price-amount">Free</span>
+              </div>
+              <p className="pricing-desc">
+                Complete access to all exhibitor features at no cost
+              </p>
+              <ul className="pricing-features">
+                <li>
+                  <Check className="feature-check" />
+                  <span>Real-time results & notifications</span>
+                </li>
+                <li>
+                  <Check className="feature-check" />
+                  <span>Self check-in</span>
+                </li>
+                <li>
+                  <Check className="feature-check" />
+                  <span>Performance tracking</span>
+                </li>
+                <li>
+                  <Check className="feature-check" />
+                  <span>Offline access</span>
+                </li>
+              </ul>
+              <button onClick={handleGetStarted} className="pricing-button pricing-button-free">
+                <span>Get Started Free</span>
+                <ChevronRight className="btn-icon" />
+              </button>
+            </div>
+
+            {/* Club Card - $65 per show */}
+            <div className="pricing-card pricing-card-club">
+              <div className="pricing-icon-wrapper">
+                <Shield className="pricing-icon" />
+              </div>
+              <h3 className="pricing-title">Clubs</h3>
+              <div className="pricing-price">
+                <span className="price-currency">$</span>
+                <span className="price-amount">65</span>
+                <span className="price-period">per show</span>
+              </div>
+              <p className="pricing-desc">
+                Professional show management with complete control
+              </p>
+              <p className="pricing-note">
+                Requires mySWT or myNWT trial secretary software to upload entries
+              </p>
+              <ul className="pricing-features">
+                <li>
+                  <Check className="feature-check" />
+                  <span>Unlimited judges & stewards</span>
+                </li>
+                <li>
+                  <Check className="feature-check" />
+                  <span>Real-time synchronization</span>
+                </li>
+                <li>
+                  <Check className="feature-check" />
+                  <span>Auto exports & reports</span>
+                </li>
+              </ul>
+              <a
+                href="https://myk9t.com/product/myk9q-1-show/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pricing-button pricing-button-club"
+              >
+                <DollarSign className="btn-icon" />
+                <span>Buy License Key</span>
+                <ExternalLink className="btn-icon" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Resources Section */}
-      <section className="resources-section">
+      <section id="resources" className="resources-section">
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Learn myK9Q</h2>
