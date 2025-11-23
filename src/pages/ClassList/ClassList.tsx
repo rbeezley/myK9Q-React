@@ -23,7 +23,6 @@ import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
-import { getContextualPreview } from './utils/statusFormatting';
 
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();

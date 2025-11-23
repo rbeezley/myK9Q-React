@@ -123,7 +123,11 @@ export const ClassCard: React.FC<ClassCardProps> = ({
       onMouseEnter={() => onPrefetch?.()}
       onTouchStart={() => onPrefetch?.()}
       onClick={(e) => {
-        console.log('🔵 Class card clicked', e.target, e.currentTarget);
+        // Don't navigate if clicking on interactive elements (buttons)
+        const target = e.target as HTMLElement;
+        if (target.closest('button')) {
+          return;
+        }
         handleViewEntries(classEntry);
       }}
     >
