@@ -116,3 +116,6 @@ screenshots/
 dist.zip
 nul
 src/backups/
+
+# AKC Rulebook PDFs (large binary files)
+data/*.pdf

@@ -15,7 +15,10 @@
     "setup": "node scripts/setup-dev.cjs",
     "install-hooks": "node scripts/install-git-hooks.cjs",
     "postinstall": "node scripts/install-git-hooks.cjs",
-    "audit:design": "node .claude/skills/myk9q-design-system/tools/audit-design-system.js"
+    "audit:design": "node .claude/skills/myk9q-design-system/tools/audit-design-system.js",
+    "parse:rules": "tsx scripts/parse-akc-rulebook.ts",
+    "seed:rules": "tsx scripts/seed-akc-rules.ts",
+    "validate:rules": "tsx scripts/validate-rules-accuracy.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -33,6 +36,7 @@
     "date-fns": "^4.1.0",
     "idb": "^8.0.3",
     "lucide-react": "^0.554.0",
+    "pdfjs-dist": "^5.4.394",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.4.1",
@@ -63,6 +67,7 @@
     "jsdom": "^27.2.0",
     "puppeteer": "^24.30.0",
     "react-router-dom": "^7.9.6",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.2.2",
     "vite-plugin-pwa": "^1.1.0",

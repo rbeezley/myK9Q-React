@@ -48,7 +48,7 @@ async function getOrCreateOrganization(): Promise<string> {
   console.log('🏛️  Finding AKC organization...');
 
   // Check if AKC exists
-  const { data: existingOrg, error: checkError } = await supabase
+  const { data: existingOrg } = await supabase
     .from('rule_organizations')
     .select('id')
     .eq('code', 'AKC')
@@ -89,7 +89,7 @@ async function getScentWorkSport(): Promise<string> {
   console.log('🐕 Finding Scent Work sport...');
 
   // Check if Scent Work sport exists (code='scent-work' from migration)
-  const { data: existingSport, error: checkError } = await supabase
+  const { data: existingSport } = await supabase
     .from('rule_sports')
     .select('id')
     .eq('code', 'scent-work')
@@ -137,7 +137,7 @@ async function getOrCreateRulebook(): Promise<string> {
   console.log('\n📖 Finding rulebook...');
 
   // Check if rulebook exists
-  const { data: existingRulebook, error: checkError } = await supabase
+  const { data: existingRulebook } = await supabase
     .from('rulebooks')
     .select('id')
     .eq('organization_id', organizationId)
@@ -214,7 +214,7 @@ async function insertRules(rulebookId: string, rules: ParsedRule[]): Promise<voi
   for (let i = 0; i < rulesToInsert.length; i += batchSize) {
     const batch = rulesToInsert.slice(i, i + batchSize);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('rules')
       .insert(batch)
       .select('id, title');
@@ -240,7 +240,7 @@ async function insertRules(rulebookId: string, rules: ParsedRule[]): Promise<voi
 async function verifyInsertion(rulebookId: string): Promise<void> {
   console.log('\n🔍 Verifying insertion...');
 
-  const { data, error, count } = await supabase
+  const { error, count } = await supabase
     .from('rules')
     .select('*', { count: 'exact' })
     .eq('rulebook_id', rulebookId);

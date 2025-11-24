@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
+import { RulesAssistant } from '../rules/RulesAssistant';
 import './shared-ui.css';
 import { version } from '../../../package.json';
 
@@ -43,6 +44,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [_isAnimating, setIsAnimating] = useState(false);
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
+  const [isRulesAssistantOpen, setIsRulesAssistantOpen] = useState(false);
   const [isHelpExpanded, setIsHelpExpanded] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -180,6 +182,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               </button>
 
               <button
+                className="menu-item"
+                onClick={() => handleMenuItemClick(() => setIsRulesAssistantOpen(true))}
+              >
+                <FileText className="menu-icon" />
+                <span>Rules Assistant</span>
+              </button>
+
+              <button
                 className={`menu-item ${currentPage === 'settings' ? 'active' : ''}`}
                 onClick={() => handleMenuItemClick(() => navigate('/settings'))}
               >
@@ -297,6 +307,12 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         isOpen={isAboutDialogOpen}
         onClose={() => setIsAboutDialogOpen(false)}
         licenseKey={showContext?.licenseKey}
+      />
+
+      {/* Rules Assistant */}
+      <RulesAssistant
+        isOpen={isRulesAssistantOpen}
+        onClose={() => setIsRulesAssistantOpen(false)}
       />
     </>
   );

@@ -12,6 +12,8 @@ export interface RuleSearchRequest {
   limit?: number;
   level?: 'Novice' | 'Advanced' | 'Excellent' | 'Master';
   element?: 'Container' | 'Interior' | 'Exterior' | 'Buried';
+  organizationCode?: string;  // 'AKC', 'UKC', etc.
+  sportCode?: string;          // 'scent-work', 'nosework', etc.
 }
 
 export interface QueryAnalysis {
@@ -74,7 +76,7 @@ export class RulesService {
   static async searchRules(
     request: RuleSearchRequest
   ): Promise<RuleSearchResponse> {
-    const { query, limit = 5, level, element } = request;
+    const { query, limit = 5, level, element, organizationCode, sportCode } = request;
 
     // Validate query
     if (!query || query.trim().length === 0) {
@@ -85,22 +87,22 @@ export class RulesService {
       } as RulesServiceError;
     }
 
-    // Check cache
-    const cacheKey = JSON.stringify({ query: query.toLowerCase(), limit, level, element });
+    // Check cache (include org and sport in cache key)
+    const cacheKey = JSON.stringify({ query: query.toLowerCase(), limit, level, element, organizationCode, sportCode });
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       console.log('📚 [RulesService] Returning cached results for:', query);
       return cached.response;
     }
 
-    console.log('📚 [RulesService] Searching rules:', query);
+    console.log('📚 [RulesService] Searching rules:', query, organizationCode ? `(${organizationCode})` : '');
 
     try {
       // Call the Edge Function
       const { data, error } = await supabase.functions.invoke<RuleSearchResponse>(
-        'search-rules',
+        'search-rules-v2',
         {
-          body: { query, limit, level, element },
+          body: { query, limit, level, element, organizationCode, sportCode },
         }
       );
 
@@ -234,7 +236,7 @@ export class RulesService {
         if (parsed.query === query.toLowerCase()) {
           keysToDelete.push(key);
         }
-      } catch (e) {
+      } catch {
         // Invalid key, skip
       }
     }

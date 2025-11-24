@@ -25,7 +25,7 @@ interface ParsedRule {
 }
 
 // Path to the AKC Scent Work Regulations PDF
-const PDF_PATH = String.raw`D:\Access 2013 Applications\mySWT Build\full version 2.7.14\Documents\Scent_Work_Regulations.pdf`;
+const PDF_PATH = path.join(__dirname, '..', 'data', 'akc-scent-work-regulations.pdf');
 
 // Regex patterns for identifying content
 const LEVEL_PATTERNS = {
@@ -53,8 +53,14 @@ const MEASUREMENT_PATTERNS = {
   area_sq_ft: /(?:at least\s*)?(\d+)\s*(?:(?:to|and no more than)\s*(\d+))?\s*square\s*feet/i,
   time_minutes: /((?:\d+)|(?:zero|one|two|three|four|five|six|seven|eight|nine|ten))\s*minute[s]?/i,
   warning_seconds: /(\d+)\s*second\s*warning/i,
-  hides: /(\d+)\s*(?:to\s*(\d+))?\s*hide[s]?/i,
-  height_inches: /(?:at least\s*)?(\d+)\s*(?:to\s*(\d+))?\s*(?:inch|")(?:es)?/i,
+  // Enhanced hide patterns - capture ranges, single numbers, and "unknown" indicators
+  hides: /(?:Hides?:\s*)?(\d+)\s*(?:[-–to]\s*(\d+))?\s*(?:\(?\s*[Uu]nknown\s*\)?)?/i,
+  hides_range: /(\d+)\s*[-–]\s*(\d+)\s*hide[s]?/i,
+  hides_table: /Hides?:\s*(\d+)\s*[-–]?\s*(\d+)?(?:\s*\(?\s*([Uu]nknown|[Kk]nown)\s*\)?)?/i,
+  // Height only matches when explicitly about height/tall/high, not general measurements
+  height_inches: /(?:height|tall|high).*?(\d+)\s*(?:to\s*(\d+))?\s*(?:inch|")(?:es)?/i,
+  // Spacing pattern for container distances
+  spacing_inches: /(?:distance|spacing|apart).*?(\d+)\s*(?:inch|")(?:es)?/i,
   leash_feet: /(\d+)\s*foot\s*leash/i,
   containers: /(\d+)\s*(?:identical\s*)?(?:cardboard\s*)?(?:box\s*)?containers/i,
 };
@@ -84,7 +90,7 @@ function extractElement(text: string): string | null {
 }
 
 /**
- * Extract measurements from text
+ * Extract measurements from text - ENHANCED version
  */
 function extractMeasurements(text: string): Record<string, any> {
   const measurements: Record<string, any> = {};
@@ -114,22 +120,90 @@ function extractMeasurements(text: string): Record<string, any> {
     measurements.warning_seconds = parseInt(warningMatch[1]);
   }
 
-  // Hides
-  const hidesMatch = text.match(MEASUREMENT_PATTERNS.hides);
-  if (hidesMatch) {
-    measurements.min_hides = parseInt(hidesMatch[1]);
-    if (hidesMatch[2]) {
-      measurements.max_hides = parseInt(hidesMatch[2]);
+  // Hides - enhanced to capture from tables and narrative text
+
+  // First check for narrative "one, two, three, or four" pattern (Master level)
+  const narrativeMatch = text.match(/(?:one|1),?\s*(?:two|2),?\s*(?:three|3),?\s*(?:or|and)?\s*(?:four|4)\s*(?:of the boxes|hides)?/i);
+  if (narrativeMatch && /unknown/i.test(text)) {
+    measurements.min_hides = 1;
+    measurements.max_hides = 4;
+    measurements.hides_known = false;
+  }
+
+  // Try table row pattern: "1-4 (Unknown)" at end of row
+  if (measurements.min_hides === undefined) {
+    // Look for patterns like "1 (Known)   2 (Known)   3 (Known)   1-4 (Unknown)"
+    // Match ALL hide entries and take the last one for the highest level
+    const allHideMatches = Array.from(text.matchAll(/(\d+)(?:-(\d+))?\s*\(\s*([Uu]nknown|[Kk]nown)\s*\)/g));
+    if (allHideMatches.length > 0) {
+      // Take the last match (Master level)
+      const lastMatch = allHideMatches[allHideMatches.length - 1];
+      measurements.min_hides = parseInt(lastMatch[1]);
+      if (lastMatch[2]) {
+        measurements.max_hides = parseInt(lastMatch[2]);
+      } else {
+        measurements.max_hides = measurements.min_hides;
+      }
+      measurements.hides_known = lastMatch[3].toLowerCase() === 'known';
     }
   }
 
-  // Height
+  // Fallback: Try simple patterns if not already set
+  if (measurements.min_hides === undefined) {
+    // Try table format: "Hides: 1-4 (Unknown)"
+    let hidesTableMatch = text.match(MEASUREMENT_PATTERNS.hides_table);
+    if (hidesTableMatch) {
+      measurements.min_hides = parseInt(hidesTableMatch[1]);
+      if (hidesTableMatch[2]) {
+        measurements.max_hides = parseInt(hidesTableMatch[2]);
+      } else {
+        measurements.max_hides = measurements.min_hides;
+      }
+      if (hidesTableMatch[3]) {
+        measurements.hides_known = hidesTableMatch[3].toLowerCase() === 'known';
+      }
+    } else {
+      // Try range pattern "1-4 hides" or "1 to 4 hides"
+      const hidesRangeMatch = text.match(MEASUREMENT_PATTERNS.hides_range);
+      if (hidesRangeMatch) {
+        measurements.min_hides = parseInt(hidesRangeMatch[1]);
+        measurements.max_hides = parseInt(hidesRangeMatch[2]);
+      } else {
+        // Try basic pattern (but avoid matching "36 inches")
+        const hidesMatch = text.match(/(\d+)\s*hide[s]?(?!\s*(?:inches|apart))/i);
+        if (hidesMatch) {
+          measurements.min_hides = parseInt(hidesMatch[1]);
+          measurements.max_hides = measurements.min_hides;
+        }
+      }
+    }
+  }
+
+  // Final check for unknown status if not already set
+  if (measurements.min_hides !== undefined && measurements.hides_known === undefined) {
+    if (/unknown\s*number/i.test(text) || /number.*unknown/i.test(text) ||
+        /\(unknown\)/i.test(text)) {
+      measurements.hides_known = false;
+    } else if (/\(known\)/i.test(text)) {
+      measurements.hides_known = true;
+    } else if (/hide/i.test(text)) {
+      measurements.hides_known = true;
+    }
+  }
+
+  // Height (excluding "inches apart" which is spacing, not height)
   const heightMatch = text.match(MEASUREMENT_PATTERNS.height_inches);
   if (heightMatch) {
     measurements.min_height_inches = parseInt(heightMatch[1]);
     if (heightMatch[2]) {
       measurements.max_height_inches = parseInt(heightMatch[2]);
     }
+  }
+
+  // Container spacing (e.g., "36 inches apart")
+  const spacingMatch = text.match(MEASUREMENT_PATTERNS.spacing_inches);
+  if (spacingMatch) {
+    measurements.container_spacing_inches = parseInt(spacingMatch[1]);
   }
 
   // Leash length
@@ -142,6 +216,76 @@ function extractMeasurements(text: string): Record<string, any> {
   const containersMatch = text.match(MEASUREMENT_PATTERNS.containers);
   if (containersMatch) {
     measurements.num_containers = parseInt(containersMatch[1]);
+  }
+
+  // === ENHANCED EXTRACTIONS ===
+
+  // Scent/Odor types
+  const scents: string[] = [];
+  if (/\bBirch\b/i.test(text)) scents.push('Birch');
+  if (/\bAnise\b/i.test(text)) scents.push('Anise');
+  if (/\bClove\b/i.test(text)) scents.push('Clove');
+  if (/\bCypress\b/i.test(text)) scents.push('Cypress');
+  if (scents.length > 0) {
+    measurements.target_odors = scents;
+  }
+
+  // Distractions - count and types
+  const distractionMatch = text.match(/(\d+)\s*(?:non-food\s*)?distraction/i);
+  if (distractionMatch) {
+    measurements.num_distractions = parseInt(distractionMatch[1]);
+
+    const distractionTypes: string[] = [];
+    if (/non-food/i.test(text)) distractionTypes.push('non-food');
+    if (/\bfood\b/i.test(text) && !/non-food/i.test(text.substring(text.indexOf('food')))) distractionTypes.push('food');
+    if (/auditory/i.test(text)) distractionTypes.push('auditory');
+    if (/visual/i.test(text)) distractionTypes.push('visual');
+    if (/human/i.test(text)) distractionTypes.push('human');
+    if (/mimic/i.test(text)) distractionTypes.push('mimic');
+
+    if (distractionTypes.length > 0) {
+      measurements.distraction_types = distractionTypes;
+    }
+  } else if (/no distraction/i.test(text) || /without.*distraction/i.test(text)) {
+    measurements.num_distractions = 0;
+  }
+
+  // Required calls
+  const requiredCalls: string[] = [];
+  if (/must call.*"Alert"/i.test(text) || /handler must call "Alert"/i.test(text)) {
+    requiredCalls.push('Alert');
+  }
+  if (/must call.*"Finish"/i.test(text) || /handler must call "Finish"/i.test(text)) {
+    requiredCalls.push('Finish');
+  }
+  if (requiredCalls.length > 0) {
+    measurements.required_calls = requiredCalls;
+  }
+
+  // Container arrangement patterns
+  const rowsMatch = text.match(/(\d+)\s*rows?\s*of\s*(\d+)/i);
+  if (rowsMatch) {
+    measurements.container_arrangement = `${rowsMatch[1]} rows of ${rowsMatch[2]}`;
+  }
+  if (/circle/i.test(text) && /formation/i.test(text)) {
+    const current = measurements.container_arrangement || '';
+    measurements.container_arrangement = current ? `${current}, circle, or U-formation` : 'circle or U-formation';
+  } else if (/[""]U[""] formation/i.test(text)) {
+    const current = measurements.container_arrangement || '';
+    measurements.container_arrangement = current ? `${current} or U-formation` : 'U-formation';
+  }
+
+  // Distance between containers
+  const distanceMatch = text.match(/(\d+)[""]?\s*apart/i);
+  if (distanceMatch) {
+    measurements.min_spacing_inches = parseInt(distanceMatch[1]);
+  }
+
+  // Container type
+  if (/identical.*cardboard.*box/i.test(text)) {
+    measurements.container_type = 'Identical cardboard boxes';
+  } else if (/various.*size.*type/i.test(text)) {
+    measurements.container_type = 'Various size and type';
   }
 
   return Object.keys(measurements).length > 0 ? measurements : {};
@@ -202,7 +346,71 @@ function determineCategory(text: string): string {
 }
 
 /**
- * Parse the PDF and extract rules
+ * Extract all sections from a chapter automatically
+ */
+function extractAllSections(chapterText: string, chapterNum: number): ParsedRule[] {
+  const rules: ParsedRule[] = [];
+
+  // Find all section headers in this chapter
+  // Pattern: "Section 1. Title" or "Section 1   Title"
+  const sectionMatches = chapterText.matchAll(/Section\s+(\d+)[.\s]+([^\n]+?)(?=\s{2,}|\.(?:\s|$))/g);
+  const sections = Array.from(sectionMatches);
+
+  console.log(`   Found ${sections.length} sections in Chapter ${chapterNum}`);
+
+  // Extract content for each section
+  for (let i = 0; i < sections.length; i++) {
+    const match = sections[i];
+    const sectionNum = match[1];
+    const title = match[2].trim();
+    const sectionStartIdx = match.index!;
+
+    // Find where this section ends (start of next section or end of chapter)
+    let sectionEndIdx: number;
+    if (i < sections.length - 1) {
+      sectionEndIdx = sections[i + 1].index!;
+    } else {
+      sectionEndIdx = chapterText.length;
+    }
+
+    // Extract content between section header and next section
+    const sectionContent = chapterText.substring(sectionStartIdx, sectionEndIdx);
+
+    // Remove the section header line to get just content
+    const contentMatch = sectionContent.match(/Section\s+\d+[.\s]+[^\n]+?[.:]\s*(.*?)$/s);
+    const content = contentMatch ? contentMatch[1].trim() : sectionContent.trim();
+
+    // Skip if content is too short (likely parsing error)
+    if (content.length < 10) {
+      continue;
+    }
+
+    // Extract metadata
+    const level = extractLevel(title + ' ' + content);
+    const element = extractElement(title + ' ' + content);
+    const measurements = extractMeasurements(content);
+    const keywords = generateKeywords(content, level, element);
+    const category = determineCategory(content);
+
+    rules.push({
+      section: `Chapter ${chapterNum}, Section ${sectionNum}`,
+      title,
+      content,
+      level,
+      element,
+      category,
+      keywords,
+      measurements,
+    });
+
+    console.log(`   ✓ Section ${sectionNum}: ${title.substring(0, 50)}${title.length > 50 ? '...' : ''}`);
+  }
+
+  return rules;
+}
+
+/**
+ * Parse the PDF and extract ALL rules from ALL chapters
  */
 async function parsePDF(): Promise<ParsedRule[]> {
   console.log(`📄 Reading PDF: ${PDF_PATH}`);
@@ -229,103 +437,93 @@ async function parsePDF(): Promise<ParsedRule[]> {
   }
 
   console.log(`   - Text length: ${fullText.length} characters`);
-  console.log('\n🔍 Extracting rules...\n');
+  console.log('\n🔍 Automatically extracting ALL sections from ALL chapters...\n');
 
   const rules: ParsedRule[] = [];
 
-  // Parse Chapter 7 (Odor Search Division) - Find the actual chapter content
-  const chapter7StartIdx = fullText.indexOf('CHAPTER 7');
-  if (chapter7StartIdx >= 0) {
-    // Get text from CHAPTER 7 to CHAPTER 8
-    const chapter8Idx = fullText.indexOf('CHAPTER 8', chapter7StartIdx);
-    let chapter7Text = chapter8Idx >= 0
-      ? fullText.substring(chapter7StartIdx, chapter8Idx)
-      : fullText.substring(chapter7StartIdx);
+  // Find all chapters (CHAPTER 1, CHAPTER 2, etc.)
+  const chapterMatches = fullText.matchAll(/CHAPTER\s+(\d+)/g);
+  const chapters = Array.from(chapterMatches);
 
-    // Remove page headers that appear as "CHAPTER 7" followed by page numbers
-    // These interfere with regex matching
-    chapter7Text = chapter7Text.replace(/CHAPTER\s+7\s+\d+/g, '');
+  console.log(`📚 Found ${chapters.length} chapters\n`);
 
-    // Extract rules for each element and level combination
-    const elements = ['Container', 'Interior', 'Exterior', 'Buried'];
-    const levels = ['Novice', 'Advanced', 'Excellent', 'Master'];
+  // Extract rules from each chapter
+  for (let i = 0; i < chapters.length; i++) {
+    const chapterMatch = chapters[i];
+    const chapterNum = parseInt(chapterMatch[1]);
+    const chapterStartIdx = chapterMatch.index!;
 
-    elements.forEach((element, elemIdx) => {
-      levels.forEach(level => {
-        // Pattern: "Container Novice Class :" or "Interior Advanced Class :"
-        const pattern = new RegExp(`${element}\\s+${level}\\s+Class\\s*:(.*?)(?=${element}\\s+(?:Novice|Advanced|Excellent|Master)|Interior|Exterior|Buried|Container|CHAPTER|$)`, 's');
-        const match = chapter7Text.match(pattern);
+    // Find where this chapter ends (start of next chapter or end of document)
+    let chapterEndIdx: number;
+    if (i < chapters.length - 1) {
+      chapterEndIdx = chapters[i + 1].index!;
+    } else {
+      chapterEndIdx = fullText.length;
+    }
 
-        if (match) {
-          const content = match[1].trim();
+    // Extract chapter text
+    let chapterText = fullText.substring(chapterStartIdx, chapterEndIdx);
 
-          const section = `Chapter 7, Section ${elemIdx + 4}`;
-          const title = `${element} ${level} Requirements`;
+    // Remove page headers (e.g., "CHAPTER 5 31")
+    chapterText = chapterText.replace(new RegExp(`CHAPTER\\s+${chapterNum}\\s+\\d+`, 'g'), '');
 
-          // Extract measurements
-          const measurements = extractMeasurements(content);
+    console.log(`\n📖 Chapter ${chapterNum}:`);
 
-          // Extract keywords
-          const keywords = generateKeywords(content, level, element);
+    // Extract all sections from this chapter
+    const chapterRules = extractAllSections(chapterText, chapterNum);
+    rules.push(...chapterRules);
 
-          // Determine category
-          const category = determineCategory(content);
+    // Special handling for Chapter 7 - extract element/level class requirements
+    if (chapterNum === 7) {
+      const elements = ['Container', 'Interior', 'Exterior', 'Buried'];
+      const levels = ['Novice', 'Advanced', 'Excellent', 'Master'];
 
-          rules.push({
-            section,
-            title,
-            content,
-            level,
-            element,
-            category,
-            keywords,
-            measurements,
-          });
+      console.log('   Extracting element/level class requirements...');
 
-          console.log(`✓ Extracted: ${title}`);
-        }
-      });
-    });
-  } else {
-    console.log('⚠️  Could not find CHAPTER 7');
-  }
+      elements.forEach((element, elemIdx) => {
+        levels.forEach(level => {
+          // Build lookahead that only matches actual section headers after sentence endings
+          const nextSectionPatterns = [];
+          for (const el of elements) {
+            for (const lv of levels) {
+              nextSectionPatterns.push(`\\s\\s+${el}\\s+${lv}\\s+Class\\s*:`);
+            }
+          }
+          const nextSectionPattern = nextSectionPatterns.join('|');
 
-  // Parse Chapter 5 (General Requirements) for common rules
-  const chapter5Match = fullText.match(/Chapter 5.*?Requirements Applying to All Classes(.*?)(?=Chapter 6|$)/s);
-  if (chapter5Match) {
-    const chapter5Text = chapter5Match[1];
+          const pattern = new RegExp(`${element}\\s+${level}\\s+Class\\s*:(.*?)(?=${nextSectionPattern}|Section\\s+\\d+\\.|$)`, 's');
+          const match = chapterText.match(pattern);
 
-    // Extract specific sections that are important general rules
-    const generalSections = [
-      { num: '1', title: 'Search Area Size', pattern: /Section 1\.\s*Search Area Size(.*?)(?=Section 2|$)/s },
-      { num: '13', title: 'Collars, Leashes, and Harnesses', pattern: /Section 13\.\s*Collars, Leashes, and Harnesses(.*?)(?=Section 14|$)/s },
-      { num: '16', title: '"Alert" Calls', pattern: /Section 16\.\s*"Alert" Calls(.*?)(?=Section 17|$)/s },
-      { num: '20', title: 'Rewards and Reinforcers', pattern: /Section 20\.\s*Rewards and Reinforcers(.*?)(?=Section 21|$)/s },
-    ];
+          if (match) {
+            const content = match[1].trim();
 
-    generalSections.forEach(({ num, title, pattern }) => {
-      const match = chapter5Text.match(pattern);
-      if (match) {
-        const content = match[1].trim();
-        const section = `Chapter 5, Section ${num}`;
-        const measurements = extractMeasurements(content);
-        const keywords = generateKeywords(content, null, null);
-        const category = determineCategory(content);
+            // Skip if too short or already extracted
+            if (content.length < 50) {
+              return;
+            }
 
-        rules.push({
-          section,
-          title,
-          content,
-          level: null,
-          element: null,
-          category,
-          keywords,
-          measurements,
+            const section = `Chapter 7, Section ${elemIdx + 4}`;
+            const title = `${element} ${level} Requirements`;
+            const measurements = extractMeasurements(content);
+            const keywords = generateKeywords(content, level, element);
+            const category = determineCategory(content);
+
+            rules.push({
+              section,
+              title,
+              content,
+              level,
+              element,
+              category,
+              keywords,
+              measurements,
+            });
+
+            console.log(`   ✓ ${title}`);
+          }
         });
-
-        console.log(`✓ Extracted: ${title}`);
-      }
-    });
+      });
+    }
   }
 
   console.log(`\n✅ Extracted ${rules.length} rules from PDF`);

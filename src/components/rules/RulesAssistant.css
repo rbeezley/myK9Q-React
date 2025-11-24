@@ -106,6 +106,31 @@
   background-color: var(--border);
 }
 
+/* Beta Disclaimer */
+.rules-beta-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--token-space-md);
+  padding: var(--token-space-lg) var(--token-space-2xl);
+  background-color: rgba(251, 191, 36, 0.1);
+  border-left: 3px solid #f59e0b;
+  color: var(--foreground);
+  font-size: var(--token-font-xs);
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.rules-beta-disclaimer svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #f59e0b;
+}
+
+.rules-beta-disclaimer strong {
+  font-weight: var(--token-font-weight-semibold);
+  color: #d97706;
+}
+
 /* Search Container */
 .rules-search-container {
   padding: var(--token-space-xl) var(--token-space-2xl);
@@ -187,6 +212,25 @@
   cursor: not-allowed;
 }
 
+/* Search Instruction - shown when user types but hasn't searched */
+.rules-search-instruction {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-md) var(--token-space-2xl);
+  background-color: rgba(20, 184, 166, 0.1);
+  border-left: 3px solid var(--primary);
+  color: var(--primary);
+  font-size: var(--token-font-xs);
+  font-weight: var(--token-font-weight-medium);
+  line-height: 1.4;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.rules-search-instruction svg {
+  flex-shrink: 0;
+}
+
 /* Help Text */
 .rules-help-text {
   display: flex;
@@ -250,7 +294,37 @@
   line-height: 1.6;
   color: var(--foreground);
   font-weight: var(--token-font-weight-medium);
+  margin-bottom: var(--token-space-lg);
+}
+
+.rules-report-issue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-md);
+  background-color: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--token-space-md);
+  color: #dc2626;
+  font-size: var(--token-font-xs);
+  font-weight: var(--token-font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s;
   margin-bottom: var(--token-space-md);
+}
+
+.rules-report-issue-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: #dc2626;
+}
+
+.rules-report-issue-btn:active {
+  background-color: rgba(239, 68, 68, 0.15);
+  transform: scale(0.98);
+}
+
+.rules-report-issue-btn svg {
+  flex-shrink: 0;
 }
 
 .rules-source-hint {

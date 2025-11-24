@@ -4,9 +4,11 @@ import {  X,
   Search,
   Loader2,
   AlertCircle,
-  Info
+  Info,
+  Flag
 } from 'lucide-react';
 import { RulesService, type Rule, type RulesServiceError } from '../../services/rulesService';
+import { useAuth } from '../../contexts/AuthContext';
 import './RulesAssistant.css';
 
 interface RulesAssistantProps {
@@ -15,6 +17,7 @@ interface RulesAssistantProps {
 }
 
 export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose }) => {
+  const { showContext } = useAuth();
   const [query, setQuery] = useState('');
   const [answer, setAnswer] = useState<string | null>(null);
   const [results, setResults] = useState<Rule[]>([]);
@@ -22,9 +25,31 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
   const [error, setError] = useState<string | null>(null);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
+  const [_isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Debounced search
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  // Parse organization and sport from showContext.org (e.g., "AKC Scent Work")
+  const parseOrgAndSport = (orgString: string): { organizationCode: string; sportCode: string } => {
+    const parts = orgString.trim().split(/\s+/);
+    const organizationCode = parts[0] || 'AKC'; // First word is organization
+    const sportName = parts.slice(1).join(' ').toLowerCase(); // Rest is sport name
+
+    // Map sport names to codes
+    const sportCodeMap: Record<string, string> = {
+      'scent work': 'scent-work',
+      'nosework': 'nosework',
+      'obedience': 'obedience',
+      'rally': 'rally',
+      'fast cat': 'fast-cat',
+      // Add more mappings as needed
+    };
+
+    const sportCode = sportCodeMap[sportName] || 'scent-work'; // Default to scent-work
+    return { organizationCode, sportCode };
+  };
+
+  const { organizationCode, sportCode } = showContext?.org
+    ? parseOrgAndSport(showContext.org)
+    : { organizationCode: 'AKC', sportCode: 'scent-work' }; // Fallback defaults
 
   const handleSearch = useCallback(async (searchQuery: string, forceRefresh = false) => {
     if (!searchQuery.trim()) {
@@ -32,6 +57,15 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
       setAnswer(null);
       setError(null);
       setSearchPerformed(false);
+      return;
+    }
+
+    // Check if online before searching
+    if (!navigator.onLine) {
+      setError('Rules Assistant requires an internet connection. Please connect to the internet and try again.');
+      setSearchPerformed(true);
+      setAnswer(null);
+      setResults([]);
       return;
     }
 
@@ -50,7 +84,11 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
         RulesService.clearCacheForQuery(searchQuery);
       }
 
-      const response = await RulesService.searchRules({ query: searchQuery });
+      const response = await RulesService.searchRules({
+        query: searchQuery,
+        organizationCode,
+        sportCode
+      });
 
       // Wait for minimum time to show loading state
       const elapsed = Date.now() - startTime;
@@ -81,33 +119,15 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
-
-    // Clear existing timeout
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-
-    // Set new timeout for debounced search (800ms)
-    const timeout = setTimeout(() => {
-      handleSearch(newQuery);
-    }, 800);
-
-    setSearchTimeout(timeout);
   };
 
   const handleSearchClick = () => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
     // Force a fresh search when button is clicked explicitly
     handleSearch(query, true);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
       // Force a fresh search when Enter is pressed
       handleSearch(query, true);
     }
@@ -115,6 +135,19 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
 
   const toggleRuleExpansion = (ruleId: string) => {
     setExpandedRuleId(expandedRuleId === ruleId ? null : ruleId);
+  };
+
+  const handleReportIssue = () => {
+    // For now, show an alert. Later this can be enhanced to send to a feedback system
+    alert(
+      `Thank you for helping improve the Rules Assistant!\n\n` +
+      `To report this issue:\n\n` +
+      `1. Email: support@myk9q.com\n` +
+      `2. Include your question: "${query}"\n` +
+      `3. Describe what's incorrect\n` +
+      `4. (Optional) Include the correct answer\n\n` +
+      `We review all feedback to improve accuracy.`
+    );
   };
 
   const formatMeasurement = (key: string, value: any): string => {
@@ -126,6 +159,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
       max_height_inches: 'Max Height',
       min_hides: 'Min Hides',
       max_hides: 'Max Hides',
+      hides_known: 'Hides Known to Handler',
       num_containers: 'Containers',
       max_leash_length_feet: 'Max Leash',
       warning_seconds: 'Warning Time',
@@ -144,8 +178,36 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
     const label = labels[key] || key;
     const unit = units[key] || '';
 
-    return `${label}: ${value}${unit ? ' ' + unit : ''}`;
+    // Format boolean values as Yes/No
+    let displayValue = value;
+    if (typeof value === 'boolean') {
+      displayValue = value ? 'Yes' : 'No';
+    }
+
+    return `${label}: ${displayValue}${unit ? ' ' + unit : ''}`;
   };
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setError(null);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      if (query.trim()) {
+        setError('Rules Assistant requires an internet connection. Please connect to the internet and try again.');
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [query]);
 
   // Clear search when panel closes
   useEffect(() => {
@@ -156,11 +218,8 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
       setError(null);
       setSearchPerformed(false);
       setExpandedRuleId(null);
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
     }
-  }, [isOpen, searchTimeout]);
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -196,6 +255,14 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
           </button>
         </div>
 
+        {/* Beta Disclaimer */}
+        <div className="rules-beta-disclaimer">
+          <AlertCircle size={16} />
+          <span>
+            <strong>Beta Feature:</strong> This assistant is being refined. Please verify critical information against the official rulebook.
+          </span>
+        </div>
+
         {/* Search Input */}
         <div className="rules-search-container">
           <div className="rules-search-input-wrapper">
@@ -222,8 +289,16 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
           </button>
         </div>
 
+        {/* Search Instruction */}
+        {query.trim() && !searchPerformed && !isLoading && (
+          <div className="rules-search-instruction">
+            <Info size={14} />
+            <span>Press Enter or click Search to find rules</span>
+          </div>
+        )}
+
         {/* Help Text */}
-        {!searchPerformed && (
+        {!searchPerformed && !query.trim() && (
           <div className="rules-help-text">
             <Info size={16} />
             <span>
@@ -245,6 +320,14 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
           <div className="rules-answer-section">
             <div className="rules-answer-label">Answer:</div>
             <div className="rules-answer-text">{answer}</div>
+            <button
+              onClick={handleReportIssue}
+              className="rules-report-issue-btn"
+              title="Report an incorrect answer"
+            >
+              <Flag size={14} />
+              <span>Report Issue</span>
+            </button>
             {results.length > 0 && (
               <div className="rules-source-hint">
                 View full rule details below for complete context
