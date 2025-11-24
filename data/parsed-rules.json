@@ -1,0 +1,423 @@
+[
+  {
+    "section": "Chapter 7, Section 4",
+    "title": "Container Novice Requirements",
+    "content": "Ten identical cardboard box containers (see Chapter 5, Section 11 above for size requirements) are laid out on the floor of the search area   The boxes are arranged in two rows of five containers   Each box must be at least 12\" apart, and each row must be at least 36\" apart   The search area must be at least 250 and no more than 400 square feet   One of the containers holds the target odor of Birch   The dog has two minutes to locate the container with the target scent and communicate the find to its handler   The handler must call “Alert” when the dog indicates the find   The",
+    "level": "Novice",
+    "element": "Container",
+    "category": "Search Area",
+    "keywords": [
+      "novice",
+      "container",
+      "area",
+      "size",
+      "search",
+      "handler",
+      "dog",
+      "requirement"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 250,
+      "max_area_sq_ft": 400,
+      "time_limit_minutes": 2,
+      "min_height_inches": 12
+    }
+  },
+  {
+    "section": "Chapter 7, Section 4",
+    "title": "Container Advanced Requirements",
+    "content": "Fifteen containers of various size and type are laid out on the floor of the search area   The containers may be arranged in three rows of five containers, in a circle, or in a “U” formation   Each container must be at least 12\" apart, and if rows are used, each row must be at least 36\" apart   The search area must be at least 400 and no more than 600 square feet   Two of the containers hold the target odor, which may be Birch or Anise (each scent vessel may contain the same odor, or one may contain Birch and the other may contain Anise)   One non-food distraction will be placed in the search area   The distraction may be in a container or loose in the search area  If in a container, it may NOT be in the same container as the odor   The dog has two minutes to locate the containers with the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates each find   After the second “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The",
+    "level": "Advanced",
+    "element": "Container",
+    "category": "Search Area",
+    "keywords": [
+      "advanced",
+      "container",
+      "area",
+      "size",
+      "time",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "distraction"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 400,
+      "max_area_sq_ft": 600,
+      "time_limit_minutes": 2,
+      "min_height_inches": 12
+    }
+  },
+  {
+    "section": "Chapter 7, Section 4",
+    "title": "Container Excellent Requirements",
+    "content": "Twenty containers of various size and type are laid out on the floor of the search area   The containers may be arranged in four rows of five containers, in a circle, or in a “U” formation   Each container must be at least 12\" apart, and if rows are used, each row must be at least 36\" apart   The search area must be at least 600 and no more than 800 square feet   The target odors will be hidden in three of the containers   There will be two distractions at this level, and may be non-food, food, auditory, or visual   The target odors at this level will be Birch and/or Anise and/or Clove   The dog has three minutes to locate the containers with the target scent and communicate the finds to its handler   The handler must call “Alert” when the dog indicates each find   After the third “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The",
+    "level": "Excellent",
+    "element": "Container",
+    "category": "Search Area",
+    "keywords": [
+      "excellent",
+      "container",
+      "area",
+      "size",
+      "time",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "distraction"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 600,
+      "max_area_sq_ft": 800,
+      "time_limit_minutes": 3,
+      "min_height_inches": 12
+    }
+  },
+  {
+    "section": "Chapter 7, Section 4",
+    "title": "Container Master Requirements",
+    "content": "Twenty containers of various size and type are laid out on the floor of the search area   The containers may be arranged in four rows of five containers, in a circle, or in a “U” formation   Each container must be at least 12\" apart, and if rows are used, each row must be at least 36\" apart   The search area must be at least 600 and no more than 800 square feet   The target odor(s) will    The",
+    "level": "Master",
+    "element": "Container",
+    "category": "Search Area",
+    "keywords": [
+      "master",
+      "container",
+      "area",
+      "size",
+      "search"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 600,
+      "max_area_sq_ft": 800,
+      "min_height_inches": 12
+    }
+  },
+  {
+    "section": "Chapter 7, Section 5",
+    "title": "Interior Novice Requirements",
+    "content": "The target odor is hidden in a room or part of a room with an area of not less than 100 and not more than 200 square feet   The target odor of Birch is hidden on, under, or in an object within the room   There is one hide at this level, which must be accessible and may not be located higher than 24 inches (2 feet) off the floor   There will be no intentional distractions   The dog must find the target scent and communicate the find to its handler   The handler must call “Alert” when the dog indicates the find   The time limit is set by the judge and must be between 1 and 3 minutes   The",
+    "level": "Novice",
+    "element": "Interior",
+    "category": "Search Area",
+    "keywords": [
+      "novice",
+      "interior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "handler",
+      "dog",
+      "judge",
+      "distraction",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 200,
+      "time_limit_minutes": 3,
+      "min_height_inches": 24
+    }
+  },
+  {
+    "section": "Chapter 7, Section 5",
+    "title": "Interior Advanced Requirements",
+    "content": "The target odors are hidden in a room or part of a room with an area of not less than 200 and not more than 400 square feet   The target odors of Birch and/or Anise are hidden within the search area   There are two hides at this level, which must be accessible and may not be located higher than 36 inches (3 feet) off the floor   There will be one non-food distraction   The dog must find the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates each find   After the second “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The time limit is set by the judge and must be between 1 and 3 minutes   The",
+    "level": "Advanced",
+    "element": "Interior",
+    "category": "Search Area",
+    "keywords": [
+      "advanced",
+      "interior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "judge",
+      "distraction",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 400,
+      "time_limit_minutes": 3,
+      "min_height_inches": 36
+    }
+  },
+  {
+    "section": "Chapter 7, Section 5",
+    "title": "Interior Excellent Requirements",
+    "content": "The target odors of Birch and/or Clove and/ or Anise are hidden in two distinct search areas in one or more rooms, or part of a room   The separation of these two distinct search areas must conform to the “proximity of search areas” requirements laid out in Chapter 7, Section 3 (the dog should not encounter odor from    Search Area 2 while searching Area 1)   It is not sufficient to simply divide a single room in half to create two search areas   The total space of the two search areas must not be less than 400 and not more than 800 square feet   Each search area will be worked independently, with a separate time limit   There are three hides at this level   The exact number of hides per search area will not be communicated to the handler; they will only know that there are three total between the two areas   Two of the hides must be accessible and none may be located higher than 48 inches (4 feet) off the floor   There are two distractions, which may be non-food, food, auditory, or visual   The dog must find the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates each find   When the handler believes that all hides have been found in the search area, then he/she must call “Finish” to stop the time for that search area   The process will be repeated for the second search area, with the “Alert” call(s) and the “Finish” call to stop the time   The time limit is set by the judge and must be between 1 and 3 minutes per search area   The",
+    "level": "Excellent",
+    "element": "Interior",
+    "category": "Search Area",
+    "keywords": [
+      "excellent",
+      "interior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "judge",
+      "requirement",
+      "distraction",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 800,
+      "time_limit_minutes": 3,
+      "min_height_inches": 48
+    }
+  },
+  {
+    "section": "Chapter 7, Section 5",
+    "title": "Interior Master Requirements",
+    "content": "The target odor(s) of Birch and/or Clove and/or Anise and/or Cypress are hidden in three distinct search areas in one or more rooms, or part of a room   The separation of these distinct search areas must conform to the “proximity of search areas” requirements laid out in Chapter 7, Section 3 (the dog should not encounter odor from Search Area 2 while searching Area 1)   It is not sufficient to simply divide a single room in half to create two search areas   The total space of all search areas must be not less than 600 and not more than 1000 square feet   Each search area will be worked independently, with a separate time limit   There are an unknown number of hides per area: either zero, one, two, or three (with a maximum of six hides for the entire class)   Any or all hides may be inaccessible, but none may be located higher than 60 inches (5 feet) off the floor   One of the search areas may be “blank” (with no hide) if the judge chooses   An area cannot be used as a blank area if it was used for a hide at any time during that trial weekend or set of trials  There are three distractions, which may be non-food, food, auditory, visual, human, or mimic   The dog must find the target scent(s) and communicate the find(s) to its handler   The handler must call “Alert” when the dog indicates each find   When the handler believes that all hides have been found in the search area, then he/she must call “Finish” to stop the time   The time limit is set by the judge and must be between 1 and 3 minutes per search area   The timer will not give a 30-second warning at this level (but handlers can self-time, if they wish)   The",
+    "level": "Master",
+    "element": "Interior",
+    "category": "Search Area",
+    "keywords": [
+      "master",
+      "interior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "judge",
+      "warning",
+      "requirement",
+      "maximum",
+      "distraction",
+      "inaccessible",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 1000,
+      "time_limit_minutes": 3,
+      "min_height_inches": 60
+    }
+  },
+  {
+    "section": "Chapter 7, Section 6",
+    "title": "Exterior Novice Requirements",
+    "content": "The target odor of Birch is hidden in an outdoor area at least 200 but not more than 400 square feet   There is one hide at this level, which must be accessible and may not be located higher than 24 inches (2 feet) above the ground   There will be no intentional distractions   The dog must find the target scent and communicate the find to its handler   The handler must call “Alert” when the dog indicates the find   The time limit is set by the judge and must be between 2 and 4 minutes   The",
+    "level": "Novice",
+    "element": "Exterior",
+    "category": "Search Area",
+    "keywords": [
+      "novice",
+      "exterior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "handler",
+      "dog",
+      "judge",
+      "distraction",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 400,
+      "time_limit_minutes": 4,
+      "min_height_inches": 24
+    }
+  },
+  {
+    "section": "Chapter 7, Section 6",
+    "title": "Exterior Advanced Requirements",
+    "content": "The target odors of Birch and/or Anise are hidden in an outdoor area at least 400 but not more than 800 square feet   There are two hides at this level, which must be accessible and may not be located higher than 36 inches (3 feet) above the ground  There will be one non-food distraction   The dog must find the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates the finds   After the second “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The time limit is set by the judge and must be between 2 and 4 minutes   The",
+    "level": "Advanced",
+    "element": "Exterior",
+    "category": "Search Area",
+    "keywords": [
+      "advanced",
+      "exterior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "hides",
+      "handler",
+      "dog",
+      "judge",
+      "distraction",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 800,
+      "time_limit_minutes": 4,
+      "min_height_inches": 36
+    }
+  },
+  {
+    "section": "Chapter 7, Section 6",
+    "title": "Exterior Excellent Requirements",
+    "content": "The target odors of Birch and/or Anise and/or Clove are hidden in an outdoor area not less than 800 but not more than 1500 square feet   There are three hides at this level, one of which may be inaccessible, and none of which may be located higher than 48 inches (4 feet) above the ground   There are two distractions, which may be non-food, food, auditory, or visual   The dog must find the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates the finds   After the third “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The time limit is set by the judge and must be between 3 and 5 minutes   The",
+    "level": "Excellent",
+    "element": "Exterior",
+    "category": "Search Area",
+    "keywords": [
+      "excellent",
+      "exterior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "hides",
+      "handler",
+      "dog",
+      "judge",
+      "distraction",
+      "inaccessible",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 1500,
+      "time_limit_minutes": 5,
+      "min_height_inches": 48
+    }
+  },
+  {
+    "section": "Chapter 7, Section 6",
+    "title": "Exterior Master Requirements",
+    "content": "The target odor(s) of Birch and/or Anise and/ or Clove and/or Cypress are hidden in an outdoor area not less than 1500 but not more than 2000 square feet   There are one, two, three, or four hides at this level, all of which may be inaccessible, none of which may be located higher than 60 inches (5 feet) above the ground  The exact number of hides is not known to the handler   There are three distractions, which may be non-food, food, auditory, visual, human, or mimic   The handler must call “Alert” when the dog indicates the finds  When the handler believes that all hides have been located he/she must call “Finish” to stop the time   The time limit is set by the judge and must be between 3 and 5 minutes   The timer will not give a 30-second warning at this level (but handlers can self-time, if they wish)   The",
+    "level": "Master",
+    "element": "Exterior",
+    "category": "Search Area",
+    "keywords": [
+      "master",
+      "exterior",
+      "area",
+      "time",
+      "limit",
+      "hide",
+      "hides",
+      "handler",
+      "dog",
+      "judge",
+      "warning",
+      "distraction",
+      "inaccessible",
+      "accessible"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 2000,
+      "time_limit_minutes": 5,
+      "min_height_inches": 60
+    }
+  },
+  {
+    "section": "Chapter 7, Section 7",
+    "title": "Buried Novice Requirements",
+    "content": "Six tote boxes will be placed in the search area, in two rows of three, at least 36 inches apart   The search area must be at least 150 but not more than 200 square feet   Each box will be filled equally, with enough sand that the buried scent vessel will be covered with four inches of sand   One of the boxes will conceal a scent vessel containing Birch   There are no intentional distractions at this level  The dog has two minutes to locate the target scent and communicate the find to its handler   The handler must call “Alert” when the dog indicates the find   The",
+    "level": "Novice",
+    "element": "Buried",
+    "category": "Search Area",
+    "keywords": [
+      "novice",
+      "buried",
+      "area",
+      "search",
+      "handler",
+      "dog",
+      "distraction"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 200,
+      "time_limit_minutes": 2,
+      "min_height_inches": 36
+    }
+  },
+  {
+    "section": "Chapter 7, Section 7",
+    "title": "Buried Advanced Requirements",
+    "content": "Eight tote boxes will be placed in the search area, in any arrangement, at least 36 inches apart   The search area must be at least 200 but not more than 400 square feet   Each box will be filled equally, with enough water that the submerged scent vessel will be covered with four inches of water   Each of the boxes will have a scent vessel affixed to the bottom   Two of the scent vessels will contain a scent aid scented with either Birch or Anise   There is one non-food distraction at this level   The dog has three minutes to locate the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates each find   After the second “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The",
+    "level": "Advanced",
+    "element": "Buried",
+    "category": "Search Area",
+    "keywords": [
+      "advanced",
+      "buried",
+      "area",
+      "time",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "distraction"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 400,
+      "time_limit_minutes": 3,
+      "min_height_inches": 36
+    }
+  },
+  {
+    "section": "Chapter 7, Section 7",
+    "title": "Buried Excellent Requirements",
+    "content": "Twelve tote boxes will be placed in the search area, in any arrangement, at least 36 inches apart   The search area must be at least 300 but not more than 400 square feet   Six of the boxes must contain sand, and six must contain water, filled equally with enough material that the scent vessel is covered with four inches of material   The boxes containing water will each have a scent vessel affixed to the bottom, which may or may not conceal one of the target odors   Three of the boxes will contain a scent aid scented with either Birch, Anise, or Clove   There are two distractions, which may be non-food, food, auditory, or visual   Distractions are not buried or submerged   The dog has four minutes to locate the target scents and communicate the finds to its handler   The handler must call “Alert” when the dog indicates each find   After the third “Alert” call, the handler must call “Finish” to indicate that all hides have been found and to stop the time   The",
+    "level": "Excellent",
+    "element": "Buried",
+    "category": "Search Area",
+    "keywords": [
+      "excellent",
+      "buried",
+      "area",
+      "time",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "distraction"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 400,
+      "time_limit_minutes": 4,
+      "min_height_inches": 36
+    }
+  },
+  {
+    "section": "Chapter 7, Section 7",
+    "title": "Buried Master Requirements",
+    "content": "Sixteen tote boxes will be placed in the search area, in any arrangement, at least 36 inches apart   The search area must be at least 400 but not more than 500 square feet   Eight of these boxes must contain sand, and eight must contain water, filled equally with enough material that the scent vessel is covered with four inches    of material   The boxes containing water will each have a scent vessel affixed to the bottom, which may or may not conceal one of the target odors   There are an unknown number of hides at this level; one, two, three, or four of the boxes will contain a scent aid scented with Birch, Anise, Clove, or Cypress   There are three distractions, which may be non-food, food, auditory, visual, human, or mimic   Distractions are not buried or submerged   The dog has five minutes to locate the target scent(s) and communicate the find(s) to its handler   The handler must call “Alert” when the dog indicates the find   When the handler believes that all hides have been located he/she must call “Finish” to stop the time   The timer will not give a 30-second warning at this level (but handlers are allowed to self-time, if they wish)   The",
+    "level": "Master",
+    "element": "Buried",
+    "category": "Search Area",
+    "keywords": [
+      "master",
+      "buried",
+      "area",
+      "time",
+      "hide",
+      "hides",
+      "search",
+      "handler",
+      "dog",
+      "warning",
+      "distraction"
+    ],
+    "measurements": {
+      "min_area_sq_ft": 500,
+      "time_limit_minutes": 5,
+      "min_height_inches": 36
+    }
+  }
+]
