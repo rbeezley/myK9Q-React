@@ -90,9 +90,22 @@ function extractElement(text: string): string | null {
 }
 
 /**
- * Extract measurements from text - ENHANCED version
+ * Map level names to table column indices (0-based)
+ * Tables typically have columns: Novice | Advanced | Excellent | Master
  */
-function extractMeasurements(text: string): Record<string, any> {
+const LEVEL_TO_INDEX: Record<string, number> = {
+  'Novice': 0,
+  'Advanced': 1,
+  'Excellent': 2,
+  'Master': 3,
+};
+
+/**
+ * Extract measurements from text - ENHANCED version
+ * @param text - The text content to extract measurements from
+ * @param level - Optional level (Novice/Advanced/Excellent/Master) for table column selection
+ */
+function extractMeasurements(text: string, level?: string): Record<string, any> {
   const measurements: Record<string, any> = {};
 
   // Square feet (area)
@@ -133,18 +146,27 @@ function extractMeasurements(text: string): Record<string, any> {
   // Try table row pattern: "1-4 (Unknown)" at end of row
   if (measurements.min_hides === undefined) {
     // Look for patterns like "1 (Known)   2 (Known)   3 (Known)   1-4 (Unknown)"
-    // Match ALL hide entries and take the last one for the highest level
+    // Match ALL hide entries and select based on level (Novice=0, Advanced=1, Excellent=2, Master=3)
     const allHideMatches = Array.from(text.matchAll(/(\d+)(?:-(\d+))?\s*\(\s*([Uu]nknown|[Kk]nown)\s*\)/g));
     if (allHideMatches.length > 0) {
-      // Take the last match (Master level)
-      const lastMatch = allHideMatches[allHideMatches.length - 1];
-      measurements.min_hides = parseInt(lastMatch[1]);
-      if (lastMatch[2]) {
-        measurements.max_hides = parseInt(lastMatch[2]);
+      // Select match based on level, or fall back to last match if level not provided
+      let matchIndex: number;
+      if (level && LEVEL_TO_INDEX[level] !== undefined) {
+        // Use level-based index, but clamp to available matches
+        matchIndex = Math.min(LEVEL_TO_INDEX[level], allHideMatches.length - 1);
+      } else {
+        // Fallback: last match (legacy behavior for Master or unknown level)
+        matchIndex = allHideMatches.length - 1;
+      }
+
+      const selectedMatch = allHideMatches[matchIndex];
+      measurements.min_hides = parseInt(selectedMatch[1]);
+      if (selectedMatch[2]) {
+        measurements.max_hides = parseInt(selectedMatch[2]);
       } else {
         measurements.max_hides = measurements.min_hides;
       }
-      measurements.hides_known = lastMatch[3].toLowerCase() === 'known';
+      measurements.hides_known = selectedMatch[3].toLowerCase() === 'known';
     }
   }
 
@@ -388,7 +410,7 @@ function extractAllSections(chapterText: string, chapterNum: number): ParsedRule
     // Extract metadata
     const level = extractLevel(title + ' ' + content);
     const element = extractElement(title + ' ' + content);
-    const measurements = extractMeasurements(content);
+    const measurements = extractMeasurements(content, level);
     const keywords = generateKeywords(content, level, element);
     const category = determineCategory(content);
 
@@ -504,7 +526,7 @@ async function parsePDF(): Promise<ParsedRule[]> {
 
             const section = `Chapter 7, Section ${elemIdx + 4}`;
             const title = `${element} ${level} Requirements`;
-            const measurements = extractMeasurements(content);
+            const measurements = extractMeasurements(content, level);
             const keywords = generateKeywords(content, level, element);
             const category = determineCategory(content);
 
@@ -548,6 +570,37 @@ async function main() {
 
     console.log(`\n✅ Parsing complete!`);
     console.log(`   - Extracted ${rules.length} rules`);
+
+    // Load and merge authoritative measurements
+    const authDataPath = path.join(__dirname, '../data/authoritative-measurements.json');
+    if (fs.existsSync(authDataPath)) {
+      console.log('\n📊 Merging authoritative measurements...');
+      const authData = JSON.parse(fs.readFileSync(authDataPath, 'utf8'));
+      const scentWorkData = authData.sports?.['akc-scent-work']?.elements;
+
+      if (scentWorkData) {
+        let mergeCount = 0;
+        rules.forEach((rule) => {
+          // Match rules by element and level
+          const element = rule.element;
+          const level = rule.level;
+
+          if (element && level && scentWorkData[element]?.[level]) {
+            const authMeasurements = scentWorkData[element][level];
+            // Merge authoritative measurements into rule (authoritative wins)
+            rule.measurements = {
+              ...rule.measurements,
+              ...authMeasurements,
+            };
+            rule.measurementsSource = 'authoritative';
+            mergeCount++;
+          }
+        });
+        console.log(`   - Merged authoritative data for ${mergeCount} rules`);
+      }
+    } else {
+      console.log('\n⚠️  No authoritative measurements file found, using parsed data only');
+    }
 
     // Save to JSON file for review
     const outputPath = path.join(__dirname, '../data/parsed-rules.json');
