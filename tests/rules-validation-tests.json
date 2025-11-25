@@ -244,10 +244,10 @@
     "category": "hide-count",
     "query": "what is the hide count for interior master?",
     "expectedAnswer": {
-      "min_hides": 0,
+      "min_hides": 2,
       "max_hides": 6,
       "hides_known": false,
-      "keywords": ["0-6", "2-6", "unknown"]
+      "keywords": ["2-6", "unknown"]
     },
     "notes": "0-3 per area, 2-6 per class"
   }
