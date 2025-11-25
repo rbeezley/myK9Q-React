@@ -970,7 +970,7 @@
       "max_hides": 2,
       "hides_known": true,
       "num_containers": 15,
-      "container_type": "Various sizes and types",
+      "container_type": "Various (bags, backpacks, purses, suitcases, etc.)",
       "min_area_sq_ft": 300,
       "max_area_sq_ft": 600,
       "time_limit_minutes": 2,
@@ -1446,8 +1446,7 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -2234,8 +2233,7 @@
       "max_hides": 1,
       "hides_known": true,
       "num_containers": 10,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -2270,8 +2268,7 @@
       "max_hides": 1,
       "hides_known": true,
       "num_containers": 10,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -2306,7 +2303,7 @@
       ],
       "container_arrangement": "circle or U-formation",
       "min_spacing_inches": 12,
-      "container_type": "Various sizes and types",
+      "container_type": "Various (bags, backpacks, purses, suitcases, etc.)",
       "min_hides": 2,
       "max_hides": 2,
       "hides_known": true,
@@ -2347,13 +2344,12 @@
       ],
       "container_arrangement": "circle or U-formation",
       "min_spacing_inches": 12,
-      "container_type": "Various sizes and types",
+      "container_type": "Various (bags, backpacks, purses, suitcases, etc.)",
       "min_hides": 3,
       "max_hides": 3,
       "hides_known": true,
       "num_containers": 20,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 20 containers, test expects 12 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -2377,7 +2373,7 @@
       "container_spacing_inches": 12,
       "container_arrangement": "circle or U-formation",
       "min_spacing_inches": 12,
-      "container_type": "Various sizes and types",
+      "container_type": "Various (bags, backpacks, purses, suitcases, etc.)",
       "min_hides": 1,
       "max_hides": 4,
       "hides_known": false,
@@ -2389,8 +2385,7 @@
         "Clove",
         "Cypress"
       ],
-      "row_spacing_inches": 36,
-      "notes": "PDF says 20 containers, test expects 16 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -2914,7 +2909,7 @@
       "min_hides": 2,
       "max_hides": 2,
       "hides_known": true,
-      "num_containers": 9,
+      "num_containers": 8,
       "container_type": "Tote boxes",
       "max_area_sq_ft": 350
     },
@@ -2974,7 +2969,7 @@
       "min_hides": 1,
       "max_hides": 4,
       "hides_known": false,
-      "num_containers": 15,
+      "num_containers": 16,
       "container_type": "Tote boxes",
       "max_area_sq_ft": 500,
       "time_limit_minutes": 3,
@@ -3065,8 +3060,7 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -3160,8 +3154,7 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -3190,8 +3183,7 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },
@@ -3228,8 +3220,7 @@
       "target_odors": [
         "Birch"
       ],
-      "row_spacing_inches": 36,
-      "notes": "PDF says 10 containers, test expects 6 - needs verification"
+      "row_spacing_inches": 36
     },
     "measurementsSource": "authoritative"
   },

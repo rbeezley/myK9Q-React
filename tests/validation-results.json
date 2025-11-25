@@ -3,7 +3,7 @@
     "testId": "test-001",
     "query": "how many hides in master buried?",
     "passed": true,
-    "actualAnswer": "According to the provided rules, the Buried Master class has 1-4 hides, with the exact number unknown to the handler.",
+    "actualAnswer": "According to the provided rules, the Master Buried search has 1-4 hides, with the exact number unknown to the handler.",
     "expectedKeywords": [
       "1-4",
       "unknown",
@@ -22,7 +22,7 @@
     "testId": "test-002",
     "query": "how many hides in container novice?",
     "passed": false,
-    "actualAnswer": "In the Container Novice class, there are 1 hide of the Birch target odor placed in 1 of the 10 identical cardboard boxes arranged in a circle or U-formation in a search area between 250 and 400 square feet, with 12 inches of spacing between each container and 36 inches between rows. The handler is aware of the location of the hide.",
+    "actualAnswer": "According to the rules, in the Container Novice class, there are 1 to 1 hides (i.e., 1 hide) of the target odor (Birch) placed in 10 identical cardboard boxes arranged in a circle or U-formation. The search area must be between 250 and 400 square feet, and the time limit is 2 minutes.",
     "expectedKeywords": [
       "1",
       "known"
@@ -40,24 +40,27 @@
   {
     "testId": "test-003",
     "query": "how many hides in container advanced?",
-    "passed": true,
-    "actualAnswer": "According to the AKC Scent Work rules, the Container Advanced class has 2 hides, and the exact number of hides is known to the handler.",
+    "passed": false,
+    "actualAnswer": "In the Container Advanced class, there are 2 hides, and the handler knows the target odors are Birch and Anise.",
     "expectedKeywords": [
       "2",
       "known"
     ],
     "foundKeywords": [
-      "2",
+      "2"
+    ],
+    "missingKeywords": [
       "known"
     ],
-    "missingKeywords": [],
-    "errors": []
+    "errors": [
+      "Keyword match rate too low: 50% (expected ≥60%)"
+    ]
   },
   {
     "testId": "test-004",
     "query": "how many hides in container excellent?",
     "passed": false,
-    "actualAnswer": "In the Container Excellent class, there are 3 hides of the target odors (Birch, Anise, and Clove) placed in 3 of the 20 containers of various sizes and types.",
+    "actualAnswer": "According to the AKC Scent Work rules, the Container Excellent class has 3 hides in the 20 containers.",
     "expectedKeywords": [
       "3",
       "known"
@@ -76,7 +79,7 @@
     "testId": "test-005",
     "query": "how many hides in container master?",
     "passed": true,
-    "actualAnswer": "According to the rules provided, the Container Master class has 1-4 hides, with the exact number unknown to the handler.",
+    "actualAnswer": "According to the rules, the Container Master class has 1-4 hides, with the exact number unknown to the handler.",
     "expectedKeywords": [
       "1-4",
       "unknown"
@@ -92,7 +95,7 @@
     "testId": "test-006",
     "query": "what is the area size for exterior advanced?",
     "passed": true,
-    "actualAnswer": "The search area for Exterior Advanced is between 400 square feet (min) and 800 square feet (max).",
+    "actualAnswer": "The search area for Exterior Advanced is between 400 and 800 square feet.",
     "expectedKeywords": [
       "400",
       "800",
@@ -110,7 +113,7 @@
     "testId": "test-007",
     "query": "what is the area size for interior novice?",
     "passed": true,
-    "actualAnswer": "According to the authoritative measurements provided, the area size for Interior Novice is 100-200 square feet.",
+    "actualAnswer": "The area size for Interior Novice is between 100 and 200 square feet.",
     "expectedKeywords": [
       "120",
       "200",
@@ -179,7 +182,7 @@
     "testId": "test-011",
     "query": "what is the time limit for buried advanced?",
     "passed": true,
-    "actualAnswer": "The time limit for Buried Advanced is 3 minutes, as specified in the \"AUTHORITATIVE MEASUREMENTS\" section.",
+    "actualAnswer": "The time limit for Buried Advanced is 3 minutes, as stated in the \"AUTHORITATIVE MEASUREMENTS\" section.",
     "expectedKeywords": [
       "3",
       "minutes"
@@ -194,68 +197,60 @@
   {
     "testId": "test-012",
     "query": "how many containers in container novice?",
-    "passed": false,
-    "actualAnswer": "According to the Container Novice rules, there are 10 identical cardboard box containers laid out in the search area.",
+    "passed": true,
+    "actualAnswer": "According to the Container Novice requirements, there are 10 identical cardboard box containers used in the search.",
     "expectedKeywords": [
-      "6",
-      "containers"
+      "10",
+      "containers",
+      "cardboard boxes"
     ],
     "foundKeywords": [
+      "10",
       "containers"
     ],
     "missingKeywords": [
-      "6"
+      "cardboard boxes"
     ],
-    "errors": [
-      "Keyword match rate too low: 50% (expected ≥60%)",
-      "Container count mismatch: expected 6, got 10"
-    ]
+    "errors": []
   },
   {
     "testId": "test-013",
     "query": "how many containers in container master?",
-    "passed": false,
-    "actualAnswer": "According to the authoritative measurements provided in the rules, the Container Master class has 20 containers.",
+    "passed": true,
+    "actualAnswer": "According to the authoritative measurements, the Container Master search has 20 containers.",
     "expectedKeywords": [
-      "16",
+      "20",
       "containers"
     ],
     "foundKeywords": [
+      "20",
       "containers"
     ],
-    "missingKeywords": [
-      "16"
-    ],
-    "errors": [
-      "Keyword match rate too low: 50% (expected ≥60%)",
-      "Container count mismatch: expected 16, got 20"
-    ],
+    "missingKeywords": [],
+    "errors": [],
     "notes": "Should NOT confuse with hide count (1-4 hides)"
   },
   {
     "testId": "test-014",
     "query": "how many hides in interior excellent?",
-    "passed": false,
-    "actualAnswer": "In the Interior Excellent class, there are 3 hides.",
+    "passed": true,
+    "actualAnswer": "In the Interior Excellent class, there are 3 hides, and the hides are known to the handler.",
     "expectedKeywords": [
       "3",
       "known"
     ],
     "foundKeywords": [
-      "3"
-    ],
-    "missingKeywords": [
+      "3",
       "known"
     ],
-    "errors": [
-      "Keyword match rate too low: 50% (expected ≥60%)"
-    ]
+    "missingKeywords": [],
+    "errors": []
   },
   {
     "testId": "test-015",
     "query": "how many hides in exterior novice?",
     "passed": false,
-    "actualAnswer": "According to the Exterior Novice requirements, there is 1 hide of the Birch target odor in the search area, which must be accessible and located no higher than 24 inches above the ground. The search area size must be between 200 and 400 square feet, and the time limit is 3 minutes.",
+    "actualAnswer": "According to the Exterior Novice requirements, there is 1 hide in the Exterior Novice search area, and the handler knows the location of the hide.",
     "expectedKeywords": [
       "1",
       "known"
@@ -274,7 +269,7 @@
     "testId": "test-016",
     "query": "what is the search area for container advanced?",
     "passed": true,
-    "actualAnswer": "The search area for Container Advanced is between 300 and 600 square feet. The search will contain 15 containers of various sizes and types, arranged in a circle or U-formation, with a minimum spacing of 12 inches between containers and 36 inches between rows.",
+    "actualAnswer": "The search area for the Container Advanced class is between 300 and 600 square feet, with 15 containers of various sizes and types arranged in a circle or U-formation. The containers must be spaced at least 12 inches apart, with rows (if used) spaced at least 36 inches apart. The search area contains 2 hides of the target odors, Birch or Anise, and 1 non-food distraction.",
     "expectedKeywords": [
       "300",
       "600",
@@ -308,7 +303,7 @@
     "testId": "test-018",
     "query": "how many hides are in buried novice?",
     "passed": false,
-    "actualAnswer": "In the Buried Novice class, there is 1 hide.",
+    "actualAnswer": "According to the AKC Scent Work rules, the Buried Novice class has 1 hide.",
     "expectedKeywords": [
       "1",
       "known"
@@ -327,7 +322,7 @@
     "testId": "test-019",
     "query": "what is the minimum area for exterior excellent?",
     "passed": true,
-    "actualAnswer": "The minimum area for the Exterior Excellent level is 600 square feet, as stated in the \"AUTHORITATIVE MEASUREMENTS\" section.",
+    "actualAnswer": "The minimum area for the Exterior Excellent class is 600 square feet.",
     "expectedKeywords": [
       "600",
       "1200",
@@ -345,28 +340,24 @@
   {
     "testId": "test-020",
     "query": "how many containers are used in container excellent?",
-    "passed": false,
+    "passed": true,
     "actualAnswer": "According to the authoritative measurements provided, the Container Excellent class uses 20 containers.",
     "expectedKeywords": [
-      "12",
+      "20",
       "containers"
     ],
     "foundKeywords": [
+      "20",
       "containers"
     ],
-    "missingKeywords": [
-      "12"
-    ],
-    "errors": [
-      "Keyword match rate too low: 50% (expected ≥60%)",
-      "Container count mismatch: expected 12, got 20"
-    ]
+    "missingKeywords": [],
+    "errors": []
   },
   {
     "testId": "test-021",
     "query": "are the number of hides known to the handler in master buried?",
     "passed": true,
-    "actualAnswer": "In the AKC Scent Work rules for Master Buried, the number of hides is between 1 and 4, and the exact number is unknown to the handler.",
+    "actualAnswer": "The number of hides in Master Buried is 1-4 hides, and the exact number is unknown to the handler.",
     "expectedKeywords": [
       "unknown",
       "not known",
@@ -385,18 +376,19 @@
     "testId": "test-022",
     "query": "does the handler know how many hides in novice container?",
     "passed": false,
-    "actualAnswer": "In the Novice Container class, the handler knows that there is 1 hide present among the 10 identical cardboard boxes laid out in the search area.",
+    "actualAnswer": "Yes, in the Container Novice class, the handler knows that there is 1 hide in the 10 identical cardboard boxes laid out in the search area.",
     "expectedKeywords": [
       "known",
       "yes"
     ],
-    "foundKeywords": [],
-    "missingKeywords": [
-      "known",
+    "foundKeywords": [
       "yes"
     ],
+    "missingKeywords": [
+      "known"
+    ],
     "errors": [
-      "Keyword match rate too low: 0% (expected ≥60%)"
+      "Keyword match rate too low: 50% (expected ≥60%)"
     ]
   },
   {
@@ -422,7 +414,7 @@
     "testId": "test-024",
     "query": "how long does the handler have for container excellent?",
     "passed": true,
-    "actualAnswer": "The time limit for the Container Excellent search is 4 minutes.",
+    "actualAnswer": "The time limit for the Container Excellent class is 4 minutes, as stated in the \"AUTHORITATIVE MEASUREMENTS\" section.",
     "expectedKeywords": [
       "4",
       "minutes"
@@ -438,7 +430,7 @@
     "testId": "test-025",
     "query": "what is the hide count for interior master?",
     "passed": false,
-    "actualAnswer": "Based on the provided rules, the hide count for Interior Master is 1-6 hides, with the exact number unknown to the handler.",
+    "actualAnswer": "The hide count for Interior Master is 1-6 hides, with the exact number unknown to the handler. The rules state that there can be 0-3 hides per area, with a maximum of 6 hides for the entire class.",
     "expectedKeywords": [
       "2-6",
       "unknown"

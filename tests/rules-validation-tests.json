@@ -117,8 +117,8 @@
     "category": "containers",
     "query": "how many containers in container novice?",
     "expectedAnswer": {
-      "num_containers": 6,
-      "keywords": ["6", "containers"]
+      "num_containers": 10,
+      "keywords": ["10", "containers", "cardboard boxes"]
     }
   },
   {
@@ -126,8 +126,8 @@
     "category": "containers",
     "query": "how many containers in container master?",
     "expectedAnswer": {
-      "num_containers": 16,
-      "keywords": ["16", "containers"]
+      "num_containers": 20,
+      "keywords": ["20", "containers"]
     },
     "notes": "Should NOT confuse with hide count (1-4 hides)"
   },
@@ -198,8 +198,8 @@
     "category": "containers",
     "query": "how many containers are used in container excellent?",
     "expectedAnswer": {
-      "num_containers": 12,
-      "keywords": ["12", "containers"]
+      "num_containers": 20,
+      "keywords": ["20", "containers"]
     }
   },
   {
