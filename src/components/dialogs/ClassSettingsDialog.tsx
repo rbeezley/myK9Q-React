@@ -205,13 +205,13 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                 />
               </div>
 
-              {/* Self Check-in Toggle */}
+              {/* Check-in Mode Toggle */}
               <div className="settings-section">
                 <div className="settings-item">
                   <div className="settings-item-header">
-                    <label className="settings-label">Allow Self Check-in</label>
+                    <label className="settings-label">Check-in Mode</label>
                     <p className="settings-description">
-                      Exhibitors can check in their own dogs
+                      How exhibitors check in for this class
                     </p>
                   </div>
                   <div className="settings-toggle-container">
@@ -220,12 +220,12 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                         selfCheckinEnabled ? 'settings-toggle--on' : ''
                       }`}
                       onClick={() => setSelfCheckinEnabled(!selfCheckinEnabled)}
-                      aria-label="Toggle self check-in"
+                      aria-label="Toggle check-in mode"
                     >
                       <span className="settings-toggle-thumb" />
                     </button>
                     <span className="settings-toggle-label">
-                      {selfCheckinEnabled ? 'Enabled' : 'Disabled'}
+                      {selfCheckinEnabled ? 'App (Self)' : 'At Table'}
                     </span>
                   </div>
                 </div>

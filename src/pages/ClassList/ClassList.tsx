@@ -263,13 +263,13 @@ export const ClassList: React.FC = () => {
     }
   };
 
-  // Subscribe to real-time entry updates for all classes in this trial
+  // Subscribe to real-time updates for classes AND entries in this trial
   useEffect(() => {
     if (!trialId || !showContext?.licenseKey) return;
 
-    // Subscribe to entry changes that affect classes in this trial
+    // Subscribe to both classes and entries changes
     const subscription = supabase
-      .channel(`entries-trial-${trialId}`)
+      .channel(`class-list-trial-${trialId}`)
       .on(
         'postgres_changes',
         {
@@ -299,6 +299,19 @@ export const ClassList: React.FC = () => {
             console.log('🔄 Real-time: Full refresh needed for:', payload.eventType);
             refetch();
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'entries'
+        },
+        (payload) => {
+          console.log('🔄 Real-time: Entry update received:', payload.eventType);
+          // For entry changes (status, in-ring, scored), refetch to update dogs display
+          refetch();
         }
       )
       .subscribe();

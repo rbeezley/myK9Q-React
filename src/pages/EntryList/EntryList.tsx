@@ -665,7 +665,13 @@ export const EntryList: React.FC = () => {
         if (aIsInRing && !bIsInRing) return -1;
         if (!aIsInRing && bIsInRing) return 1;
 
-        // PRIORITY 2: Apply normal sorting for dogs not in ring
+        // PRIORITY 2: Pulled dogs go to the end (but sorted by run order among themselves)
+        const aIsPulled = a.status === 'pulled';
+        const bIsPulled = b.status === 'pulled';
+        if (aIsPulled && !bIsPulled) return 1;
+        if (!aIsPulled && bIsPulled) return -1;
+
+        // PRIORITY 3: Apply normal sorting for dogs not in ring or pulled
         if (sortOrder === 'manual') {
           const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
           const bIndex = manualOrder.findIndex(entry => entry.id === b.id);

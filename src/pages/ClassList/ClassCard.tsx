@@ -211,30 +211,39 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 </span>
               </div>
 
-              {/* Release Control Badges */}
+              {/* Results Visibility Badge */}
               <div className="badges-row">
-                <span className="badge-label">Release:</span>
+                <span className="badge-label">Results Visible:</span>
                 <span
                   className={`release-badge visibility-badge visibility-${classEntry.visibility_preset || 'standard'}`}
                   data-tooltip={
                     classEntry.visibility_preset === 'open'
                       ? 'Q/NQ, time, and faults visible immediately'
                       : classEntry.visibility_preset === 'review'
-                      ? 'All results hidden until manually released'
+                      ? 'All results hidden until judge approves'
                       : 'Q/NQ visible immediately, time/faults when class completes'
                   }
                 >
-                  {(classEntry.visibility_preset || 'standard').substring(0, 3).toUpperCase()}
+                  {classEntry.visibility_preset === 'open'
+                    ? 'Immediately'
+                    : classEntry.visibility_preset === 'review'
+                    ? 'After Review'
+                    : 'After Class'}
                 </span>
+              </div>
+
+              {/* Check-in Mode Badge - separate row */}
+              <div className="badges-row">
+                <span className="badge-label">Check-in Mode:</span>
                 <span
                   className={`release-badge checkin-badge ${classEntry.self_checkin_enabled ? 'self-checkin' : 'table-checkin'}`}
                   data-tooltip={
                     classEntry.self_checkin_enabled
                       ? 'Handlers check in themselves using the app'
-                      : 'Handlers must check in at the ring table'
+                      : 'Handlers must check in at a central table'
                   }
                 >
-                  {classEntry.self_checkin_enabled ? 'SELF' : 'TBL'}
+                  {classEntry.self_checkin_enabled ? 'App (Self)' : 'At Table'}
                 </span>
               </div>
             </div>
@@ -310,16 +319,23 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                   )
                   .slice(0, 3);
 
-                // Show in-ring dog + next 2, or just next 3
-                const dogsToShow = inRingDog
-                  ? [inRingDog, ...nextDogs.slice(0, 2)]
-                  : nextDogs;
-
-                return dogsToShow.map((dog) => (
-                  <span key={dog.id} className="armband-number">
-                    #{dog.armband}
-                  </span>
-                ));
+                return (
+                  <>
+                    {/* In-ring dog with visual indicator */}
+                    {inRingDog && (
+                      <span key={inRingDog.id} className="armband-number in-ring">
+                        <Circle size={8} fill="#f59e0b" stroke="#f59e0b" style={{ marginRight: '2px' }} />
+                        #{inRingDog.armband}
+                      </span>
+                    )}
+                    {/* Next dogs waiting */}
+                    {nextDogs.map((dog) => (
+                      <span key={dog.id} className="armband-number">
+                        #{dog.armband}
+                      </span>
+                    ))}
+                  </>
+                );
               })()}
               {/* Show remaining count */}
               {classEntry.entry_count - classEntry.completed_count > 0 && (

@@ -806,6 +806,13 @@
 .contextual-preview-condensed .armband-number {
   color: var(--accent-color, var(--primary)); /* Use theme accent */
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* In-ring dog indicator - amber color with filled circle icon */
+.contextual-preview-condensed .armband-number.in-ring {
+  color: #f59e0b; /* Amber color for in-ring - contrasts with teal theme */
 }
 
 /* Preview pill/tag styling */

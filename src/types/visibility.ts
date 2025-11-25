@@ -124,22 +124,22 @@ export const PRESET_CONFIGS: Record<VisibilityPreset, PresetInfo> = {
   open: {
     preset: 'open',
     icon: '⚡',
-    title: 'OPEN',
+    title: 'Immediately',
     description: 'Show results immediately as dogs run',
     details: 'Q/NQ, Time, Faults visible right away. Placement when class completes.'
   },
   standard: {
     preset: 'standard',
     icon: '⏱️',
-    title: 'STANDARD',
+    title: 'After Class',
     description: 'Show Q/NQ immediately, rest when class completes',
     details: 'Q/NQ visible as scored. Time, Faults, Placement when class finishes.'
   },
   review: {
     preset: 'review',
     icon: '🔒',
-    title: 'REVIEW',
-    description: 'Judge must review before release',
+    title: 'After Review',
+    description: 'Judge must approve before results are visible',
     details: 'All results hidden until you click "Release Results" button.'
   }
 };

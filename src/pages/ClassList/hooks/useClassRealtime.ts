@@ -32,8 +32,8 @@ export interface RealtimePayload {
  * **Full Refresh**: For INSERT/DELETE events, triggers full data refetch
  * **Automatic Cleanup**: Unsubscribes when component unmounts or dependencies change
  *
- * **Subscription Channel**: `entries-trial-{trialId}` - scoped to current trial
- * **Table Watched**: `classes` table in public schema
+ * **Subscription Channel**: `class-list-trial-{trialId}` - scoped to current trial
+ * **Tables Watched**: `classes` and `entries` tables in public schema
  * **Events**: All events (* = INSERT, UPDATE, DELETE)
  *
  * @param trialId - Trial ID to subscribe to
@@ -109,9 +109,9 @@ export function useClassRealtime(
 
     console.log('🔄 Real-time: Setting up subscription for trial:', trialId);
 
-    // Create subscription channel
+    // Create subscription channel - watch both classes and entries tables
     const subscription: RealtimeChannel = supabaseClient
-      .channel(`entries-trial-${trialId}`)
+      .channel(`class-list-trial-${trialId}`)
       .on(
         'postgres_changes',
         {
@@ -121,9 +121,22 @@ export function useClassRealtime(
         },
         handleRealtimeUpdate
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // All events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'entries'
+        },
+        (payload) => {
+          console.log('🔄 Real-time: Entry update received:', payload.eventType);
+          // For entry changes, always refetch to update dog counts and status
+          refetch();
+        }
+      )
       .subscribe();
 
-    console.log('🔄 Real-time: Subscription active for trial:', trialId);
+    console.log('🔄 Real-time: Subscription active for trial:', trialId, '(classes + entries)');
 
     // Cleanup function - unsubscribe on unmount or dependency change
     return () => {
