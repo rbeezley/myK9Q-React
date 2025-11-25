@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Clock, Heart, CheckCircle } from 'lucide-react';
-import { TabBar, Tab, SearchSortControls } from '../../components/ui';
-import type { SortOption } from '../../components/ui';
+import { TabBar, Tab } from '../../components/ui';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 
 interface ClassEntry {
@@ -37,16 +36,9 @@ interface ClassEntry {
 }
 
 interface ClassFiltersProps {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  sortOrder: 'class_order' | 'element_level' | 'level_element';
-  setSortOrder: (order: 'class_order' | 'element_level' | 'level_element') => void;
   combinedFilter: 'pending' | 'favorites' | 'completed';
   setCombinedFilter: (filter: 'pending' | 'favorites' | 'completed') => void;
-  isSearchCollapsed: boolean;
-  setIsSearchCollapsed: (collapsed: boolean) => void;
   classes: ClassEntry[];
-  filteredClasses: ClassEntry[];
   hapticFeedback: {
     light: () => void;
     medium: () => void;
@@ -55,16 +47,9 @@ interface ClassFiltersProps {
 }
 
 export const ClassFilters: React.FC<ClassFiltersProps> = ({
-  searchTerm,
-  setSearchTerm,
-  sortOrder,
-  setSortOrder,
   combinedFilter,
   setCombinedFilter,
-  isSearchCollapsed,
-  setIsSearchCollapsed,
   classes,
-  filteredClasses,
   hapticFeedback,
 }) => {
   // Prepare tabs for TabBar component
@@ -89,39 +74,16 @@ export const ClassFilters: React.FC<ClassFiltersProps> = ({
     }
   ], [classes]);
 
-  // Prepare sort options for SearchSortControls component
-  const sortOptions: SortOption[] = useMemo(() => [
-    { value: 'class_order', label: 'Class Order' },
-    { value: 'element_level', label: 'Element' },
-    { value: 'level_element', label: 'Level' }
-  ], []);
-
   const handleTabChange = (tabId: string) => {
     hapticFeedback.light();
     setCombinedFilter(tabId as 'pending' | 'favorites' | 'completed');
   };
 
   return (
-    <>
-      {/* Search and Sort Controls */}
-      <SearchSortControls
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search class name, element, level, judge..."
-        sortOptions={sortOptions}
-        sortOrder={sortOrder}
-        onSortChange={(value) => setSortOrder(value as 'class_order' | 'element_level' | 'level_element')}
-        isCollapsed={isSearchCollapsed}
-        onToggleCollapse={() => setIsSearchCollapsed(!isSearchCollapsed)}
-        resultsLabel={`${filteredClasses.length} of ${classes.length} classes`}
-      />
-
-      {/* Combined Class Filter Tabs */}
-      <TabBar
-        tabs={tabs}
-        activeTab={combinedFilter}
-        onTabChange={handleTabChange}
-      />
-    </>
+    <TabBar
+      tabs={tabs}
+      activeTab={combinedFilter}
+      onTabChange={handleTabChange}
+    />
   );
 };

@@ -6,7 +6,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
-import { HamburgerMenu, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, SearchSortControls } from '../../components/ui';
+import { HamburgerMenu, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -36,7 +36,7 @@ export const Home: React.FC = () => {
   } = useHomeDashboardData(showContext?.licenseKey, showContext?.showId);
 
   // Search, sort, and filter state
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
   const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
@@ -326,6 +326,12 @@ export const Home: React.FC = () => {
           {/* Background refresh indicator */}
           {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
 
+          {/* Filter button */}
+          <FilterTriggerButton
+            onClick={() => setIsFilterPanelOpen(true)}
+            hasActiveFilters={searchTerm.length > 0}
+          />
+
           <div className="dropdown-container">
             <button
               className="icon-button"
@@ -438,19 +444,6 @@ export const Home: React.FC = () => {
           })}
         </div>
       </div>
-
-      {/* Search and Sort Controls */}
-      <SearchSortControls
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search dog name, breed, handler..."
-        sortOptions={sortOptions}
-        sortOrder={sortBy}
-        onSortChange={(value) => setSortBy(value as 'armband' | 'name' | 'handler')}
-        isCollapsed={isSearchCollapsed}
-        onToggleCollapse={() => setIsSearchCollapsed(!isSearchCollapsed)}
-        resultsLabel={`${getFilteredEntries().length} of ${entries.length} dogs`}
-      />
 
       {/* Tab Bar for All Dogs / Favorites */}
       <TabBar
@@ -593,6 +586,19 @@ export const Home: React.FC = () => {
       </div>
       </div>
       </PullToRefresh>
+
+      {/* Filter Panel - Slide-out search and sort */}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search dog name, breed, handler..."
+        sortOptions={sortOptions}
+        sortOrder={sortBy}
+        onSortChange={(value) => setSortBy(value as 'armband' | 'name' | 'handler')}
+        resultsLabel={`${getFilteredEntries().length} of ${entries.length} dogs`}
+      />
     </div>
   );
 };

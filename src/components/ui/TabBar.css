@@ -1,6 +1,31 @@
 /* ===== TAB BAR - Standardized Component ===== */
 /* iOS-style segmented control with theme-aware colors */
 
+/* Wrapper for tab bar with optional right element */
+.tab-bar-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-md);
+  margin: var(--token-space-md) auto var(--token-space-lg);
+  max-width: 700px;
+  padding: 0 var(--token-space-md);
+}
+
+.tab-bar-wrapper.has-right-element {
+  justify-content: space-between;
+}
+
+.tab-bar-wrapper .tab-bar {
+  margin: 0;
+  flex: 1;
+  max-width: 600px;
+}
+
+.tab-bar-right {
+  flex-shrink: 0;
+}
+
 .tab-bar {
   margin: 0 auto var(--token-space-lg);
   max-width: 600px;
@@ -104,6 +129,36 @@
 .theme-dark .tab-bar-button.active .tab-count {
   background: var(--primary);
   color: var(--primary-foreground);
+}
+
+/* Mobile - compact when filter button present */
+@media (max-width: 480px) {
+  .tab-bar-wrapper.has-right-element {
+    gap: var(--token-space-sm);
+  }
+
+  .tab-bar-wrapper.has-right-element .tab-bar {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tab-bar-wrapper.has-right-element .tab-bar-button {
+    padding: var(--token-space-sm) var(--token-space-md);
+    font-size: 0.75rem;
+    gap: var(--token-space-sm);
+  }
+
+  /* Hide tab icons on very small screens to save space */
+  .tab-bar-wrapper.has-right-element .tab-icon {
+    display: none;
+  }
+
+  .tab-bar-wrapper.has-right-element .tab-count {
+    font-size: 0.625rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.25rem;
+  }
 }
 
 /* Desktop - wider spacing */

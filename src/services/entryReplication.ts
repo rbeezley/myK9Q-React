@@ -104,7 +104,7 @@ export async function getEntriesFromReplicationCache(
         timeLimit2: formatTimeLimitSeconds(cachedClass.time_limit_area2_seconds),
         timeLimit3: formatTimeLimitSeconds(cachedClass.time_limit_area3_seconds),
         areas: cachedClass.area_count,
-        exhibitorOrder: 0, // Not in replicated schema yet
+        exhibitorOrder: entry.exhibitor_order || 0,
         actualClassId: parseInt(entry.class_id, 10),
         trialDate: '', // Would need to join with trials table
         trialNumber: ''

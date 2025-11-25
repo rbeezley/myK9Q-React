@@ -6,7 +6,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh } from '../../components/ui';
+import { HamburgerMenu, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
@@ -67,8 +67,15 @@ export const ClassList: React.FC = () => {
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'class_order' | 'element_level' | 'level_element'>('class_order');
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+
+  // Sort options for FilterPanel
+  const sortOptions = [
+    { value: 'class_order', label: 'Run Order' },
+    { value: 'element_level', label: 'Element → Level' },
+    { value: 'level_element', label: 'Level → Element' }
+  ];
 
   // Prevent FOUC by adding 'loaded' class after mount
   const [isLoaded, setIsLoaded] = useState(false);
@@ -709,12 +716,14 @@ export const ClassList: React.FC = () => {
     return groupNoviceClasses(classList, findPaired);
   }, [findPaired]);
 
+  // Memoized grouped classes - used for consistent counts across tabs and panel
+  const groupedClasses = useMemo(() => {
+    return groupNoviceClassesCached(classes);
+  }, [groupNoviceClassesCached, classes]);
+
   // Search and sort functionality
   // Memoized filtered and sorted classes for performance optimization
   const filteredClasses = useMemo(() => {
-    // First, group Novice A/B classes together
-    const groupedClasses = groupNoviceClassesCached(classes);
-
     const filtered = groupedClasses.filter(classEntry => {
       // Use the same logic as getClassDisplayStatus to respect manual status
       const displayStatus = getClassDisplayStatus(classEntry);
@@ -802,7 +811,7 @@ export const ClassList: React.FC = () => {
     });
 
     return filtered;
-  }, [classes, combinedFilter, searchTerm, sortOrder, groupNoviceClassesCached]);
+  }, [groupedClasses, combinedFilter, searchTerm, sortOrder]);
 
   // Show loading skeleton only if actively loading and no data exists
   if (isLoading && !trialInfo && classes.length === 0) {
@@ -887,6 +896,12 @@ export const ClassList: React.FC = () => {
           {/* Background refresh indicator */}
           {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
 
+          {/* Filter button */}
+          <FilterTriggerButton
+            onClick={() => setIsFilterPanelOpen(true)}
+            hasActiveFilters={searchTerm.length > 0 || sortOrder !== 'class_order'}
+          />
+
           <div className="dropdown-container">
             <button
               className="icon-button"
@@ -916,18 +931,11 @@ export const ClassList: React.FC = () => {
         </div>
       </header>
 
-      {/* Search, Sort, and Filter Controls - STICKY */}
+      {/* Tab Bar for filtering classes */}
       <ClassFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
         combinedFilter={combinedFilter}
         setCombinedFilter={setCombinedFilter}
-        isSearchCollapsed={isSearchCollapsed}
-        setIsSearchCollapsed={setIsSearchCollapsed}
-        classes={classes}
-        filteredClasses={filteredClasses}
+        classes={groupedClasses}
         hapticFeedback={hapticFeedback}
       />
 
@@ -1205,6 +1213,20 @@ export const ClassList: React.FC = () => {
           // Refresh class data after settings update
           refetch();
         }}
+      />
+
+      {/* Filter Panel Slide-out */}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search classes..."
+        sortOptions={sortOptions}
+        sortOrder={sortOrder}
+        onSortChange={(order) => setSortOrder(order as typeof sortOrder)}
+        resultsLabel={`${filteredClasses.length} of ${groupedClasses.length} classes`}
+        title="Search & Sort Classes"
       />
     </div>
   );

@@ -13,6 +13,8 @@ interface TabBarProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   className?: string;
+  /** Optional element to render on the right side of the tab bar (e.g., filter button) */
+  rightElement?: React.ReactNode;
 }
 
 /**
@@ -41,24 +43,32 @@ export const TabBar: React.FC<TabBarProps> = ({
   tabs,
   activeTab,
   onTabChange,
-  className = ''
+  className = '',
+  rightElement
 }) => {
   return (
-    <div className={`tab-bar ${className}`}>
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          className={`tab-bar-button ${activeTab === tab.id ? 'active' : ''}`}
-          onClick={() => onTabChange(tab.id)}
-          type="button"
-        >
-          {tab.icon && <span className="tab-icon">{tab.icon}</span>}
-          <span className="tab-text">{tab.label}</span>
-          {tab.count !== undefined && (
-            <span className="tab-count">{tab.count}</span>
-          )}
-        </button>
-      ))}
+    <div className={`tab-bar-wrapper ${rightElement ? 'has-right-element' : ''} ${className}`}>
+      <div className="tab-bar">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`tab-bar-button ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => onTabChange(tab.id)}
+            type="button"
+          >
+            {tab.icon && <span className="tab-icon">{tab.icon}</span>}
+            <span className="tab-text">{tab.label}</span>
+            {tab.count !== undefined && (
+              <span className="tab-count">{tab.count}</span>
+            )}
+          </button>
+        ))}
+      </div>
+      {rightElement && (
+        <div className="tab-bar-right">
+          {rightElement}
+        </div>
+      )}
     </div>
   );
 };

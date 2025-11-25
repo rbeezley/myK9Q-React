@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, MutableRefObject } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getClassEntries } from '../../../services/entryService';
 import { Entry } from '../../../stores/entryStore';
@@ -41,6 +41,8 @@ interface UseEntryListDataOptions {
   classId?: string;
   classIdA?: string;
   classIdB?: string;
+  /** Ref to check if drag operation is in progress - skips auto-refresh when true */
+  isDraggingRef?: MutableRefObject<boolean>;
 }
 
 /**
@@ -98,6 +100,8 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
     placement: entry.final_placement,
     searchTime: entry.search_time_seconds?.toString(),
     faultCount: entry.total_faults,
+    // Run order for custom sorting
+    exhibitorOrder: entry.exhibitor_order,
   };
 }
 
@@ -105,7 +109,7 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
  * Shared hook for fetching and caching entry list data using stale-while-revalidate pattern.
  * Supports both single class and combined class views.
  */
-export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDataOptions) => {
+export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }: UseEntryListDataOptions) => {
   const { showContext, role } = useAuth();
 
   const isCombinedView = !!(classIdA && classIdB);
@@ -546,11 +550,21 @@ export const useEntryListData = ({ classId, classIdA, classIdB }: UseEntryListDa
 
         // Subscribe to table changes
         unsubscribeEntries = entriesTable.subscribe(() => {
+          // Skip refresh during drag operations to prevent snap-back
+          if (isDraggingRef?.current) {
+            console.log('🛡️ [REPLICATION] Entries changed but drag in progress, skipping refresh');
+            return;
+          }
           console.log('🔄 [REPLICATION] Entries changed, refreshing view');
           refresh();
         });
 
         unsubscribeClasses = classesTable.subscribe(() => {
+          // Skip refresh during drag operations to prevent snap-back
+          if (isDraggingRef?.current) {
+            console.log('🛡️ [REPLICATION] Classes changed but drag in progress, skipping refresh');
+            return;
+          }
           console.log('🔄 [REPLICATION] Classes changed, refreshing view');
           refresh();
         });

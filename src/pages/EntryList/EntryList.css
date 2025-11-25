@@ -1204,8 +1204,33 @@
 
 /* ========== DRAG AND DROP ========== */
 
+/* Increase spacing in drag mode for easier drop targeting */
+/* Note: dnd-kit uses CSS transforms, so grid gap changes don't affect positioning. */
+/* We use margin on the items instead to create visual separation. */
+.grid-responsive.drag-mode {
+  gap: var(--token-space-2xl); /* Keep grid gap reasonable */
+}
+
+/* Add margin to cards in drag mode for visual separation */
+.grid-responsive.drag-mode .sortable-item {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive.drag-mode .sortable-item {
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive.drag-mode .sortable-item {
+    margin-bottom: 24px;
+  }
+}
+
 .sortable-item {
   position: relative; /* Positioning context for drag handle */
+  transition: margin 0.2s ease; /* Smooth transition when entering/exiting drag mode */
 }
 
 .drag-handle-external {

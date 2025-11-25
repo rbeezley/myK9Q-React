@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh, TabBar, Tab } from '../../components/ui';
+import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, PullToRefresh, TabBar, Tab, FilterPanel, FilterTriggerButton, SortOption } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
-import { Clock, CheckCircle, GripVertical, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical, ChevronDown, Search, X, ArrowUpDown, Users } from 'lucide-react';
+import { Clock, CheckCircle, Trophy, RefreshCw, ClipboardCheck, Printer, ListOrdered, MoreVertical, ArrowUpDown, Users } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { formatTrialDate } from '../../utils/dateUtils';
@@ -23,12 +23,13 @@ import { useEntryListData, useEntryListActions } from './hooks';
 import { logger } from '@/utils/logger';
 import {
   DndContext,
-  closestCenter,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -48,6 +49,12 @@ export const EntryList: React.FC = () => {
   const { prefetch } = usePrefetch();
   const { settings } = useSettingsStore();
 
+  // Drag state refs - declared early so they can be used by hooks and listeners
+  // Locks the array during drag to prevent race conditions
+  const dragSnapshotRef = useRef<Entry[] | null>(null);
+  // Flag to prevent sync-triggered refreshes during drag operations
+  const isDraggingRef = useRef<boolean>(false);
+
   // Data management using shared hook
   const {
     entries,
@@ -56,7 +63,8 @@ export const EntryList: React.FC = () => {
     fetchError,
     refresh
   } = useEntryListData({
-    classId
+    classId,
+    isDraggingRef  // Pass to hook to prevent sync during drag
   });
 
   // No forced refresh needed - LocalStateManager ensures we always have correct merged state
@@ -92,6 +100,11 @@ export const EntryList: React.FC = () => {
 
         // Subscribe to cache updates for entries table
         unsubscribe = manager.onCacheUpdate('entries', (tableName: string) => {
+          // Skip refresh during drag operations to prevent snap-back
+          if (isDraggingRef.current) {
+            console.log(`🛡️ [EntryList] Cache update ignored during drag operation`);
+            return;
+          }
           console.log(`✅ [EntryList] Cache updated for ${tableName}, refreshing UI`);
           refresh();
         });
@@ -125,17 +138,18 @@ export const EntryList: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'manual'>('run');
   const [isDragMode, setIsDragMode] = useState(false);
   const [manualOrder, setManualOrder] = useState<Entry[]>([]);
-  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+  const [_isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [showPrintMenu, setShowPrintMenu] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
 
   // Sync local entries with fetched data - now simple since LocalStateManager handles merging
+  // BUT skip sync while dragging to prevent snap-back
   useEffect(() => {
-    if (entries.length > 0) {
+    if (entries.length > 0 && !isDraggingRef.current) {
       setLocalEntries(entries);
     }
   }, [entries]); // Depend on entries array to catch content changes (isScored, status, etc.)
@@ -152,65 +166,94 @@ export const EntryList: React.FC = () => {
     })
   );
 
-  // Handle drag end - Updates database for persistent reordering
+  // Handle drag start - Snapshot the array to prevent race conditions
+  const handleDragStart = (_event: DragStartEvent) => {
+    // Set dragging flag to prevent sync-triggered refreshes
+    isDraggingRef.current = true;
+    // Capture the current state at drag start - this won't change during the drag
+    dragSnapshotRef.current = [...currentEntries];
+    console.log('🎯 Drag started, snapshot captured with', dragSnapshotRef.current.length, 'entries');
+  };
+
+  // Handle drag end - Uses snapshot for stable index calculations
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over?.id) {
-      const oldIndex = currentEntries.findIndex(entry => entry.id === active.id);
-      const newIndex = currentEntries.findIndex(entry => entry.id === over?.id);
+    // Use the snapshot we captured at drag start
+    const snapshot = dragSnapshotRef.current;
 
-      if (oldIndex !== -1 && newIndex !== -1) {
-        // Prevent moving dogs before in-ring dogs
-        const inRingDogs = currentEntries.filter(e => e.inRing || e.status === 'in-ring');
-        if (inRingDogs.length > 0 && newIndex === 0) {
-          // Don't allow non-in-ring dogs to be dropped at position 0 if there's an in-ring dog
-          const draggedEntry = currentEntries[oldIndex];
-          if (!draggedEntry.inRing && draggedEntry.status !== 'in-ring') {
-            console.log('⚠️ Cannot move dog before in-ring dog');
-            return;
-          }
-        }
+    // Clear the snapshot (but keep isDraggingRef true until DB update completes)
+    dragSnapshotRef.current = null;
 
-        // Create new reordered array
-        let reorderedCurrentEntries = arrayMove(currentEntries, oldIndex, newIndex);
+    // Must have a valid drop target and snapshot
+    if (!over || active.id === over.id || !snapshot) {
+      console.log('🚫 Drag cancelled or no change');
+      isDraggingRef.current = false;
+      return;
+    }
 
-        // Ensure in-ring dogs always stay at the top
-        const inRingEntries = reorderedCurrentEntries.filter(e => e.inRing || e.status === 'in-ring');
-        const otherEntriesInOrder = reorderedCurrentEntries.filter(e => !e.inRing && e.status !== 'in-ring');
-        if (inRingEntries.length > 0) {
-          reorderedCurrentEntries = [...inRingEntries, ...otherEntriesInOrder];
-        }
+    // Find indices in the SNAPSHOT (stable, won't have changed during drag)
+    const oldIndex = snapshot.findIndex(entry => entry.id === active.id);
+    let targetIndex = snapshot.findIndex(entry => entry.id === over.id);
 
-        // Update local state immediately for smooth UX
-        const otherEntries = localEntries.filter(entry => !currentEntries.find(ce => ce.id === entry.id));
-        const newAllEntries = [...otherEntries, ...reorderedCurrentEntries];
-        setLocalEntries(newAllEntries);
-        setManualOrder(reorderedCurrentEntries);
-        setSortOrder('manual');
+    if (oldIndex === -1 || targetIndex === -1) {
+      console.log('⚠️ Could not find entries in snapshot');
+      isDraggingRef.current = false;
+      return;
+    }
 
-        // Update database with new exhibitor_order values
-        setIsUpdatingOrder(true);
-        try {
-          await updateExhibitorOrder(reorderedCurrentEntries);
-
-          // Update local entries with new exhibitor_order values
-          const updatedEntries = newAllEntries.map(entry => {
-            const reorderedIndex = reorderedCurrentEntries.findIndex(re => re.id === entry.id);
-            if (reorderedIndex !== -1) {
-              return { ...entry, exhibitorOrder: reorderedIndex + 1 };
-            }
-            return entry;
-          });
-          setLocalEntries(updatedEntries);
-
-          console.log('✅ Successfully updated run order in database');
-        } catch (error) {
-          console.error('❌ Failed to update run order in database:', error);
-        } finally {
-          setIsUpdatingOrder(false);
-        }
+    // Prevent moving dogs before in-ring dogs
+    const inRingDogs = snapshot.filter(e => e.inRing || e.status === 'in-ring');
+    if (inRingDogs.length > 0 && targetIndex === 0) {
+      const draggedEntry = snapshot[oldIndex];
+      if (!draggedEntry.inRing && draggedEntry.status !== 'in-ring') {
+        console.log('⚠️ Cannot move dog before in-ring dog');
+        isDraggingRef.current = false;
+        return;
       }
+    }
+
+    console.log(`📍 Drag: item at index ${oldIndex} dropped on item at index ${targetIndex}`);
+
+    // Create new reordered array from the snapshot
+    const reorderedEntries = arrayMove(snapshot, oldIndex, targetIndex);
+
+    // Update exhibitor_order values locally
+    const entriesWithNewOrder = reorderedEntries.map((entry, index) => ({
+      ...entry,
+      exhibitorOrder: index + 1
+    }));
+
+    // Merge reordered entries back into localEntries (preserving completed entries if on pending tab)
+    const reorderedIds = new Set(entriesWithNewOrder.map(e => e.id));
+    const otherEntries = localEntries.filter(entry => !reorderedIds.has(entry.id));
+    const newAllEntries = [...otherEntries, ...entriesWithNewOrder];
+
+    // Single atomic state update for smooth UX
+    setLocalEntries(newAllEntries);
+    setManualOrder(entriesWithNewOrder);
+
+    console.log('✅ Drag complete: moved from index', oldIndex, 'to', targetIndex);
+    console.log('📋 New order:', entriesWithNewOrder.map(e => `${e.armband}(${e.exhibitorOrder})`).join(', '));
+
+    // Update database and AWAIT it to prevent race conditions with sync
+    setIsUpdatingOrder(true);
+    try {
+      await updateExhibitorOrder(entriesWithNewOrder);
+      console.log('✅ Successfully synced run order to database');
+    } catch (error) {
+      console.error('❌ Failed to update run order in database:', error);
+      // The optimistic update already happened, so UI shows new order
+      // If offline, the sync will happen later
+    } finally {
+      setIsUpdatingOrder(false);
+      // IMPORTANT: Add a grace period before accepting new sync data
+      // The updateExhibitorOrder triggers triggerImmediateEntrySync which can
+      // arrive after we return here. Delay clearing the flag to let syncs settle.
+      setTimeout(() => {
+        isDraggingRef.current = false;
+        console.log('🔓 Drag protection cleared after grace period');
+      }, 1500);
     }
   };
 
@@ -670,6 +713,22 @@ export const EntryList: React.FC = () => {
     }
   ], [pendingEntries.length, completedEntries.length]);
 
+  // Prepare sort options for FilterPanel
+  const sortOptions: SortOption[] = useMemo(() => {
+    const options: SortOption[] = [
+      { value: 'run', label: 'Run Order', icon: <ArrowUpDown size={16} /> },
+      { value: 'armband', label: 'Armband', icon: <ArrowUpDown size={16} /> }
+    ];
+    // Only show placement sort on completed tab
+    if (activeTab === 'completed') {
+      options.push({ value: 'placement', label: 'Placement', icon: <Trophy size={16} /> });
+    }
+    return options;
+  }, [activeTab]);
+
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm.length > 0 || sortOrder !== 'run';
+
   // Prefetch scoresheet data when hovering/touching entry card
   const handleEntryPrefetch = useCallback((entry: Entry) => {
     if (entry.isScored || !showContext?.org) return;
@@ -812,6 +871,12 @@ export const EntryList: React.FC = () => {
             />
           )}
 
+          {/* Filter button */}
+          <FilterTriggerButton
+            onClick={() => setIsFilterPanelOpen(true)}
+            hasActiveFilters={hasActiveFilters}
+          />
+
           {/* Actions Menu (3-dot menu) */}
           <div className="actions-menu-container">
             <button
@@ -836,6 +901,18 @@ export const EntryList: React.FC = () => {
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'rotating' : ''}`} />
                   Refresh
                 </button>
+                {hasPermission('canChangeRunOrder') && (
+                  <button
+                    onClick={() => {
+                      setShowPrintMenu(false);
+                      setRunOrderDialogOpen(true);
+                    }}
+                    className="action-menu-item"
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                    Set Run Order
+                  </button>
+                )}
                 {hasPermission('canManageClasses') && (
                   <button
                     onClick={handleRecalculatePlacements}
@@ -865,124 +942,6 @@ export const EntryList: React.FC = () => {
         </div>
       </header>
 
-      {/* Search and Sort Header - STICKY */}
-      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
-        <button
-          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
-          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
-          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </button>
-
-        <span className="search-controls-label">
-          {searchTerm ? `Found ${filteredEntries.length} of ${localEntries.length} entries` : 'Search & Sort'}
-        </span>
-      </div>
-
-      {searchTerm && (
-        <div className="search-results-header">
-          <div className="search-results-summary">
-            {filteredEntries.length} of {localEntries.length} entries
-          </div>
-        </div>
-      )}
-
-      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
-        <div className="search-input-wrapper">
-          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-          <input
-            type="text"
-            placeholder="Search dog name, handler, breed, or armband..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input-full"
-          />
-          {searchTerm && (
-            <button
-              className="clear-search-btn"
-              onClick={() => setSearchTerm('')}
-            >
-              <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-            </button>
-          )}
-        </div>
-
-        <div className="sort-controls">
-          {/* Run Order (Global/Persistent) */}
-          <div className="sort-group sort-group-primary">
-            <span className="sort-label">Run Order:</span>
-            <button
-              className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
-              onClick={() => {
-                setSortOrder('run');
-                setIsDragMode(false);
-              }}
-            >
-              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-              Run Order
-            </button>
-
-            {hasPermission('canChangeRunOrder') && (
-              <>
-                {isDragMode ? (
-                  <button
-                    className={`sort-btn sort-btn-primary active ${isUpdatingOrder ? 'loading' : ''}`}
-                    onClick={() => setIsDragMode(false)}
-                    disabled={isUpdatingOrder}
-                  >
-                    <GripVertical size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                    {isUpdatingOrder ? 'Saving...' : 'Done'}
-                  </button>
-                ) : (
-                  <button
-                    className="sort-btn sort-btn-primary"
-                    onClick={() => setRunOrderDialogOpen(true)}
-                  >
-                    <ListOrdered size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                    Set Run Order
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Local View Sorting (Temporary) */}
-          <div className="sort-group sort-group-secondary">
-            <span className="sort-label">Sort:</span>
-            <button
-              className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
-              onClick={() => {
-                setSortOrder('armband');
-                setIsDragMode(false);
-              }}
-            >
-              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-              Armband
-            </button>
-            {activeTab === 'completed' && (
-              <button
-                className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
-                onClick={() => {
-                  setSortOrder('placement');
-                  setIsDragMode(false);
-                }}
-              >
-                <Trophy size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                Placement
-              </button>
-            )}
-          </div>
-        </div>
-
-        {searchTerm && !isSearchCollapsed && (
-          <div className="search-results-count">
-            {filteredEntries.length} of {localEntries.length}
-          </div>
-        )}
-      </div>
-
       <TabBar
         tabs={statusTabs}
         activeTab={activeTab}
@@ -1007,7 +966,8 @@ export const EntryList: React.FC = () => {
         ) : (
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={rectIntersection}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
@@ -1038,6 +998,22 @@ export const EntryList: React.FC = () => {
       </div>
 
       </PullToRefresh>
+
+      {/* Search & Sort Filter Panel */}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search dog, handler, breed, armband..."
+        sortOptions={sortOptions}
+        sortOrder={sortOrder}
+        onSortChange={(order) => {
+          setSortOrder(order as 'run' | 'armband' | 'placement' | 'manual');
+          setIsDragMode(false);
+        }}
+        resultsLabel={searchTerm ? `${filteredEntries.length} of ${localEntries.length} entries` : `${currentEntries.length} entries`}
+      />
 
       {/* Check-in Status Dialog */}
       <CheckinStatusDialog

@@ -40,6 +40,9 @@ export interface Entry {
   search_time_seconds?: number;
   total_faults?: number;
 
+  // Run order (exhibitor-controlled)
+  exhibitor_order?: number; // Custom run order set by gate steward/exhibitors
+
   // Timestamps
   created_at?: string;
   updated_at?: string;
