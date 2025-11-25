@@ -295,5 +295,50 @@
       "max_height_inches": 60,
       "keywords": ["60", "inches"]
     }
+  },
+  {
+    "id": "test-031",
+    "category": "distractions",
+    "query": "how many distractions in container novice?",
+    "expectedAnswer": {
+      "num_distractions": 0,
+      "keywords": ["0", "no", "none"]
+    }
+  },
+  {
+    "id": "test-032",
+    "category": "distractions",
+    "query": "how many distractions in interior advanced?",
+    "expectedAnswer": {
+      "num_distractions": 1,
+      "keywords": ["1", "one", "non-food"]
+    }
+  },
+  {
+    "id": "test-033",
+    "category": "distractions",
+    "query": "how many distractions in exterior excellent?",
+    "expectedAnswer": {
+      "num_distractions": 2,
+      "keywords": ["2", "two"]
+    }
+  },
+  {
+    "id": "test-034",
+    "category": "distractions",
+    "query": "how many distractions in buried master?",
+    "expectedAnswer": {
+      "num_distractions": 3,
+      "keywords": ["3", "three"]
+    }
+  },
+  {
+    "id": "test-035",
+    "category": "distractions",
+    "query": "what types of distractions are allowed in master level?",
+    "expectedAnswer": {
+      "distraction_types": ["non-food", "food", "auditory", "visual", "human", "mimic"],
+      "keywords": ["non-food", "food", "auditory", "visual", "human", "mimic"]
+    }
   }
 ]

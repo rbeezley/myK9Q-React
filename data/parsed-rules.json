@@ -38,7 +38,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -611,7 +613,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -844,7 +848,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -979,7 +985,11 @@
         "Anise"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -1446,7 +1456,9 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -1556,6 +1568,10 @@
       "target_odors": [
         "Birch",
         "Anise"
+      ],
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
       ]
     },
     "measurementsSource": "authoritative"
@@ -2071,7 +2087,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2111,7 +2129,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2141,7 +2161,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2233,7 +2255,9 @@
       "max_hides": 1,
       "hides_known": true,
       "num_containers": 10,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2268,7 +2292,9 @@
       "max_hides": 1,
       "hides_known": true,
       "num_containers": 10,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2308,7 +2334,11 @@
       "max_hides": 2,
       "hides_known": true,
       "num_containers": 15,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2349,7 +2379,14 @@
       "max_hides": 3,
       "hides_known": true,
       "num_containers": 20,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 2,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2385,7 +2422,16 @@
         "Clove",
         "Cypress"
       ],
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 3,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual",
+        "human",
+        "mimic"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2425,7 +2471,9 @@
       "max_hides": 1,
       "hides_known": true,
       "max_area_sq_ft": 200,
-      "max_height_inches": 24
+      "max_height_inches": 24,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2472,7 +2520,9 @@
       "max_hides": 1,
       "hides_known": true,
       "max_area_sq_ft": 200,
-      "max_height_inches": 24
+      "max_height_inches": 24,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2510,7 +2560,11 @@
       "max_hides": 2,
       "hides_known": true,
       "max_area_sq_ft": 400,
-      "max_height_inches": 36
+      "max_height_inches": 36,
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2541,7 +2595,14 @@
       "min_area_sq_ft": 300,
       "max_area_sq_ft": 500,
       "time_limit_minutes": 3,
-      "max_height_inches": 48
+      "max_height_inches": 48,
+      "num_distractions": 2,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2583,6 +2644,13 @@
         "Birch",
         "Anise",
         "Clove"
+      ],
+      "num_distractions": 2,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual"
       ]
     },
     "measurementsSource": "authoritative"
@@ -2629,7 +2697,16 @@
       "max_area_sq_ft": 600,
       "max_height_inches": 60,
       "hides_per_area": "0-3",
-      "notes": "0-3 hides per area, only one area can have 0, 2-6 hides per class"
+      "notes": "0-3 hides per area, only one area can have 0, 2-6 hides per class",
+      "num_distractions": 3,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual",
+        "human",
+        "mimic"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2670,7 +2747,9 @@
         "Birch"
       ],
       "max_area_sq_ft": 200,
-      "max_height_inches": 24
+      "max_height_inches": 24,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2711,7 +2790,9 @@
         "Birch"
       ],
       "max_area_sq_ft": 400,
-      "max_height_inches": 24
+      "max_height_inches": 24,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2748,7 +2829,11 @@
       "max_hides": 2,
       "hides_known": true,
       "max_area_sq_ft": 800,
-      "max_height_inches": 36
+      "max_height_inches": 36,
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2787,7 +2872,14 @@
       "max_hides": 3,
       "hides_known": true,
       "max_area_sq_ft": 1200,
-      "max_height_inches": 48
+      "max_height_inches": 48,
+      "num_distractions": 2,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2828,7 +2920,16 @@
       "max_hides": 4,
       "hides_known": false,
       "max_area_sq_ft": 1600,
-      "max_height_inches": 60
+      "max_height_inches": 60,
+      "num_distractions": 3,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual",
+        "human",
+        "mimic"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2876,7 +2977,9 @@
       "hides_known": true,
       "num_containers": 6,
       "container_type": "Tote boxes",
-      "max_area_sq_ft": 300
+      "max_area_sq_ft": 300,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -2911,7 +3014,11 @@
       "hides_known": true,
       "num_containers": 8,
       "container_type": "Tote boxes",
-      "max_area_sq_ft": 350
+      "max_area_sq_ft": 350,
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2947,7 +3054,14 @@
       "hides_known": true,
       "num_containers": 12,
       "container_type": "Tote boxes",
-      "max_area_sq_ft": 400
+      "max_area_sq_ft": 400,
+      "num_distractions": 2,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual"
+      ]
     },
     "measurementsSource": "authoritative"
   },
@@ -2978,6 +3092,15 @@
         "Anise",
         "Clove",
         "Cypress"
+      ],
+      "num_distractions": 3,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual",
+        "human",
+        "mimic"
       ]
     },
     "measurementsSource": "authoritative"
@@ -3060,7 +3183,9 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3154,7 +3279,9 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3183,7 +3310,9 @@
         "Birch"
       ],
       "container_spacing_inches": 12,
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3220,7 +3349,9 @@
       "target_odors": [
         "Birch"
       ],
-      "row_spacing_inches": 36
+      "row_spacing_inches": 36,
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3250,6 +3381,10 @@
       "target_odors": [
         "Birch",
         "Anise"
+      ],
+      "num_distractions": 1,
+      "distraction_types": [
+        "non-food"
       ]
     },
     "measurementsSource": "authoritative"
@@ -3320,6 +3455,13 @@
         "Birch",
         "Anise",
         "Clove"
+      ],
+      "num_distractions": 2,
+      "distraction_types": [
+        "non-food",
+        "food",
+        "auditory",
+        "visual"
       ]
     },
     "measurementsSource": "authoritative"
@@ -3581,7 +3723,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3610,7 +3754,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3641,7 +3787,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
@@ -3670,7 +3818,9 @@
       "max_height_inches": 24,
       "target_odors": [
         "Birch"
-      ]
+      ],
+      "num_distractions": 0,
+      "distraction_types": []
     },
     "measurementsSource": "authoritative"
   },
