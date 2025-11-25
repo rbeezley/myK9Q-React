@@ -31,7 +31,6 @@ export class PrefetchManager {
   private patterns: Map<string, NavigationPattern[]> = new Map();
   private currentPage: string = '';
   private replicationManager: ReplicationManager | null = null;
-  private prefetchQueue: PrefetchTask[] = [];
   private isPrefetching: boolean = false;
 
   // Prefetch configuration

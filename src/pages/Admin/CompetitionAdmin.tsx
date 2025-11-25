@@ -163,42 +163,6 @@ export const CompetitionAdmin: React.FC = () => {
     }
   };
 
-  // Show confirmation dialog for releasing results
-  const _showReleaseConfirmation = () => {
-    if (selectedClasses.size === 0) {
-      setSuccessDialog({
-        isOpen: true,
-        title: 'No Classes Selected',
-        message: 'Please select at least one class to release results for.',
-        details: []
-      });
-      return;
-    }
-
-    if (!adminName.trim()) {
-      setSuccessDialog({
-        isOpen: true,
-        title: 'Administrator Name Required',
-        message: 'Please enter your name for the audit trail before proceeding.',
-        details: []
-      });
-      return;
-    }
-
-    const selectedClassDetails = classes
-      .filter(cls => selectedClasses.has(cls.id))
-      .map(cls => `${cls.element} (${cls.level} • ${cls.section})`);
-
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Release Results',
-      message: `Are you sure you want to release results for ${selectedClasses.size} class(es)? This will make them visible on the TV Dashboard immediately.`,
-      type: 'success',
-      action: 'release',
-      details: selectedClassDetails
-    });
-  };
-
   // Release results for selected classes
   const releaseResults = async () => {
     try {

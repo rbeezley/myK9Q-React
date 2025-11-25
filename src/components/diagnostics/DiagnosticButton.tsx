@@ -5,7 +5,7 @@
  * Clicking opens the diagnostic panel with manual cleanup instructions.
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { IndexedDBDiagnosticPanel } from './IndexedDBDiagnosticPanel';
 import { useSettingsStore } from '@/stores/settingsStore';

@@ -5,7 +5,7 @@
  * Shows manual cleanup instructions to help users recover.
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import {
   runIndexedDBDiagnostics,

@@ -43,7 +43,6 @@ import { QualifyingResult } from '../../../stores/scoringStore';
 
 // Nationals-specific qualifying results (simplified for Nationals)
 type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
-type _RegularResult = QualifyingResult;
 
 export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
   const { classId, entryId } = useParams<{ classId: string; entryId: string }>();
@@ -56,12 +55,10 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     startScoringSession,
     submitScore: _addScoreToSession,
     moveToNextEntry: _moveToNextEntry,
-    moveToPreviousEntry, // eslint-disable-line @typescript-eslint/no-unused-vars
     endScoringSession: _endScoringSession
   } = useScoringStore();
 
   const {
-    currentClassEntries, // eslint-disable-line @typescript-eslint/no-unused-vars
     currentEntry,
     setEntries,
     setCurrentClassEntries,
@@ -335,27 +332,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     }
   }, [qualifying, areas.length, isNationalsMode]); // Re-run when qualifying changes or areas are initialized
 
-  // Get qualifying options based on mode
-  const _getQualifyingOptions = () => {
-    if (isNationalsMode) {
-      // Nationals: Only Qualified/Absent/Excused
-      return [
-        { value: 'Qualified', label: 'Qualified' },
-        { value: 'Absent', label: 'Absent' },
-        { value: 'Excused', label: 'Excused' }
-      ];
-    } else {
-      // Regular shows
-      return [
-        { value: 'Q', label: 'Qualified' },
-        { value: 'NQ', label: 'Not Qualified' },
-        { value: 'EX', label: 'Excused' },
-        { value: 'DQ', label: 'Disqualified' },
-        { value: 'ABS', label: 'Absent' }
-      ];
-    }
-  };
-
   // Enhanced submit handler with optimistic updates
   const handleEnhancedSubmit = async () => {
     console.log('🚀 handleEnhancedSubmit with OPTIMISTIC UPDATES!');
@@ -491,21 +467,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     navigate(-1);
   };
 
-  const _resetForm = (entry?: any) => {
-    const nextEntryAreas = initializeAreasForClass(entry?.element || '', entry?.level || '');
-    setAreas(nextEntryAreas);
-    setQualifying('');
-    setNonQualifyingReason('');
-    setFaultCount(0);
-    setTotalTime('');
-
-    // Reset Nationals-specific fields
-    setAlertsCorrect(0);
-    setAlertsIncorrect(0);
-    setFinishCallErrors(0);
-    setIsExcused(false);
-  };
-
   const calculateTotalTime = (): string => {
     const validTimes = areas.filter(area => area.time && area.time !== '').map(area => area.time);
     if (validTimes.length === 0) return '0.00';
@@ -592,14 +553,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
       }
     }, 10);
     setStopwatchInterval(interval);
-  };
-
-  const _pauseStopwatch = () => {
-    setIsStopwatchRunning(false);
-    if (stopwatchInterval) {
-      clearInterval(stopwatchInterval);
-      setStopwatchInterval(null);
-    }
   };
 
   const stopStopwatch = () => {
@@ -747,11 +700,6 @@ export const AKCScentWorkScoresheetEnhanced: React.FC = () => {
     setAreas(prev => prev.map((area, i) =>
       i === index ? { ...area, [field]: value } : area
     ));
-  };
-
-  // Add missing handleTimeInputChange function
-  const _handleTimeInputChange = (index: number, value: string) => {
-    handleAreaUpdate(index, 'time', value);
   };
 
   // Clear time functions

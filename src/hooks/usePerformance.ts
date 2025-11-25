@@ -105,7 +105,7 @@ export function useIdleCallback(
   priority: 'high' | 'medium' | 'low' = 'medium'
 ): void {
   useEffect(() => {
-    const _taskId = scheduleIdleWork(callback, { priority });
+    scheduleIdleWork(callback, { priority });
 
     return () => {
       // Cleanup handled by idleWork module

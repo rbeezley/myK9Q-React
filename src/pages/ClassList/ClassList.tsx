@@ -404,29 +404,6 @@ export const ClassList: React.FC = () => {
     navigate(`/class/${classEntry.id}/entries`);
   };
 
-
-
-  // Function to set a dog's in-ring status
-  const _setDogInRingStatus = async (dogId: number, inRing: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('entries')
-        .update({ is_in_ring: inRing })
-        .eq('id', dogId);
-
-      if (error) {
-        console.error('Error updating dog ring status:', error);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error setting dog ring status:', error);
-      return false;
-    }
-  };
-
-
   // Function for handling status changes with inline time inputs
   const handleClassStatusChangeWithTime = async (classId: number, status: ClassEntry['class_status'], timeValue: string) => {
     console.log('🕐 Status change with time:', { classId, status, timeValue });
@@ -686,43 +663,6 @@ export const ClassList: React.FC = () => {
 
     return result;
   }, []);
-
-  const _getStatusLabel = (status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
-    switch (status) {
-      case 'setup': return 'Setup';
-      case 'briefing': {
-        if (classEntry?.briefing_time) {
-          return `Briefing ${classEntry.briefing_time}`;
-        }
-        return 'Briefing';
-      }
-      case 'break': {
-        if (classEntry?.break_until) {
-          return `Break Until ${classEntry.break_until}`;
-        }
-        return 'Break Until';
-      }
-      case 'start_time': {
-        if (classEntry?.start_time) {
-          return `Start ${classEntry.start_time}`;
-        }
-        return 'Start Time';
-      }
-      case 'in_progress': return 'In Progress';
-      case 'completed': return 'Completed';
-      default:
-        // Show intelligent status when class_status is 'none'
-        if (classEntry) {
-          const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
-          const hasDogsInRing = classEntry.dogs.some(dog => dog.in_ring);
-
-          if (isCompleted) return 'Completed';
-          if (hasDogsInRing || classEntry.completed_count > 0) return 'In Progress';
-          return 'Ready';
-        }
-        return 'Ready';
-    }
-  };
 
   // Helper function to group Novice A/B classes into combined entries
   const groupNoviceClassesCached = useCallback((classList: ClassEntry[]): ClassEntry[] => {

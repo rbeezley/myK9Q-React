@@ -12,14 +12,6 @@ interface PerformanceMetric {
   timestamp: number;
 }
 
-interface _WebVital {
-  name: 'CLS' | 'FID' | 'LCP' | 'FCP' | 'TTFB';
-  value: number;
-  rating: 'good' | 'needs-improvement' | 'poor';
-  delta: number;
-  id: string;
-}
-
 class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
   private isEnabled: boolean;

@@ -71,8 +71,10 @@ export class SyncEngine {
 
   constructor(config: SyncEngineConfig = {}) {
     this.syncInterval = config.syncInterval || 5 * 60 * 1000; // 5 min default
+    void this.syncInterval; // Reserved for future periodic sync feature
     this.maxRetries = config.maxRetries || 3;
     this.retryBackoffBase = config.retryBackoffBase || 1000; // 1 sec
+    void this.retryBackoffBase; // Reserved for future retry logic
     this.autoSyncOnReconnect = config.autoSyncOnReconnect ?? true;
 
     // Listen for network changes

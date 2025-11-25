@@ -67,7 +67,6 @@ export class AnalyticsService {
 
   // Configuration
   private readonly MAX_EVENTS = 500;
-  private readonly INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes
   private readonly BATCH_SIZE = 50;
   private readonly BATCH_INTERVAL = 30000; // 30 seconds
 
@@ -77,13 +76,6 @@ export class AnalyticsService {
     this.lastActivityTime = Date.now();
     this.navigationPath.push(window.location.pathname);
     this.initializeListeners();
-  }
-
-  /**
-   * Generate unique session ID
-   */
-  private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   static getInstance(): AnalyticsService {
@@ -340,9 +332,6 @@ export class AnalyticsService {
    */
   private getDeviceInfo(): DeviceInfo {
     const ua = navigator.userAgent;
-    const _match = ua.match(
-      /([^/]+)\/([^ ]+).*?([\w.]+)$|.*?([A-Za-z]+[A-Za-z0-9_]*)[/ \s]([0-9.]+)/
-    );
 
     return {
       userAgent: ua,
@@ -370,6 +359,7 @@ export class AnalyticsService {
    */
   private updateLastActivity(): void {
     this.lastActivityTime = Date.now();
+    void this.lastActivityTime; // Reserved for future session timeout feature
   }
 
   /**

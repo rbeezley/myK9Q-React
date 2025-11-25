@@ -49,12 +49,10 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     startScoringSession,
     submitScore: _addScoreToSession,
     moveToNextEntry: _moveToNextEntry,
-    moveToPreviousEntry, // eslint-disable-line @typescript-eslint/no-unused-vars
     endScoringSession: _endScoringSession
   } = useScoringStore();
 
   const {
-    currentClassEntries, // eslint-disable-line @typescript-eslint/no-unused-vars
     currentEntry,
     setEntries,
     setCurrentClassEntries,
@@ -75,7 +73,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   const [areas, setAreas] = useState<AreaScore[]>([]);
   const [qualifying, setQualifying] = useState<QualifyingResult | ''>('');
   const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
-  const [totalTime, setTotalTime] = useState<string>('');
+  const [totalTime, _setTotalTime] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [faultCount, setFaultCount] = useState(0);
@@ -340,15 +338,6 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     navigate(-1);
   };
 
-  const _resetForm = (entry?: any) => {
-    const nextEntryAreas = initializeAreasForClass(entry?.element || '', entry?.level || '');
-    setAreas(nextEntryAreas);
-    setQualifying('');
-    setNonQualifyingReason('');
-    setFaultCount(0);
-    setTotalTime('');
-  };
-
   const calculateTotalTime = (): string => {
     const validTimes = areas.filter(area => area.time && area.time !== '').map(area => area.time);
     if (validTimes.length === 0) return '0.00';
@@ -435,14 +424,6 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       }
     }, 10);
     setStopwatchInterval(interval);
-  };
-
-  const _pauseStopwatch = () => {
-    setIsStopwatchRunning(false);
-    if (stopwatchInterval) {
-      clearInterval(stopwatchInterval);
-      setStopwatchInterval(null);
-    }
   };
 
   const stopStopwatch = () => {
@@ -590,11 +571,6 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     setAreas(prev => prev.map((area, i) =>
       i === index ? { ...area, [field]: value } : area
     ));
-  };
-
-  // Add missing handleTimeInputChange function
-  const _handleTimeInputChange = (index: number, value: string) => {
-    handleAreaUpdate(index, 'time', value);
   };
 
   // Clear time functions

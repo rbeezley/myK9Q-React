@@ -513,15 +513,6 @@ class NotificationService {
     }, 30000);
   }
 
-  /**
-   * Stop queue processing
-   */
-  private stopQueueProcessing(): void {
-    if (this.queueProcessingInterval) {
-      clearInterval(this.queueProcessingInterval);
-      this.queueProcessingInterval = null;
-    }
-  }
 
   /**
    * Get queue status

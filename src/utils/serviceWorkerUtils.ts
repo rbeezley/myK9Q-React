@@ -52,6 +52,7 @@ export class ServiceWorkerManager {
    */
   updateLicenseKey(licenseKey: string): void {
     this.currentLicenseKey = licenseKey;
+    void this.currentLicenseKey; // Reserved for future tenant-specific caching
 
     if (this.registration?.active) {
       this.sendMessageToServiceWorker({

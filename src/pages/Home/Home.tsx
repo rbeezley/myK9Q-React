@@ -386,8 +386,6 @@ export const Home: React.FC = () => {
       <div className="trials-section">
         <div className="trials-scroll">
           {trials.map((trial, index) => {
-            const _hasActiveClasses = trial.classes_total > trial.classes_completed;
-
             // Determine trial status based on entry scoring (consistent with class statuses)
             const getTrialStatus = () => {
               if (trial.entries_completed === trial.entries_total && trial.entries_total > 0) {

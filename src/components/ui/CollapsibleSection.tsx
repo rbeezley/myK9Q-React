@@ -188,25 +188,9 @@ export function CollapsibleSectionGroup({
   defaultExpandedId,
   className = '',
 }: CollapsibleSectionGroupProps) {
-  const [_expandedIds, _setExpandedIds] = useState<Set<string>>(
-    defaultExpandedId ? new Set([defaultExpandedId]) : new Set()
-  );
-
-  const _handleExpandChange = (_id: string, _expanded: boolean) => {
-    if (allowMultiple) {
-      _setExpandedIds((prev) => {
-        const newSet = new Set(prev);
-        if (_expanded) {
-          newSet.add(_id);
-        } else {
-          newSet.delete(_id);
-        }
-        return newSet;
-      });
-    } else {
-      _setExpandedIds(_expanded ? new Set([_id]) : new Set());
-    }
-  };
+  // Props reserved for future group coordination feature
+  void allowMultiple;
+  void defaultExpandedId;
 
   return (
     <div className={`collapsible-section-group ${className}`}>

@@ -5,7 +5,6 @@
  * Shows contextual messages based on whether they have favorited dogs.
  */
 
-import React from 'react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Download, X, Bell } from 'lucide-react';
 import './shared-ui.css';

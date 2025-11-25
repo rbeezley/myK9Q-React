@@ -68,9 +68,6 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   onMenuClick,
   onPrefetch,
 }) => {
-  const _hasPendingEntries = classEntry.entry_count > classEntry.completed_count;
-  const _isInProgress = classEntry.class_status === 'in_progress';
-
   // Memoize computed values to prevent redundant function calls
   const statusColor = useMemo(
     () => getStatusColor(classEntry.class_status, classEntry),

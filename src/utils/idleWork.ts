@@ -40,12 +40,6 @@ const requestIdleCallbackPolyfill =
     }, 1) as any;
   };
 
-const _cancelIdleCallbackPolyfill =
-  window.cancelIdleCallback ||
-  function (id: number) {
-    clearTimeout(id);
-  };
-
 /**
  * Schedule work during idle time
  */

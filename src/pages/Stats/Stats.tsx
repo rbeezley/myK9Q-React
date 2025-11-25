@@ -17,7 +17,6 @@ const JudgePerformanceChart = lazy(() => import('./components/JudgePerformanceCh
 const FastestTimesTable = lazy(() => import('./components/FastestTimesTable'));
 const CleanSweepSection = lazy(() => import('./components/CleanSweepSection'));
 const StatsFiltersComponent = lazy(() => import('./components/StatsFilters'));
-const _StatsBreadcrumbs = lazy(() => import('./components/StatsBreadcrumbs'));
 
 export const Stats: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();

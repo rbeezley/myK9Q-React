@@ -5,7 +5,7 @@
  * Only accessible by admins - shows data for their logged-in show context
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { metricsApiService, SessionSummaryRecord } from '@/services/metricsApiService';
 import { usePerformanceMetricsData } from './hooks/usePerformanceMetricsData';

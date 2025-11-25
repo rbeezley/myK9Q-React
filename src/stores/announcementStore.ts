@@ -125,7 +125,6 @@ export const useAnnouncementStore = create<AnnouncementState>()(
 
         // Guard: If we have an active channel for this license, we're already set up
         if (current.realtimeChannel && current.isConnected) {
-          const _channelName = `announcements-${licenseKey}`;
           // Check if the existing channel matches the requested license key
           if (current.realtimeChannel.topic.includes(licenseKey)) {
             console.log('✋ Already connected to announcement channel for this license key, skipping');

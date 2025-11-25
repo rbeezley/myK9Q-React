@@ -7,7 +7,7 @@
  * Only visible when Developer Mode is enabled in settings.
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { performanceMonitor } from '@/services/performanceMonitor';
 import { analyticsService } from '@/services/analyticsService';
 import { useSettingsStore } from '@/stores/settingsStore';

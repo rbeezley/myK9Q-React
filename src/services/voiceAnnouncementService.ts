@@ -293,6 +293,7 @@ class VoiceAnnouncementService {
   public cancelAll(): void {
     this.cancel();
     this.queue = [];
+    void this.queue; // Reserved for future queued announcements feature
   }
 
   /**

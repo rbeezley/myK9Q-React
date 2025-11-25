@@ -407,8 +407,6 @@ export const EntryList: React.FC = () => {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
 
-    // Check if exhibitor can check themselves in
-    const _canCheckIn = hasPermission('canCheckInDogs');
     const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
     const userRole = role;
 

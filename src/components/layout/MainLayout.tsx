@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { PWAInstallBanner } from '../PWAInstallBanner';
 import { DatabaseRecovery } from '../diagnostics/DatabaseRecovery';
 import { AutoLogoutWarning } from '../ui/AutoLogoutWarning';

@@ -30,11 +30,11 @@ export interface DetectionResult {
 }
 
 /**
- * Check if a show exists in the legacy database
- * @param licenseKey The license key to check
- * @returns true if show exists in legacy database
+ * Note: These functions are currently unused but kept for potential future database migration features
+ * They can be removed if database detection is no longer needed
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+/*
 async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
   if (!supabaseLegacy) {
     console.log('Legacy database not configured');
@@ -42,7 +42,6 @@ async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
   }
 
   try {
-    // Legacy database uses tbl_show_queue table with mobile_app_lic_key field
     const { data, error } = await supabaseLegacy
       .from('tbl_show_queue')
       .select('id, mobile_app_lic_key')
@@ -50,7 +49,6 @@ async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
       .single();
 
     if (error) {
-      // Check if error is because row doesn't exist (expected for non-legacy shows)
       if (error.code === 'PGRST116') {
         return false;
       }
@@ -65,15 +63,8 @@ async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
   }
 }
 
-/**
- * Check if a show exists in the V3 database
- * @param licenseKey The license key to check
- * @returns true if show exists in V3 database
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function checkV3Database(licenseKey: string): Promise<boolean> {
   try {
-    // V3 database uses shows table with license_key field
     const { data, error } = await supabaseV3
       .from('shows')
       .select('id, license_key')
@@ -81,7 +72,6 @@ async function checkV3Database(licenseKey: string): Promise<boolean> {
       .single();
 
     if (error) {
-      // Check if error is because row doesn't exist
       if (error.code === 'PGRST116') {
         return false;
       }
@@ -96,25 +86,12 @@ async function checkV3Database(licenseKey: string): Promise<boolean> {
   }
 }
 
-/**
- * Extract license key from passcode
- * This is a simplified version - the full validation happens after database selection
- * @param passcode The 5-character passcode
- * @returns The potential license key patterns to check
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function extractPotentialLicenseKeys(passcode: string): string[] {
   if (!passcode || passcode.length !== 5) {
     return [];
   }
 
-  // Extract the 4-character segment from passcode (excluding role prefix)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const segment = passcode.substring(1);
-
-  // For migration period, we need to check all possible license key formats
-  // This is a simplified check - actual validation happens in authService
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const potentialKeys: string[] = [];
 
   // We'll need to fetch all shows and check against each license key
@@ -122,6 +99,7 @@ function extractPotentialLicenseKeys(passcode: string): string[] {
   // For detection, we return a marker to indicate we need to check all shows
   return ['CHECK_ALL_SHOWS'];
 }
+*/
 
 /**
  * Detect which database contains the show for a given passcode

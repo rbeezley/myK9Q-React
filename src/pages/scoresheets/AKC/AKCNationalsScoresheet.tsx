@@ -52,12 +52,10 @@ export const AKCNationalsScoresheet: React.FC = () => {
     startScoringSession,
     submitScore: _addScoreToSession,
     moveToNextEntry: _moveToNextEntry,
-    moveToPreviousEntry, // eslint-disable-line @typescript-eslint/no-unused-vars
     endScoringSession: _endScoringSession
   } = useScoringStore();
 
   const {
-    currentClassEntries, // eslint-disable-line @typescript-eslint/no-unused-vars
     currentEntry,
     setEntries,
     setCurrentClassEntries,
@@ -428,20 +426,6 @@ export const AKCNationalsScoresheet: React.FC = () => {
     navigate(-1);
   };
 
-  const _resetForm = (entry?: any) => {
-    const nextEntryAreas = initializeAreasForClass(entry?.element || '', entry?.level || '');
-    setAreas(nextEntryAreas);
-    setQualifying('');
-    setFaultCount(0);
-    setTotalTime('');
-
-    // Reset Nationals-specific fields
-    setAlertsCorrect(0);
-    setAlertsIncorrect(0);
-    setFinishCallErrors(0);
-    setIsExcused(false);
-  };
-
   const calculateTotalTime = (): string => {
     const validTimes = areas.filter(area => area.time && area.time !== '').map(area => area.time);
     if (validTimes.length === 0) return '0.00';
@@ -527,14 +511,6 @@ export const AKCNationalsScoresheet: React.FC = () => {
       }
     }, 10);
     setStopwatchInterval(interval);
-  };
-
-  const _pauseStopwatch = () => {
-    setIsStopwatchRunning(false);
-    if (stopwatchInterval) {
-      clearInterval(stopwatchInterval);
-      setStopwatchInterval(null);
-    }
   };
 
   const stopStopwatch = () => {

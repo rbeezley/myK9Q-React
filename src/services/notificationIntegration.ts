@@ -185,6 +185,7 @@ class NotificationIntegration {
 
     // Update previous entries cache
     this.previousEntries = new Map(currentEntries.map(e => [e.id, e]));
+    void this.previousEntries; // Reserved for future entry change detection
   }
 
   /**
