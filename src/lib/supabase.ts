@@ -81,7 +81,6 @@ export interface EntryQueue {
   handler_name: string;
   dog_call_name: string;
   dog_breed: string | null;
-  run_order: number;
   exhibitor_order: number;
   check_in_status: number;
   is_paid: boolean;

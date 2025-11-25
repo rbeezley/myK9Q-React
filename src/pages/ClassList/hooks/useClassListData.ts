@@ -56,6 +56,7 @@ export interface ClassEntry {
     in_ring: boolean;
     checkin_status: number;
     is_scored: boolean;
+    exhibitor_order: number;
   }[];
 }
 
@@ -206,6 +207,7 @@ async function processClassesWithEntries(
             ? 4
             : 0,
         is_scored: entry.is_scored || false,
+        exhibitor_order: entry.exhibitor_order || 0,
       }))
       .sort((a, b) => {
         // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
@@ -227,7 +229,10 @@ async function processClassesWithEntries(
           return priorityA - priorityB;
         }
 
-        // Secondary sort by armband number
+        // Secondary sort by exhibitor_order (run order), then armband as fallback
+        if (a.exhibitor_order !== b.exhibitor_order) {
+          return a.exhibitor_order - b.exhibitor_order;
+        }
         return a.armband - b.armband;
       });
 
@@ -448,7 +453,8 @@ async function fetchClasses(
       handler: entry.handler,
       in_ring: entry.status === 'in-ring',
       checkin_status: entry.status === 'checked-in' ? 1 : entry.status === 'conflict' ? 2 : entry.status === 'pulled' ? 3 : entry.status === 'at-gate' ? 4 : 0,
-      is_scored: entry.isScored
+      is_scored: entry.isScored,
+      exhibitor_order: entry.exhibitorOrder || 0
     })).sort((a, b) => {
       // Custom sort order: in-ring, at gate, checked-in, conflict, not checked-in, pulled, completed
       const getStatusPriority = (dog: typeof a) => {
@@ -469,7 +475,10 @@ async function fetchClasses(
         return priorityA - priorityB;
       }
 
-      // Secondary sort by armband number
+      // Secondary sort by exhibitor_order (run order), then armband as fallback
+      if (a.exhibitor_order !== b.exhibitor_order) {
+        return a.exhibitor_order - b.exhibitor_order;
+      }
       return a.armband - b.armband;
     });
 

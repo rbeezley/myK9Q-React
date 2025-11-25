@@ -91,8 +91,7 @@ erDiagram
         text handler_name
         text handler_state
         text entry_status "🔴 UNIFIED STATUS ENUM 8 values"
-        int exhibitor_order
-        int run_order
+        int exhibitor_order "Custom run order"
         int entry_type "1=pre 2=day-of 3=move-up"
         numeric entry_fee "CHECK >= 0"
         bool is_paid
@@ -330,8 +329,7 @@ erDiagram
 │                      │          come-to-gate, conflict,
 │                      │          pulled, in-ring, completed)
 │                      │
-│ run_order            │
-│ exhibitor_order      │  ◄──── Drag-drop reordering
+│ exhibitor_order      │  ◄──── Drag-drop reordering (run order)
 │ entry_type           │  (1=pre_entry, 2=day_of_show, 3=move_up)
 │ entry_fee            │
 │ is_paid              │

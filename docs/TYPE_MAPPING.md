@@ -256,8 +256,7 @@ CREATE TABLE entries (
 
   -- Entry Details
   entry_type int2 DEFAULT 1 CHECK (entry_type >= 1 AND entry_type <= 3),
-  run_order int4 DEFAULT 0,
-  exhibitor_order int4 DEFAULT 0,
+  exhibitor_order int4 DEFAULT 0,  -- Custom run order (gate steward can reorder)
   entry_fee numeric DEFAULT 0 CHECK (entry_fee >= 0),
   is_paid bool DEFAULT false,
 

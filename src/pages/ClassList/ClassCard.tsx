@@ -35,6 +35,7 @@ interface ClassEntry {
     in_ring: boolean;
     checkin_status: number;
     is_scored: boolean;
+    exhibitor_order: number;
   }[];
 }
 
