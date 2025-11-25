@@ -35,7 +35,7 @@
 
 .scoresheet-container {
   height: 100vh;
-  background: #1a1d23; /* Dark mode: matches Settings page - lighter dark mode */
+  background: var(--background); /* Uses global background token */
   color: var(--scoresheet-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow: hidden;
@@ -44,7 +44,7 @@
 
 /* Light mode override - gray background */
 .theme-light .scoresheet-container {
-  background: #f1f5f9; /* Light gray background */
+  background: var(--secondary); /* Light gray background */
 }
 
 .scoresheet {
@@ -135,7 +135,7 @@
 }
 
 .theme-dark .scoresheet-trial-header {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 /* Compact Trial Header - One Line */
@@ -154,7 +154,7 @@
 }
 
 .theme-dark .scoresheet-trial-header-compact {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .trial-info-item {
@@ -194,7 +194,7 @@
 }
 
 .theme-dark .scoresheet-dog-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 /* Compact Dog Info Card */
@@ -235,7 +235,7 @@
 }
 
 .theme-dark .scoresheet-dog-info-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .scoresheet-armband {
@@ -343,7 +343,7 @@
 }
 
 .theme-dark .scoresheet-timer-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .timer-display-large {
@@ -561,7 +561,7 @@
 }
 
 .theme-dark .scoresheet-time-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .time-input-flutter {

@@ -143,7 +143,7 @@
 }
 
 .theme-dark .qualifying-section {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -213,7 +213,7 @@
 }
 
 .theme-dark .reason-section {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -275,7 +275,7 @@
 }
 
 .theme-dark .action-buttons {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -370,7 +370,7 @@
 }
 
 .theme-dark .confirmation-dialog {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 @keyframes slideUp {

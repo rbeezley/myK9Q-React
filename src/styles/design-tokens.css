@@ -326,7 +326,7 @@
   /* UI Colors (Dark Mode) */
   --background: #1a1d23;
   --foreground: #ffffff;
-  --card: #1a1d23;
+  --card: #26292e;              /* Elevated card background - lighter than page for contrast */
   --card-foreground: #ffffff;
   --muted: #26292e;
   --muted-foreground: #ffffff;

@@ -43,7 +43,7 @@
 }
 
 .theme-dark .dog-statistics .stat-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .dog-statistics .stat-card:hover {
@@ -119,7 +119,7 @@
 }
 
 .theme-dark .dog-statistics .chart-section {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .dog-statistics .chart-title {
@@ -139,7 +139,7 @@
 }
 
 .theme-dark .dog-statistics .results-table-section {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .dog-statistics .results-table-container {

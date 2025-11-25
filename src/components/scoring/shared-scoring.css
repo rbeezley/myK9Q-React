@@ -1285,7 +1285,7 @@
 }
 
 .theme-dark .results-section {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 /* Shared container styles for consistency */

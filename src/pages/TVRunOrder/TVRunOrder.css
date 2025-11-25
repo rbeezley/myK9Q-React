@@ -4,13 +4,13 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
+  background: var(--secondary); /* Light: light gray background for better contrast with white containers */
   overflow: hidden;
 }
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .tv-runorder-container {
-  background: #1a1d23; /* Matches Settings page - lighter dark mode */
+  background: var(--background); /* Uses global background token */
 }
 
 /* Header bar with menu */

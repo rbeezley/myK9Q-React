@@ -8,7 +8,7 @@
   height: 100vh;
   width: 100%;
   overflow: hidden; /* No scrolling on container - only on entry-grid-virtual */
-  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
+  background: var(--secondary); /* Light: light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif);
   transition: background-color var(--token-transition-normal);
@@ -20,7 +20,7 @@
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .home-container {
-  background: #1a1d23; /* Matches Settings page - lighter dark mode */
+  background: var(--background); /* Uses global background token */
 }
 
 /* Scrollable content wrapper - contains everything that can scroll */
@@ -95,7 +95,7 @@
 }
 
 .theme-dark .show-info {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -499,7 +499,7 @@
   }
 
   .theme-dark .trial-card {
-    background: #26292e;
+    background: var(--card);
   }
 
   .trial-card::before {
@@ -766,7 +766,7 @@
 }
 
 .theme-dark .search-controls-header {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   border-bottom-color: var(--border);
 }
 
@@ -775,16 +775,16 @@
 }
 
 .theme-dark .search-sort-container {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .theme-dark .search-input-full {
-  background: #26292e; /* Match card background */
+  background: var(--card); /* Uses global card token */
   border-color: #2d3139;
 }
 
 .theme-dark .sort-btn {
-  background: #26292e; /* Match card background */
+  background: var(--card); /* Uses global card token */
   border-color: #2d3139;
 }
 
@@ -884,7 +884,7 @@
 }
 
 .theme-dark .no-favorites {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -943,7 +943,7 @@
 }
 
 .theme-dark .entry-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
   box-shadow: var(--token-shadow-md);
 }
 
@@ -1153,7 +1153,7 @@
 }
 
 .theme-dark .skeleton-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .skeleton-card-content {

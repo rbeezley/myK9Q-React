@@ -3,13 +3,13 @@
 /* Base/Mobile Styles */
 .stats-container {
   min-height: 100vh;
-  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
+  background: var(--secondary); /* Light: light gray background for better contrast with white containers */
   padding-bottom: var(--token-space-4xl);
 }
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .stats-container {
-  background: #1a1d23; /* Matches Settings page - lighter dark mode */
+  background: var(--background); /* Uses global background token */
 }
 
 /* Header Section - Using page-header from shared styles */
@@ -150,7 +150,7 @@
 }
 
 .theme-dark .stats-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .stats-card:hover {
@@ -231,7 +231,7 @@
 }
 
 .theme-dark .chart-container {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .chart-title {
@@ -265,7 +265,7 @@
 }
 
 .theme-dark .stats-section {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .section-title {
@@ -293,7 +293,7 @@
 }
 
 .theme-dark .clean-sweep-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 /* Empty & Error States */

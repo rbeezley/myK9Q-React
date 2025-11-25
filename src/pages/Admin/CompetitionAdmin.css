@@ -1,92 +1,19 @@
-/* MyK9Show Competition Administration - Apple-inspired Light/Dark Mode with Enhanced Outdoor Visibility */
-
-/* CSS Variables - Enhanced for outdoor trial readability */
-.competition-admin {
-  /* Light theme */
-  --background: var(--background);
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --muted: #f6f6f6;
-  --muted-foreground: var(--text-gray);
-  --border: var(--border-subtle);
-  --input: var(--surface-subtle);
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --secondary: var(--surface);
-  --secondary-foreground: #0f172a;
-
-  /* Enhanced text contrast for outdoor visibility */
-  --text-primary: #0a0a0a;
-  --text-secondary: var(--foreground-muted);
-  --text-tertiary: var(--text-gray);
-
-  /* MyK9Show brand colors */
-  --brand-blue: #007AFF;
-  --brand-purple: #5856D6;
-  --success: #34C759;
-  --warning: #FF9500;
-  --error: #FF3B30;
-
-  /* High contrast status colors */
-  --success-contrast: var(--status-checked-in);
-  --warning-contrast: #c2410c;
-  --error-contrast: #dc2626;
-
-  /* Admin-specific colors */
-  --admin-primary: #667eea;
-  --admin-secondary: #764ba2;
-  --release-color: var(--token-success);
-  --embargo-color: var(--token-error);
-  --auto-color: var(--primary);
-}
-
-.theme-dark .competition-admin {
-  /* Dark theme - Enhanced for Outdoor Visibility */
-  --background: var(--card);
-  --foreground: #ffffff;
-  --card: var(--card);
-  --card-foreground: #ffffff;
-  --muted: var(--surface);
-  --muted-foreground: #ffffff;
-  --border: #4a5568;
-  --input: var(--surface-subtle);
-  --primary: var(--checkin-in-ring);
-  --primary-foreground: #ffffff;
-  --secondary: var(--surface-subtle);
-  --secondary-foreground: #ffffff;
-
-  /* Enhanced text contrast for outdoor visibility */
-  --text-primary: #ffffff;
-  --text-secondary: #ffffff;
-  --text-tertiary: #ffffff;
-
-  /* High contrast status colors for dark mode */
-  --success-contrast: var(--status-checked-in);
-  --warning-contrast: #fef3c7;
-  --error-contrast: var(--status-pulled);
-}
-
-.theme-dark .competition-admin .class-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
-}
-
-.theme-dark .competition-admin .class-card:hover {
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.4);
-}
+/* ========================================================================
+   COMPETITION ADMIN PAGE
+   Uses global design tokens from design-tokens.css for consistency
+   ======================================================================== */
 
 /* Main container */
 .competition-admin {
   min-height: 100vh;
-  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
+  background: var(--secondary);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Dark mode: darker background for contrast with cards */
+/* Dark mode */
 .theme-dark .competition-admin {
-  background: #1a1d23; /* Matches Settings page - lighter dark mode */
+  background: var(--background);
 }
 
 /* Header styling - consistent with other pages */
@@ -563,12 +490,12 @@
   height: 1rem;
 }
 
-/* Classes list */
+/* Classes list - transparent container, cards provide visual hierarchy */
 .classes-list {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: var(--token-space-3xl);
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: var(--token-space-lg) 0;
 }
 
 .classes-header {
@@ -1116,11 +1043,11 @@
 /* ============================================================ */
 
 .visibility-control-section {
-  padding: var(--token-space-3xl);
-  background: var(--card);
-  border-radius: var(--token-radius-xl);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: var(--token-space-lg) 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .visibility-header {
@@ -1128,11 +1055,11 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: var(--token-space-lg);
-  margin: calc(var(--token-space-3xl) * -1);
-  margin-bottom: var(--token-space-3xl);
-  border-radius: var(--token-radius-xl) var(--token-radius-xl) 0 0;
-  background: var(--muted);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  margin: 0 0 var(--token-space-xl) 0;
+  border-radius: var(--token-radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
   transition: background 0.2s ease;
 }
 
@@ -1169,7 +1096,7 @@
 .show-default-card {
   margin-bottom: var(--token-space-4xl);
   padding: var(--token-space-3xl);
-  background: var(--muted);
+  background: var(--card);
   border-radius: var(--token-radius-lg);
 }
 
@@ -1183,6 +1110,9 @@
 }
 
 .show-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-md);
   font-size: 1rem;
   font-weight: 600;
   color: var(--foreground);
@@ -1271,10 +1201,10 @@
 /* Bulk Operations */
 .bulk-operations {
   margin-bottom: var(--token-space-4xl);
-  padding: var(--token-space-3xl);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--token-radius-lg);
+  padding: var(--token-space-lg) 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
 .bulk-operations h4 {
@@ -1294,7 +1224,7 @@
   align-items: center;
   gap: var(--token-space-md);
   padding: var(--token-space-lg) var(--token-space-xl);
-  background: var(--card);
+  background: var(--muted);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-lg);
   font-size: 0.875rem;
@@ -1333,7 +1263,7 @@
 /* Visibility Explanation */
 .visibility-explanation {
   padding: var(--token-space-3xl);
-  background: var(--muted);
+  background: var(--card);
   border-radius: var(--token-radius-lg);
   border-left: 4px solid var(--primary);
 }
@@ -1411,10 +1341,10 @@
 
 .trial-overrides-section {
   margin-bottom: var(--token-space-4xl);
-  padding: var(--token-space-3xl);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--token-radius-lg);
+  padding: var(--token-space-lg) 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
 .trial-overrides-section h4 {
@@ -1431,58 +1361,79 @@
   line-height: 1.5;
 }
 
-.trial-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--token-space-3xl) var(--token-space-xl);
-  margin-bottom: var(--token-space-md);
-  background: var(--muted);
-  border-radius: var(--token-radius-lg);
-  border: 1px solid var(--border);
-  gap: var(--token-space-4xl);
+.trial-rows-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--token-space-md);
 }
 
-.trial-info {
+/* Tablet: 2 columns */
+@media (min-width: 768px) {
+  .trial-rows-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 3 columns for larger screens */
+@media (min-width: 1200px) {
+  .trial-rows-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.trial-override-card {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-sm);
-  flex: 1;
-  min-width: 0; /* Allow text to wrap if needed */
-  align-items: flex-start; /* Left-align content */
-  text-align: left; /* Ensure text aligns left */
-  margin: 0; /* Remove any inherited margin */
-  padding: 0; /* Remove any inherited padding */
+  padding: var(--token-space-xl);
+  background: var(--card);
+  border-radius: var(--token-radius-lg);
+  border: 1px solid var(--border);
+  gap: var(--token-space-md);
 }
 
-.trial-label {
-  font-size: 1rem;
+.trial-override-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-xs);
+}
+
+.trial-override-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding-top: var(--token-space-md);
+  border-top: 1px solid var(--border);
+}
+
+.trial-override-label {
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
-  text-align: left;
-  width: 100%;
 }
 
-.trial-meta {
+.trial-override-meta {
   font-size: 0.8125rem;
   color: var(--muted-foreground);
-  text-align: left;
+}
+
+.trial-override-label-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-xs);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.trial-visibility-selector,
+.trial-checkin-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--token-space-sm);
   width: 100%;
-}
-
-.trial-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0; /* Don't shrink the controls */
-  margin-left: auto; /* Push to the right */
-}
-
-.trial-visibility-selector {
-  display: flex;
-  align-items: center;
-  gap: var(--token-space-md);
-  flex-wrap: nowrap; /* Keep items on one line */
 }
 
 .trial-label-text {
@@ -1498,7 +1449,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   border: 2px solid var(--border);
-  background: var(--card);
+  background: var(--muted);
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1529,12 +1480,15 @@
 }
 
 .reset-btn {
-  padding: var(--token-space-md) var(--token-space-lg);
-  border-radius: var(--token-radius-lg);
-  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-xs);
+  padding: var(--token-space-sm) var(--token-space-md);
+  border-radius: var(--token-radius-md);
+  font-size: 0.8125rem;
   font-weight: 500;
   border: 1px solid var(--error);
-  background: var(--card);
+  background: var(--muted);
   color: var(--error);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1551,39 +1505,16 @@
   cursor: not-allowed;
 }
 
-/* Mobile Responsive - Trial Overrides */
-.trial-row {
-  flex-direction: column;  /* Mobile: stack vertically */
-  align-items: stretch;
-  gap: var(--token-space-lg);  /* Mobile: vertical gap */
-}
-
-.trial-controls {
-  justify-content: stretch;  /* Mobile: stretch controls */
-}
-
-.trial-visibility-selector {
-  flex-direction: column;  /* Mobile: stack vertically */
-  align-items: stretch;
-  gap: var(--token-space-md);
-}
-
-.trial-label-text {
-  text-align: center;  /* Mobile: center text */
-}
-
-.trial-preset-dropdown {
-  width: 100%;  /* Mobile: full width */
-  min-width: auto;
+/* Trial dropdown and reset button full-width on mobile */
+.trial-preset-dropdown,
+.trial-checkin-dropdown {
+  flex: 1;
+  min-width: 120px;
 }
 
 .reset-btn {
-  width: 100%;  /* Mobile: full width */
-  text-align: center;
+  flex-shrink: 0;
 }
-
-/* Desktop enhancements - Trial Overrides */
-/* Consolidated into single 640px media query block at end of file */
 
 /* ===================================== */
 /* SELF CHECK-IN CASCADE STYLES */
@@ -1656,26 +1587,7 @@
   cursor: not-allowed;
 }
 
-/* Trial-level check-in selector */
-.trial-checkin-selector {
-  display: flex;
-  align-items: center;
-  gap: var(--token-space-md);
-  flex-wrap: nowrap;
-}
-
-.trial-checkin-dropdown {
-  padding: var(--token-space-md) var(--token-space-xl);
-  border-radius: var(--token-radius-lg);
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 2px solid var(--border);
-  background: var(--card);
-  color: var(--foreground);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 150px;
-}
+/* Trial-level check-in selector - inherits from .trial-visibility-selector */
 
 .trial-checkin-dropdown.custom {
   border-color: var(--primary);
@@ -1790,7 +1702,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   border: 2px solid var(--border);
-  background: var(--card);
+  background: var(--muted);
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1823,7 +1735,7 @@
 /* Individual card styling */
 .bulk-operations-card {
   padding: var(--token-space-2xl);
-  background: var(--muted);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-xl);
 }
@@ -1856,7 +1768,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   border: 2px solid var(--border);
-  background: var(--card);
+  background: var(--muted);
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1908,7 +1820,7 @@
 
 .bulk-operations-card {
   padding: var(--token-space-xl);  /* Mobile: smaller padding */
-  background: var(--muted);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--token-radius-xl);
 }
@@ -2180,36 +2092,8 @@
     grid-template-columns: repeat(3, 1fr);  /* Desktop: 3 columns */
   }
 
-  /* Section 5: Trial Overrides - Horizontal layout */
-  .trial-row {
-    flex-direction: row;  /* Desktop: horizontal layout */
-    align-items: center;
-    gap: var(--token-space-4xl);  /* Desktop: horizontal gap */
-  }
-
-  .trial-controls {
-    justify-content: flex-end;  /* Desktop: right-aligned */
-  }
-
-  .trial-visibility-selector {
-    flex-direction: row;  /* Desktop: horizontal */
-    align-items: center;
-    gap: var(--token-space-md);
-  }
-
-  .trial-label-text {
-    text-align: left;  /* Desktop: left aligned */
-  }
-
-  .trial-preset-dropdown {
-    width: auto;  /* Desktop: auto width */
-    min-width: 180px;  /* Desktop: minimum width */
-  }
-
-  .reset-btn {
-    width: auto;  /* Desktop: auto width */
-    text-align: left;  /* Desktop: left aligned text */
-  }
+  /* Section 5: Trial Overrides - Cards stay vertical, grid handles columns */
+  /* Grid columns are handled by .trial-rows-grid media queries above */
 
   /* Section 6: Check-in Controls */
   .trial-checkin-selector {
@@ -2279,4 +2163,19 @@
   .info-row-2 .element-level {
     font-size: 1.125rem;  /* Desktop: larger font */
   }
+}
+
+/* ============================================================ */
+/* DARK MODE OVERRIDES */
+/* Only for elements using rgba() or hardcoded light colors */
+/* Most elements use var(--card) which inherits from design-tokens.css */
+/* ============================================================ */
+.theme-dark .class-card {
+  /* Override rgba(255,255,255,0.8) glassmorphism for dark mode */
+  background: var(--card);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .visibility-header:hover {
+  background: #2f3338;
 }

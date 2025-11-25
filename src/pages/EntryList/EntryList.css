@@ -8,7 +8,7 @@
 .entry-list-container {
   height: 100vh;
   overflow: hidden;
-  background: #f1f5f9; /* Light: light gray background for better contrast with white containers */
+  background: var(--secondary); /* Light: light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -19,7 +19,7 @@
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .entry-list-container {
-  background: #1a1d23; /* Matches Settings page - lighter dark mode */
+  background: var(--background); /* Uses global background token */
 }
 
 /* Scrollable content wrapper - contains entry grid that can scroll */
@@ -720,7 +720,7 @@
 }
 
 .theme-dark .entry-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 /* Dark mode: Override status-specific backgrounds */

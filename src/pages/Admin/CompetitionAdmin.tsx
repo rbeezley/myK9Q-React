@@ -23,7 +23,7 @@ import {
 } from '../../services/resultVisibilityService';
 import { PRESET_CONFIGS } from '../../types/visibility';
 import type { VisibilityPreset } from '../../types/visibility';
-import { RefreshCw, Settings, User, UserCheck, UserX, Eye, History, MoreVertical } from 'lucide-react';
+import { RefreshCw, Settings, User, UserCheck, UserX, Eye, History, MoreVertical, Calendar, Target, ArrowDown, RotateCcw, Zap, Clock, Lock, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCompetitionAdminData } from './hooks/useCompetitionAdminData';
 import './CompetitionAdmin.css';
@@ -818,7 +818,7 @@ export const CompetitionAdmin: React.FC = () => {
             {/* Show-level default */}
             <div className="show-default-card">
               <div className="show-default-header">
-                <span className="show-badge">📋 Show Default</span>
+                <span className="show-badge"><ClipboardList size={16} /> Show Default</span>
                 <span className="inheritance-note">
                   All classes inherit this unless overridden
                 </span>
@@ -826,18 +826,19 @@ export const CompetitionAdmin: React.FC = () => {
               <div className="preset-selector">
                 {(Object.keys(PRESET_CONFIGS) as VisibilityPreset[]).map((preset) => {
                   const config = PRESET_CONFIGS[preset];
+                  const PresetIcon = preset === 'open' ? Zap : preset === 'review' ? Lock : Clock;
                   return (
                     <button
                       key={preset}
                       className={`preset-card ${showVisibilityPreset === preset ? 'selected' : ''}`}
                       onClick={() => handleSetShowVisibility(preset)}
                     >
-                      <div className="preset-icon">{config.icon}</div>
+                      <div className="preset-icon"><PresetIcon size={24} /></div>
                       <div className="preset-title">{config.title}</div>
                       <div className="preset-description">{config.description}</div>
                       <div className="preset-details">{config.details}</div>
                       {showVisibilityPreset === preset && (
-                        <div className="selected-indicator">✓ Selected</div>
+                        <div className="selected-indicator"><UserCheck size={14} /> Selected</div>
                       )}
                     </button>
                   );
@@ -848,32 +849,33 @@ export const CompetitionAdmin: React.FC = () => {
             {/* Trial-level overrides */}
             {trials.length > 0 && (
               <div className="trial-overrides-section">
-                <h4>📅 Trial Overrides (Optional)</h4>
+                <h4><Calendar size={18} style={{ verticalAlign: 'middle', marginRight: '8px' }} />Trial Overrides (Optional)</h4>
                 <p className="section-description">
                   Override the show default for specific trials. Classes in these trials will inherit the trial setting unless individually overridden.
                 </p>
+                <div className="trial-rows-grid">
                 {trials.map((trial) => {
                   const currentSetting = trialVisibilitySettings.get(trial.trial_id);
                   const isCustom = currentSetting !== undefined;
                   const effectiveSetting = currentSetting || showVisibilityPreset;
 
                   return (
-                    <div key={trial.trial_id} className="trial-row">
-                      <div className="trial-info">
-                        <span className="trial-label">
+                    <div key={trial.trial_id} className="trial-override-card">
+                      <div className="trial-override-info">
+                        <span className="trial-override-label">
                           {formatTrialDate(trial.trial_date)} • Trial {trial.trial_number}
                         </span>
-                        <span className="trial-meta">
+                        <span className="trial-override-meta">
                           Judge{trial.judges.length > 1 ? 's' : ''}: {trial.judges.join(', ')}
                         </span>
-                        <span className="trial-meta">
+                        <span className="trial-override-meta">
                           {trial.class_count} {trial.class_count === 1 ? 'class' : 'classes'}
                         </span>
                       </div>
-                      <div className="trial-controls">
+                      <div className="trial-override-controls">
                         <div className="trial-visibility-selector">
-                          <label className="trial-label-text">
-                            {isCustom ? '🎯 Custom:' : '↓ Inherited:'}
+                          <label className="trial-override-label-text">
+                            {isCustom ? <><Target size={14} /> Custom:</> : <><ArrowDown size={14} /> Inherited:</>}
                           </label>
                           <select
                             className={`trial-preset-dropdown ${isCustom ? 'custom' : 'inherited'}`}
@@ -889,15 +891,9 @@ export const CompetitionAdmin: React.FC = () => {
                               }
                             }}
                           >
-                            <option value="open">
-                              {PRESET_CONFIGS.open.icon} {PRESET_CONFIGS.open.title}
-                            </option>
-                            <option value="standard">
-                              {PRESET_CONFIGS.standard.icon} {PRESET_CONFIGS.standard.title}
-                            </option>
-                            <option value="review">
-                              {PRESET_CONFIGS.review.icon} {PRESET_CONFIGS.review.title}
-                            </option>
+                            <option value="open">{PRESET_CONFIGS.open.title}</option>
+                            <option value="standard">{PRESET_CONFIGS.standard.title}</option>
+                            <option value="review">{PRESET_CONFIGS.review.title}</option>
                           </select>
                           {isCustom && (
                             <button
@@ -905,7 +901,7 @@ export const CompetitionAdmin: React.FC = () => {
                               onClick={() => handleRemoveTrialVisibility(trial.trial_id)}
                               title="Reset to show default"
                             >
-                              ↻ Reset
+                              <RotateCcw size={14} /> Reset
                             </button>
                           )}
                         </div>
@@ -913,6 +909,7 @@ export const CompetitionAdmin: React.FC = () => {
                     </div>
                   );
                 })}
+                </div>
               </div>
             )}
 
@@ -948,7 +945,7 @@ export const CompetitionAdmin: React.FC = () => {
             {/* Show-level default */}
             <div className="show-default-card">
               <div className="show-default-header">
-                <span className="show-badge">📋 Show Default</span>
+                <span className="show-badge"><ClipboardList size={16} /> Show Default</span>
                 <span className="inheritance-note">
                   All trials/classes inherit this unless overridden
                 </span>
@@ -978,32 +975,33 @@ export const CompetitionAdmin: React.FC = () => {
             {/* Trial-level overrides */}
             {trials.length > 0 && (
               <div className="trial-overrides-section">
-                <h4>📅 Trial Overrides (Optional)</h4>
+                <h4><Calendar size={18} style={{ verticalAlign: 'middle', marginRight: '8px' }} />Trial Overrides (Optional)</h4>
                 <p className="section-description">
                   Override the show default for specific trials. Classes in these trials will inherit the trial setting.
                 </p>
+                <div className="trial-rows-grid">
                 {trials.map((trial) => {
                   const currentSetting = trialSelfCheckinSettings.get(trial.trial_id);
                   const isCustom = currentSetting !== undefined;
                   const effectiveSetting = currentSetting ?? showSelfCheckinEnabled;
 
                   return (
-                    <div key={trial.trial_id} className="trial-row">
-                      <div className="trial-info">
-                        <span className="trial-label">
+                    <div key={trial.trial_id} className="trial-override-card">
+                      <div className="trial-override-info">
+                        <span className="trial-override-label">
                           {formatTrialDate(trial.trial_date)} • Trial {trial.trial_number}
                         </span>
-                        <span className="trial-meta">
+                        <span className="trial-override-meta">
                           Judge{trial.judges.length > 1 ? 's' : ''}: {trial.judges.join(', ')}
                         </span>
-                        <span className="trial-meta">
+                        <span className="trial-override-meta">
                           {trial.class_count} {trial.class_count === 1 ? 'class' : 'classes'}
                         </span>
                       </div>
-                      <div className="trial-controls">
+                      <div className="trial-override-controls">
                         <div className="trial-checkin-selector">
-                          <label className="trial-label-text">
-                            {isCustom ? '🎯 Custom:' : '↓ Inherited:'}
+                          <label className="trial-override-label-text">
+                            {isCustom ? <><Target size={14} /> Custom:</> : <><ArrowDown size={14} /> Inherited:</>}
                           </label>
                           <select
                             className={`trial-checkin-dropdown ${isCustom ? 'custom' : 'inherited'}`}
@@ -1019,8 +1017,8 @@ export const CompetitionAdmin: React.FC = () => {
                               }
                             }}
                           >
-                            <option value="enabled">✓ Enabled</option>
-                            <option value="disabled">✗ Disabled</option>
+                            <option value="enabled">App (Self)</option>
+                            <option value="disabled">At Table</option>
                           </select>
                           {isCustom && (
                             <button
@@ -1028,7 +1026,7 @@ export const CompetitionAdmin: React.FC = () => {
                               onClick={() => handleRemoveTrialSelfCheckin(trial.trial_id)}
                               title="Reset to show default"
                             >
-                              ↻ Reset
+                              <RotateCcw size={14} /> Reset
                             </button>
                           )}
                         </div>
@@ -1036,6 +1034,7 @@ export const CompetitionAdmin: React.FC = () => {
                     </div>
                   );
                 })}
+                </div>
               </div>
             )}
 
@@ -1133,8 +1132,7 @@ export const CompetitionAdmin: React.FC = () => {
           {classes.map((classInfo) => {
             // Get visibility preset for this class from the data
             const visibilityPreset = classInfo.visibility_preset || 'standard';
-            const visibilityIcon = PRESET_CONFIGS[visibilityPreset]?.icon || '⏱️';
-            const visibilityTitle = PRESET_CONFIGS[visibilityPreset]?.title || 'STANDARD';
+            const visibilityTitle = PRESET_CONFIGS[visibilityPreset]?.title || 'After Class';
 
             return (
               <div
@@ -1173,7 +1171,7 @@ export const CompetitionAdmin: React.FC = () => {
                     {/* Visibility Badge */}
                     <span className="visibility-badge" title={`Result visibility: ${visibilityTitle}`}>
                       <Eye className="badge-icon" />
-                      {visibilityIcon} {visibilityTitle}
+                      {visibilityTitle}
                     </span>
                     {/* Self Check-In Badge */}
                     {classInfo.self_checkin ? (

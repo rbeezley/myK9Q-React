@@ -14,7 +14,7 @@
 }
 
 .theme-dark .announcement-card {
-  background: #26292e; /* Lighter than page background (#1a1d23) for contrast */
+  background: var(--card); /* Uses global card token */
 }
 
 .announcement-card:hover {
