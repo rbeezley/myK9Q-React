@@ -250,5 +250,50 @@
       "keywords": ["2-6", "unknown"]
     },
     "notes": "0-3 per area, 2-6 per class"
+  },
+  {
+    "id": "test-026",
+    "category": "height-limit",
+    "query": "what is the maximum height for hides in interior novice?",
+    "expectedAnswer": {
+      "max_height_inches": 24,
+      "keywords": ["24", "inches"]
+    }
+  },
+  {
+    "id": "test-027",
+    "category": "height-limit",
+    "query": "what is the height limit for exterior advanced?",
+    "expectedAnswer": {
+      "max_height_inches": 36,
+      "keywords": ["36", "inches"]
+    }
+  },
+  {
+    "id": "test-028",
+    "category": "height-limit",
+    "query": "how high can hides be placed in interior excellent?",
+    "expectedAnswer": {
+      "max_height_inches": 48,
+      "keywords": ["48", "inches"]
+    }
+  },
+  {
+    "id": "test-029",
+    "category": "height-limit",
+    "query": "maximum hide height for exterior master?",
+    "expectedAnswer": {
+      "max_height_inches": 60,
+      "keywords": ["60", "inches"]
+    }
+  },
+  {
+    "id": "test-030",
+    "category": "height-limit",
+    "query": "what is the max height for interior master hides?",
+    "expectedAnswer": {
+      "max_height_inches": 60,
+      "keywords": ["60", "inches"]
+    }
   }
 ]
