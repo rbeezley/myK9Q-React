@@ -119,7 +119,9 @@ callback(payload);
         if (err) {
           console.error(`❌ Subscription error for ${key}:`, err);
           this.updateState({ status: 'error', error: err.message });
-        } else if (status === 'SUBSCRIBED') {}
+        } else if (status === 'SUBSCRIBED') {
+          // Successfully subscribed - no action needed
+        }
       });
 
     this.subscriptions.set(key, { channel, key, callback });

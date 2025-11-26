@@ -39,21 +39,18 @@
 export function shouldCheckCompletion(
   scoredCount: number,
   totalCount: number,
-  enableLogging = true
+  _enableLogging = true
 ): boolean {
   // Check on first dog (to mark class as in_progress)
   if (scoredCount === 1) {
-    if (enableLogging) {}
     return true;
   }
 
   // Check on last dog (to mark class as completed)
   if (scoredCount === totalCount) {
-    if (enableLogging) {}
     return true;
   }
 
   // Skip check for all middle entries (performance optimization)
-  if (enableLogging) {}
   return false;
 }

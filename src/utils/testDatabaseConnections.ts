@@ -107,9 +107,6 @@ console.log(`New Database (V3):     ${results.newDatabase ? '✅ PASS' : '❌ FA
 console.log(`Flutter URL Config:    ${results.flutterUrl ? '✅ PASS' : '❌ FAIL'}`);
 
   const allPassed = results.newDatabase && results.legacyDatabase && results.flutterUrl;
-
-  if (allPassed) {} else {}
-
 return allPassed;
 }
 

@@ -183,7 +183,7 @@ export const useSettingsStore = create<SettingsState>()(
           applyAccentColor('green');
         },
 
-        resetSection: (section) => {
+        resetSection: (_section) => {
           // This would reset specific sections - implement as needed
 },
 
@@ -210,9 +210,6 @@ export const useSettingsStore = create<SettingsState>()(
 
             // Apply imported settings
             set({ settings: result.settings });
-
-            // Log if migration occurred
-            if (result.migrated) {}
 
             // Apply settings immediately
             const newSettings = get().settings;

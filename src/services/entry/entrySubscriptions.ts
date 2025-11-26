@@ -109,11 +109,8 @@ console.log('🔄 Event type:', payload.eventType);
 console.log('🔄 Schema:', payload.schema);
 console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
 
-      // Log new record data (INSERT or UPDATE)
-      if (payload.new) {}
-
-      // Log old record data (UPDATE or DELETE)
-      if (payload.old) {}
+      // Log new record data (INSERT or UPDATE) - debug logging removed
+      // Log old record data (UPDATE or DELETE) - debug logging removed
 
       // Detect and log specific field changes (UPDATE events)
       if (payload.new && payload.old) {

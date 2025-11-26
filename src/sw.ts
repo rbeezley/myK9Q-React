@@ -230,8 +230,8 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 /**
  * Handle notification close events (optional analytics/logging)
  */
-self.addEventListener('notificationclose', (event: NotificationEvent) => {
-// Could send analytics event here if needed
+self.addEventListener('notificationclose', (_event: NotificationEvent) => {
+  // Could send analytics event here if needed
 });
 
 /**

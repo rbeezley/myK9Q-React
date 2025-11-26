@@ -204,9 +204,6 @@ export function saveFavoritesToLocalStorage(
 
   // Use safe localStorage setter
   const success = safeLocalStorageSet(key, favoriteIds);
-
-  if (success) {}
-
   return success;
 }
 
@@ -264,8 +261,5 @@ export function clearFavorites(
 ): boolean {
   const key = buildFavoritesKey(type, licenseKey, options);
   const success = safeLocalStorageRemove(key);
-
-  if (success) {}
-
   return success;
 }

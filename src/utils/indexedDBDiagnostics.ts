@@ -299,8 +299,8 @@ result.recommendations.forEach(rec => console.log(`  ${rec}`));
 
   if (!result.canAutoFix && result.status !== 'healthy') {
 console.log('');
-    getManualCleanupInstructions().forEach(instruction => {});
-  } else if (result.status === 'healthy') {}
+    getManualCleanupInstructions().forEach(_instruction => { /* instructions logged above */ });
+  }
 
 console.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
 }
