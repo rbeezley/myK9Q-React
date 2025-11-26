@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useMemo, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
-import { BarChart3, TrendingUp, Award, Clock, MoreVertical, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Award, Clock, RefreshCw } from 'lucide-react';
 import { PageLoader } from '../../components/LoadingSpinner';
 import { HamburgerMenu } from '../../components/ui/HamburgerMenu';
 import { useAuth } from '../../contexts/AuthContext';
@@ -38,23 +38,6 @@ export const Stats: React.FC = () => {
     levels: [],
     classes: []
   });
-
-  // State for header menu
-  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setShowHeaderMenu(false);
-      }
-    };
-    if (showHeaderMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showHeaderMenu]);
 
   // Stats is now filter-based only (no route-based drill-down)
   const level: StatsLevel = 'show';
@@ -319,29 +302,14 @@ export const Stats: React.FC = () => {
             <p className="stats-class-subtitle">{formatClassSubtitle()}</p>
           )}
         </div>
-        <div className="dropdown-container">
-          <button
-            className="header-menu-button"
-            onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-            aria-label="Page options"
-          >
-            <MoreVertical size={20} />
-          </button>
-          {showHeaderMenu && (
-            <div className="dropdown-menu">
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  refetch();
-                  setShowHeaderMenu(false);
-                }}
-              >
-                <RefreshCw size={18} />
-                <span>Refresh</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          className="icon-button"
+          onClick={() => refetch()}
+          aria-label="Refresh"
+          title="Refresh"
+        >
+          <RefreshCw size={20} />
+        </button>
       </header>
 
       {/* Filters Bar */}

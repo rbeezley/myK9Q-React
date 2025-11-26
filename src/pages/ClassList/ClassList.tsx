@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { ArrowLeft, RefreshCw, Target, MoreVertical, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Target, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
@@ -106,7 +106,6 @@ export const ClassList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'class_order' | 'element_level' | 'level_element'>('class_order');
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
   // Sort options for FilterPanel
   const sortOptions = [
@@ -117,21 +116,6 @@ export const ClassList: React.FC = () => {
 
   // Prevent FOUC by adding 'loaded' class after mount
   const [isLoaded, setIsLoaded] = useState(false);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setShowHeaderMenu(false);
-      }
-    };
-
-    if (showHeaderMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showHeaderMenu]);
 
   // Trigger loaded animation after initial render
   useEffect(() => {
@@ -603,32 +587,15 @@ export const ClassList: React.FC = () => {
             hasActiveFilters={searchTerm.length > 0 || sortOrder !== 'class_order'}
           />
 
-          <div className="dropdown-container">
-            <button
-              className="icon-button"
-              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-              aria-label="More options"
-              title="More options"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </button>
-
-            {showHeaderMenu && (
-              <div className="dropdown-menu" style={{ right: 0, minWidth: '180px' }}>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setShowHeaderMenu(false);
-                    handleRefresh();
-                  }}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw className={`dropdown-icon ${isRefreshing ? 'rotating' : ''}`} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            className="icon-button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh"
+            title="Refresh"
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'rotating' : ''}`} />
+          </button>
         </div>
       </header>
 

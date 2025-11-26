@@ -11,7 +11,7 @@ import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { RefreshCw, Heart, Calendar, Users2, MoreVertical, Home as HomeIcon } from 'lucide-react';
+import { RefreshCw, Heart, Calendar, Users2, Home as HomeIcon } from 'lucide-react';
 import { useHomeDashboardData } from './hooks/useHomeDashboardData';
 import type { EntryData, TrialData } from './hooks/useHomeDashboardData';
 import { Onboarding } from '@/components/Onboarding/Onboarding';
@@ -40,7 +40,6 @@ export const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
   const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
-  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -66,21 +65,6 @@ export const Home: React.FC = () => {
   useEffect(() => {
     console.log('🔍 Home component version: 2024-11-21-v3 (PTR disabled by default)');
   }, []);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setShowHeaderMenu(false);
-      }
-    };
-
-    if (showHeaderMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showHeaderMenu]);
 
   useEffect(() => {
     const updateColumns = () => {
@@ -332,32 +316,15 @@ export const Home: React.FC = () => {
             hasActiveFilters={searchTerm.length > 0}
           />
 
-          <div className="dropdown-container">
-            <button
-              className="icon-button"
-              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-              aria-label="More options"
-              title="More options"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </button>
-
-            {showHeaderMenu && (
-              <div className="dropdown-menu" style={{ right: 0, minWidth: '180px' }}>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setShowHeaderMenu(false);
-                    handleRefresh();
-                  }}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw className={`dropdown-icon ${isRefreshing ? 'rotating' : ''}`} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            className="icon-button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh"
+            title="Refresh"
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'rotating' : ''}`} />
+          </button>
         </div>
       </header>
 
