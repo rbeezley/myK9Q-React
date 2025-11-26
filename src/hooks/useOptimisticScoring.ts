@@ -4,8 +4,6 @@ import { submitScore } from '../services/entryService';
 import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
-// TODO: Remove legacy localStateManager - replaced by replication system
-// import { localStateManager } from '../services/localStateManager';
 
 /**
  * Specialized hook for optimistic score submissions
@@ -112,38 +110,6 @@ export function useOptimisticScoring() {
       finishCallErrors: scoreData.finishCallErrors,
     });
 
-    // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
-    // This creates a pending change that will be merged with database queries
-    // Even if the entry isn't loaded yet, we create the pending change
-    //
-    // IMPORTANT: Values must match EXACTLY what getClassEntries() returns after mapping
-    // - resultText from database is lowercase ('nq', 'qualified', 'absent', etc.)
-    // - searchTime from database is number.toString() without padding ('0', '123.45')
-    // - faultCount, correctFinds, etc. are numbers
-// TODO: Remove legacy localStateManager - replaced by replication system
-    // Normalization logic below was only needed for localStateManager, now unused:
-    // const normalizedResultText = scoreData.resultText.toLowerCase();
-    // const searchTimeNum = scoreData.searchTime ? parseFloat(scoreData.searchTime) : 0;
-    // const normalizedSearchTime = searchTimeNum.toString();
-
-    // TODO: Remove legacy localStateManager - replaced by replication system
-    // await localStateManager.updateEntry(
-    //   entryId,
-    //   {
-    //     // Use Entry interface field names with normalized values
-    //     isScored: true,
-    //     status: 'completed',
-    //     resultText: normalizedResultText, // Lowercase to match database
-    //     searchTime: normalizedSearchTime, // No padding to match database
-    //     faultCount: scoreData.faultCount || 0,
-    //     correctFinds: scoreData.correctCount || 0,
-    //     incorrectFinds: scoreData.incorrectCount || 0,
-    //     // Add other score fields as needed
-    //   },
-    //   'score'
-    // );
-console.log('✅ Local state updated optimistically');
-
     // Step 2: Sync with server in background
     await update({
       optimisticData: { entryId, scoreData },
@@ -166,26 +132,10 @@ console.log('✅ Local state updated optimistically');
         }
 
         // Submit to server
-await submitScore(entryId, scoreData, pairedClassId, classId);
-// 🚀 LOCAL-FIRST: DO NOT clear pending change immediately!
-        // The pending change will be cleared when the real-time update confirms
-        // the database has been updated. This prevents a race condition where we
-        // clear the pending change before the database update propagates.
-// Safety fallback: Clear pending change after 5 seconds even without real-time confirmation
-        // This handles edge cases like:
-        // - Connection drops right after successful API response
-        // - Real-time subscription not connected
-        // - Database update confirmed but real-time event lost
-        // TODO: Remove legacy localStateManager - replaced by replication system
-        // setTimeout(async () => {
-        //   if (localStateManager.hasPendingChange(entryId)) {
-        //     console.log('⏰ Timeout reached - clearing pending change as fallback');
-        //     await localStateManager.clearPendingChange(entryId);
-        //   }
-        // }, 5000);
+        await submitScore(entryId, scoreData, pairedClassId, classId);
 
-        // NOTE: Placement calculation is now handled inside submitScore() in the background
-        // This allows the save to complete quickly without blocking the user
+        // Real-time subscription will confirm the database update
+        // Placement calculation is handled inside submitScore() in the background
 
         return { entryId, scoreData };
       },

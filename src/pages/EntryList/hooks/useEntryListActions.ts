@@ -2,8 +2,6 @@ import { useCallback } from 'react';
 import { useOptimisticUpdate } from '../../../hooks/useOptimisticUpdate';
 import { updateEntryCheckinStatus, resetEntryScore, markInRing, markEntryCompleted } from '../../../services/entryService';
 import { Entry as _Entry } from '../../../stores/entryStore';
-// TODO: Remove legacy localStateManager - replaced by replication system
-// import { localStateManager } from '../../../services/localStateManager';
 
 /**
  * Shared hook for entry list actions with optimistic updates.
@@ -52,23 +50,13 @@ const { getReplicationManager } = await import('../../../services/replication');
    */
   const handleResetScore = useCallback(
     async (entryId: number) => {
-      // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
-      // This creates a pending change that persists across refreshes
-      try {
-// TODO: Remove legacy - replaced by replication
-        // await localStateManager.updateEntry(entryId, {...}, 'reset');
-} catch (error) {
-        console.error('❌ Could not update LocalStateManager:', error);
-      }
-
       // Sync with server in background (silently fails if offline)
       try {
         await resetEntryScore(entryId);
-        // Real-time subscription will clear the pending change when database confirms
+        // Real-time subscription will update the cache when database confirms
       } catch (error) {
         console.error('Error resetting score in background:', error);
         // Don't throw - offline-first means this is transparent
-        // The optimistic update already happened, sync will retry when online
       }
     },
     []
@@ -81,18 +69,10 @@ const { getReplicationManager } = await import('../../../services/replication');
     async (entryId: number, currentInRing: boolean) => {
       const newInRing = !currentInRing;
 
-      // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
-      try {
-// TODO: Remove legacy - replaced by replication
-        // await localStateManager.updateEntry(entryId, { status: newInRing ? 'in-ring' : 'no-status' }, 'status');
-} catch (error) {
-        console.error('❌ Could not update LocalStateManager:', error);
-      }
-
       // Sync with server in background (silently fails if offline)
       try {
         await markInRing(entryId, newInRing);
-        // Real-time subscription will clear the pending change when database confirms
+        // Real-time subscription will update the cache when database confirms
       } catch (error) {
         console.error('Error toggling in-ring status in background:', error);
         // Don't throw - offline-first means this is transparent
@@ -106,18 +86,10 @@ const { getReplicationManager } = await import('../../../services/replication');
    */
   const handleMarkInRing = useCallback(
     async (entryId: number) => {
-      // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
-      try {
-// TODO: Remove legacy - replaced by replication
-        // await localStateManager.updateEntry(entryId, { status: 'in-ring' }, 'status');
-} catch (error) {
-        console.error('❌ Could not update LocalStateManager:', error);
-      }
-
       // Sync with server in background (silently fails if offline)
       try {
         await markInRing(entryId, true);
-        // Real-time subscription will clear the pending change when database confirms
+        // Real-time subscription will update the cache when database confirms
       } catch (error) {
         console.error('Error marking entry in-ring in background:', error);
         // Don't throw - offline-first means this is transparent
@@ -131,18 +103,10 @@ const { getReplicationManager } = await import('../../../services/replication');
    */
   const handleMarkCompleted = useCallback(
     async (entryId: number) => {
-      // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
-      try {
-// TODO: Remove legacy - replaced by replication
-        // await localStateManager.updateEntry(entryId, { isScored: true, status: 'completed' }, 'status');
-} catch (error) {
-        console.error('❌ Could not update LocalStateManager:', error);
-      }
-
       // Sync with server in background (silently fails if offline)
       try {
         await markEntryCompleted(entryId);
-        // Real-time subscription will clear the pending change when database confirms
+        // Real-time subscription will update the cache when database confirms
       } catch (error) {
         console.error('Error marking entry completed in background:', error);
         // Don't throw - offline-first means this is transparent
@@ -156,22 +120,12 @@ const { getReplicationManager } = await import('../../../services/replication');
    */
   const handleBatchStatusUpdate = useCallback(
     async (entryIds: number[], newStatus: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
-      // 🚀 LOCAL-FIRST: Update LocalStateManager immediately for all entries
-const updatePromises = entryIds.map(async (entryId) => {
-        try {
-          // TODO: Remove legacy - replaced by replication
-          // await localStateManager.updateEntry(entryId, { status: newStatus }, 'status');
-        } catch (error) {
-          console.error(`❌ Could not update LocalStateManager for entry ${entryId}:`, error);
-        }
-      });
-      await Promise.all(updatePromises);
-// Sync with server in background (silently fails if offline)
+      // Sync with server in background (silently fails if offline)
       try {
         await Promise.all(
           entryIds.map((id) => updateEntryCheckinStatus(id, newStatus))
         );
-        // Real-time subscriptions will clear the pending changes when database confirms
+        // Real-time subscriptions will update the cache when database confirms
       } catch (error) {
         console.error('Error in batch update in background:', error);
         // Don't throw - offline-first means this is transparent

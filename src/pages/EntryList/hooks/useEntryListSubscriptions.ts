@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { subscribeToEntryUpdates } from '../../../services/entryService';
-// TODO: Remove legacy localStateManager - replaced by replication system
-// import { localStateManager } from '../../../services/localStateManager';
 import type { RealtimeChannel as _RealtimeChannel } from '@supabase/supabase-js';
 
 interface UseEntryListSubscriptionsOptions {
@@ -37,22 +35,11 @@ export const useEntryListSubscriptions = ({
     // Subscribe to each class's entry updates
     classIds.forEach(classId => {
       const cleanup = subscribeToEntryUpdates(classId, licenseKey, async (payload) => {
-console.log('🔔 onEntryUpdate exists?', !!onEntryUpdate);
-// 🚀 LOCAL-FIRST: DO NOT clear pending changes here!
-        // Let applyServerUpdate() in localStateManager handle clearing when it confirms
-        // the server data matches the pending changes. This prevents a race condition where
-        // we clear the pending change before applyServerUpdate() can merge it.
-        // TODO: Remove legacy - replaced by replication
-        // const entryId = (payload.new as any)?.id || (payload.old as any)?.id;
-        // if (entryId && localStateManager.hasPendingChange(entryId)) {
-        //   console.log(`🎯 Real-time update for entry ${entryId} with pending change - letting applyServerUpdate() handle merge and clear`);
-        // }
-
         // If we have an onEntryUpdate callback, use it to update local state directly
         // This provides instant UI updates from real-time changes
         if (onEntryUpdate) {
           lastEntryUpdateRef.current = Date.now(); // Track when entry updated
-onEntryUpdate(payload);
+          onEntryUpdate(payload);
 } else {
 // Fallback: refresh without forcing cache bypass
           onRefresh(false);
