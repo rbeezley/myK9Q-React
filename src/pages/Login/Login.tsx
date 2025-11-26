@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
 
   // Focus first input on mount
   useEffect(() => {
-    console.log('🔍 Login component version: 2024-11-21-v3 (inputMode=email)');
+    console.log('🔍 Login component version: 2024-11-25-v1 (inputMode=text for Android number row)');
     inputRefs.current[0]?.focus();
   }, []);
 
@@ -320,8 +320,8 @@ export const Login: React.FC = () => {
                       onPaste={index === 0 ? handlePaste : undefined}
                       className={`passcode-input ${error ? 'error' : ''} ${digit ? 'filled' : ''}`}
                       disabled={isLoading}
-                      inputMode="email"
-                      autoComplete="off"
+                      inputMode="text"
+                      autoComplete="one-time-code"
                       autoCapitalize="characters"
                       aria-label={`Passcode digit ${index + 1}`}
                     />

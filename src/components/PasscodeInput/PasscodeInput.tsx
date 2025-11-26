@@ -130,8 +130,8 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
                 onPaste={index === 0 ? handlePaste : undefined}
                 className={`passcode-input ${error ? 'error' : ''} ${digit ? 'filled' : ''}`}
                 disabled={disabled}
-                inputMode="search"
-                autoComplete="off"
+                inputMode="text"
+                autoComplete="one-time-code"
                 autoCapitalize="characters"
                 aria-label={`Passcode digit ${index + 1}`}
               />
