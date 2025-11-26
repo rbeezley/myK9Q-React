@@ -34,7 +34,7 @@ function installHook() {
     }
 
     console.log('✅ Pre-commit hook installed successfully!');
-    console.log('   Hook will run type checking before each commit.');
+    console.log('   Hook will run typecheck, lint, and tests before each commit.');
   } catch (error) {
     console.error('❌ Failed to install pre-commit hook:', error.message);
     process.exit(1);
