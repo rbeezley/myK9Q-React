@@ -14,3 +14,5 @@ export { useEntryListFilters } from './useEntryListFilters';
 export type { TabType, SortType, SectionFilter } from './useEntryListFilters';
 
 export { useEntryListSubscriptions } from './useEntryListSubscriptions';
+
+export { useDragAndDropEntries } from './useDragAndDropEntries';

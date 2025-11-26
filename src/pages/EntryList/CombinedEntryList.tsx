@@ -1,19 +1,31 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
+import { usePrefetch } from '@/hooks/usePrefetch';
 import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, TabBar, Tab } from '../../components/ui';
-import { DogCard } from '../../components/DogCard';
+// DogCard replaced by SortableEntryCard for drag-and-drop support
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, Circle, Check, AlertTriangle, XCircle, Star, Bell, ListOrdered, MoreVertical, Printer, ClipboardCheck, Target, Users } from 'lucide-react';
+import { SortableEntryCard } from './SortableEntryCard';
+import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, ListOrdered, MoreVertical, Printer, ClipboardCheck, Users } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
-import { useEntryListData, useEntryListActions, useEntryListFilters } from './hooks';
-import { formatTimeForDisplay } from '../../utils/timeUtils';
+import { getScoresheetRoute } from '../../services/scoresheetRouter';
+import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
+import { useEntryListData, useEntryListActions, useEntryListFilters, useDragAndDropEntries } from './hooks';
+// formatTimeForDisplay now handled internally by SortableEntryCard
 import { formatTrialDate } from '../../utils/dateUtils';
 import { logger } from '@/utils/logger';
+import {
+  DndContext,
+  rectIntersection,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import './EntryList.css';
 
 export const CombinedEntryList: React.FC = () => {
@@ -21,6 +33,10 @@ export const CombinedEntryList: React.FC = () => {
   const navigate = useNavigate();
   const { showContext } = useAuth();
   const { hasPermission } = usePermission();
+  const { prefetch } = usePrefetch();
+
+  // Drag state ref - declared early so it can be passed to hooks
+  const isDraggingRef = useRef<boolean>(false);
 
   // Data management using shared hook
   const {
@@ -53,6 +69,7 @@ export const CombinedEntryList: React.FC = () => {
 
   // Local UI state (must be declared before useEntryListFilters)
   const [localEntries, setLocalEntries] = useState<Entry[]>([]);
+  const [_manualOrder, setManualOrder] = useState<Entry[]>([]); // Used internally by drag hook
   const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband'>('section-armband');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
@@ -63,8 +80,11 @@ export const CombinedEntryList: React.FC = () => {
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState(false);
 
-  // Filters using shared hook (with section filter enabled)
+  // Filters using shared hook (search and section filter)
+  // Note: CombinedEntryList has custom sorting logic, so we don't use the hook's sorting
   const {
     activeTab,
     setActiveTab,
@@ -120,9 +140,11 @@ export const CombinedEntryList: React.FC = () => {
     };
   }, [classIds, refresh]);
 
-  // Sync local entries with fetched data - now simple since LocalStateManager handles merging
+  // Sync local entries with fetched data - but skip during drag to prevent snap-back
   useEffect(() => {
-    setLocalEntries(entries);
+    if (entries.length > 0 && !isDraggingRef.current) {
+      setLocalEntries(entries);
+    }
   }, [entries]);
 
   // Initial load animation
@@ -186,6 +208,19 @@ export const CombinedEntryList: React.FC = () => {
   const pendingEntries = sortedEntries.filter(e => !e.isScored);
   const completedEntries = sortedEntries.filter(e => e.isScored);
   const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+
+  // Drag and drop (extracted hook)
+  const {
+    sensors,
+    handleDragStart,
+    handleDragEnd,
+  } = useDragAndDropEntries({
+    localEntries,
+    setLocalEntries,
+    currentEntries,
+    isDraggingRef,
+    setManualOrder
+  });
 
   // Prepare section tabs
   const sectionTabs: Tab[] = useMemo(() => [
@@ -407,6 +442,62 @@ export const CombinedEntryList: React.FC = () => {
       activity_type: parts.slice(1).join(' '),
     };
   };
+
+  // Helper to get scoresheet route for an entry
+  const getScoreSheetRoute = (entry: Entry): string => {
+    return getScoresheetRoute({
+      org: showContext?.org || '',
+      element: entry.element || '',
+      level: entry.level || '',
+      classId: entry.classId,
+      entryId: entry.id,
+      competition_type: showContext?.competition_type || 'Regular'
+    });
+  };
+
+  // Prefetch scoresheet data when hovering/touching entry card
+  const handleEntryPrefetch = useCallback((entry: Entry) => {
+    if (entry.isScored || !showContext?.org) return;
+
+    const route = getScoreSheetRoute(entry);
+
+    // Preload scoresheet JavaScript bundle (parallel to data prefetch)
+    preloadScoresheetByType(showContext.org, entry.element || '');
+
+    // Prefetch current entry (high priority)
+    prefetch(
+      `scoresheet-${entry.id}`,
+      async () => {
+        console.log('📡 Prefetched scoresheet route:', entry.id, route);
+        return { entryId: entry.id, route, entry };
+      },
+      {
+        ttl: 30, // 30 seconds cache (scoring data changes frequently)
+        priority: 3 // High priority - likely next action
+      }
+    );
+
+    // Sequential prefetch: Also prefetch next 2-3 entries in the list
+    const currentIndex = pendingEntries.findIndex(e => e.id === entry.id);
+    if (currentIndex !== -1) {
+      // Prefetch next 2 entries with lower priority
+      const nextEntries = pendingEntries.slice(currentIndex + 1, currentIndex + 3);
+      nextEntries.forEach((nextEntry, offset) => {
+        const nextRoute = getScoreSheetRoute(nextEntry);
+        prefetch(
+          `scoresheet-${nextEntry.id}`,
+          async () => {
+            console.log('📡 Prefetched next entry route:', nextEntry.id, nextRoute);
+            return { entryId: nextEntry.id, route: nextRoute, entry: nextEntry };
+          },
+          {
+            ttl: 30,
+            priority: 2 - offset // Priority 2 for next entry, 1 for entry after
+          }
+        );
+      });
+    }
+  }, [showContext?.org, prefetch, pendingEntries]);
 
   // Score click handler
   const handleScoreClick = (entry: Entry) => {
@@ -724,7 +815,10 @@ export const CombinedEntryList: React.FC = () => {
               <span className="sort-label">Run Order:</span>
               <button
                 className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
-                onClick={() => setSortOrder('run')}
+                onClick={() => {
+                  setSortOrder('run');
+                  setIsDragMode(false);
+                }}
               >
                 <Clock size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                 Run Order
@@ -744,14 +838,20 @@ export const CombinedEntryList: React.FC = () => {
             <span className="sort-label">Sort:</span>
             <button
               className={`sort-btn ${sortOrder === 'section-armband' ? 'active' : ''}`}
-              onClick={() => setSortOrder('section-armband')}
+              onClick={() => {
+                setSortOrder('section-armband');
+                setIsDragMode(false);
+              }}
             >
               <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               Section & Armband
             </button>
             <button
               className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
-              onClick={() => setSortOrder('armband')}
+              onClick={() => {
+                setSortOrder('armband');
+                setIsDragMode(false);
+              }}
             >
               <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               Armband
@@ -759,7 +859,10 @@ export const CombinedEntryList: React.FC = () => {
             {activeTab === 'completed' && (
               <button
                 className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
-                onClick={() => setSortOrder('placement')}
+                onClick={() => {
+                  setSortOrder('placement');
+                  setIsDragMode(false);
+                }}
               >
                 <Trophy size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                 Placement
@@ -793,200 +896,36 @@ export const CombinedEntryList: React.FC = () => {
             <p>{activeTab === 'pending' ? 'All entries have been scored.' : 'No entries have been scored yet.'}</p>
           </div>
         ) : (
-          <div className="grid-responsive">
-            {currentEntries.map((entry) => (
-              <DogCard
-                key={`${entry.id}-${entry.status}-${entry.isScored}`}
-                armband={entry.armband}
-                callName={entry.callName}
-                breed={entry.breed}
-                handler={entry.handler}
-                onClick={() => handleScoreClick(entry)}
-                className={hasPermission('canScore') && !entry.isScored ? 'clickable' : ''}
-                statusBorder={
-                  entry.isScored ? (
-                    // For scored entries, use result status color
-                    (() => {
-                      const result = (entry.resultText || '').toLowerCase();
-                      if (result === 'q' || result === 'qualified') return 'result-qualified';
-                      if (result === 'nq' || result === 'non-qualifying') return 'result-nq';
-                      if (result === 'ex' || result === 'excused') return 'result-ex';
-                      if (result === 'abs' || result === 'absent') return 'result-abs';
-                      if (result === 'wd' || result === 'withdrawn') return 'result-wd';
-                      return 'scored'; // Fallback to generic scored
-                    })()
-                  ) :
-                  entry.status === 'in-ring' ? 'no-status' :
-                  (entry.status === 'checked-in' ? 'checked-in' :
-                   entry.status === 'conflict' ? 'conflict' :
-                   entry.status === 'pulled' ? 'pulled' :
-                   entry.status === 'at-gate' ? 'at-gate' :
-                   entry.status === 'completed' ? 'completed' : 'no-status')
-                }
-                sectionBadge={entry.section as 'A' | 'B' | null}
-                resultBadges={
-                  entry.isScored ? (
-                    // Check if this is a nationals show using show type from context
-                    showContext?.competition_type?.toLowerCase().includes('national') ? (
-                      <div className="nationals-scoresheet-improved">
-                        {/* Header Row: Placement, Time, and Result badges */}
-                        <div className="nationals-header-row">
-                          {entry.placement && (
-                            <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
-                              {entry.placement <= 4 && (
-                                <span className="placement-badge-icon">
-                                  {entry.placement === 1 ? '🥇' : entry.placement === 2 ? '🥈' : entry.placement === 3 ? '🥉' : '🎖️'}
-                                </span>
-                              )}
-                              <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
-                            </span>
-                          )}
-                          <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
-                          <span className={`result-badge ${(entry.resultText || '').toLowerCase()}`}>
-                            {(() => {
-                              const result = (entry.resultText || '').toLowerCase();
-                              if (result === 'q' || result === 'qualified') return 'Q';
-                              if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                              if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                              if (result === 'ex' || result === 'excused') return 'EX';
-                              if (result === 'wd' || result === 'withdrawn') return 'WD';
-                              return entry.resultText || 'N/A';
-                            })()}
-                          </span>
-                        </div>
-
-                        {/* Stats Grid: 2x2 for Calls and Faults */}
-                        <div className="nationals-stats-grid">
-                          <div className="nationals-stat-item">
-                            <span className="nationals-stat-label">Correct</span>
-                            <span className="nationals-stat-value">{entry.correctFinds || 0}</span>
-                          </div>
-                          <div className="nationals-stat-item">
-                            <span className="nationals-stat-label">Incorrect</span>
-                            <span className="nationals-stat-value">{entry.incorrectFinds || 0}</span>
-                          </div>
-                          <div className="nationals-stat-item">
-                            <span className="nationals-stat-label">Faults</span>
-                            <span className="nationals-stat-value">{entry.faultCount || 0}</span>
-                          </div>
-                          <div className="nationals-stat-item">
-                            <span className="nationals-stat-label">No Finish</span>
-                            <span className="nationals-stat-value">{entry.noFinishCount || 0}</span>
-                          </div>
-                        </div>
-
-                        {/* Total Points Row */}
-                        <div className="nationals-total-points-improved">
-                          <span className="nationals-total-label">Total Points</span>
-                          <span className={`nationals-total-value ${(entry.totalPoints || 0) >= 0 ? 'positive' : 'negative'}`}>
-                            {(entry.totalPoints || 0) >= 0 ? '+' : ''}{entry.totalPoints || 0}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      // Regular (non-nationals) scoring display
-                      entry.searchTime ? (
-                        <div className="regular-scoresheet-single-line">
-                          {/* Single line: Placement, Result, Time, Faults */}
-                          {(() => {
-                            const resultLower = (entry.resultText || '').toLowerCase();
-                            const isNonQualifying = resultLower.includes('nq') || resultLower.includes('non-qualifying') ||
-                                                   resultLower.includes('abs') || resultLower.includes('absent') ||
-                                                   resultLower.includes('ex') || resultLower.includes('excused') ||
-                                                   resultLower.includes('wd') || resultLower.includes('withdrawn');
-
-                            // Show placement badge for all qualified placements
-                            if (entry.placement && !isNonQualifying) {
-                              return (
-                                <span className={`placement-badge place-${Math.min(entry.placement, 5)}`}>
-                                  {entry.placement <= 4 && (
-                                    <span className="placement-badge-icon">
-                                      {entry.placement === 1 ? '🥇' : entry.placement === 2 ? '🥈' : entry.placement === 3 ? '🥉' : '🎖️'}
-                                    </span>
-                                  )}
-                                  <span>{entry.placement === 1 ? '1st' : entry.placement === 2 ? '2nd' : entry.placement === 3 ? '3rd' : `${entry.placement}th`}</span>
-                                </span>
-                              );
-                            }
-                            return null;
-                          })()}
-
-                          {entry.resultText && (
-                            <span className={`result-badge ${entry.resultText.toLowerCase()}`}>
-                              {(() => {
-                                const result = entry.resultText.toLowerCase();
-                                if (result === 'q' || result === 'qualified') return 'Q';
-                                if (result === 'nq' || result === 'non-qualifying') return 'NQ';
-                                if (result === 'abs' || result === 'absent' || result === 'e') return 'ABS';
-                                if (result === 'ex' || result === 'excused') return 'EX';
-                                if (result === 'wd' || result === 'withdrawn') return 'WD';
-                                return entry.resultText;
-                              })()}
-                            </span>
-                          )}
-
-                          <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
-
-                          <span className="faults-badge-subtle">{entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}</span>
-                        </div>
-                      ) : undefined
-                    )
-                  ) : undefined
-                }
-                actionButton={
-                  !entry.isScored ? (
-                    <div
-                      className={`status-badge checkin-status ${
-                        (entry.status || 'none').toLowerCase().replace(' ', '-')
-                      } ${
-                        !hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true) ? 'disabled' : ''
-                      }`}
-                      style={{ textTransform: 'none' }}
-                      onClick={(e) => {
-                        const canCheckIn = hasPermission('canCheckInDogs');
-                        const isSelfCheckinEnabled = classInfo?.selfCheckin ?? true;
-
-                        if (canCheckIn || isSelfCheckinEnabled) {
-                          handleStatusClick(e, entry.id);
-                        } else {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }
-                      }}
-                      title={
-                        (!hasPermission('canCheckInDogs') && !(classInfo?.selfCheckin ?? true))
-                          ? "Self check-in disabled"
-                          : "Tap to change status"
-                      }
-                    >
-                      {(() => {
-                        const status = entry.status || 'no-status';
-                        switch(status) {
-                          case 'in-ring': return <><Target size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">In Ring</span></>;
-                          case 'completed': return <><Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Completed</span></>;
-                          case 'no-status': return <><Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">No Status</span></>;
-                          case 'checked-in': return <><Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Checked-in</span></>;
-                          case 'conflict': return <><AlertTriangle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Conflict</span></>;
-                          case 'pulled': return <><XCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Pulled</span></>;
-                          case 'at-gate': return <><Star size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">At Gate</span></>;
-                          case 'come-to-gate': return <><Bell size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} /><span className="status-text">Come to Gate</span></>;
-                          default: return <span className="status-text">{status}</span>;
-                        }
-                      })()}
-                    </div>
-                  ) : (
-                    <button
-                      className="reset-button"
-                      onClick={(e) => handleResetMenuClick(e, entry.id)}
-                      title="Reset score"
-                    >
-                      ⋯
-                    </button>
-                  )
-                }
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={rectIntersection}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={currentEntries.map(e => e.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className={`grid-responsive ${isDragMode ? 'drag-mode' : ''}`}>
+                {currentEntries.map((entry) => (
+                  <SortableEntryCard
+                    key={`${entry.id}-${entry.status}-${entry.isScored}`}
+                    entry={entry}
+                    isDragMode={isDragMode}
+                    showContext={showContext}
+                    classInfo={classInfo}
+                    hasPermission={hasPermission}
+                    handleEntryClick={handleScoreClick}
+                    handleStatusClick={handleStatusClick}
+                    handleResetMenuClick={handleResetMenuClick}
+                    setSelfCheckinDisabledDialog={setSelfCheckinDisabledDialog}
+                    onPrefetch={handleEntryPrefetch}
+                    sectionBadge={entry.section as 'A' | 'B' | null}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
         </div>
       </div>
@@ -1055,10 +994,13 @@ export const CombinedEntryList: React.FC = () => {
         entries={localEntries}
         onApplyOrder={handleApplyRunOrder}
         onOpenDragMode={() => {
-          // CombinedEntryList doesn't support drag mode
-          // Close dialog and show message that manual drag is not available
+          // Enable drag mode for manual reordering
           setRunOrderDialogOpen(false);
-          console.log('Manual drag mode not available for combined entry lists');
+          // Capture current entries for drag snapshot (matches EntryList pattern)
+          setManualOrder([...currentEntries]);
+          setIsDragMode(true);
+          // Switch to run order sort to show the current order
+          setSortOrder('run');
         }}
       />
 
@@ -1091,6 +1033,44 @@ export const CombinedEntryList: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Self Check-in Disabled Dialog */}
+      {selfCheckinDisabledDialog && (
+        <div className="reset-dialog-overlay">
+          <div className="reset-dialog">
+            <h3>🚫 Self Check-in Disabled</h3>
+            <p>
+              Self check-in has been disabled for this class by the administrator.
+            </p>
+            <p className="reset-dialog-warning">
+              Please check in at the central table or contact the ring steward for assistance.
+            </p>
+            <div className="reset-dialog-buttons">
+              <button
+                className="reset-dialog-confirm self-checkin-ok-button"
+                onClick={() => setSelfCheckinDisabledDialog(false)}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Done Button - Exit Drag Mode */}
+      {isDragMode && (
+        <button
+          className="floating-done-button"
+          onClick={() => {
+            setIsDragMode(false);
+            setSortOrder('run'); // Switch to Run Order to show the new order
+          }}
+          aria-label="Done reordering"
+        >
+          <CheckCircle size={20} />
+          Done
+        </button>
       )}
     </div>
   );

@@ -14,15 +14,16 @@ import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequireme
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
-import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
-import { Entry } from '../../stores/entryStore';
-import { getClassEntries } from '../../services/entryService';
-import { parseOrganizationData } from '../../utils/organizationUtils';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
+import { useClassDialogs } from './hooks/useClassDialogs';
+import { useClassStatus } from './hooks/useClassStatus';
+import { useClassRealtime } from './hooks/useClassRealtime';
+import { usePrintReports } from './hooks/usePrintReports';
+import { useFavoriteClasses } from './hooks/useFavoriteClasses';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
 
 export const ClassList: React.FC = () => {
@@ -44,25 +45,62 @@ export const ClassList: React.FC = () => {
     refetch
   } = useClassListData(trialId, showContext?.showId, showContext?.licenseKey);
 
+  // Favorites management (extracted hook)
+  const {
+    favoriteClasses,
+    toggleFavorite: toggleFavoriteHook,
+  } = useFavoriteClasses(showContext?.licenseKey, trialId);
+
   // Local state for data (synced from React Query)
-  const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
-    console.log('🔄 Initializing favoriteClasses state');
-    return new Set();
-  });
-  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
-  const [activePopup, setActivePopup] = useState<number | null>(null);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedClassForStatus, setSelectedClassForStatus] = useState<ClassEntry | null>(null);
-  const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
-  const [selectedClassForRequirements, setSelectedClassForRequirements] = useState<ClassEntry | null>(null);
-  const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
-  const [selectedClassForMaxTime, setSelectedClassForMaxTime] = useState<ClassEntry | null>(null);
+
+  // Dialog state management (extracted hook) - excludes status dialog (managed by useClassStatus)
+  const {
+    activePopup,
+    setActivePopup,
+    requirementsDialogOpen,
+    selectedClassForRequirements,
+    setRequirementsDialogOpen,
+    setSelectedClassForRequirements,
+    maxTimeDialogOpen,
+    selectedClassForMaxTime,
+    setMaxTimeDialogOpen,
+    setSelectedClassForMaxTime,
+    settingsDialogOpen,
+    selectedClassForSettings,
+    setSettingsDialogOpen,
+    setSelectedClassForSettings,
+  } = useClassDialogs();
+
+  // Class status management (extracted hook)
+  const {
+    statusDialogOpen,
+    selectedClassForStatus,
+    setStatusDialogOpen,
+    setSelectedClassForStatus,
+    handleStatusChange: handleStatusChangeHook,
+    handleStatusChangeWithTime: handleStatusChangeWithTimeHook,
+  } = useClassStatus();
+
+  // Real-time subscription for class/entry updates (extracted hook)
+  useClassRealtime(
+    trialId ? Number(trialId) : undefined,
+    showContext?.licenseKey,
+    setClasses,
+    refetch,
+    supabase
+  );
+
+  // Print report generation (extracted hook)
+  const {
+    handleGenerateCheckIn: handleCheckInHook,
+    handleGenerateResults: handleResultsHook,
+  } = usePrintReports();
+
+  // Max time warning is local-only (not in shared hook)
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
-  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  const [selectedClassForSettings, setSelectedClassForSettings] = useState<ClassEntry | null>(null);
 
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,53 +152,7 @@ export const ClassList: React.FC = () => {
     }
   }, [trialInfoData, classesData]);
 
-  // Load favorites from localStorage on component mount
-  useEffect(() => {
-    const loadFavorites = () => {
-      try {
-        const favoritesKey = `favorites_${showContext?.licenseKey || 'default'}_${trialId}`;
-        console.log('🔍 Loading with key:', favoritesKey);
-        console.log('🗄️ All localStorage keys:', Object.keys(localStorage));
-        console.log('🗄️ All localStorage favorites keys:', Object.keys(localStorage).filter(k => k.startsWith('favorites_')));
-        const savedFavorites = localStorage.getItem(favoritesKey);
-        console.log('💾 Raw localStorage value for key:', savedFavorites);
-        if (savedFavorites) {
-          const favoriteIds = JSON.parse(savedFavorites) as number[];
-          console.log('📥 Setting favoriteClasses from localStorage:', favoriteIds);
-          setFavoriteClasses(new Set(favoriteIds));
-        } else {
-          console.log('❌ No saved favorites found, setting empty set');
-          setFavoriteClasses(new Set());
-        }
-        setFavoritesLoaded(true);
-      } catch (error) {
-        console.error('Error loading favorites from localStorage:', error);
-      }
-    };
-    
-    if (showContext?.licenseKey && trialId) {
-      loadFavorites();
-    }
-  }, [showContext?.licenseKey, trialId]);
-
-  // Save favorites to localStorage whenever favoriteClasses changes (but only after initial load)
-  useEffect(() => {
-    if (showContext?.licenseKey && trialId && favoritesLoaded) {
-      try {
-        const favoritesKey = `favorites_${showContext.licenseKey}_${trialId}`;
-        const favoriteIds = Array.from(favoriteClasses);
-        console.log('💾 Saving favorites to localStorage:', favoritesKey, favoriteIds);
-        localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
-        console.log('✅ Saved to localStorage successfully');
-      } catch (error) {
-        console.error('Error saving favorites to localStorage:', error);
-      }
-    } else {
-      console.log('⚠️ Not saving favorites - missing context, trialId, or not loaded yet:', { licenseKey: showContext?.licenseKey, trialId, favoritesLoaded, size: favoriteClasses.size });
-    }
-  }, [favoriteClasses, showContext?.licenseKey, trialId, favoritesLoaded]);
-
-  // Update classes' is_favorite property when favoriteClasses changes
+  // Update classes' is_favorite property when favoriteClasses changes (hook handles localStorage)
   useEffect(() => {
     if (classes.length > 0) {
       console.log('🔄 Updating classes is_favorite based on favoriteClasses:', Array.from(favoriteClasses));
@@ -199,127 +191,28 @@ export const ClassList: React.FC = () => {
     await refetch();
   }, [refetch, hapticFeedback]);
 
-  // Print report handlers
-  const handleGenerateCheckIn = async (classId: number) => {
-    try {
-      const classData = classes.find(c => c.id === classId);
-      if (!classData || !showContext?.licenseKey) return;
-
-      const entries = await getClassEntries(classId, showContext.licenseKey);
-      const orgData = parseOrganizationData(showContext?.org || '');
-
-      const reportClassInfo: ReportClassInfo = {
-        className: classData.class_name || '',
-        element: classData.element || '',
-        level: classData.level || '',
-        section: classData.section || '',
-        trialDate: trialInfo?.trial_date || '',
-        trialNumber: trialInfo?.trial_number?.toString() || '',
-        judgeName: classData.judge_name || 'TBD',
-        organization: orgData.organization,
-        activityType: orgData.activity_type
-      };
-
-      generateCheckInSheet(reportClassInfo, entries);
-      setActivePopup(null);
-    } catch (error) {
-      console.error('Error generating check-in sheet:', error);
-      alert('Error generating check-in sheet. Please try again.');
+  // Print report wrappers (delegates to usePrintReports hook)
+  const handleGenerateCheckIn = useCallback(async (classId: number) => {
+    if (!showContext?.licenseKey) return;
+    const result = await handleCheckInHook(
+      classId, classes, trialInfo, showContext.licenseKey, showContext.org || '',
+      () => setActivePopup(null)
+    );
+    if (!result.success && result.error) {
+      alert(result.error);
     }
-  };
+  }, [handleCheckInHook, classes, trialInfo, showContext, setActivePopup]);
 
-  const handleGenerateResults = async (classId: number) => {
-    try {
-      const classData = classes.find(c => c.id === classId);
-      if (!classData || !showContext?.licenseKey) return;
-
-      const entries = await getClassEntries(classId, showContext.licenseKey);
-      const completedEntries = entries.filter((e: Entry) => e.isScored);
-
-      if (completedEntries.length === 0) {
-        alert('No scored entries to display in results sheet.');
-        setActivePopup(null);
-        return;
-      }
-
-      const orgData = parseOrganizationData(showContext?.org || '');
-      const reportClassInfo: ReportClassInfo = {
-        className: classData.class_name || '',
-        element: classData.element || '',
-        level: classData.level || '',
-        section: classData.section || '',
-        trialDate: trialInfo?.trial_date || '',
-        trialNumber: trialInfo?.trial_number?.toString() || '',
-        judgeName: classData.judge_name || 'TBD',
-        organization: orgData.organization,
-        activityType: orgData.activity_type
-      };
-
-      generateResultsSheet(reportClassInfo, entries);
-      setActivePopup(null);
-    } catch (error) {
-      console.error('Error generating results sheet:', error);
-      alert('Error generating results sheet. Please try again.');
+  const handleGenerateResults = useCallback(async (classId: number) => {
+    if (!showContext?.licenseKey) return;
+    const result = await handleResultsHook(
+      classId, classes, trialInfo, showContext.licenseKey, showContext.org || '',
+      () => setActivePopup(null)
+    );
+    if (!result.success && result.error) {
+      alert(result.error);
     }
-  };
-
-  // Subscribe to real-time updates for classes AND entries in this trial
-  useEffect(() => {
-    if (!trialId || !showContext?.licenseKey) return;
-
-    // Subscribe to both classes and entries changes
-    const subscription = supabase
-      .channel(`class-list-trial-${trialId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'classes'
-        },
-        (payload) => {
-          console.log('🔄 Real-time: Class update received');
-          console.log('🔄 Real-time payload:', payload);
-          console.log('🔄 Real-time timestamp:', new Date().toISOString());
-
-          // For class updates, update local state directly instead of full reload
-          if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
-            console.log('🔄 Real-time: Updating class locally:', payload.new.id);
-            setClasses(prev => prev.map(c =>
-              c.id === payload.new.id
-                ? {
-                    ...c,
-                    class_status: payload.new.class_status || 'none',
-                    is_completed: payload.new.is_completed || false
-                  }
-                : c
-            ));
-          } else {
-            // For other changes (INSERT, DELETE), do full refresh
-            console.log('🔄 Real-time: Full refresh needed for:', payload.eventType);
-            refetch();
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'entries'
-        },
-        (payload) => {
-          console.log('🔄 Real-time: Entry update received:', payload.eventType);
-          // For entry changes (status, in-ring, scored), refetch to update dogs display
-          refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [trialId, showContext?.licenseKey, refetch]);
+  }, [handleResultsHook, classes, trialInfo, showContext, setActivePopup]);
 
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
@@ -404,190 +297,45 @@ export const ClassList: React.FC = () => {
     navigate(`/class/${classEntry.id}/entries`);
   };
 
-  // Function for handling status changes with inline time inputs
-  const handleClassStatusChangeWithTime = async (classId: number, status: ClassEntry['class_status'], timeValue: string) => {
-    console.log('🕐 Status change with time:', { classId, status, timeValue });
+  // Wrapper for status changes with time (delegates to useClassStatus hook)
+  const handleClassStatusChangeWithTime = useCallback(async (
+    classId: number,
+    status: ClassEntry['class_status'],
+    timeValue: string
+  ) => {
+    await handleStatusChangeWithTimeHook(classId, status, timeValue, classes, setClasses, supabase, refetch);
+  }, [handleStatusChangeWithTimeHook, classes, refetch]);
 
-    // Find the class entry to check if it has a paired class
-    const classEntry = classes.find(c => c.id === classId);
-    const pairedId = classEntry?.pairedClassId;
-    const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
+  // Wrapper for status changes without time (delegates to useClassStatus hook)
+  const handleClassStatusChange = useCallback(async (
+    classId: number,
+    status: ClassEntry['class_status']
+  ) => {
+    await handleStatusChangeHook(classId, status, classes, setClasses, supabase, refetch);
+  }, [handleStatusChangeHook, classes, refetch]);
 
-    console.log('🕐 Updating class IDs with time:', idsToUpdate);
-
-    // Convert 'no-status' to null for database
-    const dbStatus = status === 'no-status' ? null : status;
-    const updateData: any = {
-      class_status: dbStatus
-    };
-
-    // Store the time in appropriate time column
-    switch (status) {
-      case 'briefing':
-        updateData.briefing_time = timeValue;
-        break;
-      case 'break':
-        updateData.break_until = timeValue;
-        break;
-      case 'start_time':
-        updateData.start_time = timeValue;
-        break;
-    }
-
-    // Update local state with both status and time
-    setClasses(prev => prev.map(c => {
-      if (idsToUpdate.includes(c.id)) {
-        const updatedClass = { ...c, class_status: status };
-
-        // Store the time values in local state
-        switch (status) {
-          case 'briefing':
-            updatedClass.briefing_time = timeValue;
-            break;
-          case 'break':
-            updatedClass.break_until = timeValue;
-            break;
-          case 'start_time':
-            updatedClass.start_time = timeValue;
-            break;
-        }
-
-        return updatedClass;
-      }
-      return c;
-    }));
-
-    // Close dialog
-    setStatusDialogOpen(false);
-    setSelectedClassForStatus(null);
-
-    // Update database - update all IDs (both A and B for combined Novice classes)
-    try {
-
-      // Note: The normalized classes table should support time columns
-      // for briefing_time, break_until, or start_time
-
-      const { error } = await supabase
-        .from('classes')
-        .update(updateData)
-        .in('id', idsToUpdate);
-
-      if (error) {
-        console.error('❌ Error updating class status with time:', error);
-        console.error('❌ Update data:', updateData);
-        console.error('❌ Class IDs:', idsToUpdate);
-        // Revert on error
-        await refetch();
-      } else {
-        console.log('✅ Successfully updated class status with time');
-        console.log('✅ Class IDs:', idsToUpdate);
-      }
-    } catch (error) {
-      console.error('Exception updating class status:', error);
-      await refetch();
-    }
-  };
-
-  // Simplified function for statuses without time input
-  const handleClassStatusChange = async (classId: number, status: ClassEntry['class_status']) => {
-    console.log('🔄 ClassList: Updating class status:', { classId, status });
-
-    // Find the class entry to check if it has a paired class
-    const classEntry = classes.find(c => c.id === classId);
-    const pairedId = classEntry?.pairedClassId;
-    const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
-
-    console.log('🔄 ClassList: Updating class IDs:', idsToUpdate);
-
-    // Convert 'no-status' to null for database
-    const dbStatus = status === 'no-status' ? null : status;
-    const updateData = {
-      class_status: dbStatus
-    };
-
-    console.log('✅ Converting status for DB:', { uiStatus: status, dbStatus });
-
-    console.log('🔄 ClassList: Update data:', updateData);
-
-    // Update local state immediately for better UX
-    setClasses(prev => prev.map(c =>
-      idsToUpdate.includes(c.id) ? { ...c, class_status: status } : c
-    ));
-
-    // Close dialog
-    setStatusDialogOpen(false);
-    setSelectedClassForStatus(null);
-
-    // Update database - update all IDs (both A and B for combined Novice classes)
-    try {
-      const { data, error } = await supabase
-        .from('classes')
-        .update(updateData)
-        .in('id', idsToUpdate);
-
-      if (error) {
-        console.error('❌ Error updating class status:', error);
-        console.error('❌ Update data:', updateData);
-        console.error('❌ Class IDs:', idsToUpdate);
-        console.error('❌ Full error object:', JSON.stringify(error, null, 2));
-        // Revert on error
-        await refetch();
-      } else {
-        console.log('✅ Successfully updated class status');
-        console.log('✅ Class IDs:', idsToUpdate);
-        console.log('✅ New status:', status);
-        console.log('✅ DB status value:', status);
-        console.log('✅ Update data:', updateData);
-        console.log('✅ Response data:', data);
-      }
-    } catch (error) {
-      console.error('💥 Exception updating class status:', error);
-      await refetch();
-    }
-  };
-
-  const toggleFavorite = async (classId: number) => {
+  // Wrapper for favorite toggle (delegates to useFavoriteClasses hook, adds haptic feedback)
+  const toggleFavorite = useCallback((classId: number) => {
     const classEntry = classes.find(c => c.id === classId);
     const isCurrentlyFavorite = classEntry?.is_favorite;
-    console.log('💖 Toggling favorite for class:', classId, 'Currently favorite:', isCurrentlyFavorite);
 
     // Enhanced haptic feedback for outdoor/gloved use
     if (isCurrentlyFavorite) {
-      // Removing favorite - softer feedback
-      hapticFeedback.light();
+      hapticFeedback.light();  // Removing favorite - softer feedback
     } else {
-      // Adding favorite - stronger feedback for confirmation
-      hapticFeedback.medium();
+      hapticFeedback.medium(); // Adding favorite - stronger feedback for confirmation
     }
 
-    // For combined Novice A & B classes, we need to find the paired class
+    // Delegate to hook (handles localStorage, paired classes via useEffect syncs to classes)
+    toggleFavoriteHook(classId, classEntry?.pairedClassId);
+
+    // Update classes state immediately for responsive UI
     const pairedId = classEntry?.pairedClassId;
     const idsToToggle = pairedId ? [classId, pairedId] : [classId];
-
-    // Update favorites set for localStorage persistence
-    setFavoriteClasses(prev => {
-      const newFavorites = new Set(prev);
-      const shouldAdd = !newFavorites.has(classId);
-
-      idsToToggle.forEach(id => {
-        if (shouldAdd) {
-          newFavorites.add(id);
-          console.log('⭐ Adding to favorites:', id);
-        } else {
-          newFavorites.delete(id);
-          console.log('🗑️ Removing from favorites:', id);
-        }
-      });
-
-      console.log('💾 New favorites set:', Array.from(newFavorites));
-      return newFavorites;
-    });
-
-    // Update classes state to reflect the change immediately
     setClasses(prev => prev.map(c =>
       idsToToggle.includes(c.id) ? { ...c, is_favorite: !c.is_favorite } : c
     ));
-  };
+  }, [classes, hapticFeedback, toggleFavoriteHook]);
 
   const getStatusColor = useCallback((status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
     // Check is_completed first for consistent coloring

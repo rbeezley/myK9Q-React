@@ -22,6 +22,8 @@ interface SortableEntryCardProps {
   handleResetMenuClick: (e: React.MouseEvent, entryId: number) => void;
   setSelfCheckinDisabledDialog: (value: boolean) => void;
   onPrefetch?: (entry: Entry) => void;
+  /** Section badge for combined views (A/B) */
+  sectionBadge?: 'A' | 'B' | null;
 }
 
 export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
@@ -35,6 +37,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
   handleResetMenuClick,
   setSelfCheckinDisabledDialog,
   onPrefetch,
+  sectionBadge,
 }) => {
   const {
     attributes,
@@ -217,6 +220,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
             )
           ) : undefined
         }
+        sectionBadge={sectionBadge}
         actionButton={
           !entry.isScored ? (
             <div

@@ -36,7 +36,7 @@ export interface UseClassStatusReturn {
     classes: ClassEntry[],
     setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
     supabaseClient: SupabaseClient,
-    refetch: () => Promise<void>
+    refetch: () => void | Promise<void>
   ) => Promise<StatusOperationResult>;
   handleStatusChangeWithTime: (
     classId: number,
@@ -45,7 +45,7 @@ export interface UseClassStatusReturn {
     classes: ClassEntry[],
     setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
     supabaseClient: SupabaseClient,
-    refetch: () => Promise<void>
+    refetch: () => void | Promise<void>
   ) => Promise<StatusOperationResult>;
 }
 
@@ -120,7 +120,7 @@ export function useClassStatus(): UseClassStatusReturn {
     classes: ClassEntry[],
     setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
     supabaseClient: SupabaseClient,
-    refetch: () => Promise<void>
+    refetch: () => void | Promise<void>
   ): Promise<StatusOperationResult> => {
     console.log('🔄 useClassStatus: Updating class status:', { classId, status });
 
@@ -186,7 +186,7 @@ export function useClassStatus(): UseClassStatusReturn {
     classes: ClassEntry[],
     setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
     supabaseClient: SupabaseClient,
-    refetch: () => Promise<void>
+    refetch: () => void | Promise<void>
   ): Promise<StatusOperationResult> => {
     console.log('🕐 useClassStatus: Status change with time:', { classId, status, timeValue });
 

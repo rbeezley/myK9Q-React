@@ -14,32 +14,23 @@ import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { formatTrialDate } from '../../utils/dateUtils';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
-import { updateExhibitorOrder, markInRing } from '../../services/entryService';
+import { markInRing } from '../../services/entryService';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { manuallyRecalculatePlacements } from '../../services/placementService';
 import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
 import { Entry } from '../../stores/entryStore';
-import { useEntryListData, useEntryListActions } from './hooks';
+import { useEntryListData, useEntryListActions, useEntryListFilters, useDragAndDropEntries } from './hooks';
+import type { TabType } from './hooks';
 import { logger } from '@/utils/logger';
 import {
   DndContext,
   rectIntersection,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 // CSS imported in index.css to prevent FOUC
-
-type TabType = 'pending' | 'completed';
 
 export const EntryList: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
@@ -49,10 +40,8 @@ export const EntryList: React.FC = () => {
   const { prefetch } = usePrefetch();
   const { settings } = useSettingsStore();
 
-  // Drag state refs - declared early so they can be used by hooks and listeners
-  // Locks the array during drag to prevent race conditions
-  const dragSnapshotRef = useRef<Entry[] | null>(null);
-  // Flag to prevent sync-triggered refreshes during drag operations
+  // Drag state ref - declared early so it can be passed to hooks
+  // Prevents sync-triggered refreshes during drag operations
   const isDraggingRef = useRef<boolean>(false);
 
   // Data management using shared hook
@@ -127,24 +116,55 @@ export const EntryList: React.FC = () => {
 
   // Local state for UI and features unique to EntryList
   const [localEntries, setLocalEntries] = useState<Entry[]>([]);
-  const [activeTab, setActiveTab] = useState<TabType>('pending');
+  const [manualOrder, setManualOrder] = useState<Entry[]>([]);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
   const [_popupPosition, _setPopupPosition] = useState<{ top: number; left: number } | null>(null);
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'manual'>('run');
   const [isDragMode, setIsDragMode] = useState(false);
-  const [manualOrder, setManualOrder] = useState<Entry[]>([]);
-  const [_isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [showPrintMenu, setShowPrintMenu] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
+
+  // Filtering and sorting (extracted hook)
+  const {
+    activeTab,
+    setActiveTab,
+    sortBy: sortOrder,
+    setSortBy: setSortOrder,
+    searchTerm,
+    setSearchTerm,
+    filteredEntries,
+    pendingEntries,
+    completedEntries,
+  } = useEntryListFilters({
+    entries: localEntries,
+    prioritizeInRing: true,
+    deprioritizePulled: true,
+    manualOrder: manualOrder,
+    defaultSort: 'run'
+  });
+
+  // Current entries based on active tab (for drag-and-drop)
+  const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
+
+  // Drag and drop (extracted hook)
+  const {
+    sensors,
+    handleDragStart,
+    handleDragEnd,
+  } = useDragAndDropEntries({
+    localEntries,
+    setLocalEntries,
+    currentEntries,
+    isDraggingRef,
+    setManualOrder
+  });
 
   // Sync local entries with fetched data - now simple since LocalStateManager handles merging
   // BUT skip sync while dragging to prevent snap-back
@@ -153,109 +173,6 @@ export const EntryList: React.FC = () => {
       setLocalEntries(entries);
     }
   }, [entries]); // Depend on entries array to catch content changes (isScored, status, etc.)
-
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Require 8px of movement before drag starts
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // Handle drag start - Snapshot the array to prevent race conditions
-  const handleDragStart = (_event: DragStartEvent) => {
-    // Set dragging flag to prevent sync-triggered refreshes
-    isDraggingRef.current = true;
-    // Capture the current state at drag start - this won't change during the drag
-    dragSnapshotRef.current = [...currentEntries];
-    console.log('🎯 Drag started, snapshot captured with', dragSnapshotRef.current.length, 'entries');
-  };
-
-  // Handle drag end - Uses snapshot for stable index calculations
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    // Use the snapshot we captured at drag start
-    const snapshot = dragSnapshotRef.current;
-
-    // Clear the snapshot (but keep isDraggingRef true until DB update completes)
-    dragSnapshotRef.current = null;
-
-    // Must have a valid drop target and snapshot
-    if (!over || active.id === over.id || !snapshot) {
-      console.log('🚫 Drag cancelled or no change');
-      isDraggingRef.current = false;
-      return;
-    }
-
-    // Find indices in the SNAPSHOT (stable, won't have changed during drag)
-    const oldIndex = snapshot.findIndex(entry => entry.id === active.id);
-    let targetIndex = snapshot.findIndex(entry => entry.id === over.id);
-
-    if (oldIndex === -1 || targetIndex === -1) {
-      console.log('⚠️ Could not find entries in snapshot');
-      isDraggingRef.current = false;
-      return;
-    }
-
-    // Prevent moving dogs before in-ring dogs
-    const inRingDogs = snapshot.filter(e => e.inRing || e.status === 'in-ring');
-    if (inRingDogs.length > 0 && targetIndex === 0) {
-      const draggedEntry = snapshot[oldIndex];
-      if (!draggedEntry.inRing && draggedEntry.status !== 'in-ring') {
-        console.log('⚠️ Cannot move dog before in-ring dog');
-        isDraggingRef.current = false;
-        return;
-      }
-    }
-
-    console.log(`📍 Drag: item at index ${oldIndex} dropped on item at index ${targetIndex}`);
-
-    // Create new reordered array from the snapshot
-    const reorderedEntries = arrayMove(snapshot, oldIndex, targetIndex);
-
-    // Update exhibitor_order values locally
-    const entriesWithNewOrder = reorderedEntries.map((entry, index) => ({
-      ...entry,
-      exhibitorOrder: index + 1
-    }));
-
-    // Merge reordered entries back into localEntries (preserving completed entries if on pending tab)
-    const reorderedIds = new Set(entriesWithNewOrder.map(e => e.id));
-    const otherEntries = localEntries.filter(entry => !reorderedIds.has(entry.id));
-    const newAllEntries = [...otherEntries, ...entriesWithNewOrder];
-
-    // Single atomic state update for smooth UX
-    setLocalEntries(newAllEntries);
-    setManualOrder(entriesWithNewOrder);
-
-    console.log('✅ Drag complete: moved from index', oldIndex, 'to', targetIndex);
-    console.log('📋 New order:', entriesWithNewOrder.map(e => `${e.armband}(${e.exhibitorOrder})`).join(', '));
-
-    // Update database and AWAIT it to prevent race conditions with sync
-    setIsUpdatingOrder(true);
-    try {
-      await updateExhibitorOrder(entriesWithNewOrder);
-      console.log('✅ Successfully synced run order to database');
-    } catch (error) {
-      console.error('❌ Failed to update run order in database:', error);
-      // The optimistic update already happened, so UI shows new order
-      // If offline, the sync will happen later
-    } finally {
-      setIsUpdatingOrder(false);
-      // IMPORTANT: Add a grace period before accepting new sync data
-      // The updateExhibitorOrder triggers triggerImmediateEntrySync which can
-      // arrive after we return here. Delay clearing the flag to let syncs settle.
-      setTimeout(() => {
-        isDraggingRef.current = false;
-        console.log('🔓 Drag protection cleared after grace period');
-      }, 1500);
-    }
-  };
 
   // Handle applying run order preset from dialog
   const handleApplyRunOrder = async (preset: RunOrderPreset) => {
@@ -642,64 +559,6 @@ export const EntryList: React.FC = () => {
   const cancelResetScore = () => {
     setResetConfirmDialog({ show: false, entry: null });
   };
-
-  // Filter and sort entries (memoized for performance)
-  const filteredEntries = useMemo(() => {
-    return localEntries
-      .filter(entry => {
-        if (!searchTerm) return true;
-        const term = searchTerm.toLowerCase();
-        return (
-          entry.callName.toLowerCase().includes(term) ||
-          entry.handler.toLowerCase().includes(term) ||
-          entry.breed.toLowerCase().includes(term) ||
-          entry.armband.toString().includes(term)
-        );
-      })
-      .sort((a, b) => {
-        // PRIORITY 1: In-ring dogs ALWAYS come first
-        const aIsInRing = a.inRing || a.status === 'in-ring';
-        const bIsInRing = b.inRing || b.status === 'in-ring';
-        if (aIsInRing && !bIsInRing) return -1;
-        if (!aIsInRing && bIsInRing) return 1;
-
-        // PRIORITY 2: Pulled dogs go to the end (but sorted by run order among themselves)
-        const aIsPulled = a.status === 'pulled';
-        const bIsPulled = b.status === 'pulled';
-        if (aIsPulled && !bIsPulled) return 1;
-        if (!aIsPulled && bIsPulled) return -1;
-
-        // PRIORITY 3: Apply normal sorting for dogs not in ring or pulled
-        if (sortOrder === 'manual') {
-          const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
-          const bIndex = manualOrder.findIndex(entry => entry.id === b.id);
-          if (aIndex !== -1 && bIndex !== -1) {
-            return aIndex - bIndex;
-          }
-          return a.armband - b.armband;
-        }
-
-        if (sortOrder === 'run') {
-          const aOrder = a.exhibitorOrder || a.armband;
-          const bOrder = b.exhibitorOrder || b.armband;
-          return aOrder - bOrder;
-        } else if (sortOrder === 'placement') {
-          const aPlacement = a.placement || 999;
-          const bPlacement = b.placement || 999;
-          if (aPlacement !== bPlacement) {
-            return aPlacement - bPlacement;
-          }
-          return a.armband - b.armband;
-        } else {
-          return a.armband - b.armband;
-        }
-      });
-  }, [localEntries, searchTerm, sortOrder, manualOrder]);
-
-  const pendingEntries = useMemo(() => filteredEntries.filter(e => !e.isScored), [filteredEntries]);
-  const completedEntries = useMemo(() => filteredEntries.filter(e => e.isScored), [filteredEntries]);
-
-  const currentEntries = activeTab === 'pending' ? pendingEntries : completedEntries;
 
   // Prepare status tabs for TabBar component
   const statusTabs: Tab[] = useMemo(() => [
@@ -1146,6 +1005,21 @@ export const EntryList: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Floating Done Button - Exit Drag Mode */}
+      {isDragMode && (
+        <button
+          className="floating-done-button"
+          onClick={() => {
+            setIsDragMode(false);
+            setSortOrder('run'); // Switch to Run Order to show the new order
+          }}
+          aria-label="Done reordering"
+        >
+          <CheckCircle size={20} />
+          Done
+        </button>
       )}
     </div>
   );

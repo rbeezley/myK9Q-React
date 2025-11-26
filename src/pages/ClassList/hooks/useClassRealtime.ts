@@ -39,7 +39,7 @@ export interface RealtimePayload {
  * @param trialId - Trial ID to subscribe to
  * @param licenseKey - License key for authorization
  * @param setClasses - State setter for local class updates
- * @param refetch - Refetch function for full data refresh
+ * @param refetch - Refetch function for full data refresh (can return void or Promise<void>)
  * @param supabaseClient - Supabase client instance
  *
  * @example
@@ -71,7 +71,7 @@ export function useClassRealtime(
   trialId: number | undefined,
   licenseKey: string | undefined,
   setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
-  refetch: () => Promise<void>,
+  refetch: () => void | Promise<void>,
   supabaseClient: SupabaseClient
 ): void {
   // Memoize the payload handler to avoid recreating on every render
