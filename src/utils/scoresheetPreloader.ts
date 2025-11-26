@@ -7,7 +7,7 @@
 
 // Map of scoresheet routes to their dynamic imports
 const SCORESHEET_IMPORTS: Record<string, () => Promise<any>> = {
-  'akc-scent-work': () => import('../pages/scoresheets/AKC/AKCScentWorkScoresheet-Enhanced'),
+  'akc-scent-work': () => import('../pages/scoresheets/AKC/AKCScentWorkScoresheet'),
   'akc-fastcat': () => import('../pages/scoresheets/AKC/AKCFastCatScoresheet'),
   'ukc-obedience': () => import('../pages/scoresheets/UKC/UKCObedienceScoresheet'),
   'ukc-rally': () => import('../pages/scoresheets/UKC/UKCRallyScoresheet'),

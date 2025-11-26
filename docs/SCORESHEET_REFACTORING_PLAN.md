@@ -1,21 +1,34 @@
 # Scoresheet Refactoring Plan
 
 **Created**: 2025-11-25
-**Status**: Proposed
-**Estimated Effort**: 3-5 days
-**Line Reduction**: ~2,000 lines (from 3,589 to ~1,500)
+**Status**: In Progress (Phase 1 & 3a Complete, Enhanced Deleted)
+**Estimated Effort**: 2-3 days remaining
+**Line Reduction**: ~1,700 lines deleted (Enhanced removed + base refactored)
+
+## Progress Update (2025-11-26)
+
+| Phase | Status | Details |
+|-------|--------|---------|
+| Phase 1: Extract Hooks | ✅ Complete | `useScoresheetCore`, `useEntryNavigation` created |
+| Phase 3a: Refactor Base | ✅ Complete | AKCScentWorkScoresheet: 1,118 → 692 lines (-38%) |
+| Phase 3b: Delete Enhanced | ✅ Complete | Redundant dual-mode file removed (-1,296 lines) |
+| Phase 3c: Refactor Nationals | ⏳ Pending | Rarely used (once/year) |
 
 ## Executive Summary
 
-Three scoresheet files share 60-70% identical code. This plan extracts shared logic into reusable hooks and components, reducing maintenance burden and bug surface area.
+**Decision**: Simplified from 3 files to 2 files:
+- **Base scoresheet** (`AKCScentWorkScoresheet.tsx`) - Regular shows (refactored, 692 lines)
+- **Nationals scoresheet** (`AKCNationalsScoresheet.tsx`) - Nationals only (pending refactor)
 
-| File | Current Lines | After Refactor |
-|------|--------------|----------------|
-| `AKCScentWorkScoresheet.tsx` | 1,118 | ~300 (sport-specific only) |
-| `AKCScentWorkScoresheet-Enhanced.tsx` | 1,296 | ~400 (Enhanced + base) |
-| `AKCNationalsScoresheet.tsx` | 1,175 | ~350 (Nationals-specific) |
-| **New shared code** | 0 | ~450 |
-| **Total** | 3,589 | ~1,500 |
+The "Enhanced" file was redundant - it handled both regular and Nationals modes, duplicating functionality. Deleted to reduce maintenance burden.
+
+| File | Before | After | Status |
+|------|--------|-------|--------|
+| `AKCScentWorkScoresheet.tsx` | 1,118 | 692 | ✅ Refactored |
+| `AKCScentWorkScoresheet-Enhanced.tsx` | 1,296 | 0 | ✅ Deleted |
+| `AKCNationalsScoresheet.tsx` | 1,175 | ~400 | ⏳ Pending |
+| **Shared hooks** | 0 | ~860 | ✅ Created |
+| **Total** | 3,589 | ~1,950 | -46% |
 
 ---
 

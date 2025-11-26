@@ -5,9 +5,20 @@
 
 - **Verify PTR improvements on production mobile** - Test pull-to-refresh activation threshold and scrolling behavior on app.myk9q.com after deployment. **Problem:** Pull-to-refresh was interfering with scrolling through long dog lists on mobile home page. Changes deployed (20px activation threshold, increased trigger distance) need real-world mobile testing to confirm they solve the issue. **Files:** `src/components/ui/PullToRefresh.tsx:85-101` (activation threshold logic), `src/pages/Home/Home.tsx:367-372` (PTR configuration). **Solution:** Test on actual mobile device: (1) Verify normal scrolling works smoothly without triggering PTR, (2) Verify intentional pull-down from top triggers refresh after deliberate gesture, (3) If still problematic, consider increasing activation threshold to 30-40px or adding user setting to disable PTR.
 
-## Scoresheet Refactoring - 2025-11-25
+## Scoresheet Refactoring - 2025-11-25 (In Progress)
 
-- **Extract shared scoresheet logic into reusable hooks** - Three scoresheet files (3,589 lines) share 60-70% identical code. **Problem:** Bug fixes and features must be duplicated across AKCScentWorkScoresheet.tsx (1,118), AKCScentWorkScoresheet-Enhanced.tsx (1,296), and AKCNationalsScoresheet.tsx (1,175). **Files:** See `docs/SCORESHEET_REFACTORING_PLAN.md` for detailed plan. **Solution:** Create `useScoresheetCore` hook for shared state/submission, `ScoresheetLayout` component for UI shell, reduce total lines from 3,589 to ~1,500. **Effort:** 3-5 days, **Payoff:** Eliminates ~2,000 duplicate lines.
+**Status:** Phase 1 & 3a complete, Enhanced deleted, Phase 3c pending
+
+**Completed:**
+- ✅ Phase 1: Created `useScoresheetCore` hook (state management, submission, celebration)
+- ✅ Phase 1: Created `useEntryNavigation` hook (entry loading, navigation, max time helpers)
+- ✅ Phase 3a: Refactored `AKCScentWorkScoresheet.tsx` (1,118 → 692 lines, **38% reduction**)
+- ✅ Deleted `AKCScentWorkScoresheet-Enhanced.tsx` (redundant dual-mode file)
+
+**Remaining:**
+- ⏳ Refactor `AKCNationalsScoresheet.tsx` (1,175 lines) - Rarely used (once/year)
+
+**Files:** See `docs/SCORESHEET_REFACTORING_PLAN.md` for detailed plan. Hooks at `src/pages/scoresheets/hooks/`.
 
 ## Monetization Strategy Research - 2025-11-23 19:30
 
