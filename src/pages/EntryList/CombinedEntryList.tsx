@@ -3,12 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
-import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, TabBar, Tab } from '../../components/ui';
+import { HamburgerMenu, SyncIndicator, RefreshIndicator, ErrorState, TabBar, Tab, FilterPanel, FilterTriggerButton, SortOption } from '../../components/ui';
 // DogCard replaced by SortableEntryCard for drag-and-drop support
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { SortableEntryCard } from './SortableEntryCard';
-import { Search, X, Clock, CheckCircle, ArrowUpDown, ChevronDown, Trophy, RefreshCw, ListOrdered, MoreVertical, Printer, ClipboardCheck, Users } from 'lucide-react';
+import { Clock, CheckCircle, ArrowUpDown, Trophy, RefreshCw, MoreVertical, Printer, ClipboardCheck, Users } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
@@ -72,7 +72,7 @@ export const CombinedEntryList: React.FC = () => {
   const [_manualOrder, setManualOrder] = useState<Entry[]>([]); // Used internally by drag hook
   const [sortOrder, setSortOrder] = useState<'run' | 'armband' | 'placement' | 'section-armband'>('section-armband');
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isSearchCollapsed, setIsSearchCollapsed] = useState(true);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
   const [resetMenuPosition, setResetMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [resetConfirmDialog, setResetConfirmDialog] = useState<{ show: boolean; entry: Entry | null }>({ show: false, entry: null });
@@ -256,6 +256,23 @@ export const CombinedEntryList: React.FC = () => {
       count: entryCounts.completed
     }
   ], [entryCounts]);
+
+  // Prepare sort options for FilterPanel
+  const sortOptions: SortOption[] = useMemo(() => {
+    const options: SortOption[] = [
+      { value: 'section-armband', label: 'Section & Armband', icon: <ArrowUpDown size={16} /> },
+      { value: 'run', label: 'Run Order', icon: <ArrowUpDown size={16} /> },
+      { value: 'armband', label: 'Armband', icon: <ArrowUpDown size={16} /> }
+    ];
+    // Only show placement sort on completed tab
+    if (activeTab === 'completed') {
+      options.push({ value: 'placement', label: 'Placement', icon: <Trophy size={16} /> });
+    }
+    return options;
+  }, [activeTab]);
+
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm.length > 0 || sortOrder !== 'section-armband';
 
   // Reset score handlers
   const handleResetMenuClick = (e: React.MouseEvent, entryId: number) => {
@@ -716,6 +733,12 @@ export const CombinedEntryList: React.FC = () => {
             />
           )}
 
+          {/* Filter button */}
+          <FilterTriggerButton
+            onClick={() => setIsFilterPanelOpen(true)}
+            hasActiveFilters={hasActiveFilters}
+          />
+
           {/* Actions Menu (3-dot menu) */}
           <div className="actions-menu-container">
             <button
@@ -766,111 +789,6 @@ export const CombinedEntryList: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Search and Sort Header */}
-      <div className={`search-controls-header ${isSearchCollapsed ? 'collapsed' : ''}`}>
-        <button
-          className={`search-toggle-icon ${!isSearchCollapsed ? 'active' : ''}`}
-          onClick={() => setIsSearchCollapsed(!isSearchCollapsed)}
-          aria-label={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-          title={isSearchCollapsed ? "Show search and sort options" : "Hide search and sort options"}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </button>
-
-        <span className="search-controls-label">
-          {searchTerm ? `Found ${filteredEntries.length} of ${entries.length} entries` : 'Search & Sort'}
-        </span>
-      </div>
-
-      {searchTerm && (
-        <div className="search-results-header">
-          <div className="search-results-summary">
-            {filteredEntries.length} of {entries.length} entries
-          </div>
-        </div>
-      )}
-
-      <div className={`search-sort-container ${isSearchCollapsed ? 'collapsed' : 'expanded'}`}>
-        <div className="search-input-wrapper">
-          <Search className="search-icon" size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-          <input
-            type="text"
-            placeholder="Search dog name, handler, breed, or armband..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input-full"
-          />
-          {searchTerm && (
-            <button className="clear-search" onClick={() => setSearchTerm('')}>
-              <X size={18}  style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-            </button>
-          )}
-        </div>
-
-        <div className="sort-controls">
-          {/* Primary group - Global/Persistent */}
-          {hasPermission('canChangeRunOrder') && (
-            <div className="sort-group sort-group-primary">
-              <span className="sort-label">Run Order:</span>
-              <button
-                className={`sort-btn ${sortOrder === 'run' ? 'active' : ''}`}
-                onClick={() => {
-                  setSortOrder('run');
-                  setIsDragMode(false);
-                }}
-              >
-                <Clock size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                Run Order
-              </button>
-              <button
-                className="sort-btn"
-                onClick={() => setRunOrderDialogOpen(true)}
-              >
-                <ListOrdered size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                Set Run Order
-              </button>
-            </div>
-          )}
-
-          {/* Secondary group - Local/Temporary */}
-          <div className="sort-group sort-group-secondary">
-            <span className="sort-label">Sort:</span>
-            <button
-              className={`sort-btn ${sortOrder === 'section-armband' ? 'active' : ''}`}
-              onClick={() => {
-                setSortOrder('section-armband');
-                setIsDragMode(false);
-              }}
-            >
-              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-              Section & Armband
-            </button>
-            <button
-              className={`sort-btn ${sortOrder === 'armband' ? 'active' : ''}`}
-              onClick={() => {
-                setSortOrder('armband');
-                setIsDragMode(false);
-              }}
-            >
-              <ArrowUpDown size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-              Armband
-            </button>
-            {activeTab === 'completed' && (
-              <button
-                className={`sort-btn ${sortOrder === 'placement' ? 'active' : ''}`}
-                onClick={() => {
-                  setSortOrder('placement');
-                  setIsDragMode(false);
-                }}
-              >
-                <Trophy size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
-                Placement
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Section Filter Tabs */}
       <TabBar
@@ -1057,6 +975,22 @@ export const CombinedEntryList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Search & Sort Filter Panel */}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search dog, handler, breed, armband..."
+        sortOptions={sortOptions}
+        sortOrder={sortOrder}
+        onSortChange={(order) => {
+          setSortOrder(order as 'run' | 'armband' | 'placement' | 'section-armband');
+          setIsDragMode(false);
+        }}
+        resultsLabel={searchTerm ? `${filteredEntries.length} of ${localEntries.length} entries` : `${currentEntries.length} entries`}
+      />
 
       {/* Floating Done Button - Exit Drag Mode */}
       {isDragMode && (
