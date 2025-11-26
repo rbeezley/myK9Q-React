@@ -32,13 +32,22 @@
   height: 100vh;
   width: 90%;
   max-width: 500px;
-  background-color: var(--background);
+  background-color: var(--background, #fefefe);
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
   z-index: 9999;
   display: flex;
   flex-direction: column;
   animation: slideIn 0.3s ease-out;
   overflow: hidden;
+}
+
+/* Ensure opaque background in both themes */
+:root .rules-panel {
+  background-color: #fefefe;
+}
+
+:root.dark .rules-panel {
+  background-color: #1a1d23;
 }
 
 @media (max-width: 640px) {
