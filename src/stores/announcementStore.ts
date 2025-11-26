@@ -180,7 +180,7 @@ return;
                     }
 
                     await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
-} else {}
+}
                 }
               }
             }
@@ -319,7 +319,7 @@ const isUrgent = data.priority === 'urgent';
                   console.error('❌ Cannot show notification - permission not granted');
                 }
               });
-          } else {}
+          }
 
         } catch (error) {
           console.error('Error creating announcement:', error);

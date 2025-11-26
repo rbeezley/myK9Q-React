@@ -385,8 +385,6 @@ export async function cleanupExpiredShows(): Promise<number> {
       }
     }
 
-    if (deletedCount > 0) {}
-
     return deletedCount;
   } catch (error) {
     console.error('❌ Failed to cleanup expired shows:', error);

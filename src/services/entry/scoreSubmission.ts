@@ -295,7 +295,7 @@ console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
       entry_status: entryStatus,
     };
 
-    const { error: updateError, data: updatedData } = await supabase
+    const { error: updateError } = await supabase
       .from('entries')
       .update(updateData)
       .eq('id', entryId)
@@ -313,8 +313,6 @@ console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
       });
       throw updateError;
     }
-
-if (updatedData && updatedData[0]) {}
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the scored dog moves to completed tab immediately

@@ -71,8 +71,6 @@ class SubscriptionCleanupService {
       }
     });
 
-    if (count > 0) {}
-
     return count;
   }
 
@@ -292,8 +290,7 @@ return 0;
    */
   startAutoCleanup(intervalMinutes: number = 30): () => void {
 const interval = setInterval(() => {
-      const staleCount = this.cleanupStaleSubscriptions(intervalMinutes);
-      if (staleCount > 0) {}
+      this.cleanupStaleSubscriptions(intervalMinutes);
 
       // Check for leaks
       const leakCheck = this.checkForLeaks();

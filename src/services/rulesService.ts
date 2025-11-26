@@ -233,8 +233,6 @@ const { data, error } = await supabase
     }
 
     keysToDelete.forEach(key => searchCache.delete(key));
-
-    if (keysToDelete.length > 0) {}
   }
 
   /**

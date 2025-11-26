@@ -154,9 +154,7 @@ class NetworkDetectionService {
    * Handle network change event
    */
   private handleNetworkChange() {
-    const oldInfo = this.currentInfo;
     const newInfo = this.detectNetwork();
-
     this.currentInfo = newInfo;
 
     // Notify listeners
@@ -164,12 +162,7 @@ class NetworkDetectionService {
       listener(newInfo);
     });
 
-    // Log significant changes
-    if (oldInfo.isOnline !== newInfo.isOnline) {}
-
-    if (oldInfo.connectionType !== newInfo.connectionType) {}
-
-    if (oldInfo.effectiveType !== newInfo.effectiveType) {}
+    // Network change logging removed - state changes tracked internally
   }
 
   /**
