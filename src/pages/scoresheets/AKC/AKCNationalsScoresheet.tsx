@@ -6,21 +6,14 @@
  * - Qualifying results: Qualified, Absent, Excused (no NQ)
  * - Dual storage: tbl_entry_queue + nationals_scores
  * - Auto-calculated areas based on alerts
+ *
+ * Refactored to use shared hooks for reduced code duplication.
+ * @see docs/SCORESHEET_REFACTORING_PLAN.md
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
 import { useSettingsStore } from '../../../stores/settingsStore';
-import { markInRing } from '../../../services/entryService';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
-import { useClassCompletion } from '../../../hooks/useClassCompletion';
-import { ensureReplicationManager } from '../../../utils/replicationHelper';
-import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
-import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
-import type { Trial } from '../../../services/replication/tables/ReplicatedTrialsTable';
-import type { Entry } from '../../../stores/entryStore';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
@@ -30,7 +23,10 @@ import { nationalsScoring } from '../../../services/nationalsScoring';
 import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
-import { initializeAreas, type AreaScore } from '../../../services/scoresheets/areaInitialization';
+
+// Shared hooks from refactoring
+import { useScoresheetCore, useEntryNavigation } from '../hooks';
+
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
 import './AKCScentWorkScoresheet-Flutter.css';
@@ -39,75 +35,70 @@ import '../../../styles/containers.css';
 import '../../../components/wireframes/NationalsWireframe.css';
 
 // Nationals-specific qualifying results
-type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
+type NationalsQualifyingResult = 'Qualified' | 'Absent' | 'Excused';
 
 export const AKCNationalsScoresheet: React.FC = () => {
-  const { classId, entryId } = useParams<{ classId: string; entryId: string }>();
-  const navigate = useNavigate();
   const { showContext } = useAuth();
 
-  // Store hooks
+  // ==========================================================================
+  // SHARED HOOKS (from refactoring)
+  // ==========================================================================
+
+  // Core scoresheet state management
+  const core = useScoresheetCore({
+    sportType: 'AKC_SCENT_WORK_NATIONAL',
+    isNationals: true
+  });
+
+  // Entry navigation and loading
+  const navigation = useEntryNavigation({
+    classId: core.classId,
+    entryId: core.entryId,
+    isNationals: true,
+    sportType: 'AKC_SCENT_WORK_NATIONAL',
+    onEntryLoaded: (entry, areas) => {
+      core.setAreas(areas);
+    },
+    onTrialDateLoaded: core.setTrialDate,
+    onTrialNumberLoaded: core.setTrialNumber,
+    onLoadingChange: core.setIsLoadingEntry
+  });
+
+  // Destructure for convenience
   const {
-    isScoring,
-    startScoringSession,
-    submitScore: _addScoreToSession,
-    moveToNextEntry: _moveToNextEntry,
-    endScoringSession: _endScoringSession
-  } = useScoringStore();
+    areas, setAreas,
+    faultCount, setFaultCount,
+    isSubmitting,
+    showConfirmation, setShowConfirmation,
+    isLoadingEntry,
+    trialDate, trialNumber,
+    isSyncing, hasError,
+    calculateTotalTime,
+    handleAreaUpdate,
+    navigateBackWithRingCleanup,
+    CelebrationModal
+  } = core;
 
   const {
     currentEntry,
-    setEntries,
-    setCurrentClassEntries,
-    setCurrentEntry,
-    markAsScored: _markAsScored,
-    getPendingEntries: _getPendingEntries
-  } = useEntryStore();
+    getMaxTimeForArea
+  } = navigation;
 
-  const { addToQueue: _addToQueue, isOnline: _isOnline } = useOfflineQueueStore();
+  // ==========================================================================
+  // NATIONALS-SPECIFIC STATE
+  // ==========================================================================
 
-  // Optimistic scoring hook
-  const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
-
-  // Class completion celebration hook
-  const { CelebrationModal, checkCompletion } = useClassCompletion(classId);
-
-  // Nationals-specific state
+  const [qualifying, setQualifying] = useState<NationalsQualifyingResult | ''>('');
   const [alertsCorrect, setAlertsCorrect] = useState(0);
   const [alertsIncorrect, setAlertsIncorrect] = useState(0);
   const [finishCallErrors, setFinishCallErrors] = useState(0);
   const [isExcused, setIsExcused] = useState(false);
-
-  // Scoresheet state
-  const [areas, setAreas] = useState<AreaScore[]>([]);
-  const [qualifying, setQualifying] = useState<NationalsResult | ''>('');
   const [totalTime, setTotalTime] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [faultCount, setFaultCount] = useState(0);
-  const [trialDate, setTrialDate] = useState<string>('');
-  const [trialNumber, setTrialNumber] = useState<string>('');
-  const [isLoadingEntry, setIsLoadingEntry] = useState(true);
-  const [_darkMode, _setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
 
-  // Prevent background scrolling when dialog is open
-  useEffect(() => {
-    if (showConfirmation) {
-      document.body.classList.add('dialog-open');
-    } else {
-      document.body.classList.remove('dialog-open');
-    }
+  // ==========================================================================
+  // TIMER STATE (unique to this component)
+  // ==========================================================================
 
-    // Cleanup on unmount
-    return () => {
-      document.body.classList.remove('dialog-open');
-    };
-  }, [showConfirmation]);
-
-  // Timer state
   const [stopwatchTime, setStopwatchTime] = useState(0);
   const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
   const [stopwatchInterval, setStopwatchInterval] = useState<NodeJS.Timeout | null>(null);
@@ -115,32 +106,16 @@ export const AKCNationalsScoresheet: React.FC = () => {
   // Settings for voice announcements
   const settings = useSettingsStore(state => state.settings);
 
-  // Refs to capture current values for cleanup
-  const currentEntryRef = useRef(currentEntry);
+  // Ref for stopwatch cleanup
   const stopwatchIntervalRef = useRef(stopwatchInterval);
-
-  // Update refs when values change
-  useEffect(() => {
-    currentEntryRef.current = currentEntry;
-  }, [currentEntry]);
 
   useEffect(() => {
     stopwatchIntervalRef.current = stopwatchInterval;
   }, [stopwatchInterval]);
 
-  // Cleanup effect to remove dog from ring when component unmounts
+  // Cleanup stopwatch on unmount
   useEffect(() => {
     return () => {
-      const entry = currentEntryRef.current;
-      if (entry?.id) {
-        markInRing(entry.id, false).then(() => {
-          console.log(`✅ Cleanup: Removed dog ${entry.armband} from ring on unmount`);
-        }).catch((error) => {
-          console.error('❌ Cleanup: Failed to remove dog from ring:', error);
-        });
-      }
-
-      // Also cleanup any running stopwatch
       const interval = stopwatchIntervalRef.current;
       if (interval) {
         clearInterval(interval);
@@ -148,13 +123,12 @@ export const AKCNationalsScoresheet: React.FC = () => {
     };
   }, []);
 
-  // Initialize areas based on element and level (always Nationals mode)
-  const initializeAreasForClass = (element: string, level: string): AreaScore[] => {
-    return initializeAreas(element, level, true);
-  };
+  // ==========================================================================
+  // NATIONALS-SPECIFIC CALCULATIONS
+  // ==========================================================================
 
   // Calculate Nationals points in real-time
-  const calculateNationalsPoints = () => {
+  const calculateNationalsPoints = useCallback(() => {
     if (isExcused) return 0;
 
     const correctPoints = alertsCorrect * 10;
@@ -163,7 +137,18 @@ export const AKCNationalsScoresheet: React.FC = () => {
     const finishErrorPenalty = finishCallErrors * 5;
 
     return correctPoints - incorrectPenalty - faultPenalty - finishErrorPenalty;
-  };
+  }, [isExcused, alertsCorrect, alertsIncorrect, faultCount, finishCallErrors]);
+
+  // Helper function: Convert time string to seconds
+  const convertTimeToSeconds = useCallback((timeString: string): number => {
+    const parts = timeString.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseFloat(parts[1]) || 0;
+      return Math.round(minutes * 60 + seconds);
+    }
+    return Math.round(parseFloat(timeString) || 0);
+  }, []);
 
   // Auto-calculate areas based on alerts
   useEffect(() => {
@@ -183,95 +168,12 @@ export const AKCNationalsScoresheet: React.FC = () => {
     }
   }, [alertsCorrect, alertsIncorrect]);
 
-  // Helper function: Convert time string to seconds
-  const convertTimeToSeconds = (timeString: string): number => {
-    const parts = timeString.split(':');
-    if (parts.length === 2) {
-      const minutes = parseInt(parts[0]) || 0;
-      const seconds = parseFloat(parts[1]) || 0;
-      return Math.round(minutes * 60 + seconds);
-    }
-    return Math.round(parseFloat(timeString) || 0);
-  };
+  // Handle result change with special handling for Excused
+  // Note: State setters from useState are stable, but included to satisfy React Compiler
+  const handleResultChange = useCallback((result: NationalsQualifyingResult | '') => {
+    setQualifying(result);
 
-  // Get correct max time based on AKC Scent Work requirements
-  const getDefaultMaxTime = (element: string, level: string): string => {
-    const elem = element?.toLowerCase() || '';
-    const lvl = level?.toLowerCase() || '';
-
-    // AKC Scent Work time limits from class requirements
-    if (elem.includes('container')) {
-      return '2:00'; // Container is always 2 minutes
-    }
-
-    if (elem.includes('interior')) {
-      return '3:00'; // Interior is always 3 minutes
-    }
-
-    if (elem.includes('exterior')) {
-      if (lvl.includes('novice')) return '3:00';
-      if (lvl.includes('advanced')) return '3:00';
-      if (lvl.includes('excellent')) return '4:00';
-      if (lvl.includes('master')) return '5:00';
-      return '3:00';
-    }
-
-    if (elem.includes('buried')) {
-      if (lvl.includes('novice')) return '3:00';
-      if (lvl.includes('advanced')) return '3:00';
-      if (lvl.includes('excellent')) return '4:00';
-      if (lvl.includes('master')) return '4:00';
-      return '3:00';
-    }
-
-    // Default fallback
-    return '3:00';
-  };
-
-  const getMaxTimeForArea = useCallback((areaIndex: number, entry?: any): string => {
-    const targetEntry = entry || currentEntry;
-    if (!targetEntry) {
-      return "3:00";
-    }
-
-    // Try to get max time from entry data
-    let maxTime = '';
-    switch (areaIndex) {
-      case 0:
-        maxTime = targetEntry.timeLimit;
-        break;
-      case 1:
-        maxTime = targetEntry.timeLimit2;
-        break;
-      case 2:
-        maxTime = targetEntry.timeLimit3;
-        break;
-    }
-
-    // Convert if stored as seconds
-    if (maxTime && !maxTime.includes(':')) {
-      const totalSeconds = parseInt(maxTime);
-      if (!isNaN(totalSeconds) && totalSeconds > 0) {
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        maxTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      }
-    }
-
-    // FAILSAFE: If missing or empty, use correct default
-    if (!maxTime || maxTime === '' || maxTime === '0:00' || maxTime === '00:00') {
-      const element = targetEntry.element || '';
-      const level = targetEntry.level || '';
-      maxTime = getDefaultMaxTime(element, level);
-      console.warn(`⚠️ Max time not set for ${element} ${level} area ${areaIndex + 1}, using default: ${maxTime}`);
-    }
-
-    return maxTime;
-  }, [currentEntry]);
-
-  // Automatic penalty for excused dogs
-  useEffect(() => {
-    if (qualifying === 'Excused') {
+    if (result === 'Excused') {
       setIsExcused(true);
 
       // Nationals: zero points and max search time
@@ -295,23 +197,49 @@ export const AKCNationalsScoresheet: React.FC = () => {
         return sum + timeInSeconds;
       }, 0);
       setTotalTime(formatSecondsToTime(totalMaxTime));
+    } else {
+      setIsExcused(false);
     }
-  }, [qualifying, areas.length]);
+  }, [
+    areas, getMaxTimeForArea, convertTimeToSeconds, setAreas, setTotalTime,
+    setQualifying, setIsExcused, setAlertsCorrect, setAlertsIncorrect, setFinishCallErrors, setFaultCount
+  ]);
 
-  // Enhanced submit handler with optimistic updates
-  const handleEnhancedSubmit = async () => {
-    console.log('🚀 handleEnhancedSubmit with OPTIMISTIC UPDATES!');
+  // ==========================================================================
+  // NATIONALS-SPECIFIC HELPERS
+  // ==========================================================================
+
+  const mapElementToNationalsType = useCallback((element: string) => {
+    const elementLower = element?.toLowerCase() || '';
+    if (elementLower.includes('container')) return 'CONTAINER';
+    if (elementLower.includes('buried')) return 'BURIED';
+    if (elementLower.includes('interior')) return 'INTERIOR';
+    if (elementLower.includes('exterior')) return 'EXTERIOR';
+    if (elementLower.includes('handler') || elementLower.includes('discrimination')) return 'HD_CHALLENGE';
+    return 'CONTAINER'; // Default
+  }, []);
+
+  const getCurrentDay = useCallback((): 1 | 2 | 3 => {
+    // This should be determined by your trial/class data
+    // For now, return 1 as default
+    return 1;
+  }, []);
+
+  // ==========================================================================
+  // SUBMIT HANDLER (Nationals-specific with dual submission)
+  // ==========================================================================
+
+  const handleEnhancedSubmit = useCallback(async () => {
+    console.log('🚀 Nationals handleEnhancedSubmit');
     if (!currentEntry) {
       console.log('⚠️ No currentEntry, returning early');
       return;
     }
 
-    console.log('✅ currentEntry exists:', currentEntry.id);
     setShowConfirmation(false);
 
     // Prepare score data
     const finalQualifying = qualifying || 'Qualified';
-    const finalResultText = finalQualifying;
     const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
 
     // Prepare area results
@@ -320,138 +248,65 @@ export const AKCNationalsScoresheet: React.FC = () => {
       areaResults[area.areaName.toLowerCase()] = `${area.time}${area.found ? ' FOUND' : ' NOT FOUND'}${area.correct ? ' CORRECT' : ' INCORRECT'}`;
     });
 
-    // Submit score optimistically
-    await submitScoreOptimistically({
-      entryId: currentEntry.id,
-      classId: parseInt(classId!),
-      armband: currentEntry.armband,
-      className: currentEntry.className,
-      scoreData: {
-        resultText: finalResultText,
-        searchTime: finalTotalTime,
-        nonQualifyingReason: undefined,
-        areas: areaResults,
-        correctCount: alertsCorrect,
-        incorrectCount: alertsIncorrect,
-        faultCount: faultCount,
-        finishCallErrors: finishCallErrors,
-        points: calculateNationalsPoints(),
-        areaTimes: areas.map(area => area.time).filter(time => time && time !== ''),
-        element: currentEntry.element,
-        level: currentEntry.level
-      },
-      onSuccess: async () => {
-        console.log('✅ Score saved - handling post-submission tasks');
-
-        // Submit to nationals_scores table for TV dashboard
-        if (showContext?.licenseKey) {
-          try {
-            const timeInSeconds = convertTimeToSeconds(finalTotalTime || '0');
-            const elementType = mapElementToNationalsType(currentEntry.element || '');
-            const day = getCurrentDay();
-
-            await nationalsScoring.submitScore({
-              entry_id: currentEntry.id,
-              armband: currentEntry.armband.toString(),
-              element_type: elementType,
-              day: day,
-              alerts_correct: alertsCorrect,
-              alerts_incorrect: alertsIncorrect,
-              faults: faultCount,
-              finish_call_errors: finishCallErrors,
-              time_seconds: timeInSeconds,
-              excused: isExcused || finalQualifying === 'Excused',
-              notes: undefined
-            });
-
-            console.log('✅ Nationals score submitted to TV dashboard');
-          } catch (nationalsError) {
-            console.error('❌ Failed to submit Nationals score:', nationalsError);
-            // Don't fail the whole submission - regular score still saved
-          }
-        }
-
-        // Check if class is completed and show celebration
-        await checkCompletion();
-
-        // Remove from ring before navigating back
-        if (currentEntry?.id) {
-          try {
-            await markInRing(currentEntry.id, false);
-            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
-          } catch (error) {
-            console.error('❌ Failed to remove dog from ring:', error);
-          }
-        }
-
-        // Navigate back to entry list
-        navigate(-1);
-      },
-      onError: (error) => {
-        console.error('❌ Score submission failed:', error);
-        alert(`Failed to submit score: ${error.message}`);
-        setIsSubmitting(false);
-      }
+    // Use core's submitScore but with Nationals-specific data
+    await core.submitScore(currentEntry, {
+      correctCount: alertsCorrect,
+      incorrectCount: alertsIncorrect,
+      finishCallErrors: finishCallErrors,
+      points: calculateNationalsPoints()
     });
-  };
 
-  // Helper functions
-  const mapElementToNationalsType = (element: string) => {
-    const elementLower = element?.toLowerCase() || '';
-    if (elementLower.includes('container')) return 'CONTAINER';
-    if (elementLower.includes('buried')) return 'BURIED';
-    if (elementLower.includes('interior')) return 'INTERIOR';
-    if (elementLower.includes('exterior')) return 'EXTERIOR';
-    if (elementLower.includes('handler') || elementLower.includes('discrimination')) return 'HD_CHALLENGE';
-    return 'CONTAINER'; // Default
-  };
-
-  const getCurrentDay = (): 1 | 2 | 3 => {
-    // This should be determined by your trial/class data
-    // For now, return 1 as default
-    return 1;
-  };
-
-  // Helper function to remove dog from ring and navigate
-  const handleNavigateWithRingCleanup = async () => {
-    if (currentEntry?.id) {
+    // Also submit to nationals_scores table for TV dashboard
+    if (showContext?.licenseKey) {
       try {
-        await markInRing(currentEntry.id, false);
-        console.log(`✅ Removed dog ${currentEntry.armband} from ring before navigation`);
-      } catch (error) {
-        console.error('❌ Failed to remove dog from ring:', error);
-        // Continue with navigation even if ring cleanup fails
+        const timeInSeconds = convertTimeToSeconds(finalTotalTime || '0');
+        const elementType = mapElementToNationalsType(currentEntry.element || '');
+        const day = getCurrentDay();
+
+        await nationalsScoring.submitScore({
+          entry_id: currentEntry.id,
+          armband: currentEntry.armband.toString(),
+          element_type: elementType,
+          day: day,
+          alerts_correct: alertsCorrect,
+          alerts_incorrect: alertsIncorrect,
+          faults: faultCount,
+          finish_call_errors: finishCallErrors,
+          time_seconds: timeInSeconds,
+          excused: isExcused || finalQualifying === 'Excused',
+          notes: undefined
+        });
+
+        console.log('✅ Nationals score submitted to TV dashboard');
+      } catch (nationalsError) {
+        console.error('❌ Failed to submit Nationals score:', nationalsError);
+        // Don't fail the whole submission - regular score still saved
       }
     }
-    navigate(-1);
-  };
+  }, [
+    currentEntry,
+    qualifying,
+    totalTime,
+    areas,
+    alertsCorrect,
+    alertsIncorrect,
+    finishCallErrors,
+    faultCount,
+    isExcused,
+    showContext?.licenseKey,
+    calculateTotalTime,
+    calculateNationalsPoints,
+    convertTimeToSeconds,
+    mapElementToNationalsType,
+    getCurrentDay,
+    core,
+    setShowConfirmation
+  ]);
 
-  const calculateTotalTime = (): string => {
-    const validTimes = areas.filter(area => area.time && area.time !== '').map(area => area.time);
-    if (validTimes.length === 0) return '0.00';
+  // ==========================================================================
+  // TIMER FUNCTIONS
+  // ==========================================================================
 
-    // For multi-area, sum the times; for single area, use that time
-    if (validTimes.length === 1) {
-      return validTimes[0];
-    }
-
-    // Sum multiple areas
-    const totalSeconds = validTimes.reduce((sum, time) => {
-      const parts = time.split(':');
-      if (parts.length === 2) {
-        const minutes = parseInt(parts[0]) || 0;
-        const seconds = parseFloat(parts[1]) || 0;
-        return sum + (minutes * 60 + seconds);
-      }
-      return sum + (parseFloat(time) || 0);
-    }, 0);
-
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = (totalSeconds % 60).toFixed(2);
-    return `${minutes}:${seconds.padStart(5, '0')}`;
-  };
-
-  // Timer functions
   const formatStopwatchTime = (milliseconds: number): string => {
     const totalSeconds = milliseconds / 1000;
     const minutes = Math.floor(totalSeconds / 60);
@@ -459,26 +314,37 @@ export const AKCNationalsScoresheet: React.FC = () => {
     return `${minutes}:${seconds.padStart(5, '0')}`;
   };
 
-  const getRemainingTime = (): string => {
+  const getNextEmptyAreaIndex = useCallback((): number => {
+    return areas.findIndex(area => !area.time);
+  }, [areas]);
+
+  const getRemainingTime = useCallback((): string => {
     const activeAreaIndex = getNextEmptyAreaIndex();
     const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
     const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return '';
 
-    // Parse max time string (format: "3:00" or "4:00")
     const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
     const maxTimeMs = (minutes * 60 + seconds) * 1000;
 
-    // Calculate remaining time
     const remainingMs = Math.max(0, maxTimeMs - stopwatchTime);
     const remainingSeconds = remainingMs / 1000;
     const mins = Math.floor(remainingSeconds / 60);
     const secs = (remainingSeconds % 60).toFixed(2);
 
     return `${mins}:${secs.padStart(5, '0')}`;
-  };
+  }, [getNextEmptyAreaIndex, getMaxTimeForArea, stopwatchTime]);
 
-  const startStopwatch = () => {
+  const resetStopwatch = useCallback(() => {
+    setStopwatchTime(0);
+    if (stopwatchInterval) {
+      clearInterval(stopwatchInterval);
+      setStopwatchInterval(null);
+    }
+    setIsStopwatchRunning(false);
+  }, [stopwatchInterval]);
+
+  const startStopwatch = useCallback(() => {
     setIsStopwatchRunning(true);
     const startTime = Date.now() - stopwatchTime;
     const interval = setInterval(() => {
@@ -486,7 +352,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
       setStopwatchTime(currentTime);
 
       // Auto-stop when time expires
-      const activeAreaIndex = getNextEmptyAreaIndex();
+      const activeAreaIndex = areas.findIndex(area => !area.time);
       const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
       const maxTimeStr = getMaxTimeForArea(areaIndex);
       if (maxTimeStr) {
@@ -494,15 +360,11 @@ export const AKCNationalsScoresheet: React.FC = () => {
         const maxTimeMs = (minutes * 60 + seconds) * 1000;
 
         if (currentTime >= maxTimeMs) {
-          // Time expired - auto stop
           setIsStopwatchRunning(false);
           clearInterval(interval);
           setStopwatchInterval(null);
-
-          // Set the exact max time as the final time
           setStopwatchTime(maxTimeMs);
 
-          // For single-area classes, auto-fill the time field
           if (areas.length === 1) {
             const formattedMaxTime = formatStopwatchTime(maxTimeMs);
             handleAreaUpdate(0, 'time', formattedMaxTime);
@@ -511,67 +373,50 @@ export const AKCNationalsScoresheet: React.FC = () => {
       }
     }, 10);
     setStopwatchInterval(interval);
-  };
+  }, [stopwatchTime, areas, getMaxTimeForArea, handleAreaUpdate]);
 
-  const stopStopwatch = () => {
+  const stopStopwatch = useCallback(() => {
     setIsStopwatchRunning(false);
     if (stopwatchInterval) {
       clearInterval(stopwatchInterval);
       setStopwatchInterval(null);
     }
 
-    // For single-area classes, automatically copy time to search time field
     if (areas.length === 1) {
       const formattedTime = formatStopwatchTime(stopwatchTime);
       handleAreaUpdate(0, 'time', formattedTime);
     }
-  };
+  }, [stopwatchInterval, areas.length, stopwatchTime, handleAreaUpdate]);
 
-  // Record time for a specific area
-  const recordTimeForArea = (areaIndex: number) => {
+  const recordTimeForArea = useCallback((areaIndex: number) => {
     const formattedTime = formatStopwatchTime(stopwatchTime);
     handleAreaUpdate(areaIndex, 'time', formattedTime);
     resetStopwatch();
-  };
+  }, [stopwatchTime, handleAreaUpdate, resetStopwatch]);
 
-  // Helper to determine "next in sequence" for pulse indicator
-  const getNextEmptyAreaIndex = (): number => {
-    return areas.findIndex(area => !area.time);
-  };
+  // ==========================================================================
+  // 30-SECOND WARNING
+  // ==========================================================================
 
-  const resetStopwatch = () => {
-    setStopwatchTime(0);
-    if (stopwatchInterval) {
-      clearInterval(stopwatchInterval);
-      setStopwatchInterval(null);
-    }
-    setIsStopwatchRunning(false);
-  };
-
-  // 30-second warning functionality (excluded for Master level)
-  const shouldShow30SecondWarning = (): boolean => {
+  const shouldShow30SecondWarning = useCallback((): boolean => {
     if (!isStopwatchRunning) return false;
 
-    // No warnings for Master level
     const level = currentEntry?.level?.toLowerCase() || '';
     if (level === 'master' || level === 'masters') return false;
 
-    // Get max time for next empty area
     const activeAreaIndex = getNextEmptyAreaIndex();
     const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
     const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return false;
 
-    // Parse max time string
     const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
     const maxTimeMs = (minutes * 60 + seconds) * 1000;
 
-    // Show warning if less than 30 seconds remaining
     const remainingMs = maxTimeMs - stopwatchTime;
     return remainingMs > 0 && remainingMs <= 30000;
-  };
+  }, [isStopwatchRunning, currentEntry?.level, getNextEmptyAreaIndex, getMaxTimeForArea, stopwatchTime]);
 
-  const isTimeExpired = (): boolean => {
+  const isTimeExpired = useCallback((): boolean => {
     const activeAreaIndex = getNextEmptyAreaIndex();
     const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
     const maxTimeStr = getMaxTimeForArea(areaIndex);
@@ -581,16 +426,16 @@ export const AKCNationalsScoresheet: React.FC = () => {
     const maxTimeMs = (minutes * 60 + seconds) * 1000;
 
     return stopwatchTime > 0 && stopwatchTime >= maxTimeMs;
-  };
+  }, [getNextEmptyAreaIndex, getMaxTimeForArea, stopwatchTime]);
 
-  const getTimerWarningMessage = (): string | null => {
+  const getTimerWarningMessage = useCallback((): string | null => {
     if (isTimeExpired()) {
       return "Time Expired";
     } else if (shouldShow30SecondWarning()) {
       return "30 Second Warning";
     }
     return null;
-  };
+  }, [isTimeExpired, shouldShow30SecondWarning]);
 
   // Voice announcement for 30-second warning
   const has30SecondAnnouncedRef = useRef(false);
@@ -605,11 +450,9 @@ export const AKCNationalsScoresheet: React.FC = () => {
       return;
     }
 
-    // No warnings for Master level
     const level = currentEntry?.level?.toLowerCase() || '';
     if (level === 'master' || level === 'masters') return;
 
-    // Get max time for next empty area
     const activeAreaIndex = getNextEmptyAreaIndex();
     const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
     const maxTimeStr = getMaxTimeForArea(areaIndex);
@@ -618,24 +461,21 @@ export const AKCNationalsScoresheet: React.FC = () => {
     const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
     const maxTimeMs = (minutes * 60 + seconds) * 1000;
 
-    // Calculate remaining time
     const remainingMs = maxTimeMs - stopwatchTime;
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
-    // Announce when crossing the 30-second threshold
     if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
       console.log('[VoiceAnnouncement] Triggering 30-second warning');
       voiceAnnouncementService.announceTimeRemaining(30);
       has30SecondAnnouncedRef.current = true;
     }
 
-    // Reset flag if we're above 30 seconds
     if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
-  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, areas]);
+  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, getNextEmptyAreaIndex, getMaxTimeForArea]);
 
-  // Set scoring active state to suppress push notification voices while timing
+  // Set scoring active state
   useEffect(() => {
     voiceAnnouncementService.setScoringActive(isStopwatchRunning);
 
@@ -644,198 +484,31 @@ export const AKCNationalsScoresheet: React.FC = () => {
     };
   }, [isStopwatchRunning]);
 
-  const handleAreaUpdate = (index: number, field: keyof AreaScore, value: any) => {
-    setAreas(prev => prev.map((area, i) =>
-      i === index ? { ...area, [field]: value } : area
-    ));
-  };
+  // ==========================================================================
+  // LOCAL INPUT HELPERS
+  // ==========================================================================
 
-  // Clear time functions
   const clearTimeInput = (index: number) => {
     handleAreaUpdate(index, 'time', '');
   };
 
-  // Enhanced time input handler with smart parsing
   const handleSmartTimeInput = (index: number, rawInput: string) => {
     handleAreaUpdate(index, 'time', rawInput);
   };
 
-  // Handle blur (when user finishes typing) - apply smart parsing
   const handleTimeInputBlur = (index: number, rawInput: string) => {
     const parsedTime = parseSmartTime(rawInput);
     handleAreaUpdate(index, 'time', parsedTime);
   };
 
-  // Load entries on mount
-  useEffect(() => {
-    if (classId && showContext?.licenseKey) {
-      loadEntries();
-    }
-  }, [classId, entryId, showContext]);
+  const handleNavigateWithRingCleanup = useCallback(async () => {
+    await navigateBackWithRingCleanup(currentEntry);
+  }, [navigateBackWithRingCleanup, currentEntry]);
 
-  const loadEntries = async () => {
-    console.log('[Scoresheet] loadEntries called with classId:', classId, 'showContext:', showContext);
-    if (!classId || !showContext?.licenseKey) {
-      console.log('[Scoresheet] Missing required data - classId:', classId, 'licenseKey:', showContext?.licenseKey);
-      return;
-    }
+  // ==========================================================================
+  // CONDITIONAL RENDERING
+  // ==========================================================================
 
-    setIsLoadingEntry(true);
-    try {
-      console.log('[REPLICATION] Loading scoresheet data for class:', classId);
-
-      console.log('[Scoresheet] Ensuring replication manager...');
-      const manager = await ensureReplicationManager();
-      console.log('[Scoresheet] Got replication manager:', manager);
-
-      const entriesTable = manager.getTable('entries');
-      const classesTable = manager.getTable('classes');
-      const trialsTable = manager.getTable('trials');
-
-      console.log('[Scoresheet] Tables - entries:', !!entriesTable, 'classes:', !!classesTable, 'trials:', !!trialsTable);
-
-      if (!entriesTable || !classesTable || !trialsTable) {
-        throw new Error('Required tables not registered');
-      }
-
-      // Get class information
-      console.log('[Scoresheet] Getting class data for classId:', classId);
-      let classData = await classesTable.get(classId) as Class | undefined;
-      console.log('[Scoresheet] Class data:', classData);
-
-      if (!classData) {
-        console.error('[Scoresheet] Class not found in cache, attempting to sync...');
-
-        try {
-          console.log('[Scoresheet] Attempting to sync class data from server...');
-          await manager.syncTable('classes');
-
-          classData = await classesTable.get(classId) as Class | undefined;
-          if (classData) {
-            console.log('[Scoresheet] Class data retrieved after sync');
-          } else {
-            throw new Error(`Class ${classId} not found even after sync`);
-          }
-        } catch (syncError) {
-          console.error('[Scoresheet] Failed to sync class data:', syncError);
-          throw new Error(`Class ${classId} not found in cache and sync failed`);
-        }
-      }
-
-      // Get trial information
-      const trialData = await trialsTable.get(String(classData.trial_id)) as Trial | undefined;
-      if (trialData) {
-        const rawDate = trialData.trial_date || '';
-        if (rawDate) {
-          // Parse date manually to avoid timezone conversion issues
-          // Assumes YYYY-MM-DD format from database
-          const [year, month, day] = rawDate.split('T')[0].split('-');
-          const formatted = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
-          setTrialDate(formatted);
-        }
-        setTrialNumber('1');
-      }
-
-      // Get all entries for this class
-      let allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-      console.log(`[Scoresheet] Total entries in cache: ${allEntries.length}`);
-
-      const classIdStr = String(classId);
-      let classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
-
-      console.log(`[REPLICATION] Found ${classEntries.length} entries for class ${classId}`);
-      if (classEntries.length === 0 && allEntries.length > 0) {
-        console.log(`[Scoresheet] Sample entry class_ids:`, allEntries.slice(0, 5).map(e => ({ id: e.id, class_id: e.class_id, type: typeof e.class_id })));
-        console.log(`[Scoresheet] Looking for class_id: "${classIdStr}" (type: ${typeof classIdStr})`);
-      }
-
-      // If no entries found, try to sync
-      if (classEntries.length === 0) {
-        console.log('[Scoresheet] No entries found in cache, attempting to sync entries...');
-        try {
-          await manager.syncTable('entries');
-
-          allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-          classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
-
-          console.log(`[Scoresheet] After sync, found ${classEntries.length} entries`);
-        } catch (syncError) {
-          console.error('[Scoresheet] Failed to sync entries:', syncError);
-        }
-      }
-
-      // Transform to Entry format for store
-      const transformedEntries: Entry[] = classEntries.map(entry => ({
-        id: parseInt(entry.id),
-        armband: entry.armband_number,
-        callName: entry.dog_call_name || 'Unknown',
-        breed: entry.dog_breed || 'Unknown',
-        handler: entry.handler_name || 'Unknown',
-        isScored: entry.is_scored || false,
-        status: (entry.entry_status as Entry['status']) || 'no-status',
-        classId: parseInt(entry.class_id),
-        className: `${classData.element} ${classData.level}`,
-        element: classData.element,
-        level: classData.level,
-        section: classData.section,
-        timeLimit: classData.time_limit_seconds ? String(classData.time_limit_seconds) : undefined,
-        timeLimit2: classData.time_limit_area2_seconds ? String(classData.time_limit_area2_seconds) : undefined,
-        timeLimit3: classData.time_limit_area3_seconds ? String(classData.time_limit_area3_seconds) : undefined,
-      }));
-
-      setEntries(transformedEntries);
-      setCurrentClassEntries(parseInt(classId));
-
-      if (entryId) {
-        const targetEntry = transformedEntries.find(e => e.id === parseInt(entryId));
-        if (targetEntry) {
-          setCurrentEntry(targetEntry);
-          await markInRing(targetEntry.id, true);
-          const initialAreas = initializeAreasForClass(targetEntry.element || '', targetEntry.level || '');
-          setAreas(initialAreas);
-        }
-      } else if (transformedEntries.length > 0) {
-        setCurrentEntry(transformedEntries[0]);
-        await markInRing(transformedEntries[0].id, true);
-        const initialAreas = initializeAreasForClass(transformedEntries[0].element || '', transformedEntries[0].level || '');
-        setAreas(initialAreas);
-      }
-
-      // Start scoring session (always AKC_SCENT_WORK_NATIONAL)
-      if (!isScoring && transformedEntries.length > 0) {
-        startScoringSession(
-          parseInt(classId),
-          transformedEntries[0].className || 'AKC Scent Work',
-          'AKC_SCENT_WORK_NATIONAL',
-          'judge-1',
-          transformedEntries.length
-        );
-      }
-    } catch (error) {
-      console.error('[Scoresheet] Error loading entries:', error);
-      console.error('[Scoresheet] Full error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        classId,
-        entryId,
-        showContext
-      });
-      alert(`Unable to load scoresheet data. Please refresh the page and try again. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsLoadingEntry(false);
-    }
-  };
-
-  // Redirect to entry list if no entry data exists AFTER loading completes
-  useEffect(() => {
-    if (!isLoadingEntry && !currentEntry) {
-      console.log('⚠️ No current entry found after loading, redirecting to entry list');
-      navigate(`/class/${classId}/entries`);
-    }
-  }, [isLoadingEntry, currentEntry, classId, navigate]);
-
-
-  // Show loading state while entry is being loaded
   if (isLoadingEntry) {
     return (
       <div className="scoresheet-container">
@@ -846,10 +519,13 @@ export const AKCNationalsScoresheet: React.FC = () => {
     );
   }
 
-  // Show nothing if no entry after loading (will redirect)
   if (!currentEntry) {
     return null;
   }
+
+  // ==========================================================================
+  // RENDER
+  // ==========================================================================
 
   return (
     <>
@@ -880,7 +556,6 @@ export const AKCNationalsScoresheet: React.FC = () => {
         </div>
       </header>
 
-
       {/* Dog Info Card */}
       <div className="scoresheet-dog-info-card">
         <ArmbandBadge number={currentEntry.armband} />
@@ -890,7 +565,6 @@ export const AKCNationalsScoresheet: React.FC = () => {
           <div className="scoresheet-dog-handler">Handler: {currentEntry.handler}</div>
         </div>
       </div>
-
 
       {/* Timer Section */}
       <div className="scoresheet-timer-card">
@@ -984,12 +658,12 @@ export const AKCNationalsScoresheet: React.FC = () => {
                   onClick={() => clearTimeInput(index)}
                   title="Clear time"
                 >
-                  <X size={16}  style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                  <X size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                 </button>
               )}
             </div>
             <div className="max-time-display">
-              Max: {getMaxTimeForArea ? getMaxTimeForArea(index) : '02:00'}
+              Max: {getMaxTimeForArea(index)}
             </div>
           </div>
         </div>
@@ -1000,13 +674,13 @@ export const AKCNationalsScoresheet: React.FC = () => {
         <ResultChoiceChips
           selectedResult={qualifying as 'Qualified' | 'Absent' | 'Excused' | null}
           onResultChange={(result) => {
-            setQualifying(result);
+            handleResultChange(result as NationalsQualifyingResult);
           }}
           showNQ={false}
           showEX={true}
           onNQClick={() => {}}
           onEXClick={() => {
-            setQualifying('Excused');
+            handleResultChange('Excused');
           }}
           selectedResultInternal={qualifying || ''}
           faultCount={faultCount}
