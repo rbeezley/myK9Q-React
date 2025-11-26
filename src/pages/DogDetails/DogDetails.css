@@ -1043,8 +1043,9 @@
 }
 
 /* ========== ACCESSIBILITY: HIGH CONTRAST ========== */
+/* Only applies when user has explicitly enabled high contrast mode */
 
-@media (prefers-contrast: high), (min-resolution: 2dppx) {
+@media (prefers-contrast: high) {
   :root {
     --border: #000000;
     --text-primary: #000000;
