@@ -145,8 +145,8 @@ async function markClassCompleted(classId: number): Promise<void> {
  */
 async function markClassInProgress(
   classId: number,
-  scoredCount: number,
-  totalCount: number
+  _scoredCount: number,
+  _totalCount: number
 ): Promise<void> {
 const { error: updateError } = await supabase
     .from('classes')

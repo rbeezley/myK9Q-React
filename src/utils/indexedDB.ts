@@ -298,9 +298,6 @@ return this.db;
       }
 
       await tx.done;
-
-      if (deletedCount > 0) {}
-
       return deletedCount;
     } catch (error) {
       console.error('❌ Failed to clean expired cache:', error);

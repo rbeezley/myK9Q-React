@@ -78,28 +78,23 @@ export async function getClassEntries(
   licenseKey: string,
   config: Partial<DataLayerConfig> = {}
 ): Promise<Entry[]> {
-  const { useReplication, enableLogging } = { ...DEFAULT_CONFIG, ...config };
+  const { useReplication } = { ...DEFAULT_CONFIG, ...config };
 
   try {
     // Normalize to array for consistent handling
     const classIdArray = Array.isArray(classIds) ? classIds : [classIds];
     const primaryClassId = classIdArray[0];
 
-    if (enableLogging) {}
-
     // Try replication cache first (if enabled)
     if (useReplication) {
       const cachedEntries = await getEntriesFromReplicationCache(classIdArray, primaryClassId);
       if (cachedEntries !== null) {
-        if (enableLogging) {}
         return cachedEntries;
       }
-      if (enableLogging) {}
     }
 
     // Fall back to direct database query
     const entries = await fetchClassEntriesFromDatabase(classIdArray, primaryClassId, licenseKey);
-    if (enableLogging) {}
     return entries;
   } catch (error) {
     console.error('[DATA_LAYER] Error fetching class entries:', error);
@@ -124,19 +119,13 @@ export async function getClassEntries(
 export async function getTrialEntries(
   trialId: number,
   licenseKey: string,
-  config: Partial<DataLayerConfig> = {}
+  _config: Partial<DataLayerConfig> = {}
 ): Promise<Entry[]> {
-  const { enableLogging } = { ...DEFAULT_CONFIG, ...config };
-
   try {
-    if (enableLogging) {}
-
     // Note: Trial-level queries currently go directly to database
     // Replication cache is class-scoped, not trial-scoped
     // Future enhancement: Add trial-level caching if needed
     const entries = await fetchTrialEntriesFromDatabase(trialId, licenseKey);
-
-    if (enableLogging) {}
     return entries;
   } catch (error) {
     console.error('[DATA_LAYER] Error fetching trial entries:', error);
@@ -167,18 +156,12 @@ export async function getTrialEntries(
 export async function getEntriesByArmband(
   armband: number,
   licenseKey: string,
-  config: Partial<DataLayerConfig> = {}
+  _config: Partial<DataLayerConfig> = {}
 ): Promise<Entry[]> {
-  const { enableLogging } = { ...DEFAULT_CONFIG, ...config };
-
   try {
-    if (enableLogging) {}
-
     // Armband lookups go directly to database for freshest data
     // Replication cache may not have indexed by armband yet
     const entries = await fetchEntriesByArmbandFromDatabase(armband, licenseKey);
-
-    if (enableLogging) {}
     return entries;
   } catch (error) {
     console.error('[DATA_LAYER] Error fetching entries by armband:', error);
