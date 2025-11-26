@@ -308,9 +308,7 @@ export const EntryList: React.FC = () => {
 
       // Note: NO manual refresh needed here!
       // The real-time subscription will fire when database is updated,
-      // which clears the pending change in localStateManager,
-      // which notifies listeners in useEntryListData.ts (line 194-200),
-      // which triggers an automatic refresh.
+      // which updates the replication cache and triggers an automatic refresh.
       // This is the local-first architecture working correctly.
     } catch (error) {
       console.error('Failed to update status in background:', error);
@@ -543,9 +541,7 @@ export const EntryList: React.FC = () => {
 
       // Note: NO manual refresh needed here!
       // The real-time subscription will fire when database is updated,
-      // which clears the pending change in localStateManager,
-      // which notifies listeners in useEntryListData.ts (line 194-200),
-      // which triggers an automatic refresh.
+      // which updates the replication cache and triggers an automatic refresh.
       // This is the local-first architecture working correctly.
     } catch (error) {
       console.error('Failed to reset score in background:', error);

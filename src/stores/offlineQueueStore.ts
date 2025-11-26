@@ -11,8 +11,6 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { mutations as idbMutations } from '@/utils/indexedDB';
 import { haptic } from '@/hooks/useHapticFeedback';
-// TODO: Remove legacy localStateManager - replaced by replication system
-// import { localStateManager } from '@/services/localStateManager';
 
 export interface QueuedScore {
   id: string; // UUID for queue item
@@ -270,9 +268,6 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
       },
 
       markAsCompleted: async (id) => {
-        // TODO: Remove legacy - replaced by replication
-        // const item = get().queue.find(q => q.id === id); // Was only needed for localStateManager
-
         set((state) => ({
           queue: state.queue.filter(item => item.id !== id)
         }));
@@ -280,13 +275,6 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
         // Remove from IndexedDB
         try {
           await idbMutations.delete(id);
-
-          // TODO: Remove legacy - replaced by replication
-          // if (item?.entryId) {
-          //   await localStateManager.clearPendingChange(item.entryId);
-          //   console.log(`✅ Cleared pending change for entry ${item.entryId} after sync`);
-          // }
-
           haptic.success();
         } catch (error) {
           console.error('❌ Failed to remove completed score from IndexedDB:', error);
