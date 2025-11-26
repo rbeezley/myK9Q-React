@@ -119,3 +119,6 @@ src/backups/
 
 # AKC Rulebook PDFs (large binary files)
 data/*.pdf
+
+# Test scripts with hardcoded credentials (security)
+scripts/test-supabase-connection.js
