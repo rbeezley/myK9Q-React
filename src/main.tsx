@@ -8,8 +8,6 @@ import { initializeReplication } from './services/replication/initReplication'
 
 // App version for debugging cache issues
 const APP_VERSION = '2024-11-25-v4';
-console.log(`🔍 App Version: ${APP_VERSION} | Build Time: ${new Date().toISOString()}`);
-
 // Track if user has been prompted about this update (persist across sessions)
 const getLastPromptedVersion = () => localStorage.getItem('sw_prompted_version');
 const setLastPromptedVersion = () => localStorage.setItem('sw_prompted_version', APP_VERSION);
@@ -26,7 +24,6 @@ const updateSW = registerSW({
     // This prevents repeated prompts during PTR or page navigation
     const lastPrompted = getLastPromptedVersion();
     if (lastPrompted === APP_VERSION) {
-      console.log('🔄 Update already prompted for this version, skipping...')
       return
     }
 
@@ -38,12 +35,10 @@ const updateSW = registerSW({
     }
   },
   onOfflineReady() {
-    console.log('App ready to work offline')
     // Initialize service worker manager when offline-ready
     serviceWorkerManager.initialize().catch(console.error)
   },
   onRegistered() {
-    console.log('Service Worker registered')
     // Also initialize here to be safe
     serviceWorkerManager.initialize().catch(console.error)
   }
@@ -63,7 +58,6 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
       console.error('❌ No license key found')
       return
     }
-    console.log('🔄 Forcing full sync for all tables...')
     await triggerFullSync(licenseKey)
   }
 
@@ -81,19 +75,15 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
       return
     }
     const allRecords = await table.getAll()
-    console.log(`📦 Total ${tableName} in cache:`, allRecords.length)
     if (allRecords.length > 0) {
-      console.log('Sample record:', allRecords[0])
       if (tableName === 'classes') {
         const trialIds = [...new Set(allRecords.map((c: any) => c.trial_id))]
-        console.log('Trial IDs found:', trialIds)
         console.log('Trial ID types:', trialIds.map((id: any) => `${id} (${typeof id})`))
       }
     }
     return allRecords
   }
 
-  console.log('🛠️ Debug functions available:')
   console.log('  - window.debugForceFullSync() - Force full sync')
   console.log('  - window.debugInspectCache(tableName) - Inspect cache (default: "classes")')
 }

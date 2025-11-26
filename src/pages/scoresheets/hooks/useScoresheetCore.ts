@@ -264,8 +264,7 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
     if (currentEntry?.id) {
       try {
         await markInRing(currentEntry.id, false);
-        console.log(`✅ Removed dog ${currentEntry.armband} from ring before navigation`);
-      } catch (error) {
+} catch (error) {
         console.error('❌ Failed to remove dog from ring:', error);
         // Continue with navigation even if ring cleanup fails
       }
@@ -284,11 +283,8 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
     currentEntry: Entry,
     extraData: Partial<ScoreSubmitData['scoreData']> = {}
   ) => {
-    console.log(`🚀 [${sportType}] submitScore with OPTIMISTIC UPDATES`);
-
-    if (!currentEntry) {
-      console.log('⚠️ No currentEntry, returning early');
-      return;
+if (!currentEntry) {
+return;
     }
 
     setShowConfirmation(false);
@@ -333,17 +329,14 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
           ...extraData
         },
         onSuccess: async () => {
-          console.log('✅ Score saved - handling post-submission tasks');
-
-          // Check if class is completed and show celebration
+// Check if class is completed and show celebration
           await checkCompletion();
 
           // Remove from ring before navigating back
           if (currentEntry?.id) {
             try {
               await markInRing(currentEntry.id, false);
-              console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
-            } catch (error) {
+} catch (error) {
               console.error('❌ Failed to remove dog from ring:', error);
             }
           }

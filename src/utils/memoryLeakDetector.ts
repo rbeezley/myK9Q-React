@@ -46,9 +46,7 @@ class MemoryLeakDetector {
       return () => {};
     }
 
-    console.log('🔍 Starting memory leak detection (interval: ' + intervalMs + 'ms)');
-
-    // Take initial snapshot
+// Take initial snapshot
     this.takeSnapshot();
 
     // Set up periodic monitoring
@@ -67,8 +65,7 @@ class MemoryLeakDetector {
     if (this.monitoringInterval !== null) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('🛑 Stopped memory leak detection');
-    }
+}
   }
 
   /**

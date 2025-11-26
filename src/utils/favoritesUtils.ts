@@ -205,11 +205,7 @@ export function saveFavoritesToLocalStorage(
   // Use safe localStorage setter
   const success = safeLocalStorageSet(key, favoriteIds);
 
-  if (success) {
-    console.log(
-      `[favoritesUtils] Saved ${favoriteIds.length} ${type} favorite(s) to key: ${key}`
-    );
-  }
+  if (success) {}
 
   return success;
 }
@@ -269,9 +265,7 @@ export function clearFavorites(
   const key = buildFavoritesKey(type, licenseKey, options);
   const success = safeLocalStorageRemove(key);
 
-  if (success) {
-    console.log(`[favoritesUtils] Cleared ${type} favorites for key: ${key}`);
-  }
+  if (success) {}
 
   return success;
 }

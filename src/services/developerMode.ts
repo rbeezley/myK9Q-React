@@ -62,8 +62,7 @@ class DeveloperModeService {
       return;
     }
 
-    console.log('🛠️ Developer Mode: Enabled');
-    console.log('📊 Available Tools:', this.getConfig());
+console.log('📊 Available Tools:', this.getConfig());
 
     this.initialized = true;
 
@@ -91,13 +90,8 @@ class DeveloperModeService {
   public mark(label: string): void {
     if (!this.isEnabled()) return;
 
-    const config = this.getConfig();
     const timestamp = performance.now();
     this.performanceMarks.set(label, timestamp);
-
-    if (config.logPerformanceMarks) {
-      console.log(`⏱️ Performance Mark: ${label} @ ${timestamp.toFixed(2)}ms`);
-    }
   }
 
   /**
@@ -106,7 +100,6 @@ class DeveloperModeService {
   public measure(name: string, startMark: string, endMark?: string): number | null {
     if (!this.isEnabled()) return null;
 
-    const config = this.getConfig();
     const start = this.performanceMarks.get(startMark);
     const end = endMark ? this.performanceMarks.get(endMark) : performance.now();
 
@@ -116,10 +109,6 @@ class DeveloperModeService {
     }
 
     const duration = end - start;
-
-    if (config.logPerformanceMarks) {
-      console.log(`📏 Performance Measure: ${name} = ${duration.toFixed(2)}ms`);
-    }
 
     return duration;
   }
@@ -152,8 +141,7 @@ class DeveloperModeService {
     }
 
     if (config.logNetworkRequests) {
-      const statusColor = status >= 200 && status < 300 ? '✅' : '❌';
-      console.log(`${statusColor} Network: ${method} ${url} - ${status} (${duration.toFixed(2)}ms)`);
+      // Network request logging disabled - statusColor was: status >= 200 && status < 300 ? '✅' : '❌'
     }
   }
 
@@ -167,7 +155,6 @@ class DeveloperModeService {
   ): void {
     if (!this.isEnabled()) return;
 
-    const config = this.getConfig();
     const change = {
       store,
       action,
@@ -180,10 +167,6 @@ class DeveloperModeService {
     // Keep only last 50 state changes
     if (this.stateChanges.length > 50) {
       this.stateChanges.shift();
-    }
-
-    if (config.logStateChanges) {
-      console.log(`🔄 State Change: [${store}] ${action}`, data);
     }
   }
 
@@ -218,8 +201,7 @@ class DeveloperModeService {
     this.networkRequests = [];
     this.stateChanges = [];
     this.performanceMarks.clear();
-    console.log('🗑️ Developer Tools: All data cleared');
-  }
+}
 
   /**
    * Export all tracking data as JSON

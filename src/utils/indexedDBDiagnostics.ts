@@ -218,18 +218,13 @@ export function getManualCleanupInstructions(): string[] {
  */
 export async function attemptAutoCleanup(): Promise<{ success: boolean; message: string }> {
   try {
-    console.log('[IndexedDB Diagnostics] Starting auto-cleanup...');
-
-    // Helper function to delete database with timeout
+// Helper function to delete database with timeout
     const deleteWithTimeout = async (dbName: string, timeout: number = 3000): Promise<boolean> => {
-      console.log(`[IndexedDB Diagnostics] Attempting to delete ${dbName}...`);
-
-      const deletePromise = new Promise<boolean>((resolve) => {
+const deletePromise = new Promise<boolean>((resolve) => {
         const deleteReq = indexedDB.deleteDatabase(dbName);
 
         deleteReq.onsuccess = () => {
-          console.log(`[IndexedDB Diagnostics] Successfully deleted ${dbName}`);
-          resolve(true);
+resolve(true);
         };
 
         deleteReq.onerror = () => {
@@ -260,12 +255,9 @@ export async function attemptAutoCleanup(): Promise<{ success: boolean; message:
     const legacyDatabases = ['myK9Q_OfflineCache', 'myK9Q_Mutations', 'myK9Q_entries', 'myK9Q_classes', 'myK9Q_trials', 'myK9Q_shows'];
 
     // Delete legacy databases in parallel with shorter timeout
-    const legacyPromises = legacyDatabases.map(db => deleteWithTimeout(db, 1000));
-    const legacyResults = await Promise.allSettled(legacyPromises);
+    await Promise.allSettled(legacyDatabases.map(db => deleteWithTimeout(db, 1000)));
 
-    const legacyDeleted = legacyResults.filter(r => r.status === 'fulfilled' && r.value).length;
-    console.log(`[IndexedDB Diagnostics] Deleted ${legacyDeleted}/${legacyDatabases.length} legacy databases`);
-
+    // Legacy databases cleanup attempted
     if (mainDeleted) {
       return {
         success: true,
@@ -290,10 +282,8 @@ export async function attemptAutoCleanup(): Promise<{ success: boolean; message:
  * Log diagnostic report to console
  */
 export async function logDiagnosticReport(): Promise<void> {
-  console.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
-  console.log('%c🔍 INDEXEDDB DIAGNOSTIC REPORT', 'color: #3b82f6; font-weight: bold; font-size: 16px');
-  console.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
-  console.log('');
+console.log('%c🔍 INDEXEDDB DIAGNOSTIC REPORT', 'color: #3b82f6; font-weight: bold; font-size: 16px');
+console.log('');
 
   const result = await runIndexedDBDiagnostics();
 
@@ -301,30 +291,18 @@ export async function logDiagnosticReport(): Promise<void> {
     result.status === 'healthy' ? '#10b981' :
     result.status === 'locked' ? '#f59e0b' : '#ef4444'
   }; font-weight: bold`);
-  console.log('');
-
-  console.log('%cDetails:', 'color: #3b82f6; font-weight: bold');
+console.log('%cDetails:', 'color: #3b82f6; font-weight: bold');
   result.details.forEach(detail => console.log(`  ${detail}`));
-  console.log('');
-
-  if (result.recommendations.length > 0) {
-    console.log('%cRecommendations:', 'color: #f59e0b; font-weight: bold');
-    result.recommendations.forEach(rec => console.log(`  ${rec}`));
-    console.log('');
-  }
+if (result.recommendations.length > 0) {
+result.recommendations.forEach(rec => console.log(`  ${rec}`));
+}
 
   if (!result.canAutoFix && result.status !== 'healthy') {
-    console.log('%c📋 MANUAL CLEANUP REQUIRED', 'color: #ef4444; font-weight: bold; font-size: 14px');
-    console.log('');
-    getManualCleanupInstructions().forEach(instruction => {
-      console.log(instruction);
-    });
-  } else if (result.status === 'healthy') {
-    console.log('%c✅ IndexedDB is healthy and ready to use', 'color: #10b981; font-weight: bold');
-  }
+console.log('');
+    getManualCleanupInstructions().forEach(instruction => {});
+  } else if (result.status === 'healthy') {}
 
-  console.log('');
-  console.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
+console.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
 }
 
 /**

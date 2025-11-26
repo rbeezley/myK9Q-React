@@ -32,21 +32,16 @@ export function useOfflineQueueProcessor() {
    * Process all pending items in the queue
    */
   const processQueue = useCallback(async () => {
-    console.log('🔄 Starting offline queue processing...');
-
-    while (true) {
+while (true) {
       // Get next pending item
       const item = getNextItemToSync();
       if (!item) {
-        console.log('✅ Offline queue processing complete');
-        break;
+break;
       }
 
       // Mark as syncing
       markAsSyncing(item.id);
-      console.log(`📡 Syncing queued score for entry ${item.entryId} (${item.armband})`);
-
-      try {
+try {
         // Submit score to server
         await submitScore(
           item.entryId,
@@ -55,9 +50,7 @@ export function useOfflineQueueProcessor() {
           item.classId
         );
 
-        console.log(`✅ Successfully synced score for entry ${item.entryId}`);
-
-        // Mark as completed (this removes from queue)
+// Mark as completed (this removes from queue)
         await markAsCompleted(item.id);
 
         // Note: Real-time subscription will handle clearing pending change in LocalStateManager
@@ -70,9 +63,7 @@ export function useOfflineQueueProcessor() {
         if (item.retryCount < item.maxRetries) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           markAsFailed(item.id, errorMessage);
-          console.log(`🔄 Will retry (${item.retryCount + 1}/${item.maxRetries})`);
-
-          // Exponential backoff: 1s, 2s, 4s
+// Exponential backoff: 1s, 2s, 4s
           const delay = Math.pow(2, item.retryCount) * 1000;
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
@@ -91,13 +82,11 @@ export function useOfflineQueueProcessor() {
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🌐 Network online - offline queue ready for sync');
-      setOnlineStatus(true);
+setOnlineStatus(true);
     };
 
     const handleOffline = () => {
-      console.log('📴 Network offline - scores will queue for later sync');
-      setOnlineStatus(false);
+setOnlineStatus(false);
     };
 
     window.addEventListener('online', handleOnline);

@@ -178,9 +178,7 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
     return () => {
       const entry = currentEntryRef.current;
       if (entry?.id) {
-        markInRing(entry.id, false).then(() => {
-          console.log(`✅ Cleanup: Removed dog ${entry.armband} from ring on unmount`);
-        }).catch((error) => {
+        markInRing(entry.id, false).then(() => {}).catch((error) => {
           console.error('❌ Cleanup: Failed to remove dog from ring:', error);
         });
       }
@@ -192,11 +190,8 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
   // ==========================================================================
 
   const loadEntries = useCallback(async () => {
-    console.log('[EntryNavigation] loadEntries called with classId:', classId);
-
-    if (!classId || !showContext?.licenseKey) {
-      console.log('[EntryNavigation] Missing required data');
-      return;
+if (!classId || !showContext?.licenseKey) {
+return;
     }
 
     setIsLoading(true);
@@ -218,8 +213,7 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
       let classData = await classesTable.get(classId) as Class | undefined;
 
       if (!classData) {
-        console.log('[EntryNavigation] Class not found in cache, syncing...');
-        await manager.syncTable('classes');
+await manager.syncTable('classes');
         classData = await classesTable.get(classId) as Class | undefined;
 
         if (!classData) {
@@ -252,15 +246,12 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
 
       // If no entries found, try to sync
       if (classEntries.length === 0) {
-        console.log('[EntryNavigation] No entries found, syncing...');
-        await manager.syncTable('entries');
+await manager.syncTable('entries');
         allEntries = await entriesTable.getAll() as ReplicatedEntry[];
         classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
       }
 
-      console.log(`[EntryNavigation] Found ${classEntries.length} entries for class ${classId}`);
-
-      // Transform to Entry format
+// Transform to Entry format
       const transformedEntries: Entry[] = classEntries.map(entry => ({
         id: parseInt(entry.id),
         armband: entry.armband_number,

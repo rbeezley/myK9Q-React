@@ -57,8 +57,7 @@ const StatusPopupDemo: React.FC = () => {
     return colors[status] || 'status-none';
   };
 
-  const handleClassStatusChange = (classId: number, status: string) => {
-    console.log(`Changing class ${classId} status to ${status}`);
+  const handleClassStatusChange = (_classId: number, _status: string) => {
     // In real implementation, this would update the database
   };
 

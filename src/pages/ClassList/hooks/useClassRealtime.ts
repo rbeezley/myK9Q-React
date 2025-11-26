@@ -76,14 +76,10 @@ export function useClassRealtime(
 ): void {
   // Memoize the payload handler to avoid recreating on every render
   const handleRealtimeUpdate = useCallback((payload: RealtimePayload) => {
-    console.log('🔄 Real-time: Class update received');
-    console.log('🔄 Real-time payload:', payload);
-    console.log('🔄 Real-time timestamp:', new Date().toISOString());
-
-    // For UPDATE events, update local state directly (optimistic update)
+console.log('🔄 Real-time payload:', payload);
+// For UPDATE events, update local state directly (optimistic update)
     if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
-      console.log('🔄 Real-time: Updating class locally:', payload.new.id);
-      setClasses(prev => prev.map(c =>
+setClasses(prev => prev.map(c =>
         c.id === payload.new.id
           ? {
               ...c,
@@ -94,8 +90,7 @@ export function useClassRealtime(
       ));
     } else {
       // For INSERT/DELETE, do full refresh
-      console.log('🔄 Real-time: Full refresh needed for:', payload.eventType);
-      refetch();
+refetch();
     }
   }, [setClasses, refetch]);
 
@@ -103,13 +98,10 @@ export function useClassRealtime(
   useEffect(() => {
     // Don't subscribe if missing required data
     if (!trialId || !licenseKey) {
-      console.log('🔄 Real-time: Skipping subscription (missing trialId or licenseKey)');
-      return;
+return;
     }
 
-    console.log('🔄 Real-time: Setting up subscription for trial:', trialId);
-
-    // Create subscription channel - watch both classes and entries tables
+// Create subscription channel - watch both classes and entries tables
     const subscription: RealtimeChannel = supabaseClient
       .channel(`class-list-trial-${trialId}`)
       .on(
@@ -128,20 +120,16 @@ export function useClassRealtime(
           schema: 'public',
           table: 'entries'
         },
-        (payload) => {
-          console.log('🔄 Real-time: Entry update received:', payload.eventType);
+        (_payload) => {
           // For entry changes, always refetch to update dog counts and status
           refetch();
         }
       )
       .subscribe();
 
-    console.log('🔄 Real-time: Subscription active for trial:', trialId, '(classes + entries)');
-
-    // Cleanup function - unsubscribe on unmount or dependency change
+// Cleanup function - unsubscribe on unmount or dependency change
     return () => {
-      console.log('🔄 Real-time: Unsubscribing from trial:', trialId);
-      subscription.unsubscribe();
+subscription.unsubscribe();
     };
   }, [trialId, licenseKey, supabaseClient, handleRealtimeUpdate]);
 }

@@ -84,8 +84,7 @@ export function useFavoriteClasses(
 ): UseFavoriteClassesReturn {
   // State
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
-    console.log('🔄 Initializing favoriteClasses state');
-    return new Set();
+return new Set();
   });
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
 
@@ -94,18 +93,13 @@ export function useFavoriteClasses(
     const loadFavorites = () => {
       try {
         const favoritesKey = `favorites_${licenseKey || 'default'}_${trialId}`;
-        console.log('🔍 Loading with key:', favoritesKey);
-        console.log('🗄️ All localStorage keys:', Object.keys(localStorage));
-        console.log('🗄️ All localStorage favorites keys:', Object.keys(localStorage).filter(k => k.startsWith('favorites_')));
-        const savedFavorites = localStorage.getItem(favoritesKey);
-        console.log('💾 Raw localStorage value for key:', savedFavorites);
-        if (savedFavorites) {
+console.log('🗄️ All localStorage keys:', Object.keys(localStorage));
+const savedFavorites = localStorage.getItem(favoritesKey);
+if (savedFavorites) {
           const favoriteIds = JSON.parse(savedFavorites) as number[];
-          console.log('📥 Setting favoriteClasses from localStorage:', favoriteIds);
-          setFavoriteClasses(new Set(favoriteIds));
+setFavoriteClasses(new Set(favoriteIds));
         } else {
-          console.log('❌ No saved favorites found, setting empty set');
-          setFavoriteClasses(new Set());
+setFavoriteClasses(new Set());
         }
         setFavoritesLoaded(true);
       } catch (error) {
@@ -124,19 +118,10 @@ export function useFavoriteClasses(
       try {
         const favoritesKey = `favorites_${licenseKey}_${trialId}`;
         const favoriteIds = Array.from(favoriteClasses);
-        console.log('💾 Saving favorites to localStorage:', favoritesKey, favoriteIds);
-        localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
-        console.log('✅ Saved to localStorage successfully');
-      } catch (error) {
+localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
+} catch (error) {
         console.error('Error saving favorites to localStorage:', error);
       }
-    } else {
-      console.log('⚠️ Not saving favorites - missing context, trialId, or not loaded yet:', {
-        licenseKey,
-        trialId,
-        favoritesLoaded,
-        size: favoriteClasses.size
-      });
     }
   }, [favoriteClasses, licenseKey, trialId, favoritesLoaded]);
 
@@ -152,9 +137,7 @@ export function useFavoriteClasses(
    * Handles paired Novice A/B classes by toggling both
    */
   const toggleFavorite = useCallback((classId: number, pairedClassId?: number) => {
-    console.log('💖 Toggling favorite for class:', classId, 'Paired:', pairedClassId);
-
-    const idsToToggle = pairedClassId ? [classId, pairedClassId] : [classId];
+const idsToToggle = pairedClassId ? [classId, pairedClassId] : [classId];
 
     setFavoriteClasses(prev => {
       const newFavorites = new Set(prev);
@@ -163,15 +146,12 @@ export function useFavoriteClasses(
       idsToToggle.forEach(id => {
         if (shouldAdd) {
           newFavorites.add(id);
-          console.log('⭐ Adding to favorites:', id);
-        } else {
+} else {
           newFavorites.delete(id);
-          console.log('🗑️ Removing from favorites:', id);
-        }
+}
       });
 
-      console.log('💾 New favorites set:', Array.from(newFavorites));
-      return newFavorites;
+return newFavorites;
     });
   }, []);
 

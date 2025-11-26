@@ -124,8 +124,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
     const isReplicationEnabled = true;
 
     if (isReplicationEnabled) {
-      console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
-      logger.log('🔄 Fetching entries from replicated cache...');
+logger.log('🔄 Fetching entries from replicated cache...');
 
       try {
         const manager = await ensureReplicationManager();
@@ -144,12 +143,9 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
                 .filter((entry) => String(entry.class_id) === classId)
                 .map((entry) => transformReplicatedEntry(entry, classData));
 
-              console.log(`✅ [REPLICATION] Loaded ${classEntries.length} entries from cache (class_id: ${classId})`);
-
-              // If cache is empty, fall back to Supabase (cache may still be syncing)
+// If cache is empty, fall back to Supabase (cache may still be syncing)
               if (classEntries.length === 0) {
-                console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
-                logger.log('📭 Cache is empty, falling back to Supabase');
+logger.log('📭 Cache is empty, falling back to Supabase');
                 // Fall through to Supabase query below
               } else {
                 // Fetch visibility settings and apply to entries
@@ -166,9 +162,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
 
                   // Apply visibility flags to all entries
                   classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
-                  console.log('✅ [VISIBILITY] Applied visibility flags:', visibilityFlags);
-
-                  // Debug: Log entries 106 and 192 to check data
+// Debug: Log entries 106 and 192 to check data
                   const debugEntries = classEntries.filter(e => e.armband === 106 || e.armband === 192);
                   if (debugEntries.length > 0) {
                     console.log('🔍 [DEBUG] Entries 106/192:', debugEntries.map(e => ({
@@ -257,8 +251,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
           );
 
           classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
-          console.log('✅ [VISIBILITY] Applied visibility flags (Supabase path):', visibilityFlags);
-        } catch (visError) {
+} catch (visError) {
           logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
           const defaultFlags: VisibleResultFields = {
             showPlacement: true,
@@ -307,8 +300,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
     const isReplicationEnabled = true;
 
     if (isReplicationEnabled) {
-      console.log('🔄 [REPLICATION] Fetching combined entries from replicated cache...');
-      logger.log('🔄 Fetching combined entries from replicated cache...');
+logger.log('🔄 Fetching combined entries from replicated cache...');
 
       try {
         const manager = await ensureReplicationManager();
@@ -331,12 +323,9 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
                 .filter((entry) => String(entry.class_id) === classIdB)
                 .map((entry) => transformReplicatedEntry(entry, classDataB));
 
-              console.log(`✅ [REPLICATION] Loaded ${entriesA.length + entriesB.length} combined entries from cache (A: ${entriesA.length}, B: ${entriesB.length})`);
-
-              // If cache is empty, fall back to Supabase (cache may still be syncing)
+// If cache is empty, fall back to Supabase (cache may still be syncing)
               if (entriesA.length === 0 && entriesB.length === 0) {
-                console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
-                logger.log('📭 Cache is empty, falling back to Supabase');
+logger.log('📭 Cache is empty, falling back to Supabase');
                 // Fall through to Supabase query below
               } else {
                 // Apply visibility flags to entries from both classes
@@ -363,8 +352,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
                   );
                   entriesB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
 
-                  console.log('✅ [VISIBILITY] Applied visibility flags to combined view');
-                } catch (visError) {
+} catch (visError) {
                   logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
                   const defaultFlags: VisibleResultFields = {
                     showPlacement: true,
@@ -467,8 +455,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
           const processedEntriesB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
 
           combinedEntries = [...processedEntriesA, ...processedEntriesB];
-          console.log('✅ [VISIBILITY] Applied visibility flags to combined view (Supabase path)');
-        } catch (visError) {
+} catch (visError) {
           logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
           const defaultFlags: VisibleResultFields = {
             showPlacement: true,
@@ -552,21 +539,17 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
         unsubscribeEntries = entriesTable.subscribe(() => {
           // Skip refresh during drag operations to prevent snap-back
           if (isDraggingRef?.current) {
-            console.log('🛡️ [REPLICATION] Entries changed but drag in progress, skipping refresh');
-            return;
+return;
           }
-          console.log('🔄 [REPLICATION] Entries changed, refreshing view');
-          refresh();
+refresh();
         });
 
         unsubscribeClasses = classesTable.subscribe(() => {
           // Skip refresh during drag operations to prevent snap-back
           if (isDraggingRef?.current) {
-            console.log('🛡️ [REPLICATION] Classes changed but drag in progress, skipping refresh');
-            return;
+return;
           }
-          console.log('🔄 [REPLICATION] Classes changed, refreshing view');
-          refresh();
+refresh();
         });
       } catch (error) {
         logger.error('❌ Error setting up replication subscriptions:', error);
@@ -585,8 +568,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('📱 Page became visible, refreshing');
-        refresh();
+refresh();
       }
     };
 

@@ -89,9 +89,7 @@ export function useOptimisticScoring() {
       pairedClassId,
     } = options;
 
-    console.log('🚀 Optimistic score submission started for entry:', entryId);
-
-    // Step 1: Update local state IMMEDIATELY (< 50ms)
+// Step 1: Update local state IMMEDIATELY (< 50ms)
     // This makes the UI feel instant
     const optimisticResult = scoreData.resultText as any; // Type assertion for flexible result text
 
@@ -112,17 +110,13 @@ export function useOptimisticScoring() {
       finishCallErrors: scoreData.finishCallErrors,
     });
 
-    console.log('✅ Local state updated optimistically');
-
     // Step 2: Sync with server in background
     await update({
       optimisticData: { entryId, scoreData },
       serverUpdate: async () => {
         // Check if online
         if (!isOnline) {
-          console.log('📴 Offline - adding to queue for later sync');
-
-          // Add to offline queue if we have the required data
+// Add to offline queue if we have the required data
           if (classId && armband && className) {
             addToQueue({
               entryId,
@@ -138,9 +132,7 @@ export function useOptimisticScoring() {
         }
 
         // Submit to server
-        console.log('📡 Submitting score to server...');
         await submitScore(entryId, scoreData, pairedClassId, classId);
-        console.log('✅ Score successfully synced with server');
 
         // Real-time subscription will confirm the database update
         // Placement calculation is handled inside submitScore() in the background
@@ -148,16 +140,14 @@ export function useOptimisticScoring() {
         return { entryId, scoreData };
       },
       onSuccess: () => {
-        console.log('✅ Score submission completed successfully');
-        onSuccess?.();
+onSuccess?.();
       },
       onError: (err) => {
         console.error('❌ Score submission failed:', err);
 
         // If offline, we already queued it, so don't show error
         if (!isOnline) {
-          console.log('📴 Score queued for sync when online');
-          onSuccess?.(); // Still allow navigation
+onSuccess?.(); // Still allow navigation
           return;
         }
 
@@ -165,8 +155,7 @@ export function useOptimisticScoring() {
         onError?.(err);
       },
       onRollback: () => {
-        console.log('🔄 Rolling back optimistic update');
-        // The markAsScored already happened, could add undo logic here if needed
+// The markAsScored already happened, could add undo logic here if needed
       },
       maxRetries: 3,
       retryDelay: 1000, // 1 second, exponential backoff in hook

@@ -41,15 +41,12 @@ export async function checkAndUpdateClassCompletion(
   classId: number,
   pairedClassId?: number
 ): Promise<void> {
-  console.log('🔍 Checking class completion status for class', classId);
-
-  // Update status for the primary class
+// Update status for the primary class
   await updateSingleClassCompletion(classId);
 
   // Only update paired class if explicitly provided (i.e., scoring from combined view)
   if (pairedClassId) {
-    console.log(`🔄 Also updating paired Novice class ${pairedClassId} (combined view context)`);
-    await updateSingleClassCompletion(pairedClassId);
+await updateSingleClassCompletion(pairedClassId);
   }
 }
 
@@ -75,8 +72,7 @@ async function updateSingleClassCompletion(classId: number): Promise<void> {
     .eq('class_id', classId);
 
   if (entriesError || !entries || entries.length === 0) {
-    console.log('⚠️ No entries found for class', classId);
-    return;
+return;
   }
 
   const entryIds = entries.map(e => e.id);
@@ -96,12 +92,9 @@ async function updateSingleClassCompletion(classId: number): Promise<void> {
   const scoredCount = scoredEntries?.length || 0;
   const totalCount = entries.length;
 
-  console.log(`📊 Class ${classId}: ${scoredCount}/${totalCount} entries scored`);
-
-  // Check if we should skip this update (optimization: only check first and last dog)
+// Check if we should skip this update (optimization: only check first and last dog)
   if (!shouldCheckCompletion(scoredCount, totalCount)) {
-    console.log(`⏭️ Skipping completion check (optimization: not first or last dog)`);
-    return;
+return;
   }
 
   // Handle different completion states
@@ -113,8 +106,7 @@ async function updateSingleClassCompletion(classId: number): Promise<void> {
     await markClassInProgress(classId, scoredCount, totalCount);
   } else {
     // No entries scored - no update needed
-    console.log(`ℹ️ No status update needed for class ${classId} (${scoredCount}/${totalCount} scored)`);
-  }
+}
 }
 
 /**
@@ -140,9 +132,7 @@ async function markClassCompleted(classId: number): Promise<void> {
     return;
   }
 
-  console.log('✅ Class', classId, 'marked as completed');
-
-  // Recalculate placements now that class is complete
+// Recalculate placements now that class is complete
   await recalculateFinalPlacements(classId);
 }
 
@@ -158,9 +148,7 @@ async function markClassInProgress(
   scoredCount: number,
   totalCount: number
 ): Promise<void> {
-  console.log(`🔄 Updating class ${classId} status to 'in_progress' (${scoredCount}/${totalCount} scored)`);
-
-  const { error: updateError } = await supabase
+const { error: updateError } = await supabase
     .from('classes')
     .update({
       is_completed: false,
@@ -177,7 +165,6 @@ async function markClassInProgress(
     return;
   }
 
-  console.log(`✅ Class ${classId} status updated to 'in_progress'`);
 }
 
 /**
@@ -190,9 +177,7 @@ async function markClassInProgress(
  */
 async function recalculateFinalPlacements(classId: number): Promise<void> {
   try {
-    console.log('🏆 Calculating final placements for completed class', classId);
-
-    // Get show_id and license_key for this class
+// Get show_id and license_key for this class
     const { data: classData, error: classError } = await supabase
       .from('classes')
       .select(`
@@ -220,11 +205,8 @@ async function recalculateFinalPlacements(classId: number): Promise<void> {
       const licenseKey = show.license_key;
       const isNationals = show.show_type?.toLowerCase().includes('national') || false;
 
-      console.log(`📋 Class details: licenseKey=${licenseKey}, isNationals=${isNationals}`);
-
-      await recalculatePlacementsForClass(classId, licenseKey, isNationals);
-      console.log('✅ Final placements calculated for class', classId);
-    } else {
+await recalculatePlacementsForClass(classId, licenseKey, isNationals);
+} else {
       console.error('⚠️ Could not find class or show data for class', classId);
     }
   } catch (placementError) {
@@ -248,6 +230,5 @@ async function recalculateFinalPlacements(classId: number): Promise<void> {
  * await manuallyCheckClassCompletion(123);
  */
 export async function manuallyCheckClassCompletion(classId: number): Promise<void> {
-  console.log('🔧 Manual class completion check triggered for class', classId);
-  await updateSingleClassCompletion(classId);
+await updateSingleClassCompletion(classId);
 }

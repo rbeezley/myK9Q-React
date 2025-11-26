@@ -108,8 +108,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
             retries: 0,
             status: 'pending',
           });
-          console.log(`💾 Queued score ${queueItem.id} to IndexedDB`);
-        } catch (error) {
+} catch (error) {
           console.error('❌ Failed to persist score to IndexedDB:', error);
         }
 
@@ -131,8 +130,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
         // Remove from IndexedDB
         try {
           await idbMutations.delete(id);
-          console.log(`🗑️ Removed score ${id} from IndexedDB`);
-        } catch (error) {
+} catch (error) {
           console.error('❌ Failed to remove score from IndexedDB:', error);
         }
       },
@@ -291,9 +289,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
           if (scores.length > 0) {
             set({ queue: scores });
-            console.log(`💾 Hydrated ${scores.length} scores from IndexedDB`);
-
-            // Auto-sync if online
+// Auto-sync if online
             if (get().isOnline) {
               setTimeout(() => get().startSync(), 1000);
             }

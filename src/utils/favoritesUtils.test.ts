@@ -205,17 +205,11 @@ describe('favoritesUtils', () => {
   describe('saveFavoritesToLocalStorage', () => {
     describe('Dog favorites saving', () => {
       test('should save dog favorites from array', () => {
-        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
         const success = saveFavoritesToLocalStorage('dog', 'ABC123', [101, 202, 303]);
         expect(success).toBe(true);
 
         const saved = JSON.parse(localStorageMock.getItem('dog_favorites_ABC123')!);
         expect(saved).toEqual([101, 202, 303]);
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Saved 3 dog favorite(s)')
-        );
-        consoleSpy.mockRestore();
       });
 
       test('should save dog favorites from Set', () => {
@@ -228,17 +222,11 @@ describe('favoritesUtils', () => {
       });
 
       test('should save empty array', () => {
-        const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
         const success = saveFavoritesToLocalStorage('dog', 'ABC123', []);
         expect(success).toBe(true);
 
         const saved = JSON.parse(localStorageMock.getItem('dog_favorites_ABC123')!);
         expect(saved).toEqual([]);
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Saved 0 dog favorite(s)')
-        );
-        consoleSpy.mockRestore();
       });
 
       test('should save empty Set', () => {
@@ -341,16 +329,11 @@ describe('favoritesUtils', () => {
 
   describe('clearFavorites', () => {
     test('should clear dog favorites', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       localStorageMock.setItem('dog_favorites_ABC123', JSON.stringify([101, 202, 303]));
 
       const success = clearFavorites('dog', 'ABC123');
       expect(success).toBe(true);
       expect(localStorageMock.getItem('dog_favorites_ABC123')).toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Cleared dog favorites')
-      );
-      consoleSpy.mockRestore();
     });
 
     test('should clear class favorites with trialId', () => {

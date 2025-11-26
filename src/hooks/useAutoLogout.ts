@@ -56,16 +56,14 @@ export function useAutoLogout() {
     const warningMs = timeoutMs - WARNING_TIME_MS;
     if (warningMs > 0) {
       warningTimeoutRef.current = setTimeout(() => {
-        console.log('⚠️ Auto-logout warning shown');
-        setShowWarning(true);
+setShowWarning(true);
         setSecondsRemaining(Math.floor(WARNING_TIME_MS / 1000));
       }, warningMs);
     }
 
     // Set logout timeout
     timeoutRef.current = setTimeout(() => {
-      console.log('🔒 Auto-logout triggered due to inactivity');
-      setShowWarning(false);
+setShowWarning(false);
       logout();
     }, timeoutMs);
   }, [settings.autoLogout, logout, isAuthenticated]);
@@ -77,21 +75,18 @@ export function useAutoLogout() {
 
   // Extend session by 1 hour
   const extendSession = useCallback(() => {
-    console.log('⏰ Session extended by 1 hour');
-    resetTimer();
+resetTimer();
   }, [resetTimer]);
 
   // Logout immediately
   const logoutNow = useCallback(() => {
-    console.log('🔒 User chose to logout now');
-    setShowWarning(false);
+setShowWarning(false);
     logout();
   }, [logout]);
 
   // Dismiss warning (user became active)
   const dismissWarning = useCallback(() => {
-    console.log('✅ Warning dismissed - user is active');
-    resetTimer();
+resetTimer();
   }, [resetTimer]);
 
   useEffect(() => {

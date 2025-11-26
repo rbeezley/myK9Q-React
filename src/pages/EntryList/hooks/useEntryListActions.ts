@@ -19,15 +19,13 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // 🚀 OFFLINE-FIRST: Update replication cache immediately
       // This creates an optimistic update that works offline and persists across refreshes
       try {
-        console.log('🔄 Optimistically updating replication cache for entry:', entryId, '→', newStatus);
-        const { getReplicationManager } = await import('../../../services/replication');
+const { getReplicationManager } = await import('../../../services/replication');
         const manager = getReplicationManager();
         if (manager) {
           const entriesTable = manager.getTable('entries');
           if (entriesTable && 'updateEntryStatus' in entriesTable) {
             await (entriesTable as any).updateEntryStatus(String(entryId), newStatus, true);
-            console.log('✅ Replication cache updated optimistically');
-          }
+}
         }
       } catch (error) {
         console.error('❌ Could not update replication cache optimistically:', error);

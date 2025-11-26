@@ -32,14 +32,12 @@ export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
       const isSubscribed = await PushNotificationService.isSubscribed();
 
       if (!isSubscribed) {
-        console.log('[Push Auto-Switch] Not subscribed - skipping show switch');
-        return;
+return;
       }
 
       // Prevent concurrent switches (mutex lock)
       if (switchInProgress.current) {
-        console.log('[Push Auto-Switch] Switch already in progress - skipping');
-        return;
+return;
       }
 
       switchInProgress.current = true;
@@ -65,12 +63,9 @@ export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
         }
 
         // Switch subscription to new show
-        console.log('[Push Auto-Switch] Switching to show:', licenseKey);
-        const success = await PushNotificationService.switchToShow(licenseKey, favoriteArmbands);
+const success = await PushNotificationService.switchToShow(licenseKey, favoriteArmbands);
 
-        if (success) {
-          console.log('[Push Auto-Switch] ✓ Successfully switched to show:', licenseKey);
-        } else {
+        if (!success) {
           console.error('[Push Auto-Switch] Failed to switch to show:', licenseKey);
         }
       } finally {
@@ -135,8 +130,7 @@ export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
     // (Changes in current tab are handled directly in toggleFavorite)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === `dog_favorites_${licenseKey}`) {
-        console.log('[Push Auto-Switch] Favorites changed in other tab');
-        handleFavoriteChange();
+handleFavoriteChange();
       }
     };
 

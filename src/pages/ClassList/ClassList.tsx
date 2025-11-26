@@ -139,8 +139,7 @@ export const ClassList: React.FC = () => {
   // Update classes' is_favorite property when favoriteClasses changes (hook handles localStorage)
   useEffect(() => {
     if (classes.length > 0) {
-      console.log('🔄 Updating classes is_favorite based on favoriteClasses:', Array.from(favoriteClasses));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing favorite state from localStorage to class data
+// eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing favorite state from localStorage to class data
       setClasses(prevClasses =>
         prevClasses.map(classEntry => ({
           ...classEntry,
@@ -238,8 +237,7 @@ export const ClassList: React.FC = () => {
           .eq('class_id', classId)
           .order('armband_number', { ascending: true });
 
-        console.log('📡 Prefetched class entries:', classId, entriesData?.length || 0);
-        return entriesData || [];
+return entriesData || [];
       },
       {
         ttl: 60, // 1 minute cache

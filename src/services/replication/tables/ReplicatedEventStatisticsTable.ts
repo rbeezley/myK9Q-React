@@ -203,9 +203,7 @@ export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatist
   async sync(licenseKey: string): Promise<import('../types').SyncResult> {
     const startTime = Date.now();
     try {
-      console.log('[ReplicatedEventStatisticsTable] Syncing event statistics...');
-
-      const data = await this.fetchFromSupabase(licenseKey);
+const data = await this.fetchFromSupabase(licenseKey);
 
       // Clear old data first (full replacement)
       await this.clearTable();
@@ -218,9 +216,7 @@ export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatist
         syncStatus: 'idle',
       });
 
-      console.log(`[ReplicatedEventStatisticsTable] ✅ Synced ${data.length} event statistics`);
-
-      return {
+return {
         tableName: this.tableName,
         success: true,
         operation: 'full-sync',

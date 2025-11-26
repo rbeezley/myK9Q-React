@@ -51,15 +51,11 @@ export async function autoDownloadShow(
 ): Promise<DownloadResult> {
 
   try {
-    console.log('🚀 [AUTO-DOWNLOAD] Starting for license:', licenseKey);
-
-    // 1. Check if already cached and fresh (< 30 min old)
+// 1. Check if already cached and fresh (< 30 min old)
     const cacheKey = `auto-download-${licenseKey}`;
     const cached = await idbCache.get<CachedDownload>(cacheKey);
 
     if (cached && cached.data.downloaded && Date.now() - cached.timestamp < 30 * 60 * 1000) {
-      const ageMinutes = Math.round((Date.now() - cached.timestamp) / 60000);
-      console.log(`✅ [AUTO-DOWNLOAD] Show already cached and fresh (${ageMinutes} min old)`);
       return {
         success: true,
         downloaded: cached.data.classCount,
@@ -109,8 +105,7 @@ export async function autoDownloadShow(
     }
 
     if (!classes || classes.length === 0) {
-      console.log('⚠️ [AUTO-DOWNLOAD] No classes found for show');
-      return { success: false, downloaded: 0, total: 0, errors: [] };
+return { success: false, downloaded: 0, total: 0, errors: [] };
     }
 
     // Sort classes by trial_number first (can't do this in PostgREST for joined columns)
@@ -126,9 +121,7 @@ export async function autoDownloadShow(
       return 0;
     });
 
-    console.log(`📥 [AUTO-DOWNLOAD] Downloading ${sortedClasses.length} classes...`);
-
-    // 3. Download each class (entries + metadata)
+// 3. Download each class (entries + metadata)
     // getClassEntries() automatically caches to IndexedDB via useStaleWhileRevalidate
     let downloaded = 0;
     const errors: number[] = [];
@@ -150,9 +143,7 @@ export async function autoDownloadShow(
           className
         });
 
-        console.log(`📥 [AUTO-DOWNLOAD] ${downloaded}/${sortedClasses.length}: ${className}`);
-
-      } catch (error) {
+} catch (error) {
         console.error(`❌ [AUTO-DOWNLOAD] Failed to download class ${classData.id}:`, error);
         errors.push(classData.id);
         // Continue with other classes (partial success is OK)
@@ -166,9 +157,7 @@ export async function autoDownloadShow(
       return trial?.id;
     }))].filter(Boolean);
 
-    console.log(`📦 [AUTO-DOWNLOAD] Caching trial data for ${trialIds.length} trials...`);
-
-    for (const trialId of trialIds) {
+for (const trialId of trialIds) {
       try {
         // Cache trial info
         const { data: trialData } = await supabase
@@ -201,8 +190,7 @@ export async function autoDownloadShow(
           );
         }
 
-        console.log(`📦 [AUTO-DOWNLOAD] Cached trial ${trialId} data`);
-      } catch (error) {
+} catch (error) {
         console.error(`⚠️ [AUTO-DOWNLOAD] Failed to cache trial ${trialId}:`, error);
         // Continue with other trials
       }
@@ -218,11 +206,6 @@ export async function autoDownloadShow(
     await idbCache.set(cacheKey, cacheData, 30 * 60 * 1000); // 30 min TTL
 
     const success = errors.length === 0;
-    const statusIcon = success ? '✅' : '⚠️';
-    console.log(
-      `${statusIcon} [AUTO-DOWNLOAD] Complete: ${downloaded}/${sortedClasses.length} classes`
-    );
-
     if (errors.length > 0) {
       console.warn(`⚠️ [AUTO-DOWNLOAD] Failed to download ${errors.length} classes:`, errors);
     }
@@ -317,8 +300,7 @@ export async function clearAutoDownloadCache(licenseKey: string): Promise<void> 
   try {
     const cacheKey = `auto-download-${licenseKey}`;
     await idbCache.delete(cacheKey);
-    console.log('🗑️ [AUTO-DOWNLOAD] Cache cleared for license:', licenseKey);
-  } catch (error) {
+} catch (error) {
     console.error('❌ [AUTO-DOWNLOAD] Error clearing cache:', error);
   }
 }

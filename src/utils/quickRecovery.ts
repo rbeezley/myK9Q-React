@@ -17,34 +17,28 @@ export function setupQuickRecovery() {
       // Add replication control functions
       (window as any).disableReplication = () => {
         disableReplication('Manual disable via console');
-        console.log('Replication disabled. Refresh the page to apply.');
-      };
+};
 
       (window as any).enableReplication = () => {
         enableReplication();
-        console.log('Replication enabled. Refresh the page to apply.');
-      };
+};
 
       (window as any).replicationStatus = () => {
         const status = getReplicationStatus();
-        console.log('Replication status:', status);
-        return status;
+return status;
       };
     });
 
     // One-liner function users can run
     (window as any).fixDatabase = async () => {
-      console.log('🔧 Running myK9Q Database Recovery...');
-
-      try {
+try {
         // Dynamically load and execute the recovery script
         const script = document.createElement('script');
         script.src = '/recovery.js';
         document.head.appendChild(script);
       } catch (error) {
         console.error('Failed to load recovery script:', error);
-        console.log('Alternative: Copy and run the script from https://app.myk9q.com/recovery.js');
-      }
+}
     };
 
     // Also provide a quick clear function
@@ -53,17 +47,14 @@ export function setupQuickRecovery() {
         return;
       }
 
-      console.log('🗑️ Clearing all data...');
-
-      try {
+try {
         // Clear all IndexedDB databases
         if ('databases' in indexedDB) {
           const databases = await indexedDB.databases();
           for (const db of databases) {
             if (db.name?.startsWith('myK9Q')) {
               await indexedDB.deleteDatabase(db.name);
-              console.log(`  Deleted ${db.name}`);
-            }
+}
           }
         }
 
@@ -82,8 +73,7 @@ export function setupQuickRecovery() {
           }
         }
 
-        console.log('✅ All data cleared. Please refresh the page.');
-      } catch (error) {
+} catch (error) {
         console.error('Failed to clear data:', error);
       }
     };
@@ -98,16 +88,9 @@ export function setupQuickRecovery() {
             testOpen.result.close();
           };
           testOpen.onerror = () => {
-            console.log(
-              '%c⚠️ Database issue detected!',
-              'color: #f59e0b; font-weight: bold; font-size: 14px'
-            );
-            console.log('');
-            console.log('To fix, run this in the console:');
-            console.log('%cwindow.fixDatabase()', 'color: #3b82f6; font-weight: bold; font-size: 16px; background: #f0f9ff; padding: 4px 8px; border-radius: 4px');
-            console.log('');
-            console.log('Then refresh the page.');
-          };
+console.log('To fix, run this in the console:');
+console.log('');
+};
         } catch (_error) {
           // Ignore errors in detection
         }

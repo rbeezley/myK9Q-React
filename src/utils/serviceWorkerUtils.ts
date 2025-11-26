@@ -34,9 +34,7 @@ export class ServiceWorkerManager {
     try {
       // Wait for service worker to be ready
       this.registration = await navigator.serviceWorker.ready;
-      console.log('🔧 Service Worker Manager initialized');
-
-      // Listen for messages from service worker
+// Listen for messages from service worker
       navigator.serviceWorker.addEventListener('message', this.handleServiceWorkerMessage.bind(this));
 
       // Listen for notification clicks
@@ -106,8 +104,7 @@ export class ServiceWorkerManager {
         applicationServerKey: publicKey ? this.urlBase64ToUint8Array(publicKey) as BufferSource : undefined
       });
 
-      console.log('📱 Subscribed to push notifications:', subscription.endpoint);
-      return subscription;
+return subscription;
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
       throw error;
@@ -126,8 +123,7 @@ export class ServiceWorkerManager {
 
     try {
       const result = await subscription.unsubscribe();
-      console.log('📱 Unsubscribed from push notifications');
-      return result;
+return result;
     } catch (error) {
       console.error('Failed to unsubscribe from push notifications:', error);
       return false;
@@ -206,24 +202,20 @@ export class ServiceWorkerManager {
     // This would normally come from your server
     // For testing, we can simulate a push event
     if (Notification.permission === 'granted') {
-      console.log('🧪 Creating test notification...');
-      const notification = new Notification('🧪 Test Notification', {
+const notification = new Notification('🧪 Test Notification', {
         body: 'This is a test notification from myK9Q Service Worker Manager',
         tag: 'test-sw-manager',
         requireInteraction: false
       });
 
-      notification.onshow = () => {
-        console.log('✅ Test notification shown');
-      };
+      notification.onshow = () => {};
 
       notification.onerror = (error) => {
         console.error('❌ Test notification error:', error);
       };
 
       notification.onclick = () => {
-        console.log('🖱️ Test notification clicked');
-        notification.close();
+notification.close();
       };
     } else {
       console.warn('❌ Notification permission not granted:', Notification.permission);

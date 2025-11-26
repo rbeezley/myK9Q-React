@@ -17,9 +17,7 @@ export const useServiceWorkerMessages = () => {
 
       // Handle notification click messages from service worker
       if (type === 'NOTIFICATION_CLICK' && url) {
-        console.log('📱 [ServiceWorker] Notification click - navigating to:', url);
-
-        // Navigate to the URL
+// Navigate to the URL
         // Note: The notification is already in the notification center from the original push,
         // so we don't need to add it again - just navigate
         navigate(url);
@@ -30,12 +28,9 @@ export const useServiceWorkerMessages = () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', handleMessage);
 
-      console.log('📡 [ServiceWorker] Message listener registered');
-
-      return () => {
+return () => {
         navigator.serviceWorker.removeEventListener('message', handleMessage);
-        console.log('📡 [ServiceWorker] Message listener removed');
-      };
+};
     }
   }, [navigate]);
 };

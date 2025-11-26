@@ -35,18 +35,13 @@ export const useEntryListSubscriptions = ({
     // Subscribe to each class's entry updates
     classIds.forEach(classId => {
       const cleanup = subscribeToEntryUpdates(classId, licenseKey, async (payload) => {
-        console.log(`🔔 Entry update detected for class ${classId}`, payload);
-
         // If we have an onEntryUpdate callback, use it to update local state directly
         // This provides instant UI updates from real-time changes
         if (onEntryUpdate) {
           lastEntryUpdateRef.current = Date.now(); // Track when entry updated
-          console.log('🔔 Calling onEntryUpdate with payload...');
           onEntryUpdate(payload);
-          console.log('🔔 onEntryUpdate completed');
-        } else {
-          console.log('🔔 No onEntryUpdate callback, falling back to refresh');
-          // Fallback: refresh without forcing cache bypass
+} else {
+// Fallback: refresh without forcing cache bypass
           onRefresh(false);
         }
       });

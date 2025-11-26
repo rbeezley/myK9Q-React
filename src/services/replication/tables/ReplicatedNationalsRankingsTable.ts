@@ -199,9 +199,7 @@ export class ReplicatedNationalsRankingsTable extends ReplicatedTable<NationalsR
   async sync(licenseKey: string): Promise<import('../types').SyncResult> {
     const startTime = Date.now();
     try {
-      console.log('[ReplicatedNationalsRankingsTable] Syncing nationals rankings...');
-
-      const data = await this.fetchFromSupabase(licenseKey);
+const data = await this.fetchFromSupabase(licenseKey);
 
       // Clear old data first (full replacement)
       await this.clearTable();
@@ -214,9 +212,7 @@ export class ReplicatedNationalsRankingsTable extends ReplicatedTable<NationalsR
         syncStatus: 'idle',
       });
 
-      console.log(`[ReplicatedNationalsRankingsTable] ✅ Synced ${data.length} rankings`);
-
-      return {
+return {
         tableName: this.tableName,
         success: true,
         operation: 'full-sync',

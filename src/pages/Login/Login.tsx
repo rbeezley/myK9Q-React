@@ -22,8 +22,7 @@ export const Login: React.FC = () => {
 
   // Focus first input on mount
   useEffect(() => {
-    console.log('🔍 Login component version: 2024-11-25-v1 (inputMode=text for Android number row)');
-    inputRefs.current[0]?.focus();
+inputRefs.current[0]?.focus();
   }, []);
 
   const handleInputChange = (index: number, value: string) => {
@@ -112,25 +111,17 @@ export const Login: React.FC = () => {
    * Runs in background, non-blocking
    */
   const triggerAutoDownload = (licenseKey: string) => {
-    console.log('📥 [AUTO-DOWNLOAD] Starting background download...');
-
-    // Start background download (don't await - non-blocking)
-    autoDownloadShow(licenseKey, (progress) => {
-      console.log(
-        `📥 [AUTO-DOWNLOAD] Progress: ${progress.current}/${progress.total} classes - ${progress.className}`
-      );
-    }).then(result => {
-      // Download complete
-      if (result.success) {
-        console.log(
-          `✅ [AUTO-DOWNLOAD] Complete: ${result.total} classes cached and ready for offline use`
-        );
-      } else if (result.downloaded > 0) {
-        console.warn(
-          `⚠️ [AUTO-DOWNLOAD] Partial success: ${result.downloaded}/${result.total} classes cached`
-        );
-      } else {
-        console.error('❌ [AUTO-DOWNLOAD] Failed to cache any classes');
+// Start background download (don't await - non-blocking)
+    autoDownloadShow(licenseKey, (_progress) => { /* Progress callback not needed */ }).then(result => {
+      // Download complete - only log failures
+      if (!result.success) {
+        if (result.downloaded > 0) {
+          console.warn(
+            `⚠️ [AUTO-DOWNLOAD] Partial success: ${result.downloaded}/${result.total} classes cached`
+          );
+        } else {
+          console.error('❌ [AUTO-DOWNLOAD] Failed to cache any classes');
+        }
       }
     }).catch(error => {
       console.error('[AUTO-DOWNLOAD] Unexpected error:', error);
@@ -164,16 +155,12 @@ export const Login: React.FC = () => {
     try {
       // Check if migration mode is enabled (dual-database detection)
       if (isMigrationModeEnabled()) {
-        console.log('Migration mode enabled - performing database detection');
-
-        // Detect which database contains this show
+// Detect which database contains this show
         const detectionResult = await detectDatabaseWithValidation(fullPasscode);
 
         if (detectionResult.database === 'legacy' && detectionResult.redirectUrl) {
           // Show is in legacy database - redirect to Flutter app
-          console.log('Redirecting to Flutter app:', detectionResult.redirectUrl);
-
-          // Clear rate limit before redirecting
+// Clear rate limit before redirecting
           clearRateLimit('login');
           hapticFeedback.success();
 

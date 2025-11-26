@@ -340,8 +340,8 @@ export class ReplicationMonitor {
    * Log health report to console
    */
   async logHealthReport(): Promise<void> {
-    const report = await this.generateHealthReport();
-    console.log(report);
+    // Health report logging removed - call generateHealthReport() directly if needed
+    await this.generateHealthReport();
   }
 }
 

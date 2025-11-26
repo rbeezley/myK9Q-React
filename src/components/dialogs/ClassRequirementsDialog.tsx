@@ -69,13 +69,9 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
     setLoading(true);
     try {
-      console.log('🔍 ClassRequirementsDialog - Debug Info:');
-      console.log('License Key:', showContext.licenseKey);
-      console.log('Class Data:', classData);
-      console.log('Element:', classData.element);
-      console.log('Level:', classData.level);
-
-      // First, get the organization from the show data
+console.log('License Key:', showContext.licenseKey);
+console.log('Element:', classData.element);
+// First, get the organization from the show data
       const { data: showData, error: showError } = await supabase
         .from('shows')
         .select('organization')
@@ -88,20 +84,16 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
       }
 
       const org = showData.organization;
-      console.log('📋 Organization:', org);
-      const isAKC = org.includes('AKC');
+const isAKC = org.includes('AKC');
       const isUKC = org.includes('UKC');
-      console.log('🏢 Is AKC:', isAKC, 'Is UKC:', isUKC);
-
-      setOrganization(isAKC ? 'AKC' : isUKC ? 'UKC' : null);
+setOrganization(isAKC ? 'AKC' : isUKC ? 'UKC' : null);
 
       // Query the unified requirements table
       const orgType = isAKC ? 'AKC' : isUKC ? 'UKC' : null;
       let requirementsData = null;
 
       if (orgType) {
-        console.log('🔎 Querying requirements with:', { organization: orgType, element: classData.element, level: classData.level });
-        const { data, error } = await supabase
+const { data, error } = await supabase
           .from('class_requirements')
           .select('*')
           .eq('organization', orgType)
@@ -109,14 +101,12 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
           .eq('level', classData.level)
           .single();
 
-        console.log('📊 Query Result:', { data, error });
-        if (!error && data) {
+if (!error && data) {
           requirementsData = data;
         }
       }
 
-      console.log('✅ Final Requirements Data:', requirementsData);
-      setRequirements(requirementsData);
+setRequirements(requirementsData);
     } catch (error) {
       console.error('💥 Error loading requirements:', error);
     } finally {

@@ -37,8 +37,7 @@ export interface DetectionResult {
 /*
 async function checkLegacyDatabase(licenseKey: string): Promise<boolean> {
   if (!supabaseLegacy) {
-    console.log('Legacy database not configured');
-    return false;
+return false;
   }
 
   try {
@@ -106,10 +105,8 @@ function extractPotentialLicenseKeys(passcode: string): string[] {
  * @param passcode The user's passcode
  * @returns Detection result with database type and optional redirect URL
  */
-export async function detectDatabase(passcode: string): Promise<DetectionResult> {
-  console.log('Starting database detection for passcode:', passcode);
-
-  // During migration, we need to check both databases
+export async function detectDatabase(_passcode: string): Promise<DetectionResult> {
+// During migration, we need to check both databases
   // Since we can't directly map passcode to license key without checking all shows,
   // we'll need to try authentication against both databases
 
@@ -125,8 +122,7 @@ export async function detectDatabase(passcode: string): Promise<DetectionResult>
       // Check if passcode matches any V3 show
       // The actual validation is done in authService
       // For now, we'll attempt V3 first
-      console.log('Found shows in V3 database, attempting V3 authentication');
-      return {
+return {
         database: 'v3',
         message: 'Attempting V3 authentication'
       };
@@ -141,8 +137,7 @@ export async function detectDatabase(passcode: string): Promise<DetectionResult>
         .limit(1);
 
       if (!legacyError && legacyShows && legacyShows.length > 0) {
-        console.log('Found shows in legacy database, redirecting to Flutter app');
-        return {
+return {
           database: 'legacy',
           redirectUrl: FLUTTER_APP_URL,
           message: 'Redirecting to legacy app'
@@ -171,9 +166,7 @@ export async function detectDatabase(passcode: string): Promise<DetectionResult>
  * This is the recommended approach during migration
  */
 export async function detectDatabaseWithValidation(passcode: string): Promise<DetectionResult> {
-  console.log('Starting enhanced database detection with validation');
-
-  // Import auth validation function
+// Import auth validation function
   const { validatePasscodeAgainstLicenseKey } = await import('../utils/auth');
 
   try {
@@ -186,8 +179,7 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
     if (!v3Error && v3Shows) {
       for (const show of v3Shows) {
         if (validatePasscodeAgainstLicenseKey(passcode, show.license_key)) {
-          console.log('Passcode validated against V3 database');
-          console.log('V3 show data:', show);
+console.log('V3 show data:', show);
 
           // Map V3 database fields to showContext format
           const showData = {
@@ -201,9 +193,7 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
             show_type: show.show_type || show.competition_type || 'Regular'
           };
 
-          console.log('Mapped showContext:', showData);
-
-          return {
+return {
             database: 'v3',
             showData,
             message: 'Show found in V3 database'
@@ -225,16 +215,12 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
           // Type assertion needed since we don't have legacy database types
           const legacyShow = show as { mobile_app_lic_key?: string; [key: string]: any };
           if (legacyShow.mobile_app_lic_key && validatePasscodeAgainstLicenseKey(passcode, legacyShow.mobile_app_lic_key)) {
-            console.log('Passcode validated against legacy database, redirecting to Flutter');
-
-            // Pass passcode to Flutter app for auto-login (backwards compatible)
+// Pass passcode to Flutter app for auto-login (backwards compatible)
             // If Flutter doesn't read the URL param, user can still login manually
             const flutterUrl = new URL(FLUTTER_APP_URL);
             flutterUrl.searchParams.set('passcode', passcode);
 
-            console.log('Flutter redirect URL with passcode:', flutterUrl.toString());
-
-            return {
+return {
               database: 'legacy',
               redirectUrl: flutterUrl.toString(),
               showData: show,

@@ -51,8 +51,7 @@ export class PushNotificationService {
     // Add new subscription
     this.subscriptions.set(licenseKey, [...filteredSubscriptions, subscriptionData]);
 
-    console.log(`📱 Stored push subscription for license ${licenseKey}, user ${userId}`);
-  }
+}
 
   /**
    * Remove a push subscription
@@ -62,8 +61,7 @@ export class PushNotificationService {
     const filtered = subscriptions.filter(sub => sub.endpoint !== endpoint);
     this.subscriptions.set(licenseKey, filtered);
 
-    console.log(`📱 Removed push subscription for license ${licenseKey}`);
-  }
+}
 
   /**
    * Send push notification to all subscribers of a license key
@@ -73,13 +71,10 @@ export class PushNotificationService {
     const subscriptions = this.subscriptions.get(announcement.license_key) || [];
 
     if (subscriptions.length === 0) {
-      console.log('📱 No push subscriptions found for license key:', announcement.license_key);
-      return;
+return;
     }
 
-    console.log(`📱 Sending push notification to ${subscriptions.length} subscribers for announcement: ${announcement.title}`);
-
-    // In a real implementation, you would:
+// In a real implementation, you would:
     // 1. Send this data to your server
     // 2. Server would use web-push library with VAPID keys
     // 3. Server would send push notifications to all endpoints
@@ -115,9 +110,7 @@ export class PushNotificationService {
           data: pushData
         });
 
-        console.log('📱 Simulated push notification sent to service worker:', pushData);
-
-      } catch (error) {
+} catch (error) {
         console.error('Failed to simulate push notification:', error);
       }
     }

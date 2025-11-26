@@ -9,8 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 // Function to test a database connection
 async function testConnection(url: string, key: string, label: string, isLegacy: boolean = false): Promise<boolean> {
   try {
-    console.log(`\n📡 Testing ${label}...`);
-    console.log(`   URL: ${url}`);
+console.log(`   URL: ${url}`);
 
     const client = createClient(url, key);
 
@@ -29,8 +28,7 @@ async function testConnection(url: string, key: string, label: string, isLegacy:
         .limit(1);
 
       if (!error) {
-        console.log(`   ✅ Connection successful! (Found table: ${table})`);
-        connected = true;
+connected = true;
         break;
       } else {
         // Continue trying other table names
@@ -38,8 +36,7 @@ async function testConnection(url: string, key: string, label: string, isLegacy:
     }
 
     if (!connected) {
-      console.log(`   ⚠️  Warning: Could not find expected tables, but connection to database is working`);
-      console.log(`   📝 Note: Legacy database may have different table structure`);
+console.log(`   📝 Note: Legacy database may have different table structure`);
       // Even if we can't find the exact table, the connection itself is working
       // This is okay for migration purposes
       return true; // Connection works even if table structure is different
@@ -54,11 +51,8 @@ async function testConnection(url: string, key: string, label: string, isLegacy:
 
 // Main test function
 export async function testDatabaseConnections() {
-  console.log('====================================');
-  console.log('🔧 DATABASE CONNECTION TEST');
-  console.log('====================================');
-
-  // Get environment variables
+console.log('🔧 DATABASE CONNECTION TEST');
+// Get environment variables
   const newUrl = import.meta.env.VITE_SUPABASE_URL;
   const newKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   const legacyUrl = import.meta.env.VITE_SUPABASE_URL_LEGACY;
@@ -100,8 +94,7 @@ export async function testDatabaseConnections() {
 
   // Check Flutter URL
   if (flutterUrl) {
-    console.log('\n🔗 Flutter App URL configured:');
-    console.log(`   ${flutterUrl}`);
+console.log(`   ${flutterUrl}`);
     results.flutterUrl = true;
   } else {
     console.error('\n❌ FLUTTER URL: Missing environment variable');
@@ -109,24 +102,15 @@ export async function testDatabaseConnections() {
   }
 
   // Summary
-  console.log('\n====================================');
-  console.log('📊 TEST SUMMARY');
-  console.log('====================================');
-  console.log(`New Database (V3):     ${results.newDatabase ? '✅ PASS' : '❌ FAIL'}`);
-  console.log(`Legacy Database:       ${results.legacyDatabase ? '✅ PASS' : '❌ FAIL'}`);
-  console.log(`Flutter URL Config:    ${results.flutterUrl ? '✅ PASS' : '❌ FAIL'}`);
+console.log('📊 TEST SUMMARY');
+console.log(`New Database (V3):     ${results.newDatabase ? '✅ PASS' : '❌ FAIL'}`);
+console.log(`Flutter URL Config:    ${results.flutterUrl ? '✅ PASS' : '❌ FAIL'}`);
 
   const allPassed = results.newDatabase && results.legacyDatabase && results.flutterUrl;
 
-  if (allPassed) {
-    console.log('\n🎉 All tests passed! Phase 1.3 complete.');
-  } else {
-    console.log('\n⚠️  Some tests failed. Please check the configuration above.');
-  }
+  if (allPassed) {} else {}
 
-  console.log('====================================\n');
-
-  return allPassed;
+return allPassed;
 }
 
 // Export for use in components

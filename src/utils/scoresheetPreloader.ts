@@ -66,8 +66,7 @@ export function getScoresheetKey(org: string, element: string): string | null {
 export async function preloadScoresheet(key: string): Promise<void> {
   // Check if already cached
   if (preloadCache.has(key)) {
-    console.log(`✅ Scoresheet bundle already preloaded: ${key}`);
-    return;
+return;
   }
 
   const importFn = SCORESHEET_IMPORTS[key];
@@ -76,16 +75,13 @@ export async function preloadScoresheet(key: string): Promise<void> {
     return;
   }
 
-  console.log(`📦 Preloading scoresheet bundle: ${key}`);
-
-  // Store the promise in cache
+// Store the promise in cache
   const importPromise = importFn();
   preloadCache.set(key, importPromise);
 
   try {
     await importPromise;
-    console.log(`✅ Scoresheet bundle preloaded: ${key}`);
-  } catch (error) {
+} catch (error) {
     console.error(`❌ Failed to preload scoresheet bundle: ${key}`, error);
     // Remove from cache on failure so it can be retried
     preloadCache.delete(key);
@@ -106,10 +102,8 @@ export async function preloadScoresheetByType(org: string, element: string): Pro
  * Preload all scoresheets (for use during idle time)
  */
 export async function preloadAllScoresheets(): Promise<void> {
-  console.log('📦 Preloading all scoresheet bundles...');
-  const keys = Object.keys(SCORESHEET_IMPORTS);
+const keys = Object.keys(SCORESHEET_IMPORTS);
   await Promise.all(keys.map(key => preloadScoresheet(key)));
-  console.log('✅ All scoresheet bundles preloaded');
 }
 
 /**
@@ -117,7 +111,6 @@ export async function preloadAllScoresheets(): Promise<void> {
  */
 export function clearPreloadCache(): void {
   preloadCache.clear();
-  console.log('🗑️ Scoresheet preload cache cleared');
 }
 
 /**

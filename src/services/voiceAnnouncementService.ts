@@ -179,8 +179,7 @@ class VoiceAnnouncementService {
    */
   public setScoringActive(active: boolean): void {
     this.isScoringActive = active;
-    console.log(`[VoiceService] Scoring active: ${active}`);
-  }
+}
 
   /**
    * Check if scoring is currently active
@@ -238,13 +237,10 @@ class VoiceAnnouncementService {
     }
 
     // Set up callbacks
-    utterance.onstart = () => {
-      console.log('[VoiceService] Speech started');
-    };
+    utterance.onstart = () => {};
 
     utterance.onend = () => {
-      console.log('[VoiceService] Speech ended');
-      this.currentUtterance = null;
+this.currentUtterance = null;
       if (options.onEnd) {
         options.onEnd();
       }
@@ -439,13 +435,9 @@ class VoiceAnnouncementService {
       return;
     }
 
-    console.log('[VoiceService] Test voice called');
-    console.log('[VoiceService] Current config:', this.defaultConfig);
-    console.log('[VoiceService] Available voices:', this.voices.length);
-    console.log('[VoiceService] Is speaking:', this.synthesis.speaking);
-    console.log('[VoiceService] Is paused:', this.synthesis.paused);
-
-    // Cancel any previous speech to work around Chrome speechSynthesis queue bug
+console.log('[VoiceService] Current config:', this.defaultConfig);
+console.log('[VoiceService] Is speaking:', this.synthesis.speaking);
+// Cancel any previous speech to work around Chrome speechSynthesis queue bug
     this.cancel();
 
     // Chrome bug workaround: Add small delay after cancel to ensure queue clears
@@ -471,8 +463,7 @@ class VoiceAnnouncementService {
       });
 
       this.speak(utterance);
-      console.log('[VoiceService] Speak called, speaking:', this.synthesis?.speaking);
-    }, 100);
+}, 100);
   }
 }
 

@@ -38,9 +38,7 @@ export function lazyWithRetry<T extends ComponentType<any>>(
   const attemptImport = async (attemptsLeft: number): Promise<{ default: T }> => {
     try {
       const module = await importFn();
-      if (chunkName) {
-        console.log(`[Code Split] Loaded chunk: ${chunkName}`);
-      }
+      if (chunkName) {}
       return module;
     } catch (error) {
       if (attemptsLeft <= 0) {

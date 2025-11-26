@@ -137,8 +137,7 @@ export function useDragAndDropEntries({
 
     // Capture the current state at drag start - this won't change during the drag
     dragSnapshotRef.current = [...currentEntries];
-    console.log('🎯 Drag started, snapshot captured with', dragSnapshotRef.current.length, 'entries');
-  }, [currentEntries, isDraggingRef]);
+}, [currentEntries, isDraggingRef]);
 
   /**
    * Handle drag end - Uses snapshot for stable index calculations
@@ -154,8 +153,7 @@ export function useDragAndDropEntries({
 
     // Must have a valid drop target and snapshot
     if (!over || active.id === over.id || !snapshot) {
-      console.log('🚫 Drag cancelled or no change');
-      isDraggingRef.current = false;
+isDraggingRef.current = false;
       setIsDragging(false);
       return;
     }
@@ -165,8 +163,7 @@ export function useDragAndDropEntries({
     const targetIndex = snapshot.findIndex(entry => entry.id === over.id);
 
     if (oldIndex === -1 || targetIndex === -1) {
-      console.log('⚠️ Could not find entries in snapshot');
-      isDraggingRef.current = false;
+isDraggingRef.current = false;
       setIsDragging(false);
       return;
     }
@@ -176,16 +173,13 @@ export function useDragAndDropEntries({
     if (inRingDogs.length > 0 && targetIndex === 0) {
       const draggedEntry = snapshot[oldIndex];
       if (!draggedEntry.inRing && draggedEntry.status !== 'in-ring') {
-        console.log('⚠️ Cannot move dog before in-ring dog');
-        isDraggingRef.current = false;
+isDraggingRef.current = false;
         setIsDragging(false);
         return;
       }
     }
 
-    console.log(`📍 Drag: item at index ${oldIndex} dropped on item at index ${targetIndex}`);
-
-    // Create new reordered array from the snapshot
+// Create new reordered array from the snapshot
     const reorderedEntries = arrayMove(snapshot, oldIndex, targetIndex);
 
     // Update exhibitor_order values locally
@@ -203,15 +197,13 @@ export function useDragAndDropEntries({
     setLocalEntries(newAllEntries);
     setManualOrder(entriesWithNewOrder);
 
-    console.log('✅ Drag complete: moved from index', oldIndex, 'to', targetIndex);
-    console.log('📋 New order:', entriesWithNewOrder.map(e => `${e.armband}(${e.exhibitorOrder})`).join(', '));
+console.log('📋 New order:', entriesWithNewOrder.map(e => `${e.armband}(${e.exhibitorOrder})`).join(', '));
 
     // Update database and AWAIT it to prevent race conditions with sync
     setIsUpdatingOrder(true);
     try {
       await updateExhibitorOrder(entriesWithNewOrder);
-      console.log('✅ Successfully synced run order to database');
-    } catch (error) {
+} catch (error) {
       console.error('❌ Failed to update run order in database:', error);
       // The optimistic update already happened, so UI shows new order
       // If offline, the sync will happen later
@@ -223,8 +215,7 @@ export function useDragAndDropEntries({
       setTimeout(() => {
         isDraggingRef.current = false;
         setIsDragging(false);
-        console.log('🔓 Drag protection cleared after grace period');
-      }, gracePeriodMs);
+}, gracePeriodMs);
     }
   }, [localEntries, setLocalEntries, setManualOrder, isDraggingRef, gracePeriodMs]);
 

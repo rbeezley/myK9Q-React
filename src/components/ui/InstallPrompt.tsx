@@ -59,12 +59,7 @@ export function InstallPrompt({
 
   const handleInstall = async () => {
     if (canInstall) {
-      const accepted = await promptInstall();
-      if (accepted) {
-        console.log('✅ User accepted PWA installation');
-      } else {
-        console.log('❌ User dismissed PWA installation');
-      }
+      await promptInstall();
     } else {
       // Detect browser type for better instructions
       const userAgent = navigator.userAgent.toLowerCase();

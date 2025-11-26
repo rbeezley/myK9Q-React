@@ -68,39 +68,29 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
    * 3. Resolve conflicts
    */
   async sync(licenseKey: string): Promise<SyncResult> {
-    console.log(`[${this.tableName}] 🚀 Starting sync for license: ${licenseKey}`);
-    const startTime = Date.now();
+const startTime = Date.now();
     const errors: string[] = [];
     let rowsSynced = 0;
     let conflictsResolved = 0;
 
     try {
-      console.log(`[${this.tableName}] Step 1: Updating sync metadata...`);
-      // Update sync status to 'syncing'
+// Update sync status to 'syncing'
       await this.updateSyncMetadata({ syncStatus: 'syncing' });
 
-      console.log(`[${this.tableName}] Step 2: Getting sync metadata...`);
-      // Step 1: Get last sync timestamp
+// Step 1: Get last sync timestamp
       const metadata = await this.getSyncMetadata();
-      console.log(`[${this.tableName}] Metadata retrieved:`, metadata);
-
-      console.log(`[${this.tableName}] Step 3: Checking cache...`);
+console.log(`[${this.tableName}] Step 3: Checking cache...`);
       // Check if cache is empty - if so, force full sync from epoch
       const allCachedEntries = await this.getAll();
-      console.log(`[${this.tableName}] Cache check complete: ${allCachedEntries.length} entries`);
-      const isCacheEmpty = allCachedEntries.length === 0;
+const isCacheEmpty = allCachedEntries.length === 0;
 
       // If cache is empty but we have a lastSync timestamp, it means the cache was cleared
       // Reset to epoch (0) to fetch all data
       const lastSync = isCacheEmpty ? 0 : (metadata?.lastIncrementalSyncAt || 0);
 
-      console.log(`[${this.tableName}] Cache status: ${allCachedEntries.length} entries, lastSync: ${new Date(lastSync).toISOString()}`);
-
-      // Step 2: Fetch changes from server since last sync
+// Step 2: Fetch changes from server since last sync
       // Join through: entries → classes → trials → shows.license_key
-      console.log(`[${this.tableName}] Fetching entries for license: ${licenseKey}, since: ${new Date(lastSync).toISOString()}`);
-
-      const fetchPromise = supabase
+const fetchPromise = supabase
         .from('entries')
         .select(`
           *,
@@ -145,13 +135,9 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         throw fetchError;
       }
 
-      console.log(`[${this.tableName}] Fetched ${remoteEntries?.length || 0} entries from server`);
-
-      // Step 3: Merge remote changes with local cache (conflict resolution)
+// Step 3: Merge remote changes with local cache (conflict resolution)
       if (remoteEntries && remoteEntries.length > 0) {
-        console.log(`[${this.tableName}] 🔍 Processing ${remoteEntries.length} entries from server:`);
-
-        for (const rawEntry of remoteEntries) {
+for (const rawEntry of remoteEntries) {
           // Flatten the response (remove nested classes/trials/shows objects)
           const { classes: _classes, ...remoteEntry } = rawEntry as any;
 
@@ -169,8 +155,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
           if (localEntry) {
             // Conflict: both local and remote have data
-            console.log(`[${this.tableName}] 🔄 Resolving conflict for entry ${entryId}`);
-            const resolved = this.resolveConflict(localEntry, remoteEntry as Entry);
+const resolved = this.resolveConflict(localEntry, remoteEntry as Entry);
             console.log(`[${this.tableName}] ✅ Resolved entry ${entryId}:`, {
               old_status: localEntry.entry_status,
               new_status: remoteEntry.entry_status,
@@ -180,8 +165,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
             conflictsResolved++;
           } else {
             // No conflict: just cache the remote entry
-            console.log(`[${this.tableName}] 📝 Caching new entry ${entryId} with status: ${remoteEntry.entry_status}`);
-            await this.set(entryId, remoteEntry as Entry, false);
+await this.set(entryId, remoteEntry as Entry, false);
           }
 
           rowsSynced++;
@@ -294,18 +278,6 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
     // Use indexed query for much better performance
     const entries = await this.queryByField('class_id', classId);
 
-    console.log(`[${this.tableName}] 🔎 getByClassId(${classId}) returned ${entries.length} entries`);
-
-    // DEBUG: Log first few entries with their status
-    if (entries.length > 0) {
-      const sample = entries.slice(0, 3).map(e => ({
-        id: e.id,
-        armband: e.armband_number,
-        entry_status: e.entry_status,
-        is_in_ring: e.is_in_ring
-      }));
-      console.log(`[${this.tableName}] 📋 Sample entries:`, sample);
-    }
 
     // Filter by license_key if needed (for multi-tenant isolation)
     if (licenseKey) {

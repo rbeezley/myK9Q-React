@@ -78,34 +78,27 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
 
       // Apply filters
       if (context.filters.breed) {
-        console.log('[Stats] Filtering by breed:', context.filters.breed);
-        baseQuery = baseQuery.eq('dog_breed', context.filters.breed);
+baseQuery = baseQuery.eq('dog_breed', context.filters.breed);
       }
       if (context.filters.judge) {
-        console.log('[Stats] Filtering by judge:', context.filters.judge);
-        baseQuery = baseQuery.eq('judge_name', context.filters.judge);
+baseQuery = baseQuery.eq('judge_name', context.filters.judge);
       }
       if (context.filters.trialDate) {
-        console.log('[Stats] Filtering by trial date:', context.filters.trialDate);
-        baseQuery = baseQuery.eq('trial_date', context.filters.trialDate);
+baseQuery = baseQuery.eq('trial_date', context.filters.trialDate);
       }
       if (context.filters.element) {
-        console.log('[Stats] Filtering by element:', context.filters.element);
-        baseQuery = baseQuery.eq('element', context.filters.element);
+baseQuery = baseQuery.eq('element', context.filters.element);
       }
       if (context.filters.level) {
-        console.log('[Stats] Filtering by level:', context.filters.level);
-        baseQuery = baseQuery.eq('level', context.filters.level);
+baseQuery = baseQuery.eq('level', context.filters.level);
       }
       if (context.filters.classId) {
-        console.log('[Stats] Filtering by class ID:', context.filters.classId);
-        baseQuery = baseQuery.eq('class_id', context.filters.classId);
+baseQuery = baseQuery.eq('class_id', context.filters.classId);
       }
 
       // Fetch main stats
       const { data: statsData, error: statsError } = await baseQuery;
-      console.log('[Stats] Query returned', statsData?.length, 'entries');
-      if (statsError) throw statsError;
+if (statsError) throw statsError;
 
       if (!statsData || statsData.length === 0) {
         setData({
@@ -310,8 +303,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
 
         // Debug: Log unique judge names
         const uniqueJudgeNames = new Set((summaryData || []).map((e: StatsQueryResult) => e.judge_name).filter(Boolean));
-        console.log('[Stats] Unique judge names in data:', Array.from(uniqueJudgeNames));
-        console.log('[Stats] Judge name character codes:',
+console.log('[Stats] Judge name character codes:',
           Array.from(uniqueJudgeNames).map(name => ({
             name,
             codes: Array.from(name as string).map(c => c.charCodeAt(0)),
@@ -392,8 +384,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         if (judgeError) throw judgeError;
 
         // Debug: Log raw judge data from view
-        console.log('[Stats] Raw judge data from view_judge_stats:', judgeData);
-        console.log('[Stats] Judge names from view:', (judgeData || []).map((j: JudgeStatsQueryResult) => ({
+console.log('[Stats] Judge names from view:', (judgeData || []).map((j: JudgeStatsQueryResult) => ({
           name: j.judge_name,
           codes: Array.from(j.judge_name || '').map(c => c.charCodeAt(0)),
           length: (j.judge_name || '').length,
@@ -548,9 +539,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
           throw cleanError;
         }
 
-        console.log('[Stats] Clean sweep query returned:', cleanData?.length, 'dogs', cleanData);
-
-        cleanSweepDogs = (cleanData || []).map((dog: CleanSweepQueryResult) => ({
+cleanSweepDogs = (cleanData || []).map((dog: CleanSweepQueryResult) => ({
           armbandNumber: dog.armband_number,
           dogCallName: dog.dog_call_name,
           handlerName: dog.handler_name,
@@ -562,8 +551,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
       }
 
       // Set final data
-      console.log('[Stats] Setting data:', { totalEntries, scoredEntries, qualifiedCount, uniqueDogs, breed: context.filters.breed });
-      setData({
+setData({
         totalEntries,
         scoredEntries,
         qualifiedCount,

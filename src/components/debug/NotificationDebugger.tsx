@@ -56,8 +56,7 @@ export const NotificationDebugger: React.FC = () => {
         if (permission !== 'granted') return;
       }
 
-      console.log('🧪 Creating debug notification...');
-      const notification = new Notification('🧪 Debug Test', {
+const notification = new Notification('🧪 Debug Test', {
         body: 'This is a direct notification test'
       });
 

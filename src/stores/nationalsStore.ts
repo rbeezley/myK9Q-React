@@ -381,8 +381,7 @@ export const useNationalsStore = create<NationalsState>()(
                     table: 'nationals_scores'
                   },
                   () => {
-                    console.log('📺 Nationals scores updated, refreshing...');
-                    get().refreshLeaderboard();
+get().refreshLeaderboard();
                     get().refreshQualifiers();
                     get().refreshElementProgress();
                   }
@@ -394,8 +393,7 @@ export const useNationalsStore = create<NationalsState>()(
                     table: 'nationals_rankings'
                   },
                   () => {
-                    console.log('📺 Nationals rankings updated, refreshing...');
-                    get().refreshLeaderboard();
+get().refreshLeaderboard();
                     get().refreshQualifiers();
                     get().refreshAdvancementStatus();
                   }
@@ -408,8 +406,7 @@ export const useNationalsStore = create<NationalsState>()(
                 isConnected: true
               });
 
-              console.log('✅ Nationals real-time updates enabled');
-            } catch (error) {
+} catch (error) {
               console.error('Failed to enable real-time updates:', error);
               set({ isConnected: false });
             }
@@ -425,8 +422,7 @@ export const useNationalsStore = create<NationalsState>()(
                 realtimeChannel: null,
                 isConnected: false
               });
-              console.log('❌ Nationals real-time updates disabled');
-            }
+}
           },
 
           // Clear error

@@ -62,8 +62,7 @@ export class PushNotificationService {
       // Generate a new unique ID for this browser/device
       userId = crypto.randomUUID();
       localStorage.setItem(PUSH_USER_ID_KEY, userId);
-      console.log('[Push] Generated new browser user ID:', userId);
-    }
+}
 
     // Return format: "{role}_{uuid}"
     return `${role}_${userId}`;
@@ -222,8 +221,7 @@ export class PushNotificationService {
 
     try {
       const permission = await Notification.requestPermission();
-      console.log('[Push] Permission result:', permission);
-      return permission === 'granted';
+return permission === 'granted';
     } catch (error) {
       console.error('[Push] Permission request failed:', error);
       return false;
@@ -262,17 +260,13 @@ export class PushNotificationService {
 
       // 3. Get service worker registration
       const registration = await navigator.serviceWorker.ready;
-      console.log('[Push] Service worker ready:', registration);
-
-      // 4. Subscribe to push manager
+// 4. Subscribe to push manager
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource
       });
 
-      console.log('[Push] Browser subscription created:', subscription);
-
-      // 5. Extract subscription data
+// 5. Extract subscription data
       const subscriptionJson = subscription.toJSON();
       const p256dh = subscriptionJson.keys?.p256dh;
       const auth = subscriptionJson.keys?.auth;
@@ -314,8 +308,7 @@ export class PushNotificationService {
         throw error;
       }
 
-      console.log('[Push] ✓ Successfully subscribed to push notifications');
-      return true;
+return true;
 
     } catch (error) {
       console.error('[Push] Subscribe error:', error);
@@ -337,15 +330,12 @@ export class PushNotificationService {
       const subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        console.log('[Push] No active subscription found');
-        return true;
+return true;
       }
 
       // 2. Unsubscribe from browser
       await subscription.unsubscribe();
-      console.log('[Push] Browser unsubscribed');
-
-      // 3. Remove from database
+// 3. Remove from database
       const endpoint = subscription.endpoint;
       const { error } = await supabase
         .from('push_subscriptions')
@@ -357,8 +347,7 @@ export class PushNotificationService {
         throw error;
       }
 
-      console.log('[Push] ✓ Successfully unsubscribed from push notifications');
-      return true;
+return true;
 
     } catch (error) {
       console.error('[Push] Unsubscribe error:', error);
@@ -403,8 +392,7 @@ export class PushNotificationService {
         throw error;
       }
 
-      console.log('[Push] ✓ Updated favorite armbands:', favoriteArmbands);
-      return true;
+return true;
 
     } catch (error) {
       console.error('[Push] Update favorites error:', error);
@@ -432,8 +420,7 @@ export class PushNotificationService {
       const subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        console.log('[Push] No active subscription - cannot switch shows');
-        return false;
+return false;
       }
 
       // Update database with new show information
@@ -457,8 +444,7 @@ export class PushNotificationService {
         throw error;
       }
 
-      console.log('[Push] ✓ Switched to show:', licenseKey, 'with favorites:', favoriteArmbands);
-      return true;
+return true;
 
     } catch (error) {
       console.error('[Push] Switch show error:', error);

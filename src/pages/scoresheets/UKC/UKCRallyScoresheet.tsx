@@ -81,9 +81,7 @@ export const UKCRallyScoresheet: React.FC = () => {
 
     try {
       // Load from replicated cache (direct replacement, no feature flags)
-      console.log('[REPLICATION] 🔍 Loading UKC Rally scoresheet for class:', classId);
-
-      // Ensure replication manager is initialized (handles recovery scenarios)
+// Ensure replication manager is initialized (handles recovery scenarios)
       const manager = await ensureReplicationManager();
 
       const entriesTable = manager.getTable('entries');
@@ -103,9 +101,7 @@ export const UKCRallyScoresheet: React.FC = () => {
       const allEntries = await entriesTable.getAll() as ReplicatedEntry[];
       const classEntries = allEntries.filter(entry => entry.class_id === classId);
 
-      console.log(`[REPLICATION] ✅ Loaded ${classEntries.length} entries for class ${classId}`);
-
-      // Transform to Entry format for store
+// Transform to Entry format for store
       const transformedEntries: Entry[] = classEntries.map(entry => ({
         id: parseInt(entry.id),
         armband: entry.armband_number,
@@ -207,14 +203,11 @@ export const UKCRallyScoresheet: React.FC = () => {
         nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
       },
       onSuccess: async () => {
-        console.log('✅ UKC Rally score saved');
-
-        // Remove from ring
+// Remove from ring
         if (currentEntry?.id) {
           try {
             await markInRing(currentEntry.id, false);
-            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
-          } catch (error) {
+} catch (error) {
             console.error('❌ Failed to remove dog from ring:', error);
           }
         }

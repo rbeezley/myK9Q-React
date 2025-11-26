@@ -142,8 +142,7 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
  * Uses replicated cache when enabled, falls back to Supabase
  */
 async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]> {
-  console.log('🐕 fetchEntries called with licenseKey:', licenseKey);
-  logger.log('🐕 fetchEntries called with licenseKey:', licenseKey);
+logger.log('🐕 fetchEntries called with licenseKey:', licenseKey);
 
   if (!licenseKey) {
     logger.log('⏸️ Skipping entries fetch - licenseKey not ready yet');
@@ -154,8 +153,7 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
   const isReplicationEnabled = true;
 
   if (isReplicationEnabled) {
-    console.log('🔄 [REPLICATION] Fetching entries from replicated cache...');
-    logger.log('🔄 Fetching entries from replicated cache...');
+logger.log('🔄 Fetching entries from replicated cache...');
 
     try {
       const manager = await ensureReplicationManager();
@@ -165,13 +163,11 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
           // Don't pass licenseKey - entries are already filtered during sync
           // (entries don't have license_key field, they're linked via classes → trials → shows)
           const cachedEntries = await table.getAll() as Entry[];
-          console.log(`✅ [REPLICATION] Loaded ${cachedEntries.length} entries from cache`);
-          logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
+logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
 
           // If cache is empty, fall back to Supabase (cache may still be syncing)
           if (cachedEntries.length === 0) {
-            console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
-            logger.log('📭 Cache is empty, falling back to Supabase');
+logger.log('📭 Cache is empty, falling back to Supabase');
             // Fall through to Supabase query
           } else {
             // Transform replicated Entry to EntryData format
@@ -193,8 +189,7 @@ async function fetchEntries(licenseKey: string | undefined): Promise<EntryData[]
             });
 
             const processedEntries = Array.from(uniqueDogs.values());
-            console.log(`🐕 [REPLICATION] Processed unique dogs from cache: ${processedEntries.length}`);
-            logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
+logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
 
             return processedEntries;
           }

@@ -34,8 +34,7 @@ export function isReplicationEnabled(): boolean {
     // Check if the timeout has expired
     if (now >= until) {
       // Timeout expired, re-enable
-      console.log(`[ReplicationConfig] Temporary disable expired at ${new Date(until).toLocaleString()}, re-enabling`);
-      localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
+localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
       return true;
     }
 
@@ -81,7 +80,6 @@ export function disableReplicationTemporarily(minutes: number = 5, reason: strin
 export function enableReplication(): void {
   localStorage.removeItem(REPLICATION_DISABLED_KEY);
   localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
-  console.log('[ReplicationConfig] ✅ Replication ENABLED');
 }
 
 /**
@@ -93,8 +91,7 @@ export function clearExpiredDisable(): boolean {
     const until = parseInt(disabledUntil, 10);
     if (Date.now() >= until) {
       localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
-      console.log('[ReplicationConfig] Cleared expired temporary disable');
-      return true;
+return true;
     }
   }
   return false;
@@ -112,8 +109,7 @@ export function clearDevelopmentDisableFlags(): void {
     if (wasDisabled || wasTemporarilyDisabled) {
       localStorage.removeItem(REPLICATION_DISABLED_KEY);
       localStorage.removeItem(REPLICATION_DISABLED_UNTIL_KEY);
-      console.log('[ReplicationConfig] 🔧 Auto-cleared replication disabled flags in development mode');
-    }
+}
   }
 }
 
@@ -154,8 +150,7 @@ export function handleDatabaseCorruption(): void {
       dbs.forEach(db => {
         if (db.name?.startsWith('myK9Q')) {
           indexedDB.deleteDatabase(db.name);
-          console.log(`[ReplicationConfig] Deleted corrupted database: ${db.name}`);
-        }
+}
       });
     }).catch(err => {
       console.error('[ReplicationConfig] Failed to clear databases:', err);

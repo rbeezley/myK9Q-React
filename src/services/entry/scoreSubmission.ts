@@ -274,20 +274,15 @@ export async function submitScore(
   pairedClassId?: number,
   classId?: number
 ): Promise<boolean> {
-  console.log('🎯 submitScore CALLED for entry:', entryId, 'with data:', scoreData);
-
-  try {
+try {
     // Prepare score data for database update
     const scoreUpdateData = prepareScoreUpdateData(entryId, scoreData);
 
     // Handle AKC Scent Work area times if present
     handleAreaTimes(scoreData, scoreUpdateData);
 
-    console.log('📝 Updating entry with score:', scoreUpdateData);
-    console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
-    console.log('🔍 Entry ID:', entryId);
-
-    // Remove entry_id from update data (we filter by id instead)
+console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
+// Remove entry_id from update data (we filter by id instead)
     const { entry_id: _entry_id, ...updateFields } = scoreUpdateData;
 
     // Determine entry status based on scoring state
@@ -319,11 +314,7 @@ export async function submitScore(
       throw updateError;
     }
 
-    console.log('✅ Entry updated with score successfully:', updatedData);
-    if (updatedData && updatedData[0]) {
-      console.log('🔍 Saved result_status in database:', updatedData[0].result_status);
-      console.log('🔍 Saved entry_status in database:', updatedData[0].entry_status);
-    }
+if (updatedData && updatedData[0]) {}
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the scored dog moves to completed tab immediately
@@ -334,8 +325,7 @@ export async function submitScore(
     // Users can navigate away immediately without waiting for these operations
     await triggerBackgroundClassCompletion(entryId, classId, pairedClassId);
 
-    console.log('✅ Score submitted successfully');
-    return true;
+return true;
   } catch (error) {
     console.error('Error in submitScore:', error);
     throw error;
@@ -366,21 +356,17 @@ async function triggerBackgroundClassCompletion(
   pairedClassId?: number
 ): Promise<void> {
   if (classId) {
-    console.log('✅ Using provided class_id:', classId);
-    // Fire and forget - check class completion in background
+// Fire and forget - check class completion in background
     (async () => {
       try {
         await checkAndUpdateClassCompletion(classId, pairedClassId);
-        console.log('✅ [Background] Class completion checked');
-      } catch (error) {
+} catch (error) {
         console.error('⚠️ [Background] Failed to check class completion:', error);
       }
     })();
-    console.log('✅ Score saved - background task running');
-  } else {
+} else {
     // Fallback: Query database for class_id (backward compatibility)
-    console.log('⚠️ No classId provided, querying database (slower path)');
-    const { data: entryData } = await supabase
+const { data: entryData } = await supabase
       .from('view_entry_class_join_normalized')
       .select('class_id, license_key, show_id')
       .eq('id', entryId)
@@ -391,14 +377,12 @@ async function triggerBackgroundClassCompletion(
       (async () => {
         try {
           await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
-          console.log('✅ [Background] Class completion checked');
-        } catch (error) {
+} catch (error) {
           console.error('⚠️ [Background] Failed to check class completion:', error);
         }
       })();
 
-      console.log('✅ Score saved - background task running');
-    } else {
+} else {
       console.warn('⚠️ Could not fetch entry data for background processing');
     }
   }

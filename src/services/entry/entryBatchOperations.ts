@@ -63,9 +63,7 @@ export async function updateExhibitorOrder(
   reorderedEntries: Entry[]
 ): Promise<boolean> {
   try {
-    console.log(`🔄 Updating exhibitor_order for ${reorderedEntries.length} entries...`);
-
-    // Update each entry with its new position (1-based indexing)
+// Update each entry with its new position (1-based indexing)
     const updates = reorderedEntries.map(async (entry, index) => {
       const newExhibitorOrder = index + 1; // 1-based indexing
 
@@ -79,16 +77,13 @@ export async function updateExhibitorOrder(
         throw error;
       }
 
-      console.log(`  ✓ Entry ${entry.id}: exhibitor_order = ${newExhibitorOrder}`);
-      return { id: entry.id, newOrder: newExhibitorOrder };
+return { id: entry.id, newOrder: newExhibitorOrder };
     });
 
     // Execute all updates in parallel
     await Promise.all(updates);
 
-    console.log(`✅ Successfully updated exhibitor_order for ${reorderedEntries.length} entries`);
-
-    // Trigger immediate sync so UI updates instantly across all devices
+// Trigger immediate sync so UI updates instantly across all devices
     await triggerImmediateEntrySync('updateExhibitorOrder');
 
     return true;
