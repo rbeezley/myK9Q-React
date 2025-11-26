@@ -5,20 +5,19 @@
 
 - **Verify PTR improvements on production mobile** - Test pull-to-refresh activation threshold and scrolling behavior on app.myk9q.com after deployment. **Problem:** Pull-to-refresh was interfering with scrolling through long dog lists on mobile home page. Changes deployed (20px activation threshold, increased trigger distance) need real-world mobile testing to confirm they solve the issue. **Files:** `src/components/ui/PullToRefresh.tsx:85-101` (activation threshold logic), `src/pages/Home/Home.tsx:367-372` (PTR configuration). **Solution:** Test on actual mobile device: (1) Verify normal scrolling works smoothly without triggering PTR, (2) Verify intentional pull-down from top triggers refresh after deliberate gesture, (3) If still problematic, consider increasing activation threshold to 30-40px or adding user setting to disable PTR.
 
-## Scoresheet Refactoring - 2025-11-25 (In Progress)
+## Scoresheet Refactoring - 2025-11-25 ✅ COMPLETE
 
-**Status:** Phase 1 & 3a complete, Enhanced deleted, Phase 3c pending
+**Status:** All phases complete
 
-**Completed:**
-- ✅ Phase 1: Created `useScoresheetCore` hook (state management, submission, celebration)
-- ✅ Phase 1: Created `useEntryNavigation` hook (entry loading, navigation, max time helpers)
+**Summary:**
+- ✅ Phase 1: Created `useScoresheetCore` and `useEntryNavigation` shared hooks
 - ✅ Phase 3a: Refactored `AKCScentWorkScoresheet.tsx` (1,118 → 692 lines, **38% reduction**)
-- ✅ Deleted `AKCScentWorkScoresheet-Enhanced.tsx` (redundant dual-mode file)
+- ✅ Phase 3b: Deleted `AKCScentWorkScoresheet-Enhanced.tsx` (redundant dual-mode file)
+- ✅ Phase 3c: Refactored `AKCNationalsScoresheet.tsx` (1,175 → 847 lines, **28% reduction**)
 
-**Remaining:**
-- ⏳ Refactor `AKCNationalsScoresheet.tsx` (1,175 lines) - Rarely used (once/year)
+**Results:** Reduced 3 files to 2 files, **~1,550 lines deleted** (43% total reduction).
 
-**Files:** See `docs/SCORESHEET_REFACTORING_PLAN.md` for detailed plan. Hooks at `src/pages/scoresheets/hooks/`.
+**Files:** See `docs/SCORESHEET_REFACTORING_PLAN.md` for full details. Hooks at `src/pages/scoresheets/hooks/`.
 
 ## Monetization Strategy Research - 2025-11-23 19:30
 

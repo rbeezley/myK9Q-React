@@ -1,9 +1,9 @@
 # Scoresheet Refactoring Plan
 
 **Created**: 2025-11-25
-**Status**: In Progress (Phase 1 & 3a Complete, Enhanced Deleted)
-**Estimated Effort**: 2-3 days remaining
-**Line Reduction**: ~1,700 lines deleted (Enhanced removed + base refactored)
+**Status**: ✅ Complete
+**Estimated Effort**: Completed in 2 days
+**Line Reduction**: ~2,050 lines deleted (total codebase reduction)
 
 ## Progress Update (2025-11-26)
 
@@ -12,7 +12,7 @@
 | Phase 1: Extract Hooks | ✅ Complete | `useScoresheetCore`, `useEntryNavigation` created |
 | Phase 3a: Refactor Base | ✅ Complete | AKCScentWorkScoresheet: 1,118 → 692 lines (-38%) |
 | Phase 3b: Delete Enhanced | ✅ Complete | Redundant dual-mode file removed (-1,296 lines) |
-| Phase 3c: Refactor Nationals | ⏳ Pending | Rarely used (once/year) |
+| Phase 3c: Refactor Nationals | ✅ Complete | AKCNationalsScoresheet: 1,175 → 847 lines (-28%) |
 
 ## Executive Summary
 
@@ -26,9 +26,9 @@ The "Enhanced" file was redundant - it handled both regular and Nationals modes,
 |------|--------|-------|--------|
 | `AKCScentWorkScoresheet.tsx` | 1,118 | 692 | ✅ Refactored |
 | `AKCScentWorkScoresheet-Enhanced.tsx` | 1,296 | 0 | ✅ Deleted |
-| `AKCNationalsScoresheet.tsx` | 1,175 | ~400 | ⏳ Pending |
-| **Shared hooks** | 0 | ~860 | ✅ Created |
-| **Total** | 3,589 | ~1,950 | -46% |
+| `AKCNationalsScoresheet.tsx` | 1,175 | 847 | ✅ Refactored |
+| **Shared hooks** | 0 | ~500 | ✅ Created |
+| **Total** | 3,589 | ~2,039 | **-43%** |
 
 ---
 
