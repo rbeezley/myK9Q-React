@@ -82,7 +82,8 @@ export function PullToRefresh({
       const deltaY = currentYRef.current - startYRef.current;
 
       // Require minimum downward pull before activating PTR
-      const activationThreshold = 20;
+      // Increased to 40px to prevent accidental activation during normal scrolling
+      const activationThreshold = 40;
       if (deltaY < activationThreshold) {
         // Not pulled down enough yet - allow normal behavior
         return;
