@@ -21,15 +21,13 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // 🚀 OFFLINE-FIRST: Update replication cache immediately
       // This creates an optimistic update that works offline and persists across refreshes
       try {
-        console.log('🔄 Optimistically updating replication cache for entry:', entryId, '→', newStatus);
-        const { getReplicationManager } = await import('../../../services/replication');
+const { getReplicationManager } = await import('../../../services/replication');
         const manager = getReplicationManager();
         if (manager) {
           const entriesTable = manager.getTable('entries');
           if (entriesTable && 'updateEntryStatus' in entriesTable) {
             await (entriesTable as any).updateEntryStatus(String(entryId), newStatus, true);
-            console.log('✅ Replication cache updated optimistically');
-          }
+}
         }
       } catch (error) {
         console.error('❌ Could not update replication cache optimistically:', error);
@@ -57,11 +55,9 @@ export const useEntryListActions = (_onRefresh: () => void) => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       // This creates a pending change that persists across refreshes
       try {
-        console.log('🔄 Creating pending reset for entry:', entryId);
-        // TODO: Remove legacy - replaced by replication
+// TODO: Remove legacy - replaced by replication
         // await localStateManager.updateEntry(entryId, {...}, 'reset');
-        console.log('✅ LocalStateManager updated with pending reset');
-      } catch (error) {
+} catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
       }
 
@@ -87,11 +83,9 @@ export const useEntryListActions = (_onRefresh: () => void) => {
 
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       try {
-        console.log('🔄 Creating pending in-ring toggle for entry:', entryId, '→', newInRing);
-        // TODO: Remove legacy - replaced by replication
+// TODO: Remove legacy - replaced by replication
         // await localStateManager.updateEntry(entryId, { status: newInRing ? 'in-ring' : 'no-status' }, 'status');
-        console.log('✅ LocalStateManager updated with pending in-ring change');
-      } catch (error) {
+} catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
       }
 
@@ -114,11 +108,9 @@ export const useEntryListActions = (_onRefresh: () => void) => {
     async (entryId: number) => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       try {
-        console.log('🔄 Creating pending mark in-ring for entry:', entryId);
-        // TODO: Remove legacy - replaced by replication
+// TODO: Remove legacy - replaced by replication
         // await localStateManager.updateEntry(entryId, { status: 'in-ring' }, 'status');
-        console.log('✅ LocalStateManager updated with pending in-ring status');
-      } catch (error) {
+} catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
       }
 
@@ -141,11 +133,9 @@ export const useEntryListActions = (_onRefresh: () => void) => {
     async (entryId: number) => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately
       try {
-        console.log('🔄 Creating pending mark completed for entry:', entryId);
-        // TODO: Remove legacy - replaced by replication
+// TODO: Remove legacy - replaced by replication
         // await localStateManager.updateEntry(entryId, { isScored: true, status: 'completed' }, 'status');
-        console.log('✅ LocalStateManager updated with pending completed status');
-      } catch (error) {
+} catch (error) {
         console.error('❌ Could not update LocalStateManager:', error);
       }
 
@@ -167,8 +157,7 @@ export const useEntryListActions = (_onRefresh: () => void) => {
   const handleBatchStatusUpdate = useCallback(
     async (entryIds: number[], newStatus: 'no-status' | 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate') => {
       // 🚀 LOCAL-FIRST: Update LocalStateManager immediately for all entries
-      console.log(`🔄 Creating pending batch status change for ${entryIds.length} entries →`, newStatus);
-      const updatePromises = entryIds.map(async (entryId) => {
+const updatePromises = entryIds.map(async (entryId) => {
         try {
           // TODO: Remove legacy - replaced by replication
           // await localStateManager.updateEntry(entryId, { status: newStatus }, 'status');
@@ -177,9 +166,7 @@ export const useEntryListActions = (_onRefresh: () => void) => {
         }
       });
       await Promise.all(updatePromises);
-      console.log('✅ LocalStateManager updated with pending batch changes');
-
-      // Sync with server in background (silently fails if offline)
+// Sync with server in background (silently fails if offline)
       try {
         await Promise.all(
           entryIds.map((id) => updateEntryCheckinStatus(id, newStatus))

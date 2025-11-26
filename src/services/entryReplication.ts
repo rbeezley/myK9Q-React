@@ -27,9 +27,7 @@ export async function getEntriesFromReplicationCache(
   classIdArray: number[],
   primaryClassId: number
 ): Promise<Entry[] | null> {
-  console.log('🔄 [REPLICATION] Fetching class entries from replicated cache...');
-
-  const manager = getReplicationManager();
+const manager = getReplicationManager();
   if (!manager) {
     console.warn('[REPLICATION] Replication manager not available');
     return null;
@@ -52,17 +50,13 @@ export async function getEntriesFromReplicationCache(
       return null;
     }
 
-    console.log(`✅ [REPLICATION] Found class ${primaryClassId} in cache`);
-
-    // Get all entries from cache and filter for requested classes
+// Get all entries from cache and filter for requested classes
     const cachedEntries = await entriesTable.getAll();
     const classEntries = cachedEntries.filter(entry =>
       classIdArray.includes(parseInt(entry.class_id, 10))
     );
 
-    console.log(`✅ [REPLICATION] Loaded ${classEntries.length} entries from cache for class(es) ${classIdArray.join(', ')}`);
-
-    // Transform replicated entries to Entry format
+// Transform replicated entries to Entry format
     const mappedEntries = classEntries.map(entry => {
       const status = determineEntryStatus(entry.entry_status);
 
@@ -111,8 +105,7 @@ export async function getEntriesFromReplicationCache(
       };
     }).sort((a, b) => a.armband - b.armband);
 
-    console.log(`📊 [REPLICATION] Returning ${mappedEntries.length} entries from cache`);
-    return mappedEntries;
+return mappedEntries;
 
   } catch (error) {
     console.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
@@ -134,10 +127,8 @@ export async function triggerImmediateEntrySync(operationName: string): Promise<
     const manager = getReplicationManager();
 
     if (manager) {
-      console.log(`[${operationName}] Triggering immediate sync of entries table...`);
-      await manager.syncTable('entries', { forceFullSync: false });
-      console.log(`[${operationName}] ✅ Immediate sync complete`);
-    } else {
+await manager.syncTable('entries', { forceFullSync: false });
+} else {
       console.warn(`[${operationName}] Replication manager not available, UI may not update until next sync`);
     }
   } catch (syncError) {

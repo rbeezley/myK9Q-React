@@ -230,10 +230,8 @@ export const AKCNationalsScoresheet: React.FC = () => {
   // ==========================================================================
 
   const handleEnhancedSubmit = useCallback(async () => {
-    console.log('🚀 Nationals handleEnhancedSubmit');
-    if (!currentEntry) {
-      console.log('⚠️ No currentEntry, returning early');
-      return;
+if (!currentEntry) {
+return;
     }
 
     setShowConfirmation(false);
@@ -277,8 +275,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
           notes: undefined
         });
 
-        console.log('✅ Nationals score submitted to TV dashboard');
-      } catch (nationalsError) {
+} catch (nationalsError) {
         console.error('❌ Failed to submit Nationals score:', nationalsError);
         // Don't fail the whole submission - regular score still saved
       }
@@ -465,8 +462,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
     if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
-      console.log('[VoiceAnnouncement] Triggering 30-second warning');
-      voiceAnnouncementService.announceTimeRemaining(30);
+voiceAnnouncementService.announceTimeRemaining(30);
       has30SecondAnnouncedRef.current = true;
     }
 

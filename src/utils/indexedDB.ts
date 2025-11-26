@@ -88,15 +88,12 @@ class IndexedDBManager {
 
     this.initPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db, _oldVersion, _newVersion, _transaction) {
-        console.log('🔄 Upgrading IndexedDB schema...');
-
-        // Cache store - for prefetch and SWR data
+// Cache store - for prefetch and SWR data
         if (!db.objectStoreNames.contains(STORES.CACHE)) {
           const cacheStore = db.createObjectStore(STORES.CACHE, { keyPath: 'key' });
           cacheStore.createIndex('timestamp', 'timestamp', { unique: false });
           cacheStore.createIndex('ttl', 'ttl', { unique: false });
-          console.log('  ✓ Created cache store');
-        }
+}
 
         // Mutations store - for offline queue
         if (!db.objectStoreNames.contains(STORES.MUTATIONS)) {
@@ -104,29 +101,24 @@ class IndexedDBManager {
           mutationStore.createIndex('status', 'status', { unique: false });
           mutationStore.createIndex('timestamp', 'timestamp', { unique: false });
           mutationStore.createIndex('type', 'type', { unique: false });
-          console.log('  ✓ Created mutations store');
-        }
+}
 
         // Shows store - for complete show data
         if (!db.objectStoreNames.contains(STORES.SHOWS)) {
           const showStore = db.createObjectStore(STORES.SHOWS, { keyPath: 'licenseKey' });
           showStore.createIndex('timestamp', 'timestamp', { unique: false });
-          console.log('  ✓ Created shows store');
-        }
+}
 
         // Metadata store - for app settings
         if (!db.objectStoreNames.contains(STORES.METADATA)) {
           db.createObjectStore(STORES.METADATA, { keyPath: 'key' });
-          console.log('  ✓ Created metadata store');
-        }
+}
 
-        console.log('✅ IndexedDB schema upgrade complete');
-      },
+},
     });
 
     this.db = await this.initPromise;
-    console.log('✅ IndexedDB opened successfully');
-    return this.db;
+return this.db;
   }
 
   /**
@@ -230,8 +222,7 @@ class IndexedDBManager {
     try {
       const db = await this.init();
       await db.clear(storeName);
-      console.log(`🗑️ Cleared ${storeName} store`);
-    } catch (error) {
+} catch (error) {
       console.error('❌ IndexedDB clear error:', error);
     }
   }
@@ -278,8 +269,7 @@ class IndexedDBManager {
       await Promise.all(values.map((value) => tx.store.put(value)));
       await tx.done;
 
-      console.log(`💾 Batch saved ${values.length} items to ${storeName}`);
-    } catch (error) {
+} catch (error) {
       console.error('❌ IndexedDB batchSet error:', error);
       throw error;
     }
@@ -309,9 +299,7 @@ class IndexedDBManager {
 
       await tx.done;
 
-      if (deletedCount > 0) {
-        console.log(`🧹 Cleaned ${deletedCount} expired cache entries`);
-      }
+      if (deletedCount > 0) {}
 
       return deletedCount;
     } catch (error) {
@@ -387,8 +375,7 @@ class IndexedDBManager {
       this.db.close();
       this.db = null;
       this.initPromise = null;
-      console.log('🔒 IndexedDB connection closed');
-    }
+}
   }
 }
 

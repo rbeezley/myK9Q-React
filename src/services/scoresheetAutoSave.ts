@@ -145,9 +145,7 @@ class ScoresheetAutoSaveService {
 
     try {
       localStorage.setItem(key, JSON.stringify(draft));
-      console.log(`[AutoSave] Draft saved: ${draft.id} v${draft.version}`);
-
-      // Clean up old drafts
+// Clean up old drafts
       this.cleanupOldDrafts(draft.entryId);
     } catch (error) {
       console.error('[AutoSave] Failed to save draft:', error);

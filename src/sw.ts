@@ -87,8 +87,7 @@ function generateMessageId(payload: PushPayload): string {
  */
 function isDuplicateMessage(messageId: string): boolean {
   if (recentMessageIds.has(messageId)) {
-    console.log('[Service Worker] 🚫 Duplicate message detected:', messageId);
-    return true;
+return true;
   }
 
   // Add to cache
@@ -107,22 +106,17 @@ function isDuplicateMessage(messageId: string): boolean {
  * Shows notification even when app is closed
  */
 self.addEventListener('push', (event: PushEvent) => {
-  console.log('[Service Worker] Push event received:', event);
-
-  if (!event.data) {
+if (!event.data) {
     console.warn('[Service Worker] Push event has no data');
     return;
   }
 
   try {
     const payload: PushPayload = event.data.json();
-    console.log('[Service Worker] Push payload:', payload);
-
-    // Check for duplicate messages
+// Check for duplicate messages
     const messageId = generateMessageId(payload);
     if (isDuplicateMessage(messageId)) {
-      console.log('[Service Worker] Skipping duplicate notification');
-      return;
+return;
     }
 
     // Build notification options
@@ -171,9 +165,7 @@ self.addEventListener('push', (event: PushEvent) => {
 
     // Show notification with error handling
     const promiseChain = self.registration.showNotification(payload.title, options)
-      .then(() => {
-        console.log('[Service Worker] ✅ Notification displayed successfully');
-      })
+      .then(() => {})
       .catch((error) => {
         console.error('[Service Worker] ❌ showNotification failed:', error);
       });
@@ -189,9 +181,7 @@ self.addEventListener('push', (event: PushEvent) => {
  * Opens app and navigates to relevant page
  */
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
-  console.log('[Service Worker] Notification click:', event.action, event.notification.data);
-
-  // Close the notification
+// Close the notification
   event.notification.close();
 
   // Don't navigate if user clicked "dismiss"
@@ -241,24 +231,21 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
  * Handle notification close events (optional analytics/logging)
  */
 self.addEventListener('notificationclose', (event: NotificationEvent) => {
-  console.log('[Service Worker] Notification closed:', event.notification.data);
-  // Could send analytics event here if needed
+// Could send analytics event here if needed
 });
 
 /**
  * Handle service worker activation
  */
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activated');
-  event.waitUntil(self.clients.claim());
+event.waitUntil(self.clients.claim());
 });
 
 /**
  * Handle service worker installation
  */
 self.addEventListener('install', (_event) => {
-  console.log('[Service Worker] Installed');
-  // Skip waiting to activate immediately
+// Skip waiting to activate immediately
   self.skipWaiting();
 });
 
@@ -267,13 +254,9 @@ self.addEventListener('install', (_event) => {
  * Used for simulating push notifications in development
  */
 self.addEventListener('message', (event: ExtendableMessageEvent) => {
-  console.log('[Service Worker] Message received:', event.data);
-
-  // Handle simulated push notifications (for development/testing)
+// Handle simulated push notifications (for development/testing)
   if (event.data && event.data.type === 'SIMULATE_PUSH') {
-    console.log('[Service Worker] 🧪 Simulated push notification:', event.data.data);
-
-    // Convert the simulated push data to match our PushPayload interface
+// Convert the simulated push data to match our PushPayload interface
     const data = event.data.data;
     const pushPayload: PushPayload = {
       type: 'announcement',
@@ -287,8 +270,7 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
     // Check for duplicates
     const messageId = generateMessageId(pushPayload);
     if (isDuplicateMessage(messageId)) {
-      console.log('[Service Worker] Skipping duplicate simulated notification');
-      return;
+return;
     }
 
     // Build notification options
@@ -327,13 +309,10 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 
     // Show the notification
     self.registration.showNotification(title, options)
-      .then(() => {
-        console.log('[Service Worker] ✅ Simulated notification displayed');
-      })
+      .then(() => {})
       .catch((error) => {
         console.error('[Service Worker] ❌ Failed to show simulated notification:', error);
       });
   }
 });
 
-console.log('[Service Worker] myK9Q Service Worker loaded with push notification support');

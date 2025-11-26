@@ -107,8 +107,7 @@ export const useNationalsScoring = (options: UseNationalsScoringOptions): UseNat
     return () => {
       // ALWAYS cleanup on unmount to prevent memory leaks
       // This is critical for long-lived apps where components mount/unmount frequently
-      console.log('🧹 useNationalsScoring: Cleaning up subscriptions on unmount');
-      disableRealtime();
+disableRealtime();
     };
   }, [licenseKey, initializeStore, disableRealtime]);
 

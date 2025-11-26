@@ -37,8 +37,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
     // SKIP DATABASE RECOVERY IN DEVELOPMENT ENTIRELY
     // This prevents false positives from HMR and rapid page reloads
     if (process.env.NODE_ENV === 'development') {
-      console.log('[DatabaseRecovery] Skipping in development environment');
-      setIsDetecting(false);
+setIsDetecting(false);
       return;
     }
 
@@ -70,8 +69,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
           errorMessage.includes('QuotaExceededError') ||
           errorMessage.includes('UnknownError') ||
           errorMessage.includes('VersionError')) {
-        console.log('[DatabaseRecovery] Corruption/error detected via console error');
-        setIsCorrupted(true);
+setIsCorrupted(true);
         setIsDetecting(false);
 
         // Note: Auto-recovery will be triggered by detectDatabaseIssues
@@ -87,8 +85,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
           warnMessage.includes('Deleting corrupted database') ||
           warnMessage.includes('Database blocked') ||
           warnMessage.includes('Delete blocked')) {
-        console.log('[DatabaseRecovery] Corruption/blocking detected via console warning');
-        setIsCorrupted(true);
+setIsCorrupted(true);
         setIsDetecting(false);
       }
       originalWarn.apply(console, args);
@@ -112,15 +109,12 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
       if (result.status === 'corrupted' || result.status === 'locked') {
         // In development, double-check after a short delay to avoid false positives
         if (process.env.NODE_ENV === 'development' && result.status === 'locked') {
-          console.log('[DatabaseRecovery] Database appears locked, verifying...');
-
-          // Wait a moment and check again
+// Wait a moment and check again
           await new Promise(resolve => setTimeout(resolve, 500));
           const recheckResult = await runIndexedDBDiagnostics();
 
           if (recheckResult.status === 'healthy') {
-            console.log('[DatabaseRecovery] False alarm - database is healthy');
-            setIsCorrupted(false);
+setIsCorrupted(false);
             onRecovered?.();
             return;
           }
@@ -129,14 +123,11 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
         setIsCorrupted(true);
 
         // Show modal first, then attempt auto-recovery after a short delay
-        console.log('[DatabaseRecovery] Storage optimization needed - showing optimization modal');
-
-        // Auto-attempt recovery after 2 seconds (gives user time to see what's happening)
+// Auto-attempt recovery after 2 seconds (gives user time to see what's happening)
         if (!autoRecoveryAttempted) {
           setAutoRecoveryAttempted(true);
           setTimeout(() => {
-            console.log('[DatabaseRecovery] Starting automatic optimization...');
-            handleAutoRecovery();
+handleAutoRecovery();
           }, 2000);
         }
       } else if (result.status === 'healthy') {
@@ -157,8 +148,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
       const offlineQueueData = localStorage.getItem('offline-queue-storage');
       if (offlineQueueData) {
         localStorage.setItem('myK9Q_mutation_backup', offlineQueueData);
-        console.log('[DatabaseRecovery] Backed up pending mutations');
-      }
+}
     } catch (error) {
       console.warn('[DatabaseRecovery] Could not backup mutations:', error);
     }
@@ -170,8 +160,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
       if (backup) {
         localStorage.setItem('offline-queue-storage', backup);
         localStorage.removeItem('myK9Q_mutation_backup');
-        console.log('[DatabaseRecovery] Restored pending mutations');
-      }
+}
     } catch (error) {
       console.warn('[DatabaseRecovery] Could not restore mutations:', error);
     }
@@ -232,8 +221,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
         try {
           const { enableReplication } = await import('@/services/replication/replicationConfig');
           enableReplication();
-          console.log('[DatabaseRecovery] Re-enabled replication after successful recovery');
-        } catch (error) {
+} catch (error) {
           console.warn('[DatabaseRecovery] Could not re-enable replication:', error);
         }
 
@@ -471,10 +459,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
                             // Force timeout after 500ms per database
                             setTimeout(resolve, 500);
                           });
-                          console.log(`Deleted ${db}`);
-                        } catch (_e) {
-                          console.log(`Could not delete ${db}`);
-                        }
+} catch (_e) { /* Ignore deletion errors */ }
                       }
 
                       // Clear localStorage (except auth AND mutation backup)
@@ -501,8 +486,7 @@ export const DatabaseRecovery: React.FC<DatabaseRecoveryProps> = ({ onRecovered,
                       // CRITICAL: Restore pending mutations before reload
                       restorePendingMutations();
 
-                      console.log('Cache cleared successfully, reloading...');
-                      window.location.reload();
+window.location.reload();
                     } catch (error) {
                       console.error('Error clearing cache:', error);
                       // Reload anyway

@@ -62,9 +62,7 @@ export const Home: React.FC = () => {
   const [columnCount, setColumnCount] = useState(1);
 
   // Log version on mount
-  useEffect(() => {
-    console.log('🔍 Home component version: 2024-11-21-v3 (PTR disabled by default)');
-  }, []);
+  useEffect(() => {}, []);
 
   useEffect(() => {
     const updateColumns = () => {

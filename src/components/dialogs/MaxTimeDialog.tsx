@@ -92,9 +92,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
     setLoading(true);
     try {
-      console.log('🕐 MaxTimeDialog - Loading time range for:', classData);
-
-      // Get organization type
+// Get organization type
       const { data: showData, error: showError } = await supabase
         .from('shows')
         .select('organization')
@@ -148,14 +146,12 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
           // This is a dictated time - display as read-only
           setIsDictatedTime(true);
           setDictatedTime(`${range.min} minute${range.min !== 1 ? 's' : ''}`);
-          console.log('📋 Dictated time detected:', dictatedTime);
-        } else {
+} else {
           setIsDictatedTime(false);
         }
 
         setTimeRange({ ...range, areas });
-        console.log('✅ Time range loaded:', { ...range, areas, isDictated: isFixedTime && range.min === range.max });
-      }
+}
     } catch (error) {
       console.error('💥 Error loading time range:', error);
     } finally {
@@ -476,9 +472,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         ? [classData.id, classData.pairedClassId]
         : [classData.id];
 
-      console.log('⏱️ Updating max times for class IDs:', idsToUpdate);
-
-      const { error } = await supabase
+const { error } = await supabase
         .from('classes')
         .update(updateData)
         .in('id', idsToUpdate);
@@ -489,9 +483,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         return;
       }
 
-      console.log('✅ Max times updated successfully');
-
-      // Show appropriate success message
+// Show appropriate success message
       if (allAreasEmpty) {
         // User cleared all times
         setSuccessMessage('Max times have been cleared successfully. Judges can now set new times.');

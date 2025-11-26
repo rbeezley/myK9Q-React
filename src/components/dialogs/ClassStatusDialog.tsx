@@ -131,13 +131,11 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
   }, [selectedStatus, isOpen]);
 
   const handleStatusSelect = (statusId: string) => {
-    console.log('🔄 ClassStatusDialog: handleStatusSelect called with:', statusId);
-    const status = statusOptions.find(s => s.id === statusId);
+const status = statusOptions.find(s => s.id === statusId);
     if (status?.needsTime) {
       setSelectedStatus(statusId);
     } else {
-      console.log('🔄 ClassStatusDialog: Calling onStatusChange with:', statusId);
-      onStatusChange(statusId);
+onStatusChange(statusId);
       onClose();
     }
   };

@@ -1,38 +1,18 @@
 /**
  * Unit Tests for Validation Utilities
+ *
+ * Note: Console logging was removed as part of DEBT-001 cleanup.
+ * Tests now focus on the core logic (return values) only.
  */
 
 import { shouldCheckCompletion } from './validationUtils';
 
 describe('shouldCheckCompletion', () => {
-  // Suppress console.log during tests
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    consoleLogSpy.mockRestore();
-  });
-
   describe('First dog scored', () => {
     test('should return true when first dog is scored (1 of any total)', () => {
       expect(shouldCheckCompletion(1, 10)).toBe(true);
       expect(shouldCheckCompletion(1, 1)).toBe(true); // Edge case: only 1 dog total
       expect(shouldCheckCompletion(1, 100)).toBe(true);
-    });
-
-    test('should log "First dog scored" message when logging enabled', () => {
-      shouldCheckCompletion(1, 15, true);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '✅ First dog scored - checking to mark class as in_progress'
-      );
-    });
-
-    test('should not log when logging is disabled', () => {
-      shouldCheckCompletion(1, 15, false);
-      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -41,18 +21,6 @@ describe('shouldCheckCompletion', () => {
       expect(shouldCheckCompletion(10, 10)).toBe(true);
       expect(shouldCheckCompletion(1, 1)).toBe(true); // Edge case: only 1 dog
       expect(shouldCheckCompletion(50, 50)).toBe(true);
-    });
-
-    test('should log "All dogs scored" message when logging enabled', () => {
-      shouldCheckCompletion(15, 15, true);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '✅ All dogs scored - checking to mark class as completed'
-      );
-    });
-
-    test('should not log when logging is disabled', () => {
-      shouldCheckCompletion(10, 10, false);
-      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -67,18 +35,6 @@ describe('shouldCheckCompletion', () => {
       expect(shouldCheckCompletion(9, 10)).toBe(false); // One away from done
       expect(shouldCheckCompletion(14, 15)).toBe(false); // One away from done
       expect(shouldCheckCompletion(99, 100)).toBe(false); // One away from done
-    });
-
-    test('should log "Skipping completion check" message when logging enabled', () => {
-      shouldCheckCompletion(5, 10, true);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '⏭️ Skipping completion check (5/10 - not first or last)'
-      );
-    });
-
-    test('should not log when logging is disabled', () => {
-      shouldCheckCompletion(5, 10, false);
-      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -101,23 +57,6 @@ describe('shouldCheckCompletion', () => {
       expect(shouldCheckCompletion(1, 200)).toBe(true); // First
       expect(shouldCheckCompletion(100, 200)).toBe(false); // Middle
       expect(shouldCheckCompletion(200, 200)).toBe(true); // Last
-    });
-  });
-
-  describe('Logging parameter', () => {
-    test('should default to logging enabled', () => {
-      shouldCheckCompletion(1, 10);
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    test('should support explicit true for logging', () => {
-      shouldCheckCompletion(1, 10, true);
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    test('should support explicit false for logging', () => {
-      shouldCheckCompletion(1, 10, false);
-      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
   });
 

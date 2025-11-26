@@ -221,8 +221,7 @@ export class NationalsScoring {
         return { data: null, error };
       }
 
-      console.log('✅ Nationals score submitted:', data);
-      return { data, error: null };
+return { data, error: null };
     } catch (error) {
       console.error('Exception submitting nationals score:', error);
       return { data: null, error };
@@ -278,8 +277,7 @@ export class NationalsScoring {
         return { data: null, error };
       }
 
-      console.log('✅ Nationals score updated:', data);
-      return { data, error: null };
+return { data, error: null };
     } catch (error) {
       console.error('Exception updating nationals score:', error);
       return { data: null, error };
@@ -398,8 +396,7 @@ export class NationalsScoring {
         return { success: false, error };
       }
 
-      console.log('✅ Rankings recalculated successfully');
-      return { success: true, error: null };
+return { success: true, error: null };
     } catch (error) {
       console.error('Exception recalculating rankings:', error);
       return { success: false, error };

@@ -103,38 +103,30 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       setLicenseKey: (licenseKey: string, showName?: string) => {
         const current = get();
 
-        console.log('🔑 setLicenseKey called with:', { licenseKey, showName, currentLicenseKey: current.currentLicenseKey, isInitializing: current.isInitializing, isLoading: current.isLoading });
-
-        // Guard: Don't refetch if license key hasn't changed
+// Guard: Don't refetch if license key hasn't changed
         if (current.currentLicenseKey === licenseKey) {
-          console.log('✋ License key unchanged, skipping fetch');
-          return;
+return;
         }
 
         // Guard: Don't allow concurrent calls
         if (current.isLoading) {
-          console.log('✋ Already loading announcements, skipping duplicate call');
-          return;
+return;
         }
 
         // Guard: Prevent concurrent initialization
         if (current.isInitializing) {
-          console.log('✋ Already initializing announcements, skipping duplicate call');
-          return;
+return;
         }
 
         // Guard: If we have an active channel for this license, we're already set up
         if (current.realtimeChannel && current.isConnected) {
           // Check if the existing channel matches the requested license key
           if (current.realtimeChannel.topic.includes(licenseKey)) {
-            console.log('✋ Already connected to announcement channel for this license key, skipping');
-            return;
+return;
           }
         }
 
-        console.log('✅ Proceeding with setLicenseKey');
-
-        // Set initialization lock AND license key synchronously to prevent race conditions
+// Set initialization lock AND license key synchronously to prevent race conditions
         set({
           isInitializing: true,
           currentLicenseKey: licenseKey,
@@ -171,9 +163,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                   // Check if already subscribed
                   const isSubscribed = await PushNotificationService.isSubscribed();
                   if (isSubscribed) {
-                    console.log('[Push Auto-Switch] Updating subscription for new show:', licenseKey);
-
-                    // Get favorite armbands from localStorage
+// Get favorite armbands from localStorage
                     const favoritesKey = `dog_favorites_${licenseKey}`;
                     const savedFavorites = localStorage.getItem(favoritesKey);
                     let favoriteArmbands: number[] = [];
@@ -190,10 +180,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                     }
 
                     await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
-                    console.log('[Push Auto-Switch] ✓ Subscription updated successfully');
-                  } else {
-                    console.log('[Push Auto-Switch] Not subscribed - skipping show switch');
-                  }
+} else {}
                 }
               }
             }
@@ -280,9 +267,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
           // For development AND testing, also trigger service worker directly
           // TODO: Remove this once Edge Function is deployed and working
           if ('serviceWorker' in navigator) {
-            console.log('🧪 [DEV] Simulating push notification for development');
-
-            // Add timeout to service worker ready promise
+// Add timeout to service worker ready promise
             const swReadyTimeout = new Promise((_, reject) =>
               setTimeout(() => reject(new Error('Service worker ready timeout')), 5000)
             );
@@ -290,15 +275,13 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             Promise.race([navigator.serviceWorker.ready, swReadyTimeout])
               .then((registration) => {
                 const swRegistration = registration as ServiceWorkerRegistration;
-                console.log('📱 Service worker ready:', swRegistration);
-                console.log('📱 Service worker active:', swRegistration.active);
+console.log('📱 Service worker active:', swRegistration.active);
 
                 if (!swRegistration.active) {
                   console.error('❌ Service worker is not active');
                   // Fallback: Show browser notification directly
                   if ('Notification' in window && Notification.permission === 'granted') {
-                    console.log('📱 Showing fallback browser notification');
-                    new Notification(data.title, {
+new Notification(data.title, {
                       body: data.content,
                       icon: '/myK9Q-teal-192.png',
                       badge: '/myK9Q-teal-192.png',
@@ -319,14 +302,12 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                     timestamp: new Date().toISOString()
                   }
                 });
-                console.log('📱 Simulated push notification sent to service worker');
-              })
+})
               .catch(error => {
                 console.error('❌ Service worker not ready:', error.message);
                 // Fallback: Show browser notification directly
                 if ('Notification' in window && Notification.permission === 'granted') {
-                  console.log('📱 Showing fallback browser notification');
-                  const isUrgent = data.priority === 'urgent';
+const isUrgent = data.priority === 'urgent';
                   const title = isUrgent ? `🚨 ${data.title}` : data.title;
                   new Notification(title, {
                     body: data.content,
@@ -338,12 +319,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                   console.error('❌ Cannot show notification - permission not granted');
                 }
               });
-          } else {
-            console.log('ℹ️ Not simulating push notification:', {
-              serviceWorkerSupported: 'serviceWorker' in navigator,
-              isDev: import.meta.env.DEV
-            });
-          }
+          } else {}
 
         } catch (error) {
           console.error('Error creating announcement:', error);
@@ -503,8 +479,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                 filter: `license_key=eq.${licenseKey}`
               },
               (payload) => {
-                console.log('📢 New announcement received:', payload.new);
-                const newAnnouncement: Announcement = { ...(payload.new as Announcement), is_read: false };
+const newAnnouncement: Announcement = { ...(payload.new as Announcement), is_read: false };
 
                 set(state => ({
                   announcements: [newAnnouncement, ...state.announcements],
@@ -523,8 +498,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                 filter: `license_key=eq.${licenseKey}`
               },
               (payload) => {
-                console.log('📢 Announcement updated:', payload.new);
-                set(state => ({
+set(state => ({
                   announcements: state.announcements.map(a =>
                     a.id === payload.new.id ? { ...a, ...payload.new } : a
                   )
@@ -539,8 +513,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
                 filter: `license_key=eq.${licenseKey}`
               },
               (payload) => {
-                console.log('📢 Announcement deleted:', payload.old);
-                set(state => ({
+set(state => ({
                   announcements: state.announcements.filter(a => a.id !== payload.old.id),
                   unreadCount: state.announcements.find(a => a.id === payload.old.id && !a.is_read)
                     ? state.unreadCount - 1
@@ -556,9 +529,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             isConnected: true
           });
 
-          console.log('✅ Announcement real-time updates enabled for license:', licenseKey);
-
-        } catch (error) {
+} catch (error) {
           console.error('Failed to enable real-time updates:', error);
           set({ isConnected: false });
         }
@@ -573,8 +544,7 @@ export const useAnnouncementStore = create<AnnouncementState>()(
             realtimeChannel: null,
             isConnected: false
           });
-          console.log('🔌 Announcement real-time updates disabled');
-        }
+}
       },
 
       getFilteredAnnouncements: () => {
@@ -649,14 +619,12 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         const { realtimeChannel } = get();
 
         if (realtimeChannel) {
-          console.log('🧹 Cleaning up announcement subscriptions');
-          get().disableRealtime();
+get().disableRealtime();
         }
 
         // Clear initialization lock if stuck
         if (get().isInitializing) {
-          console.log('🧹 Clearing stuck initialization lock');
-          set({ isInitializing: false });
+set({ isInitializing: false });
         }
       }
     }),

@@ -60,8 +60,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Filter to only show notifications from the last 24 hours
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         const recent = parsed.filter((n: InAppNotification) => n.timestamp > oneDayAgo);
-        console.log('📂 [NotificationContext] Loaded', recent.length, 'notifications from localStorage');
-        return recent;
+return recent;
       }
     } catch (error) {
       console.error('Error loading notifications from storage:', error);
@@ -105,9 +104,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Add to beginning of array (newest first)
       const updated = [newNotification, ...prev];
 
-      console.log('📊 [NotificationContext] Notification center updated. Total notifications:', updated.length);
-
-      // Keep only MAX_NOTIFICATIONS most recent
+// Keep only MAX_NOTIFICATIONS most recent
       return updated.slice(0, MAX_NOTIFICATIONS);
     });
 
@@ -141,8 +138,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Panel controls
   const openPanel = useCallback(() => {
-    console.log('🔓 [NotificationContext] Opening panel with', notifications.length, 'notifications');
-    console.log('📋 [NotificationContext] Current notifications:', notifications);
+console.log('📋 [NotificationContext] Current notifications:', notifications);
     setIsPanelOpen(true);
   }, [notifications]);
   const closePanel = useCallback(() => setIsPanelOpen(false), []);
@@ -153,9 +149,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === 'PUSH_RECEIVED') {
         const data = event.data.data;
-        console.log('📨 [NotificationContext] Push notification received from service worker:', data);
-
-        // Determine notification type based on backend payload
+// Determine notification type based on backend payload
         let type: 'announcement' | 'dog-alert' | 'system' = 'announcement';
         if (data.type === 'up_soon' || data.type === 'dog-alert') {
           type = 'dog-alert';
@@ -184,12 +178,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-      console.log('📡 [NotificationContext] Listening for push notifications from service worker');
-
-      return () => {
+return () => {
         navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
-        console.log('🔌 [NotificationContext] Stopped listening for push notifications');
-      };
+};
     }
   }, [addNotification]);
 
@@ -203,9 +194,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const licenseKey = showContext.licenseKey;
     const showName = showContext.showName;
 
-    console.log('📡 [NotificationContext] Setting up real-time subscription for:', licenseKey);
-
-    // Create channel for announcements table
+// Create channel for announcements table
     const channel = supabase
       .channel(`in-app-notifications:${licenseKey}`)
       .on(
@@ -217,9 +206,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           filter: `license_key=eq.${licenseKey}`
         },
         (payload) => {
-          console.log('🔔 [NotificationContext] New announcement received:', payload.new);
-
-          const announcement = payload.new as Announcement;
+const announcement = payload.new as Announcement;
 
           // Determine notification type
           const isDogAlert = false; // We'd need additional context to know if it's a dog alert
@@ -239,16 +226,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       )
       .subscribe((status) => {
-        console.log('📡 [NotificationContext] Subscription status:', status);
-        setIsConnected(status === 'SUBSCRIBED');
+setIsConnected(status === 'SUBSCRIBED');
       });
 
     realtimeChannelRef.current = channel;
 
     // Cleanup on unmount or license key change
     return () => {
-      console.log('🔌 [NotificationContext] Cleaning up real-time subscription');
-      if (realtimeChannelRef.current) {
+if (realtimeChannelRef.current) {
         realtimeChannelRef.current.unsubscribe();
         realtimeChannelRef.current = null;
       }

@@ -49,8 +49,7 @@ export function MigrationTest() {
 
     try {
       // Test database detection
-      console.log(`Testing passcode: ${fullPasscode}`);
-      const detectionResult = await detectDatabaseWithValidation(fullPasscode);
+const detectionResult = await detectDatabaseWithValidation(fullPasscode);
 
       // Create test result
       const result: TestResult = {
@@ -69,9 +68,7 @@ export function MigrationTest() {
       setTestPasscode(['', '', '', '', '']);
 
       // Show result
-      console.log('Detection result:', detectionResult);
-
-    } catch (error) {
+} catch (error) {
       console.error('Test error:', error);
 
       const result: TestResult = {

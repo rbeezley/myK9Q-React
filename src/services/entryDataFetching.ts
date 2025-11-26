@@ -28,9 +28,7 @@ export async function fetchClassEntriesFromDatabase(
   primaryClassId: number,
   licenseKey: string
 ): Promise<Entry[]> {
-  console.log('🔍 Fetching class entries from Supabase...');
-
-  // Get class data to determine element, level, section for filtering
+// Get class data to determine element, level, section for filtering
   const { data: classData, error: classError } = await supabase
     .from('classes')
     .select('element, level, section, area_count, time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds')
@@ -132,8 +130,7 @@ export async function fetchClassEntriesFromDatabase(
     };
   });
 
-  console.log(`📊 Returning ${mappedEntries.length} entries from Supabase fallback`);
-  return mappedEntries;
+return mappedEntries;
 }
 
 /**

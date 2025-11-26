@@ -40,9 +40,7 @@ export async function recalculatePlacementsForClass(
       throw error;
     }
 
-    console.log(`✅ Recalculated placements for class(es) ${classIdArray.join(', ')}`);
-
-  } catch (error) {
+} catch (error) {
     console.error('Error recalculating placements:', error);
     throw error;
   }
@@ -80,9 +78,7 @@ export async function manuallyRecalculatePlacements(
   classId: number
 ): Promise<void> {
   try {
-    console.log('🔄 Manual placement recalculation requested for class', classId);
-
-    // Get class data including show info
+// Get class data including show info
     const { data: classData, error: classError } = await supabase
       .from('classes')
       .select(`
@@ -109,8 +105,7 @@ export async function manuallyRecalculatePlacements(
     const isNationals = show.show_type?.toLowerCase().includes('national') || false;
 
     await recalculatePlacementsForClass(classId, licenseKey, isNationals);
-    console.log('✅ Manual placement recalculation completed for class', classId);
-  } catch (error) {
+} catch (error) {
     console.error('Error in manual placement recalculation:', error);
     throw error;
   }

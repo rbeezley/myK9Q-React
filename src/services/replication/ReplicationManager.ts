@@ -894,10 +894,8 @@ export class ReplicationManager {
               const table = this.getTable(tableName);
               if (table) {
                 try {
-                  console.log(`[ReplicationManager] 🔄 Starting sync for ${tableName} (triggered by real-time event)`);
-                  await this.syncTable(tableName, { forceFullSync: false });
-                  console.log(`[ReplicationManager] ✅ Sync completed for ${tableName}, cache is now up-to-date`);
-                } catch (error) {
+await this.syncTable(tableName, { forceFullSync: false });
+} catch (error) {
                   logger.error(`[ReplicationManager] Real-time sync failed for ${tableName}:`, error);
                 }
               }

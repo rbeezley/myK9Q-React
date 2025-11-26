@@ -91,9 +91,7 @@ export function useOptimisticScoring() {
       pairedClassId,
     } = options;
 
-    console.log('🚀 Optimistic score submission started for entry:', entryId);
-
-    // Step 1: Update local state IMMEDIATELY (< 50ms)
+// Step 1: Update local state IMMEDIATELY (< 50ms)
     // This makes the UI feel instant
     const optimisticResult = scoreData.resultText as any; // Type assertion for flexible result text
 
@@ -122,9 +120,7 @@ export function useOptimisticScoring() {
     // - resultText from database is lowercase ('nq', 'qualified', 'absent', etc.)
     // - searchTime from database is number.toString() without padding ('0', '123.45')
     // - faultCount, correctFinds, etc. are numbers
-    console.log('🔄 Updating LocalStateManager for entry:', entryId);
-
-    // TODO: Remove legacy localStateManager - replaced by replication system
+// TODO: Remove legacy localStateManager - replaced by replication system
     // Normalization logic below was only needed for localStateManager, now unused:
     // const normalizedResultText = scoreData.resultText.toLowerCase();
     // const searchTimeNum = scoreData.searchTime ? parseFloat(scoreData.searchTime) : 0;
@@ -146,9 +142,7 @@ export function useOptimisticScoring() {
     //   },
     //   'score'
     // );
-    console.log('✅ LocalStateManager updated with pending score (will notify EntryList listeners)');
-
-    console.log('✅ Local state updated optimistically');
+console.log('✅ Local state updated optimistically');
 
     // Step 2: Sync with server in background
     await update({
@@ -156,9 +150,7 @@ export function useOptimisticScoring() {
       serverUpdate: async () => {
         // Check if online
         if (!isOnline) {
-          console.log('📴 Offline - adding to queue for later sync');
-
-          // Add to offline queue if we have the required data
+// Add to offline queue if we have the required data
           if (classId && armband && className) {
             addToQueue({
               entryId,
@@ -174,17 +166,12 @@ export function useOptimisticScoring() {
         }
 
         // Submit to server
-        console.log('📡 Submitting score to server...');
-        await submitScore(entryId, scoreData, pairedClassId, classId);
-        console.log('✅ Score successfully synced with server');
-
-        // 🚀 LOCAL-FIRST: DO NOT clear pending change immediately!
+await submitScore(entryId, scoreData, pairedClassId, classId);
+// 🚀 LOCAL-FIRST: DO NOT clear pending change immediately!
         // The pending change will be cleared when the real-time update confirms
         // the database has been updated. This prevents a race condition where we
         // clear the pending change before the database update propagates.
-        console.log('⏳ Waiting for real-time update to confirm database update...');
-
-        // Safety fallback: Clear pending change after 5 seconds even without real-time confirmation
+// Safety fallback: Clear pending change after 5 seconds even without real-time confirmation
         // This handles edge cases like:
         // - Connection drops right after successful API response
         // - Real-time subscription not connected
@@ -203,16 +190,14 @@ export function useOptimisticScoring() {
         return { entryId, scoreData };
       },
       onSuccess: () => {
-        console.log('✅ Score submission completed successfully');
-        onSuccess?.();
+onSuccess?.();
       },
       onError: (err) => {
         console.error('❌ Score submission failed:', err);
 
         // If offline, we already queued it, so don't show error
         if (!isOnline) {
-          console.log('📴 Score queued for sync when online');
-          onSuccess?.(); // Still allow navigation
+onSuccess?.(); // Still allow navigation
           return;
         }
 
@@ -220,8 +205,7 @@ export function useOptimisticScoring() {
         onError?.(err);
       },
       onRollback: () => {
-        console.log('🔄 Rolling back optimistic update');
-        // The markAsScored already happened, could add undo logic here if needed
+// The markAsScored already happened, could add undo logic here if needed
       },
       maxRetries: 3,
       retryDelay: 1000, // 1 second, exponential backoff in hook

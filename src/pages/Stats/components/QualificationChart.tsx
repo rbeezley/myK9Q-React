@@ -101,8 +101,7 @@ const QualificationChart: React.FC<QualificationChartProps> = ({ data, onSegment
               style={{ cursor: onSegmentClick ? 'pointer' : 'default' }}
               onClick={() => {
                 // Could implement filtering by result status if needed
-                console.log('Clicked:', entry.name);
-              }}
+}}
             />
           ))}
         </Pie>

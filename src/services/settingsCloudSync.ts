@@ -109,8 +109,7 @@ export async function uploadSettings(settings: AppSettings): Promise<SyncResult>
       }
     }
 
-    console.log('✅ Settings uploaded to cloud');
-    return { success: true, synced: true, conflictDetected: false };
+return { success: true, synced: true, conflictDetected: false };
   } catch (error) {
     console.error('Settings upload error:', error);
     return {
@@ -196,8 +195,7 @@ export async function downloadSettings(
         };
       }
 
-      console.log('✅ Downloaded and migrated settings from cloud');
-      return {
+return {
         settings: migrationResult.settings,
         result: { success: true, synced: true, conflictDetected: false },
       };
@@ -248,8 +246,7 @@ async function mergeSettings(
     }
   });
 
-  console.log('🔀 Merged settings with conflict resolution');
-  return merged;
+return merged;
 }
 
 /**
@@ -303,8 +300,7 @@ export function subscribeToSettingsUpdates(
         // Only notify if update is from a different device
         const data = payload.new as any;
         if (data.device_id !== deviceId) {
-          console.log('📲 Settings updated from another device');
-          onUpdate(data.settings);
+onUpdate(data.settings);
         }
       }
     )
@@ -333,8 +329,7 @@ export async function deleteCloudSettings(): Promise<boolean> {
       return false;
     }
 
-    console.log('🗑️ Cloud settings deleted');
-    return true;
+return true;
   } catch (error) {
     console.error('Delete settings error:', error);
     return false;

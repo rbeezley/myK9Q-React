@@ -53,8 +53,7 @@ export const CombinedEntryList: React.FC = () => {
   // Force fresh fetch on mount to avoid stale cache issues after scoring
   // This ensures we always see the latest scores after navigating back from scoresheet or page refresh
   useEffect(() => {
-    console.log('🔄 CombinedEntryList mounted - refreshing to get latest scores');
-    refresh(); // Refresh on mount
+refresh(); // Refresh on mount
   }, [refresh]); // Run when refresh function changes (effectively once per mount)
 
   // Actions using shared hook
@@ -119,8 +118,7 @@ export const CombinedEntryList: React.FC = () => {
         const manager = await ensureReplicationManager();
 
         // Subscribe to cache updates for entries table
-        unsubscribe = manager.onCacheUpdate('entries', (tableName: string) => {
-          console.log(`✅ [CombinedEntryList] Cache updated for ${tableName}, refreshing UI`);
+        unsubscribe = manager.onCacheUpdate('entries', (_tableName: string) => {
           refresh();
         });
 
@@ -296,9 +294,7 @@ export const CombinedEntryList: React.FC = () => {
   // Handle applying run order preset from dialog
   const handleApplyRunOrder = async (preset: RunOrderPreset) => {
     try {
-      console.log('🔄 Applying run order preset:', preset);
-
-      // Apply the preset and update database
+// Apply the preset and update database
       const reorderedEntries = await applyRunOrderPreset(localEntries, preset);
 
       // Update local state
@@ -321,8 +317,7 @@ export const CombinedEntryList: React.FC = () => {
       // Refresh to ensure data is in sync
       await refresh();
 
-      console.log('✅ Run order applied successfully');
-    } catch (error) {
+} catch (error) {
       console.error('❌ Error applying run order:', error);
       setRunOrderDialogOpen(false);
       // TODO: Show error toast
@@ -333,20 +328,16 @@ export const CombinedEntryList: React.FC = () => {
     if (!resetConfirmDialog.entry) return;
 
     const entryId = resetConfirmDialog.entry.id;
-    console.log('[CombinedEntryList] Resetting score for entry:', entryId);
-
-    try {
+try {
       await handleResetScoreHook(entryId);
 
       // CRITICAL: Wait longer for the sync AND real-time update to fully propagate
       // The sync updates the database AND the replication cache
       // Real-time subscriptions also fire and update the cache
       // We need to wait for both to complete before refreshing
-      console.log('[CombinedEntryList] Waiting for sync and real-time updates to complete...');
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Give sync + real-time time to complete
+await new Promise(resolve => setTimeout(resolve, 1500)); // Give sync + real-time time to complete
 
-      console.log('[CombinedEntryList] Refreshing entries from server...');
-      await refresh(); // Fetch updated data from server/cache
+await refresh(); // Fetch updated data from server/cache
 
       // Switch to pending tab to show the reset entry
       setActiveTab('pending');
@@ -425,14 +416,11 @@ export const CombinedEntryList: React.FC = () => {
 
     // Sync with server and WAIT for database write to complete
     try {
-      console.log('⏳ Waiting for database write to complete...');
-      await handleStatusChangeHook(entryId, newStatus);
-      console.log('✅ Database write confirmed - refreshing');
-      // Refresh to get latest data
+await handleStatusChangeHook(entryId, newStatus);
+// Refresh to get latest data
       // This ensures immediate page refresh shows the correct status
       await refresh();
-      console.log('✅ Refreshed - safe to continue');
-    } catch (error) {
+} catch (error) {
       console.error('Status change failed:', error);
       // Rollback optimistic update on error
       setLocalEntries(prev => prev.map(entry =>
@@ -485,8 +473,7 @@ export const CombinedEntryList: React.FC = () => {
     prefetch(
       `scoresheet-${entry.id}`,
       async () => {
-        console.log('📡 Prefetched scoresheet route:', entry.id, route);
-        return { entryId: entry.id, route, entry };
+return { entryId: entry.id, route, entry };
       },
       {
         ttl: 30, // 30 seconds cache (scoring data changes frequently)
@@ -504,8 +491,7 @@ export const CombinedEntryList: React.FC = () => {
         prefetch(
           `scoresheet-${nextEntry.id}`,
           async () => {
-            console.log('📡 Prefetched next entry route:', nextEntry.id, nextRoute);
-            return { entryId: nextEntry.id, route: nextRoute, entry: nextEntry };
+return { entryId: nextEntry.id, route: nextRoute, entry: nextEntry };
           },
           {
             ttl: 30,

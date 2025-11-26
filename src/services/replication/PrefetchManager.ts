@@ -82,8 +82,7 @@ export class PrefetchManager {
     // Trigger prefetch for likely next page
     this.schedulePrefetch(toPage);
 
-    console.log(`🚀 [Prefetch] Navigation tracked: ${fromPage} → ${toPage}`);
-  }
+}
 
   /**
    * Schedule prefetch based on current page
@@ -94,8 +93,7 @@ export class PrefetchManager {
       const predictions = this.predictNextPages(currentPage);
 
       if (predictions.length > 0) {
-        console.log(`🔮 [Prefetch] Predicted next pages:`, predictions.map(p => p.toPage));
-        this.executePrefetch(predictions);
+this.executePrefetch(predictions);
       }
     }, this.PREFETCH_DELAY_MS);
   }
@@ -290,9 +288,7 @@ export class PrefetchManager {
         return;
       }
 
-      console.log(`💾 [Prefetch] Prefetching table: ${task.tableName} (priority: ${task.priority})`);
-
-      // Trigger background sync (non-blocking)
+// Trigger background sync (non-blocking)
       // The table's sync() method will handle the actual data fetch
       // We don't await here to prevent blocking the UI
       table.sync('', { forceFullSync: false }).catch(error => {

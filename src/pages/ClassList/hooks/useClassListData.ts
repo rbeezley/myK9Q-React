@@ -326,8 +326,7 @@ async function fetchClasses(
   const isReplicationEnabled = true;
 
   if (isReplicationEnabled) {
-    console.log('🔄 [REPLICATION] Fetching classes from replicated cache...');
-    logger.log('🔄 Fetching classes from replicated cache...');
+logger.log('🔄 Fetching classes from replicated cache...');
 
     try {
       const manager = await ensureReplicationManager();
@@ -345,12 +344,9 @@ async function fetchClasses(
             (cls) => cls.trial_id === trialIdNum
           );
 
-          console.log(`✅ [REPLICATION] Loaded ${trialClasses.length} classes from cache (trial_id: ${trialIdNum})`);
-
-          // If cache is empty, fall back to Supabase (cache may still be syncing)
+// If cache is empty, fall back to Supabase (cache may still be syncing)
           if (trialClasses.length === 0) {
-            console.log('📭 [REPLICATION] Cache is empty, falling back to Supabase');
-            logger.log('📭 Cache is empty, falling back to Supabase');
+logger.log('📭 Cache is empty, falling back to Supabase');
             // Fall through to Supabase query below
           } else {
             // Get entries for this trial from cache
@@ -363,9 +359,7 @@ async function fetchClasses(
               licenseKey
             );
 
-            console.log(`📊 [REPLICATION] Processed ${processedClasses.length} classes`);
-
-            // Fetch visibility presets for all classes
+// Fetch visibility presets for all classes
             try {
               const classIds = processedClasses.map(c => c.id);
               const { data: visibilityData } = await supabase

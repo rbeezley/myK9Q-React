@@ -36,7 +36,6 @@ export function initOfflineRouter() {
   // Listen for navigation events
   window.addEventListener('popstate', handleNavigation);
 
-  console.log('🧭 Offline router initialized');
 }
 
 /**
@@ -47,8 +46,7 @@ async function loadVisitedRoutes() {
     const cached = await idbCache.get<string[]>('visited-routes');
     if (cached?.data) {
       cached.data.forEach((route) => visitedRoutes.add(route));
-      console.log(`🗺️ Loaded ${cached.data.length} visited routes`);
-    }
+}
   } catch (error) {
     console.error('Failed to load visited routes:', error);
   }
@@ -81,8 +79,7 @@ export async function markRouteVisited(path: string, data?: any) {
 
   try {
     await idbCache.set(`route:${path}`, cached, ROUTE_CACHE_TTL);
-    console.log(`📍 Cached route: ${path}`);
-  } catch (error) {
+} catch (error) {
     console.error(`Failed to cache route ${path}:`, error);
   }
 }
@@ -122,13 +119,11 @@ export async function getCachedRoute(path: string): Promise<CachedRoute | null> 
 export async function prefetchRoute(path: string, fetchData: () => Promise<any>) {
   // Skip if already visited
   if (isRouteVisited(path)) {
-    console.log(`⏭️ Skipping prefetch for already visited route: ${path}`);
-    return;
+return;
   }
 
   try {
-    console.log(`🔮 Prefetching route: ${path}`);
-    const data = await fetchData();
+const data = await fetchData();
     await markRouteVisited(path, data);
   } catch (error) {
     console.error(`Failed to prefetch route ${path}:`, error);
@@ -189,9 +184,7 @@ function predictNextRoutes(currentPath: string): string[] {
  */
 function handleNavigation() {
   const path = window.location.pathname;
-  console.log(`🧭 Navigated to: ${path}`);
-
-  // Mark as visited (no data, just the path)
+// Mark as visited (no data, just the path)
   markRouteVisited(path).catch((err) => {
     console.error('Failed to mark route as visited:', err);
   });
@@ -208,8 +201,7 @@ export async function clearRoutingCache() {
     }
     visitedRoutes.clear();
     await idbCache.delete('visited-routes');
-    console.log('🗑️ Cleared all routing cache');
-  } catch (error) {
+} catch (error) {
     console.error('Failed to clear routing cache:', error);
   }
 }

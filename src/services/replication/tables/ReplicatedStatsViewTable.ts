@@ -141,8 +141,7 @@ export class ReplicatedStatsViewTable extends ReplicatedTable<StatsView> {
       if (newRecord?.is_scored && newRecord?.id) {
         // Entry was scored - we need to refresh the full stats view
         // because aggregate stats may have changed
-        console.log('[ReplicatedStatsViewTable] Entry scored, invalidating cache:', newRecord.id);
-      }
+}
     }
   }
 
@@ -209,9 +208,7 @@ export class ReplicatedStatsViewTable extends ReplicatedTable<StatsView> {
   async sync(licenseKey: string): Promise<SyncResult> {
     const startTime = Date.now();
     try {
-      console.log('[ReplicatedStatsViewTable] Syncing stats view...');
-
-      const data = await this.fetchFromSupabase(licenseKey);
+const data = await this.fetchFromSupabase(licenseKey);
 
       // Clear old data first (full replacement for views)
       await this.clearTable();
@@ -224,9 +221,7 @@ export class ReplicatedStatsViewTable extends ReplicatedTable<StatsView> {
         syncStatus: 'idle',
       });
 
-      console.log(`[ReplicatedStatsViewTable] ✅ Synced ${data.length} stats rows`);
-
-      return {
+return {
         tableName: this.tableName,
         success: true,
         operation: 'full-sync',

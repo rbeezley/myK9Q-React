@@ -88,13 +88,11 @@ export const EntryList: React.FC = () => {
         const manager = await ensureReplicationManager();
 
         // Subscribe to cache updates for entries table
-        unsubscribe = manager.onCacheUpdate('entries', (tableName: string) => {
+        unsubscribe = manager.onCacheUpdate('entries', (_tableName: string) => {
           // Skip refresh during drag operations to prevent snap-back
           if (isDraggingRef.current) {
-            console.log(`🛡️ [EntryList] Cache update ignored during drag operation`);
             return;
           }
-          console.log(`✅ [EntryList] Cache updated for ${tableName}, refreshing UI`);
           refresh();
         });
 
@@ -177,9 +175,7 @@ export const EntryList: React.FC = () => {
   // Handle applying run order preset from dialog
   const handleApplyRunOrder = async (preset: RunOrderPreset) => {
     try {
-      console.log('🔄 Applying run order preset:', preset);
-
-      // Apply the preset and update database
+// Apply the preset and update database
       const reorderedEntries = await applyRunOrderPreset(localEntries, preset);
 
       // Update local state
@@ -202,8 +198,7 @@ export const EntryList: React.FC = () => {
       // Refresh to ensure data is in sync
       await refresh();
 
-      console.log('✅ Run order applied successfully');
-    } catch (error) {
+} catch (error) {
       console.error('❌ Error applying run order:', error);
       setRunOrderDialogOpen(false);
       // TODO: Show error toast
@@ -357,8 +352,7 @@ export const EntryList: React.FC = () => {
       await manuallyRecalculatePlacements(Number(classId));
       // Refresh to show updated placements
       await refresh();
-      console.log('✅ Placements recalculated and refreshed');
-    } catch (error) {
+} catch (error) {
       console.error('❌ Failed to recalculate placements:', error);
       alert('Failed to recalculate placements. Please try again.');
     } finally {
@@ -462,23 +456,18 @@ export const EntryList: React.FC = () => {
 
 
   const handleEntryClick = async (entry: Entry) => {
-    console.log('[EntryList] handleEntryClick called with entry:', entry);
-
-    if (entry.isScored) {
-      console.log('[EntryList] Entry already scored, returning');
-      return;
+if (entry.isScored) {
+return;
     }
 
     if (!hasPermission('canScore')) {
-      console.log('[EntryList] No permission to score');
-      alert('You do not have permission to score entries.');
+alert('You do not have permission to score entries.');
       return;
     }
 
     // Set dog status to in-ring when scoresheet opens
     if (entry.id && !entry.isScored) {
-      console.log('[EntryList] Setting dog in-ring status...');
-      const success = await setDogInRingStatus(entry.id, true);
+const success = await setDogInRingStatus(entry.id, true);
       if (success) {
         setLocalEntries(prev => prev.map(e =>
           e.id === entry.id ? { ...e, inRing: true } : e
@@ -487,10 +476,8 @@ export const EntryList: React.FC = () => {
     }
 
     const route = getScoreSheetRoute(entry);
-    console.log('[EntryList] Navigating to scoresheet route:', route);
-    console.log('[EntryList] ShowContext:', showContext);
-    console.log('[EntryList] ClassId:', classId);
-    navigate(route);
+console.log('[EntryList] ShowContext:', showContext);
+navigate(route);
   };
 
   const handleResetMenuClick = (e: React.MouseEvent, entryId: number) => {
@@ -607,8 +594,7 @@ export const EntryList: React.FC = () => {
       async () => {
         // Prefetch any scoresheet-specific data here
         // For now, just cache the route info
-        console.log('📡 Prefetched scoresheet route:', entry.id, route);
-        return { entryId: entry.id, route, entry };
+return { entryId: entry.id, route, entry };
       },
       {
         ttl: 30, // 30 seconds cache (scoring data changes frequently)
@@ -626,8 +612,7 @@ export const EntryList: React.FC = () => {
         prefetch(
           `scoresheet-${nextEntry.id}`,
           async () => {
-            console.log('📡 Prefetched next entry route:', nextEntry.id, nextRoute);
-            return { entryId: nextEntry.id, route: nextRoute, entry: nextEntry };
+return { entryId: nextEntry.id, route: nextRoute, entry: nextEntry };
           },
           {
             ttl: 30,

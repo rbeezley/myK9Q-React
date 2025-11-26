@@ -109,8 +109,7 @@ export function useFavoriteClasses(
   const { licenseKey, trialId, onFavoritesChange } = options;
 
   const [favoriteClasses, setFavoriteClasses] = useState<Set<number>>(() => {
-    console.log('🔄 Initializing favoriteClasses state');
-    return new Set();
+return new Set();
   });
   const [favoritesLoaded, setFavoritesLoaded] = useState(false);
 
@@ -118,17 +117,8 @@ export function useFavoriteClasses(
   useEffect(() => {
     const loadFavorites = () => {
       try {
-        const favoritesKey = `favorites_${licenseKey || 'default'}_${trialId}`;
-        console.log('🔍 Loading with key:', favoritesKey);
-        console.log('🗄️ All localStorage keys:', Object.keys(localStorage));
-        console.log(
-          '🗄️ All localStorage favorites keys:',
-          Object.keys(localStorage).filter((k) => k.startsWith('favorites_'))
-        );
-
         const loaded = loadFavoritesAsSet('class', licenseKey, { trialId });
-        console.log('📥 Setting favoriteClasses from localStorage:', Array.from(loaded));
-        setFavoriteClasses(loaded);
+setFavoriteClasses(loaded);
         setFavoritesLoaded(true);
       } catch (error) {
         console.error('Error loading favorites from localStorage:', error);
@@ -145,31 +135,15 @@ export function useFavoriteClasses(
   useEffect(() => {
     if (licenseKey && trialId && favoritesLoaded) {
       try {
-        const favoritesKey = `favorites_${licenseKey}_${trialId}`;
-        const favoriteIds = Array.from(favoriteClasses);
-        console.log('💾 Saving favorites to localStorage:', favoritesKey, favoriteIds);
-
         saveFavoritesToLocalStorage('class', licenseKey, favoriteClasses, { trialId });
 
-        console.log('✅ Saved to localStorage successfully');
-
-        // Notify parent of changes
+// Notify parent of changes
         if (onFavoritesChange) {
           onFavoritesChange(favoriteClasses);
         }
       } catch (error) {
         console.error('Error saving favorites to localStorage:', error);
       }
-    } else {
-      console.log(
-        '⚠️ Not saving favorites - missing context, trialId, or not loaded yet:',
-        {
-          licenseKey,
-          trialId,
-          favoritesLoaded,
-          size: favoriteClasses.size,
-        }
-      );
     }
   }, [favoriteClasses, licenseKey, trialId, favoritesLoaded, onFavoritesChange]);
 
@@ -178,11 +152,9 @@ export function useFavoriteClasses(
     setFavoriteClasses((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(classId)) {
-        console.log('❌ Removing favorite:', classId);
-        newSet.delete(classId);
+newSet.delete(classId);
       } else {
-        console.log('➕ Adding favorite:', classId);
-        newSet.add(classId);
+newSet.add(classId);
       }
       return newSet;
     });

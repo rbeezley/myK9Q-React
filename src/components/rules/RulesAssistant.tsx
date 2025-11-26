@@ -77,9 +77,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
     const startTime = Date.now();
 
     try {
-      console.log('📚 [RulesAssistant] Searching for:', searchQuery, forceRefresh ? '(forcing refresh)' : '');
-
-      // Clear cache for this query if forceRefresh is true
+// Clear cache for this query if forceRefresh is true
       if (forceRefresh) {
         RulesService.clearCacheForQuery(searchQuery);
       }
@@ -96,8 +94,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
         await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
       }
 
-      console.log('📚 [RulesAssistant] Search results:', response.results.length, 'rules found');
-      console.log('📚 [RulesAssistant] Answer:', response.answer);
+console.log('📚 [RulesAssistant] Answer:', response.answer);
 
       setAnswer(response.answer);
       setResults(response.results);

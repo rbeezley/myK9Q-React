@@ -91,13 +91,10 @@ export class RulesService {
     const cacheKey = JSON.stringify({ query: query.toLowerCase(), limit, level, element, organizationCode, sportCode });
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('📚 [RulesService] Returning cached results for:', query);
-      return cached.response;
+return cached.response;
     }
 
-    console.log('📚 [RulesService] Searching rules:', query, organizationCode ? `(${organizationCode})` : '');
-
-    try {
+try {
       // Call the Edge Function
       const { data, error } = await supabase.functions.invoke<RuleSearchResponse>(
         'search-rules-v2',
@@ -137,8 +134,7 @@ export class RulesService {
         toDelete.forEach(([key]) => searchCache.delete(key));
       }
 
-      console.log('📚 [RulesService] Found', data.count, 'results');
-      return data;
+return data;
 
     } catch (error: any) {
       // If it's already a RulesServiceError, rethrow it
@@ -164,9 +160,7 @@ export class RulesService {
    */
   static async getRuleById(ruleId: string): Promise<Rule | null> {
     try {
-      console.log('📚 [RulesService] Fetching rule:', ruleId);
-
-      const { data, error } = await supabase
+const { data, error } = await supabase
         .from('rules')
         .select('id, section, title, content, categories, keywords, measurements')
         .eq('id', ruleId)
@@ -196,9 +190,7 @@ export class RulesService {
     element: string
   ): Promise<Rule[]> {
     try {
-      console.log('📚 [RulesService] Fetching rules for:', level, element);
-
-      const { data, error } = await supabase
+const { data, error } = await supabase
         .from('rules')
         .select('id, section, title, content, categories, keywords, measurements')
         .eq('categories->>level', level)
@@ -221,8 +213,7 @@ export class RulesService {
    */
   static clearCache(): void {
     searchCache.clear();
-    console.log('📚 [RulesService] Cache cleared');
-  }
+}
 
   /**
    * Clear cache for a specific query
@@ -243,9 +234,7 @@ export class RulesService {
 
     keysToDelete.forEach(key => searchCache.delete(key));
 
-    if (keysToDelete.length > 0) {
-      console.log('📚 [RulesService] Cleared cache for query:', query);
-    }
+    if (keysToDelete.length > 0) {}
   }
 
   /**

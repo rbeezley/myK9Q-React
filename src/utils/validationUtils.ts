@@ -43,23 +43,17 @@ export function shouldCheckCompletion(
 ): boolean {
   // Check on first dog (to mark class as in_progress)
   if (scoredCount === 1) {
-    if (enableLogging) {
-      console.log('✅ First dog scored - checking to mark class as in_progress');
-    }
+    if (enableLogging) {}
     return true;
   }
 
   // Check on last dog (to mark class as completed)
   if (scoredCount === totalCount) {
-    if (enableLogging) {
-      console.log('✅ All dogs scored - checking to mark class as completed');
-    }
+    if (enableLogging) {}
     return true;
   }
 
   // Skip check for all middle entries (performance optimization)
-  if (enableLogging) {
-    console.log(`⏭️ Skipping completion check (${scoredCount}/${totalCount} - not first or last)`);
-  }
+  if (enableLogging) {}
   return false;
 }

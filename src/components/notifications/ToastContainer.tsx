@@ -17,8 +17,7 @@ export const ToastContainer: React.FC = () => {
 
   // When toast dismisses, just mark as read (keep in notification center)
   const handleToastDismiss = (id: string) => {
-    console.log('🍞 [Toast] Dismissing toast - marking as read:', id);
-    markAsRead(id);
+markAsRead(id);
   };
 
   return (

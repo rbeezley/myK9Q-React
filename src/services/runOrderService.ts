@@ -124,16 +124,13 @@ export async function applyRunOrderPreset(
   preset: RunOrderPreset
 ): Promise<Entry[]> {
   try {
-    console.log(`🔄 Applying run order preset: ${preset}`);
-
-    // Calculate new order
+// Calculate new order
     const reorderedEntries = calculateRunOrder(entries, preset);
 
     // Update database
     await updateExhibitorOrder(reorderedEntries);
 
-    console.log(`✅ Successfully applied run order preset: ${preset}`);
-    return reorderedEntries;
+return reorderedEntries;
   } catch (error) {
     console.error('❌ Error applying run order preset:', error);
     throw error;

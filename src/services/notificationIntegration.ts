@@ -54,13 +54,10 @@ class NotificationIntegration {
    */
   initialize(): void {
     if (this.isInitialized) {
-      console.log('📱 Notification integration already initialized - skipping');
-      return;
+return;
     }
 
-    console.log('📱 Initializing notification integration...');
-
-    // Load license key from auth context in localStorage
+// Load license key from auth context in localStorage
     this.loadLicenseKeyFromAuth();
 
     // Subscribe to entry store changes
@@ -86,8 +83,7 @@ class NotificationIntegration {
     });
 
     this.isInitialized = true;
-    console.log('📱 Notification integration initialized');
-  }
+}
 
   /**
    * Load license key from auth context in localStorage
@@ -99,8 +95,7 @@ class NotificationIntegration {
         const auth = JSON.parse(authData);
         if (auth.showContext?.licenseKey) {
           this.licenseKey = auth.showContext.licenseKey;
-          console.log(`📱 Loaded license key from auth: ${this.licenseKey}`);
-          this.loadFavoriteDogs();
+this.loadFavoriteDogs();
         }
       }
     } catch (error) {
@@ -121,8 +116,7 @@ class NotificationIntegration {
         const favoriteIds = JSON.parse(savedFavorites);
         if (Array.isArray(favoriteIds) && favoriteIds.every(id => typeof id === 'number')) {
           this.favoriteDogs = new Set(favoriteIds);
-          console.log(`📱 Loaded ${this.favoriteDogs.size} favorited dogs:`, Array.from(this.favoriteDogs));
-        } else {
+} else {
           console.warn('Invalid dog favorites data format');
           this.favoriteDogs = new Set();
         }
@@ -149,8 +143,7 @@ class NotificationIntegration {
    */
   destroy(): void {
     if (!this.isInitialized) {
-      console.log('📱 Notification integration not initialized - skipping destroy');
-      return;
+return;
     }
 
     if (this.monitoringInterval) {
@@ -159,8 +152,7 @@ class NotificationIntegration {
     this.scheduledWarnings.forEach(timeout => clearTimeout(timeout));
     this.scheduledWarnings.clear();
     this.isInitialized = false;
-    console.log('📱 Notification integration destroyed');
-  }
+}
 
   /**
    * Handle entry changes to detect scoring events
@@ -204,9 +196,7 @@ class NotificationIntegration {
    */
   private async onEntryScored(entry: Entry, _previousState: Entry): Promise<void> {
     // Always check if class is complete (in-app notification only)
-    console.log(`📱 Entry scored: ${entry.callName} (#${entry.armband})`);
-
-    // Check if all entries in this class are now scored
+// Check if all entries in this class are now scored
     const { currentClassEntries } = useEntryStore.getState();
     const classEntries = currentClassEntries.filter(e => e.classId === entry.classId);
     const allScored = classEntries.every(e => e.isScored);
@@ -222,9 +212,7 @@ class NotificationIntegration {
    * This is when placements are final and exhibitors want to know results
    */
   private async onClassComplete(classId: number, entries: Entry[]): Promise<void> {
-    console.log(`📱 Class ${classId} complete - all dogs scored`);
-
-    // Get entries with placements (top 4 typically)
+// Get entries with placements (top 4 typically)
     const placedEntries = entries
       .filter(e => e.placement && e.placement <= 4)
       .sort((a, b) => (a.placement || 0) - (b.placement || 0));
@@ -233,8 +221,7 @@ class NotificationIntegration {
     const favoritedPlacedEntries = placedEntries.filter(e => this.isFavorited(e));
 
     if (favoritedPlacedEntries.length === 0) {
-      console.log(`📱 No favorited dogs placed in class ${classId}`);
-      return;
+return;
     }
 
     // Notify each favorited placed entry
@@ -243,8 +230,7 @@ class NotificationIntegration {
       await notifyResultsPosted(entry, entry.placement, qualified);
     }
 
-    console.log(`📱 Sent ${favoritedPlacedEntries.length} "results posted" notifications for favorited dogs`);
-  }
+}
 
   /**
    * Called when an entry is marked as "in ring"
@@ -252,9 +238,7 @@ class NotificationIntegration {
   private async onEntryInRing(entry: Entry): Promise<void> {
     const { settings } = useSettingsStore.getState();
 
-    console.log(`📱 Entry in ring: ${entry.callName} (#${entry.armband})`);
-
-    // Get the unscored entries in order
+// Get the unscored entries in order
     const { currentClassEntries } = useEntryStore.getState();
     const unscoredEntries = currentClassEntries.filter(e => !e.isScored);
     const currentIndex = unscoredEntries.findIndex(e => e.id === entry.id);
@@ -280,13 +264,10 @@ class NotificationIntegration {
   private async onNextEntryUp(nextEntry: Entry, currentEntry: Entry, dogsAhead: number): Promise<void> {
     // Only notify if this dog is favorited
     if (!this.isFavorited(nextEntry)) {
-      console.log(`📱 ${dogsAhead} dog(s) ahead: ${nextEntry.callName} (#${nextEntry.armband}) - NOT favorited, skipping notification`);
-      return;
+return;
     }
 
-    console.log(`📱 ${dogsAhead} dog(s) ahead: ${nextEntry.callName} (#${nextEntry.armband}) - FAVORITED, sending notification`);
-
-    // Send notification with context about how many dogs ahead
+// Send notification with context about how many dogs ahead
     await notifyYourTurn(nextEntry, currentEntry, dogsAhead);
   }
 
@@ -296,8 +277,7 @@ class NotificationIntegration {
   private async onCurrentEntryChanged(current: Entry, _previous: Entry | null): Promise<void> {
     // If current entry is not yet scored and is marked "in ring", might be their turn
     if (!current.isScored && current.inRing) {
-      console.log(`📱 Current entry changed to: ${current.callName} (#${current.armband})`);
-      // Could send a notification here if appropriate
+// Could send a notification here if appropriate
     }
   }
 
@@ -353,8 +333,7 @@ class NotificationIntegration {
       this.scheduledWarnings.set(classId, timeout);
       classSchedule.warningScheduled = true;
 
-      console.log(`📱 Scheduled warning for class ${classId} at ${warningTime.toLocaleTimeString()}`);
-    }
+}
   }
 
   /**

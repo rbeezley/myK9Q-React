@@ -165,17 +165,11 @@ class NetworkDetectionService {
     });
 
     // Log significant changes
-    if (oldInfo.isOnline !== newInfo.isOnline) {
-      console.log(`🌐 Network ${newInfo.isOnline ? 'ONLINE' : 'OFFLINE'}`);
-    }
+    if (oldInfo.isOnline !== newInfo.isOnline) {}
 
-    if (oldInfo.connectionType !== newInfo.connectionType) {
-      console.log(`📶 Connection type changed: ${oldInfo.connectionType} → ${newInfo.connectionType}`);
-    }
+    if (oldInfo.connectionType !== newInfo.connectionType) {}
 
-    if (oldInfo.effectiveType !== newInfo.effectiveType) {
-      console.log(`📡 Effective type changed: ${oldInfo.effectiveType} → ${newInfo.effectiveType}`);
-    }
+    if (oldInfo.effectiveType !== newInfo.effectiveType) {}
   }
 
   /**

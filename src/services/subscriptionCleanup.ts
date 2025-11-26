@@ -45,8 +45,7 @@ class SubscriptionCleanupService {
     }
 
     this.subscriptions.set(key, info);
-    console.log(`📝 Registered subscription: ${key} (${type})`);
-  }
+}
 
   /**
    * Unregister a subscription
@@ -56,8 +55,7 @@ class SubscriptionCleanupService {
     if (info) {
       info.active = false;
       this.subscriptions.delete(key);
-      console.log(`🗑️ Unregistered subscription: ${key}`);
-    }
+}
   }
 
   /**
@@ -73,9 +71,7 @@ class SubscriptionCleanupService {
       }
     });
 
-    if (count > 0) {
-      console.log(`🧹 Cleaned up ${count} subscriptions for license key: ${licenseKey}`);
-    }
+    if (count > 0) {}
 
     return count;
   }
@@ -104,9 +100,7 @@ class SubscriptionCleanupService {
     // Clear tracking
     this.subscriptions.clear();
 
-    console.log(`🧹 Cleaned up all ${count} subscriptions`);
-
-    // Record in history
+// Record in history
     this.recordCleanup(count);
 
     return count;
@@ -116,13 +110,10 @@ class SubscriptionCleanupService {
    * Clean up subscriptions on route change
    */
   cleanupOnRouteChange(fromRoute: string, toRoute: string): number {
-    console.log(`🚦 Route change: ${fromRoute} → ${toRoute}`);
-
-    // Don't cleanup if navigating within the same context
+// Don't cleanup if navigating within the same context
     // (e.g., different entries in same class)
     if (this.isSameContext(fromRoute, toRoute)) {
-      console.log('↔️ Same context navigation - keeping subscriptions');
-      return 0;
+return 0;
     }
 
     // Cleanup stale subscriptions
@@ -300,13 +291,9 @@ class SubscriptionCleanupService {
    * Auto-cleanup timer (runs periodically)
    */
   startAutoCleanup(intervalMinutes: number = 30): () => void {
-    console.log(`🤖 Starting auto-cleanup (every ${intervalMinutes} minutes)`);
-
-    const interval = setInterval(() => {
+const interval = setInterval(() => {
       const staleCount = this.cleanupStaleSubscriptions(intervalMinutes);
-      if (staleCount > 0) {
-        console.log(`🤖 Auto-cleanup removed ${staleCount} stale subscriptions`);
-      }
+      if (staleCount > 0) {}
 
       // Check for leaks
       const leakCheck = this.checkForLeaks();
@@ -317,8 +304,7 @@ class SubscriptionCleanupService {
     }, intervalMinutes * 60 * 1000);
 
     return () => {
-      console.log('🛑 Stopping auto-cleanup');
-      clearInterval(interval);
+clearInterval(interval);
     };
   }
 }

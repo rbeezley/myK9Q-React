@@ -201,8 +201,7 @@ export async function resolveConflict(
     // All conflict types now update entries table (results table merged into entries)
     await supabase.from('entries').update(dataToSave).eq('id', conflict.entryId);
 
-    console.log(`✅ Resolved conflict ${conflictId} with action: ${resolution.action}`);
-  } catch (error) {
+} catch (error) {
     console.error('❌ Failed to apply conflict resolution:', error);
     conflict.status = 'pending';
     throw error;
@@ -216,8 +215,7 @@ export function ignoreConflict(conflictId: string): void {
   const conflict = conflicts.get(conflictId);
   if (conflict) {
     conflict.status = 'ignored';
-    console.log(`🙈 Ignored conflict ${conflictId}`);
-  }
+}
 }
 
 /**

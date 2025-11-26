@@ -47,9 +47,7 @@ export class AnnouncementService {
     filters: AnnouncementFilters = {}
   ): Promise<{ data: Announcement[]; count: number }> {
     try {
-      console.log('📢 [AnnouncementService] Fetching from replicated cache...');
-
-      // Get all announcements from replicated table (already filtered by license_key during sync)
+// Get all announcements from replicated table (already filtered by license_key during sync)
       let announcements = await replicatedAnnouncementsTable.getAll();
 
       // Apply active filter
@@ -98,12 +96,9 @@ export class AnnouncementService {
         expires_at: a.expires_at || undefined,
       }));
 
-      console.log(`✅ [AnnouncementService] Loaded ${transformedData.length} announcements from cache`);
-
-      // If cache is empty, fall back to Supabase (cache may still be syncing)
+// If cache is empty, fall back to Supabase (cache may still be syncing)
       if (transformedData.length === 0) {
-        console.log('📭 [AnnouncementService] Cache is empty, falling back to Supabase');
-        // Fall through to Supabase query below
+// Fall through to Supabase query below
       } else {
         return {
           data: transformedData,
@@ -116,9 +111,7 @@ export class AnnouncementService {
     }
 
     // Fall back to original Supabase implementation
-    console.log('📡 [AnnouncementService] Fetching from Supabase...');
-
-    try {
+try {
       let query = supabase
         .from('announcements')
         .select('*', { count: 'exact' })
@@ -157,9 +150,7 @@ export class AnnouncementService {
 
       if (error) throw error;
 
-      console.log(`✅ [AnnouncementService] Loaded ${data?.length || 0} announcements from Supabase`);
-
-      return {
+return {
         data: data || [],
         count: count || 0
       };
@@ -220,18 +211,14 @@ export class AnnouncementService {
 
       if (error) throw error;
 
-      console.log('✅ Created announcement:', data.title);
-
-      // CRITICAL: Trigger immediate sync to update UI without refresh
+// CRITICAL: Trigger immediate sync to update UI without refresh
       // This ensures the new announcement appears in the list immediately
       try {
         const { getReplicationManager } = await import('./replication');
         const manager = getReplicationManager();
         if (manager) {
-          console.log('[createAnnouncement] Triggering immediate sync of announcements table...');
-          await manager.syncTable('announcements', { forceFullSync: false });
-          console.log('[createAnnouncement] ✅ Immediate sync complete');
-        } else {
+await manager.syncTable('announcements', { forceFullSync: false });
+} else {
           console.warn('[createAnnouncement] Replication manager not available, UI may not update until next sync');
         }
       } catch (syncError) {
@@ -277,17 +264,13 @@ export class AnnouncementService {
 
       if (error) throw error;
 
-      console.log('✅ Updated announcement:', data.title);
-
-      // CRITICAL: Trigger immediate sync to update UI without refresh
+// CRITICAL: Trigger immediate sync to update UI without refresh
       try {
         const { getReplicationManager } = await import('./replication');
         const manager = getReplicationManager();
         if (manager) {
-          console.log('[updateAnnouncement] Triggering immediate sync of announcements table...');
-          await manager.syncTable('announcements', { forceFullSync: false });
-          console.log('[updateAnnouncement] ✅ Immediate sync complete');
-        }
+await manager.syncTable('announcements', { forceFullSync: false });
+}
       } catch (syncError) {
         console.warn('[updateAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
       }
@@ -328,17 +311,13 @@ export class AnnouncementService {
 
       if (error) throw error;
 
-      console.log('✅ Deleted announcement:', existing.title);
-
-      // CRITICAL: Trigger immediate sync to update UI without refresh
+// CRITICAL: Trigger immediate sync to update UI without refresh
       try {
         const { getReplicationManager } = await import('./replication');
         const manager = getReplicationManager();
         if (manager) {
-          console.log('[deleteAnnouncement] Triggering immediate sync of announcements table...');
-          await manager.syncTable('announcements', { forceFullSync: false });
-          console.log('[deleteAnnouncement] ✅ Immediate sync complete');
-        }
+await manager.syncTable('announcements', { forceFullSync: false });
+}
       } catch (syncError) {
         console.warn('[deleteAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
       }
@@ -370,9 +349,7 @@ export class AnnouncementService {
         throw error;
       }
 
-      console.log('✅ Marked announcement as read:', announcementId);
-
-    } catch (error) {
+} catch (error) {
       console.error('Error marking announcement as read:', error);
       throw error;
     }
@@ -399,9 +376,7 @@ export class AnnouncementService {
 
       if (error) throw error;
 
-      console.log('✅ Marked multiple announcements as read:', announcementIds.length);
-
-    } catch (error) {
+} catch (error) {
       console.error('Error marking multiple announcements as read:', error);
       throw error;
     }

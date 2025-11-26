@@ -103,9 +103,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
 
     try {
       // Load from replicated cache (direct replacement, no feature flags)
-      console.log('[REPLICATION] 🔍 Loading AKC FastCat scoresheet for class:', classId);
-
-      // Ensure replication manager is initialized (handles recovery scenarios)
+// Ensure replication manager is initialized (handles recovery scenarios)
       const manager = await ensureReplicationManager();
 
       const entriesTable = manager.getTable('entries');
@@ -125,9 +123,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
       const allEntries = await entriesTable.getAll() as ReplicatedEntry[];
       const classEntries = allEntries.filter(entry => entry.class_id === classId);
 
-      console.log(`[REPLICATION] ✅ Loaded ${classEntries.length} entries for class ${classId}`);
-
-      // Transform to Entry format for store
+// Transform to Entry format for store
       const transformedEntries: Entry[] = classEntries.map(entry => ({
         id: parseInt(entry.id),
         armband: entry.armband_number,
@@ -221,14 +217,11 @@ export const AKCFastCatScoresheet: React.FC = () => {
       },
       pairedClassId: pairedClassId,
       onSuccess: async () => {
-        console.log('✅ FastCAT score saved');
-
-        // Remove from ring
+// Remove from ring
         if (currentEntry?.id) {
           try {
             await markInRing(currentEntry.id, false);
-            console.log(`✅ Removed dog ${currentEntry.armband} from ring`);
-          } catch (error) {
+} catch (error) {
             console.error('❌ Failed to remove dog from ring:', error);
           }
         }

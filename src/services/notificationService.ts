@@ -120,8 +120,7 @@ class NotificationService {
     if ('serviceWorker' in navigator) {
       try {
         this.registration = await navigator.serviceWorker.ready;
-        console.log('✅ Service worker ready for notifications');
-      } catch (error) {
+} catch (error) {
         console.error('Failed to initialize service worker:', error);
       }
     }
@@ -159,9 +158,7 @@ class NotificationService {
 
     try {
       const permission = await Notification.requestPermission();
-      console.log(`📱 Notification permission ${permission}`);
-
-      // If permission granted, update settings
+// If permission granted, update settings
       if (permission === 'granted') {
         useSettingsStore.getState().updateSettings({ enableNotifications: true });
       }
@@ -214,8 +211,7 @@ class NotificationService {
    */
   setQuietHours(config: QuietHoursConfig): void {
     localStorage.setItem('notification_quiet_hours', JSON.stringify(config));
-    console.log('🌙 Quiet hours updated:', config);
-  }
+}
 
   /**
    * Check if currently in quiet hours
@@ -267,8 +263,7 @@ class NotificationService {
    */
   setDND(config: DoNotDisturbConfig): void {
     localStorage.setItem('notification_dnd', JSON.stringify(config));
-    console.log('🔕 Do Not Disturb updated:', config);
-  }
+}
 
   /**
    * Enable Do Not Disturb for a duration
@@ -319,8 +314,7 @@ class NotificationService {
         return false;
       }
 
-      console.log('🔕 Notification blocked by DND:', payload.type);
-      return true;
+return true;
     }
 
     // Check quiet hours
@@ -332,8 +326,7 @@ class NotificationService {
         return false;
       }
 
-      console.log('🌙 Notification blocked by quiet hours:', payload.type);
-      return true;
+return true;
     }
 
     return false;
@@ -345,14 +338,12 @@ class NotificationService {
   async send(payload: NotificationPayload): Promise<string | null> {
     // Check if notifications are globally enabled
     if (!this.areNotificationsEnabled()) {
-      console.log('📱 Notifications disabled in settings');
-      return null;
+return null;
     }
 
     // Check if this notification type is enabled
     if (!this.isNotificationTypeEnabled(payload.type)) {
-      console.log(`📱 Notification type ${payload.type} disabled in settings`);
-      return null;
+return null;
     }
 
     // Check DND and quiet hours
@@ -426,8 +417,7 @@ class NotificationService {
         dismissed: false,
       });
 
-      console.log('📱 Notification sent:', payload.title);
-      return notificationId;
+return notificationId;
 
     } catch (error) {
       console.error('Failed to send notification:', error);
@@ -462,9 +452,7 @@ class NotificationService {
     };
 
     this.queue.push(queueItem);
-    console.log(`📬 Notification queued (${this.queue.length} in queue):`, payload.title);
-
-    return id;
+return id;
   }
 
   /**
@@ -529,8 +517,7 @@ class NotificationService {
    */
   clearQueue(): void {
     this.queue = [];
-    console.log('📭 Notification queue cleared');
-  }
+}
 
   /**
    * Play notification sound
@@ -773,8 +760,7 @@ class NotificationService {
     if (this.registration) {
       const notifications = await this.registration.getNotifications();
       notifications.forEach(notification => notification.close());
-      console.log(`🗑️ Cleared ${notifications.length} notifications`);
-    }
+}
 
     await this.clearBadge();
   }

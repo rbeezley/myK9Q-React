@@ -182,9 +182,7 @@ export function useNotificationPermissions(
     // Request permission
     try {
       const permission = await Notification.requestPermission();
-      console.log(`📱 Notification permission ${permission}`);
-
-      // Update state immediately
+// Update state immediately
       setPermissionStatus({
         permission,
         supported: true,

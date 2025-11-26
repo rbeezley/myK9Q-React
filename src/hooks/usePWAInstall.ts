@@ -114,8 +114,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
       // Prevent the default browser prompt
       e.preventDefault();
 
-      console.log('📱 beforeinstallprompt event captured');
-      setInstallPrompt(e as BeforeInstallPromptEvent);
+setInstallPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -130,8 +129,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
    */
   useEffect(() => {
     const handler = () => {
-      console.log('📱 App was installed successfully!');
-      setIsInstalled(true);
+setIsInstalled(true);
       setInstallPrompt(null);
 
       // Clear dismissed state on successful install
@@ -156,8 +154,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
       localStorage.setItem(DISMISS_KEY, JSON.stringify(dismissData));
       setIsDismissed(true);
 
-      console.log('📱 Install prompt dismissed for 7 days');
-    } catch (error) {
+} catch (error) {
       console.error('Error saving dismiss state:', error);
     }
   }, []);
@@ -178,9 +175,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
       // Wait for user choice
       const result = await installPrompt.userChoice;
 
-      console.log('📱 User install choice:', result.outcome);
-
-      if (result.outcome === 'accepted') {
+if (result.outcome === 'accepted') {
         setInstallPrompt(null);
         return true;
       } else {
@@ -201,8 +196,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
     try {
       localStorage.removeItem(DISMISS_KEY);
       setIsDismissed(false);
-      console.log('📱 Install prompt dismiss state cleared');
-    } catch (error) {
+} catch (error) {
       console.error('Error clearing dismiss state:', error);
     }
   }, []);

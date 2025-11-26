@@ -95,8 +95,7 @@ export function subscribeToEntryUpdates(
   // Create unique subscription key for this class
   const key = `entries:${actualClassId}`;
 
-  console.log('🔌 Setting up subscription via syncManager for class_id:', actualClassId);
-  console.log('🔍 Using correct column name: class_id (matching the main query)');
+console.log('🔍 Using correct column name: class_id (matching the main query)');
 
   // Register subscription with syncManager
   // Filter: class_id=eq.{actualClassId} ensures we only get updates for this class
@@ -106,56 +105,42 @@ export function subscribeToEntryUpdates(
     `class_id=eq.${actualClassId}`,
     (payload) => {
       // Comprehensive logging for debugging real-time issues
-      console.log('🚨🚨🚨 REAL-TIME PAYLOAD RECEIVED 🚨🚨🚨');
-      console.log('🔄 Event type:', payload.eventType);
-      console.log('🔄 Table:', payload.table);
-      console.log('🔄 Schema:', payload.schema);
-      console.log('🔄 Timestamp:', new Date().toISOString());
-      console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
+console.log('🔄 Event type:', payload.eventType);
+console.log('🔄 Schema:', payload.schema);
+console.log('🔄 Full payload object:', JSON.stringify(payload, null, 2));
 
       // Log new record data (INSERT or UPDATE)
-      if (payload.new) {
-        console.log('📈 NEW record data:', JSON.stringify(payload.new, null, 2));
-      }
+      if (payload.new) {}
 
       // Log old record data (UPDATE or DELETE)
-      if (payload.old) {
-        console.log('📉 OLD record data:', JSON.stringify(payload.old, null, 2));
-      }
+      if (payload.old) {}
 
       // Detect and log specific field changes (UPDATE events)
       if (payload.new && payload.old) {
-        console.log('📊 FIELD CHANGES DETECTED:');
-        const oldData = payload.old as any;
+const oldData = payload.old as any;
         const newData = payload.new as any;
 
         // Log in_ring status changes (critical for ringside scoring)
-        console.log('  🎯 in_ring changed:', oldData.in_ring, '->', newData.in_ring);
-        console.log('  🆔 entry_id:', newData.id);
-        console.log('  🏷️ armband:', newData.armband);
-        console.log('  📂 class_id:', newData.class_id);
+console.log('  🆔 entry_id:', newData.id);
+console.log('  📂 class_id:', newData.class_id);
 
         // Special logging for in_ring status changes
         if (oldData.in_ring !== newData.in_ring) {
-          console.log('🎯 THIS IS AN IN_RING STATUS CHANGE!');
-          console.log(
+console.log(
             `  Dog #${newData.armband} (ID: ${newData.id}) is now ${newData.in_ring ? 'IN RING' : 'NOT IN RING'}`
           );
         }
       }
 
       // Invoke user callback with payload
-      console.log('✅ About to call onUpdate callback...');
-      onUpdate(payload);
-      console.log('✅ onUpdate callback completed');
-      console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
+onUpdate(payload);
+console.log('🚨🚨🚨 END REAL-TIME PAYLOAD PROCESSING 🚨🚨🚨');
     }
   );
 
   // Return unsubscribe function for cleanup
   return () => {
-    console.log('🔌 Unsubscribing from real-time updates for class_id', actualClassId);
-    syncManager.unsubscribe(key);
+syncManager.unsubscribe(key);
   };
 }
 

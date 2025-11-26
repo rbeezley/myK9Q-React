@@ -74,9 +74,7 @@ export const NotificationSettings: React.FC = () => {
           // Subscribe to push notifications using service worker manager
           try {
             const subscription = await serviceWorkerManager.subscribeToPushNotifications();
-            console.log('Push subscription:', subscription);
-
-            // Store subscription with push notification service
+// Store subscription with push notification service
             if (subscription && currentLicenseKey) {
               const userId = sessionStorage.getItem('user_session_id') || 'anonymous';
               pushNotificationService.storeSubscription(subscription, currentLicenseKey, userId);
@@ -107,8 +105,7 @@ export const NotificationSettings: React.FC = () => {
     try {
       // Check and request permission if needed
       if (permission !== 'granted') {
-        console.log('Requesting notification permission...');
-        const newPermission = await Notification.requestPermission();
+const newPermission = await Notification.requestPermission();
         setPermission(newPermission);
 
         if (newPermission !== 'granted') {

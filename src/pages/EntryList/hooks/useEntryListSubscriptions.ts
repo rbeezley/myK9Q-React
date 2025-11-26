@@ -37,11 +37,8 @@ export const useEntryListSubscriptions = ({
     // Subscribe to each class's entry updates
     classIds.forEach(classId => {
       const cleanup = subscribeToEntryUpdates(classId, licenseKey, async (payload) => {
-        console.log(`🔔 Entry update detected for class ${classId}`, payload);
-        console.log('🔔 onEntryUpdate exists?', !!onEntryUpdate);
-        console.log('🔔 typeof onEntryUpdate:', typeof onEntryUpdate);
-
-        // 🚀 LOCAL-FIRST: DO NOT clear pending changes here!
+console.log('🔔 onEntryUpdate exists?', !!onEntryUpdate);
+// 🚀 LOCAL-FIRST: DO NOT clear pending changes here!
         // Let applyServerUpdate() in localStateManager handle clearing when it confirms
         // the server data matches the pending changes. This prevents a race condition where
         // we clear the pending change before applyServerUpdate() can merge it.
@@ -55,12 +52,9 @@ export const useEntryListSubscriptions = ({
         // This provides instant UI updates from real-time changes
         if (onEntryUpdate) {
           lastEntryUpdateRef.current = Date.now(); // Track when entry updated
-          console.log('🔔 Calling onEntryUpdate with payload...');
-          onEntryUpdate(payload);
-          console.log('🔔 onEntryUpdate completed');
-        } else {
-          console.log('🔔 No onEntryUpdate callback, falling back to refresh');
-          // Fallback: refresh without forcing cache bypass
+onEntryUpdate(payload);
+} else {
+// Fallback: refresh without forcing cache bypass
           onRefresh(false);
         }
       });

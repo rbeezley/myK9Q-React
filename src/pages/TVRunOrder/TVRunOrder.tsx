@@ -55,10 +55,8 @@ export const TVRunOrder: React.FC = () => {
 
   // Debug logging
   useEffect(() => {
-    console.log('🔍 TV Run Order - inProgressClasses:', inProgressClasses);
-    console.log('🔍 TV Run Order - inProgressClasses.length:', inProgressClasses.length);
-    console.log('🔍 TV Run Order - entriesByClass keys:', entriesByClass ? Object.keys(entriesByClass) : 'undefined');
-    console.log('🔍 TV Run Order - entriesByClass:', entriesByClass);
+console.log('🔍 TV Run Order - inProgressClasses.length:', inProgressClasses.length);
+console.log('🔍 TV Run Order - entriesByClass:', entriesByClass);
   }, [inProgressClasses, entriesByClass]);
 
   // Get visible classes for current page (max 4)

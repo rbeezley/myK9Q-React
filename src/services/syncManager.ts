@@ -97,9 +97,7 @@ class SyncManager {
       this.unsubscribe(key);
     }
 
-    console.log(`🔌 Creating subscription: ${key}`);
-
-    // Extract license key from filter (format: "license_key=eq.VALUE" or "class_id=eq.VALUE")
+// Extract license key from filter (format: "license_key=eq.VALUE" or "class_id=eq.VALUE")
     const licenseKeyMatch = filter.match(/license_key=eq\.([^&]+)/);
     const licenseKey = licenseKeyMatch ? licenseKeyMatch[1] : undefined;
 
@@ -114,17 +112,14 @@ class SyncManager {
           filter,
         },
         (payload) => {
-          console.log(`🔄 Real-time update received for ${key}:`, payload.eventType);
-          callback(payload);
+callback(payload);
         }
       )
       .subscribe((status, err) => {
         if (err) {
           console.error(`❌ Subscription error for ${key}:`, err);
           this.updateState({ status: 'error', error: err.message });
-        } else if (status === 'SUBSCRIBED') {
-          console.log(`✅ Successfully subscribed to ${key}`);
-        }
+        } else if (status === 'SUBSCRIBED') {}
       });
 
     this.subscriptions.set(key, { channel, key, callback });
@@ -146,8 +141,7 @@ class SyncManager {
   unsubscribe(key: string) {
     const subscription = this.subscriptions.get(key);
     if (subscription) {
-      console.log(`🔌 Unsubscribing from ${key}`);
-      subscription.channel.unsubscribe();
+subscription.channel.unsubscribe();
       this.subscriptions.delete(key);
 
       // Unregister from subscription cleanup monitor
@@ -159,8 +153,7 @@ class SyncManager {
    * Unsubscribe from all active subscriptions
    */
   unsubscribeAll() {
-    console.log(`🔌 Unsubscribing from all ${this.subscriptions.size} subscriptions`);
-    this.subscriptions.forEach((sub) => {
+this.subscriptions.forEach((sub) => {
       sub.channel.unsubscribe();
       // Unregister from subscription cleanup monitor
       subscriptionCleanup.unregister(sub.key);
@@ -172,8 +165,7 @@ class SyncManager {
    * Pause all real-time subscriptions
    */
   pauseSync() {
-    console.log('⏸️ Pausing real-time sync');
-    this.unsubscribeAll();
+this.unsubscribeAll();
     this.updateState({ status: 'paused' });
 
     // Stop batch sync interval if running
@@ -188,8 +180,7 @@ class SyncManager {
    * Note: Subscriptions need to be re-established by calling components
    */
   resumeSync() {
-    console.log('▶️ Resuming real-time sync');
-    this.updateState({ status: 'synced' });
+this.updateState({ status: 'synced' });
 
     // Start batch sync if configured
     this.startBatchSync();
@@ -233,9 +224,7 @@ class SyncManager {
     const operations = [...this.syncQueue];
     this.syncQueue = [];
 
-    console.log(`🔄 Processing ${operations.length} queued sync operations`);
-
-    for (const operation of operations) {
+for (const operation of operations) {
       try {
         await operation();
       } catch (error) {
@@ -259,8 +248,7 @@ class SyncManager {
    * Manually trigger sync (for manual sync mode)
    */
   async manualSync(): Promise<void> {
-    console.log('🔄 Manual sync triggered');
-    await this.processOfflineQueue();
+await this.processOfflineQueue();
     await this.processSyncQueue();
   }
 
@@ -275,9 +263,7 @@ class SyncManager {
       return;
     }
 
-    console.log(`🔄 Processing ${pendingItems.length} offline queue items`);
-
-    offlineQueue.startSync();
+offlineQueue.startSync();
 
     const successIds: string[] = [];
     const failedIds: string[] = [];
@@ -301,15 +287,13 @@ class SyncManager {
 
     offlineQueue.syncComplete(successIds, failedIds);
 
-    console.log(`✅ Offline queue sync complete: ${successIds.length} success, ${failedIds.length} failed`);
-  }
+}
 
   /**
    * Handle coming online
    */
   private async handleOnline() {
-    console.log('🌐 Network came online');
-    this.updateState({ status: 'syncing' });
+this.updateState({ status: 'syncing' });
 
     // Process offline queue
     await this.processOfflineQueue();
@@ -322,8 +306,7 @@ class SyncManager {
    * Handle going offline
    */
   private handleOffline() {
-    console.log('📴 Network went offline');
-    this.updateState({ status: 'offline' });
+this.updateState({ status: 'offline' });
 
     // Pause sync
     this.pauseSync();
@@ -349,8 +332,7 @@ class SyncManager {
 
     // Block if WiFi-only and on cellular
     if (this.isWiFiOnlyAndCellular()) {
-      console.log('📱 Blocking sync: WiFi-only mode and on cellular');
-      return true;
+return true;
     }
 
     // Block if sync is paused

@@ -185,8 +185,7 @@ export const useSettingsStore = create<SettingsState>()(
 
         resetSection: (section) => {
           // This would reset specific sections - implement as needed
-          console.log('Reset section:', section);
-        },
+},
 
         exportSettings: () => {
           const exportData = {
@@ -213,9 +212,7 @@ export const useSettingsStore = create<SettingsState>()(
             set({ settings: result.settings });
 
             // Log if migration occurred
-            if (result.migrated) {
-              console.log('Settings were migrated to current version');
-            }
+            if (result.migrated) {}
 
             // Apply settings immediately
             const newSettings = get().settings;

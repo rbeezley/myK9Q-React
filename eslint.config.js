@@ -11,6 +11,7 @@ export default [
       'dist',
       'dev-dist',
       'node_modules',
+      'scripts',
       '*.config.js',
       '*.config.ts',
       '**/*.backup',
@@ -58,7 +59,8 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       'react-hooks/exhaustive-deps': 'off',
-      'no-undef': 'off' // TypeScript handles this better
+      'no-undef': 'off', // TypeScript handles this better
+      'no-console': ['warn', { allow: ['warn', 'error'] }] // Prevent debug console.log
     }
   }
 ];

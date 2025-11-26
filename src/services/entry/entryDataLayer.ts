@@ -85,29 +85,21 @@ export async function getClassEntries(
     const classIdArray = Array.isArray(classIds) ? classIds : [classIds];
     const primaryClassId = classIdArray[0];
 
-    if (enableLogging) {
-      console.log(`[DATA_LAYER] Fetching entries for class(es): ${classIdArray.join(', ')}`);
-    }
+    if (enableLogging) {}
 
     // Try replication cache first (if enabled)
     if (useReplication) {
       const cachedEntries = await getEntriesFromReplicationCache(classIdArray, primaryClassId);
       if (cachedEntries !== null) {
-        if (enableLogging) {
-          console.log(`[DATA_LAYER] ✓ Cache hit - returned ${cachedEntries.length} entries`);
-        }
+        if (enableLogging) {}
         return cachedEntries;
       }
-      if (enableLogging) {
-        console.log('[DATA_LAYER] ✗ Cache miss - falling back to database');
-      }
+      if (enableLogging) {}
     }
 
     // Fall back to direct database query
     const entries = await fetchClassEntriesFromDatabase(classIdArray, primaryClassId, licenseKey);
-    if (enableLogging) {
-      console.log(`[DATA_LAYER] ✓ Database query returned ${entries.length} entries`);
-    }
+    if (enableLogging) {}
     return entries;
   } catch (error) {
     console.error('[DATA_LAYER] Error fetching class entries:', error);
@@ -137,18 +129,14 @@ export async function getTrialEntries(
   const { enableLogging } = { ...DEFAULT_CONFIG, ...config };
 
   try {
-    if (enableLogging) {
-      console.log(`[DATA_LAYER] Fetching entries for trial: ${trialId}`);
-    }
+    if (enableLogging) {}
 
     // Note: Trial-level queries currently go directly to database
     // Replication cache is class-scoped, not trial-scoped
     // Future enhancement: Add trial-level caching if needed
     const entries = await fetchTrialEntriesFromDatabase(trialId, licenseKey);
 
-    if (enableLogging) {
-      console.log(`[DATA_LAYER] ✓ Trial query returned ${entries.length} entries`);
-    }
+    if (enableLogging) {}
     return entries;
   } catch (error) {
     console.error('[DATA_LAYER] Error fetching trial entries:', error);
@@ -184,17 +172,13 @@ export async function getEntriesByArmband(
   const { enableLogging } = { ...DEFAULT_CONFIG, ...config };
 
   try {
-    if (enableLogging) {
-      console.log(`[DATA_LAYER] Fetching entries for armband: ${armband}`);
-    }
+    if (enableLogging) {}
 
     // Armband lookups go directly to database for freshest data
     // Replication cache may not have indexed by armband yet
     const entries = await fetchEntriesByArmbandFromDatabase(armband, licenseKey);
 
-    if (enableLogging) {
-      console.log(`[DATA_LAYER] ✓ Armband query returned ${entries.length} entries`);
-    }
+    if (enableLogging) {}
     return entries;
   } catch (error) {
     console.error('[DATA_LAYER] Error fetching entries by armband:', error);
@@ -218,10 +202,8 @@ export async function getEntriesByArmband(
  */
 export async function triggerSync(tableName: 'entries' | 'results'): Promise<void> {
   try {
-    console.log(`[DATA_LAYER] Triggering immediate sync for: ${tableName}`);
-    await triggerImmediateEntrySync(tableName);
-    console.log(`[DATA_LAYER] ✓ Sync triggered successfully`);
-  } catch (error) {
+await triggerImmediateEntrySync(tableName);
+} catch (error) {
     console.error(`[DATA_LAYER] Error triggering sync for ${tableName}:`, error);
     throw error;
   }

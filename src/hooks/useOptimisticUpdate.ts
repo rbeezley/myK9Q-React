@@ -128,8 +128,7 @@ export function useOptimisticUpdate(): OptimisticUpdateResult {
 
         // If network error and haven't exceeded retries, wait and retry
         if (isNetworkError && attempts <= maxRetries) {
-          console.log(`Retry ${attempts}/${maxRetries} after network error`);
-          await new Promise(resolve => setTimeout(resolve, retryDelay * attempts));
+await new Promise(resolve => setTimeout(resolve, retryDelay * attempts));
           continue;
         }
 

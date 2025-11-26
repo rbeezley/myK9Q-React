@@ -70,8 +70,7 @@ export async function markInRing(
         .maybeSingle();
 
       if (entry?.is_scored) {
-        console.log(`⏭️ Entry ${entryId} is already scored - keeping status as 'completed'`);
-        // Update to completed status instead of no-status
+// Update to completed status instead of no-status
         const { error } = await supabase
           .from('entries')
           .update({ entry_status: 'completed' })
@@ -104,9 +103,7 @@ export async function markInRing(
       throw error;
     }
 
-    console.log(`✅ Entry ${entryId} marked as ${newStatus}`);
-
-    // CRITICAL: Trigger immediate sync to update UI without refresh
+// CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures all connected clients see the in-ring status change in real-time
     await triggerImmediateEntrySync('markInRing');
 
@@ -141,9 +138,7 @@ export async function markInRing(
  * await markEntryCompleted(123);
  */
 export async function markEntryCompleted(entryId: number): Promise<boolean> {
-  console.log(`🔄 markEntryCompleted called: entryId=${entryId}`);
-
-  try {
+try {
     // Check if entry is already scored with actual data (results merged into entries table)
     const { data: existingEntry, error: checkError } = await supabase
       .from('entries')
@@ -179,9 +174,7 @@ export async function markEntryCompleted(entryId: number): Promise<boolean> {
       throw statusError;
     }
 
-    console.log(`✅ markEntryCompleted successful: entry ${entryId} set to completed`);
-
-    return true;
+return true;
   } catch (error) {
     console.error('Error in markEntryCompleted:', error);
     throw error;
@@ -227,9 +220,7 @@ export async function updateEntryCheckinStatus(
       entry_status: checkinStatus,
     };
 
-    console.log('🔄 Updating entry status:', updateData);
-
-    const { error } = await supabase
+const { error } = await supabase
       .from('entries')
       .update(updateData)
       .eq('id', entryId)
@@ -244,26 +235,13 @@ export async function updateEntryCheckinStatus(
       );
     }
 
-    console.log('✅ Entry status updated successfully');
-
-    // Verify the update by reading it back
-    const { data: verifyData } = await supabase
-      .from('entries')
-      .select('id, entry_status')
-      .eq('id', entryId)
-      .single();
-
-    console.log('🔍 Verified updated status:', verifyData);
-
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the status change reflects in the replication cache immediately
     await triggerImmediateEntrySync('updateEntryCheckinStatus');
 
     // Small delay to ensure write has propagated (fixes immediate refresh race condition)
     await new Promise((resolve) => setTimeout(resolve, 100));
-    console.log('✅ Write propagation complete - safe to refresh');
-
-    return true;
+return true;
   } catch (error) {
     console.error('Error in updateEntryCheckinStatus:', error);
     throw error;
@@ -339,9 +317,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       );
     }
 
-    console.log('✅ Score reset successfully - reset score fields for entry', entryId);
-
-    // CRITICAL: Trigger immediate sync to update UI without refresh
+// CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the entry moves back to pending/checked-in tab immediately
     await triggerImmediateEntrySync('resetEntryScore');
 

@@ -122,16 +122,12 @@ export function useClassStatus(): UseClassStatusReturn {
     supabaseClient: SupabaseClient,
     refetch: () => void | Promise<void>
   ): Promise<StatusOperationResult> => {
-    console.log('🔄 useClassStatus: Updating class status:', { classId, status });
-
-    // Find paired class IDs (for combined Novice A & B)
+// Find paired class IDs (for combined Novice A & B)
     const classEntry = classes.find(c => c.id === classId);
     const pairedId = classEntry?.pairedClassId;
     const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
 
-    console.log('🔄 useClassStatus: Updating class IDs:', idsToUpdate);
-
-    // Convert 'no-status' to null for database
+// Convert 'no-status' to null for database
     const dbStatus = status === 'no-status' ? null : status;
     const updateData = {
       class_status: dbStatus
@@ -163,8 +159,7 @@ export function useClassStatus(): UseClassStatusReturn {
         };
       }
 
-      console.log('✅ Successfully updated class status:', { idsToUpdate, status });
-      return { success: true };
+return { success: true };
     } catch (error) {
       console.error('💥 Exception updating class status:', error);
       await refetch();
@@ -188,9 +183,7 @@ export function useClassStatus(): UseClassStatusReturn {
     supabaseClient: SupabaseClient,
     refetch: () => void | Promise<void>
   ): Promise<StatusOperationResult> => {
-    console.log('🕐 useClassStatus: Status change with time:', { classId, status, timeValue });
-
-    // Find paired class IDs
+// Find paired class IDs
     const classEntry = classes.find(c => c.id === classId);
     const pairedId = classEntry?.pairedClassId;
     const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
@@ -258,8 +251,7 @@ export function useClassStatus(): UseClassStatusReturn {
         };
       }
 
-      console.log('✅ Successfully updated class status with time:', { idsToUpdate, status, timeValue });
-      return { success: true };
+return { success: true };
     } catch (error) {
       console.error('💥 Exception updating class status:', error);
       await refetch();

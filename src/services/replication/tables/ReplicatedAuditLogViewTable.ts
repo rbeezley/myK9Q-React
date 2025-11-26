@@ -138,8 +138,7 @@ export class ReplicatedAuditLogViewTable extends ReplicatedTable<AuditLog> {
         lastIncrementalSyncAt: 0, // Force refresh on next read
       });
 
-      console.log('[ReplicatedAuditLogViewTable] Visibility setting changed, invalidating cache');
-    }
+}
   }
 
   /**
@@ -218,9 +217,7 @@ export class ReplicatedAuditLogViewTable extends ReplicatedTable<AuditLog> {
   async sync(licenseKey: string): Promise<SyncResult> {
     const startTime = Date.now();
     try {
-      console.log('[ReplicatedAuditLogViewTable] Syncing audit log view...');
-
-      const data = await this.fetchFromSupabase(licenseKey);
+const data = await this.fetchFromSupabase(licenseKey);
 
       // Clear old data first (full replacement for views)
       await this.clearTable();
@@ -233,9 +230,7 @@ export class ReplicatedAuditLogViewTable extends ReplicatedTable<AuditLog> {
         syncStatus: 'idle',
       });
 
-      console.log(`[ReplicatedAuditLogViewTable] ✅ Synced ${data.length} audit log entries`);
-
-      return {
+return {
         tableName: this.tableName,
         success: true,
         operation: 'full-sync',

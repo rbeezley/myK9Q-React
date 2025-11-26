@@ -133,8 +133,7 @@ export function usePrefetch() {
         // Populate L1 cache
         prefetchCache.set(key, cacheEntry);
 
-        console.log(`💾 Loaded from IndexedDB prefetch cache: ${key}`);
-        return idbCached.data as T;
+return idbCached.data as T;
       }
     } catch (error) {
       console.error(`❌ Failed to load from IndexedDB: ${key}`, error);
@@ -172,7 +171,7 @@ export function usePrefetch() {
     options: PrefetchOptions = {}
   ): Promise<T | null> => {
     const {
-      priority = 0,
+      priority: _priority = 0,
       ttl = 60,
       force = false,
       signal,
@@ -183,15 +182,13 @@ export function usePrefetch() {
     if (!force) {
       const cached = await getCachedAsync<T>(key);
       if (cached) {
-        console.log(`✅ Prefetch cache hit: ${key}`);
-        return cached;
+return cached;
       }
     }
 
     // Don't prefetch if already in progress
     if (activePrefetches.has(key)) {
-      console.log(`⏳ Prefetch already in progress: ${key}`);
-      return null;
+return null;
     }
 
     // Add to active prefetches
@@ -199,9 +196,7 @@ export function usePrefetch() {
     setIsPrefetching(true);
 
     try {
-      console.log(`🚀 Prefetching: ${key} (priority: ${priority})`);
-
-      // Create abort controller if not provided
+// Create abort controller if not provided
       const controller = signal ? null : new AbortController();
       if (controller) {
         abortControllerRef.current = controller;
@@ -212,15 +207,12 @@ export function usePrefetch() {
 
       // Check if aborted
       if (signal?.aborted || controller?.signal.aborted) {
-        console.log(`❌ Prefetch aborted: ${key}`);
-        return null;
+return null;
       }
 
       // Store in cache (L1 + L2)
       await setCached(key, data, ttl, persist);
-      console.log(`✅ Prefetch complete: ${key}`);
-
-      return data;
+return data;
 
     } catch (error) {
       console.error(`❌ Prefetch failed: ${key}`, error);
@@ -285,8 +277,7 @@ export function usePrefetch() {
       prefetchCache.clear();
       try {
         await idbCache.clear();
-        console.log('🗑️ Prefetch cache cleared (L1 + L2)');
-      } catch (error) {
+} catch (error) {
         console.error('❌ Failed to clear IndexedDB prefetch cache', error);
       }
       return;
@@ -310,8 +301,7 @@ export function usePrefetch() {
         .filter((entry) => regex.test(entry.key))
         .map((entry) => idbCache.delete(entry.key));
       await Promise.all(deletePromises);
-      console.log(`🗑️ Prefetch cache pattern cleared: ${pattern}`);
-    } catch (error) {
+} catch (error) {
       console.error('❌ Failed to clear IndexedDB prefetch cache pattern', error);
     }
   }, []);

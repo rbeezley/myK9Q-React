@@ -226,8 +226,7 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
     // Stage 5: Complete
     updateProgress('complete', totalItems, totalItems);
 
-    console.log(`✅ Downloaded show ${licenseKey}:`, preloadedShow);
-    return preloadedShow;
+return preloadedShow;
 
   } catch (error) {
     console.error('❌ Failed to preload show:', error);
@@ -335,8 +334,7 @@ export async function deletePreloadedShow(licenseKey: string): Promise<void> {
       idbMetadata.delete(`preloaded-show:${licenseKey}`),
     ]);
 
-    console.log(`🗑️ Deleted preloaded show: ${licenseKey}`);
-  } catch (error) {
+} catch (error) {
     console.error('❌ Failed to delete preloaded show:', error);
     throw error;
   }
@@ -387,9 +385,7 @@ export async function cleanupExpiredShows(): Promise<number> {
       }
     }
 
-    if (deletedCount > 0) {
-      console.log(`🧹 Cleaned up ${deletedCount} expired show(s)`);
-    }
+    if (deletedCount > 0) {}
 
     return deletedCount;
   } catch (error) {
@@ -412,8 +408,7 @@ export async function extendShowExpiration(
     show.expiresAt = Date.now() + additionalTtl;
     await idbMetadata.set(`preloaded-show:${licenseKey}`, show);
 
-    console.log(`⏰ Extended expiration for show ${licenseKey}`);
-    return show;
+return show;
   } catch (error) {
     console.error('❌ Failed to extend show expiration:', error);
     return null;
