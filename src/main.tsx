@@ -7,11 +7,12 @@ import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 import { initializeReplication } from './services/replication/initReplication'
 
 // App version for debugging cache issues
-const APP_VERSION = '2024-11-21-v3';
+const APP_VERSION = '2024-11-25-v4';
 console.log(`🔍 App Version: ${APP_VERSION} | Build Time: ${new Date().toISOString()}`);
 
-// Track if user has been prompted about this update
-let updatePromptShown = false
+// Track if user has been prompted about this update (persist across sessions)
+const getLastPromptedVersion = () => localStorage.getItem('sw_prompted_version');
+const setLastPromptedVersion = () => localStorage.setItem('sw_prompted_version', APP_VERSION);
 
 const updateSW = registerSW({
   onNeedRefresh() {
@@ -21,13 +22,15 @@ const updateSW = registerSW({
       return
     }
 
-    // Only show the prompt once per update
-    if (updatePromptShown) {
-      console.log('🔄 Update already prompted, skipping...')
+    // Only prompt once per app version (persists across sessions/refreshes)
+    // This prevents repeated prompts during PTR or page navigation
+    const lastPrompted = getLastPromptedVersion();
+    if (lastPrompted === APP_VERSION) {
+      console.log('🔄 Update already prompted for this version, skipping...')
       return
     }
 
-    updatePromptShown = true
+    setLastPromptedVersion();
 
     // In production, prompt user for update
     if (confirm('New content available. Reload?')) {
