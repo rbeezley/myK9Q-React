@@ -21,9 +21,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // @deno-types="npm:@types/web-push"
 import webpush from 'npm:web-push@3.6.7'
 
+// CORS restricted to production domain for security
+// This function requires trigger secret auth, but CORS provides defense-in-depth
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': 'https://app.myk9q.com',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
 }
 
 interface NotificationPayload {
