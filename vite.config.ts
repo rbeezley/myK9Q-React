@@ -9,6 +9,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Pass env vars to tests - uses process.env (from CI) or test fallbacks
+    env: {
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key',
+    },
     hookTimeout: 30000, // Increase from default 10s to 30s for IndexedDB cleanup
     testTimeout: 15000, // 15s timeout for individual tests
 
