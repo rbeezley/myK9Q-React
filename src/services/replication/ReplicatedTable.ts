@@ -1,17 +1,17 @@
 /**
  * ReplicatedTable - Generic Base Class for Table Replication
  *
+ * Refactored as part of DEBT-003: Split from 1,253 lines into focused modules:
+ * - DatabaseManager.ts: Shared DB singleton, init, retry, corruption recovery (~300 lines)
+ * - ReplicatedTableCache.ts: TTL, eviction, stats, subscriptions (~300 lines)
+ * - ReplicatedTableBatch.ts: Batch operations, chunked processing (~130 lines)
+ * - ReplicatedTable.ts: Core CRUD operations (~400 lines)
+ *
  * Provides CRUD operations with automatic caching, sync, and conflict resolution.
  * All table-specific implementations extend this class.
- *
- * Phase 1 Implementation (Days 1-5)
- * - Core CRUD operations (get, set, delete, query)
- * - IndexedDB persistence
- * - TTL/expiration logic
- * - Subscription pattern for real-time updates
  */
 
-import { openDB, deleteDB, IDBPDatabase, IDBPObjectStore } from 'idb';
+import type { IDBPDatabase, IDBPObjectStore } from 'idb';
 import type {
   ReplicatedRow,
   SyncMetadata,
@@ -20,61 +20,23 @@ import type {
 import type { SyncOptions } from './SyncEngine';
 import type { Logger, GetTableTTL, LogDiagnostics, ReplicatedTableDependencies, ReplicatedTableName } from './dependencies';
 import {
-  DB_NAME,
-  DB_VERSION,
-  NOTIFY_DEBOUNCE_MS,
   QUERY_TIMEOUT_MS,
   SLOW_QUERY_THRESHOLD_MS,
   MAX_OPTIMISTIC_UPDATE_RETRIES,
-  MAX_CHUNK_SIZE,
-  DB_INIT_TIMEOUT_MS,
-  INIT_RETRY_DELAY_MS,
 } from './replicationConstants';
+
+// Extracted modules
+import { databaseManager, REPLICATION_STORES, trackTransaction } from './DatabaseManager';
+import { ReplicatedTableCacheManager } from './ReplicatedTableCache';
+import { ReplicatedTableBatchManager } from './ReplicatedTableBatch';
 
 // Production dependencies - imported from actual modules
 import { logger as defaultLogger } from '@/utils/logger';
 import { getTableTTL as defaultGetTableTTL } from '@/config/featureFlags';
 import { logDiagnosticReport as defaultLogDiagnostics } from '@/utils/indexedDBDiagnostics';
 
-/**
- * Shared database instance singleton
- * CRITICAL: All ReplicatedTable instances MUST share the same DB connection
- * to avoid upgrade transaction deadlocks when 16 tables initialize simultaneously
- */
-let sharedDB: IDBPDatabase | null = null;
-let dbInitPromise: Promise<IDBPDatabase> | null = null;
-
-/**
- * Table initialization queue to prevent transaction stampede
- * When dbInitPromise resolves, all 16 tables try to create transactions simultaneously.
- * This queue ensures they take turns accessing the database to prevent deadlock.
- */
-let tableInitQueue: Promise<void> = Promise.resolve();
-let tablesInitialized = 0;
-
-/**
- * PHASE 1 DAY 1 FIX: Atomic flag to prevent race condition in dbInitPromise assignment
- * Multiple tables can check "dbInitPromise === null" simultaneously and all try to create it.
- * This flag ensures only ONE table wins the race and creates the database connection.
- */
-let dbInitInProgress = false;
-
-/**
- * PHASE 1 DAY 2 FIX: Transaction tracking to prevent stampede
- * The 10ms delay in the initialization queue is a timing heuristic, not a guarantee.
- * This Set tracks ALL active transactions so we can wait for them to complete
- * before the next table starts its transactions, preventing deadlocks.
- */
-let activeTransactions = new Set<Promise<void>>();
-
-/**
- * New object stores for replication system
- */
-export const REPLICATION_STORES = {
-  REPLICATED_TABLES: 'replicated_tables',
-  SYNC_METADATA: 'sync_metadata',
-  PENDING_MUTATIONS: 'pending_mutations',
-} as const;
+// Re-export REPLICATION_STORES for backward compatibility
+export { REPLICATION_STORES } from './DatabaseManager';
 
 /**
  * Generic replicated table base class
@@ -83,19 +45,18 @@ export const REPLICATION_STORES = {
  */
 export abstract class ReplicatedTable<T extends { id: string }> {
   protected db: IDBPDatabase | null = null;
-  protected listeners: Set<(data: T[]) => void> = new Set();
   protected ttl: number;
 
   /** Injected dependencies */
   protected readonly logger: Logger;
   private readonly getTableTTLFn: GetTableTTL;
-  private readonly logDiagnosticsFn: LogDiagnostics;
+  protected readonly logDiagnosticsFn: LogDiagnostics;
 
-  /** Day 25-26 MEDIUM Fix: Debouncing for listener notifications */
-  private notifyDebounceTimer: NodeJS.Timeout | null = null;
+  /** Extracted cache manager */
+  private cacheManager: ReplicatedTableCacheManager<T>;
 
-  /** Issue #6 Fix: Leading-edge notification flag to prevent starvation */
-  private hasNotifiedLeadingEdge: boolean = false;
+  /** Extracted batch manager */
+  private batchManager: ReplicatedTableBatchManager<T>;
 
   /** Issue #5 Fix: Per-row mutex to prevent concurrent update livelocks */
   private rowLocks: Map<string, Promise<void>> = new Map();
@@ -112,259 +73,35 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     // Set TTL using injected function
     this.ttl = customTTL || this.getTableTTLFn(tableName as ReplicatedTableName);
+
+    // Initialize extracted managers
+    this.cacheManager = new ReplicatedTableCacheManager<T>(
+      tableName,
+      () => this.ttl,  // Getter for TTL to allow dynamic changes (used by tests)
+      this.logger,
+      () => this.init(),
+      () => this.getAll()
+    );
+
+    this.batchManager = new ReplicatedTableBatchManager<T>(
+      tableName,
+      this.logger,
+      () => this.init(),
+      () => this.notifyListeners()
+    );
   }
+
+  // ========================================
+  // DATABASE INITIALIZATION
+  // ========================================
 
   /**
    * Initialize IndexedDB connection
    * SINGLETON PATTERN: All tables share the same DB instance to prevent upgrade deadlocks
    */
   protected async init(): Promise<IDBPDatabase> {
-    this.logger.log(`[${this.tableName}] init() called - sharedDB: ${!!sharedDB}, dbInitPromise: ${!!dbInitPromise}`);
-
-    // Return shared instance if already initialized
-    if (sharedDB) {
-      this.logger.log(`[${this.tableName}] Using existing sharedDB`);
-      this.db = sharedDB;
-      return sharedDB;
-    }
-
-    // If initialization is in progress, wait for it AND join the queue
-    if (dbInitPromise) {
-      this.logger.log(`[${this.tableName}] Waiting for dbInitPromise to resolve...`);
-
-      // Wait for database to open
-      this.db = await dbInitPromise;
-      this.logger.log(`[${this.tableName}] dbInitPromise resolved successfully`);
-
-      // CRITICAL FIX: Join the initialization queue to prevent transaction stampede
-      // All 16 tables will wait here in sequence instead of creating transactions simultaneously
-      const myTurn = tableInitQueue.then(async () => {
-        tablesInitialized++;
-        this.logger.log(`[${this.tableName}] My turn in queue (${tablesInitialized}/16)`);
-
-        // PHASE 1 DAY 2 FIX: Wait for ALL active transactions to complete
-        // The 10ms delay was a timing heuristic, not a guarantee.
-        // We now wait for actual transaction completion to prevent deadlocks.
-        if (activeTransactions.size > 0) {
-          this.logger.log(`[${this.tableName}] Waiting for ${activeTransactions.size} active transactions to complete...`);
-          await Promise.all(Array.from(activeTransactions));
-          this.logger.log(`[${this.tableName}] All active transactions complete`);
-        }
-
-        this.logger.log(`[${this.tableName}] Queue slot complete, ready for transactions`);
-      });
-
-      // Update queue for next table
-      tableInitQueue = myTurn;
-
-      // Wait for my turn before returning
-      await myTurn;
-
-      return this.db;
-    }
-
-    // PHASE 1 DAY 1 FIX: Atomic compare-and-swap to prevent race condition
-    // Check if another thread is currently initializing the database
-    if (dbInitInProgress) {
-      this.logger.log(`[${this.tableName}] Another thread is initializing DB, waiting...`);
-      // Wait a bit and retry (another thread won the race)
-      await new Promise(resolve => setTimeout(resolve, INIT_RETRY_DELAY_MS));
-      return this.init(); // Recursive retry
-    }
-
-    // WE WON THE RACE - set flag atomically before creating dbInitPromise
-    dbInitInProgress = true;
-    this.logger.log(`[${this.tableName}] Won initialization race, creating database...`);
-
-    // Start initialization (only one table will execute this)
-    this.logger.log(`[${this.tableName}] Starting new DB initialization...`);
-
-    // Timeout protection: openDB can hang if database is corrupt or locked
-    this.logger.log(`[${this.tableName}] About to call openDB("${DB_NAME}", ${DB_VERSION})...`);
-    const openDBPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion, _newVersion, _transaction) {
-        defaultLogger.log(`[ReplicatedTable] 🔧 Upgrade callback triggered - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
-        defaultLogger.log(`[ReplicatedTable] Upgrade transaction mode: ${_transaction.mode}`);
-
-        // Create replicated_tables store if it doesn't exist
-        if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
-          defaultLogger.log(`[ReplicatedTable] Creating REPLICATED_TABLES store...`);
-
-          const store = db.createObjectStore(REPLICATION_STORES.REPLICATED_TABLES, {
-            keyPath: ['tableName', 'id'],
-          });
-          store.createIndex('tableName', 'tableName', { unique: false });
-          store.createIndex('tableName_lastSyncedAt', ['tableName', 'lastSyncedAt'], { unique: false });
-          store.createIndex('isDirty', 'isDirty', { unique: false });
-
-          // Day 23-24: Performance indexes for hot query paths
-          // These indexes enable O(log n) queries instead of O(n) table scans
-          store.createIndex('tableName_data.class_id', ['tableName', 'data.class_id'], { unique: false });
-          store.createIndex('tableName_data.trial_id', ['tableName', 'data.trial_id'], { unique: false });
-          store.createIndex('tableName_data.show_id', ['tableName', 'data.show_id'], { unique: false });
-          store.createIndex('tableName_data.armband_number', ['tableName', 'data.armband_number'], { unique: false });
-        } else if (oldVersion < 3) {
-          // Upgrade from v1/v2 to v3: Add query performance indexes if missing
-          const store = _transaction.objectStore(REPLICATION_STORES.REPLICATED_TABLES);
-
-          // Add new indexes if they don't exist
-          if (!store.indexNames.contains('tableName_data.class_id')) {
-            store.createIndex('tableName_data.class_id', ['tableName', 'data.class_id'], { unique: false });
-          }
-          if (!store.indexNames.contains('tableName_data.trial_id')) {
-            store.createIndex('tableName_data.trial_id', ['tableName', 'data.trial_id'], { unique: false });
-          }
-          if (!store.indexNames.contains('tableName_data.show_id')) {
-            store.createIndex('tableName_data.show_id', ['tableName', 'data.show_id'], { unique: false });
-          }
-          if (!store.indexNames.contains('tableName_data.armband_number')) {
-            store.createIndex('tableName_data.armband_number', ['tableName', 'data.armband_number'], { unique: false });
-          }
-        }
-
-        // Create sync_metadata store
-        if (!db.objectStoreNames.contains(REPLICATION_STORES.SYNC_METADATA)) {
-          defaultLogger.log(`[ReplicatedTable] Creating SYNC_METADATA store...`);
-          db.createObjectStore(REPLICATION_STORES.SYNC_METADATA, {
-            keyPath: 'tableName',
-          });
-        }
-
-        // Create pending_mutations store
-        if (!db.objectStoreNames.contains(REPLICATION_STORES.PENDING_MUTATIONS)) {
-          defaultLogger.log(`[ReplicatedTable] Creating PENDING_MUTATIONS store...`);
-          const mutationStore = db.createObjectStore(REPLICATION_STORES.PENDING_MUTATIONS, {
-            keyPath: 'id',
-          });
-          mutationStore.createIndex('status', 'status', { unique: false });
-          mutationStore.createIndex('tableName', 'tableName', { unique: false });
-        }
-
-        defaultLogger.log(`[ReplicatedTable] ✅ Upgrade callback complete`);
-      },
-    }).then((db) => {
-      defaultLogger.log(`[ReplicatedTable] ✅ openDB() promise resolved!`);
-      return db;
-    });
-
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Database open timed out after ${DB_INIT_TIMEOUT_MS}ms - database may be corrupted or locked`));
-      }, DB_INIT_TIMEOUT_MS);
-    });
-
-    // Try to open database with timeout
-    try {
-      // CRITICAL: Set dbInitPromise BEFORE awaiting to prevent race condition
-      // All other tables will wait on this promise instead of starting their own initialization
-      dbInitPromise = Promise.race([openDBPromise, timeoutPromise]);
-      sharedDB = await dbInitPromise;
-      this.db = sharedDB;
-
-      this.logger.log(`[ReplicatedTable] ✅ Shared database initialized successfully`);
-
-      // PHASE 1 DAY 1 FIX: Release the initialization flag on success
-      dbInitInProgress = false;
-
-      return this.db;
-    } catch (error) {
-      this.logger.error(`[ReplicatedTable] ❌ Failed to open database:`, error);
-
-      // Import the config function
-      const { handleDatabaseCorruption } = await import('./replicationConfig');
-
-      // Database is corrupt or locked - disable replication and clean up
-      this.logger.warn(`[ReplicatedTable] 🗑️ Deleting corrupted database and disabling replication...`);
-
-      // Handle the corruption (this will disable replication temporarily)
-      handleDatabaseCorruption();
-
-      try {
-        await deleteDB(DB_NAME);
-        this.logger.log(`[ReplicatedTable] Database deleted successfully`);
-
-        // Retry opening database (fresh start)
-        const retryPromise = openDB(DB_NAME, DB_VERSION, {
-          upgrade(db, oldVersion, _newVersion, _transaction) {
-            defaultLogger.log(`[ReplicatedTable] 🔧 Retry upgrade - oldVersion: ${oldVersion}, newVersion: ${_newVersion}`);
-            // Same upgrade logic as above (create all stores)
-            if (!db.objectStoreNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
-              const store = db.createObjectStore(REPLICATION_STORES.REPLICATED_TABLES, {
-                keyPath: ['tableName', 'id'],
-              });
-              store.createIndex('tableName', 'tableName', { unique: false });
-              store.createIndex('tableName_lastSyncedAt', ['tableName', 'lastSyncedAt'], { unique: false });
-              store.createIndex('isDirty', 'isDirty', { unique: false });
-              store.createIndex('tableName_data.class_id', ['tableName', 'data.class_id'], { unique: false });
-              store.createIndex('tableName_data.trial_id', ['tableName', 'data.trial_id'], { unique: false });
-              store.createIndex('tableName_data.show_id', ['tableName', 'data.show_id'], { unique: false });
-              store.createIndex('tableName_data.armband_number', ['tableName', 'data.armband_number'], { unique: false });
-            }
-            if (!db.objectStoreNames.contains(REPLICATION_STORES.SYNC_METADATA)) {
-              db.createObjectStore(REPLICATION_STORES.SYNC_METADATA, { keyPath: 'tableName' });
-            }
-            if (!db.objectStoreNames.contains(REPLICATION_STORES.PENDING_MUTATIONS)) {
-              const mutationStore = db.createObjectStore(REPLICATION_STORES.PENDING_MUTATIONS, { keyPath: 'id' });
-              mutationStore.createIndex('status', 'status', { unique: false });
-              mutationStore.createIndex('tableName', 'tableName', { unique: false });
-            }
-          },
-        });
-
-        // PHASE 1 DAY 3 FIX: Use separate variable for retry promise
-        // Don't overwrite dbInitPromise - other threads might be waiting on it!
-        const retryDbPromise = Promise.race([retryPromise, timeoutPromise]);
-        sharedDB = await retryDbPromise;
-        this.db = sharedDB;
-
-        // NOW update dbInitPromise to point to the new database
-        dbInitPromise = Promise.resolve(sharedDB);
-
-        this.logger.log(`[ReplicatedTable] ✅ Database recreated successfully after corruption`);
-
-        // PHASE 1 DAY 1 FIX: Release the initialization flag on success
-        dbInitInProgress = false;
-
-        // Reset queue state for clean retry
-        tableInitQueue = Promise.resolve();
-        tablesInitialized = 0;
-
-        return this.db;
-      } catch (retryError) {
-        this.logger.error(`[ReplicatedTable] ❌ Failed to recreate database after deletion:`, retryError);
-
-        // Database is completely stuck - run diagnostics
-        this.logger.error(`[ReplicatedTable] 🔍 Database is locked/corrupted - running diagnostics...`);
-
-        // Run diagnostic report in background
-        setTimeout(() => {
-          Promise.resolve(this.logDiagnosticsFn({})).catch(err => {
-            this.logger.error('[ReplicatedTable] Diagnostic report failed:', err);
-          });
-        }, 0);
-
-        // PHASE 1 DAY 3 FIX: Only reset global state if no other threads are using the DB
-        // If other threads have active transactions, don't destroy their state
-        const currentlyInUse = activeTransactions.size > 0;
-        if (!currentlyInUse) {
-          this.logger.log(`[${this.tableName}] No active transactions, safe to reset global state`);
-          dbInitPromise = null;
-          sharedDB = null;
-          tableInitQueue = Promise.resolve();
-          tablesInitialized = 0;
-        } else {
-          this.logger.warn(
-            `[${this.tableName}] Not resetting DB state - ${activeTransactions.size} active transactions. ` +
-            `Other tables may still be using the database.`
-          );
-        }
-
-        // PHASE 1 DAY 1 FIX: Release the initialization flag on failure
-        dbInitInProgress = false;
-
-        throw retryError;
-      }
-    }
+    this.db = await databaseManager.getDatabase(this.tableName);
+    return this.db;
   }
 
   /**
@@ -394,16 +131,15 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     // Track this transaction in the global set
     const voidPromise = txPromise.then(() => {}, () => {}) as Promise<void>;
-    activeTransactions.add(voidPromise);
-
-    // Remove from tracking when complete (success or failure)
-    voidPromise.finally(() => {
-      activeTransactions.delete(voidPromise);
-    });
+    trackTransaction(voidPromise);
 
     // Return the actual result
     return txPromise;
   }
+
+  // ========================================
+  // CORE CRUD OPERATIONS
+  // ========================================
 
   /**
    * Get single row by ID
@@ -421,7 +157,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     }
 
     // Check if expired
-    if (this.isExpired(row)) {
+    if (this.cacheManager.isExpired(row)) {
       this.logger.log(`[${this.tableName}] Cache expired for ID: ${id}`);
       await db.delete(REPLICATION_STORES.REPLICATED_TABLES, key);
       return null;
@@ -494,6 +230,10 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     this.notifyListeners();
   }
 
+  // ========================================
+  // QUERY OPERATIONS
+  // ========================================
+
   /**
    * Query rows by index (OPTIMIZED - uses IndexedDB indexes for O(log n) performance)
    * Example: queryByField('class_id', '123') returns all entries with class_id = 123
@@ -550,7 +290,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
         }
 
         // Filter expired rows
-        const freshRows = rows.filter((row) => !this.isExpired(row));
+        const freshRows = rows.filter((row) => !this.cacheManager.isExpired(row));
 
         return freshRows.map((row) => row.data);
       })();
@@ -561,7 +301,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       const duration = performance.now() - startTime;
       if (duration > SLOW_QUERY_THRESHOLD_MS) {
         this.logger.warn(
-          `⚠️ [${this.tableName}] SLOW query detected: ${fieldName}=${value} took ${duration.toFixed(2)}ms ` +
+          `[${this.tableName}] SLOW query detected: ${fieldName}=${value} took ${duration.toFixed(2)}ms ` +
           `(${results.length} results). Consider optimizing or reducing dataset.`
         );
       } else {
@@ -575,7 +315,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       // Day 25-26 MEDIUM Fix: Handle timeout errors
       if (error instanceof Error && error.message.includes('Query timeout')) {
         this.logger.error(
-          `❌ [${this.tableName}] Query TIMEOUT: ${fieldName}=${value} exceeded ${QUERY_TIMEOUT_MS}ms. ` +
+          `[${this.tableName}] Query TIMEOUT: ${fieldName}=${value} exceeded ${QUERY_TIMEOUT_MS}ms. ` +
           `This indicates a performance issue. Dataset may be too large or index not working properly.`
         );
         throw error;
@@ -584,7 +324,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       // Fallback to table scan if index doesn't exist (backward compatibility)
       this.logger.warn(`[${this.tableName}] Index ${indexName} not found, falling back to table scan (took ${duration.toFixed(2)}ms)`);
       const allRows = await this.getAll();
-      return allRows.filter((row) => (row as any)[fieldName] === value);
+      return allRows.filter((row) => (row as Record<string, unknown>)[fieldName] === value);
     }
   }
 
@@ -612,7 +352,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
    */
   async getAll(licenseKey?: string): Promise<T[]> {
-    const GET_ALL_TIMEOUT_MS = 20000; // 20 second timeout for reading all rows (increased from 10s for large datasets)
+    const GET_ALL_TIMEOUT_MS = 20000; // 20 second timeout for reading all rows
 
     const getAllPromise = (async () => {
       const db = await this.init();
@@ -622,12 +362,12 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
 
       // Filter expired rows
-      const freshRows = rows.filter((row) => !this.isExpired(row));
+      const freshRows = rows.filter((row) => !this.cacheManager.isExpired(row));
 
       // Filter by license_key if provided (for multi-tenant isolation)
       if (licenseKey) {
         return freshRows
-          .filter((row) => (row.data as any).license_key === licenseKey)
+          .filter((row) => (row.data as Record<string, unknown>).license_key === licenseKey)
           .map((row) => row.data);
       }
 
@@ -644,17 +384,19 @@ export abstract class ReplicatedTable<T extends { id: string }> {
       const result = await Promise.race([getAllPromise, timeoutPromise]);
       return result;
     } catch (error) {
-      this.logger.error(`[${this.tableName}] ❌ getAll() failed:`, error);
+      this.logger.error(`[${this.tableName}] getAll() failed:`, error);
       // Return empty array on timeout to allow sync to continue
       return [];
     }
   }
 
+  // ========================================
+  // ROW LOCKING (Optimistic Update Support)
+  // ========================================
+
   /**
    * Acquire an exclusive lock for a specific row
    * Issue #5 Fix: Prevents concurrent updates to the same row from livelocking
-   *
-   * @param id - Row ID to lock
    */
   private async acquireRowLock(id: string): Promise<void> {
     // Wait for existing lock if present
@@ -671,19 +413,17 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
     // Store lock with release function attached
     this.rowLocks.set(id, lockPromise);
-    (this.rowLocks.get(id) as any)._release = releaseLock!;
+    (this.rowLocks.get(id) as unknown as Record<string, unknown>)._release = releaseLock!;
   }
 
   /**
    * Release the exclusive lock for a specific row
    * Issue #5 Fix: Must be called in finally block to ensure lock is always released
-   *
-   * @param id - Row ID to unlock
    */
   private releaseRowLock(id: string): void {
     const lock = this.rowLocks.get(id);
-    if (lock && (lock as any)._release) {
-      (lock as any)._release();
+    if (lock && (lock as unknown as Record<string, unknown>)._release) {
+      ((lock as unknown as Record<string, unknown>)._release as () => void)();
       this.rowLocks.delete(id);
     }
   }
@@ -733,296 +473,65 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     }
   }
 
-  /**
-   * Batch set (for initial sync)
-   */
+  // ========================================
+  // DELEGATED METHODS (to extracted managers)
+  // ========================================
+
+  // --- Batch Operations (delegated to ReplicatedTableBatchManager) ---
+
+  /** Batch set (for initial sync) */
   async batchSet(items: T[]): Promise<void> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-
-    for (const item of items) {
-      const row: ReplicatedRow<T> = {
-        tableName: this.tableName,
-        id: item.id,
-        data: item,
-        version: 1,
-        lastSyncedAt: Date.now(),
-        lastAccessedAt: Date.now(),
-        isDirty: false,
-        syncStatus: 'synced',
-      };
-
-      await tx.store.put(row);
-    }
-
-    await tx.done;
-    this.logger.log(`[${this.tableName}] Batch cached ${items.length} rows`);
-
-    // Notify listeners
-    this.notifyListeners();
+    return this.batchManager.batchSet(items);
   }
 
-  /**
-   * Batch set with chunking (for large syncs > 500 rows)
-   * Day 23-24: Performance optimization to prevent UI freezing on large syncs
-   *
-   * Processes data in chunks of 100 rows to:
-   * - Reduce memory pressure
-   * - Allow progress updates
-   * - Prevent transaction timeouts
-   */
-  async batchSetChunked(items: T[], chunkSize: number = MAX_CHUNK_SIZE): Promise<void> {
-    const totalRows = items.length;
-
-    // For small datasets, use regular batchSet
-    if (totalRows <= chunkSize) {
-      return this.batchSet(items);
-    }
-
-    this.logger.log(`[${this.tableName}] Starting chunked batch set: ${totalRows} rows (chunks of ${chunkSize})`);
-
-    let processedRows = 0;
-
-    for (let i = 0; i < totalRows; i += chunkSize) {
-      const chunk = items.slice(i, i + chunkSize);
-      const db = await this.init();
-      const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-
-      for (const item of chunk) {
-        const row: ReplicatedRow<T> = {
-          tableName: this.tableName,
-          id: item.id,
-          data: item,
-          version: 1,
-          lastSyncedAt: Date.now(),
-          lastAccessedAt: Date.now(),
-          isDirty: false,
-          syncStatus: 'synced',
-        };
-
-        await tx.store.put(row);
-      }
-
-      await tx.done;
-      processedRows += chunk.length;
-
-      const progress = Math.round((processedRows / totalRows) * 100);
-      this.logger.log(`[${this.tableName}] Chunk progress: ${processedRows}/${totalRows} (${progress}%)`);
-    }
-
-    this.logger.log(`[${this.tableName}] Chunked batch complete: ${processedRows} rows`);
-
-    // Notify listeners once at the end
-    this.notifyListeners();
+  /** Batch set with chunking (for large syncs > 500 rows) */
+  async batchSetChunked(items: T[], chunkSize?: number): Promise<void> {
+    return this.batchManager.batchSetChunked(items, chunkSize);
   }
 
-  /**
-   * Batch delete
-   */
+  /** Batch delete */
   async batchDelete(ids: string[]): Promise<void> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-
-    for (const id of ids) {
-      await tx.store.delete([this.tableName, id]);
-    }
-
-    await tx.done;
-    this.logger.log(`[${this.tableName}] Batch deleted ${ids.length} rows`);
-
-    // Notify listeners
-    this.notifyListeners();
+    return this.batchManager.batchDelete(ids);
   }
 
-  /**
-   * Clear all cached rows for this table
-   */
+  /** Clear all cached rows for this table */
   async clearCache(): Promise<void> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-    const index = tx.store.index('tableName');
-
-    const keys = await index.getAllKeys(this.tableName);
-    for (const key of keys) {
-      await tx.store.delete(key);
-    }
-
-    await tx.done;
-    this.logger.log(`[${this.tableName}] Cache cleared`);
-
-    // Notify listeners
-    this.notifyListeners();
+    return this.batchManager.clearCache();
   }
 
-  /**
-   * Subscribe to changes
-   * Returns unsubscribe function
-   */
+  // --- Cache Management (delegated to ReplicatedTableCacheManager) ---
+
+  /** Subscribe to changes */
   subscribe(callback: (data: T[]) => void): () => void {
-    this.listeners.add(callback);
-
-    // Immediately call with current data
-    this.getAll().then(callback).catch(this.logger.error);
-
-    // Return unsubscribe function
-    return () => {
-      this.listeners.delete(callback);
-    };
+    return this.cacheManager.subscribe(callback);
   }
 
-  /**
-   * Notify all listeners of data changes
-   *
-   * Issue #6 Fix: Leading-edge debounce
-   * - First call fires immediately (no delay)
-   * - Subsequent rapid calls are debounced (100ms delay)
-   * - Prevents notification starvation during continuous batch operations
-   */
+  /** Notify all listeners of data changes */
   protected async notifyListeners(): Promise<void> {
-    // CRITICAL FIX: Fire immediately if this is the first call
-    if (!this.hasNotifiedLeadingEdge) {
-      this.hasNotifiedLeadingEdge = true;
-      await this.actuallyNotifyListeners();
-    }
-
-    // Clear existing timer
-    if (this.notifyDebounceTimer) {
-      clearTimeout(this.notifyDebounceTimer);
-    }
-
-    // Set trailing-edge timer for subsequent updates
-    this.notifyDebounceTimer = setTimeout(async () => {
-      await this.actuallyNotifyListeners();
-      this.notifyDebounceTimer = null;
-      this.hasNotifiedLeadingEdge = false; // Reset flag
-    }, NOTIFY_DEBOUNCE_MS);
+    return this.cacheManager.notifyListeners();
   }
 
-  /**
-   * Issue #6 Fix: Extracted actual notification logic
-   * Issue #10 Fix: Execute callbacks asynchronously to prevent blocking
-   * - Separated from debouncing logic for clarity
-   * - Used by both leading-edge and trailing-edge notifications
-   * - Callbacks run async to prevent slow listeners from blocking others
-   */
-  private async actuallyNotifyListeners(): Promise<void> {
-    const data = await this.getAll();
-    this.listeners.forEach((callback) => {
-      // CRITICAL FIX: Don't block on slow callbacks
-      // Execute asynchronously so one slow listener doesn't block others
-      Promise.resolve()
-        .then(() => callback(data))
-        .catch(error => {
-          this.logger.error(`[${this.tableName}] Listener error:`, error);
-        });
-    });
-  }
-
-  /**
-   * Check if row is expired based on TTL
-   *
-   * IMPORTANT: Never expire dirty rows (rows with unsaved local changes)
-   * This ensures offline scores are never lost, even if TTL expires
-   *
-   * Day 25-26 MEDIUM Fix: Don't expire if offline (offline mode exception)
-   */
+  /** Check if row is expired based on TTL */
   protected isExpired(row: ReplicatedRow<T>): boolean {
-    // Never expire dirty rows (have pending mutations)
-    if (row.isDirty) {
-      return false;
-    }
-
-    // Day 25-26: Don't expire if offline (user may need stale data)
-    if (!navigator.onLine) {
-      return false;
-    }
-
-    return Date.now() - row.lastSyncedAt > this.ttl;
+    return this.cacheManager.isExpired(row);
   }
 
-  /**
-   * Refresh timestamps on all cached rows
-   * Called after incremental sync with 0 changes to prevent expiration
-   */
+  /** Refresh timestamps on all cached rows */
   async refreshTimestamps(): Promise<void> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-    const index = tx.store.index('tableName');
-
-    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
-    const now = Date.now();
-
-    for (const row of rows) {
-      row.lastSyncedAt = now;
-      row.lastAccessedAt = now;
-      await tx.store.put(row);
-    }
-
-    await tx.done;
-    this.logger.log(`[${this.tableName}] Refreshed timestamps for ${rows.length} cached rows`);
+    return this.cacheManager.refreshTimestamps();
   }
 
-  /**
-   * Clean expired rows (for maintenance)
-   */
+  /** Clean expired rows (for maintenance) */
   async cleanExpired(): Promise<number> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-    const index = tx.store.index('tableName');
-
-    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
-    let deletedCount = 0;
-
-    for (const row of rows) {
-      if (this.isExpired(row)) {
-        await tx.store.delete([row.tableName, row.id]);
-        deletedCount++;
-      }
-    }
-
-    await tx.done;
-
-    if (deletedCount > 0) {
-      this.logger.log(`[${this.tableName}] Cleaned ${deletedCount} expired rows`);
-    }
-
-    return deletedCount;
+    return this.cacheManager.cleanExpired();
   }
 
-  /**
-   * Estimate size of a single row in bytes
-   * Day 23-24: Used for LRU eviction to prevent quota errors
-   */
-  private estimateRowSize(row: ReplicatedRow<T>): number {
-    try {
-      // JSON.stringify + Blob gives accurate byte count
-      const jsonStr = JSON.stringify(row);
-      return new Blob([jsonStr]).size;
-    } catch (error) {
-      // Fallback: rough estimate (2 bytes per char for UTF-16)
-      this.logger.warn(`[${this.tableName}] Failed to estimate row size, using fallback:`, error);
-      return JSON.stringify(row).length * 2;
-    }
-  }
-
-  /**
-   * Estimate total size of all rows in bytes
-   * Day 23-24: Used for LRU eviction to prevent quota errors
-   */
+  /** Estimate total size of all rows in bytes */
   async estimateTotalSize(): Promise<number> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
-    const index = tx.store.index('tableName');
-
-    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
-
-    return rows.reduce((sum, row) => sum + this.estimateRowSize(row), 0);
+    return this.cacheManager.estimateTotalSize();
   }
 
-  /**
-   * Get cache statistics for this table
-   * Day 23-24: Monitoring for LRU eviction decisions
-   */
+  /** Get cache statistics for this table */
   async getCacheStats(): Promise<{
     rowCount: number;
     sizeBytes: number;
@@ -1031,223 +540,35 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     newestAccess: number;
     dirtyCount: number;
   }> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
-    const index = tx.store.index('tableName');
-
-    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
-
-    const sizeBytes = rows.reduce((sum, row) => sum + this.estimateRowSize(row), 0);
-    const dirtyCount = rows.filter(row => row.isDirty).length;
-    const accessTimes = rows.map(row => row.lastAccessedAt);
-
-    return {
-      rowCount: rows.length,
-      sizeBytes,
-      sizeMB: sizeBytes / 1024 / 1024,
-      oldestAccess: accessTimes.length > 0 ? Math.min(...accessTimes) : 0,
-      newestAccess: accessTimes.length > 0 ? Math.max(...accessTimes) : 0,
-      dirtyCount,
-    };
+    return this.cacheManager.getCacheStats();
   }
 
-  /**
-   * Evict least recently used rows to reduce memory footprint
-   * Day 23-24: Prevents IndexedDB quota errors on large datasets
-   *
-   * @param targetSizeBytes - Target size in bytes (evict until under this threshold)
-   * @returns Number of rows evicted
-   */
+  /** Evict least recently used rows to reduce memory footprint */
   async evictLRU(targetSizeBytes: number): Promise<number> {
-    const db = await this.init();
-    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
-    const index = tx.store.index('tableName');
-
-    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
-
-    // Calculate current size
-    let currentSize = rows.reduce((sum, row) => sum + this.estimateRowSize(row), 0);
-
-    // If already under target, nothing to do
-    if (currentSize <= targetSizeBytes) {
-      this.logger.log(`[${this.tableName}] Cache size ${(currentSize / 1024 / 1024).toFixed(2)} MB already under target ${(targetSizeBytes / 1024 / 1024).toFixed(2)} MB`);
-      return 0;
-    }
-
-    this.logger.log(
-      `[${this.tableName}] LRU eviction: Current ${(currentSize / 1024 / 1024).toFixed(2)} MB, Target ${(targetSizeBytes / 1024 / 1024).toFixed(2)} MB`
-    );
-
-    // Day 25-26 LOW Fix: Hybrid LFU+LRU eviction with recent edit protection
-    const RECENT_EDIT_PROTECTION_MS = 5 * 60 * 1000; // 5 minutes
-    const EVICTION_GRACE_PERIOD_MS = 30 * 1000; // Issue #9 Fix: 30 seconds for active reads
-    const now = Date.now();
-
-    // Filter evictable rows (exclude dirty + recently edited + recently accessed)
-    const evictableRows = rows
-      .filter(row => {
-        // NEVER evict dirty rows (have pending mutations)
-        if (row.isDirty) return false;
-
-        // Protect recently edited data (last 5 minutes)
-        if (row.lastModifiedAt && (now - row.lastModifiedAt) < RECENT_EDIT_PROTECTION_MS) {
-          return false;
-        }
-
-        // Issue #9 Fix: Don't evict recently accessed rows (last 30 seconds)
-        // Prevents eviction during active reads
-        if ((now - row.lastAccessedAt) < EVICTION_GRACE_PERIOD_MS) {
-          return false;
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        // Hybrid LFU+LRU scoring (lower score = evict first)
-        // 70% weight on frequency (LFU), 30% weight on recency (LRU)
-        const accessCountA = a.accessCount || 1;
-        const accessCountB = b.accessCount || 1;
-
-        // Normalize timestamps to seconds to avoid overflow
-        const recencyA = a.lastAccessedAt / 1000;
-        const recencyB = b.lastAccessedAt / 1000;
-
-        const scoreA = accessCountA * 0.7 + recencyA * 0.3;
-        const scoreB = accessCountB * 0.7 + recencyB * 0.3;
-
-        return scoreA - scoreB; // Lower score = less valuable = evict first
-      });
-
-    let evictedCount = 0;
-    let i = 0;
-
-    while (currentSize > targetSizeBytes && i < evictableRows.length) {
-      const row = evictableRows[i];
-      const rowSize = this.estimateRowSize(row);
-
-      // Delete row from IndexedDB
-      await tx.store.delete([row.tableName, row.id]);
-
-      currentSize -= rowSize;
-      evictedCount++;
-      i++;
-    }
-
-    await tx.done;
-
-    this.logger.log(
-      `[${this.tableName}] LRU eviction complete: ${evictedCount} rows evicted, new size ${(currentSize / 1024 / 1024).toFixed(2)} MB`
-    );
-
-    // Notify listeners (cache changed)
-    this.notifyListeners();
-
-    return evictedCount;
+    return this.cacheManager.evictLRU(targetSizeBytes);
   }
 
-  /**
-   * Get sync metadata for this table
-   * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
-   */
+  /** Get sync metadata for this table */
   async getSyncMetadata(): Promise<SyncMetadata | null> {
-    const METADATA_TIMEOUT_MS = 5000; // 5 second timeout for metadata operations
-
-    const readPromise = (async () => {
-      const db = await this.init();
-      return await db.get(REPLICATION_STORES.SYNC_METADATA, this.tableName) as SyncMetadata | null;
-    })();
-
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`[${this.tableName}] Metadata read timed out after ${METADATA_TIMEOUT_MS}ms - possible transaction deadlock`));
-      }, METADATA_TIMEOUT_MS);
-    });
-
-    try {
-      const result = await Promise.race([readPromise, timeoutPromise]);
-      return result;
-    } catch (error) {
-      this.logger.error(`[${this.tableName}] ❌ Metadata read failed:`, error);
-      // Return null on timeout to allow sync to continue with default metadata
-      return null;
-    }
+    return this.cacheManager.getSyncMetadata();
   }
 
-  /**
-   * Update sync metadata
-   * TIMEOUT PROTECTION: Prevents indefinite blocking when multiple tables sync simultaneously
-   */
-  /**
-   * Issue #7 Fix: Atomic increment for metadata updates
-   * - For numeric fields (conflictCount, pendingMutations), use atomic increment
-   * - Prevents race condition where concurrent updates lose increments
-   * - Uses single transaction to ensure atomicity
-   */
+  /** Update sync metadata */
   protected async updateSyncMetadata(updates: Partial<SyncMetadata>): Promise<void> {
-    const METADATA_TIMEOUT_MS = 5000; // 5 second timeout for metadata operations
-
-    const updatePromise = (async () => {
-      const db = await this.init();
-      const tx = db.transaction(REPLICATION_STORES.SYNC_METADATA, 'readwrite');
-
-      // Read existing metadata
-      const existing = await tx.store.get(this.tableName);
-
-      // CRITICAL FIX: Atomic increment for numeric fields
-      // If updates contain numeric deltas, apply them atomically
-      const atomicUpdates = { ...updates };
-
-      if (updates.conflictCount !== undefined && existing) {
-        // Treat as delta, not absolute value
-        atomicUpdates.conflictCount = (existing.conflictCount || 0) + updates.conflictCount;
-      }
-
-      if (updates.pendingMutations !== undefined && existing) {
-        // Treat as delta, not absolute value
-        atomicUpdates.pendingMutations = (existing.pendingMutations || 0) + updates.pendingMutations;
-      }
-
-      // Merge with existing metadata
-      const metadata: SyncMetadata = {
-        tableName: this.tableName,
-        lastFullSyncAt: existing?.lastFullSyncAt || 0,
-        lastIncrementalSyncAt: existing?.lastIncrementalSyncAt || 0,
-        syncStatus: existing?.syncStatus || 'idle',
-        conflictCount: existing?.conflictCount || 0,
-        pendingMutations: existing?.pendingMutations || 0,
-        ...atomicUpdates,
-      };
-
-      await tx.store.put(metadata);
-      await tx.done;
-    })();
-
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`[${this.tableName}] Metadata update timed out after ${METADATA_TIMEOUT_MS}ms - possible transaction deadlock`));
-      }, METADATA_TIMEOUT_MS);
-    });
-
-    try {
-      await Promise.race([updatePromise, timeoutPromise]);
-      this.logger.log(`[${this.tableName}] ✅ Metadata updated successfully`);
-    } catch (error) {
-      this.logger.error(`[${this.tableName}] ❌ Metadata update failed:`, error);
-      throw error;
-    }
+    return this.cacheManager.updateSyncMetadata(updates);
   }
 
-  /**
-   * Abstract methods to be implemented by subclasses
-   */
+  // ========================================
+  // ABSTRACT METHODS (to be implemented by subclasses)
+  // ========================================
 
   /**
-   * Sync with server (to be implemented in Phase 2)
+   * Sync with server (to be implemented by subclasses)
    */
   abstract sync(licenseKey: string, options?: Partial<SyncOptions>): Promise<SyncResult>;
 
   /**
-   * Resolve conflicts (to be implemented in Phase 2)
+   * Resolve conflicts (to be implemented by subclasses)
    */
   protected abstract resolveConflict(local: T, remote: T): T;
 }
