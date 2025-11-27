@@ -6,12 +6,12 @@
 
 ## Summary
 
-- **Total Debt Items:** 15
+- **Total Debt Items:** 13 (2 resolved)
 - **Critical:** 2
-- **High:** 5
+- **High:** 3 ✅ (2 resolved)
 - **Medium:** 6
 - **Low:** 2
-- **Estimated Total Effort:** 15-20 days
+- **Estimated Total Effort:** 10-15 days (reduced from 15-20)
 
 ---
 
@@ -259,102 +259,6 @@ High because sync reliability is critical for offline-first functionality.
 - Blocks: None
 - Blocked By: DEBT-003
 - Related: DEBT-003, DEBT-004
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Q1 2026
-
----
-
-### DEBT-006: CompetitionAdmin.tsx Excessive Size (1,252 lines)
-
-**Category:** Code Quality
-
-**Severity:** High
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s): `src/pages/Admin/CompetitionAdmin.tsx`
-- Component/Module: Admin Module
-
-**Description:**
-Admin page component has grown to 1,252 lines, combining UI, business logic, and state management in a single file.
-
-**Impact:**
-- **Business Impact:** Admin features take longer to develop
-- **Technical Impact:** Hard to maintain, not reusable, difficult to test
-- **Risk:** UI changes may break business logic
-
-**Root Cause:**
-Rapid feature development without component extraction.
-
-**Proposed Solution:**
-1. Extract custom hooks for data fetching and state
-2. Create reusable sub-components (tables, forms, dialogs)
-3. Move business logic to services
-4. Use composition for complex UI
-
-**Effort Estimate:** 2-3 days
-
-**Priority Justification:**
-High because admin functionality is critical for event management.
-
-**Dependencies:**
-- Blocks: None
-- Blocked By: None
-- Related: DEBT-007
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Q1 2026
-
----
-
-### DEBT-007: EntryList Components Excessive Size
-
-**Category:** Code Quality
-
-**Severity:** High
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s):
-  - `src/pages/EntryList/EntryList.tsx` (1,029 lines)
-  - `src/pages/EntryList/CombinedEntryList.tsx` (1,014 lines)
-- Component/Module: Entry List Module
-
-**Description:**
-Two main entry list components both exceed 1,000 lines. Significant code duplication between them.
-
-**Impact:**
-- **Business Impact:** Entry list is a core feature - bugs affect all users
-- **Technical Impact:** DRY violation, changes must be made in multiple places
-- **Risk:** Inconsistent behavior between components
-
-**Root Cause:**
-Apple-style variant created by copying, diverged over time.
-
-**Proposed Solution:**
-1. Extract shared hooks (`useEntryListCore.ts`)
-2. Create shared components (entry rows, filters, etc.)
-3. Use composition to build both variants from shared pieces
-4. Consider consolidating to single component with style variants
-
-**Effort Estimate:** 3-4 days
-
-**Priority Justification:**
-High because entry list is the most-used feature.
-
-**Dependencies:**
-- Blocks: None
-- Blocked By: None
-- Related: DEBT-006
 
 **Status:** Open
 
@@ -796,7 +700,51 @@ Low - address opportunistically when modifying these files.
 
 ## Resolved Debt Items
 
-*No items resolved yet.*
+### ✅ DEBT-006: CompetitionAdmin.tsx Excessive Size (RESOLVED)
+
+**Category:** Code Quality | **Severity:** High | **Resolved:** 2025-11-26
+
+**Original Problem:** Admin page component had grown to 1,252 lines.
+
+**Solution Applied:**
+- Extracted `AdminHeader.tsx` component
+- Extracted `ClassesList.tsx` component
+- Extracted `ResultVisibilitySection.tsx` component
+- Extracted `SelfCheckinSection.tsx` component
+- Extracted `useAdminName.ts` hook
+
+**Results:**
+- **Before:** 1,252 lines
+- **After:** 355 lines
+- **Reduction:** 72% (897 lines removed)
+
+**PR:** #9 (merged 2025-11-26)
+
+---
+
+### ✅ DEBT-007: EntryList Components Excessive Size (RESOLVED)
+
+**Category:** Code Quality | **Severity:** High | **Resolved:** 2025-11-26
+
+**Original Problem:** EntryList.tsx (1,029 lines) and CombinedEntryList.tsx (1,014 lines) both exceeded 1,000 lines.
+
+**Solution Applied:**
+- Extracted `EntryListHeader.tsx` component
+- Extracted `EntryListContent.tsx` component
+- Extracted `FloatingDoneButton.tsx` component
+- Extracted `ResetConfirmDialog.tsx` component
+- Extracted `ResetMenuPopup.tsx` component
+- Extracted `SelfCheckinDisabledDialog.tsx` component
+- Extracted `SuccessToast.tsx` component
+- Extracted `useEntryNavigation.ts` hook
+- Extracted `useResetScore.ts` hook
+
+**Results:**
+- **EntryList.tsx:** 1,029 → 609 lines (41% reduction)
+- **CombinedEntryList.tsx:** 1,014 → 645 lines (36% reduction)
+- **Total reduction:** 789 lines
+
+**PR:** #10 (merged 2025-11-26)
 
 ---
 
@@ -821,7 +769,7 @@ Low - address opportunistically when modifying these files.
 
 ### By Severity
 - Critical: 2 items
-- High: 5 items
+- High: 3 items (2 resolved ✅)
 - Medium: 6 items
 - Low: 2 items
 
@@ -848,7 +796,7 @@ Low - address opportunistically when modifying these files.
 2. **DEBT-002** - Legacy code removal (Critical, 2-3 days) - Unblock future work
 3. **DEBT-008** - Complex functions (Medium, ongoing) - Highest complexity first
 4. **DEBT-003/004/005** - Replication refactor (High, 7-10 days total) - Plan together
-5. **DEBT-006/007** - UI component refactor (High, 5-7 days total)
+5. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
 6. **Others** - Address opportunistically
 
 ---
