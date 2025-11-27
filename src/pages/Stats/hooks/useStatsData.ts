@@ -1,21 +1,43 @@
+/**
+ * Stats Data Hook
+ *
+ * Fetches and aggregates statistics data for shows, trials, and classes.
+ *
+ * Refactored as part of DEBT-008 to reduce complexity from 86 to manageable levels.
+ * Helper functions extracted to statsDataHelpers.ts.
+ */
+
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import type {
   StatsData,
   StatsContext,
   BreedStat,
   JudgeStat,
-  CleanSweepDog,
-  FastestTimeEntry,
-  BreedStatsQueryResult,
-  JudgeStatsQueryResult,
-  CleanSweepQueryResult,
-  FastestTimesQueryResult,
   StatsQueryResult
 } from '../types/stats.types';
+import { logger } from '@/utils/logger';
+import {
+  EMPTY_STATS,
+  calculateBasicCounts,
+  calculateRates,
+  calculateTimeStats,
+  applyLevelFilters,
+  applyCommonFilters,
+  aggregateBreedStatsFromData,
+  fetchBreedStatsFromView,
+  aggregateJudgeStatsFromData,
+  fetchJudgeStatsFromView,
+  fetchJudgeSummaryData,
+  fetchFastestTimes,
+  fetchCleanSweepDogs,
+  hasBreedRelatedFilters,
+  hasAdditionalFilters
+} from './statsDataHelpers';
 
-// Cache time for future implementation
-// const _CACHE_TIME = 5 * 60 * 1000; // 5 minutes
+// ========================================
+// TYPES
+// ========================================
 
 interface UseStatsDataReturn {
   data: StatsData | null;
@@ -24,14 +46,94 @@ interface UseStatsDataReturn {
   refetch: () => void;
 }
 
+// ========================================
+// AUTH HELPERS
+// ========================================
+
+/**
+ * Get license key from auth storage
+ */
+function getLicenseKey(): string {
+  const authData = localStorage.getItem('myK9Q_auth');
+  if (!authData) throw new Error('Not authenticated');
+
+  const parsedAuth = JSON.parse(authData);
+  const licenseKey = parsedAuth.showContext?.licenseKey;
+  if (!licenseKey) throw new Error('No license key found');
+
+  return licenseKey;
+}
+
+// ========================================
+// DATA FETCHERS
+// ========================================
+
+/**
+ * Fetch main stats data from view_stats_summary
+ */
+async function fetchMainStatsData(
+  context: StatsContext,
+  licenseKey: string
+): Promise<StatsQueryResult[]> {
+  let query = supabase
+    .from('view_stats_summary')
+    .select('*')
+    .eq('license_key', licenseKey);
+
+  query = applyLevelFilters(query, context);
+  query = applyCommonFilters(query, context.filters);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return data || [];
+}
+
+/**
+ * Fetch breed stats (chooses strategy based on active filters)
+ */
+async function fetchBreedStats(
+  context: StatsContext,
+  licenseKey: string,
+  statsData: StatsQueryResult[]
+): Promise<BreedStat[]> {
+  if (hasBreedRelatedFilters(context.filters)) {
+    // Aggregate from already-filtered data
+    return aggregateBreedStatsFromData(statsData);
+  }
+
+  // Use pre-aggregated view for performance
+  return fetchBreedStatsFromView(context, licenseKey);
+}
+
+/**
+ * Fetch judge stats (chooses strategy based on active filters)
+ */
+async function fetchJudgeStats(
+  context: StatsContext,
+  licenseKey: string
+): Promise<JudgeStat[]> {
+  if (hasAdditionalFilters(context.filters)) {
+    // Fetch filtered summary data and aggregate
+    const summaryData = await fetchJudgeSummaryData(context, licenseKey);
+    return aggregateJudgeStatsFromData(summaryData);
+  }
+
+  // Use pre-aggregated view for performance
+  return fetchJudgeStatsFromView(context, licenseKey);
+}
+
+// ========================================
+// MAIN HOOK
+// ========================================
+
 export function useStatsData(context: StatsContext): UseStatsDataReturn {
   const [data, setData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  // Last fetch time for future caching implementation
   const [_lastFetch, _setLastFetch] = useState(0);
 
-  // Build cache key
+  // Build cache key from context
   const cacheKey = useMemo(() => {
     const parts = [
       context.level,
@@ -48,516 +150,52 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
     return parts.join(':');
   }, [context]);
 
+  /**
+   * Main fetch function - orchestrates all data fetching
+   */
   const fetchStats = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Get license key from auth
-      const authData = localStorage.getItem('myK9Q_auth');
-      if (!authData) throw new Error('Not authenticated');
+      const licenseKey = getLicenseKey();
 
-      const parsedAuth = JSON.parse(authData);
-      const license_key = parsedAuth.showContext?.licenseKey;
-      if (!license_key) throw new Error('No license key found');
+      // Fetch main stats data
+      const statsData = await fetchMainStatsData(context, licenseKey);
 
-      // Build base query based on level
-      let baseQuery = supabase
-        .from('view_stats_summary')
-        .select('*')
-        .eq('license_key', license_key);
-
-      // Apply level filters
-      if (context.level === 'show' && context.showId) {
-        baseQuery = baseQuery.eq('show_id', context.showId);
-      } else if (context.level === 'trial' && context.trialId) {
-        baseQuery = baseQuery.eq('trial_id', context.trialId);
-      } else if (context.level === 'class' && context.classId) {
-        baseQuery = baseQuery.eq('class_id', context.classId);
-      }
-
-      // Apply filters
-      if (context.filters.breed) {
-baseQuery = baseQuery.eq('dog_breed', context.filters.breed);
-      }
-      if (context.filters.judge) {
-baseQuery = baseQuery.eq('judge_name', context.filters.judge);
-      }
-      if (context.filters.trialDate) {
-baseQuery = baseQuery.eq('trial_date', context.filters.trialDate);
-      }
-      if (context.filters.element) {
-baseQuery = baseQuery.eq('element', context.filters.element);
-      }
-      if (context.filters.level) {
-baseQuery = baseQuery.eq('level', context.filters.level);
-      }
-      if (context.filters.classId) {
-baseQuery = baseQuery.eq('class_id', context.filters.classId);
-      }
-
-      // Fetch main stats
-      const { data: statsData, error: statsError } = await baseQuery;
-if (statsError) throw statsError;
-
-      if (!statsData || statsData.length === 0) {
-        setData({
-          totalEntries: 0,
-          scoredEntries: 0,
-          qualifiedCount: 0,
-          nqCount: 0,
-          excusedCount: 0,
-          absentCount: 0,
-          withdrawnCount: 0,
-          uniqueDogs: 0,
-          qualificationRate: 0,
-          nqRate: 0,
-          excusedRate: 0,
-          absentRate: 0,
-          withdrawnRate: 0,
-          fastestTime: null,
-          averageTime: null,
-          medianTime: null,
-          breedStats: [],
-          judgeStats: [],
-          cleanSweepDogs: [],
-          fastestTimes: []
-        });
+      if (statsData.length === 0) {
+        setData(EMPTY_STATS);
         return;
       }
 
       // Calculate basic stats
-      const totalEntries = statsData.length;
-      const scoredEntries = statsData.filter((e: StatsQueryResult) => e.is_scored).length;
-      const qualifiedCount = statsData.filter((e: StatsQueryResult) => e.result_status === 'qualified').length;
-      const nqCount = statsData.filter((e: StatsQueryResult) => e.result_status === 'nq').length;
-      const excusedCount = statsData.filter((e: StatsQueryResult) => e.result_status === 'excused').length;
-      const absentCount = statsData.filter((e: StatsQueryResult) => e.result_status === 'absent').length;
-      const withdrawnCount = statsData.filter((e: StatsQueryResult) => e.result_status === 'withdrawn').length;
+      const counts = calculateBasicCounts(statsData);
+      const rates = calculateRates(counts);
+      const timeStats = calculateTimeStats(statsData);
 
-      // Calculate unique dogs (by armband number)
-      const uniqueArmbands = new Set(
-        statsData
-          .filter((e: StatsQueryResult) => e.armband_number)
-          .map((e: StatsQueryResult) => e.armband_number)
-      );
-      const uniqueDogs = uniqueArmbands.size;
+      // Fetch additional stats in parallel
+      const [breedStats, judgeStats, fastestTimesResult, cleanSweepDogs] = await Promise.all([
+        fetchBreedStats(context, licenseKey, statsData),
+        fetchJudgeStats(context, licenseKey),
+        fetchFastestTimes(context, licenseKey),
+        fetchCleanSweepDogs(context, licenseKey)
+      ]);
 
-      // Calculate rates
-      const qualificationRate = scoredEntries > 0 ? (qualifiedCount / scoredEntries) * 100 : 0;
-      const nqRate = scoredEntries > 0 ? (nqCount / scoredEntries) * 100 : 0;
-      const excusedRate = scoredEntries > 0 ? (excusedCount / scoredEntries) * 100 : 0;
-      const absentRate = scoredEntries > 0 ? (absentCount / scoredEntries) * 100 : 0;
-      const withdrawnRate = scoredEntries > 0 ? (withdrawnCount / scoredEntries) * 100 : 0;
-
-      // Calculate time stats (only for qualified entries with valid times)
-      const validTimes = statsData
-        .filter((e: StatsQueryResult) => e.result_status === 'qualified' && e.valid_time && e.valid_time > 0)
-        .map((e: StatsQueryResult) => e.valid_time as number)
-        .sort((a: number, b: number) => a - b);
-
-      const averageTime = validTimes.length > 0
-        ? validTimes.reduce((sum: number, time: number) => sum + time, 0) / validTimes.length
-        : null;
-
-      const medianTime = validTimes.length > 0
-        ? validTimes.length % 2 === 0
-          ? (validTimes[Math.floor(validTimes.length / 2) - 1] + validTimes[Math.floor(validTimes.length / 2)]) / 2
-          : validTimes[Math.floor(validTimes.length / 2)]
-        : null;
-
-      // Fetch breed stats
-      // When additional filters (trialDate, trialNumber, element, level, classId) are active,
-      // we need to query view_stats_summary directly because view_breed_stats pre-aggregates
-      let breedStats: BreedStat[] = [];
-
-      const hasBreedFilters = context.filters.trialDate || context.filters.trialNumber ||
-                              context.filters.element || context.filters.level || context.filters.judge || context.filters.classId;
-
-      if (hasBreedFilters) {
-        // Use statsData (already filtered) and aggregate by breed in application
-        const breedMap = new Map<string, {
-          totalEntries: number;
-          qualifiedCount: number;
-          nqCount: number;
-          qualifiedTimes: number[];
-        }>();
-
-        statsData.forEach((entry: StatsQueryResult) => {
-          if (!entry.dog_breed) return;
-
-          // Normalize breed name: trim whitespace
-          const normalizedBreed = entry.dog_breed.trim();
-
-          const existing = breedMap.get(normalizedBreed) || {
-            totalEntries: 0,
-            qualifiedCount: 0,
-            nqCount: 0,
-            qualifiedTimes: []
-          };
-
-          existing.totalEntries++;
-          if (entry.result_status === 'qualified') {
-            existing.qualifiedCount++;
-            if (entry.valid_time && entry.valid_time > 0) {
-              existing.qualifiedTimes.push(entry.valid_time);
-            }
-          }
-          if (entry.result_status === 'nq') {
-            existing.nqCount++;
-          }
-
-          breedMap.set(normalizedBreed, existing);
-        });
-
-        breedStats = Array.from(breedMap.entries()).map(([breed, stats]) => ({
-          breed,
-          totalEntries: stats.totalEntries,
-          qualifiedCount: stats.qualifiedCount,
-          nqCount: stats.nqCount,
-          qualificationRate: stats.totalEntries > 0 ? (stats.qualifiedCount / stats.totalEntries) * 100 : 0,
-          averageTime: stats.qualifiedTimes.length > 0
-            ? stats.qualifiedTimes.reduce((sum, time) => sum + time, 0) / stats.qualifiedTimes.length
-            : null,
-          fastestTime: stats.qualifiedTimes.length > 0 ? Math.min(...stats.qualifiedTimes) : null
-        })).sort((a, b) => b.totalEntries - a.totalEntries).slice(0, 10);
-      } else {
-        // Use pre-aggregated view_breed_stats for performance
-        let breedQuery = supabase
-          .from('view_breed_stats')
-          .select('*')
-          .eq('license_key', license_key);
-
-        if (context.level === 'show' && context.showId) {
-          breedQuery = breedQuery.eq('show_id', context.showId);
-        } else if (context.level === 'trial' && context.trialId) {
-          breedQuery = breedQuery.eq('trial_id', context.trialId);
-        } else if (context.level === 'class' && context.classId) {
-          breedQuery = breedQuery.eq('class_id', context.classId);
-        }
-
-        if (context.filters.breed) {
-          breedQuery = breedQuery.eq('dog_breed', context.filters.breed);
-        }
-
-        const { data: breedData, error: breedError } = await breedQuery
-          .order('total_entries', { ascending: false })
-          .limit(10);
-
-        if (breedError) throw breedError;
-
-        breedStats = (breedData || []).map((breed: BreedStatsQueryResult) => ({
-          breed: breed.dog_breed,
-          totalEntries: breed.total_entries,
-          qualifiedCount: breed.qualified_count,
-          nqCount: breed.nq_count,
-          qualificationRate: breed.qualification_rate,
-          averageTime: breed.avg_time,
-          fastestTime: breed.fastest_time
-        }));
-      }
-
-      // Fetch judge stats
-      // When breed or additional filters (trialDate, element, level, classId) are active,
-      // we need to query view_stats_summary directly because view_judge_stats pre-aggregates
-      let judgeStats: JudgeStat[] = [];
-
-      const hasAdditionalFilters = context.filters.breed || context.filters.trialDate ||
-                                    context.filters.element || context.filters.level || context.filters.classId;
-
-      if (hasAdditionalFilters) {
-        // Query view_stats_summary and aggregate by judge in application
-        let summaryQuery = supabase
-          .from('view_stats_summary')
-          .select('*')
-          .eq('license_key', license_key);
-
-        if (context.level === 'show' && context.showId) {
-          summaryQuery = summaryQuery.eq('show_id', context.showId);
-        } else if (context.level === 'trial' && context.trialId) {
-          summaryQuery = summaryQuery.eq('trial_id', context.trialId);
-        }
-
-        // Apply all filters
-        if (context.filters.breed) {
-          summaryQuery = summaryQuery.eq('dog_breed', context.filters.breed);
-        }
-        if (context.filters.judge) {
-          summaryQuery = summaryQuery.eq('judge_name', context.filters.judge);
-        }
-        if (context.filters.trialDate) {
-          summaryQuery = summaryQuery.eq('trial_date', context.filters.trialDate);
-        }
-        if (context.filters.element) {
-          summaryQuery = summaryQuery.eq('element', context.filters.element);
-        }
-        if (context.filters.level) {
-          summaryQuery = summaryQuery.eq('level', context.filters.level);
-        }
-        if (context.filters.classId) {
-          summaryQuery = summaryQuery.eq('class_id', context.filters.classId);
-        }
-
-        const { data: summaryData, error: summaryError } = await summaryQuery;
-        if (summaryError) throw summaryError;
-
-        // Aggregate by judge
-        const judgeMap = new Map<string, {
-          classesJudged: Set<string>;
-          totalEntries: number;
-          qualifiedCount: number;
-          qualifiedTimes: number[];
-        }>();
-
-        (summaryData || []).forEach((entry: StatsQueryResult) => {
-          if (!entry.judge_name || !entry.class_id) return;
-
-          // Normalize judge name: trim whitespace and normalize case for deduplication
-          const normalizedJudgeName = entry.judge_name.trim();
-
-          const existing = judgeMap.get(normalizedJudgeName) || {
-            classesJudged: new Set<string>(),
-            totalEntries: 0,
-            qualifiedCount: 0,
-            qualifiedTimes: []
-          };
-
-          existing.classesJudged.add(entry.class_id);
-          existing.totalEntries++;
-          if (entry.result_status === 'qualified') {
-            existing.qualifiedCount++;
-            if (entry.search_time_seconds && entry.search_time_seconds > 0) {
-              existing.qualifiedTimes.push(entry.search_time_seconds);
-            }
-          }
-
-          judgeMap.set(normalizedJudgeName, existing);
-        });
-
-        // Convert to JudgeStat array
-        judgeStats = Array.from(judgeMap.entries())
-          .map(([judgeName, stats]) => ({
-            judgeName,
-            classesJudged: stats.classesJudged.size,
-            totalEntries: stats.totalEntries,
-            qualifiedCount: stats.qualifiedCount,
-            qualificationRate: stats.totalEntries > 0
-              ? (stats.qualifiedCount / stats.totalEntries) * 100
-              : 0,
-            averageQualifiedTime: stats.qualifiedTimes.length > 0
-              ? stats.qualifiedTimes.reduce((sum, t) => sum + t, 0) / stats.qualifiedTimes.length
-              : null
-          }))
-          .sort((a, b) => b.totalEntries - a.totalEntries)
-          .slice(0, 10);
-      } else {
-        // Use pre-aggregated view when no breed filter
-        let judgeQuery = supabase
-          .from('view_judge_stats')
-          .select('*')
-          .eq('license_key', license_key);
-
-        if (context.level === 'show' && context.showId) {
-          judgeQuery = judgeQuery.eq('show_id', context.showId);
-        } else if (context.level === 'trial' && context.trialId) {
-          judgeQuery = judgeQuery.eq('trial_id', context.trialId);
-        }
-
-        if (context.filters.judge) {
-          judgeQuery = judgeQuery.eq('judge_name', context.filters.judge);
-        }
-
-        const { data: judgeData, error: judgeError } = await judgeQuery
-          .order('total_entries', { ascending: false })
-          .limit(10);
-
-        if (judgeError) throw judgeError;
-
-        // Deduplicate judges across trials - view returns one row per trial_id
-        // We need to aggregate judges who judged multiple trials at the show level
-        const judgeAggregateMap = new Map<string, {
-          classesJudged: number;
-          totalEntries: number;
-          qualifiedCount: number;
-          qualifiedTimes: number[];
-        }>();
-
-        (judgeData || []).forEach((judge: JudgeStatsQueryResult) => {
-          const normalizedName = judge.judge_name?.trim();
-          if (!normalizedName) return;
-
-          const existing = judgeAggregateMap.get(normalizedName) || {
-            classesJudged: 0,
-            totalEntries: 0,
-            qualifiedCount: 0,
-            qualifiedTimes: []
-          };
-
-          existing.classesJudged += judge.classes_judged;
-          existing.totalEntries += judge.total_entries;
-          existing.qualifiedCount += judge.qualified_count;
-          if (judge.avg_qualified_time && judge.avg_qualified_time > 0) {
-            // Weight the average time by number of qualified entries
-            for (let i = 0; i < judge.qualified_count; i++) {
-              existing.qualifiedTimes.push(judge.avg_qualified_time);
-            }
-          }
-
-          judgeAggregateMap.set(normalizedName, existing);
-        });
-
-        judgeStats = Array.from(judgeAggregateMap.entries())
-          .map(([judgeName, stats]) => ({
-            judgeName,
-            classesJudged: stats.classesJudged,
-            totalEntries: stats.totalEntries,
-            qualifiedCount: stats.qualifiedCount,
-            qualificationRate: stats.totalEntries > 0
-              ? (stats.qualifiedCount / stats.totalEntries) * 100
-              : 0,
-            averageQualifiedTime: stats.qualifiedTimes.length > 0
-              ? stats.qualifiedTimes.reduce((sum, t) => sum + t, 0) / stats.qualifiedTimes.length
-              : null
-          }))
-          .sort((a, b) => b.totalEntries - a.totalEntries)
-          .slice(0, 10);
-      }
-
-      // Fetch fastest times
-      let timesQuery = supabase
-        .from('view_fastest_times')
-        .select('*')
-        .eq('license_key', license_key);
-
-      if (context.level === 'show' && context.showId) {
-        timesQuery = timesQuery.eq('show_id', context.showId);
-      } else if (context.level === 'trial' && context.trialId) {
-        timesQuery = timesQuery.eq('trial_id', context.trialId);
-      } else if (context.level === 'class' && context.classId) {
-        timesQuery = timesQuery.eq('class_id', context.classId);
-      }
-
-      // Apply filters (view_fastest_times has breed, element, level)
-      if (context.filters.breed) {
-        timesQuery = timesQuery.eq('dog_breed', context.filters.breed);
-      }
-      if (context.filters.element) {
-        timesQuery = timesQuery.eq('element', context.filters.element);
-      }
-      if (context.filters.level) {
-        timesQuery = timesQuery.eq('level', context.filters.level);
-      }
-      if (context.filters.classId) {
-        timesQuery = timesQuery.eq('class_id', context.filters.classId);
-      }
-      // Note: view_fastest_times doesn't have trial_date or judge_name
-      // If those filters are active, we'd need to query view_stats_summary instead
-
-      const { data: timesData, error: timesError } = await timesQuery;
-
-      if (timesError) throw timesError;
-
-      // Filter to unique dogs (keep only fastest time per dog) and re-rank
-      const dogMap = new Map<string, FastestTimesQueryResult>();
-      (timesData || []).forEach((time: FastestTimesQueryResult) => {
-        const existing = dogMap.get(time.armband_number);
-        if (!existing || time.search_time_seconds < existing.search_time_seconds) {
-          dogMap.set(time.armband_number, time);
-        }
-      });
-
-      // Convert to array, sort by time, and assign new ranks
-      const sortedUniqueTimes = Array.from(dogMap.values())
-        .sort((a, b) => a.search_time_seconds - b.search_time_seconds)
-        .slice(0, 20);  // Take top 20 dogs
-
-      // Assign ranks with tie handling
-      let currentRank = 1;
-      const fastestTimes: FastestTimeEntry[] = sortedUniqueTimes.map((time, index) => {
-        // Check if this time is tied with previous
-        if (index > 0 && time.search_time_seconds !== sortedUniqueTimes[index - 1].search_time_seconds) {
-          currentRank = index + 1;
-        }
-
-        return {
-          entryId: time.entry_id,
-          armbandNumber: time.armband_number,
-          dogCallName: time.dog_call_name,
-          handlerName: time.handler_name,
-          dogBreed: time.dog_breed,
-          searchTimeSeconds: time.search_time_seconds,
-          timeRank: currentRank,
-          element: time.element,
-          level: time.level
-        };
-      });
-
-      const fastestTime = fastestTimes.length > 0 ? fastestTimes[0] : null;
-
-      // Fetch clean sweep dogs (show level only)
-      let cleanSweepDogs: CleanSweepDog[] = [];
-      if (context.level === 'show') {
-        let cleanQuery = supabase
-          .from('view_clean_sweep_dogs')
-          .select('*')
-          .eq('license_key', license_key)
-          .eq('is_clean_sweep', true);
-
-        if (context.showId) {
-          cleanQuery = cleanQuery.eq('show_id', context.showId);
-        }
-
-        if (context.filters.breed) {
-          cleanQuery = cleanQuery.eq('dog_breed', context.filters.breed);
-        }
-
-        const { data: cleanData, error: cleanError } = await cleanQuery
-          .order('dog_call_name')
-          .limit(50);
-
-        if (cleanError) {
-          console.error('[Stats] Clean sweep query error:', cleanError);
-          throw cleanError;
-        }
-
-cleanSweepDogs = (cleanData || []).map((dog: CleanSweepQueryResult) => ({
-          armbandNumber: dog.armband_number,
-          dogCallName: dog.dog_call_name,
-          handlerName: dog.handler_name,
-          dogBreed: dog.dog_breed,
-          elementsEntered: dog.elements_entered,
-          elementsQualified: dog.elements_qualified,
-          elementsList: dog.elements_list
-        }));
-      }
-
-      // Set final data
-setData({
-        totalEntries,
-        scoredEntries,
-        qualifiedCount,
-        nqCount,
-        excusedCount,
-        absentCount,
-        withdrawnCount,
-        uniqueDogs,
-        qualificationRate,
-        nqRate,
-        excusedRate,
-        absentRate,
-        withdrawnRate,
-        fastestTime,
-        averageTime,
-        medianTime,
+      // Assemble final stats data
+      setData({
+        ...counts,
+        ...rates,
+        ...timeStats,
+        fastestTime: fastestTimesResult.fastestTime,
         breedStats,
         judgeStats,
         cleanSweepDogs,
-        fastestTimes
+        fastestTimes: fastestTimesResult.fastestTimes
       });
 
       _setLastFetch(Date.now());
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      logger.error('Error fetching stats:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch statistics'));
     } finally {
       setIsLoading(false);
@@ -566,12 +204,11 @@ setData({
 
   // Refetch function
   const refetch = () => {
-    _setLastFetch(0); // Force refetch
+    _setLastFetch(0);
   };
 
-  // Effect to fetch data
+  // Effect to fetch data when cache key changes
   useEffect(() => {
-    // Always fetch when cache key changes (filters changed)
     fetchStats();
   }, [cacheKey]);
 

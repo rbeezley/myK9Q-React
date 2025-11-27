@@ -25,12 +25,12 @@
 
 **Created:** 2025-11-26
 
-**Resolved (2 files):** 2025-11-26
+**Resolved (3 files):** 2025-11-26
 
 **Location:**
 - ~~`src/components/ui/OfflineIndicator.tsx` - complexity 45~~ ✅ REFACTORED
 - ~~`src/hooks/usePrefetch.ts` - complexity 44~~ ✅ REFACTORED
-- `src/pages/Stats/hooks/useStatsData.ts` - complexity **86** (discovered during ESLint setup)
+- ~~`src/pages/Stats/hooks/useStatsData.ts` - complexity **86**~~ ✅ REFACTORED (extracted to statsDataHelpers.ts)
 - `src/pages/EntryList/SortableEntryCard.tsx` - complexity **64** (discovered)
 - `src/pages/EntryList/hooks/useEntryListData.ts` - complexity 59 (worse than originally estimated)
 - `src/pages/EntryList/hooks/useEntryListFilters.ts` - complexity 41
@@ -53,19 +53,20 @@ Growing requirements without refactoring, lack of complexity linting.
 2. ✅ Added ESLint max-depth rule: `"max-depth": ["error", 8]` (prevents deeper nesting)
 3. ✅ Refactored `OfflineIndicator.tsx` - extracted helper and render functions
 4. ✅ Refactored `usePrefetch.ts` - extracted cache helper functions
-5. 🔄 Remaining files need refactoring in future sprints
+5. ✅ Refactored `useStatsData.ts` (complexity 86 → manageable) - extracted 430 lines to `statsDataHelpers.ts`
+6. 🔄 Remaining 4 files need refactoring in future sprints
 
-**Effort Estimate:** 3-5 days remaining for worst offenders
+**Effort Estimate:** 2-3 days remaining for remaining files
 
 **Priority Justification:**
-Medium - important for maintainability. Worst files (useStatsData.ts at 86) should be addressed soon.
+Medium - important for maintainability. Worst offender (useStatsData.ts at 86) has been resolved.
 
 **Dependencies:**
 - Blocks: None
 - Blocked By: None
 - Related: DEBT-009
 
-**Status:** Partially Resolved (2 of 7 files)
+**Status:** Partially Resolved (3 of 7 files)
 
 **Assignee:** Unassigned
 
@@ -74,7 +75,8 @@ Medium - important for maintainability. Worst files (useStatsData.ts at 86) shou
 **Notes:**
 - ESLint rules now prevent new code from being worse than current max
 - TODO in eslint.config.js: Lower thresholds gradually: 90 → 50 → 30 → 15
-- `useStatsData.ts` with complexity 86 is critical to refactor next
+- ~~`useStatsData.ts` with complexity 86 is critical to refactor next~~ ✅ DONE
+- `SortableEntryCard.tsx` with complexity 64 is next priority
 - Consider using state machines for complex state logic
 
 ---
