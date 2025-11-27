@@ -6,118 +6,16 @@
 
 ## Summary
 
-- **Total Debt Items:** 13 (5 resolved)
-- **Critical:** 2 ✅ (1 resolved)
-- **High:** 3 ✅ (3 resolved) + DEBT-004 ✅
+- **Total Debt Items:** 13 (7 resolved)
+- **Critical:** 2 ✅ (2 resolved)
+- **High:** 4 ✅ (4 resolved)
 - **Medium:** 6
 - **Low:** 2
-- **Estimated Total Effort:** 4-7 days (reduced from 15-20)
+- **Estimated Total Effort:** 1-3 days (reduced from 15-20)
 
 ---
 
 ## Active Debt Items
-
-### DEBT-002: Legacy localStateManager Not Fully Removed
-
-**Category:** Architecture
-
-**Severity:** Critical
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s):
-  - `src/stores/offlineQueueStore.ts`
-  - `src/hooks/useOptimisticScoring.ts`
-  - `src/pages/EntryList/hooks/useEntryListSubscriptions.ts`
-  - `src/pages/EntryList/hooks/useEntryListActions.ts`
-- Component/Module: Offline/Replication System
-
-**Description:**
-The codebase has migrated from `localStateManager` to a new replication system, but legacy code remains. Multiple TODO comments state: "Remove legacy localStateManager - replaced by replication system"
-
-**Impact:**
-- **Business Impact:** Potential data inconsistencies between old and new systems
-- **Technical Impact:** Two parallel systems increase complexity, harder to debug, duplicated logic
-- **Risk:** Edge cases where systems disagree could cause data loss or corruption
-
-**Root Cause:**
-Phased migration approach - new system built alongside old for safety, but cleanup not completed.
-
-**Proposed Solution:**
-1. Audit all `localStateManager` references
-2. Verify replication system handles all use cases
-3. Remove legacy code paths
-4. Update tests to use new system only
-
-**Effort Estimate:** 2-3 days
-
-**Priority Justification:**
-Critical because dual systems create confusion and potential data issues. Migration is essentially complete - just needs cleanup.
-
-**Dependencies:**
-- Blocks: Future offline improvements
-- Blocked By: None
-- Related: DEBT-003, DEBT-004
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Next Sprint
-
-**Notes:**
-- Search for `localStateManager` to find all references
-- Files with TODO markers are the primary targets
-
----
-
-### DEBT-005: SyncEngine.ts Excessive Size (1,010 lines)
-
-**Category:** Architecture
-
-**Severity:** High
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s): `src/services/replication/SyncEngine.ts`
-- Component/Module: Replication System
-
-**Description:**
-Sync engine implementation exceeds 1,000 lines with mixed concerns.
-
-**Impact:**
-- **Business Impact:** Sync bugs are hard to diagnose and fix
-- **Technical Impact:** Tightly coupled components, difficult to test in isolation
-- **Risk:** Sync issues could cause data loss
-
-**Root Cause:**
-Incremental feature additions without refactoring.
-
-**Proposed Solution:**
-Decompose into:
-- `SyncScheduler.ts` - Timing and scheduling
-- `SyncExecutor.ts` - Actual sync operations
-- `SyncStateManager.ts` - State tracking
-
-**Effort Estimate:** 2-3 days
-
-**Priority Justification:**
-High because sync reliability is critical for offline-first functionality.
-
-**Dependencies:**
-- Blocks: None
-- Blocked By: ~~DEBT-003~~ (resolved)
-- Related: DEBT-004
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Q1 2026
-
----
 
 ### DEBT-008: High Complexity Functions
 
@@ -551,6 +449,31 @@ Low - address opportunistically when modifying these files.
 
 ## Resolved Debt Items
 
+### ✅ DEBT-002: Legacy localStateManager Not Fully Removed (RESOLVED)
+
+**Category:** Architecture | **Severity:** Critical | **Resolved:** 2025-11-26
+
+**Original Problem:** The codebase had migrated from `localStateManager` to a new replication system, but legacy code remained with TODO comments stating: "Remove legacy localStateManager - replaced by replication system"
+
+**Solution Applied:**
+- All `localStateManager` references removed from source files
+- Replication system fully handles all offline/sync use cases
+- Legacy code paths eliminated
+- No dual systems remain
+
+**Results:**
+- **Before:** Multiple files with legacy `localStateManager` code
+- **After:** 0 references to `localStateManager` in src/
+- Clean single-system architecture for offline data management
+
+**Key Improvements:**
+- Eliminated confusion from dual systems
+- Single source of truth for offline data
+- No risk of data inconsistencies between systems
+- Simplified debugging and maintenance
+
+---
+
 ### ✅ DEBT-001: Excessive Console Statements (RESOLVED)
 
 **Category:** Code Quality | **Severity:** Critical | **Resolved:** 2025-11-26
@@ -636,6 +559,37 @@ Used composition pattern to extract focused modules:
 
 ---
 
+### ✅ DEBT-005: SyncEngine.ts Excessive Size (RESOLVED)
+
+**Category:** Architecture | **Severity:** High | **Resolved:** 2025-11-26
+
+**Original Problem:** Sync engine implementation exceeded 1,010 lines with mixed concerns including mutation management, sync execution, network state, and metadata tracking.
+
+**Solution Applied:**
+Used composition pattern to extract focused modules:
+- `MutationManager.ts` - Offline mutation queue, topological sort, backup/restore, retry logic (432 lines)
+- `SyncExecutor.ts` - Full/incremental sync, streaming fetch, quota management (536 lines)
+- `SyncEngine.ts` - Thin facade with network state, metadata, delegation to modules (301 lines)
+
+**Results:**
+- **Before:** 1,010 lines in single file with mixed concerns
+- **After:** 301 lines in main file (70% reduction)
+- **Each extracted module:** Focused on single responsibility
+- **All 1,530 tests pass**
+- **No breaking changes:** Public API unchanged
+
+**Key Improvements:**
+- Clear separation of concerns
+- MutationManager handles all offline mutation queue operations
+- SyncExecutor handles all sync execution (full/incremental)
+- SyncEngine remains thin facade for application code
+- Callback pattern used to avoid circular dependencies
+- Easier to test each module in isolation
+
+**PR:** GitHub Issue #5
+
+---
+
 ### ✅ DEBT-006: CompetitionAdmin.tsx Excessive Size (RESOLVED)
 
 **Category:** Code Quality | **Severity:** High | **Resolved:** 2025-11-26
@@ -704,8 +658,8 @@ Used composition pattern to extract focused modules:
 - Design: 0 items
 
 ### By Severity
-- Critical: 2 items (1 resolved ✅)
-- High: 3 items (3 resolved ✅)
+- Critical: 2 items (2 resolved ✅)
+- High: 4 items (4 resolved ✅)
 - Medium: 6 items
 - Low: 2 items
 
@@ -729,11 +683,11 @@ Used composition pattern to extract focused modules:
 ## Quick Reference: Priority Order
 
 1. ~~**DEBT-001** - Console statements (Critical, 1-2 days)~~ ✅ **RESOLVED** (2025-11-26)
-2. **DEBT-002** - Legacy code removal (Critical, 2-3 days) - Unblock future work
+2. ~~**DEBT-002** - Legacy code removal (Critical, 2-3 days)~~ ✅ **RESOLVED** (2025-11-26)
 3. **DEBT-008** - Complex functions (Medium, ongoing) - Highest complexity first
 4. ~~**DEBT-003** - ReplicatedTable refactor~~ ✅ **RESOLVED** (2025-11-26)
 5. ~~**DEBT-004** - ReplicationManager refactor~~ ✅ **RESOLVED** (2025-11-26)
-6. **DEBT-005** - SyncEngine refactor (High, 2-3 days) - Last large replication file
+6. ~~**DEBT-005** - SyncEngine refactor~~ ✅ **RESOLVED** (2025-11-26)
 7. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
 8. **Others** - Address opportunistically
 
