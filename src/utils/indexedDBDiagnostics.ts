@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
 /**
  * IndexedDB Diagnostics Utility
  *
  * Provides diagnostic tools to identify and resolve IndexedDB corruption issues.
  * Use this when the database is in a stuck/corrupted state and cannot be opened or deleted.
+ * Note: Console logging is intentional for diagnostic output
  */
 
 import { deleteDB } from 'idb';

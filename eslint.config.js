@@ -17,7 +17,10 @@ export default [
       '**/*.backup',
       '**/*.test.ts',
       '**/*.test.tsx',
-      '.claude/skills/**/assets/**'
+      '.claude/skills/**/assets/**',
+      'tests/**',              // Test files (Playwright, etc.)
+      'temp-*.ts',             // Temporary files
+      'supabase/functions/**'  // Edge functions use Deno console logging
     ]
   },
   {

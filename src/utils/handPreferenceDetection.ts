@@ -25,8 +25,8 @@ function loadTouchHistory(): HandPreferenceData {
     if (stored) {
       return JSON.parse(stored);
     }
-  } catch (error) {
-    console.debug('Failed to load hand preference data:', error);
+  } catch (_error) {
+    // Silently fail - hand preference is optional enhancement
   }
 
   return {
@@ -43,8 +43,8 @@ function loadTouchHistory(): HandPreferenceData {
 function saveTouchHistory(data: HandPreferenceData): void {
   try {
     localStorage.setItem(TOUCH_HISTORY_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.debug('Failed to save hand preference data:', error);
+  } catch (_error) {
+    // Silently fail - hand preference is optional enhancement
   }
 }
 

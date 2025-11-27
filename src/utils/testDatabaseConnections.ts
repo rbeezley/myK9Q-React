@@ -1,7 +1,9 @@
+/* eslint-disable no-console */
 /**
  * Test script to verify database connections
  * This is a temporary file for Phase 1.3 testing
  * Can be deleted after migration is complete
+ * Note: Console logging is intentional for test output
  */
 
 import { createClient } from '@supabase/supabase-js';

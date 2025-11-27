@@ -275,7 +275,6 @@ return;
             Promise.race([navigator.serviceWorker.ready, swReadyTimeout])
               .then((registration) => {
                 const swRegistration = registration as ServiceWorkerRegistration;
-console.log('📱 Service worker active:', swRegistration.active);
 
                 if (!swRegistration.active) {
                   console.error('❌ Service worker is not active');

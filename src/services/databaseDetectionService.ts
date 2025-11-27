@@ -179,8 +179,6 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
     if (!v3Error && v3Shows) {
       for (const show of v3Shows) {
         if (validatePasscodeAgainstLicenseKey(passcode, show.license_key)) {
-console.log('V3 show data:', show);
-
           // Map V3 database fields to showContext format
           const showData = {
             showId: show.id,

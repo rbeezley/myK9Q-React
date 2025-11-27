@@ -70,13 +70,6 @@ export function usePWAInstall(): UsePWAInstallReturn {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsInstalled(isStandalone);
-
-    console.log('📱 PWA Install Status:', {
-      isStandalone,
-      displayMode: window.matchMedia('(display-mode: standalone)').matches,
-      iosStandalone: (window.navigator as any).standalone,
-      referrer: document.referrer
-    });
   }, []);
 
   /**
@@ -93,8 +86,6 @@ export function usePWAInstall(): UsePWAInstallReturn {
         if (timeSinceDismissed < DISMISS_DURATION) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsDismissed(true);
-          console.log('📱 Install prompt dismissed, will show again in',
-            Math.round((DISMISS_DURATION - timeSinceDismissed) / (1000 * 60 * 60)), 'hours');
         } else {
           // Dismiss period expired, clear it
           localStorage.removeItem(DISMISS_KEY);

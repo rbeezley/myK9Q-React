@@ -393,13 +393,10 @@ export class AnalyticsService {
   /**
    * Send events to analytics backend
    */
-  private async sendEvents(events: AnalyticsEvent[]): Promise<void> {
+  private async sendEvents(_events: AnalyticsEvent[]): Promise<void> {
     try {
       // This would send to your analytics backend
-      // For now, log to console in dev mode
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('📊 Analytics batch:', events);
-      }
+      // Currently a no-op until analytics backend is set up
     } catch (error) {
       console.error('Failed to send analytics events:', error);
     }

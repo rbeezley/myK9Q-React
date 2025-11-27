@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+// Debug utility - console.log is intentional for browser console debugging
 import { supabase } from '../lib/supabase';
 import { updateEntryCheckinStatus } from './entryService';
 

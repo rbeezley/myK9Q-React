@@ -69,9 +69,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
 
     setLoading(true);
     try {
-console.log('License Key:', showContext.licenseKey);
-console.log('Element:', classData.element);
-// First, get the organization from the show data
+      // First, get the organization from the show data
       const { data: showData, error: showError } = await supabase
         .from('shows')
         .select('organization')

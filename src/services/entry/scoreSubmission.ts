@@ -281,8 +281,7 @@ try {
     // Handle AKC Scent Work area times if present
     handleAreaTimes(scoreData, scoreUpdateData);
 
-console.log('🔍 Result status being saved:', scoreUpdateData.result_status);
-// Remove entry_id from update data (we filter by id instead)
+    // Remove entry_id from update data (we filter by id instead)
     const { entry_id: _entry_id, ...updateFields } = scoreUpdateData;
 
     // Determine entry status based on scoring state

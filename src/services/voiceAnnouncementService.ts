@@ -435,9 +435,7 @@ this.currentUtterance = null;
       return;
     }
 
-console.log('[VoiceService] Current config:', this.defaultConfig);
-console.log('[VoiceService] Is speaking:', this.synthesis.speaking);
-// Cancel any previous speech to work around Chrome speechSynthesis queue bug
+    // Cancel any previous speech to work around Chrome speechSynthesis queue bug
     this.cancel();
 
     // Chrome bug workaround: Add small delay after cancel to ensure queue clears
@@ -453,17 +451,8 @@ console.log('[VoiceService] Is speaking:', this.synthesis.speaking);
         priority: 'high',
       });
 
-      console.log('[VoiceService] Utterance created:', {
-        text: utterance.text,
-        voice: utterance.voice?.name,
-        lang: utterance.lang,
-        rate: utterance.rate,
-        pitch: utterance.pitch,
-        volume: utterance.volume
-      });
-
       this.speak(utterance);
-}, 100);
+    }, 100);
   }
 }
 

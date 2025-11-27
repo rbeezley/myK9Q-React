@@ -93,8 +93,7 @@ return new Set();
     const loadFavorites = () => {
       try {
         const favoritesKey = `favorites_${licenseKey || 'default'}_${trialId}`;
-console.log('🗄️ All localStorage keys:', Object.keys(localStorage));
-const savedFavorites = localStorage.getItem(favoritesKey);
+        const savedFavorites = localStorage.getItem(favoritesKey);
 if (savedFavorites) {
           const favoriteIds = JSON.parse(savedFavorites) as number[];
 setFavoriteClasses(new Set(favoriteIds));

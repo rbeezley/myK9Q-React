@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
 /**
  * Developer Mode Service
  *
  * Provides debugging and monitoring capabilities for development.
  * All features are gated by developer mode setting and can be excluded from production builds.
+ * Note: Console logging is intentional for developer debugging
  */
 
 import { useSettingsStore } from '@/stores/settingsStore';

@@ -16,7 +16,6 @@ const updateSW = registerSW({
   onNeedRefresh() {
     // In development, don't auto-prompt for refresh to avoid interrupting work
     if (import.meta.env.DEV) {
-      console.log('🔄 New service worker available (auto-refresh disabled in dev mode)')
       return
     }
 
@@ -75,17 +74,8 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
       return
     }
     const allRecords = await table.getAll()
-    if (allRecords.length > 0) {
-      if (tableName === 'classes') {
-        const trialIds = [...new Set(allRecords.map((c: any) => c.trial_id))]
-        console.log('Trial ID types:', trialIds.map((id: any) => `${id} (${typeof id})`))
-      }
-    }
     return allRecords
   }
-
-  console.log('  - window.debugForceFullSync() - Force full sync')
-  console.log('  - window.debugInspectCache(tableName) - Inspect cache (default: "classes")')
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

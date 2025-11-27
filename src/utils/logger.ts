@@ -1,6 +1,8 @@
+/* eslint-disable no-console */
 /**
  * Production-safe logging utility
  * Respects user console logging preferences from settings
+ * Note: This IS the logging utility - console usage is intentional
  */
 
 const isDev = import.meta.env.DEV;

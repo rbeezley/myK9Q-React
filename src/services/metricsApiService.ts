@@ -89,7 +89,6 @@ export class MetricsApiService {
         return false;
       }
 
-      console.debug('✅ Performance metrics saved successfully');
       return true;
     } catch (error) {
       console.error('Error sending performance report:', error);

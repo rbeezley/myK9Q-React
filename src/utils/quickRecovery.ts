@@ -88,9 +88,8 @@ try {
             testOpen.result.close();
           };
           testOpen.onerror = () => {
-console.log('To fix, run this in the console:');
-console.log('');
-};
+            // Database error detected - recovery instructions available via developer tools
+          };
         } catch (_error) {
           // Ignore errors in detection
         }

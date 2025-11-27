@@ -94,8 +94,6 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
         await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
       }
 
-console.log('📚 [RulesAssistant] Answer:', response.answer);
-
       setAnswer(response.answer);
       setResults(response.results);
 

@@ -53,12 +53,6 @@ export const TVRunOrder: React.FC = () => {
     return () => clearInterval(interval);
   }, [inProgressClasses.length, goToNextPage]);
 
-  // Debug logging
-  useEffect(() => {
-console.log('🔍 TV Run Order - inProgressClasses.length:', inProgressClasses.length);
-console.log('🔍 TV Run Order - entriesByClass:', entriesByClass);
-  }, [inProgressClasses, entriesByClass]);
-
   // Get visible classes for current page (max 4)
   const visibleClasses = inProgressClasses.slice(
     currentPage * 4,

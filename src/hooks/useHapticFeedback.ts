@@ -71,9 +71,8 @@ function vibrate(pattern: number | number[], respectSettings = true): boolean {
 
   try {
     return navigator.vibrate(pattern);
-  } catch (error) {
+  } catch (_error) {
     // Silent fail - haptic is enhancement, not requirement
-    console.debug('Haptic feedback failed:', error);
     return false;
   }
 }

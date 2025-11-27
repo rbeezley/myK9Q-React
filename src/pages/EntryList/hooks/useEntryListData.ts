@@ -65,16 +65,6 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
   // Map entry_status to the status field
   const status = entry.entry_status || 'pending';
 
-  // DEBUG: Log transformation for entry 793 (armband 121)
-  if (entry.armband_number === 121) {
-    console.log(`[transformReplicatedEntry] 🔍 Armband 121 (ID ${entry.id}):`, {
-      entry_status: entry.entry_status,
-      is_in_ring_deprecated: entry.is_in_ring,
-      computed_inRing: entry.entry_status === 'in-ring',
-      computed_status: status
-    });
-  }
-
   return {
     id: parseInt(entry.id, 10),
     armband: entry.armband_number,
@@ -162,18 +152,6 @@ logger.log('📭 Cache is empty, falling back to Supabase');
 
                   // Apply visibility flags to all entries
                   classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
-// Debug: Log entries 106 and 192 to check data
-                  const debugEntries = classEntries.filter(e => e.armband === 106 || e.armband === 192);
-                  if (debugEntries.length > 0) {
-                    console.log('🔍 [DEBUG] Entries 106/192:', debugEntries.map(e => ({
-                      armband: e.armband,
-                      resultText: e.resultText,
-                      searchTime: e.searchTime,
-                      faultCount: e.faultCount,
-                      placement: e.placement,
-                      isScored: e.isScored
-                    })));
-                  }
                 } catch (visError) {
                   logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
                   // On error, default to showing everything (fail open for better UX)

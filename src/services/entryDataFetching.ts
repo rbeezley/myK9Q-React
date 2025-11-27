@@ -73,15 +73,6 @@ export async function fetchClassEntriesFromDatabase(
 
   // Map view columns to Entry interface (results already pre-joined in view)
   const mappedEntries = viewData.map(row => {
-    // Debug logging for specific entries
-    if (row.id === 6714 || row.id === 6715) {
-      console.log(`🐛 MAPPING ENTRY ${row.id} (${row.armband_number}):`, {
-        isScored: row.is_scored,
-        entryStatus: row.entry_status,
-        resultStatus: row.result_status
-      });
-    }
-
     // Determine unified status using entry_status from view
     const status = determineEntryStatus(row.entry_status);
 

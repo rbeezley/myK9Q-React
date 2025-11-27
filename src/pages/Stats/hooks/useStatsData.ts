@@ -301,16 +301,6 @@ if (statsError) throw statsError;
         const { data: summaryData, error: summaryError } = await summaryQuery;
         if (summaryError) throw summaryError;
 
-        // Debug: Log unique judge names
-        const uniqueJudgeNames = new Set((summaryData || []).map((e: StatsQueryResult) => e.judge_name).filter(Boolean));
-console.log('[Stats] Judge name character codes:',
-          Array.from(uniqueJudgeNames).map(name => ({
-            name,
-            codes: Array.from(name as string).map(c => c.charCodeAt(0)),
-            length: (name as string).length
-          }))
-        );
-
         // Aggregate by judge
         const judgeMap = new Map<string, {
           classesJudged: Set<string>;
@@ -382,15 +372,6 @@ console.log('[Stats] Judge name character codes:',
           .limit(10);
 
         if (judgeError) throw judgeError;
-
-        // Debug: Log raw judge data from view
-console.log('[Stats] Judge names from view:', (judgeData || []).map((j: JudgeStatsQueryResult) => ({
-          name: j.judge_name,
-          codes: Array.from(j.judge_name || '').map(c => c.charCodeAt(0)),
-          length: (j.judge_name || '').length,
-          entries: j.total_entries,
-          rate: j.qualification_rate
-        })));
 
         // Deduplicate judges across trials - view returns one row per trial_id
         // We need to aggregate judges who judged multiple trials at the show level

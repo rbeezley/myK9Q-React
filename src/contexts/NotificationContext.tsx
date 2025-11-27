@@ -93,13 +93,6 @@ return recent;
       timestamp: new Date().toISOString()
     };
 
-    console.log('📝 [NotificationContext] Adding notification to center:', {
-      id: newNotification.id,
-      title: newNotification.title,
-      priority: newNotification.priority,
-      type: newNotification.type
-    });
-
     setNotifications(prev => {
       // Add to beginning of array (newest first)
       const updated = [newNotification, ...prev];
@@ -138,9 +131,8 @@ return recent;
 
   // Panel controls
   const openPanel = useCallback(() => {
-console.log('📋 [NotificationContext] Current notifications:', notifications);
     setIsPanelOpen(true);
-  }, [notifications]);
+  }, []);
   const closePanel = useCallback(() => setIsPanelOpen(false), []);
   const togglePanel = useCallback(() => setIsPanelOpen(prev => !prev), []);
 

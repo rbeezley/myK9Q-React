@@ -76,8 +76,7 @@ export function useClassRealtime(
 ): void {
   // Memoize the payload handler to avoid recreating on every render
   const handleRealtimeUpdate = useCallback((payload: RealtimePayload) => {
-console.log('🔄 Real-time payload:', payload);
-// For UPDATE events, update local state directly (optimistic update)
+    // For UPDATE events, update local state directly (optimistic update)
     if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
 setClasses(prev => prev.map(c =>
         c.id === payload.new.id

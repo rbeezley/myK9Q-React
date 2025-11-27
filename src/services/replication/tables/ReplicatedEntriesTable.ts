@@ -77,9 +77,8 @@ const startTime = Date.now();
 // Update sync status to 'syncing'
       await this.updateSyncMetadata({ syncStatus: 'syncing' });
 
-// Step 1: Get last sync timestamp
+      // Step 1: Get last sync timestamp
       const metadata = await this.getSyncMetadata();
-console.log(`[${this.tableName}] Step 3: Checking cache...`);
       // Check if cache is empty - if so, force full sync from epoch
       const allCachedEntries = await this.getAll();
 const isCacheEmpty = allCachedEntries.length === 0;
@@ -141,26 +140,13 @@ for (const rawEntry of remoteEntries) {
           // Flatten the response (remove nested classes/trials/shows objects)
           const { classes: _classes, ...remoteEntry } = rawEntry as any;
 
-          // DEBUG: Log the entry data we're processing
-          console.log(`[${this.tableName}] 📦 Entry ${remoteEntry.id}:`, {
-            armband: remoteEntry.armband_number,
-            entry_status: remoteEntry.entry_status,
-            is_in_ring: remoteEntry.is_in_ring,
-            is_scored: remoteEntry.is_scored
-          });
-
           // Convert ID to string for consistent IndexedDB key format (bigserial returns as number)
           const entryId = String(remoteEntry.id);
           const localEntry = await this.get(entryId);
 
           if (localEntry) {
             // Conflict: both local and remote have data
-const resolved = this.resolveConflict(localEntry, remoteEntry as Entry);
-            console.log(`[${this.tableName}] ✅ Resolved entry ${entryId}:`, {
-              old_status: localEntry.entry_status,
-              new_status: remoteEntry.entry_status,
-              resolved_status: resolved.entry_status
-            });
+            const resolved = this.resolveConflict(localEntry, remoteEntry as Entry);
             await this.set(entryId, resolved, false); // Not dirty after merge
             conflictsResolved++;
           } else {

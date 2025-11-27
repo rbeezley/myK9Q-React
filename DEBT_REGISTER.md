@@ -6,66 +6,16 @@
 
 ## Summary
 
-- **Total Debt Items:** 13 (2 resolved)
-- **Critical:** 2
+- **Total Debt Items:** 13 (3 resolved)
+- **Critical:** 2 ✅ (1 resolved)
 - **High:** 3 ✅ (2 resolved)
 - **Medium:** 6
 - **Low:** 2
-- **Estimated Total Effort:** 10-15 days (reduced from 15-20)
+- **Estimated Total Effort:** 9-13 days (reduced from 15-20)
 
 ---
 
 ## Active Debt Items
-
-### DEBT-001: Excessive Console Statements (1,468 occurrences)
-
-**Category:** Code Quality
-
-**Severity:** Critical
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s): Throughout `src/` directory
-- Component/Module: Multiple services, hooks, and components
-
-**Description:**
-1,468 console.log/console.warn/console.error statements found throughout the codebase. Many appear to be debug statements left from development.
-
-**Impact:**
-- **Business Impact:** Bloated bundle size affects load times; sensitive data may leak to browser console
-- **Technical Impact:** Performance degradation, noisy console output, harder to debug real issues
-- **Risk:** Potential exposure of internal logic or data to users
-
-**Root Cause:**
-Debug statements added during development not cleaned up before merging.
-
-**Proposed Solution:**
-1. Run ESLint with `no-console` rule to identify all occurrences
-2. Remove debug statements or replace with proper logging service
-3. Add pre-commit hook to prevent new console statements
-
-**Effort Estimate:** 1-2 days
-
-**Priority Justification:**
-Critical due to bundle size impact and potential data exposure. Quick win with high impact.
-
-**Dependencies:**
-- Blocks: None
-- Blocked By: None
-- Related: DEBT-002
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Next Sprint
-
-**Notes:**
-- Consider implementing a structured logging service (e.g., `src/utils/logger.ts` exists but isn't used consistently)
-- Add ESLint rule: `"no-console": ["error", { "allow": ["warn", "error"] }]`
-
----
 
 ### DEBT-002: Legacy localStateManager Not Fully Removed
 
@@ -700,6 +650,29 @@ Low - address opportunistically when modifying these files.
 
 ## Resolved Debt Items
 
+### ✅ DEBT-001: Excessive Console Statements (RESOLVED)
+
+**Category:** Code Quality | **Severity:** Critical | **Resolved:** 2025-11-26
+
+**Original Problem:** 1,468 console.log/console.warn/console.error statements found throughout the codebase, causing bloated bundle size and potential data exposure.
+
+**Solution Applied:**
+- Added ESLint `no-console` rule with `warn` level (allowing console.warn/error)
+- Configured ESLint ignores for non-production files (tests, temp files, edge functions)
+- Added `eslint-disable no-console` for legitimate debug utilities (logger.ts, entryDebug.ts, etc.)
+- Removed all console.log statements from 24+ source files
+- Restored `--max-warnings 0` for strict enforcement
+
+**Results:**
+- **Before:** 218 lint warnings from console statements
+- **After:** 0 warnings, strict enforcement restored
+- **Files cleaned:** 24 source files
+- **Debug utilities preserved:** 5 files with explicit eslint-disable
+
+**Prevention:** ESLint `no-console: warn` rule now enforced with `--max-warnings 0` on all commits via pre-commit hook.
+
+---
+
 ### ✅ DEBT-006: CompetitionAdmin.tsx Excessive Size (RESOLVED)
 
 **Category:** Code Quality | **Severity:** High | **Resolved:** 2025-11-26
@@ -768,7 +741,7 @@ Low - address opportunistically when modifying these files.
 - Design: 0 items
 
 ### By Severity
-- Critical: 2 items
+- Critical: 2 items (1 resolved ✅)
 - High: 3 items (2 resolved ✅)
 - Medium: 6 items
 - Low: 2 items

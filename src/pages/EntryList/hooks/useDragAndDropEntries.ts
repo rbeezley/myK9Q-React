@@ -197,8 +197,6 @@ isDraggingRef.current = false;
     setLocalEntries(newAllEntries);
     setManualOrder(entriesWithNewOrder);
 
-console.log('📋 New order:', entriesWithNewOrder.map(e => `${e.armband}(${e.exhibitorOrder})`).join(', '));
-
     // Update database and AWAIT it to prevent race conditions with sync
     setIsUpdatingOrder(true);
     try {
