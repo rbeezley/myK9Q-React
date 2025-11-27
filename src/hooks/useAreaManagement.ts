@@ -47,7 +47,7 @@ export interface UseAreaManagementReturn {
   /** Current area scores */
   areas: AreaScore[];
   /** Update a specific field of an area */
-  updateArea: (index: number, field: keyof AreaScore, value: any) => void;
+  updateArea: (index: number, field: keyof AreaScore, value: AreaScore[keyof AreaScore]) => void;
   /** Handle time input change (real-time typing) */
   handleTimeInput: (index: number, rawInput: string) => void;
   /** Handle time input blur (apply smart parsing) */
@@ -92,7 +92,7 @@ export function useAreaManagement(
   /**
    * Update a specific field of an area
    */
-  const updateArea = useCallback((index: number, field: keyof AreaScore, value: any) => {
+  const updateArea = useCallback((index: number, field: keyof AreaScore, value: AreaScore[keyof AreaScore]) => {
     setAreas((prev) =>
       prev.map((area, i) =>
         i === index ? { ...area, [field]: value } : area
@@ -100,8 +100,9 @@ export function useAreaManagement(
     );
 
     // Notify external listener if time changed
+    // Type assertion is safe: when field === 'time', value must be string per AreaScore type
     if (field === 'time' && onAreaTimeChange) {
-      onAreaTimeChange(index, value);
+      onAreaTimeChange(index, value as string);
     }
   }, [onAreaTimeChange]);
 

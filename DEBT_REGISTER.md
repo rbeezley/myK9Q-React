@@ -184,7 +184,7 @@ Medium - maintainability issue, fix opportunistically.
 
 ---
 
-### DEBT-011: Weak TypeScript Typing (212 `any` usages)
+### DEBT-011: Weak TypeScript Typing (PARTIALLY RESOLVED)
 
 **Category:** Code Quality
 
@@ -192,12 +192,14 @@ Medium - maintainability issue, fix opportunistically.
 
 **Created:** 2025-11-26
 
+**Updated:** 2025-11-27
+
 **Location:**
-- File(s): Throughout codebase
+- File(s): Throughout codebase (~417 in production code, many in tests)
 - Component/Module: Various
 
 **Description:**
-212 instances of `any` type usage, bypassing TypeScript's type safety.
+`any` type usage bypassing TypeScript's type safety. Actual count: ~417 in production code, many in test files (mocking).
 
 **Impact:**
 - **Business Impact:** Runtime errors that could be caught at compile time
@@ -207,14 +209,29 @@ Medium - maintainability issue, fix opportunistically.
 **Root Cause:**
 Quick fixes, complex external types, migration from JavaScript.
 
+**Progress (2025-11-27):**
+Fixed 6 `any` types in core production files:
+| File | Before | After | Change |
+|------|--------|-------|--------|
+| `useScoresheetCore.ts` | 2 `any` | 0 | `AreaScore[keyof AreaScore]` |
+| `useAreaManagement.ts` | 2 `any` | 0 | `AreaScore[keyof AreaScore]` |
+| `CreateAnnouncementModal.tsx` | 1 `any` | 0 | `'normal' \| 'high' \| 'urgent'` |
+| `MaxTimeDialog.tsx` | 1 `any` | 0 | Inline interface |
+
+**Remaining Categories:**
+- **Test files (~150):** Keep - mocking requires `as any`
+- **Debug/diagnostic (~30):** Low priority
+- **Generic utilities (~50):** May need `any` for flexibility
+- **Core business logic (~50):** High priority for future fixes
+
 **Proposed Solution:**
-1. Enable `noImplicitAny` in tsconfig.json
-2. Replace `any` with proper types incrementally
+1. ~~Enable `noImplicitAny` in tsconfig.json~~ (too aggressive for existing codebase)
+2. ✅ Replace `any` with proper types incrementally
 3. Use `unknown` for truly dynamic values
 4. Create proper interfaces for complex objects
 5. Use generics where appropriate
 
-**Effort Estimate:** 3-4 days
+**Effort Estimate:** 2-3 days remaining
 
 **Priority Justification:**
 Medium - type safety is important but most `any` usage is in non-critical paths.
@@ -224,11 +241,11 @@ Medium - type safety is important but most `any` usage is in non-critical paths.
 - Blocked By: None
 - Related: None
 
-**Status:** Open
+**Status:** In Progress (6 fixed, ~50 high-priority remaining)
 
 **Assignee:** Unassigned
 
-**Target Resolution:** Q2 2026
+**Target Resolution:** Ongoing
 
 ---
 
@@ -665,8 +682,9 @@ Used composition pattern to extract focused modules:
 6. ~~**DEBT-005** - SyncEngine refactor~~ ✅ **RESOLVED** (2025-11-26)
 7. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
 8. ~~**DEBT-013** - BUG comments~~ ✅ **RESOLVED** (2025-11-27) - Audit found 0 in source
-9. **DEBT-014** - TODO comments - ✅ **AUDITED** - 8 TODOs categorized
-10. **Others** - Address opportunistically
+9. **DEBT-011** - `any` types - ⚡ **IN PROGRESS** - 6 fixed in core files (2025-11-27)
+10. **DEBT-014** - TODO comments - ✅ **AUDITED** - 8 TODOs categorized
+11. **Others** - Address opportunistically
 
 ---
 

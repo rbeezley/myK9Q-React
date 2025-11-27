@@ -255,7 +255,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
                         name="priority"
                         value={option.value}
                         checked={priority === option.value}
-                        onChange={(e) => setPriority(e.target.value as any)}
+                        onChange={(e) => setPriority(e.target.value as 'normal' | 'high' | 'urgent')}
                       />
                       <div className={`priority-card ${option.value} ${priority === option.value ? 'selected' : ''}`}>
                         <div className="priority-header">

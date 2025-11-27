@@ -99,7 +99,7 @@ export interface ScoresheetCoreReturn {
 
   // Helper functions
   calculateTotalTime: () => string;
-  handleAreaUpdate: (index: number, field: keyof AreaScore, value: any) => void;
+  handleAreaUpdate: (index: number, field: keyof AreaScore, value: AreaScore[keyof AreaScore]) => void;
 
   // Actions
   submitScore: (currentEntry: Entry, extraData?: Partial<ScoreSubmitData['scoreData']>) => Promise<void>;
@@ -242,7 +242,7 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
   const handleAreaUpdate = useCallback((
     index: number,
     field: keyof AreaScore,
-    value: any
+    value: AreaScore[keyof AreaScore]
   ) => {
     setAreas(prev => prev.map((area, i) =>
       i === index ? { ...area, [field]: value } : area

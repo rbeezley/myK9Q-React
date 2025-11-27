@@ -461,7 +461,11 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
       // Update the class with new max times in seconds
       // Always include all time fields to ensure clearing works properly
-      const updateData: any = {
+      const updateData: {
+        time_limit_seconds: number;
+        time_limit_area2_seconds: number;
+        time_limit_area3_seconds: number;
+      } = {
         time_limit_seconds: times[0] ? timeStringToSeconds(times[0]) : 0,
         time_limit_area2_seconds: times[1] ? timeStringToSeconds(times[1]) : 0,
         time_limit_area3_seconds: times[2] ? timeStringToSeconds(times[2]) : 0,
