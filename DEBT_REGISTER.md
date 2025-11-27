@@ -1,17 +1,17 @@
 # Technical Debt Register
 
 **Project:** myK9Qv3
-**Last Updated:** 2025-11-26
+**Last Updated:** 2025-11-27
 **Maintained By:** Development Team
 
 ## Summary
 
-- **Total Debt Items:** 13 (8 resolved)
+- **Total Debt Items:** 13 (9 resolved)
 - **Critical:** 2 ✅ (2 resolved)
 - **High:** 4 ✅ (4 resolved)
-- **Medium:** 6 (1 resolved ✅)
+- **Medium:** 6 (2 resolved ✅)
 - **Low:** 2
-- **Estimated Total Effort:** 1-3 days (reduced from 15-20)
+- **Estimated Total Effort:** 1-2 days (reduced from 15-20)
 
 ---
 
@@ -295,63 +295,7 @@ Medium - improves developer experience.
 
 ---
 
-### DEBT-013: BUG Comments Not Addressed (23 occurrences)
-
-**Category:** Code Quality
-
-**Severity:** Medium
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s):
-  - `src/main.tsx`
-  - `src/components/DatabaseTest.tsx`
-  - `src/components/ScoresheetErrorBoundary.tsx`
-  - `src/hooks/useOfflineQueueProcessor.ts`
-  - `src/services/entryDataFetching.ts`
-  - `src/services/entryDebug.ts`
-  - `src/services/voiceAnnouncementService.ts`
-  - And others...
-- Component/Module: Various
-
-**Description:**
-23 BUG comments found in the codebase indicating known issues that haven't been fixed.
-
-**Impact:**
-- **Business Impact:** Known bugs affecting users
-- **Technical Impact:** Technical debt accumulating
-- **Risk:** Issues may worsen over time
-
-**Root Cause:**
-Bugs identified during development but deferred.
-
-**Proposed Solution:**
-1. Audit all BUG comments
-2. Create tickets for each actual bug
-3. Prioritize by user impact
-4. Remove comments that are no longer relevant
-5. Fix high-impact bugs immediately
-
-**Effort Estimate:** Variable (depends on bugs)
-
-**Priority Justification:**
-Medium - need to assess individual bugs for actual severity.
-
-**Dependencies:**
-- Blocks: None
-- Blocked By: None
-- Related: None
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Audit in Next Sprint
-
----
-
-### DEBT-014: Missing TODO Implementation
+### DEBT-014: Missing TODO Implementation (8 TODOs - Audited)
 
 **Category:** Code Quality
 
@@ -359,43 +303,50 @@ Medium - need to assess individual bugs for actual severity.
 
 **Created:** 2025-11-26
 
-**Location:**
-- File(s):
-  - `src/pages/DogDetails/DogDetails-Apple.tsx` - "TODO: Implement status update logic"
-  - `src/utils/oneHandedMode.ts` - "TODO: Implement tap tracking and ML-based detection"
-  - `src/utils/performanceMonitoring.ts` - "TODO: Implement analytics integration"
-  - `src/services/dataExportService.ts` - "TODO: Add IndexedDB data collection"
-  - `src/services/settingsCloudSync.ts` - "TODO: In production, integrate with actual auth system"
-- Component/Module: Various
+**Audited:** 2025-11-27
+
+**Location (8 TODOs found):**
+| File | TODO | Category | Action |
+|------|------|----------|--------|
+| `announcementStore.ts:268` | Remove once Edge Function working | Cleanup | Keep until confirmed |
+| `Home-Apple.tsx:142` | Persist favorites | Feature | Low priority backlog |
+| `DogDetails-Apple.tsx:482` | Status update logic | Feature | Remove if not planned |
+| `settingsCloudSync.ts:36` | Integrate auth system | Architecture | Keep until decision |
+| `performanceMonitoring.ts:311` | Analytics integration | Enhancement | Backlog if needed |
+| `oneHandedMode.ts:212` | ML tap detection | Enhancement | Remove - too complex |
+| `dataExportService.ts:116` | IndexedDB collection | Enhancement | Keep as reference |
+| `ReplicatedEventStatisticsTable.ts:212` | Remove dormant table check | Cleanup | Keep until migration |
 
 **Description:**
-Multiple TODO comments indicating features that were planned but not implemented.
+8 TODO comments found indicating features that were planned but not implemented or cleanup needed.
 
 **Impact:**
-- **Business Impact:** Missing features
-- **Technical Impact:** Incomplete implementations
-- **Risk:** Users may expect features that don't exist
+- **Business Impact:** Minor - most are enhancements
+- **Technical Impact:** Code clarity
+- **Risk:** Low - no critical functionality missing
 
-**Root Cause:**
-Features planned during development but deprioritized.
+**Audit Findings:**
+- 3 TODOs are cleanup tasks (wait for dependencies)
+- 3 TODOs are features (backlog candidates)
+- 2 TODOs can be removed (not planned/too complex)
 
 **Proposed Solution:**
-1. Review each TODO for current relevance
-2. Create backlog items for still-needed features
-3. Remove TODOs that are no longer planned
-4. Implement high-value features
+1. ✅ Audited all 8 TODOs - categorized above
+2. Create backlog items for relevant features
+3. Remove TODOs for `oneHandedMode.ts` (ML detection not planned)
+4. Keep remaining TODOs until dependencies resolved
 
-**Effort Estimate:** Variable
+**Effort Estimate:** 1-2 hours to clean up non-relevant TODOs
 
 **Priority Justification:**
 Low - these are enhancements, not bugs.
 
 **Dependencies:**
 - Blocks: None
-- Blocked By: None
+- Blocked By: Edge Function deployment, event_statistics migration
 - Related: None
 
-**Status:** Open
+**Status:** Audited - Actionable items identified
 
 **Assignee:** Unassigned
 
@@ -457,6 +408,21 @@ Low - address opportunistically when modifying these files.
 ---
 
 ## Resolved Debt Items
+
+### ✅ DEBT-013: BUG Comments Not Addressed (RESOLVED)
+
+**Category:** Code Quality | **Severity:** Medium | **Resolved:** 2025-11-27
+
+**Original Problem:** DEBT_REGISTER reported 23 BUG comments in the codebase indicating known issues.
+
+**Audit Findings:**
+- **0 BUG comments** found in source code (`src/`)
+- Original count was from documentation files or `tech_debt_analysis.json`
+- No actual BUG-tagged comments exist in production code
+
+**Resolution:** Audit confirmed no BUG comments in source - marking as resolved.
+
+---
 
 ### ✅ DEBT-002: Legacy localStateManager Not Fully Removed (RESOLVED)
 
@@ -669,8 +635,8 @@ Used composition pattern to extract focused modules:
 ### By Severity
 - Critical: 2 items (2 resolved ✅)
 - High: 4 items (4 resolved ✅)
-- Medium: 6 items
-- Low: 2 items
+- Medium: 6 items (1 resolved ✅)
+- Low: 2 items (1 audited)
 
 ### Aging
 - < 1 month: 15 items (all newly identified)
@@ -693,12 +659,14 @@ Used composition pattern to extract focused modules:
 
 1. ~~**DEBT-001** - Console statements (Critical, 1-2 days)~~ ✅ **RESOLVED** (2025-11-26)
 2. ~~**DEBT-002** - Legacy code removal (Critical, 2-3 days)~~ ✅ **RESOLVED** (2025-11-26)
-3. **DEBT-008** - Complex functions (Medium, ongoing) - ⚡ **PARTIALLY RESOLVED** - 2/7 files done, ESLint rules added
+3. **DEBT-008** - Complex functions (Medium, ongoing) - ⚡ **PARTIALLY RESOLVED** - 4/7 files done, ESLint rules added
 4. ~~**DEBT-003** - ReplicatedTable refactor~~ ✅ **RESOLVED** (2025-11-26)
 5. ~~**DEBT-004** - ReplicationManager refactor~~ ✅ **RESOLVED** (2025-11-26)
 6. ~~**DEBT-005** - SyncEngine refactor~~ ✅ **RESOLVED** (2025-11-26)
 7. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
-8. **Others** - Address opportunistically
+8. ~~**DEBT-013** - BUG comments~~ ✅ **RESOLVED** (2025-11-27) - Audit found 0 in source
+9. **DEBT-014** - TODO comments - ✅ **AUDITED** - 8 TODOs categorized
+10. **Others** - Address opportunistically
 
 ---
 
