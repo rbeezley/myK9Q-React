@@ -136,6 +136,23 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         throw fetchError;
       }
 
+      // 🔍 DIAGNOSTIC: Log sync results with full entry data
+      // eslint-disable-next-line no-console
+      console.log(`📊 [entries sync] Found ${remoteEntries?.length || 0} entries updated since lastSync=${new Date(lastSync).toISOString()}`, {
+        lastSync: new Date(lastSync).toISOString(),
+        isCacheEmpty,
+        entriesFound: remoteEntries?.length || 0,
+        // Show key scoring fields for each entry
+        entryDetails: remoteEntries?.slice(0, 5).map((e: any) => ({
+          id: e.id,
+          armband: e.armband_number,
+          is_scored: e.is_scored,
+          entry_status: e.entry_status,
+          result_status: e.result_status,
+          updated_at: e.updated_at
+        })) || []
+      });
+
       // Step 3: OPTIMIZED - Batch process remote entries to minimize transactions
       // Instead of individual get+set per entry (2N transactions), collect all and batch (1 transaction)
       if (remoteEntries && remoteEntries.length > 0) {
@@ -171,8 +188,23 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
         // Single batch write for all entries (1 transaction instead of N*2)
         if (entriesToCache.length > 0) {
+          // 🔍 DIAGNOSTIC: Log what's about to be cached - EXPANDED for visibility
+          for (const e of entriesToCache) {
+            // eslint-disable-next-line no-console
+            console.log(`💾 [entries sync] Caching entry ${e.id} (armband ${e.armband_number}):`, {
+              is_scored: e.is_scored,
+              is_in_ring: e.is_in_ring,
+              entry_status: e.entry_status,
+              result_status: e.result_status,
+              updated_at: e.updated_at
+            });
+          }
+
           await this.batchSet(entriesToCache);
           logger.log(`[${this.tableName}] Batch cached ${entriesToCache.length} entries`);
+
+          // eslint-disable-next-line no-console
+          console.log(`✅ [entries sync] Cache write complete`);
         }
       }
 

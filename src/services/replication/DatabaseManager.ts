@@ -385,6 +385,142 @@ export class DatabaseManager {
 }
 
 /**
+ * Clean up duplicate records caused by numeric/string ID type mismatch
+ *
+ * IndexedDB stores records with compound key ['tableName', 'id'].
+ * Due to a bug, some records were stored with numeric IDs while others
+ * had string IDs, creating duplicates (e.g., ['classes', 2] and ['classes', '2']).
+ *
+ * This function:
+ * 1. Quick-checks if any numeric IDs exist (early exit if none found)
+ * 2. Groups records by tableName and normalized (string) ID
+ * 3. For each group with duplicates, keeps only one record (preferring string ID)
+ * 4. Deletes the duplicate records with numeric IDs
+ *
+ * Performance: O(n) scan with early exit when database is already clean.
+ * After the first successful migration, subsequent calls exit in O(n) time
+ * without any writes.
+ *
+ * @returns Promise<{cleaned: number, total: number}> - Number of duplicates removed
+ */
+export async function cleanupDuplicateRecords(): Promise<{ cleaned: number; total: number }> {
+  const logger = defaultLogger;
+
+  try {
+    const db = await databaseManager.getDatabase('cleanup');
+
+    // FAST PATH: Quick check for any numeric IDs before full scan
+    // If all IDs are already strings, we can skip the expensive grouping logic
+    const quickCheckTx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
+    const allRecords = await quickCheckTx.store.getAll();
+    const total = allRecords.length;
+
+    if (total === 0) {
+      return { cleaned: 0, total: 0 };
+    }
+
+    // FAST PATH: Check if any records have numeric IDs
+    // If all IDs are strings, the database is already clean - skip expensive grouping
+    const hasNumericIds = allRecords.some(record => {
+      const typedRecord = record as { id: string | number };
+      return typeof typedRecord.id === 'number';
+    });
+
+    if (!hasNumericIds) {
+      // Database is already clean - no migration needed
+      logger.log(`[DatabaseManager] ID cleanup check: ${total} records already normalized (no numeric IDs found)`);
+      return { cleaned: 0, total };
+    }
+
+    // SLOW PATH: Found numeric IDs - need to do full migration
+    logger.log(`[DatabaseManager] Found numeric IDs in ${total} records, starting migration...`);
+
+    // Open a new readwrite transaction for the actual cleanup
+    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
+    const store = tx.objectStore(REPLICATION_STORES.REPLICATED_TABLES);
+
+    // Re-fetch records in the new transaction
+    const recordsToProcess = await store.getAll();
+
+    // Group records by tableName + normalized ID
+    const recordsByKey = new Map<string, Array<{ key: IDBValidKey; hasNumericId: boolean; record: unknown }>>();
+
+    for (const record of recordsToProcess) {
+      const typedRecord = record as { tableName: string; id: string | number };
+      const normalizedId = String(typedRecord.id);
+      const groupKey = `${typedRecord.tableName}:${normalizedId}`;
+      const recordHasNumericId = typeof typedRecord.id === 'number';
+
+      if (!recordsByKey.has(groupKey)) {
+        recordsByKey.set(groupKey, []);
+      }
+      recordsByKey.get(groupKey)!.push({
+        key: [typedRecord.tableName, typedRecord.id] as IDBValidKey,
+        hasNumericId: recordHasNumericId,
+        record,
+      });
+    }
+
+    // Find and delete duplicates
+    let cleaned = 0;
+    for (const [groupKey, records] of recordsByKey) {
+      if (records.length > 1) {
+        // Multiple records with same normalized ID - keep the string version, delete numeric versions
+        logger.log(`[DatabaseManager] Found ${records.length} duplicates for ${groupKey}`);
+
+        // Sort: string IDs first, then numeric
+        records.sort((a, b) => {
+          if (a.hasNumericId && !b.hasNumericId) return 1; // Numeric goes last
+          if (!a.hasNumericId && b.hasNumericId) return -1; // String goes first
+          return 0;
+        });
+
+        // Keep the first (string ID), delete the rest
+        for (let i = 1; i < records.length; i++) {
+          await store.delete(records[i].key);
+          cleaned++;
+          logger.log(`[DatabaseManager] Deleted duplicate: ${JSON.stringify(records[i].key)}`);
+        }
+      } else if (records.length === 1 && records[0].hasNumericId) {
+        // Single record with numeric ID - migrate it to string ID
+        // ReplicatedRow structure: { tableName, id, data: { id, ...entity }, ... }
+        type ReplicatedRecord = {
+          tableName: string;
+          id: number | string;
+          data?: { id?: number | string; [key: string]: unknown };
+          [key: string]: unknown;
+        };
+        const record = records[0].record as ReplicatedRecord;
+        const oldKey = records[0].key;
+        const newId = String(record.id);
+
+        // Update the record with string ID
+        const updatedRecord = { ...record, id: newId };
+
+        // Also update the nested data.id if it exists
+        if (updatedRecord.data && typeof updatedRecord.data.id !== 'undefined') {
+          updatedRecord.data = { ...updatedRecord.data, id: newId };
+        }
+
+        // Delete old record and add new one
+        await store.delete(oldKey);
+        await store.put(updatedRecord);
+        cleaned++;
+        logger.log(`[DatabaseManager] Migrated numeric ID to string: ${record.tableName}:${record.id} -> ${newId}`);
+      }
+    }
+
+    await tx.done;
+
+    logger.log(`[DatabaseManager] Cleanup complete: ${cleaned} records fixed out of ${total} total`);
+    return { cleaned, total };
+  } catch (error) {
+    defaultLogger.error('[DatabaseManager] Cleanup failed:', error);
+    throw error;
+  }
+}
+
+/**
  * Singleton instance of DatabaseManager
  */
 export const databaseManager = new DatabaseManager();

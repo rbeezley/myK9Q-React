@@ -63,10 +63,23 @@ export class ReplicatedClassVisibilityOverridesTable extends ReplicatedTable<Cla
       );
 
       // Fetch visibility overrides updated since last sync
+      // JOIN through classes → trials → shows to filter by license_key
+      // (table doesn't have license_key column directly)
       const { data: remoteOverrides, error } = await supabase
         .from('class_result_visibility_overrides')
-        .select('*')
-        .eq('license_key', licenseKey)
+        .select(`
+          *,
+          classes!inner(
+            trial_id,
+            trials!inner(
+              show_id,
+              shows!inner(
+                license_key
+              )
+            )
+          )
+        `)
+        .eq('classes.trials.shows.license_key', licenseKey)
         .gt('updated_at', new Date(lastSync).toISOString())
         .order('updated_at', { ascending: true });
 
@@ -95,7 +108,10 @@ export class ReplicatedClassVisibilityOverridesTable extends ReplicatedTable<Cla
       }
 
       // Process each override
-      for (const remoteOverride of remoteOverrides) {
+      for (const rawOverride of remoteOverrides) {
+        // Flatten the response (remove nested classes/trials/shows objects from join)
+        const { classes: _classes, ...remoteOverride } = rawOverride as any;
+
         // Convert ID to string for consistent IndexedDB key format
         const overrideId = String(remoteOverride.id);
         const localOverride = await this.get(overrideId);

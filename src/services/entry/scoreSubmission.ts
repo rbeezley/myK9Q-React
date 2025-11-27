@@ -111,6 +111,16 @@ function prepareScoreUpdateData(
   // Only mark as scored if we have a valid result status (not 'pending')
   const isActuallyScored = resultStatus !== 'pending';
 
+  // 🔍 DIAGNOSTIC: Log scoring conversion for debugging
+  // eslint-disable-next-line no-console
+  console.log('🎯 [scoreSubmission] prepareScoreUpdateData:', {
+    entryId,
+    inputResultText: scoreData.resultText,
+    convertedResultStatus: resultStatus,
+    isActuallyScored,
+    willSetEntryStatus: isActuallyScored ? 'completed' : 'in-ring'
+  });
+
   const scoreUpdateData: Partial<ResultData> = {
     entry_id: entryId,
     result_status: resultStatus,
@@ -289,16 +299,36 @@ try {
 
     // Update entries table with score data AND entry_status
     // After migration 039, this is a SINGLE write instead of two separate writes!
+    // CRITICAL: Set updated_at to trigger replication sync (no auto-trigger on entries table)
     const updateData = {
       ...updateFields,
       entry_status: entryStatus,
+      updated_at: new Date().toISOString(),
     };
 
-    const { error: updateError } = await supabase
+    // 🔍 DIAGNOSTIC: Log what we're about to send to database
+    // eslint-disable-next-line no-console
+    console.log('🔍 [scoreSubmission] Database update payload:', {
+      entryId,
+      updateData,
+      is_scored: updateData.is_scored,
+      entry_status: updateData.entry_status
+    });
+
+    const { data: updateResult, error: updateError } = await supabase
       .from('entries')
       .update(updateData)
       .eq('id', entryId)
       .select();
+
+    // 🔍 DIAGNOSTIC: Log database response
+    // eslint-disable-next-line no-console
+    console.log('✅ [scoreSubmission] Database update result:', {
+      entryId,
+      success: !updateError,
+      result: updateResult,
+      error: updateError
+    });
 
     if (updateError) {
       console.error('❌ Entries table update error:', {
@@ -315,7 +345,11 @@ try {
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the scored dog moves to completed tab immediately
+    // eslint-disable-next-line no-console
+    console.log('🔄 [scoreSubmission] About to trigger immediate sync...');
     await triggerImmediateEntrySync('submitScore');
+    // eslint-disable-next-line no-console
+    console.log('🔄 [scoreSubmission] Immediate sync call completed');
 
     // OPTIMIZATION: Run class completion check in background
     // This allows the save to complete quickly (~100ms) while background tasks run

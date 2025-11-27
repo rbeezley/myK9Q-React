@@ -122,13 +122,20 @@ return mappedEntries;
  * @param operationName - Name of the operation triggering sync (for logging)
  */
 export async function triggerImmediateEntrySync(operationName: string): Promise<void> {
+  // eslint-disable-next-line no-console
+  console.log(`🔄 [${operationName}] Starting immediate entry sync...`);
+
   try {
     const { getReplicationManager } = await import('./replication');
     const manager = getReplicationManager();
 
     if (manager) {
-await manager.syncTable('entries', { forceFullSync: false });
-} else {
+      // eslint-disable-next-line no-console
+      console.log(`🔄 [${operationName}] Replication manager found, syncing entries table...`);
+      await manager.syncTable('entries', { forceFullSync: false });
+      // eslint-disable-next-line no-console
+      console.log(`✅ [${operationName}] Immediate entry sync completed`);
+    } else {
       console.warn(`[${operationName}] Replication manager not available, UI may not update until next sync`);
     }
   } catch (syncError) {

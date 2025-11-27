@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
@@ -27,11 +27,11 @@ import {
   FloatingDoneButton,
   ResetMenuPopup,
 } from './components';
-import { logger } from '@/utils/logger';
 // CSS imported in index.css to prevent FOUC
 
 export const EntryList: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
+  const navigate = useNavigate();
   const { showContext, role } = useAuth();
   const { hasPermission } = usePermission();
   const { prefetch } = usePrefetch();
@@ -62,43 +62,11 @@ export const EntryList: React.FC = () => {
     hasError
   } = useEntryListActions(refresh);
 
-  // Subscribe to cache updates from ReplicationManager
-  const actualClassId = classInfo?.actualClassId;
-  const classIds = useMemo(
-    () => actualClassId ? [actualClassId] : [],
-    [actualClassId]
-  );
-
-  useEffect(() => {
-    if (!classIds.length) return;
-
-    let unsubscribe: (() => void) | null = null;
-
-    const setupCacheListener = async () => {
-      try {
-        const { ensureReplicationManager } = await import('@/utils/replicationHelper');
-        const manager = await ensureReplicationManager();
-
-        unsubscribe = manager.onCacheUpdate('entries', (_tableName: string) => {
-          if (isDraggingRef.current) return;
-          refresh();
-        });
-
-        logger.log('[EntryList] Subscribed to cache updates from ReplicationManager');
-      } catch (error) {
-        logger.error('[EntryList] Failed to subscribe to cache updates:', error);
-      }
-    };
-
-    setupCacheListener();
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-        logger.log('[EntryList] Unsubscribed from cache updates');
-      }
-    };
-  }, [classIds, refresh]);
+  // NOTE: Subscription to cache updates is handled by useEntryListData hook
+  // which subscribes to entriesTable.subscribe() and classesTable.subscribe().
+  // We previously had a duplicate subscription here via manager.onCacheUpdate()
+  // that was causing double notifications and performance issues.
+  // Removed in favor of the single subscription in the data hook.
 
   // Local state for UI
   const [localEntries, setLocalEntries] = useState<Entry[]>([]);
@@ -128,6 +96,7 @@ export const EntryList: React.FC = () => {
     filteredEntries,
     pendingEntries,
     completedEntries,
+    entryCounts,
   } = useEntryListFilters({
     entries: localEntries,
     prioritizeInRing: true,
@@ -153,6 +122,9 @@ export const EntryList: React.FC = () => {
   });
 
   // Sync local entries with fetched data
+  // NOTE: Duplicate detection was causing "thousands of messages" during sync.
+  // Root cause fixed in ReplicatedTableBatch.ts - all IDs now normalized to strings.
+  // Diagnostic logging removed as it's no longer needed.
   useEffect(() => {
     if (entries.length > 0 && !isDraggingRef.current) {
       setLocalEntries(entries);
@@ -191,7 +163,9 @@ export const EntryList: React.FC = () => {
       }
 
       const currentDog = localEntries.find(entry => entry.id === dogId);
-      if (currentDog?.inRing !== inRing) {
+      // Check using status field (not deprecated inRing property)
+      const isCurrentlyInRing = currentDog?.status === 'in-ring';
+      if (isCurrentlyInRing !== inRing) {
         await markInRing(dogId, inRing);
       }
       return true;
@@ -202,7 +176,7 @@ export const EntryList: React.FC = () => {
   }, [localEntries]);
 
   // Entry click handler (navigate to scoresheet)
-  const handleEntryClick = useCallback(async (entry: Entry) => {
+  const handleEntryClick = useCallback((entry: Entry) => {
     if (entry.isScored) return;
 
     if (!hasPermission('canScore')) {
@@ -210,18 +184,37 @@ export const EntryList: React.FC = () => {
       return;
     }
 
+    // Navigate immediately - don't wait for status update
+    // The scoresheet will mark the entry as in-ring when it loads (see useEntryNavigation.ts)
+    const route = getScoreSheetRoute(entry);
+
+    // Fire-and-forget: update local UI state and DB in background
+    // This ensures navigation happens instantly on first click
     if (entry.id && !entry.isScored) {
-      const success = await setDogInRingStatus(entry.id, true);
-      if (success) {
-        setLocalEntries(prev => prev.map(e =>
-          e.id === entry.id ? { ...e, inRing: true } : e
-        ));
-      }
+      // Update local state immediately for visual feedback
+      setLocalEntries(prev => prev.map(e =>
+        e.id === entry.id ? { ...e, inRing: true, status: 'in-ring' } : e
+      ));
+
+      // Background DB update (scoresheet will also call markInRing, but this updates other users' views)
+      setDogInRingStatus(entry.id, true).catch(error => {
+        console.error('Failed to update in-ring status:', error);
+      });
     }
 
-    const route = getScoreSheetRoute(entry);
-    window.location.href = route;
-  }, [hasPermission, setDogInRingStatus, getScoreSheetRoute]);
+    // Use React Router for instant client-side navigation (no page reload)
+    // Pass entry data via state so scoresheet can render immediately without fetching
+    navigate(route, {
+      state: {
+        entry,
+        classInfo: classInfo ? {
+          element: classInfo.element,
+          level: classInfo.level,
+          section: classInfo.section
+        } : undefined
+      }
+    });
+  }, [hasPermission, setDogInRingStatus, getScoreSheetRoute, setLocalEntries, navigate, classInfo]);
 
   // Prefetch handler
   const handleEntryPrefetch = useCallback((entry: Entry) => {
@@ -437,10 +430,12 @@ export const EntryList: React.FC = () => {
   }, [classInfo, showContext?.org, localEntries]);
 
   // Tab configuration
+  // NOTE: Use entryCounts (from full entries array) instead of pendingEntries.length/completedEntries.length
+  // because those are derived from filteredEntries which is already tab-filtered, causing inactive tab to show 0
   const statusTabs: Tab[] = useMemo(() => [
-    { id: 'pending', label: 'Pending', icon: <Clock size={16} />, count: pendingEntries.length },
-    { id: 'completed', label: 'Completed', icon: <CheckCircle size={16} />, count: completedEntries.length }
-  ], [pendingEntries.length, completedEntries.length]);
+    { id: 'pending', label: 'Pending', icon: <Clock size={16} />, count: entryCounts.pending },
+    { id: 'completed', label: 'Completed', icon: <CheckCircle size={16} />, count: entryCounts.completed }
+  ], [entryCounts.pending, entryCounts.completed]);
 
   // Sort options
   const sortOptions: SortOption[] = useMemo(() => {

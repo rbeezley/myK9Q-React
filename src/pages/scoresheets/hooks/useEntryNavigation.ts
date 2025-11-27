@@ -16,8 +16,9 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useScoringStore, useEntryStore } from '../../../stores';
+import type { Entry as StoreEntry } from '../../../stores/entryStore';
 import { useAuth } from '../../../contexts/AuthContext';
 import { markInRing } from '../../../services/entryService';
 import { ensureReplicationManager } from '../../../utils/replicationHelper';
@@ -141,7 +142,11 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
   } = config;
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { showContext } = useAuth();
+
+  // Check for entry data passed via route state (instant load optimization)
+  const routeState = location.state as { entry?: StoreEntry; classInfo?: { element: string; level: string; section?: string } } | null;
 
   // Store hooks
   const {
@@ -210,6 +215,56 @@ if (!classId || !showContext?.licenseKey) {
 return;
     }
 
+    // FAST PATH: Use entry data from route state if available (instant load)
+    // This skips all IndexedDB operations for much faster rendering
+    if (routeState?.entry && routeState?.classInfo) {
+      // eslint-disable-next-line no-console
+      console.log('⚡ [useEntryNavigation] Using route state for instant load');
+
+      const passedEntry = routeState.entry;
+      const passedClassInfo = routeState.classInfo;
+
+      // Set class info immediately
+      setClassInfo({
+        element: passedClassInfo.element,
+        level: passedClassInfo.level,
+        section: passedClassInfo.section
+      });
+
+      // Set entry immediately
+      setLocalEntries([passedEntry]);
+      setEntries([passedEntry]);
+      setCurrentClassEntries(parseInt(classId));
+      setCurrentEntry(passedEntry);
+
+      // Initialize areas and notify
+      const initialAreas = initializeAreas(
+        passedEntry.element || '',
+        passedEntry.level || '',
+        isNationals
+      );
+      onEntryLoadedRef.current?.(passedEntry, initialAreas);
+
+      // Mark in ring in background (fire-and-forget)
+      markInRing(passedEntry.id, true).catch(console.error);
+
+      // Start scoring session if not already started
+      if (!isScoring) {
+        startScoringSession(
+          parseInt(classId),
+          passedEntry.className || 'AKC Scent Work',
+          sportType,
+          'judge-1',
+          1
+        );
+      }
+
+      setIsLoading(false);
+      onLoadingChangeRef.current?.(false);
+      return; // Skip the slow path
+    }
+
+    // SLOW PATH: Load from IndexedDB (fallback for direct URL access)
     setIsLoading(true);
     onLoadingChangeRef.current?.(true);
 
@@ -336,6 +391,7 @@ await manager.syncTable('entries');
     isNationals,
     sportType,
     isScoring,
+    routeState, // Entry data passed from EntryList for instant load
     // Callbacks removed from deps - using refs instead to prevent infinite re-render loops
     setEntries,
     setCurrentClassEntries,

@@ -173,10 +173,11 @@ async function processClassesWithEntries(
   _licenseKey: string
 ): Promise<ClassEntry[]> {
   // Build a map of classId -> entries
+  // CRITICAL: Normalize all IDs to strings to prevent type mismatch (number vs string)
   const entriesByClass = new Map<string, Entry[]>();
 
   entriesData.forEach((entry) => {
-    const classId = entry.class_id;
+    const classId = String(entry.class_id);  // Normalize to string
     if (!entriesByClass.has(classId)) {
       entriesByClass.set(classId, []);
     }
@@ -185,7 +186,7 @@ async function processClassesWithEntries(
 
   // Process each class
   const processedClasses = classesData.map((cls) => {
-    const classEntries = entriesByClass.get(cls.id) || [];
+    const classEntries = entriesByClass.get(String(cls.id)) || [];  // Normalize to string
 
     // Process dog entries with custom status priority sorting
     const dogs = classEntries
@@ -374,14 +375,15 @@ logger.log('📭 Cache is empty, falling back to Supabase');
                 .in('class_id', classIds);
 
               // Create map of class_id to preset_name
-              const visibilityMap = new Map<number, 'open' | 'standard' | 'review'>();
+              // CRITICAL: Use string keys to match cls.id type (prevents silent lookup failures)
+              const visibilityMap = new Map<string, 'open' | 'standard' | 'review'>();
               (visibilityData || []).forEach((override: any) => {
-                visibilityMap.set(override.class_id, override.preset_name);
+                visibilityMap.set(String(override.class_id), override.preset_name);
               });
 
               // Update classes with their visibility presets
               processedClasses.forEach(cls => {
-                cls.visibility_preset = visibilityMap.get(cls.id) || 'standard';
+                cls.visibility_preset = visibilityMap.get(String(cls.id)) || 'standard';
               });
             } catch (error) {
               logger.error('❌ Error fetching visibility presets:', error);
@@ -557,14 +559,15 @@ logger.log('📭 Cache is empty, falling back to Supabase');
       .in('class_id', classIds);
 
     // Create map of class_id to preset_name
-    const visibilityMap = new Map<number, 'open' | 'standard' | 'review'>();
+    // CRITICAL: Use string keys to match cls.id type (prevents silent lookup failures)
+    const visibilityMap = new Map<string, 'open' | 'standard' | 'review'>();
     (visibilityData || []).forEach((override: any) => {
-      visibilityMap.set(override.class_id, override.preset_name);
+      visibilityMap.set(String(override.class_id), override.preset_name);
     });
 
     // Update classes with their visibility presets
     sortedClasses.forEach((cls: any) => {
-      cls.visibility_preset = visibilityMap.get(cls.id) || 'standard';
+      cls.visibility_preset = visibilityMap.get(String(cls.id)) || 'standard';
     });
   } catch (error) {
     logger.error('❌ Error fetching visibility presets:', error);
@@ -612,6 +615,10 @@ export function useClasses(trialId: string | undefined, licenseKey: string | und
   });
 }
 
+// Stable empty array to prevent infinite re-renders when data is undefined
+// See: ClassList.tsx useEffect syncs this to local state - new [] reference = infinite loop
+const EMPTY_CLASSES: ClassEntry[] = [];
+
 /**
  * Helper hook that combines all class list data fetching
  */
@@ -625,7 +632,8 @@ export function useClassListData(
 
   return {
     trialInfo: trialInfoQuery.data || null,
-    classes: classesQuery.data || [],
+    // Use stable empty array to prevent infinite re-renders
+    classes: classesQuery.data || EMPTY_CLASSES,
     isLoading: trialInfoQuery.isLoading || classesQuery.isLoading,
     isRefreshing: trialInfoQuery.isFetching || classesQuery.isFetching,
     error: trialInfoQuery.error || classesQuery.error,

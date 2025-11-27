@@ -98,7 +98,9 @@ export const useEntryNavigation = ({
       }
 
       const currentDog = localEntries.find(entry => entry.id === dogId);
-      if (currentDog?.inRing !== inRing) {
+      // Check using status field (not deprecated inRing property)
+      const isCurrentlyInRing = currentDog?.status === 'in-ring';
+      if (isCurrentlyInRing !== inRing) {
         await markInRing(dogId, inRing);
       }
       return true;
@@ -111,7 +113,7 @@ export const useEntryNavigation = ({
   /**
    * Handle entry click for single class view (sets in-ring status)
    */
-  const handleEntryClick = useCallback(async (entry: Entry) => {
+  const handleEntryClick = useCallback((entry: Entry) => {
     if (entry.isScored) {
       return;
     }
@@ -121,17 +123,24 @@ export const useEntryNavigation = ({
       return;
     }
 
-    // Set dog status to in-ring when scoresheet opens
+    // Navigate immediately - don't wait for status update
+    // The scoresheet will mark the entry as in-ring when it loads
+    const route = getScoreSheetRoute(entry);
+
+    // Fire-and-forget: update local UI state and DB in background
+    // This ensures navigation happens instantly on first click
     if (entry.id && !entry.isScored) {
-      const success = await setDogInRingStatus(entry.id, true);
-      if (success) {
-        setLocalEntries(prev => prev.map(e =>
-          e.id === entry.id ? { ...e, inRing: true } : e
-        ));
-      }
+      // Update local state immediately for visual feedback
+      setLocalEntries(prev => prev.map(e =>
+        e.id === entry.id ? { ...e, inRing: true, status: 'in-ring' } : e
+      ));
+
+      // Background DB update (scoresheet will also call markInRing, but this updates other users' views)
+      setDogInRingStatus(entry.id, true).catch(error => {
+        console.error('Failed to update in-ring status:', error);
+      });
     }
 
-    const route = getScoreSheetRoute(entry);
     navigate(route);
   }, [hasPermission, setDogInRingStatus, setLocalEntries, getScoreSheetRoute, navigate]);
 

@@ -85,6 +85,9 @@ export function groupNoviceClasses(
   classList: ClassEntry[],
   findPaired: (classEntry: ClassEntry, allClasses: ClassEntry[]) => ClassEntry | null = findPairedNoviceClass
 ): ClassEntry[] {
+  // NOTE: Duplicate records are prevented at the storage layer (ReplicatedTableBatch.ts).
+  // See cleanupDuplicateRecords() in DatabaseManager.ts for migration of legacy data.
+
   const grouped: ClassEntry[] = [];
   const processedIds = new Set<number>();
 

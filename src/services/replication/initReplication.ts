@@ -27,6 +27,7 @@ import {
   replicatedNationalsRankingsTable,
   replicatedAuditLogViewTable,
 } from './index';
+import { cleanupDuplicateRecords } from './DatabaseManager';
 import { isReplicationEnabled, clearDevelopmentDisableFlags } from './replicationConfig';
 import { logger } from '@/utils/logger';
 
@@ -89,6 +90,19 @@ export async function initializeReplication(): Promise<void> {
       autoSyncOnStartup: false, // Don't start sync yet - wait for subscriptions
       autoSyncOnReconnect: true,
     });
+
+    // Clean up duplicate records caused by numeric/string ID mismatch
+    // This is a one-time migration fix - records with numeric IDs will be
+    // converted to string IDs to prevent duplicates
+    try {
+      const cleanupResult = await cleanupDuplicateRecords();
+      if (cleanupResult.cleaned > 0) {
+        logger.log(`[Replication] Cleaned up ${cleanupResult.cleaned} duplicate records`);
+      }
+    } catch (cleanupError) {
+      logger.warn('[Replication] Duplicate cleanup failed (non-fatal):', cleanupError);
+      // Non-fatal - continue with initialization
+    }
 
     // Register all tables
     logger.log('[Replication] Registering tables...');

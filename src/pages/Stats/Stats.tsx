@@ -124,10 +124,11 @@ export const Stats: React.FC = () => {
           }
 
           // Create a map of trial IDs to trial numbers for easy lookup
-          const trialNumberMap = new Map<number, number>();
+          // CRITICAL: Use string keys for consistency (prevents number/string type mismatch bugs)
+          const trialNumberMap = new Map<string, number>();
           if (trialsForNumber) {
             trialsForNumber.forEach(t => {
-              trialNumberMap.set(t.id, t.trial_number);
+              trialNumberMap.set(String(t.id), t.trial_number);
             });
           }
 
@@ -135,7 +136,7 @@ export const Stats: React.FC = () => {
             id: d.class_id,
             name: `${d.element} - ${d.level}`,
             trialDate: d.trial_date,
-            trialNumber: d.trial_id ? trialNumberMap.get(d.trial_id) : undefined
+            trialNumber: d.trial_id ? trialNumberMap.get(String(d.trial_id)) : undefined
           })).filter(Boolean))]
             .map(c => JSON.parse(c))
             .sort((a: any, b: any) => a.name.localeCompare(b.name));

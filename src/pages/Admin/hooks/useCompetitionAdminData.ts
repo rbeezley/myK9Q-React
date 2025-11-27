@@ -107,9 +107,10 @@ async function fetchClasses(licenseKey: string): Promise<ClassInfo[]> {
     .in('class_id', classIds);
 
   // Create map of class_id to preset_name
-  const visibilityMap = new Map<number, VisibilityPreset>();
+  // CRITICAL: Use string keys for consistency (prevents number/string type mismatch bugs)
+  const visibilityMap = new Map<string, VisibilityPreset>();
   (visibilityData || []).forEach((override: any) => {
-    visibilityMap.set(override.class_id, override.preset_name);
+    visibilityMap.set(String(override.class_id), override.preset_name);
   });
 
   // Map view columns to ClassInfo interface
@@ -129,7 +130,7 @@ async function fetchClasses(licenseKey: string): Promise<ClassInfo[]> {
     self_checkin: classData.self_checkin_enabled || false,
     total_entries: classData.total_entries || 0,
     scored_entries: classData.scored_entries || 0,
-    visibility_preset: visibilityMap.get(classData.class_id) || 'standard'
+    visibility_preset: visibilityMap.get(String(classData.class_id)) || 'standard'
   }));
 
   return classes;

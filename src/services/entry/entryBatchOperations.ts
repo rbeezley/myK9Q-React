@@ -69,7 +69,7 @@ export async function updateExhibitorOrder(
 
       const { error } = await supabase
         .from('entries')
-        .update({ exhibitor_order: newExhibitorOrder })
+        .update({ exhibitor_order: newExhibitorOrder, updated_at: new Date().toISOString() })
         .eq('id', entry.id);
 
       if (error) {

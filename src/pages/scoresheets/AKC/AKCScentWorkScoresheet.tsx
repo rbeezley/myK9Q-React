@@ -309,8 +309,14 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   };
 
   // Wrapper for navigation cleanup with current entry
-  const handleNavigateWithRingCleanup = useCallback(async () => {
-    await navigateBackWithRingCleanup(currentEntry);
+  const handleNavigateWithRingCleanup = useCallback(() => {
+    // eslint-disable-next-line no-console
+    console.log('🚪 [AKCScentWorkScoresheet] Cancel clicked, currentEntry:', {
+      id: currentEntry?.id,
+      armband: currentEntry?.armband,
+      hasEntry: !!currentEntry
+    });
+    navigateBackWithRingCleanup(currentEntry);
   }, [navigateBackWithRingCleanup, currentEntry]);
 
   // ==========================================================================

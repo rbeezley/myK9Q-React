@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase';
 import { EntryStatus } from '@/stores/entryStore';
 import { triggerImmediateEntrySync } from '../entryReplication';
 import { checkAndUpdateClassCompletion } from './classCompletionService';
+import { getReplicationManager } from '../replication/ReplicationManager';
+import type { Entry } from '../replication/tables/ReplicatedEntriesTable';
 
 /**
  * Entry Status Management Module
@@ -58,7 +60,28 @@ export async function markInRing(
   entryId: number,
   inRing: boolean = true
 ): Promise<boolean> {
+  // eslint-disable-next-line no-console
+  console.log(`🏟️ [markInRing] Called with entryId=${entryId}, inRing=${inRing}`);
+
   try {
+    // OPTIMIZATION: Check local cache first to avoid redundant DB calls
+    // This makes the function idempotent - multiple calls with same state are no-ops
+    const manager = getReplicationManager();
+    if (manager) {
+      const entriesTable = manager.getTable('entries');
+      if (entriesTable) {
+        const cachedEntry = await entriesTable.get(String(entryId)) as Entry | undefined;
+        if (cachedEntry) {
+          const currentlyInRing = cachedEntry.entry_status === 'in-ring';
+          if (currentlyInRing === inRing) {
+            // eslint-disable-next-line no-console
+            console.log(`⏭️ [markInRing] Entry ${entryId} already ${inRing ? 'in-ring' : 'not in-ring'} - skipping DB call`);
+            return true;
+          }
+        }
+      }
+    }
+
     // When removing from ring (inRing=false), check if entry is already scored
     // If scored, don't change status back to 'no-status' - keep it as 'completed'
     if (!inRing) {
@@ -70,10 +93,15 @@ export async function markInRing(
         .maybeSingle();
 
       if (entry?.is_scored) {
-// Update to completed status instead of no-status
+        // Update to completed status instead of no-status
+        // Also update is_in_ring for backward compatibility with deprecated field
         const { error } = await supabase
           .from('entries')
-          .update({ entry_status: 'completed' })
+          .update({
+            entry_status: 'completed',
+            is_in_ring: false,  // CRITICAL: Also update deprecated field
+            updated_at: new Date().toISOString()
+          })
           .eq('id', entryId)
           .select();
 
@@ -82,8 +110,13 @@ export async function markInRing(
           throw error;
         }
 
-        // Trigger sync for scored entry status update
-        await triggerImmediateEntrySync('markInRing');
+        // eslint-disable-next-line no-console
+        console.log(`✅ [markInRing] Entry ${entryId} (scored) -> entry_status='completed', is_in_ring=false`);
+
+        // CRITICAL FIX: Update local cache directly instead of syncing from server.
+        // Syncing was causing race conditions where stale data from read replicas
+        // would overwrite our correct local changes.
+        await updateLocalCacheEntry(entryId, { entry_status: 'completed', is_in_ring: false });
 
         return true;
       }
@@ -92,9 +125,14 @@ export async function markInRing(
     // Normal behavior: toggle between 'no-status' and 'in-ring'
     const newStatus: EntryStatus = inRing ? 'in-ring' : 'no-status';
 
+    // Also update is_in_ring for backward compatibility with deprecated field
     const { error } = await supabase
       .from('entries')
-      .update({ entry_status: newStatus })
+      .update({
+        entry_status: newStatus,
+        is_in_ring: inRing,  // CRITICAL: Also update deprecated field
+        updated_at: new Date().toISOString()
+      })
       .eq('id', entryId)
       .select();
 
@@ -103,14 +141,69 @@ export async function markInRing(
       throw error;
     }
 
-// CRITICAL: Trigger immediate sync to update UI without refresh
-    // This ensures all connected clients see the in-ring status change in real-time
-    await triggerImmediateEntrySync('markInRing');
+// eslint-disable-next-line no-console
+    console.log(`✅ [markInRing] Entry ${entryId} -> entry_status='${newStatus}', is_in_ring=${inRing}`);
+
+    // CRITICAL FIX: Update local cache directly instead of syncing from server.
+    // Syncing was causing race conditions where stale data from read replicas
+    // would overwrite our correct local changes.
+    await updateLocalCacheEntry(entryId, { entry_status: newStatus, is_in_ring: inRing });
 
     return true;
   } catch (error) {
     console.error('❌ markInRing error:', error);
     throw error;
+  }
+}
+
+/**
+ * Helper to update the local IndexedDB cache directly without syncing from server.
+ * This prevents race conditions where stale data from read replicas overwrites
+ * our correct local changes.
+ */
+async function updateLocalCacheEntry(
+  entryId: number,
+  updates: { entry_status?: string; is_in_ring?: boolean }
+): Promise<void> {
+  try {
+    const manager = getReplicationManager();
+    if (!manager) {
+      console.warn('⚠️ [updateLocalCacheEntry] No replication manager - skipping cache update');
+      return;
+    }
+
+    const entriesTable = manager.getTable('entries');
+    if (!entriesTable) {
+      console.warn('⚠️ [updateLocalCacheEntry] Entries table not registered - skipping cache update');
+      return;
+    }
+
+    // Get the current entry from cache
+    const currentEntry = await entriesTable.get(String(entryId)) as Entry | undefined;
+    if (!currentEntry) {
+      console.warn(`⚠️ [updateLocalCacheEntry] Entry ${entryId} not found in cache - skipping cache update`);
+      return;
+    }
+
+    // Update the entry with new values
+    const updatedEntry: Entry = {
+      ...currentEntry,
+      entry_status: updates.entry_status ?? currentEntry.entry_status,
+      is_in_ring: updates.is_in_ring ?? currentEntry.is_in_ring,
+      updated_at: new Date().toISOString()
+    };
+
+    // Write back to cache (not dirty - already synced to server)
+    await entriesTable.set(String(entryId), updatedEntry, false);
+
+    // eslint-disable-next-line no-console
+    console.log(`✅ [updateLocalCacheEntry] Updated entry ${entryId} in cache:`, {
+      entry_status: updatedEntry.entry_status,
+      is_in_ring: updatedEntry.is_in_ring
+    });
+  } catch (error) {
+    console.error('❌ [updateLocalCacheEntry] Failed to update cache:', error);
+    // Non-fatal - the DB write succeeded, cache will catch up on next sync
   }
 }
 
@@ -165,6 +258,7 @@ try {
         is_scored: true,
         result_status: 'manual_complete',
         scoring_completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .eq('id', entryId)
       .select();
@@ -216,8 +310,10 @@ export async function updateEntryCheckinStatus(
 ): Promise<boolean> {
   try {
     // Update the unified entry_status field
+    // CRITICAL: Include updated_at to trigger replication sync
     const updateData = {
       entry_status: checkinStatus,
+      updated_at: new Date().toISOString(),
     };
 
 const { error } = await supabase
@@ -284,6 +380,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       .single();
 
     // Reset score fields in the entries table (results merged into entries)
+    // CRITICAL: Include updated_at to trigger replication sync
     const { error } = await supabase
       .from('entries')
       .update({
@@ -300,6 +397,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
         scoring_completed_at: null,
         ring_entry_time: null,
         ring_exit_time: null,
+        updated_at: new Date().toISOString(),
       })
       .eq('id', entryId);
 

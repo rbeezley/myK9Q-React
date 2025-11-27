@@ -104,7 +104,7 @@ export interface ScoresheetCoreReturn {
   // Actions
   submitScore: (currentEntry: Entry, extraData?: Partial<ScoreSubmitData['scoreData']>) => Promise<void>;
   navigateBack: () => void;
-  navigateBackWithRingCleanup: (currentEntry: Entry | null) => Promise<void>;
+  navigateBackWithRingCleanup: (currentEntry: Entry | null) => void;
 
   // Components
   CelebrationModal: React.ReactElement | null;
@@ -258,17 +258,34 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
   }, [navigate]);
 
   /**
-   * Remove dog from ring before navigating
+   * Remove dog from ring and navigate back
+   * Uses fire-and-forget pattern for instant navigation
    */
-  const navigateBackWithRingCleanup = useCallback(async (currentEntry: Entry | null) => {
+  const navigateBackWithRingCleanup = useCallback((currentEntry: Entry | null) => {
+    // eslint-disable-next-line no-console
+    console.log('🚪 [useScoresheetCore] navigateBackWithRingCleanup called:', {
+      hasEntry: !!currentEntry,
+      entryId: currentEntry?.id,
+      armband: currentEntry?.armband
+    });
+
+    // Fire-and-forget: update status in background, navigate immediately
     if (currentEntry?.id) {
-      try {
-        await markInRing(currentEntry.id, false);
-} catch (error) {
-        console.error('❌ Failed to remove dog from ring:', error);
-        // Continue with navigation even if ring cleanup fails
-      }
+      // eslint-disable-next-line no-console
+      console.log('🚪 [useScoresheetCore] Firing markInRing(', currentEntry.id, ', false) in background');
+      markInRing(currentEntry.id, false)
+        .then(() => {
+          // eslint-disable-next-line no-console
+          console.log('✅ [useScoresheetCore] markInRing completed successfully');
+        })
+        .catch((error) => {
+          console.error('❌ Failed to remove dog from ring:', error);
+        });
+    } else {
+      console.warn('⚠️ [useScoresheetCore] No currentEntry - skipping markInRing');
     }
+
+    // Navigate immediately - don't wait for DB
     navigate(-1);
   }, [navigate]);
 
@@ -283,8 +300,17 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
     currentEntry: Entry,
     extraData: Partial<ScoreSubmitData['scoreData']> = {}
   ) => {
+    // eslint-disable-next-line no-console
+    console.log('📝 [useScoresheetCore] submitScore called:', {
+      entryId: currentEntry?.id,
+      armband: currentEntry?.armband,
+      qualifying,
+      hasCurrentEntry: !!currentEntry
+    });
+
 if (!currentEntry) {
-return;
+      console.warn('⚠️ [useScoresheetCore] No currentEntry - aborting');
+      return;
     }
 
     setShowConfirmation(false);

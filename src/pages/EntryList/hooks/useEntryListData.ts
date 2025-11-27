@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, MutableRefObject } from 'react';
+import { useState, useEffect, useCallback, useRef, MutableRefObject } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getClassEntries } from '../../../services/entryService';
 import { Entry } from '../../../stores/entryStore';
@@ -259,8 +259,10 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
       if (!classData) return null;
 
       const cachedEntries = await entriesTable.getAll();
-      let classEntries = cachedEntries
-        .filter((entry) => String(entry.class_id) === classId)
+
+      const relevantEntries = cachedEntries.filter((entry) => String(entry.class_id) === classId);
+
+      let classEntries = relevantEntries
         .map((entry) => transformReplicatedEntry(entry, classData));
 
       if (classEntries.length === 0) {
@@ -497,8 +499,16 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState<Error | null>(null);
 
+  // 🔧 FIX: Guard against re-entrant refresh calls that cause infinite loops
+  const isRefreshingRef = useRef(false);
+
   // Fetch data function
   const refresh = useCallback(async () => {
+    // 🔧 FIX: Prevent re-entrant calls that cause infinite loops
+    if (isRefreshingRef.current) {
+      return;
+    }
+    isRefreshingRef.current = true;
     setIsRefreshing(true);
     setFetchError(null);
     try {
@@ -509,6 +519,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
       logger.error('Failed to fetch entry list data:', error);
     } finally {
       setIsRefreshing(false);
+      isRefreshingRef.current = false;
     }
   }, [fetchFunction]);
 
@@ -536,9 +547,9 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
         unsubscribeEntries = entriesTable.subscribe(() => {
           // Skip refresh during drag operations to prevent snap-back
           if (isDraggingRef?.current) {
-return;
+            return;
           }
-refresh();
+          refresh();
         });
 
         unsubscribeClasses = classesTable.subscribe(() => {
@@ -572,6 +583,10 @@ refresh();
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [refresh]);
+
+  // NOTE: data.entries is stable (from useState) - no need for additional memoization.
+  // The duplicate record issue was fixed at the storage layer in ReplicatedTableBatch.ts
+  // by normalizing all IDs to strings. See cleanupDuplicateRecords() in DatabaseManager.ts.
 
   return {
     entries: data.entries,

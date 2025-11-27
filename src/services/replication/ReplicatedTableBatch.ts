@@ -8,6 +8,19 @@
  * - Chunked batch set (for large syncs)
  * - Batch delete
  * - Cache clearing
+ *
+ * CRITICAL: ID Normalization
+ * --------------------------
+ * All IDs MUST be stored as strings in IndexedDB. This is because:
+ * 1. Supabase returns bigserial/bigint IDs as numbers
+ * 2. IndexedDB compound keys treat 2 and "2" as DIFFERENT keys
+ * 3. Without normalization, we get duplicate records:
+ *    - SyncExecutor stores data with numeric IDs
+ *    - Table-specific sync stores with string IDs
+ *    - Result: ['classes', 2] and ['classes', '2'] are two separate records
+ *
+ * This module centralizes ID normalization to ensure consistent string IDs
+ * regardless of which sync path is used.
  */
 
 import type { IDBPDatabase } from 'idb';
@@ -29,16 +42,26 @@ export class ReplicatedTableBatchManager<T extends { id: string }> {
 
   /**
    * Batch set (for initial sync)
+   *
+   * CRITICAL: Normalizes all IDs to strings to prevent duplicate records.
+   * See file header comment for full explanation.
    */
   async batchSet(items: T[]): Promise<void> {
     const db = await this.getDb();
     const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
 
     for (const item of items) {
+      // CRITICAL: Normalize ID to string to prevent duplicates
+      // Supabase returns bigserial as numbers, but IndexedDB treats 2 != "2"
+      const normalizedId = String(item.id);
+
+      // Create normalized data with string ID
+      const normalizedData = { ...item, id: normalizedId } as T;
+
       const row: ReplicatedRow<T> = {
         tableName: this.tableName,
-        id: item.id,
-        data: item,
+        id: normalizedId,
+        data: normalizedData,
         version: 1,
         lastSyncedAt: Date.now(),
         lastAccessedAt: Date.now(),
@@ -64,6 +87,9 @@ export class ReplicatedTableBatchManager<T extends { id: string }> {
    * - Reduce memory pressure
    * - Allow progress updates
    * - Prevent transaction timeouts
+   *
+   * CRITICAL: Normalizes all IDs to strings to prevent duplicate records.
+   * See file header comment for full explanation.
    */
   async batchSetChunked(items: T[], chunkSize: number = MAX_CHUNK_SIZE): Promise<void> {
     const totalRows = items.length;
@@ -83,10 +109,17 @@ export class ReplicatedTableBatchManager<T extends { id: string }> {
       const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
 
       for (const item of chunk) {
+        // CRITICAL: Normalize ID to string to prevent duplicates
+        // Supabase returns bigserial as numbers, but IndexedDB treats 2 != "2"
+        const normalizedId = String(item.id);
+
+        // Create normalized data with string ID
+        const normalizedData = { ...item, id: normalizedId } as T;
+
         const row: ReplicatedRow<T> = {
           tableName: this.tableName,
-          id: item.id,
-          data: item,
+          id: normalizedId,
+          data: normalizedData,
           version: 1,
           lastSyncedAt: Date.now(),
           lastAccessedAt: Date.now(),
@@ -112,13 +145,17 @@ export class ReplicatedTableBatchManager<T extends { id: string }> {
 
   /**
    * Batch delete
+   *
+   * CRITICAL: Normalizes all IDs to strings for consistent key format.
    */
   async batchDelete(ids: string[]): Promise<void> {
     const db = await this.getDb();
     const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
 
     for (const id of ids) {
-      await tx.store.delete([this.tableName, id]);
+      // Normalize ID to string for consistent key format
+      const normalizedId = String(id);
+      await tx.store.delete([this.tableName, normalizedId]);
     }
 
     await tx.done;

@@ -195,45 +195,21 @@ export class ReplicatedNationalsRankingsTable extends ReplicatedTable<NationalsR
 
   /**
    * Sync method - full sync for nationals rankings
+   *
+   * DORMANT: Schema mismatch - DB uses mobile_app_lic_key, different columns
+   * Skip sync to prevent error spam. Activate when schema is aligned.
    */
-  async sync(licenseKey: string): Promise<import('../types').SyncResult> {
+  async sync(_licenseKey: string): Promise<import('../types').SyncResult> {
     const startTime = Date.now();
-    try {
-const data = await this.fetchFromSupabase(licenseKey);
 
-      // Clear old data first (full replacement)
-      await this.clearTable();
-
-      // Insert fresh data
-      await this.batchSet(data);
-
-      await this.updateSyncMetadata({
-        lastIncrementalSyncAt: Date.now(),
-        syncStatus: 'idle',
-      });
-
-return {
-        tableName: this.tableName,
-        success: true,
-        operation: 'full-sync',
-        rowsAffected: data.length,
-        conflictsResolved: 0,
-        duration: Date.now() - startTime,
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[ReplicatedNationalsRankingsTable] ❌ Sync failed:', errorMessage);
-
-      return {
-        tableName: this.tableName,
-        success: false,
-        operation: 'full-sync',
-        rowsAffected: 0,
-        conflictsResolved: 0,
-        duration: Date.now() - startTime,
-        error: errorMessage,
-      };
-    }
+    return {
+      tableName: this.tableName,
+      success: true,
+      operation: 'incremental-sync', // Using valid operation type for dormant skip
+      rowsAffected: 0,
+      conflictsResolved: 0,
+      duration: Date.now() - startTime,
+    };
   }
 
   /**
@@ -243,16 +219,13 @@ return {
     return remote; // Server wins (always)
   }
 
-  /**
-   * Helper to clear all data for the table (for full replacement sync)
-   */
-  private async clearTable(): Promise<void> {
-    const all = await this.getAll();
-    const ids = all.map(item => item.id);
-    if (ids.length > 0) {
-      await this.batchDelete(ids);
-    }
-  }
+  // NOTE: clearTable() method removed while table is dormant.
+  // Re-add when activating this table:
+  // private async clearTable(): Promise<void> {
+  //   const all = await this.getAll();
+  //   const ids = all.map(item => item.id);
+  //   if (ids.length > 0) await this.batchDelete(ids);
+  // }
 }
 
 /**

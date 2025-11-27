@@ -107,17 +107,19 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
     .in('trial_id', trialIds);
 
   // Group class summaries by trial_id
-  const classesByTrial = new Map<number, typeof classSummaries>();
+  // CRITICAL: Use string keys for consistency (prevents number/string type mismatch bugs)
+  const classesByTrial = new Map<string, typeof classSummaries>();
   classSummaries?.forEach(cls => {
-    if (!classesByTrial.has(cls.trial_id)) {
-      classesByTrial.set(cls.trial_id, []);
+    const trialIdKey = String(cls.trial_id);
+    if (!classesByTrial.has(trialIdKey)) {
+      classesByTrial.set(trialIdKey, []);
     }
-    classesByTrial.get(cls.trial_id)!.push(cls);
+    classesByTrial.get(trialIdKey)!.push(cls);
   });
 
   // Process trials using pre-calculated counts from view
   const processedTrials: TrialData[] = trialsData.map(trial => {
-    const trialClasses = classesByTrial.get(trial.id) || [];
+    const trialClasses = classesByTrial.get(String(trial.id)) || [];
     const totalClasses = trialClasses.length;
     const completedClasses = trialClasses.filter(c => c.is_completed).length;
 

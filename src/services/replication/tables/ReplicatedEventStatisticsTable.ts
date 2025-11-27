@@ -199,11 +199,32 @@ export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatist
 
   /**
    * Sync method - full sync for event statistics
+   *
+   * NOTE: This table is DORMANT - it doesn't exist in the database yet.
+   * The sync returns success with 0 rows to prevent error spam.
+   * When the table is created, remove the early return check.
    */
-  async sync(licenseKey: string): Promise<import('../types').SyncResult> {
+  async sync(_licenseKey: string): Promise<import('../types').SyncResult> {
     const startTime = Date.now();
+
+    // DORMANT TABLE CHECK: event_statistics doesn't exist in database yet
+    // Return success with 0 rows to prevent error spam during sync
+    // TODO: Remove this check when event_statistics migration is created
+    // eslint-disable-next-line no-console
+    console.log('[ReplicatedEventStatisticsTable] ⏸️ Skipping sync - table is dormant (not yet in database)');
+    return {
+      tableName: this.tableName,
+      success: true,
+      operation: 'incremental-sync', // Using valid operation type for dormant skip
+      rowsAffected: 0,
+      conflictsResolved: 0,
+      duration: Date.now() - startTime,
+    };
+
+    // Original sync code (activate when table exists):
+    /*
     try {
-const data = await this.fetchFromSupabase(licenseKey);
+      const data = await this.fetchFromSupabase(licenseKey);
 
       // Clear old data first (full replacement)
       await this.clearTable();
@@ -216,7 +237,7 @@ const data = await this.fetchFromSupabase(licenseKey);
         syncStatus: 'idle',
       });
 
-return {
+      return {
         tableName: this.tableName,
         success: true,
         operation: 'full-sync',
@@ -238,6 +259,7 @@ return {
         error: errorMessage,
       };
     }
+    */
   }
 
   /**
@@ -247,16 +269,13 @@ return {
     return remote; // Server wins (always)
   }
 
-  /**
-   * Helper to clear all data for the table (for full replacement sync)
-   */
-  private async clearTable(): Promise<void> {
-    const all = await this.getAll();
-    const ids = all.map(item => item.id);
-    if (ids.length > 0) {
-      await this.batchDelete(ids);
-    }
-  }
+  // NOTE: clearTable() method removed while table is dormant.
+  // Re-add when activating this table:
+  // private async clearTable(): Promise<void> {
+  //   const all = await this.getAll();
+  //   const ids = all.map(item => item.id);
+  //   if (ids.length > 0) await this.batchDelete(ids);
+  // }
 }
 
 /**

@@ -11,6 +11,7 @@
 
 import { logger } from '@/utils/logger';
 import type { SyncResult, PendingMutation } from './types';
+import { DB_NAME, DB_VERSION } from './replicationConstants';
 
 export interface ReplicationHealthMetrics {
   // Sync metrics
@@ -248,7 +249,7 @@ export class ReplicationMonitor {
 
     try {
       const { openDB } = await import('idb');
-      const db = await openDB('myK9Q_replication', 1);
+      const db = await openDB(DB_NAME, DB_VERSION);
       const mutations = await db.getAll('pending_mutations');
       pendingMutations = mutations.filter((m: PendingMutation) => m.status === 'pending').length;
       failedMutations = mutations.filter((m: PendingMutation) => m.status === 'failed').length;

@@ -144,21 +144,25 @@ export abstract class ReplicatedTable<T extends { id: string }> {
   /**
    * Get single row by ID
    * Returns cached version if fresh, otherwise fetches from server
+   *
+   * CRITICAL: Normalizes ID to string for consistent key lookup.
    */
   async get(id: string): Promise<T | null> {
     const db = await this.init();
-    const key = [this.tableName, id];
+    // Normalize ID to string for consistent key lookup
+    const normalizedId = String(id);
+    const key = [this.tableName, normalizedId];
 
     const row = await db.get(REPLICATION_STORES.REPLICATED_TABLES, key) as ReplicatedRow<T> | undefined;
 
     if (!row) {
-      this.logger.log(`[${this.tableName}] Cache miss for ID: ${id}`);
+      this.logger.log(`[${this.tableName}] Cache miss for ID: ${normalizedId}`);
       return null;
     }
 
     // Check if expired
     if (this.cacheManager.isExpired(row)) {
-      this.logger.log(`[${this.tableName}] Cache expired for ID: ${id}`);
+      this.logger.log(`[${this.tableName}] Cache expired for ID: ${normalizedId}`);
       await db.delete(REPLICATION_STORES.REPLICATED_TABLES, key);
       return null;
     }
@@ -177,28 +181,37 @@ export abstract class ReplicatedTable<T extends { id: string }> {
    * Day 25-26 MEDIUM Fix: Optimistic locking with version checking
    * @param expectedVersion - Optional version to check for optimistic locking
    * @throws Error if version mismatch (concurrent modification detected)
+   *
+   * CRITICAL: Normalizes ID to string to prevent duplicate records.
+   * IndexedDB treats 2 and "2" as different keys.
    */
   async set(id: string, data: T, isDirty = false, expectedVersion?: number): Promise<void> {
     const db = await this.init();
     const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
 
+    // CRITICAL: Normalize ID to string to prevent duplicates
+    const normalizedId = String(id);
+
     // Read current row within transaction for atomicity
-    const existingRow = await tx.store.get([this.tableName, id]) as ReplicatedRow<T> | undefined;
+    const existingRow = await tx.store.get([this.tableName, normalizedId]) as ReplicatedRow<T> | undefined;
 
     // Day 25-26: Optimistic locking - verify version hasn't changed
     if (expectedVersion !== undefined && existingRow && existingRow.version !== expectedVersion) {
       await tx.done;
       throw new Error(
-        `[${this.tableName}] Concurrent modification detected for row ${id}. ` +
+        `[${this.tableName}] Concurrent modification detected for row ${normalizedId}. ` +
         `Expected version ${expectedVersion}, found ${existingRow.version}. ` +
         `Please retry your operation.`
       );
     }
 
+    // Create normalized data with string ID
+    const normalizedData = { ...data, id: normalizedId } as T;
+
     const row: ReplicatedRow<T> = {
       tableName: this.tableName,
-      id,
-      data,
+      id: normalizedId,
+      data: normalizedData,
       version: existingRow ? existingRow.version + 1 : 1,
       lastSyncedAt: Date.now(),
       lastAccessedAt: Date.now(),
@@ -212,7 +225,7 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     await tx.store.put(row);
     await tx.done;
 
-    this.logger.log(`[${this.tableName}] Cached row: ${id} (version: ${row.version}, dirty: ${isDirty})`);
+    this.logger.log(`[${this.tableName}] Cached row: ${normalizedId} (version: ${row.version}, dirty: ${isDirty})`);
 
     // Notify listeners
     this.notifyListeners();
@@ -220,11 +233,15 @@ export abstract class ReplicatedTable<T extends { id: string }> {
 
   /**
    * Delete a row from local cache
+   *
+   * CRITICAL: Normalizes ID to string for consistent key format.
    */
   async delete(id: string): Promise<void> {
     const db = await this.init();
-    await db.delete(REPLICATION_STORES.REPLICATED_TABLES, [this.tableName, id]);
-    this.logger.log(`[${this.tableName}] Deleted row: ${id}`);
+    // Normalize ID to string for consistent key format
+    const normalizedId = String(id);
+    await db.delete(REPLICATION_STORES.REPLICATED_TABLES, [this.tableName, normalizedId]);
+    this.logger.log(`[${this.tableName}] Deleted row: ${normalizedId}`);
 
     // Notify listeners
     this.notifyListeners();

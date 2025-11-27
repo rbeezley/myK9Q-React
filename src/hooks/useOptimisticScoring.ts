@@ -89,7 +89,7 @@ export function useOptimisticScoring() {
       pairedClassId,
     } = options;
 
-// Step 1: Update local state IMMEDIATELY (< 50ms)
+    // Step 1: Update local state IMMEDIATELY (< 50ms)
     // This makes the UI feel instant
     const optimisticResult = scoreData.resultText as any; // Type assertion for flexible result text
 
@@ -140,7 +140,7 @@ export function useOptimisticScoring() {
         return { entryId, scoreData };
       },
       onSuccess: () => {
-onSuccess?.();
+        onSuccess?.();
       },
       onError: (err) => {
         console.error('❌ Score submission failed:', err);
