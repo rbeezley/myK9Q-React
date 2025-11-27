@@ -9,6 +9,7 @@ import type { Entry as ReplicatedEntry } from '@/services/replication/tables/Rep
 import { logger } from '@/utils/logger';
 import { getVisibleResultFields } from '@/services/resultVisibilityService';
 import type { VisibleResultFields } from '@/types/visibility';
+import type { UserRole } from '@/utils/auth';
 
 export interface ClassInfo {
   className: string;
@@ -45,6 +46,18 @@ interface UseEntryListDataOptions {
   isDraggingRef?: MutableRefObject<boolean>;
 }
 
+// =============================================================================
+// HELPER FUNCTIONS - Extracted to reduce complexity and duplication
+// =============================================================================
+
+/** Default visibility flags - used when fetch fails (fail-open for better UX) */
+const DEFAULT_VISIBILITY_FLAGS: VisibleResultFields = {
+  showPlacement: true,
+  showQualification: true,
+  showTime: true,
+  showFaults: true
+};
+
 /**
  * Apply visibility flags to an entry based on visibility settings
  */
@@ -59,11 +72,119 @@ function applyVisibilityFlags(entry: Entry, visibilityFlags: VisibleResultFields
 }
 
 /**
+ * Fetch visibility flags with error handling - returns defaults on failure
+ */
+async function fetchVisibilityFlagsWithFallback(
+  classId: number,
+  trialId: number,
+  licenseKey: string,
+  role: UserRole,
+  isClassComplete: boolean,
+  resultsReleasedAt: string | null
+): Promise<VisibleResultFields> {
+  try {
+    return await getVisibleResultFields(
+      classId,
+      trialId,
+      licenseKey,
+      role,
+      isClassComplete,
+      resultsReleasedAt
+    );
+  } catch (error) {
+    logger.error('❌ Error fetching visibility settings, defaulting to show all:', error);
+    return DEFAULT_VISIBILITY_FLAGS;
+  }
+}
+
+/**
+ * Apply visibility to entries - handles both single and combined class cases
+ */
+async function applyVisibilityToEntries(
+  entries: Entry[],
+  classData: Class,
+  licenseKey: string,
+  role: UserRole
+): Promise<Entry[]> {
+  const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
+  const visibilityFlags = await fetchVisibilityFlagsWithFallback(
+    parseInt(String(classData.id)),
+    classData.trial_id,
+    licenseKey,
+    role,
+    isClassComplete,
+    classData.results_released_at || null
+  );
+  return entries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
+}
+
+/**
+ * Build ClassInfo from class data - single class version
+ */
+function buildSingleClassInfo(
+  classData: Class,
+  classId: string,
+  entries: Entry[],
+  judgeName: string
+): ClassInfo {
+  const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
+  const completedEntries = entries.filter(e => e.isScored).length;
+
+  return {
+    className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
+    element: classData.element || '',
+    level: classData.level || '',
+    section: classData.section || '',
+    trialDate: entries[0]?.trialDate || '',
+    trialNumber: entries[0]?.trialNumber ? String(entries[0].trialNumber) : '',
+    judgeName,
+    actualClassId: parseInt(classId),
+    selfCheckin: classData.self_checkin_enabled ?? true,
+    classStatus: classData.class_status || 'pending',
+    totalEntries: entries.length,
+    completedEntries,
+    timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
+    timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
+    timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
+    areas: classData.area_count
+  };
+}
+
+/**
+ * Build ClassInfo from class data - combined A & B version
+ */
+function buildCombinedClassInfo(
+  classDataA: Class,
+  classDataB: Class,
+  classIdA: string,
+  classIdB: string,
+  entries: Entry[]
+): ClassInfo {
+  return {
+    className: `${classDataA.element} ${classDataA.level} A & B`,
+    element: classDataA.element || '',
+    level: classDataA.level || '',
+    trialDate: entries[0]?.trialDate || '',
+    trialNumber: entries[0]?.trialNumber ? String(entries[0].trialNumber) : '',
+    judgeName: classDataA.judge_name || 'No Judge Assigned',
+    judgeNameB: classDataB.judge_name || 'No Judge Assigned',
+    actualClassIdA: parseInt(classIdA),
+    actualClassIdB: parseInt(classIdB),
+    selfCheckin: classDataA.self_checkin_enabled ?? true,
+    classStatus: classDataA.class_status || classDataB.class_status || 'pending',
+    timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
+    timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
+    timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
+    areas: classDataA.area_count
+  };
+}
+
+/**
  * Transform replicated entry to Entry format
  */
 function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): Entry {
-  // Map entry_status to the status field
   const status = entry.entry_status || 'pending';
+  const sectionPart = classData?.section && classData.section !== '-' ? ` ${classData.section}` : '';
 
   return {
     id: parseInt(entry.id, 10),
@@ -72,12 +193,11 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
     breed: entry.dog_breed || '',
     handler: entry.handler_name,
     isScored: entry.is_scored || false,
-    status: status as any, // New unified status field
-    // Derive inRing from entry_status (not the deprecated is_in_ring field)
+    status: status as Entry['status'],
     inRing: entry.entry_status === 'in-ring',
     classId: parseInt(entry.class_id, 10),
     className: classData?.element && classData?.level
-      ? `${classData.element} ${classData.level}${classData.section && classData.section !== '-' ? ` ${classData.section}` : ''}`.trim()
+      ? `${classData.element} ${classData.level}${sectionPart}`.trim()
       : '',
     element: classData?.element || '',
     level: classData?.level || '',
@@ -85,12 +205,10 @@ function transformReplicatedEntry(entry: ReplicatedEntry, classData?: Class): En
     timeLimit: classData?.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
     timeLimit2: classData?.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classData?.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-    // Map result fields from replicated format to UI format
     resultText: entry.result_status,
     placement: entry.final_placement,
     searchTime: entry.search_time_seconds?.toString(),
     faultCount: entry.total_faults,
-    // Run order for custom sorting
     exhibitorOrder: entry.exhibitor_order,
   };
 }
@@ -104,371 +222,272 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
 
   const isCombinedView = !!(classIdA && classIdB);
 
-  // Fetch function for single class view
+  // Fetch function for single class view - refactored to use helper functions
   const fetchSingleClass = useCallback(async (): Promise<EntryListData> => {
     if (!classId || !showContext?.licenseKey) {
       return { entries: [], classInfo: null };
     }
 
-    // Always use replication (no feature flags - development only, no existing users)
-    const isReplicationEnabled = true;
+    const licenseKey = showContext.licenseKey;
+    const userRole: UserRole = (role as UserRole) || 'exhibitor';
 
-    if (isReplicationEnabled) {
-logger.log('🔄 Fetching entries from replicated cache...');
-
-      try {
-        const manager = await ensureReplicationManager();
-        const classesTable = manager.getTable<Class>('classes');
-        const entriesTable = manager.getTable<ReplicatedEntry>('entries');
-
-        if (classesTable && entriesTable) {
-          try {
-            // Get class data from cache
-            const classData = await classesTable.get(classId);
-
-            if (classData) {
-              // Get entries for this class from cache
-              const cachedEntries = await entriesTable.getAll();
-              let classEntries = cachedEntries
-                .filter((entry) => String(entry.class_id) === classId)
-                .map((entry) => transformReplicatedEntry(entry, classData));
-
-// If cache is empty, fall back to Supabase (cache may still be syncing)
-              if (classEntries.length === 0) {
-logger.log('📭 Cache is empty, falling back to Supabase');
-                // Fall through to Supabase query below
-              } else {
-                // Fetch visibility settings and apply to entries
-                try {
-                  const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
-                  const visibilityFlags = await getVisibleResultFields(
-                    parseInt(classId),
-                    classData.trial_id,
-                    showContext.licenseKey,
-                    role || 'exhibitor',
-                    isClassComplete,
-                    classData.results_released_at || null
-                  );
-
-                  // Apply visibility flags to all entries
-                  classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
-                } catch (visError) {
-                  logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
-                  // On error, default to showing everything (fail open for better UX)
-                  const defaultFlags: VisibleResultFields = {
-                    showPlacement: true,
-                    showQualification: true,
-                    showTime: true,
-                    showFaults: true
-                  };
-                  classEntries = classEntries.map(entry => applyVisibilityFlags(entry, defaultFlags));
-                }
-                // Build class info
-                const completedEntries = classEntries.filter((e) => e.isScored).length;
-                const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
-
-                const classInfoData: ClassInfo = {
-                  className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
-                  element: classData.element || '',
-                  level: classData.level || '',
-                  section: classData.section || '',
-                  trialDate: classEntries[0]?.trialDate || '',
-                  trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
-                  judgeName: classData.judge_name || 'No Judge Assigned',
-                  actualClassId: parseInt(classId),
-                  selfCheckin: classData.self_checkin_enabled ?? true,
-                  classStatus: classData.class_status || 'pending',
-                  totalEntries: classEntries.length,
-                  completedEntries,
-                  timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
-                  timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
-                  timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-                  areas: classData.area_count
-                };
-
-                return { entries: classEntries, classInfo: classInfoData };
-              }
-            }
-          } catch (error) {
-            logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
-            // Fall through to Supabase query
-          }
-        }
-      } catch (managerError) {
-        logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
-        // Fall through to Supabase query
-      }
+    // Try replication cache first
+    logger.log('🔄 Fetching entries from replicated cache...');
+    const cacheResult = await fetchFromReplicationCache(classId, licenseKey, userRole);
+    if (cacheResult) {
+      return cacheResult;
     }
 
-    // Fall back to original Supabase implementation
-    let classEntries = await getClassEntries(parseInt(classId), showContext.licenseKey);
-
-    // Get class info from first entry and fetch additional class data
-    let classInfoData: ClassInfo | null = null;
-    if (classEntries.length > 0) {
-      const firstEntry = classEntries[0];
-
-      // Fetch additional class data including fields needed for visibility
-      const { data: classData } = await supabase
-        .from('classes')
-        .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
-        .eq('id', parseInt(classId))
-        .single();
-
-      // Apply visibility flags to entries
-      if (classData) {
-        try {
-          const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
-          const visibilityFlags = await getVisibleResultFields(
-            parseInt(classId),
-            classData.trial_id,
-            showContext.licenseKey,
-            role || 'exhibitor',
-            isClassComplete,
-            classData.results_released_at || null
-          );
-
-          classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
-} catch (visError) {
-          logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
-          const defaultFlags: VisibleResultFields = {
-            showPlacement: true,
-            showQualification: true,
-            showTime: true,
-            showFaults: true
-          };
-          classEntries = classEntries.map(entry => applyVisibilityFlags(entry, defaultFlags));
-        }
-      }
-
-      const completedEntries = classEntries.filter(
-        (e) => e.isScored
-      ).length;
-
-      classInfoData = {
-        className: `${firstEntry.element} ${firstEntry.level}${firstEntry.section && firstEntry.section !== '-' ? ` ${firstEntry.section}` : ''}`,
-        element: firstEntry.element || '',
-        level: firstEntry.level || '',
-        section: firstEntry.section || '',
-        trialDate: firstEntry.trialDate || '',
-        trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
-        judgeName: classData?.judge_name || 'No Judge Assigned',
-        actualClassId: parseInt(classId),
-        selfCheckin: classData?.self_checkin_enabled ?? true,
-        classStatus: classData?.class_status || 'pending',
-        totalEntries: classEntries.length,
-        completedEntries,
-        timeLimit: firstEntry.timeLimit,
-        timeLimit2: firstEntry.timeLimit2,
-        timeLimit3: firstEntry.timeLimit3,
-        areas: firstEntry.areas
-      };
-    }
-
-    return { entries: classEntries, classInfo: classInfoData };
+    // Fall back to Supabase
+    return fetchFromSupabase(classId, licenseKey, userRole);
   }, [showContext, role, classId]);
 
-  // Fetch function for combined class view
+  // Helper: Fetch from replication cache
+  async function fetchFromReplicationCache(
+    classId: string,
+    licenseKey: string,
+    userRole: UserRole
+  ): Promise<EntryListData | null> {
+    try {
+      const manager = await ensureReplicationManager();
+      const classesTable = manager.getTable<Class>('classes');
+      const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+
+      if (!classesTable || !entriesTable) return null;
+
+      const classData = await classesTable.get(classId);
+      if (!classData) return null;
+
+      const cachedEntries = await entriesTable.getAll();
+      let classEntries = cachedEntries
+        .filter((entry) => String(entry.class_id) === classId)
+        .map((entry) => transformReplicatedEntry(entry, classData));
+
+      if (classEntries.length === 0) {
+        logger.log('📭 Cache is empty, falling back to Supabase');
+        return null;
+      }
+
+      // Apply visibility and build class info using helpers
+      classEntries = await applyVisibilityToEntries(classEntries, classData, licenseKey, userRole);
+      const classInfo = buildSingleClassInfo(
+        classData,
+        classId,
+        classEntries,
+        classData.judge_name || 'No Judge Assigned'
+      );
+
+      return { entries: classEntries, classInfo };
+    } catch (error) {
+      logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+      return null;
+    }
+  }
+
+  // Helper: Fetch from Supabase (fallback)
+  async function fetchFromSupabase(
+    classId: string,
+    licenseKey: string,
+    userRole: UserRole
+  ): Promise<EntryListData> {
+    let classEntries = await getClassEntries(parseInt(classId), licenseKey);
+
+    if (classEntries.length === 0) {
+      return { entries: [], classInfo: null };
+    }
+
+    const firstEntry = classEntries[0];
+
+    // Fetch class data for visibility
+    const { data: classData } = await supabase
+      .from('classes')
+      .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
+      .eq('id', parseInt(classId))
+      .single();
+
+    // Apply visibility flags
+    if (classData) {
+      const visibilityFlags = await fetchVisibilityFlagsWithFallback(
+        parseInt(classId),
+        classData.trial_id,
+        licenseKey,
+        userRole,
+        classData.class_status === 'completed' || classData.is_completed === true,
+        classData.results_released_at || null
+      );
+      classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
+    }
+
+    // Build class info from first entry (Supabase doesn't return full Class type)
+    const completedEntries = classEntries.filter(e => e.isScored).length;
+    const sectionPart = firstEntry.section && firstEntry.section !== '-' ? ` ${firstEntry.section}` : '';
+
+    const classInfo: ClassInfo = {
+      className: `${firstEntry.element} ${firstEntry.level}${sectionPart}`,
+      element: firstEntry.element || '',
+      level: firstEntry.level || '',
+      section: firstEntry.section || '',
+      trialDate: firstEntry.trialDate || '',
+      trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
+      judgeName: classData?.judge_name || 'No Judge Assigned',
+      actualClassId: parseInt(classId),
+      selfCheckin: classData?.self_checkin_enabled ?? true,
+      classStatus: classData?.class_status || 'pending',
+      totalEntries: classEntries.length,
+      completedEntries,
+      timeLimit: firstEntry.timeLimit,
+      timeLimit2: firstEntry.timeLimit2,
+      timeLimit3: firstEntry.timeLimit3,
+      areas: firstEntry.areas
+    };
+
+    return { entries: classEntries, classInfo };
+  }
+
+  // Fetch function for combined class view - refactored to use helper functions
   const fetchCombinedClasses = useCallback(async (): Promise<EntryListData> => {
     if (!classIdA || !classIdB || !showContext?.licenseKey) {
       return { entries: [], classInfo: null };
     }
 
-    // Always use replication (no feature flags - development only, no existing users)
-    const isReplicationEnabled = true;
+    const licenseKey = showContext.licenseKey;
+    const userRole: UserRole = (role as UserRole) || 'exhibitor';
 
-    if (isReplicationEnabled) {
-logger.log('🔄 Fetching combined entries from replicated cache...');
-
-      try {
-        const manager = await ensureReplicationManager();
-        const classesTable = manager.getTable<Class>('classes');
-        const entriesTable = manager.getTable<ReplicatedEntry>('entries');
-
-        if (classesTable && entriesTable) {
-          try {
-            // Get class data for both sections from cache
-            const classDataA = await classesTable.get(classIdA);
-            const classDataB = await classesTable.get(classIdB);
-
-            if (classDataA && classDataB) {
-              // Get entries for both classes from cache
-              const cachedEntries = await entriesTable.getAll();
-              let entriesA = cachedEntries
-                .filter((entry) => String(entry.class_id) === classIdA)
-                .map((entry) => transformReplicatedEntry(entry, classDataA));
-              let entriesB = cachedEntries
-                .filter((entry) => String(entry.class_id) === classIdB)
-                .map((entry) => transformReplicatedEntry(entry, classDataB));
-
-// If cache is empty, fall back to Supabase (cache may still be syncing)
-              if (entriesA.length === 0 && entriesB.length === 0) {
-logger.log('📭 Cache is empty, falling back to Supabase');
-                // Fall through to Supabase query below
-              } else {
-                // Apply visibility flags to entries from both classes
-                try {
-                  const isClassAComplete = classDataA.class_status === 'completed' || classDataA.is_completed === true;
-                  const visibilityFlagsA = await getVisibleResultFields(
-                    parseInt(classIdA),
-                    classDataA.trial_id,
-                    showContext.licenseKey,
-                    role || 'exhibitor',
-                    isClassAComplete,
-                    classDataA.results_released_at || null
-                  );
-                  entriesA = entriesA.map(entry => applyVisibilityFlags(entry, visibilityFlagsA));
-
-                  const isClassBComplete = classDataB.class_status === 'completed' || classDataB.is_completed === true;
-                  const visibilityFlagsB = await getVisibleResultFields(
-                    parseInt(classIdB),
-                    classDataB.trial_id,
-                    showContext.licenseKey,
-                    role || 'exhibitor',
-                    isClassBComplete,
-                    classDataB.results_released_at || null
-                  );
-                  entriesB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
-
-} catch (visError) {
-                  logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
-                  const defaultFlags: VisibleResultFields = {
-                    showPlacement: true,
-                    showQualification: true,
-                    showTime: true,
-                    showFaults: true
-                  };
-                  entriesA = entriesA.map(entry => applyVisibilityFlags(entry, defaultFlags));
-                  entriesB = entriesB.map(entry => applyVisibilityFlags(entry, defaultFlags));
-                }
-
-                const combinedEntries = [...entriesA, ...entriesB];
-                // Build class info
-                const judgeNameA = classDataA.judge_name || 'No Judge Assigned';
-                const judgeNameB = classDataB.judge_name || 'No Judge Assigned';
-
-                const classInfoData: ClassInfo = {
-                  className: `${classDataA.element} ${classDataA.level} A & B`,
-                  element: classDataA.element || '',
-                  level: classDataA.level || '',
-                  trialDate: combinedEntries[0]?.trialDate || '',
-                  trialNumber: combinedEntries[0]?.trialNumber ? String(combinedEntries[0].trialNumber) : '',
-                  judgeName: judgeNameA,
-                  judgeNameB: judgeNameB,
-                  actualClassIdA: parseInt(classIdA),
-                  actualClassIdB: parseInt(classIdB),
-                  selfCheckin: classDataA.self_checkin_enabled ?? true,
-                  classStatus: classDataA.class_status || classDataB.class_status || 'pending',
-                  timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
-                  timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
-                  timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
-                  areas: classDataA.area_count
-                };
-
-                return { entries: combinedEntries, classInfo: classInfoData };
-              }
-            }
-          } catch (error) {
-            logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
-            // Fall through to Supabase query
-          }
-        }
-      } catch (managerError) {
-        logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
-        // Fall through to Supabase query
-      }
+    // Try replication cache first
+    logger.log('🔄 Fetching combined entries from replicated cache...');
+    const cacheResult = await fetchCombinedFromReplicationCache(classIdA, classIdB, licenseKey, userRole);
+    if (cacheResult) {
+      return cacheResult;
     }
 
-    // Fall back to original Supabase implementation
-    // Load entries from both classes
+    // Fall back to Supabase
+    return fetchCombinedFromSupabase(classIdA, classIdB, licenseKey, userRole);
+  }, [showContext, role, classIdA, classIdB]);
+
+  // Helper: Fetch combined classes from replication cache
+  async function fetchCombinedFromReplicationCache(
+    classIdA: string,
+    classIdB: string,
+    licenseKey: string,
+    userRole: UserRole
+  ): Promise<EntryListData | null> {
+    try {
+      const manager = await ensureReplicationManager();
+      const classesTable = manager.getTable<Class>('classes');
+      const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+
+      if (!classesTable || !entriesTable) return null;
+
+      const classDataA = await classesTable.get(classIdA);
+      const classDataB = await classesTable.get(classIdB);
+
+      if (!classDataA || !classDataB) return null;
+
+      const cachedEntries = await entriesTable.getAll();
+      let entriesA = cachedEntries
+        .filter((entry) => String(entry.class_id) === classIdA)
+        .map((entry) => transformReplicatedEntry(entry, classDataA));
+      let entriesB = cachedEntries
+        .filter((entry) => String(entry.class_id) === classIdB)
+        .map((entry) => transformReplicatedEntry(entry, classDataB));
+
+      if (entriesA.length === 0 && entriesB.length === 0) {
+        logger.log('📭 Cache is empty, falling back to Supabase');
+        return null;
+      }
+
+      // Apply visibility to each class's entries using helpers
+      entriesA = await applyVisibilityToEntries(entriesA, classDataA, licenseKey, userRole);
+      entriesB = await applyVisibilityToEntries(entriesB, classDataB, licenseKey, userRole);
+
+      const combinedEntries = [...entriesA, ...entriesB];
+      const classInfo = buildCombinedClassInfo(classDataA, classDataB, classIdA, classIdB, combinedEntries);
+
+      return { entries: combinedEntries, classInfo };
+    } catch (error) {
+      logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+      return null;
+    }
+  }
+
+  // Helper: Fetch combined classes from Supabase (fallback)
+  async function fetchCombinedFromSupabase(
+    classIdA: string,
+    classIdB: string,
+    licenseKey: string,
+    userRole: UserRole
+  ): Promise<EntryListData> {
     const classIdsArray = [parseInt(classIdA), parseInt(classIdB)];
-    let combinedEntries = await getClassEntries(classIdsArray, showContext.licenseKey);
+    let combinedEntries = await getClassEntries(classIdsArray, licenseKey);
 
-    // Get class info from both classes
-    let classInfoData: ClassInfo | null = null;
-    if (combinedEntries.length > 0) {
-      const firstEntry = combinedEntries[0];
+    if (combinedEntries.length === 0) {
+      return { entries: [], classInfo: null };
+    }
 
-      // Fetch class data for both classes including visibility fields
-      const { data: classDataA } = await supabase
-        .from('classes')
+    const firstEntry = combinedEntries[0];
+
+    // Fetch class data for both classes
+    const [{ data: classDataA }, { data: classDataB }] = await Promise.all([
+      supabase.from('classes')
         .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
         .eq('id', parseInt(classIdA))
-        .single();
-
-      const { data: classDataB } = await supabase
-        .from('classes')
+        .single(),
+      supabase.from('classes')
         .select('judge_name, class_status, trial_id, is_completed, results_released_at')
         .eq('id', parseInt(classIdB))
-        .single();
+        .single()
+    ]);
 
-      // Apply visibility flags to entries from both classes
-      if (classDataA && classDataB) {
-        try {
-          // Split entries by class, apply visibility, then recombine
-          const entriesA = combinedEntries.filter(e => e.actualClassId === parseInt(classIdA));
-          const entriesB = combinedEntries.filter(e => e.actualClassId === parseInt(classIdB));
+    // Apply visibility flags to each class's entries
+    if (classDataA && classDataB) {
+      const entriesA = combinedEntries.filter(e => e.classId === parseInt(classIdA));
+      const entriesB = combinedEntries.filter(e => e.classId === parseInt(classIdB));
 
-          const isClassAComplete = classDataA.class_status === 'completed' || classDataA.is_completed === true;
-          const visibilityFlagsA = await getVisibleResultFields(
-            parseInt(classIdA),
-            classDataA.trial_id,
-            showContext.licenseKey,
-            role || 'exhibitor',
-            isClassAComplete,
-            classDataA.results_released_at || null
-          );
+      const [visibilityFlagsA, visibilityFlagsB] = await Promise.all([
+        fetchVisibilityFlagsWithFallback(
+          parseInt(classIdA),
+          classDataA.trial_id,
+          licenseKey,
+          userRole,
+          classDataA.class_status === 'completed' || classDataA.is_completed === true,
+          classDataA.results_released_at || null
+        ),
+        fetchVisibilityFlagsWithFallback(
+          parseInt(classIdB),
+          classDataB.trial_id,
+          licenseKey,
+          userRole,
+          classDataB.class_status === 'completed' || classDataB.is_completed === true,
+          classDataB.results_released_at || null
+        )
+      ]);
 
-          const isClassBComplete = classDataB.class_status === 'completed' || classDataB.is_completed === true;
-          const visibilityFlagsB = await getVisibleResultFields(
-            parseInt(classIdB),
-            classDataB.trial_id,
-            showContext.licenseKey,
-            role || 'exhibitor',
-            isClassBComplete,
-            classDataB.results_released_at || null
-          );
-
-          const processedEntriesA = entriesA.map(entry => applyVisibilityFlags(entry, visibilityFlagsA));
-          const processedEntriesB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
-
-          combinedEntries = [...processedEntriesA, ...processedEntriesB];
-} catch (visError) {
-          logger.error('❌ Error fetching visibility settings, defaulting to show all:', visError);
-          const defaultFlags: VisibleResultFields = {
-            showPlacement: true,
-            showQualification: true,
-            showTime: true,
-            showFaults: true
-          };
-          combinedEntries = combinedEntries.map(entry => applyVisibilityFlags(entry, defaultFlags));
-        }
-      }
-
-      const judgeNameA = classDataA?.judge_name || 'No Judge Assigned';
-      const judgeNameB = classDataB?.judge_name || 'No Judge Assigned';
-
-      classInfoData = {
-        className: `${firstEntry.element} ${firstEntry.level} A & B`,
-        element: firstEntry.element || '',
-        level: firstEntry.level || '',
-        trialDate: firstEntry.trialDate || '',
-        trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
-        judgeName: judgeNameA,
-        judgeNameB: judgeNameB,
-        actualClassIdA: parseInt(classIdA),
-        actualClassIdB: parseInt(classIdB),
-        selfCheckin: classDataA?.self_checkin_enabled ?? true,
-        classStatus: classDataA?.class_status || classDataB?.class_status || 'pending',  // Use Section A status, fallback to B, then default
-        timeLimit: firstEntry.timeLimit,
-        timeLimit2: firstEntry.timeLimit2,
-        timeLimit3: firstEntry.timeLimit3,
-        areas: firstEntry.areas
-      };
+      const processedA = entriesA.map(entry => applyVisibilityFlags(entry, visibilityFlagsA));
+      const processedB = entriesB.map(entry => applyVisibilityFlags(entry, visibilityFlagsB));
+      combinedEntries = [...processedA, ...processedB];
     }
 
-    return { entries: combinedEntries, classInfo: classInfoData };
-  }, [showContext, role, classIdA, classIdB]);
+    // Build class info from first entry
+    const classInfo: ClassInfo = {
+      className: `${firstEntry.element} ${firstEntry.level} A & B`,
+      element: firstEntry.element || '',
+      level: firstEntry.level || '',
+      trialDate: firstEntry.trialDate || '',
+      trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
+      judgeName: classDataA?.judge_name || 'No Judge Assigned',
+      judgeNameB: classDataB?.judge_name || 'No Judge Assigned',
+      actualClassIdA: parseInt(classIdA),
+      actualClassIdB: parseInt(classIdB),
+      selfCheckin: classDataA?.self_checkin_enabled ?? true,
+      classStatus: classDataA?.class_status || classDataB?.class_status || 'pending',
+      timeLimit: firstEntry.timeLimit,
+      timeLimit2: firstEntry.timeLimit2,
+      timeLimit3: firstEntry.timeLimit3,
+      areas: firstEntry.areas
+    };
+
+    return { entries: combinedEntries, classInfo };
+  }
 
   // Use the appropriate fetch function
   const fetchFunction = isCombinedView ? fetchCombinedClasses : fetchSingleClass;

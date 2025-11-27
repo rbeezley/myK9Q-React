@@ -352,12 +352,18 @@ logger.log('📭 Cache is empty, falling back to Supabase');
             // Get entries for this trial from cache
             const cachedEntries = await entriesTable.getAll();
 
-            // Process classes with entry data (same logic as before)
-            const processedClasses = await processClassesWithEntries(
-              trialClasses,
-              cachedEntries,
-              licenseKey
-            );
+            // If entries cache is empty but classes exist, fall back to Supabase
+            // This handles the case where entries haven't synced yet or cache was partially cleared
+            if (cachedEntries.length === 0) {
+              logger.log('📭 Entries cache is empty, falling back to Supabase');
+              // Fall through to Supabase query below
+            } else {
+              // Process classes with entry data (same logic as before)
+              const processedClasses = await processClassesWithEntries(
+                trialClasses,
+                cachedEntries,
+                licenseKey
+              );
 
 // Fetch visibility presets for all classes
             try {
@@ -383,7 +389,8 @@ logger.log('📭 Cache is empty, falling back to Supabase');
             }
 
             return processedClasses;
-          }
+            } // Close: if entries cache not empty
+          } // Close: if classes cache not empty
 
         } catch (error) {
           logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);

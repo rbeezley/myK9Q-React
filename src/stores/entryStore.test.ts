@@ -131,15 +131,16 @@ describe('entryStore', () => {
   });
 
   describe('markAsScored', () => {
-    it('should mark entry as scored with result', () => {
-      const entry = createMockEntry({ id: 1, isScored: false, inRing: true });
-      
+    it('should mark entry as scored with result and completed status', () => {
+      const entry = createMockEntry({ id: 1, isScored: false, inRing: true, status: 'in-ring' });
+
       useEntryStore.getState().setEntries([entry]);
       useEntryStore.getState().markAsScored(1, 'Q');
 
       const state = useEntryStore.getState();
       expect(state.entries[0].isScored).toBe(true);
       expect(state.entries[0].resultText).toBe('Q');
+      expect(state.entries[0].status).toBe('completed');
       expect(state.entries[0].inRing).toBe(false);
     });
   });

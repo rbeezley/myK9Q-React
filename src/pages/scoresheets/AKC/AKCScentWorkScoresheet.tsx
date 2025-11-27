@@ -15,7 +15,7 @@
  * @see docs/SCORESHEET_REFACTORING_PLAN.md
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
@@ -31,6 +31,38 @@ import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet-Flutter.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
 import '../../../styles/containers.css';
+
+// =============================================================================
+// TIMER HELPERS (extracted to reduce duplication)
+// =============================================================================
+
+/**
+ * Parse time string (format: "3:00" or "4:00") to milliseconds.
+ * Previously duplicated 5+ times throughout the component.
+ */
+function parseTimeToMs(timeStr: string | undefined): number {
+  if (!timeStr) return 0;
+  const [minutes, seconds] = timeStr.split(':').map(parseFloat);
+  return (minutes * 60 + (seconds || 0)) * 1000;
+}
+
+/**
+ * Format milliseconds to display string (M:SS.ss format)
+ */
+function formatTimeMs(milliseconds: number): string {
+  const totalSeconds = milliseconds / 1000;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = (totalSeconds % 60).toFixed(2);
+  return `${minutes}:${seconds.padStart(5, '0')}`;
+}
+
+/**
+ * Check if current level is Master (no 30-second warnings for Master)
+ */
+function isMasterLevel(level: string | undefined): boolean {
+  const lvl = level?.toLowerCase() || '';
+  return lvl === 'master' || lvl === 'masters';
+}
 
 export const AKCScentWorkScoresheet: React.FC = () => {
   // ==========================================================================
@@ -113,38 +145,31 @@ export const AKCScentWorkScoresheet: React.FC = () => {
     await submitScore(currentEntry);
   };
 
-  // Timer functions (existing logic - keeping for compatibility)
-  const formatStopwatchTime = (milliseconds: number): string => {
-    const totalSeconds = milliseconds / 1000;
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = (totalSeconds % 60).toFixed(2);
-    return `${minutes}:${seconds.padStart(5, '0')}`;
-  };
-
-  const getRemainingTime = (): string => {
-    // Use the first area without a time as the "current" area for timer purposes
-    const activeAreaIndex = getNextEmptyAreaIndex();
-    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-    const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return '';
-
-    // Parse max time string (format: "3:00" or "4:00")
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
-    // Calculate remaining time
-    const remainingMs = Math.max(0, maxTimeMs - stopwatchTime);
-    const remainingSeconds = remainingMs / 1000;
-    const mins = Math.floor(remainingSeconds / 60);
-    const secs = (remainingSeconds % 60).toFixed(2);
-
-    return `${mins}:${secs.padStart(5, '0')}`;
-  };
+  // ==========================================================================
+  // TIMER HELPERS
+  // ==========================================================================
 
   // Helper to determine "next in sequence" for pulse indicator
   const getNextEmptyAreaIndex = useCallback((): number => {
     return areas.findIndex(area => !area.time);
   }, [areas]);
+
+  // Pre-compute max time for current area (used by multiple functions)
+  const activeAreaMaxTimeMs = useMemo(() => {
+    const activeAreaIndex = getNextEmptyAreaIndex();
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    const maxTimeStr = getMaxTimeForArea(areaIndex);
+    return parseTimeToMs(maxTimeStr);
+  }, [getNextEmptyAreaIndex, getMaxTimeForArea]);
+
+  // Computed remaining time (avoids recalculation in multiple places)
+  const remainingTimeMs = useMemo(() => {
+    return Math.max(0, activeAreaMaxTimeMs - stopwatchTime);
+  }, [activeAreaMaxTimeMs, stopwatchTime]);
+
+  const getRemainingTime = useCallback((): string => {
+    return formatTimeMs(remainingTimeMs);
+  }, [remainingTimeMs]);
 
   const resetStopwatch = useCallback(() => {
     setStopwatchTime(0);
@@ -158,32 +183,26 @@ export const AKCScentWorkScoresheet: React.FC = () => {
   const startStopwatch = useCallback(() => {
     setIsStopwatchRunning(true);
     const startTime = Date.now() - stopwatchTime;
+
+    // Capture max time at start (avoid recalculating in interval)
+    const activeAreaIndex = areas.findIndex(area => !area.time);
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    const maxTimeMs = parseTimeToMs(getMaxTimeForArea(areaIndex));
+
     const interval = setInterval(() => {
       const currentTime = Date.now() - startTime;
       setStopwatchTime(currentTime);
 
-      // Auto-stop when time expires (using first empty area as reference)
-      const activeAreaIndex = areas.findIndex(area => !area.time);
-      const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-      const maxTimeStr = getMaxTimeForArea(areaIndex);
-      if (maxTimeStr) {
-        const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-        const maxTimeMs = (minutes * 60 + seconds) * 1000;
+      // Auto-stop when time expires
+      if (maxTimeMs > 0 && currentTime >= maxTimeMs) {
+        setIsStopwatchRunning(false);
+        clearInterval(interval);
+        setStopwatchInterval(null);
+        setStopwatchTime(maxTimeMs);
 
-        if (currentTime >= maxTimeMs) {
-          // Time expired - auto stop
-          setIsStopwatchRunning(false);
-          clearInterval(interval);
-          setStopwatchInterval(null);
-
-          // Set the exact max time as the final time
-          setStopwatchTime(maxTimeMs);
-
-          // For single-area classes, auto-fill the time field
-          if (areas.length === 1) {
-            const formattedMaxTime = formatStopwatchTime(maxTimeMs);
-            handleAreaUpdate(0, 'time', formattedMaxTime);
-          }
+        // For single-area classes, auto-fill the time field
+        if (areas.length === 1) {
+          handleAreaUpdate(0, 'time', formatTimeMs(maxTimeMs));
         }
       }
     }, 10);
@@ -200,111 +219,66 @@ export const AKCScentWorkScoresheet: React.FC = () => {
 
     // For single-area classes, automatically copy time to search time field
     if (areas.length === 1) {
-      const formattedTime = formatStopwatchTime(stopwatchTime);
-      handleAreaUpdate(0, 'time', formattedTime);
+      handleAreaUpdate(0, 'time', formatTimeMs(stopwatchTime));
     }
-
-    // Timer stays paused with current time visible
-    // Judge can resume or record time for any area
+    // Timer stays paused - judge can resume or record time for any area
   }, [stopwatchInterval, areas.length, stopwatchTime, handleAreaUpdate]);
 
   // Record time for a specific area (new multi-area approach)
   const recordTimeForArea = useCallback((areaIndex: number) => {
-    const formattedTime = formatStopwatchTime(stopwatchTime);
-    handleAreaUpdate(areaIndex, 'time', formattedTime);
+    handleAreaUpdate(areaIndex, 'time', formatTimeMs(stopwatchTime));
     resetStopwatch(); // Auto-reset stopwatch after recording (stays stopped)
   }, [stopwatchTime, handleAreaUpdate, resetStopwatch]);
 
-  // 30-second warning functionality (excluded for Master level)
-  const shouldShow30SecondWarning = (): boolean => {
+  // ==========================================================================
+  // WARNING STATE (uses pre-computed values)
+  // ==========================================================================
+
+  // 30-second warning (excluded for Master level)
+  const shouldShow30SecondWarning = useMemo((): boolean => {
     if (!isStopwatchRunning) return false;
+    if (isMasterLevel(currentEntry?.level)) return false;
+    // Show warning if less than 30 seconds remaining (but not expired)
+    return remainingTimeMs > 0 && remainingTimeMs <= 30000;
+  }, [isStopwatchRunning, currentEntry?.level, remainingTimeMs]);
 
-    // No warnings for Master level
-    const level = currentEntry?.level?.toLowerCase() || '';
-    if (level === 'master' || level === 'masters') return false;
+  const isTimeExpired = useMemo((): boolean => {
+    return stopwatchTime > 0 && remainingTimeMs === 0;
+  }, [stopwatchTime, remainingTimeMs]);
 
-    // Get max time for next empty area
-    const activeAreaIndex = getNextEmptyAreaIndex();
-    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-    const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return false;
-
-    // Parse max time string (format: "3:00") to milliseconds
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
-    // Show warning if less than 30 seconds remaining
-    const remainingMs = maxTimeMs - stopwatchTime;
-    return remainingMs > 0 && remainingMs <= 30000; // 30 seconds
-  };
-
-  const isTimeExpired = (): boolean => {
-    const activeAreaIndex = getNextEmptyAreaIndex();
-    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-    const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return false;
-
-    // Parse max time string (format: "3:00") to milliseconds
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
-    // Time is expired if current time equals or exceeds max time
-    return stopwatchTime > 0 && stopwatchTime >= maxTimeMs;
-  };
-
-  const getTimerWarningMessage = (): string | null => {
-    if (isTimeExpired()) {
-      return "Time Expired";
-    } else if (shouldShow30SecondWarning()) {
-      return "30 Second Warning";
-    }
+  const timerWarningMessage = useMemo((): string | null => {
+    if (isTimeExpired) return "Time Expired";
+    if (shouldShow30SecondWarning) return "30 Second Warning";
     return null;
-  };
+  }, [isTimeExpired, shouldShow30SecondWarning]);
 
-  // Voice announcement for 30-second warning
+  // Voice announcement for 30-second warning (uses pre-computed remainingTimeMs)
   const has30SecondAnnouncedRef = useRef(false);
 
   useEffect(() => {
-    if (!settings.voiceAnnouncements || !settings.announceTimerCountdown) {
-      return;
-    }
+    if (!settings.voiceAnnouncements || !settings.announceTimerCountdown) return;
 
     if (!isStopwatchRunning) {
-      // Reset the flag when timer stops
       has30SecondAnnouncedRef.current = false;
       return;
     }
 
     // No warnings for Master level
-    const level = currentEntry?.level?.toLowerCase() || '';
-    if (level === 'master' || level === 'masters') return;
+    if (isMasterLevel(currentEntry?.level)) return;
 
-    // Get max time for next empty area
-    const activeAreaIndex = getNextEmptyAreaIndex();
-    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-    const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return;
+    const remainingSeconds = Math.floor(remainingTimeMs / 1000);
 
-    // Parse max time string (format: "3:00") to milliseconds
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
-    // Calculate remaining time
-    const remainingMs = maxTimeMs - stopwatchTime;
-    const remainingSeconds = Math.floor(remainingMs / 1000);
-
-    // Announce when crossing the 30-second threshold (prevents race condition)
-    // Trigger when: 29 < remaining <= 30 seconds
+    // Announce when crossing 30-second threshold (29 < remaining <= 30)
     if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
-voiceAnnouncementService.announceTimeRemaining(30);
+      voiceAnnouncementService.announceTimeRemaining(30);
       has30SecondAnnouncedRef.current = true;
     }
 
-    // Reset flag if we're above 30 seconds (in case timer is reset/restarted)
+    // Reset flag if above 30 seconds (timer reset/restarted)
     if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
-  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, areas]);
+  }, [remainingTimeMs, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level]);
 
   // Set scoring active state to suppress push notification voices while timing
   useEffect(() => {
@@ -413,8 +387,8 @@ voiceAnnouncementService.announceTimeRemaining(30);
           ⟲
         </button>
 
-        <div className={`timer-display-large ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
-          {formatStopwatchTime(stopwatchTime)}
+        <div className={`timer-display-large ${shouldShow30SecondWarning ? 'warning' : ''} ${isTimeExpired ? 'expired' : ''}`}>
+          {formatTimeMs(stopwatchTime)}
         </div>
         <div className="timer-countdown-display">
           {stopwatchTime > 0 ? (
@@ -454,9 +428,9 @@ voiceAnnouncementService.announceTimeRemaining(30);
       </div>
 
       {/* Timer Warning Message */}
-      {getTimerWarningMessage() && (
-        <div className={`timer-warning ${getTimerWarningMessage() === 'Time Expired' ? 'expired' : 'warning'}`}>
-          {getTimerWarningMessage()}
+      {timerWarningMessage && (
+        <div className={`timer-warning ${timerWarningMessage === 'Time Expired' ? 'expired' : 'warning'}`}>
+          {timerWarningMessage}
         </div>
       )}
 

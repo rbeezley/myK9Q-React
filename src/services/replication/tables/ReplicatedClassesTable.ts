@@ -51,15 +51,18 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
 
   /**
    * Sync classes from Supabase
+   *
+   * OPTIMIZED: Uses batch operations to minimize IndexedDB transactions
+   * Previously: 2 transactions per class (N classes = 2N transactions)
+   * Now: 1 batch transaction for all classes (N classes = 1 transaction)
    */
   async sync(licenseKey: string, options?: Partial<SyncOptions>): Promise<SyncResult> {
     const startTime = Date.now();
-    const errors: string[] = [];
     let rowsSynced = 0;
     let conflictsResolved = 0;
 
     try {
-      // Get last sync timestamp
+      // Get last sync timestamp (single read transaction)
       const metadata = await this.getSyncMetadata();
 
       // Check if cache is empty - if so, force full sync from epoch
@@ -99,7 +102,6 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
       const remoteClasses = rawClasses?.map(({ trials: _trials, ...classData }) => classData) || [];
 
       if (error) {
-        errors.push(error.message);
         throw new Error(`Supabase query failed: ${error.message}`);
       }
 
@@ -122,31 +124,45 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
         };
       }
 
-      // Process each class
+      // OPTIMIZED: Build map of local classes for conflict resolution (already fetched above)
+      const localClassesMap = new Map<string, Class>();
+      for (const cls of allCachedClasses) {
+        localClassesMap.set(String(cls.id), cls);
+      }
+
+      // Process all remote classes and collect for batch write
+      const classesToCache: Class[] = [];
+
       for (const remoteClass of remoteClasses) {
         // Convert ID to string for consistent IndexedDB key format
         const classId = String(remoteClass.id);
-        const localClass = await this.get(classId);
+        const localClass = localClassesMap.get(classId);
 
         if (localClass) {
           // Conflict resolution: server always wins for class config
           const resolved = this.resolveConflict(localClass, remoteClass);
-          await this.set(classId, resolved);
+          classesToCache.push(resolved);
           conflictsResolved++;
         } else {
           // New class
-          await this.set(classId, remoteClass);
+          classesToCache.push({ ...remoteClass, id: classId });
         }
 
         rowsSynced++;
       }
 
-      // Update sync metadata
+      // Single batch write for all classes (1 transaction instead of N*2)
+      if (classesToCache.length > 0) {
+        await this.batchSet(classesToCache);
+        logger.log(`[${this.tableName}] Batch cached ${classesToCache.length} classes`);
+      }
+
+      // Update sync metadata (single write transaction at the end)
       await this.updateSyncMetadata({
         lastIncrementalSyncAt: Date.now(),
         syncStatus: 'idle',
         errorMessage: undefined,
-        conflictCount: (metadata?.conflictCount || 0) + conflictsResolved,
+        conflictCount: conflictsResolved,
       });
 
       const duration = Date.now() - startTime;
@@ -164,13 +180,16 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      errors.push(errorMessage);
 
-      // Update sync metadata with error
-      await this.updateSyncMetadata({
-        syncStatus: 'error',
-        errorMessage,
-      });
+      // Update sync metadata with error (best effort - don't re-throw if this fails)
+      try {
+        await this.updateSyncMetadata({
+          syncStatus: 'error',
+          errorMessage,
+        });
+      } catch (metadataError) {
+        logger.error(`[${this.tableName}] Failed to update error metadata:`, metadataError);
+      }
 
       logger.error(`[${this.tableName}] Sync failed:`, error);
 

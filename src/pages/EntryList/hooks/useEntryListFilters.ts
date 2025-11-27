@@ -5,6 +5,90 @@ export type TabType = 'pending' | 'completed';
 export type SortType = 'armband' | 'name' | 'handler' | 'breed' | 'manual' | 'run' | 'placement';
 export type SectionFilter = 'all' | 'A' | 'B';
 
+// =============================================================================
+// SORT COMPARATORS
+// =============================================================================
+
+type SortComparator = (a: Entry, b: Entry, context?: SortContext) => number;
+
+interface SortContext {
+  manualOrderMap: Map<number, number>;
+}
+
+/**
+ * Sort comparators for each sort type.
+ * Extracted for cleaner code and easier testing.
+ */
+const sortComparators: Record<SortType, SortComparator> = {
+  manual: (a, b, context) => {
+    // Manual sort uses pre-computed index map for O(1) lookups
+    if (context?.manualOrderMap && context.manualOrderMap.size > 0) {
+      const aIndex = context.manualOrderMap.get(a.id) ?? -1;
+      const bIndex = context.manualOrderMap.get(b.id) ?? -1;
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+    }
+    // Fallback to exhibitorOrder from database
+    return (a.exhibitorOrder || 0) - (b.exhibitorOrder || 0);
+  },
+
+  run: (a, b) => {
+    // Run order uses exhibitorOrder, fallback to armband
+    const aOrder = a.exhibitorOrder || a.armband;
+    const bOrder = b.exhibitorOrder || b.armband;
+    return aOrder - bOrder;
+  },
+
+  placement: (a, b) => {
+    // Sort by placement, entries without placement go last
+    const aPlacement = a.placement || 999;
+    const bPlacement = b.placement || 999;
+    if (aPlacement !== bPlacement) {
+      return aPlacement - bPlacement;
+    }
+    // Tie-breaker: armband
+    return (a.armband || 0) - (b.armband || 0);
+  },
+
+  armband: (a, b) => (a.armband || 0) - (b.armband || 0),
+
+  name: (a, b) => (a.callName || '').localeCompare(b.callName || ''),
+
+  handler: (a, b) => (a.handler || '').localeCompare(b.handler || ''),
+
+  breed: (a, b) => (a.breed || '').localeCompare(b.breed || '')
+};
+
+/**
+ * Apply priority sorting (in-ring first, pulled last).
+ * Returns 0 if no priority difference, otherwise -1/1.
+ */
+function getPriorityDiff(
+  a: Entry,
+  b: Entry,
+  prioritizeInRing: boolean,
+  deprioritizePulled: boolean
+): number {
+  // In-ring dogs ALWAYS come first (if enabled)
+  if (prioritizeInRing) {
+    const aIsInRing = a.inRing || a.status === 'in-ring';
+    const bIsInRing = b.inRing || b.status === 'in-ring';
+    if (aIsInRing && !bIsInRing) return -1;
+    if (!aIsInRing && bIsInRing) return 1;
+  }
+
+  // Pulled dogs go to the end (if enabled)
+  if (deprioritizePulled) {
+    const aIsPulled = a.status === 'pulled';
+    const bIsPulled = b.status === 'pulled';
+    if (aIsPulled && !bIsPulled) return 1;
+    if (!aIsPulled && bIsPulled) return -1;
+  }
+
+  return 0; // No priority difference
+}
+
 interface UseEntryListFiltersOptions {
   entries: Entry[];
   /** Enable manual sort option (default: false) */
@@ -71,27 +155,41 @@ export const useEntryListFilters = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sectionFilter, setSectionFilter] = useState<SectionFilter>('all');
 
-  /**
-   * Filter entries by tab (pending/completed)
-   */
-  const filterByTab = useCallback((entry: Entry, tab: TabType): boolean => {
-    if (tab === 'completed') {
-      return entry.isScored;
-    }
-    return !entry.isScored;
-  }, []);
+  // ==========================================================================
+  // PRE-COMPUTED VALUES
+  // ==========================================================================
 
   /**
-   * Filter entries by section (for combined view)
+   * Pre-compute manualOrder indices for O(1) lookups during sorting.
+   * Previously: O(n) findIndex per comparison = O(n²) total
+   * Now: O(n) map creation + O(1) per lookup = O(n log n) total
    */
+  const manualOrderMap = useMemo(() => {
+    const map = new Map<number, number>();
+    if (manualOrder && manualOrder.length > 0) {
+      manualOrder.forEach((entry, index) => {
+        map.set(entry.id, index);
+      });
+    }
+    return map;
+  }, [manualOrder]);
+
+  // ==========================================================================
+  // FILTER FUNCTIONS
+  // ==========================================================================
+
+  /** Filter entries by tab (pending/completed) */
+  const filterByTab = useCallback((entry: Entry, tab: TabType): boolean => {
+    return tab === 'completed' ? entry.isScored : !entry.isScored;
+  }, []);
+
+  /** Filter entries by section (for combined view) */
   const filterBySection = useCallback((entry: Entry, section: SectionFilter): boolean => {
     if (!supportSectionFilter || section === 'all') return true;
     return entry.section === section;
   }, [supportSectionFilter]);
 
-  /**
-   * Filter entries by search term
-   */
+  /** Filter entries by search term */
   const filterBySearch = useCallback((entry: Entry, term: string): boolean => {
     if (!term) return true;
     const searchLower = term.toLowerCase();
@@ -103,86 +201,35 @@ export const useEntryListFilters = ({
     );
   }, []);
 
+  // ==========================================================================
+  // SORT FUNCTION (using extracted comparators)
+  // ==========================================================================
+
   /**
-   * Sort entries based on sort type with priority handling
+   * Sort entries with priority handling and type-specific comparators.
+   * Uses pre-computed manualOrderMap for O(1) lookups.
    */
   const sortEntries = useCallback((a: Entry, b: Entry, sortType: SortType): number => {
-    // PRIORITY 1: In-ring dogs ALWAYS come first (if enabled)
-    if (prioritizeInRing) {
-      const aIsInRing = a.inRing || a.status === 'in-ring';
-      const bIsInRing = b.inRing || b.status === 'in-ring';
-      if (aIsInRing && !bIsInRing) return -1;
-      if (!aIsInRing && bIsInRing) return 1;
-    }
+    // Check priority first (in-ring first, pulled last)
+    const priorityDiff = getPriorityDiff(a, b, prioritizeInRing, deprioritizePulled);
+    if (priorityDiff !== 0) return priorityDiff;
 
-    // PRIORITY 2: Pulled dogs go to the end (if enabled)
-    if (deprioritizePulled) {
-      const aIsPulled = a.status === 'pulled';
-      const bIsPulled = b.status === 'pulled';
-      if (aIsPulled && !bIsPulled) return 1;
-      if (!aIsPulled && bIsPulled) return -1;
-    }
+    // Apply sort-type specific comparator
+    const comparator = sortComparators[sortType];
+    return comparator(a, b, { manualOrderMap });
+  }, [prioritizeInRing, deprioritizePulled, manualOrderMap]);
 
-    // PRIORITY 3: Apply normal sorting
-    switch (sortType) {
-      case 'manual':
-        // Manual sort uses external manualOrder array if provided
-        if (manualOrder && manualOrder.length > 0) {
-          const aIndex = manualOrder.findIndex(entry => entry.id === a.id);
-          const bIndex = manualOrder.findIndex(entry => entry.id === b.id);
-          if (aIndex !== -1 && bIndex !== -1) {
-            return aIndex - bIndex;
-          }
-        }
-        // Fallback to exhibitorOrder from database
-        return (a.exhibitorOrder || 0) - (b.exhibitorOrder || 0);
+  // ==========================================================================
+  // COMPUTED VALUES
+  // ==========================================================================
 
-      case 'run': {
-        // Run order uses exhibitorOrder, fallback to armband
-        const aOrder = a.exhibitorOrder || a.armband;
-        const bOrder = b.exhibitorOrder || b.armband;
-        return aOrder - bOrder;
-      }
-
-      case 'placement': {
-        // Sort by placement, entries without placement go last
-        const aPlacement = a.placement || 999;
-        const bPlacement = b.placement || 999;
-        if (aPlacement !== bPlacement) {
-          return aPlacement - bPlacement;
-        }
-        // Tie-breaker: armband
-        return (a.armband || 0) - (b.armband || 0);
-      }
-
-      case 'armband':
-        return (a.armband || 0) - (b.armband || 0);
-
-      case 'name':
-        return (a.callName || '').localeCompare(b.callName || '');
-
-      case 'handler':
-        return (a.handler || '').localeCompare(b.handler || '');
-
-      case 'breed':
-        return (a.breed || '').localeCompare(b.breed || '');
-
-      default:
-        return 0;
-    }
-  }, [prioritizeInRing, deprioritizePulled, manualOrder]);
-
-  /**
-   * Filtered and sorted entries
-   */
+  /** Filtered and sorted entries */
   const filteredEntries = useMemo(() => {
-    const filtered = entries.filter((entry) => {
-      return (
-        filterByTab(entry, activeTab) &&
-        filterBySection(entry, sectionFilter) &&
-        filterBySearch(entry, searchTerm)
-      );
-    });
+    const filtered = entries.filter((entry) =>
+      filterByTab(entry, activeTab) &&
+      filterBySection(entry, sectionFilter) &&
+      filterBySearch(entry, searchTerm)
+    );
 
     // Sort the filtered entries (create copy to avoid mutating)
     return [...filtered].sort((a, b) => sortEntries(a, b, sortBy));

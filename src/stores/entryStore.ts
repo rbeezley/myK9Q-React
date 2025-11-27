@@ -176,7 +176,8 @@ export const useEntryStore = create<EntryState>()(
         get().updateEntry(entryId, {
           isScored: true,
           resultText,
-          inRing: false
+          status: 'completed',  // Move to completed tab
+          inRing: false         // Deprecated field for backward compat
         });
       },
 

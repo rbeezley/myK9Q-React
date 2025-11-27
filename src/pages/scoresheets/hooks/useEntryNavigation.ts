@@ -168,6 +168,22 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
   // Ref for cleanup
   const currentEntryRef = useRef(currentEntry);
 
+  // Refs for callbacks to prevent infinite re-render loops
+  // These callbacks change on every parent render, so we store them in refs
+  // to avoid triggering loadEntries recreations
+  const onEntryLoadedRef = useRef(onEntryLoaded);
+  const onTrialDateLoadedRef = useRef(onTrialDateLoaded);
+  const onTrialNumberLoadedRef = useRef(onTrialNumberLoaded);
+  const onLoadingChangeRef = useRef(onLoadingChange);
+
+  // Keep refs updated
+  useEffect(() => {
+    onEntryLoadedRef.current = onEntryLoaded;
+    onTrialDateLoadedRef.current = onTrialDateLoaded;
+    onTrialNumberLoadedRef.current = onTrialNumberLoaded;
+    onLoadingChangeRef.current = onLoadingChange;
+  });
+
   // Update ref when entry changes
   useEffect(() => {
     currentEntryRef.current = currentEntry;
@@ -195,7 +211,7 @@ return;
     }
 
     setIsLoading(true);
-    onLoadingChange?.(true);
+    onLoadingChangeRef.current?.(true);
 
     try {
       // Ensure replication manager is initialized
@@ -235,8 +251,8 @@ await manager.syncTable('classes');
         const rawDate = trialData.trial_date;
         const [year, month, day] = rawDate.split('T')[0].split('-');
         const formatted = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
-        onTrialDateLoaded?.(formatted);
-        onTrialNumberLoaded?.('1');
+        onTrialDateLoadedRef.current?.(formatted);
+        onTrialNumberLoadedRef.current?.('1');
       }
 
       // Get all entries for this class
@@ -293,7 +309,7 @@ await manager.syncTable('entries');
           targetEntry.level || '',
           isNationals
         );
-        onEntryLoaded?.(targetEntry, initialAreas);
+        onEntryLoadedRef.current?.(targetEntry, initialAreas);
       }
 
       // Start scoring session if not already started
@@ -311,7 +327,7 @@ await manager.syncTable('entries');
       console.error('[EntryNavigation] Error loading entries:', error);
     } finally {
       setIsLoading(false);
-      onLoadingChange?.(false);
+      onLoadingChangeRef.current?.(false);
     }
   }, [
     classId,
@@ -320,10 +336,7 @@ await manager.syncTable('entries');
     isNationals,
     sportType,
     isScoring,
-    onEntryLoaded,
-    onTrialDateLoaded,
-    onTrialNumberLoaded,
-    onLoadingChange,
+    // Callbacks removed from deps - using refs instead to prevent infinite re-render loops
     setEntries,
     setCurrentClassEntries,
     setCurrentEntry,
