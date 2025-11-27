@@ -63,7 +63,13 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'off',
       'react-hooks/exhaustive-deps': 'off',
       'no-undef': 'off', // TypeScript handles this better
-      'no-console': ['warn', { allow: ['warn', 'error'] }] // Prevent debug console.log
+      'no-console': ['warn', { allow: ['warn', 'error'] }], // Prevent debug console.log
+      // DEBT-008: Complexity rules - prevent new high-complexity code
+      // Current worst: useStatsData.ts (86), SortableEntryCard (64), useEntryListData (59)
+      // These are tracked in DEBT_REGISTER.md for future refactoring
+      // TODO: Lower thresholds gradually: 90 -> 50 -> 30 -> 15 (target)
+      'complexity': ['error', { max: 90 }], // Allow current max, prevent worse
+      'max-depth': ['error', { max: 8 }] // Current max in codebase is 8
     }
   }
 ];

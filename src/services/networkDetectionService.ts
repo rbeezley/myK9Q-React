@@ -8,7 +8,7 @@
 type ConnectionType = 'wifi' | 'cellular' | 'ethernet' | 'bluetooth' | 'unknown';
 type EffectiveType = 'slow-2g' | '2g' | '3g' | '4g' | 'unknown';
 
-interface NetworkInfo {
+export interface NetworkInfo {
   isOnline: boolean;
   connectionType: ConnectionType;
   effectiveType: EffectiveType;
