@@ -1,31 +1,29 @@
 /**
  * ReplicationManager - Central orchestrator for table replication
  *
- * Responsibilities:
- * - Register and manage all replicated tables
- * - Coordinate sync operations across tables
- * - Handle sync scheduling and prioritization
- * - Provide unified API for application code
- * - Monitor sync health and performance
+ * DEBT-004 Refactored: Extracted responsibilities into focused modules:
+ * - ConnectionManager: Real-time subscriptions, cross-tab sync, network events
+ * - SyncOrchestrator: Sync coordination, queue management, quota/LRU eviction
+ *
+ * This file remains the facade/registry providing:
+ * - Table registration and lookup
+ * - Public API for application code
+ * - Cache update listener management
+ * - Prefetch integration
+ * - Performance reporting
  *
  * **Phase 2 Day 10** - Orchestration and coordination
  */
 
-import { SyncEngine, type SyncOptions } from './SyncEngine';
+import { SyncEngine } from './SyncEngine';
 import { PrefetchManager } from './PrefetchManager';
+import { ConnectionManager, type ConnectionManagerConfig } from './ConnectionManager';
+import { SyncOrchestrator, type SyncOrchestratorConfig, type CacheStatsResult } from './SyncOrchestrator';
 import type { ReplicatedTable } from './ReplicatedTable';
 import type { SyncResult, PerformanceReport } from './types';
+import type { SyncOptions } from './SyncEngine';
 import type { ReplicatedTableName } from '@/config/featureFlags';
 import { logger } from '@/utils/logger';
-import { supabase } from '@/lib/supabase';
-import type { RealtimeChannel } from '@supabase/supabase-js';
-import { getReplicationMonitor } from './ReplicationMonitor';
-
-/**
- * Issue #8 Fix: Unique tab identifier to prevent cross-tab message echo
- * Each browser tab gets a unique ID to identify its own messages
- */
-const TAB_ID = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
 export interface ReplicationManagerConfig {
   /** Auto-sync interval in milliseconds (default: 5 min) */
@@ -64,60 +62,83 @@ export interface ReplicationManagerConfig {
 
 export class ReplicationManager {
   private tables: Map<string, ReplicatedTable<any>> = new Map();
+
+  /** Extracted modules (DEBT-004) */
+  private connectionManager: ConnectionManager;
+  private syncOrchestrator: SyncOrchestrator;
   private syncEngine: SyncEngine;
   private prefetchManager: PrefetchManager;
-  private config: ReplicationManagerConfig;
-  private syncTimer: NodeJS.Timeout | null = null;
-  private isSyncing: boolean = false;
-  private syncHistory: SyncResult[] = [];
-
-  /** Day 25-26: Track last full sync per table to detect server deletions */
-  private lastFullSyncTimes: Map<string, number> = new Map();
-  private readonly DEFAULT_FULL_SYNC_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
-
-  /** Day 25-26 MEDIUM Fix: Real-time subscription channels */
-  private realtimeChannels: Map<string, RealtimeChannel> = new Map();
-
-  /** Day 25-26 MEDIUM Fix: Cross-tab sync via BroadcastChannel */
-  private broadcastChannel: BroadcastChannel | null = null;
-
-  /** Issue #4 Fix: Track subscription setup promises */
-  private subscriptionReadyPromises: Map<string, Promise<void>> = new Map();
-
-  /** Day 25-26 LOW Fix: Sync queue for manual sync requests */
-  private syncQueue: Array<() => Promise<void>> = [];
-  private isProcessingQueue: boolean = false;
 
   /** Cache update listeners for UI notification */
   private cacheUpdateListeners: Map<string, Set<(tableName: string) => void>> = new Map();
 
   constructor(config: ReplicationManagerConfig) {
-    this.config = config;
-
+    // Initialize SyncEngine
     this.syncEngine = new SyncEngine({
       syncInterval: config.autoSyncInterval,
       autoSyncOnReconnect: config.autoSyncOnReconnect ?? true,
     });
 
+    // Initialize ConnectionManager (DEBT-004)
+    const connectionConfig: ConnectionManagerConfig = {
+      licenseKey: config.licenseKey,
+      enableRealtimeSync: config.enableRealtimeSync,
+      enableCrossTabSync: config.enableCrossTabSync,
+    };
+
+    this.connectionManager = new ConnectionManager(
+      connectionConfig,
+      // Callback for sync when real-time changes are detected
+      async (tableName: string, forceFullSync: boolean) => {
+        await this.syncOrchestrator.syncTable(tableName, { forceFullSync });
+      }
+    );
+
+    // Initialize SyncOrchestrator (DEBT-004)
+    const syncConfig: SyncOrchestratorConfig = {
+      licenseKey: config.licenseKey,
+      autoSyncInterval: config.autoSyncInterval,
+      autoSyncOnStartup: config.autoSyncOnStartup,
+      autoSyncOnReconnect: config.autoSyncOnReconnect,
+      batchSize: config.batchSize,
+      autoQuotaManagement: config.autoQuotaManagement,
+      quotaSoftLimitMB: config.quotaSoftLimitMB,
+      quotaTargetMB: config.quotaTargetMB,
+      forceFullSyncInterval: config.forceFullSyncInterval,
+    };
+
+    this.syncOrchestrator = new SyncOrchestrator(
+      syncConfig,
+      this.syncEngine,
+      // Callback for getting a table
+      <T extends { id: string }>(tableName: string) => this.getTable<T>(tableName),
+      // Callback for getting all table names
+      () => this.getRegisteredTables(),
+      // Callback for notifying cache updates
+      (tableName: string) => this.notifyCacheUpdated(tableName),
+      // Callback for getting cache stats (option A - avoids circular dependency)
+      () => this.getCacheStats()
+    );
+
+    // Initialize ConnectionManager
+    this.connectionManager.initialize();
+
     // Day 23-24: Initialize prefetch manager for intelligent prefetching
     this.prefetchManager = new PrefetchManager(this);
 
-    // Listen for network events
-    window.addEventListener('replication:network-online', this.handleOnline);
-    window.addEventListener('replication:network-offline', this.handleOffline);
+    // Listen for network events from ConnectionManager
+    window.addEventListener('connection:network-online', this.handleNetworkOnline);
+    window.addEventListener('connection:network-offline', this.handleNetworkOffline);
 
-    // Day 25-26 MEDIUM Fix: Initialize cross-tab sync
-    if (config.enableCrossTabSync !== false) {
-      this.initCrossTabSync();
-    }
-
-    logger.log('✅ [ReplicationManager] Initialized with prefetching and real-time sync');
+    logger.log('✅ [ReplicationManager] Initialized with extracted modules (DEBT-004)');
   }
+
+  // ========================================
+  // TABLE REGISTRATION
+  // ========================================
 
   /**
    * Register a table for replication
-   * Day 25-26 MEDIUM Fix: Also subscribe to real-time changes
-   * Issue #4 Fix: Track subscription setup to prevent concurrent sync
    */
   registerTable<T extends { id: string }>(
     tableName: ReplicatedTableName,
@@ -133,21 +154,16 @@ export class ReplicationManager {
     this.tables.set(tableName, table);
     logger.log(`[ReplicationManager] Registered table: ${tableName}`);
 
-    // Issue #4 Fix: Track subscription setup if real-time sync is enabled
-    if (this.config.enableRealtimeSync !== false) {
-      const readyPromise = this.subscribeToRealtimeChanges(tableName);
-      this.subscriptionReadyPromises.set(tableName, readyPromise);
-    }
+    // Subscribe to real-time changes via ConnectionManager
+    this.connectionManager.subscribeToTable(tableName);
   }
 
   /**
    * Unregister a table
-   * Day 25-26 MEDIUM Fix: Also unsubscribe from real-time changes
    */
   unregisterTable(tableName: string): void {
     if (this.tables.delete(tableName)) {
-      // Day 25-26 MEDIUM Fix: Unsubscribe from real-time changes
-      this.unsubscribeFromRealtimeChanges(tableName);
+      this.connectionManager.unsubscribeFromTable(tableName);
       logger.log(`[ReplicationManager] Unregistered table: ${tableName}`);
     }
   }
@@ -162,260 +178,45 @@ export class ReplicationManager {
   }
 
   /**
-   * Day 25-26 LOW Fix: Check if sync is currently in progress
-   * Used by PrefetchManager to avoid concurrent sync+prefetch
-   */
-  isSyncInProgress(): boolean {
-    return this.isSyncing;
-  }
-
-  /**
    * Get all registered table names
    */
   getRegisteredTables(): string[] {
     return Array.from(this.tables.keys());
   }
 
+  // ========================================
+  // SYNC OPERATIONS (delegated to SyncOrchestrator)
+  // ========================================
+
+  /**
+   * Check if sync is currently in progress
+   */
+  isSyncInProgress(): boolean {
+    return this.syncOrchestrator.isSyncInProgress();
+  }
+
   /**
    * Wait for all subscription setups to complete
-   * Issue #4 Fix: Prevents sync from starting before subscriptions are ready
    */
   async waitForSubscriptionsReady(): Promise<void> {
-    if (this.subscriptionReadyPromises.size === 0) {
-      logger.log('[ReplicationManager] No subscriptions to wait for (real-time sync may be disabled)');
-      return;
-    }
-
-    logger.log(
-      `[ReplicationManager] Waiting for ${this.subscriptionReadyPromises.size} subscription(s) to be ready...`
-    );
-
-    try {
-      await Promise.all(this.subscriptionReadyPromises.values());
-      logger.log('[ReplicationManager] All subscriptions ready');
-    } catch (error) {
-      logger.error('[ReplicationManager] Some subscriptions failed to initialize:', error);
-      // Don't throw - app can work without real-time sync
-    }
+    await this.connectionManager.waitForSubscriptionsReady();
   }
 
   /**
    * Sync a single table
-   *
-   * Day 25-26: Periodically force full sync to detect server deletions
    */
   async syncTable(
     tableName: string,
     options?: Partial<SyncOptions>
   ): Promise<SyncResult> {
-    const table = this.getTable(tableName);
-
-    if (!table) {
-      const error = `Table "${tableName}" not registered`;
-      logger.error(`[ReplicationManager] ${error}`);
-
-      return {
-        tableName,
-        success: false,
-        operation: 'incremental-sync',
-        rowsAffected: 0,
-        duration: 0,
-        error,
-      };
-    }
-
-    // Day 25-26: Check if full sync is needed to detect server deletions
-    const fullSyncInterval = this.config.forceFullSyncInterval || this.DEFAULT_FULL_SYNC_INTERVAL;
-    const lastFullSync = this.lastFullSyncTimes.get(tableName) || 0;
-    const timeSinceFullSync = Date.now() - lastFullSync;
-
-    const forceFullSync = options?.forceFullSync || timeSinceFullSync > fullSyncInterval;
-
-    if (forceFullSync && !options?.forceFullSync) {
-      logger.log(
-        `[ReplicationManager] Forcing full sync for ${tableName} (last full sync: ${(timeSinceFullSync / 1000 / 60 / 60).toFixed(1)}h ago)`
-      );
-    }
-
-    // Build sync options
-    const syncOptions: SyncOptions = {
-      licenseKey: this.config.licenseKey,
-      batchSize: this.config.batchSize,
-      ...options,
-      forceFullSync,
-    };
-
-    // Run sync using the table's custom sync() method
-    // Each table implements its own sync logic with proper joins
-    const result = await table.sync(syncOptions.licenseKey, syncOptions);
-
-    // Track full sync time
-    if (forceFullSync && result.success) {
-      this.lastFullSyncTimes.set(tableName, Date.now());
-    }
-
-    // Store in history
-    this.syncHistory.push(result);
-
-    // Keep only last 100 sync results
-    if (this.syncHistory.length > 100) {
-      this.syncHistory = this.syncHistory.slice(-100);
-    }
-
-    // Day 27: Record sync result in monitor
-    const monitor = getReplicationMonitor();
-    monitor.recordSync(result);
-
-    // Notify UI listeners that cache has been updated (if sync was successful)
-    if (result.success) {
-      this.notifyCacheUpdated(tableName);
-    }
-
-    return result;
+    return this.syncOrchestrator.syncTable(tableName, options);
   }
 
   /**
    * Sync all registered tables
-   * Day 25-26 LOW Fix: Queue manual sync if auto-sync running
    */
   async syncAll(options?: Partial<SyncOptions>): Promise<SyncResult[]> {
-    // Day 25-26 LOW Fix: If sync in progress, queue this request
-    if (this.isSyncing) {
-      logger.warn('[ReplicationManager] Sync already in progress, queuing request...');
-
-      // Dispatch event to notify UI
-      window.dispatchEvent(new CustomEvent('replication:sync-queued', {
-        detail: { message: 'Sync queued - will start after current sync completes' }
-      }));
-
-      // Return a promise that resolves when the queued sync completes
-      return new Promise((resolve) => {
-        this.syncQueue.push(async () => {
-          const results = await this._syncAllInternal(options);
-          resolve(results);
-        });
-        this.processQueueIfNeeded();
-      });
-    }
-
-    return this._syncAllInternal(options);
-  }
-
-  /**
-   * Internal sync all implementation
-   * Day 25-26 LOW Fix: Extracted for queue processing
-   */
-  private async _syncAllInternal(options?: Partial<SyncOptions>): Promise<SyncResult[]> {
-    this.isSyncing = true;
-    logger.log('[ReplicationManager] Starting sync for all tables...');
-
-    const startTime = Date.now();
-    const results: SyncResult[] = [];
-
-    try {
-      // Day 25-26 LOW Fix: Phase 1 - Upload mutations BEFORE download sync
-      // This prevents race conditions where download overwrites pending uploads
-      logger.log('[ReplicationManager] Phase 1: Uploading pending mutations...');
-      const mutationResults = await this.syncEngine.uploadPendingMutations();
-      logger.log('[ReplicationManager] Phase 1 complete:', mutationResults.length, 'mutations uploaded');
-      results.push(...mutationResults);
-
-      // Day 25-26 LOW Fix: Phase 2 - Download sync (mutations are now synced)
-      const tableNames = Array.from(this.tables.keys());
-      logger.log('[ReplicationManager] Phase 2: Syncing', tableNames.length, 'tables...');
-
-      for (const tableName of tableNames) {
-        try {
-          logger.log(`[ReplicationManager] Syncing table: ${tableName}`);
-          const result = await this.syncTable(tableName, options);
-          logger.log(`[ReplicationManager] Table ${tableName} sync result:`, result);
-          results.push(result);
-        } catch (error) {
-          logger.error(
-            `[ReplicationManager] Failed to sync table ${tableName}:`,
-            error
-          );
-
-          results.push({
-            tableName,
-            success: false,
-            operation: 'incremental-sync',
-            rowsAffected: 0,
-            duration: 0,
-            error:
-              error instanceof Error ? error.message : 'Unknown sync error',
-          });
-        }
-      }
-
-      const duration = Date.now() - startTime;
-      const successCount = results.filter((r) => r.success).length;
-
-      logger.log(
-        `✅ [ReplicationManager] Sync complete: ${successCount}/${results.length} tables synced in ${duration}ms`
-      );
-
-      // Day 23-24: Check quota and evict if needed (after sync completes)
-      if (this.config.autoQuotaManagement !== false) {
-        await this.checkQuotaAndEvict();
-      }
-
-      return results;
-    } finally {
-      this.isSyncing = false;
-
-      // Day 25-26 LOW Fix: Process queued sync requests
-      this.processQueueIfNeeded();
-    }
-  }
-
-  /**
-   * Process queued sync requests
-   * Day 25-26 LOW Fix: Execute queued manual syncs after auto-sync completes
-   */
-  private async processQueueIfNeeded(): Promise<void> {
-    if (this.isProcessingQueue || this.syncQueue.length === 0) {
-      return;
-    }
-
-    this.isProcessingQueue = true;
-
-    try {
-      while (this.syncQueue.length > 0) {
-        const syncFn = this.syncQueue.shift();
-        if (syncFn) {
-          logger.log(`[ReplicationManager] Processing queued sync (${this.syncQueue.length} remaining)...`);
-          await syncFn();
-        }
-      }
-    } finally {
-      this.isProcessingQueue = false;
-    }
-  }
-
-  /**
-   * Check cache size and evict LRU rows if over soft limit
-   * Day 23-24: Automatic quota management to prevent quota errors
-   */
-  private async checkQuotaAndEvict(): Promise<void> {
-    try {
-      const stats = await this.getCacheStats();
-      const softLimit = this.config.quotaSoftLimitMB || 4.5; // 90% of 5 MB
-      const target = this.config.quotaTargetMB || 5; // 5 MB = ~10 typical shows
-
-      if (stats.totalSizeMB > softLimit) {
-        logger.warn(
-          `[ReplicationManager] Cache at ${stats.totalSizeMB.toFixed(2)} MB (soft limit: ${softLimit} MB), evicting to ${target} MB...`
-        );
-        const evicted = await this.evictLRU(target);
-        logger.log(
-          `[ReplicationManager] Quota management: evicted ${evicted} rows, cache now ~${target} MB`
-        );
-      }
-    } catch (error) {
-      logger.error('[ReplicationManager] Quota check failed:', error);
-      // Don't throw - quota management is best-effort
-    }
+    return this.syncOrchestrator.syncAll(options);
   }
 
   /**
@@ -425,166 +226,54 @@ export class ReplicationManager {
     tableName: string,
     options?: Partial<SyncOptions>
   ): Promise<SyncResult> {
-    const table = this.getTable(tableName);
-
-    if (!table) {
-      const error = `Table "${tableName}" not registered`;
-      logger.error(`[ReplicationManager] ${error}`);
-
-      return {
-        tableName,
-        success: false,
-        operation: 'full-sync',
-        rowsAffected: 0,
-        duration: 0,
-        error,
-      };
-    }
-
-    const syncOptions: SyncOptions = {
-      licenseKey: this.config.licenseKey,
-      batchSize: this.config.batchSize,
-      forceFullSync: true,
-      ...options,
-    };
-
-    const result = await this.syncEngine.fullSync(table, syncOptions);
-    this.syncHistory.push(result);
-
-    return result;
+    return this.syncOrchestrator.fullSyncTable(tableName, options);
   }
 
   /**
    * Force full sync for all tables
    */
   async fullSyncAll(options?: Partial<SyncOptions>): Promise<SyncResult[]> {
-    logger.log('[ReplicationManager] Starting full sync for all tables...');
-
-    const results: SyncResult[] = [];
-    const tableNames = Array.from(this.tables.keys());
-
-    for (const tableName of tableNames) {
-      try {
-        const result = await this.fullSyncTable(tableName, options);
-        results.push(result);
-      } catch (error) {
-        logger.error(
-          `[ReplicationManager] Failed to full sync table ${tableName}:`,
-          error
-        );
-
-        results.push({
-          tableName,
-          success: false,
-          operation: 'full-sync',
-          rowsAffected: 0,
-          duration: 0,
-          error: error instanceof Error ? error.message : 'Unknown sync error',
-        });
-      }
-    }
-
-    return results;
+    return this.syncOrchestrator.fullSyncAll(options);
   }
 
   /**
    * Refresh a single table (alias for fullSyncTable for pull-to-refresh UIs)
-   * Forces a full sync to get the latest data from server
    */
   async refreshTable(
     tableName: string,
     options?: Partial<SyncOptions>
   ): Promise<SyncResult> {
-    logger.log(`[ReplicationManager] Refreshing table: ${tableName}`);
-    return this.fullSyncTable(tableName, options);
+    return this.syncOrchestrator.refreshTable(tableName, options);
   }
 
   /**
    * Refresh all tables (alias for fullSyncAll for pull-to-refresh UIs)
-   * Forces a full sync to get the latest data from server
    */
   async refreshAll(options?: Partial<SyncOptions>): Promise<SyncResult[]> {
-    logger.log('[ReplicationManager] Refreshing all tables...');
-    return this.fullSyncAll(options);
+    return this.syncOrchestrator.refreshAll(options);
   }
+
+  // ========================================
+  // AUTO-SYNC (delegated to SyncOrchestrator)
+  // ========================================
 
   /**
    * Start automatic sync timer
    */
   startAutoSync(): void {
-    if (this.syncTimer) {
-      logger.warn('[ReplicationManager] Auto-sync already running');
-      return;
-    }
-
-    const interval = this.config.autoSyncInterval || 5 * 60 * 1000; // 5 min default
-
-    this.syncTimer = setInterval(() => {
-      if (!this.isSyncing) {
-        this.syncAll().catch((error) => {
-          logger.error('[ReplicationManager] Auto-sync failed:', error);
-        });
-      }
-    }, interval);
-
-    logger.log(
-      `🔄 [ReplicationManager] Auto-sync started (every ${interval / 1000}s)`
-    );
-
-    // Run initial sync if enabled
-    if (this.config.autoSyncOnStartup) {
-      logger.log('[ReplicationManager] Running initial sync...');
-      this.syncAll().catch((error) => {
-        logger.error('[ReplicationManager] Initial sync failed:', error);
-      });
-    }
+    this.syncOrchestrator.startAutoSync();
   }
 
   /**
    * Stop automatic sync timer
    */
   stopAutoSync(): void {
-    if (this.syncTimer) {
-      clearInterval(this.syncTimer);
-      this.syncTimer = null;
-      logger.log('⏸️ [ReplicationManager] Auto-sync stopped');
-    }
+    this.syncOrchestrator.stopAutoSync();
   }
 
-  /**
-   * Stop replication manager and cleanup resources
-   */
-  async stop(): Promise<void> {
-    logger.log('[ReplicationManager] Stopping replication...');
-
-    // Stop auto sync
-    this.stopAutoSync();
-
-    // Clear sync queue
-    this.syncQueue = [];
-
-    // Mark as not syncing
-    this.isSyncing = false;
-    this.isProcessingQueue = false;
-
-    // Cleanup tables (close DB connections)
-    for (const [tableName, table] of this.tables) {
-      try {
-        // If table has a cleanup method, call it
-        if (typeof (table as any).cleanup === 'function') {
-          await (table as any).cleanup();
-        }
-      } catch (error) {
-        logger.warn(`[ReplicationManager] Error cleaning up table ${tableName}:`, error);
-      }
-    }
-
-    // Clear tables map
-    this.tables.clear();
-
-    logger.log('[ReplicationManager] Replication stopped');
-  }
-
+  // ========================================
+  // CACHE OPERATIONS
+  // ========================================
 
   /**
    * Clear all caches (e.g., when switching shows)
@@ -611,6 +300,47 @@ export class ReplicationManager {
   }
 
   /**
+   * Run LRU eviction on all tables
+   */
+  async evictLRU(targetSizeMB: number = 50): Promise<number> {
+    return this.syncOrchestrator.evictLRU(targetSizeMB);
+  }
+
+  /**
+   * Get cache statistics across all tables
+   */
+  async getCacheStats(): Promise<CacheStatsResult> {
+    const tableStats: CacheStatsResult['tableStats'] = [];
+
+    let totalRows = 0;
+    let totalSizeBytes = 0;
+
+    for (const [tableName, table] of this.tables) {
+      const stats = await table.getCacheStats();
+      totalRows += stats.rowCount;
+      totalSizeBytes += stats.sizeBytes;
+
+      tableStats.push({
+        tableName,
+        rowCount: stats.rowCount,
+        sizeMB: stats.sizeMB,
+        sizeBytes: stats.sizeBytes,
+        dirtyCount: stats.dirtyCount,
+      });
+    }
+
+    return {
+      totalRows,
+      totalSizeMB: totalSizeBytes / 1024 / 1024,
+      tableStats: tableStats.sort((a, b) => b.sizeMB - a.sizeMB),
+    };
+  }
+
+  // ========================================
+  // NETWORK & STATUS
+  // ========================================
+
+  /**
    * Check if network is online
    */
   isOnline(): boolean {
@@ -621,7 +351,7 @@ export class ReplicationManager {
    * Get sync history
    */
   getSyncHistory(limit: number = 10): SyncResult[] {
-    return this.syncHistory.slice(-limit);
+    return this.syncOrchestrator.getSyncHistory(limit);
   }
 
   /**
@@ -668,29 +398,24 @@ export class ReplicationManager {
     };
   }
 
-  /**
-   * Handle network online event
-   */
-  private handleOnline = async (): Promise<void> => {
-    logger.log('[ReplicationManager] Network online, triggering sync...');
+  // ========================================
+  // NETWORK EVENT HANDLERS
+  // ========================================
 
-    if (!this.isSyncing) {
-      await this.syncAll().catch((error) => {
-        logger.error('[ReplicationManager] Online sync failed:', error);
-      });
-    }
+  private handleNetworkOnline = async (): Promise<void> => {
+    await this.syncOrchestrator.handleNetworkOnline();
   };
 
-  /**
-   * Handle network offline event
-   */
-  private handleOffline = (): void => {
-    logger.log('[ReplicationManager] Network offline, sync paused');
+  private handleNetworkOffline = (): void => {
+    this.syncOrchestrator.handleNetworkOffline();
   };
+
+  // ========================================
+  // PREFETCH
+  // ========================================
 
   /**
    * Track page navigation for intelligent prefetching
-   * Day 23-24: Performance optimization
    */
   trackNavigation(pagePath: string): void {
     this.prefetchManager.trackNavigation(pagePath);
@@ -698,7 +423,6 @@ export class ReplicationManager {
 
   /**
    * Get prefetch statistics
-   * Day 23-24: For debugging and monitoring
    */
   getPrefetchStats(): {
     totalPatterns: number;
@@ -710,238 +434,14 @@ export class ReplicationManager {
 
   /**
    * Manually trigger prefetch for a specific page
-   * Day 23-24: Performance optimization
    */
   async prefetchForPage(pageName: string): Promise<void> {
     return this.prefetchManager.prefetchForPage(pageName);
   }
 
-  /**
-   * Run LRU eviction on all tables to reduce memory footprint
-   * Day 23-24: Performance optimization
-   *
-   * @param targetSizeMB - Target total cache size in MB (default: 50 MB)
-   * @returns Total number of rows evicted across all tables
-   */
-  async evictLRU(targetSizeMB: number = 50): Promise<number> {
-    const targetSizeBytes = targetSizeMB * 1024 * 1024;
-
-    logger.log(`[ReplicationManager] Starting LRU eviction (target: ${targetSizeMB} MB)`);
-
-    // Get total size across all tables
-    let totalSize = 0;
-    const tableSizes: Array<{ tableName: string; size: number; table: ReplicatedTable<any> }> = [];
-
-    for (const [tableName, table] of this.tables) {
-      const stats = await table.getCacheStats();
-      totalSize += stats.sizeBytes;
-      tableSizes.push({ tableName, size: stats.sizeBytes, table });
-    }
-
-    const totalSizeMB = totalSize / 1024 / 1024;
-
-    if (totalSize <= targetSizeBytes) {
-      logger.log(
-        `[ReplicationManager] Total cache size ${totalSizeMB.toFixed(2)} MB already under target`
-      );
-      return 0;
-    }
-
-    logger.log(
-      `[ReplicationManager] Total cache size: ${totalSizeMB.toFixed(2)} MB, evicting to ${targetSizeMB} MB`
-    );
-
-    // Sort tables by size (largest first)
-    tableSizes.sort((a, b) => b.size - a.size);
-
-    // Calculate target size per table (proportional to current size)
-    let totalEvicted = 0;
-
-    for (const { tableName, size, table } of tableSizes) {
-      const proportion = size / totalSize;
-      const tableTargetSize = Math.floor(targetSizeBytes * proportion);
-
-      if (size > tableTargetSize) {
-        const evicted = await table.evictLRU(tableTargetSize);
-        totalEvicted += evicted;
-        logger.log(
-          `[ReplicationManager] Evicted ${evicted} rows from ${tableName}`
-        );
-      }
-    }
-
-    logger.log(
-      `[ReplicationManager] LRU eviction complete: ${totalEvicted} rows evicted`
-    );
-
-    return totalEvicted;
-  }
-
-  /**
-   * Get cache statistics across all tables
-   * Day 23-24: Monitoring for LRU eviction decisions
-   */
-  async getCacheStats(): Promise<{
-    totalRows: number;
-    totalSizeMB: number;
-    tableStats: Array<{
-      tableName: string;
-      rowCount: number;
-      sizeMB: number;
-      dirtyCount: number;
-    }>;
-  }> {
-    const tableStats: Array<{
-      tableName: string;
-      rowCount: number;
-      sizeMB: number;
-      dirtyCount: number;
-    }> = [];
-
-    let totalRows = 0;
-    let totalSizeBytes = 0;
-
-    for (const [tableName, table] of this.tables) {
-      const stats = await table.getCacheStats();
-      totalRows += stats.rowCount;
-      totalSizeBytes += stats.sizeBytes;
-
-      tableStats.push({
-        tableName,
-        rowCount: stats.rowCount,
-        sizeMB: stats.sizeMB,
-        dirtyCount: stats.dirtyCount,
-      });
-    }
-
-    return {
-      totalRows,
-      totalSizeMB: totalSizeBytes / 1024 / 1024,
-      tableStats: tableStats.sort((a, b) => b.sizeMB - a.sizeMB),
-    };
-  }
-
-  /**
-   * Initialize cross-tab sync via BroadcastChannel
-   * Day 25-26 MEDIUM Fix: Instant cache invalidation across browser tabs
-   */
-  /**
-   * Issue #8 Fix: Prevent cross-tab sync cascade
-   * - Ignore messages from our own tab
-   * - Only sync when OTHER tabs make changes
-   */
-  private initCrossTabSync(): void {
-    try {
-      this.broadcastChannel = new BroadcastChannel('replication-sync');
-
-      this.broadcastChannel.onmessage = (event) => {
-        const { type, tableName, licenseKey, originTabId } = event.data;
-
-        // CRITICAL FIX: Ignore our own messages
-        if (originTabId === TAB_ID) {
-          logger.log(`[ReplicationManager] Ignoring own message for ${tableName}`);
-          return;
-        }
-
-        // Only process messages for our license key
-        if (licenseKey !== this.config.licenseKey) {
-          return;
-        }
-
-        if (type === 'table-changed') {
-          logger.log(`[ReplicationManager] Cross-tab sync: ${tableName} changed in tab ${originTabId}`);
-
-          // Trigger incremental sync for this table
-          const table = this.getTable(tableName);
-          if (table) {
-            this.syncTable(tableName, { forceFullSync: false }).catch((error) => {
-              logger.error(`[ReplicationManager] Cross-tab sync failed for ${tableName}:`, error);
-            });
-          }
-        }
-      };
-
-      logger.log(`✅ [ReplicationManager] Cross-tab sync initialized (Tab ID: ${TAB_ID})`);
-    } catch (error) {
-      logger.warn('[ReplicationManager] BroadcastChannel not supported:', error);
-    }
-  }
-
-  /**
-   * Subscribe to real-time changes for a table
-   * Day 25-26 MEDIUM Fix: Instant cache invalidation via Supabase real-time
-   * Issue #4 Fix: Return Promise to track subscription readiness
-   */
-  private subscribeToRealtimeChanges(tableName: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        const channel = supabase
-          .channel(`replication:${tableName}:${this.config.licenseKey}`)
-          .on(
-            'postgres_changes',
-            {
-              event: '*', // INSERT, UPDATE, DELETE
-              schema: 'public',
-              table: tableName,
-              // All replicated tables now have license_key column for efficient filtering
-              filter: `license_key=eq.${this.config.licenseKey}`,
-            },
-            async (payload) => {
-              logger.log(`[ReplicationManager] Real-time change detected in ${tableName}:`, payload.eventType);
-
-              // Trigger incremental sync for this table and WAIT for it to complete
-              // This ensures cache is updated before UI refreshes
-              const table = this.getTable(tableName);
-              if (table) {
-                try {
-await this.syncTable(tableName, { forceFullSync: false });
-} catch (error) {
-                  logger.error(`[ReplicationManager] Real-time sync failed for ${tableName}:`, error);
-                }
-              }
-
-              // Notify other tabs via BroadcastChannel (AFTER sync completes)
-              // Issue #8 Fix: Include originTabId to prevent echo
-              if (this.broadcastChannel) {
-                this.broadcastChannel.postMessage({
-                  type: 'table-changed',
-                  tableName,
-                  licenseKey: this.config.licenseKey,
-                  originTabId: TAB_ID, // Track origin to prevent cascade
-                });
-              }
-            }
-          )
-          .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              logger.log(`✅ [ReplicationManager] Real-time subscription active for ${tableName}`);
-              resolve(); // Issue #4 Fix: Resolve promise when subscribed
-            } else if (status === 'CHANNEL_ERROR') {
-              logger.error(`[ReplicationManager] Real-time subscription error for ${tableName}`);
-              reject(new Error(`Subscription failed for ${tableName}`));
-            }
-          });
-
-        this.realtimeChannels.set(tableName, channel);
-      } catch (error) {
-        logger.error(`[ReplicationManager] Failed to subscribe to real-time changes for ${tableName}:`, error);
-        reject(error);
-      }
-    });
-  }
-
-  /**
-   * Unsubscribe from real-time changes for a table
-   * Day 25-26 MEDIUM Fix: Clean up subscriptions
-   */
-  private unsubscribeFromRealtimeChanges(tableName: string): void {
-    const channel = this.realtimeChannels.get(tableName);
-    if (channel) {
-      supabase.removeChannel(channel);
-      this.realtimeChannels.delete(tableName);
-      logger.log(`[ReplicationManager] Unsubscribed from real-time changes for ${tableName}`);
-    }
-  }
+  // ========================================
+  // CACHE UPDATE LISTENERS
+  // ========================================
 
   /**
    * Subscribe to cache update notifications for UI refresh
@@ -952,17 +452,6 @@ await this.syncTable(tableName, { forceFullSync: false });
    * @param tableName - Table to listen for updates (e.g., 'entries', 'classes')
    * @param listener - Callback function invoked when cache is updated
    * @returns Unsubscribe function
-   *
-   * @example
-   * ```typescript
-   * const unsubscribe = manager.onCacheUpdate('entries', (tableName) => {
-   *   console.log(`Cache updated for ${tableName}, refreshing UI`);
-   *   refresh();
-   * });
-   *
-   * // Later: cleanup
-   * unsubscribe();
-   * ```
    */
   onCacheUpdate(tableName: string, listener: (tableName: string) => void): () => void {
     if (!this.cacheUpdateListeners.has(tableName)) {
@@ -980,9 +469,6 @@ await this.syncTable(tableName, { forceFullSync: false });
 
   /**
    * Unsubscribe from cache update notifications
-   *
-   * @param tableName - Table name
-   * @param listener - Listener function to remove
    */
   offCacheUpdate(tableName: string, listener: (tableName: string) => void): void {
     const listeners = this.cacheUpdateListeners.get(tableName);
@@ -999,9 +485,6 @@ await this.syncTable(tableName, { forceFullSync: false });
 
   /**
    * Notify all listeners that a table's cache has been updated
-   *
-   * @private
-   * @param tableName - Table that was updated
    */
   private notifyCacheUpdated(tableName: string): void {
     const listeners = this.cacheUpdateListeners.get(tableName);
@@ -1017,43 +500,68 @@ await this.syncTable(tableName, { forceFullSync: false });
     }
   }
 
+  // ========================================
+  // LIFECYCLE
+  // ========================================
+
   /**
-   * Cleanup resources
-   * Day 25-26 MEDIUM Fix: Also clean up real-time subscriptions
+   * Stop replication manager and cleanup resources
+   */
+  async stop(): Promise<void> {
+    logger.log('[ReplicationManager] Stopping replication...');
+
+    // Stop auto sync via orchestrator
+    this.syncOrchestrator.destroy();
+
+    // Cleanup tables (close DB connections)
+    for (const [tableName, table] of this.tables) {
+      try {
+        // If table has a cleanup method, call it
+        if (typeof (table as any).cleanup === 'function') {
+          await (table as any).cleanup();
+        }
+      } catch (error) {
+        logger.warn(`[ReplicationManager] Error cleaning up table ${tableName}:`, error);
+      }
+    }
+
+    // Clear tables map
+    this.tables.clear();
+
+    logger.log('[ReplicationManager] Replication stopped');
+  }
+
+  /**
+   * Cleanup all resources
    */
   destroy(): void {
-    this.stopAutoSync();
+    // Stop auto-sync and clear orchestrator state
+    this.syncOrchestrator.destroy();
 
-    window.removeEventListener('replication:network-online', this.handleOnline);
-    window.removeEventListener(
-      'replication:network-offline',
-      this.handleOffline
-    );
+    // Remove network event listeners
+    window.removeEventListener('connection:network-online', this.handleNetworkOnline);
+    window.removeEventListener('connection:network-offline', this.handleNetworkOffline);
 
-    // Day 25-26 MEDIUM Fix: Clean up real-time subscriptions
-    for (const [tableName, channel] of this.realtimeChannels) {
-      supabase.removeChannel(channel);
-      logger.log(`[ReplicationManager] Unsubscribed from ${tableName}`);
-    }
-    this.realtimeChannels.clear();
-
-    // Day 25-26 MEDIUM Fix: Clean up BroadcastChannel
-    if (this.broadcastChannel) {
-      this.broadcastChannel.close();
-      this.broadcastChannel = null;
-    }
+    // Clean up ConnectionManager
+    this.connectionManager.destroy();
 
     // Clean up cache update listeners
     this.cacheUpdateListeners.clear();
 
+    // Clean up SyncEngine
     this.syncEngine.destroy();
+
+    // Clear tables
     this.tables.clear();
 
     logger.log('🗑️ [ReplicationManager] Destroyed');
   }
 }
 
-// Singleton instance (will be initialized by app)
+// ========================================
+// SINGLETON MANAGEMENT
+// ========================================
+
 let instance: ReplicationManager | null = null;
 
 export function initReplicationManager(

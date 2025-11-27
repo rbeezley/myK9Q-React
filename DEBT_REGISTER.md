@@ -6,12 +6,12 @@
 
 ## Summary
 
-- **Total Debt Items:** 13 (4 resolved)
+- **Total Debt Items:** 13 (5 resolved)
 - **Critical:** 2 ✅ (1 resolved)
-- **High:** 3 ✅ (3 resolved)
+- **High:** 3 ✅ (3 resolved) + DEBT-004 ✅
 - **Medium:** 6
 - **Low:** 2
-- **Estimated Total Effort:** 6-10 days (reduced from 15-20)
+- **Estimated Total Effort:** 4-7 days (reduced from 15-20)
 
 ---
 
@@ -69,53 +69,6 @@ Critical because dual systems create confusion and potential data issues. Migrat
 **Notes:**
 - Search for `localStateManager` to find all references
 - Files with TODO markers are the primary targets
-
----
-
-### DEBT-004: ReplicationManager.ts Excessive Size (1,089 lines)
-
-**Category:** Architecture
-
-**Severity:** High
-
-**Created:** 2025-11-26
-
-**Location:**
-- File(s): `src/services/replication/ReplicationManager.ts`
-- Component/Module: Replication System
-
-**Description:**
-Replication manager has grown to 1,089 lines with multiple responsibilities including connection management, sync orchestration, and error handling.
-
-**Impact:**
-- **Business Impact:** Difficult to add new replication features
-- **Technical Impact:** Complex interdependencies, hard to unit test
-- **Risk:** Changes may have unintended side effects
-
-**Root Cause:**
-Feature additions without architectural review.
-
-**Proposed Solution:**
-Extract into separate concerns:
-- `ConnectionManager.ts` - Connection lifecycle
-- `SyncOrchestrator.ts` - Sync coordination
-- `ReplicationErrorHandler.ts` - Error handling and recovery
-
-**Effort Estimate:** 2-3 days
-
-**Priority Justification:**
-High due to complexity in critical offline functionality.
-
-**Dependencies:**
-- Blocks: None
-- Blocked By: ~~DEBT-003~~ (resolved)
-- Related: DEBT-005
-
-**Status:** Open
-
-**Assignee:** Unassigned
-
-**Target Resolution:** Q1 2026
 
 ---
 
@@ -652,6 +605,37 @@ Used composition pattern to extract focused modules:
 
 ---
 
+### ✅ DEBT-004: ReplicationManager.ts Excessive Size (RESOLVED)
+
+**Category:** Architecture | **Severity:** High | **Resolved:** 2025-11-26
+
+**Original Problem:** Replication manager had grown to 1,089 lines with multiple responsibilities including connection management, sync orchestration, and error handling.
+
+**Solution Applied:**
+Used composition pattern to extract focused modules:
+- `ConnectionManager.ts` - Real-time subscriptions, cross-tab sync, network events (297 lines)
+- `SyncOrchestrator.ts` - Sync coordination, queue management, quota/LRU eviction (606 lines)
+- `ReplicationManager.ts` - Facade with table registry, public API, cache listeners (594 lines)
+
+**Results:**
+- **Before:** 1,089 lines in single file with mixed concerns
+- **After:** 594 lines in main file (45% reduction)
+- **Each extracted module:** Focused on single responsibility
+- **All 1,530 tests pass**
+- **No breaking changes:** Public API unchanged
+
+**Key Improvements:**
+- Clear separation of concerns
+- ConnectionManager handles all real-time and cross-tab sync
+- SyncOrchestrator handles all sync coordination and queue management
+- ReplicationManager remains thin facade for application code
+- Easier to test each module in isolation
+- Callback pattern used to avoid circular dependencies
+
+**PR:** GitHub Issue #4
+
+---
+
 ### ✅ DEBT-006: CompetitionAdmin.tsx Excessive Size (RESOLVED)
 
 **Category:** Code Quality | **Severity:** High | **Resolved:** 2025-11-26
@@ -748,9 +732,10 @@ Used composition pattern to extract focused modules:
 2. **DEBT-002** - Legacy code removal (Critical, 2-3 days) - Unblock future work
 3. **DEBT-008** - Complex functions (Medium, ongoing) - Highest complexity first
 4. ~~**DEBT-003** - ReplicatedTable refactor~~ ✅ **RESOLVED** (2025-11-26)
-5. **DEBT-004/005** - ReplicationManager & SyncEngine refactor (High, 4-6 days total) - Plan together
-6. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
-7. **Others** - Address opportunistically
+5. ~~**DEBT-004** - ReplicationManager refactor~~ ✅ **RESOLVED** (2025-11-26)
+6. **DEBT-005** - SyncEngine refactor (High, 2-3 days) - Last large replication file
+7. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
+8. **Others** - Address opportunistically
 
 ---
 
