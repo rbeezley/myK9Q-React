@@ -129,7 +129,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
           .order('updated_at', { ascending: true });
       }
 
-      const { data: remoteEntries, error: fetchError } = result as any;
+      const { data: remoteEntries, error: fetchError } = result as { data: Entry[] | null; error: unknown };
 
       if (fetchError) {
         logger.error(`[${this.tableName}] Fetch error:`, fetchError);
@@ -143,7 +143,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         isCacheEmpty,
         entriesFound: remoteEntries?.length || 0,
         // Show key scoring fields for each entry
-        entryDetails: remoteEntries?.slice(0, 5).map((e: any) => ({
+        entryDetails: remoteEntries?.slice(0, 5).map((e) => ({
           id: e.id,
           armband: e.armband_number,
           is_scored: e.is_scored,

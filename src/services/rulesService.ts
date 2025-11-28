@@ -136,16 +136,17 @@ try {
 
 return data;
 
-    } catch (error: any) {
+    } catch (error) {
       // If it's already a RulesServiceError, rethrow it
-      if (error.code && error.message) {
+      const err = error as { code?: string; message?: string };
+      if (err.code && err.message) {
         throw error as RulesServiceError;
       }
 
       // Otherwise, wrap it
       console.error('📚 [RulesService] Unexpected error:', error);
       throw {
-        message: error.message || 'An unexpected error occurred',
+        message: err.message || 'An unexpected error occurred',
         code: 'UNEXPECTED_ERROR',
         statusCode: 500,
       } as RulesServiceError;

@@ -5,7 +5,7 @@
  * in compliance with privacy regulations (GDPR, CCPA, etc.)
  */
 
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, type AppSettings } from '@/stores/settingsStore';
 import { logger } from '@/utils/logger';
 
 export interface ExportedData {
@@ -14,15 +14,15 @@ export interface ExportedData {
     appVersion: string;
     licenseKey?: string;
   };
-  settings: any;
+  settings: Partial<AppSettings>;
   favorites: Record<string, string[]>;
   auth: {
     role?: string;
     lastLogin?: string;
   };
   scrollPositions: Record<string, number>;
-  dismissedPrompts: Record<string, any>;
-  customData: Record<string, any>;
+  dismissedPrompts: Record<string, unknown>;
+  customData: Record<string, unknown>;
 }
 
 /**

@@ -184,7 +184,7 @@ export function useMemoizedObject<T extends Record<string, unknown>>(
  * Memoize callbacks with stable reference
  * Alternative to useCallback with better DX
  */
-export function useMemoizedCallback<T extends (...args: any[]) => any>(
+export function useMemoizedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   deps: React.DependencyList
 ): T {

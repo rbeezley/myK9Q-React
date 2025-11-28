@@ -16,39 +16,33 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { SyncResult } from '../types';
 
 /**
+ * Raw row from Supabase view (without generated id)
+ */
+interface AuditLogRow {
+  change_type: 'show_visibility' | 'trial_visibility' | 'class_visibility';
+  scope: 'Show Level' | 'Trial Level' | 'Class Level';
+  license_key: string;
+  show_name: string;
+  trial_id: string | null;
+  trial_number: number | null;
+  class_id: string | null;
+  element: string | null;
+  level: string | null;
+  section: string | null;
+  setting_category: 'visibility';
+  setting_value: string;
+  updated_by: string;
+  updated_at: string;
+}
+
+/**
  * Database schema (snake_case) - matches `view_audit_log`
  * This is a computed view combining multiple tables.
  * We'll use a composite key for IndexedDB: `${change_type}_${updated_at}_${scope}`
  */
-export interface AuditLog {
+export interface AuditLog extends AuditLogRow {
   // Composite id for IndexedDB (generated from change_type + updated_at + scope)
   id: string;
-
-  // Change metadata
-  change_type: 'show_visibility' | 'trial_visibility' | 'class_visibility';
-  scope: 'Show Level' | 'Trial Level' | 'Class Level';
-  license_key: string;
-
-  // Show info
-  show_name: string;
-
-  // Trial info (nullable)
-  trial_id: string | null;                // BIGINT as string
-  trial_number: number | null;
-
-  // Class info (nullable)
-  class_id: string | null;                // BIGINT as string
-  element: string | null;
-  level: string | null;
-  section: string | null;
-
-  // Setting details
-  setting_category: 'visibility';
-  setting_value: string;                  // preset_name
-
-  // Audit metadata
-  updated_by: string;
-  updated_at: string;                     // ISO timestamp
 }
 
 /**
@@ -66,7 +60,7 @@ export class ReplicatedAuditLogViewTable extends ReplicatedTable<AuditLog> {
    * Generate a unique composite ID for IndexedDB storage
    * Views don't have a natural id column, so we create one
    */
-  private generateId(row: any): string {
+  private generateId(row: AuditLogRow): string {
     // Use change_type + updated_at + scope to create unique id
     // Also include trial_id or class_id if available for better uniqueness
     const parts = [

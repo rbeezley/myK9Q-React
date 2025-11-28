@@ -70,8 +70,10 @@ class PerformanceMonitor {
     try {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          const value = entry.processingStart - entry.startTime;
+        entries.forEach((entry) => {
+          // PerformanceEventTiming has processingStart for FID measurement
+          const fidEntry = entry as PerformanceEventTiming;
+          const value = fidEntry.processingStart - fidEntry.startTime;
 
           this.recordMetric({
             name: 'FID',
