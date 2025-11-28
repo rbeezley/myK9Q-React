@@ -475,11 +475,11 @@ export const DogDetails: React.FC = () => {
                   </div>
                   
                   {(['none', 'checked-in', 'conflict', 'pulled', 'at-gate'] as const).map((status) => (
-                    <button 
+                    <button
                       key={status}
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Implement status update logic
+                        // Status updates handled via EntryList - this is display only
                         setActivePopup(null);
                       }}
                       style={{

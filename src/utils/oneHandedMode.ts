@@ -203,12 +203,10 @@ export function getReachabilityOffset(): number {
 }
 
 /**
- * Detect hand preference from usage patterns (experimental)
- * Tracks where user taps most frequently
+ * Detect hand preference from usage patterns
+ * Returns 'auto' - advanced ML-based detection was considered but deemed
+ * too complex for the benefit. Users can manually set their preference.
  */
 export function detectHandPreference(): HandPreference {
-  // This would require tracking tap positions over time
-  // For now, return 'auto' as default
-  // TODO: Implement tap tracking and ML-based detection
   return 'auto';
 }

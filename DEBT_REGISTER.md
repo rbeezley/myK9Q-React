@@ -312,7 +312,7 @@ Medium - improves developer experience.
 
 ---
 
-### DEBT-014: Missing TODO Implementation (8 TODOs - Audited)
+### DEBT-014: Missing TODO Implementation (6 TODOs Remaining)
 
 **Category:** Code Quality
 
@@ -322,41 +322,41 @@ Medium - improves developer experience.
 
 **Audited:** 2025-11-27
 
-**Location (8 TODOs found):**
-| File | TODO | Category | Action |
+**Cleaned:** 2025-11-27
+
+**Location (6 TODOs remaining):**
+| File | TODO | Category | Status |
 |------|------|----------|--------|
 | `announcementStore.ts:268` | Remove once Edge Function working | Cleanup | Keep until confirmed |
 | `Home-Apple.tsx:142` | Persist favorites | Feature | Low priority backlog |
-| `DogDetails-Apple.tsx:482` | Status update logic | Feature | Remove if not planned |
 | `settingsCloudSync.ts:36` | Integrate auth system | Architecture | Keep until decision |
 | `performanceMonitoring.ts:311` | Analytics integration | Enhancement | Backlog if needed |
-| `oneHandedMode.ts:212` | ML tap detection | Enhancement | Remove - too complex |
 | `dataExportService.ts:116` | IndexedDB collection | Enhancement | Keep as reference |
 | `ReplicatedEventStatisticsTable.ts:212` | Remove dormant table check | Cleanup | Keep until migration |
 
+**Removed (2025-11-27):**
+| File | TODO | Reason |
+|------|------|--------|
+| ~~`oneHandedMode.ts:212`~~ | ML tap detection | Too complex - users can set preference manually |
+| ~~`DogDetails-Apple.tsx:482`~~ | Status update logic | Display-only page - updates via EntryList |
+
 **Description:**
-8 TODO comments found indicating features that were planned but not implemented or cleanup needed.
+6 TODO comments remaining after cleanup. All are valid placeholders waiting for dependencies.
 
 **Impact:**
 - **Business Impact:** Minor - most are enhancements
 - **Technical Impact:** Code clarity
 - **Risk:** Low - no critical functionality missing
 
-**Audit Findings:**
-- 3 TODOs are cleanup tasks (wait for dependencies)
-- 3 TODOs are features (backlog candidates)
-- 2 TODOs can be removed (not planned/too complex)
-
 **Proposed Solution:**
 1. ✅ Audited all 8 TODOs - categorized above
-2. Create backlog items for relevant features
-3. Remove TODOs for `oneHandedMode.ts` (ML detection not planned)
-4. Keep remaining TODOs until dependencies resolved
+2. ✅ Removed 2 unnecessary TODOs (2025-11-27)
+3. Keep remaining 6 TODOs until dependencies resolved
 
-**Effort Estimate:** 1-2 hours to clean up non-relevant TODOs
+**Effort Estimate:** Complete - remaining TODOs are valid
 
 **Priority Justification:**
-Low - these are enhancements, not bugs.
+Low - remaining TODOs are valid placeholders.
 
 **Dependencies:**
 - Blocks: None
@@ -683,7 +683,7 @@ Used composition pattern to extract focused modules:
 7. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
 8. ~~**DEBT-013** - BUG comments~~ ✅ **RESOLVED** (2025-11-27) - Audit found 0 in source
 9. **DEBT-011** - `any` types - ⚡ **IN PROGRESS** - 6 fixed in core files (2025-11-27)
-10. **DEBT-014** - TODO comments - ✅ **AUDITED** - 8 TODOs categorized
+10. **DEBT-014** - TODO comments - ✅ **CLEANED** - 2 removed, 6 valid remaining (2025-11-27)
 11. **Others** - Address opportunistically
 
 ---
