@@ -6,7 +6,42 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { PerformanceReport } from './performanceMonitor';
+import type { PerformanceReport, PerformanceMetric } from './performanceMonitor';
+
+/** Metric metadata structure */
+interface MetricMetadata {
+  action?: string;
+  status?: 'success' | 'error';
+  error?: string;
+  success?: boolean;
+  offline?: boolean;
+  [key: string]: unknown;
+}
+
+/** Device performance aggregated stats */
+interface DeviceStats {
+  device_type: string;
+  avg_fcp: number;
+  avg_lcp: number;
+  error_count: number;
+  session_count: number;
+}
+
+/** Venue performance stats */
+interface VenueStats {
+  total_sessions: number;
+  high_error_sessions: number;
+  offline_heavy_sessions: number;
+  sync_conflict_sessions: number;
+  avg_duration_ms: number;
+}
+
+/** Raw metric from Supabase query */
+interface RawMetricRow {
+  device_type?: string;
+  metric_name: string;
+  metric_value: number;
+}
 
 export interface PerformanceMetricRecord {
   metric_type: string;
@@ -20,7 +55,7 @@ export interface PerformanceMetricRecord {
   action_name?: string;
   success?: boolean;
   error_message?: string;
-  metadata?: Record<string, any>;
+  metadata?: MetricMetadata;
 }
 
 export interface SessionSummaryRecord {
@@ -43,7 +78,7 @@ export interface SessionSummaryRecord {
   failed_actions_count: number;
   sync_conflicts: number;
   offline_events: number;
-  full_report: any;
+  full_report: PerformanceReport;
 }
 
 export class MetricsApiService {
@@ -102,7 +137,8 @@ export class MetricsApiService {
   private extractMetricRecords(report: PerformanceReport): PerformanceMetricRecord[] {
     const records: PerformanceMetricRecord[] = [];
 
-    report.metrics.forEach((metric: any) => {
+    report.metrics.forEach((metric: PerformanceMetric) => {
+      const metadata = metric.metadata as MetricMetadata | undefined;
       records.push({
         metric_type: this.categorizeMetric(metric.name),
         metric_name: metric.name,
@@ -112,10 +148,10 @@ export class MetricsApiService {
         os_type: this.extractOSType(),
         browser_type: this.extractBrowserType(),
         page_url: report.pageUrl,
-        action_name: metric.metadata?.action,
-        success: metric.metadata?.status === 'success',
-        error_message: metric.metadata?.error,
-        metadata: metric.metadata,
+        action_name: metadata?.action,
+        success: metadata?.status === 'success',
+        error_message: metadata?.error,
+        metadata: metadata,
       });
     });
 
@@ -130,23 +166,24 @@ export class MetricsApiService {
     _licenseKey: string
   ): SessionSummaryRecord {
     // Calculate statistics
-    const errorMetrics = report.metrics.filter((m: any) => m.name.includes('error'));
-    const warningMetrics = report.metrics.filter((m: any) => m.name.includes('warning'));
-    const rageMetrics = report.metrics.filter((m: any) => m.name.includes('rage'));
-    const slowActions = report.metrics.filter((m: any) => {
+    const errorMetrics = report.metrics.filter((m: PerformanceMetric) => m.name.includes('error'));
+    const warningMetrics = report.metrics.filter((m: PerformanceMetric) => m.name.includes('warning'));
+    const rageMetrics = report.metrics.filter((m: PerformanceMetric) => m.name.includes('rage'));
+    const slowActions = report.metrics.filter((m: PerformanceMetric) => {
       if (m.name.includes('action') && m.value > 1000) return true;
       return false;
     });
-    const failedActions = report.metrics.filter(
-      (m: any) => m.metadata?.status === 'error' || m.metadata?.success === false
-    );
+    const failedActions = report.metrics.filter((m: PerformanceMetric) => {
+      const metadata = m.metadata as MetricMetadata | undefined;
+      return metadata?.status === 'error' || metadata?.success === false;
+    });
 
     // Extract Web Vitals
-    const fcp = report.metrics.find((m: any) => m.name === 'web_vital.fcp');
-    const lcp = report.metrics.find((m: any) => m.name === 'web_vital.lcp');
-    const cls = report.metrics.find((m: any) => m.name === 'web_vital.cls');
-    const fid = report.metrics.find((m: any) => m.name === 'web_vital.fid');
-    const inp = report.metrics.find((m: any) => m.name === 'web_vital.inp');
+    const fcp = report.metrics.find((m: PerformanceMetric) => m.name === 'web_vital.fcp');
+    const lcp = report.metrics.find((m: PerformanceMetric) => m.name === 'web_vital.lcp');
+    const cls = report.metrics.find((m: PerformanceMetric) => m.name === 'web_vital.cls');
+    const fid = report.metrics.find((m: PerformanceMetric) => m.name === 'web_vital.fid');
+    const inp = report.metrics.find((m: PerformanceMetric) => m.name === 'web_vital.inp');
 
     return {
       session_id: report.sessionId,
@@ -166,8 +203,11 @@ export class MetricsApiService {
       inp_ms: inp?.value,
       slow_actions_count: slowActions.length,
       failed_actions_count: failedActions.length,
-      sync_conflicts: report.metrics.filter((m: any) => m.name.includes('sync_conflict')).length,
-      offline_events: report.metrics.filter((m: any) => m.metadata?.offline === true).length,
+      sync_conflicts: report.metrics.filter((m: PerformanceMetric) => m.name.includes('sync_conflict')).length,
+      offline_events: report.metrics.filter((m: PerformanceMetric) => {
+        const metadata = m.metadata as MetricMetadata | undefined;
+        return metadata?.offline === true;
+      }).length,
       full_report: report,
     };
   }
@@ -287,7 +327,7 @@ export class MetricsApiService {
       }
 
       // Aggregate by device type
-      const aggregated = this.aggregateByDeviceType(data || []);
+      const aggregated = this.aggregateByDeviceType((data || []) as RawMetricRow[]);
       return aggregated;
     } catch (error) {
       console.error('Error fetching device stats:', error);
@@ -298,13 +338,14 @@ export class MetricsApiService {
   /**
    * Aggregate metrics by device type
    */
-  private aggregateByDeviceType(metrics: any[]): any[] {
-    const aggregated: Record<string, any> = {};
+  private aggregateByDeviceType(metrics: RawMetricRow[]): DeviceStats[] {
+    const aggregated: Record<string, DeviceStats> = {};
 
     metrics.forEach((m) => {
-      if (!aggregated[m.device_type]) {
-        aggregated[m.device_type] = {
-          device_type: m.device_type,
+      const deviceType = m.device_type || 'unknown';
+      if (!aggregated[deviceType]) {
+        aggregated[deviceType] = {
+          device_type: deviceType,
           avg_fcp: 0,
           avg_lcp: 0,
           error_count: 0,
@@ -313,10 +354,10 @@ export class MetricsApiService {
       }
 
       if (m.metric_name === 'web_vital.fcp') {
-        aggregated[m.device_type].avg_fcp = m.metric_value;
+        aggregated[deviceType].avg_fcp = m.metric_value;
       }
       if (m.metric_name === 'web_vital.lcp') {
-        aggregated[m.device_type].avg_lcp = m.metric_value;
+        aggregated[deviceType].avg_lcp = m.metric_value;
       }
     });
 
@@ -326,7 +367,7 @@ export class MetricsApiService {
   /**
    * Get venue-specific statistics (if show data includes venue info)
    */
-  async getVenueStats(licenseKey: string, days: number = 7) {
+  async getVenueStats(licenseKey: string, days: number = 7): Promise<VenueStats | Record<string, never>> {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
@@ -339,19 +380,21 @@ export class MetricsApiService {
 
       if (error) {
         console.error('Failed to fetch venue stats:', error);
-        return [];
+        return {};
       }
+
+      const sessionRecords = (sessions || []) as SessionSummaryRecord[];
 
       // Group by performance issues
       return {
-        total_sessions: sessions?.length || 0,
-        high_error_sessions: sessions?.filter((s: any) => s.error_count > 5).length || 0,
-        offline_heavy_sessions: sessions?.filter((s: any) => s.offline_events > 10).length || 0,
-        sync_conflict_sessions: sessions?.filter((s: any) => s.sync_conflicts > 0).length || 0,
-        avg_duration_ms: sessions
+        total_sessions: sessionRecords.length,
+        high_error_sessions: sessionRecords.filter((s) => s.error_count > 5).length,
+        offline_heavy_sessions: sessionRecords.filter((s) => s.offline_events > 10).length,
+        sync_conflict_sessions: sessionRecords.filter((s) => s.sync_conflicts > 0).length,
+        avg_duration_ms: sessionRecords.length > 0
           ? Math.round(
-              sessions.reduce((sum: number, s: any) => sum + (s.duration_ms || 0), 0) /
-                sessions.length
+              sessionRecords.reduce((sum, s) => sum + (s.duration_ms || 0), 0) /
+                sessionRecords.length
             )
           : 0,
       };
@@ -383,7 +426,7 @@ export class MetricsApiService {
         'Sync Conflicts',
       ];
 
-      const rows = sessions.map((s: any) => [
+      const rows = sessions.map((s: SessionSummaryRecord) => [
         s.session_id,
         s.start_time,
         s.duration_ms,
@@ -399,7 +442,7 @@ export class MetricsApiService {
 
       const csv = [
         headers.join(','),
-        ...rows.map((row: any[]) => row.map((cell: any) => `"${cell}"`).join(',')),
+        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
       ].join('\n');
 
       return csv;

@@ -17,7 +17,7 @@ export interface PerformanceMetric {
   value: number;
   unit: 'ms' | 'score';
   timestamp: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PerformanceReport {
