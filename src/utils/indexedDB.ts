@@ -36,7 +36,7 @@ export const STORES = {
   METADATA: 'metadata',
 } as const;
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   key: string;
   data: T;
   timestamp: number;
@@ -47,7 +47,7 @@ export interface CacheEntry<T = any> {
 export interface MutationEntry {
   id: string;
   type: 'UPDATE_STATUS' | 'SUBMIT_SCORE' | 'RESET_SCORE' | 'UPDATE_ENTRY';
-  data: any;
+  data: unknown;
   timestamp: number;
   retries: number;
   error?: string;
@@ -56,17 +56,17 @@ export interface MutationEntry {
 
 export interface ShowData {
   licenseKey: string;
-  showInfo: any;
-  trials: any[];
-  classes: any[];
-  entries: any[];
-  results: any[];
+  showInfo: Record<string, unknown>;
+  trials: Record<string, unknown>[];
+  classes: Record<string, unknown>[];
+  entries: Record<string, unknown>[];
+  results: Record<string, unknown>[];
   timestamp: number;
 }
 
 export interface Metadata {
   key: string;
-  value: any;
+  value: unknown;
   timestamp: number;
 }
 
@@ -157,8 +157,11 @@ return this.db;
       const db = await this.init();
 
       // Add size estimate for cache entries
-      if (storeName === STORES.CACHE && (value as any).data) {
-        (value as any).size = this.estimateSize((value as any).data);
+      if (storeName === STORES.CACHE) {
+        const cacheValue = value as CacheEntry;
+        if (cacheValue.data !== undefined) {
+          cacheValue.size = this.estimateSize(cacheValue.data);
+        }
       }
 
       await db.put(storeName, value);
@@ -233,7 +236,7 @@ return this.db;
   async getByIndex<T>(
     storeName: string,
     indexName: string,
-    value: any
+    value: IDBValidKey
   ): Promise<T[]> {
     try {
       const db = await this.init();
@@ -258,9 +261,10 @@ return this.db;
 
       // Add size estimates for cache entries
       if (storeName === STORES.CACHE) {
-        values.forEach((value: any) => {
-          if (value.data) {
-            value.size = this.estimateSize(value.data);
+        values.forEach((value) => {
+          const cacheValue = value as CacheEntry;
+          if (cacheValue.data !== undefined) {
+            cacheValue.size = this.estimateSize(cacheValue.data);
           }
         });
       }
@@ -269,7 +273,7 @@ return this.db;
       await Promise.all(values.map((value) => tx.store.put(value)));
       await tx.done;
 
-} catch (error) {
+    } catch (error) {
       console.error('❌ IndexedDB batchSet error:', error);
       throw error;
     }
@@ -355,7 +359,7 @@ return this.db;
   /**
    * Estimate size of data in bytes (rough approximation)
    */
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     try {
       const str = JSON.stringify(data);
       return new Blob([str]).size;
@@ -419,7 +423,7 @@ export const shows = {
 
 export const metadata = {
   get: (key: string) => db.get<Metadata>(STORES.METADATA, key),
-  set: (key: string, value: any) =>
+  set: (key: string, value: unknown) =>
     db.set<Metadata>(STORES.METADATA, {
       key,
       value,
