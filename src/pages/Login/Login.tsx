@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authenticatePasscode } from '../../services/authService';
-import { detectDatabaseWithValidation, isMigrationModeEnabled } from '../../services/databaseDetectionService';
+import { detectDatabaseWithValidation, isMigrationModeEnabled, V3ShowData } from '../../services/databaseDetectionService';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
@@ -177,11 +177,13 @@ inputRefs.current[0]?.focus();
         // Continue with V3 authentication if not legacy
         if (detectionResult.database === 'v3' && detectionResult.showData) {
           // Already validated, use the show data directly
+          // Type assertion: V3 detection always returns V3ShowData
+          const v3ShowData = detectionResult.showData as V3ShowData;
           clearRateLimit('login');
           hapticFeedback.success();
           const showDataWithType = {
-            ...detectionResult.showData,
-            showType: detectionResult.showData.competition_type || detectionResult.showData.show_type
+            ...v3ShowData,
+            showType: v3ShowData.competition_type || v3ShowData.show_type
           };
           login(fullPasscode, showDataWithType);
 

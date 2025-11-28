@@ -9,8 +9,11 @@
  * - Respects user settings for sync behavior
  */
 
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+
+/** Realtime subscription payload type for generic tables */
+type RealtimePayload = RealtimePostgresChangesPayload<Record<string, unknown>>;
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { submitScore } from './entryService';
 import { subscriptionCleanup } from './subscriptionCleanup';
@@ -27,7 +30,7 @@ interface SyncState {
 interface ActiveSubscription {
   channel: RealtimeChannel;
   key: string;
-  callback: (payload: any) => void;
+  callback: (payload: RealtimePayload) => void;
 }
 
 class SyncManager {
@@ -89,7 +92,7 @@ class SyncManager {
     key: string,
     table: string,
     filter: string,
-    callback: (payload: any) => void
+    callback: (payload: RealtimePayload) => void
   ): () => void {
     // Check if already subscribed
     if (this.subscriptions.has(key)) {

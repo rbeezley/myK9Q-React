@@ -37,6 +37,15 @@ interface CachedDownload {
   timestamp: number;
 }
 
+/** Class data from Supabase with nested trial info */
+interface ClassWithTrial {
+  id: number;
+  element: string;
+  level: string;
+  section: string;
+  trials: { id: number; trial_number: number } | Array<{ id: number; trial_number: number }>;
+}
+
 /**
  * Auto-download entire show for offline use
  * Downloads all classes and entries for the given license key
@@ -109,7 +118,7 @@ return { success: false, downloaded: 0, total: 0, errors: [] };
     }
 
     // Sort classes by trial_number first (can't do this in PostgREST for joined columns)
-    const sortedClasses = classes.sort((a: any, b: any) => {
+    const sortedClasses = (classes as ClassWithTrial[]).sort((a, b) => {
       const trialA = Array.isArray(a.trials) ? a.trials[0]?.trial_number : a.trials?.trial_number;
       const trialB = Array.isArray(b.trials) ? b.trials[0]?.trial_number : b.trials?.trial_number;
 
@@ -152,7 +161,7 @@ return { success: false, downloaded: 0, total: 0, errors: [] };
 
     // 4. Cache trial and class list data for offline ClassList pages
     // Get unique trial IDs from the classes
-    const trialIds = [...new Set(sortedClasses.map((cls: any) => {
+    const trialIds = [...new Set(sortedClasses.map((cls) => {
       const trial = Array.isArray(cls.trials) ? cls.trials[0] : cls.trials;
       return trial?.id;
     }))].filter(Boolean);

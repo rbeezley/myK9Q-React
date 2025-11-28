@@ -22,10 +22,23 @@ if (LEGACY_SUPABASE_URL && LEGACY_SUPABASE_ANON_KEY) {
   supabaseLegacy = createClient(LEGACY_SUPABASE_URL, LEGACY_SUPABASE_ANON_KEY);
 }
 
+/** V3 show data structure returned by detectDatabaseWithValidation */
+export interface V3ShowData {
+  showId: string;
+  showName: string;
+  clubName: string;
+  showDate: string;
+  licenseKey: string;
+  org: string;
+  competition_type: string;
+  show_type: string;
+}
+
 export interface DetectionResult {
   database: 'v3' | 'legacy';
   redirectUrl?: string;
-  showData?: any;
+  /** V3 returns V3ShowData, legacy returns raw DB record */
+  showData?: V3ShowData | Record<string, unknown>;
   message?: string;
 }
 
@@ -180,8 +193,8 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
       for (const show of v3Shows) {
         if (validatePasscodeAgainstLicenseKey(passcode, show.license_key)) {
           // Map V3 database fields to showContext format
-          const showData = {
-            showId: show.id,
+          const showData: V3ShowData = {
+            showId: String(show.id),
             showName: show.show_name,
             clubName: show.club_name,
             showDate: show.show_date,
@@ -211,7 +224,7 @@ return {
         for (const show of legacyShows) {
           // Legacy database uses mobile_app_lic_key field
           // Type assertion needed since we don't have legacy database types
-          const legacyShow = show as { mobile_app_lic_key?: string; [key: string]: any };
+          const legacyShow = show as { mobile_app_lic_key?: string; [key: string]: unknown };
           if (legacyShow.mobile_app_lic_key && validatePasscodeAgainstLicenseKey(passcode, legacyShow.mobile_app_lic_key)) {
 // Pass passcode to Flutter app for auto-login (backwards compatible)
             // If Flutter doesn't read the URL param, user can still login manually

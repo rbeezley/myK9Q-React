@@ -129,8 +129,8 @@ export function useOptimizationSuggestions() {
     category: string;
     suggestion: string;
     setting: keyof AppSettings;
-    currentValue: any;
-    recommendedValue: any;
+    currentValue: AppSettings[keyof AppSettings];
+    recommendedValue: AppSettings[keyof AppSettings];
     impact: 'low' | 'medium' | 'high';
   }>>([]);
   const [isLoading, setIsLoading] = useState(false);

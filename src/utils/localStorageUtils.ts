@@ -41,10 +41,10 @@
  * );
  * ```
  */
-export function safeLocalStorageGet<T = any>(
+export function safeLocalStorageGet<T = unknown>(
   key: string,
   defaultValue: T,
-  validator?: (value: any) => boolean
+  validator?: (value: unknown) => boolean
 ): T {
   // SSR safety - return default if localStorage is not available
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
@@ -106,7 +106,7 @@ export function safeLocalStorageGet<T = any>(
  * }
  * ```
  */
-export function safeLocalStorageSet(key: string, value: any): boolean {
+export function safeLocalStorageSet(key: string, value: unknown): boolean {
   // SSR safety - fail silently if localStorage is not available
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
     return false;

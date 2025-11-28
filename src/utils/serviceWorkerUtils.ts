@@ -7,7 +7,7 @@ import { getVapidPublicKey } from '../config/pushNotifications';
 
 export interface ServiceWorkerMessage {
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export class ServiceWorkerManager {

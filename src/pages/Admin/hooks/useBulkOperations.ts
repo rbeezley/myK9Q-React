@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   bulkSetClassVisibility,
   bulkSetClassSelfCheckin,
@@ -51,7 +52,7 @@ export interface UseBulkOperationsReturn {
   handleBulkReleaseResults: (
     classes: ClassInfo[],
     adminName: string,
-    supabaseClient: any
+    supabaseClient: SupabaseClient
   ) => Promise<BulkOperationResult>;
 }
 
@@ -223,7 +224,7 @@ export function useBulkOperations(): UseBulkOperationsReturn {
   const handleBulkReleaseResults = useCallback(async (
     classes: ClassInfo[],
     adminName: string,
-    supabaseClient: any
+    supabaseClient: SupabaseClient
   ): Promise<BulkOperationResult> => {
     if (selectedClasses.size === 0) {
       return {
