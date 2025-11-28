@@ -9,16 +9,22 @@ import { AppSettings, SETTINGS_VERSION } from '@/stores/settingsStore';
 import { logger } from './logger';
 
 /**
+ * Represents settings in an unknown/pre-migration state
+ * Could be from an older version with different schema
+ */
+type UnvalidatedSettings = Record<string, unknown>;
+
+/**
  * Migration function type
  */
-type MigrationFn = (settings: any) => any;
+type MigrationFn = (settings: UnvalidatedSettings) => UnvalidatedSettings;
 
 /**
  * Migration definitions
  * Each version defines how to upgrade from the previous version
  */
 const migrations: Record<string, MigrationFn> = {
-  '1.0.0': (settings: any) => {
+  '1.0.0': (settings: UnvalidatedSettings) => {
     // Initial version - no migration needed
     return settings;
   },
@@ -76,10 +82,10 @@ function getOrderedVersions(): string[] {
  * Migrate settings from one version to another
  */
 export function migrateSettings(
-  settings: any,
+  settings: UnvalidatedSettings | AppSettings,
   fromVersion: string,
   toVersion: string = SETTINGS_VERSION
-): any {
+): UnvalidatedSettings | AppSettings {
   // No migration needed if versions match
   if (fromVersion === toVersion) {
     logger.log(`Settings already at version ${toVersion}`);
@@ -146,7 +152,7 @@ export function needsMigration(currentVersion: string): boolean {
  * Validate settings structure
  * Ensures all required fields exist
  */
-export function validateSettings(settings: any): settings is AppSettings {
+export function validateSettings(settings: unknown): settings is AppSettings {
   // Basic structure validation
   if (!settings || typeof settings !== 'object') {
     return false;
@@ -173,7 +179,10 @@ export function validateSettings(settings: any): settings is AppSettings {
  * Attempt to repair invalid settings
  * Merges with defaults if validation fails
  */
-export function repairSettings(settings: any, defaults: AppSettings): AppSettings {
+export function repairSettings(
+  settings: UnvalidatedSettings | AppSettings,
+  defaults: AppSettings
+): AppSettings {
   if (validateSettings(settings)) {
     return settings;
   }
