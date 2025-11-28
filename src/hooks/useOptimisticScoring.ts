@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useOptimisticUpdate } from './useOptimisticUpdate';
 import { submitScore } from '../services/entryService';
 import { useEntryStore } from '../stores/entryStore';
-import { useScoringStore } from '../stores/scoringStore';
+import { useScoringStore, type QualifyingResult } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
 
 /**
@@ -91,17 +91,18 @@ export function useOptimisticScoring() {
 
     // Step 1: Update local state IMMEDIATELY (< 50ms)
     // This makes the UI feel instant
-    const optimisticResult = scoreData.resultText as any; // Type assertion for flexible result text
+    const optimisticResult = scoreData.resultText;
 
     // Mark as scored in local store (legacy)
     markAsScored(entryId, optimisticResult);
 
     // Add to scoring session for local tracking
+    // Cast to QualifyingResult - resultText should match valid qualifying values at runtime
     addScoreToSession({
       entryId,
       armband: armband || 0,
       time: scoreData.searchTime || '0:00.00',
-      qualifying: optimisticResult,
+      qualifying: optimisticResult as QualifyingResult,
       areas: scoreData.areas || {},
       nonQualifyingReason: scoreData.nonQualifyingReason,
       correctCount: scoreData.correctCount,

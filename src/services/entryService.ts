@@ -14,6 +14,7 @@ import {
   submitBatchScores as submitBatchScoresFromSubmissionModule,
   subscribeToEntryUpdates as subscribeToEntryUpdatesFromSubscriptionsModule,
   updateExhibitorOrder as updateExhibitorOrderFromBatchModule,
+  type RealtimePayload,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
 
@@ -221,7 +222,7 @@ export async function getClassInfo(
 export function subscribeToEntryUpdates(
   actualClassId: number,
   licenseKey: string,
-  onUpdate: (payload: any) => void
+  onUpdate: (payload: RealtimePayload) => void
 ): () => void {
   return subscribeToEntryUpdatesFromSubscriptionsModule(actualClassId, licenseKey, onUpdate);
 }

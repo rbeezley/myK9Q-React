@@ -73,8 +73,8 @@ interface NationalsState {
   refreshQualifiers: () => Promise<void>;
   refreshElementProgress: () => Promise<void>;
   refreshAdvancementStatus: () => Promise<void>;
-  submitScore: (input: ScoringInput) => Promise<{ success: boolean; error?: any }>;
-  updateScore: (scoreId: number, input: Partial<ScoringInput>) => Promise<{ success: boolean; error?: any }>;
+  submitScore: (input: ScoringInput) => Promise<{ success: boolean; error?: unknown }>;
+  updateScore: (scoreId: number, input: Partial<ScoringInput>) => Promise<{ success: boolean; error?: unknown }>;
   getDogScores: (entryId: number) => Promise<NationalsScore[]>;
   startScoring: (entryId: number, element: ElementType, day: CompetitionDay) => void;
   stopScoring: () => void;

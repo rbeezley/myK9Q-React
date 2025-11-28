@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useOptimisticUpdate } from '../../../hooks/useOptimisticUpdate';
 import { updateEntryCheckinStatus, resetEntryScore, markInRing, markEntryCompleted } from '../../../services/entryService';
 import { Entry as _Entry } from '../../../stores/entryStore';
+import type { ReplicatedEntriesTable } from '../../../services/replication/tables/ReplicatedEntriesTable';
 
 /**
  * Shared hook for entry list actions with optimistic updates.
@@ -24,8 +25,9 @@ const { getReplicationManager } = await import('../../../services/replication');
         if (manager) {
           const entriesTable = manager.getTable('entries');
           if (entriesTable && 'updateEntryStatus' in entriesTable) {
-            await (entriesTable as any).updateEntryStatus(String(entryId), newStatus, true);
-}
+            // Type narrowing confirms method exists; cast through unknown for type safety
+            await (entriesTable as unknown as ReplicatedEntriesTable).updateEntryStatus(String(entryId), newStatus, true);
+          }
         }
       } catch (error) {
         console.error('❌ Could not update replication cache optimistically:', error);

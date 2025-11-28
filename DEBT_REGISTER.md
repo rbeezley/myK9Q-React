@@ -210,19 +210,23 @@ Medium - maintainability issue, fix opportunistically.
 Quick fixes, complex external types, migration from JavaScript.
 
 **Progress (2025-11-27):**
-Fixed 6 `any` types in core production files:
+Fixed 11 `any` types in core production files:
 | File | Before | After | Change |
 |------|--------|-------|--------|
 | `useScoresheetCore.ts` | 2 `any` | 0 | `AreaScore[keyof AreaScore]` |
 | `useAreaManagement.ts` | 2 `any` | 0 | `AreaScore[keyof AreaScore]` |
 | `CreateAnnouncementModal.tsx` | 1 `any` | 0 | `'normal' \| 'high' \| 'urgent'` |
 | `MaxTimeDialog.tsx` | 1 `any` | 0 | Inline interface |
+| `useOptimisticScoring.ts` | 1 `any` | 0 | `as QualifyingResult` |
+| `useEntryListActions.ts` | 1 `any` | 0 | `as unknown as ReplicatedEntriesTable` |
+| `entryService.ts` | 1 `any` | 0 | `RealtimePayload` type |
+| `nationalsStore.ts` | 2 `any` | 0 | `unknown` for error type |
 
 **Remaining Categories:**
 - **Test files (~150):** Keep - mocking requires `as any`
 - **Debug/diagnostic (~30):** Low priority
 - **Generic utilities (~50):** May need `any` for flexibility
-- **Core business logic (~50):** High priority for future fixes
+- **Core business logic (~45):** High priority for future fixes
 
 **Proposed Solution:**
 1. ~~Enable `noImplicitAny` in tsconfig.json~~ (too aggressive for existing codebase)
@@ -241,7 +245,7 @@ Medium - type safety is important but most `any` usage is in non-critical paths.
 - Blocked By: None
 - Related: None
 
-**Status:** In Progress (6 fixed, ~50 high-priority remaining)
+**Status:** In Progress (11 fixed, ~45 high-priority remaining)
 
 **Assignee:** Unassigned
 
