@@ -5,6 +5,61 @@
  * Helps the app run smoothly on low-end devices while leveraging high-end features.
  */
 
+// Type definitions for non-standard browser APIs
+
+/** Navigator with deviceMemory property (Chrome only) */
+interface NavigatorWithDeviceMemory extends Navigator {
+  deviceMemory?: number;
+}
+
+/** Navigator with Network Information API */
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation;
+  mozConnection?: NetworkInformation;
+  webkitConnection?: NetworkInformation;
+}
+
+/** Navigator with Battery API */
+interface NavigatorWithBattery extends Navigator {
+  getBattery(): Promise<BatteryManager>;
+}
+
+/** Navigator with MS Touch Points (legacy IE/Edge) */
+interface NavigatorWithMsTouch extends Navigator {
+  msMaxTouchPoints?: number;
+}
+
+/** Network Information API types */
+interface NetworkInformation {
+  effectiveType: 'slow-2g' | '2g' | '3g' | '4g';
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+}
+
+/** Battery Manager API types */
+interface BatteryManager {
+  charging: boolean;
+  level: number;
+  chargingTime: number;
+  dischargingTime: number;
+}
+
+/** Performance with Chrome memory API */
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
+/** WebGL with debug renderer info */
+interface WebGLDebugRendererInfo {
+  UNMASKED_VENDOR_WEBGL: number;
+  UNMASKED_RENDERER_WEBGL: number;
+}
+
 export interface DeviceCapabilities {
   /** Device tier: low, medium, high */
   tier: 'low' | 'medium' | 'high';
@@ -75,7 +130,7 @@ export async function detectDeviceCapabilities(): Promise<DeviceCapabilities> {
   }
 
   const cores = navigator.hardwareConcurrency || 2;
-  const memory = (navigator as any).deviceMemory || estimateMemory();
+  const memory = (navigator as NavigatorWithDeviceMemory).deviceMemory || estimateMemory();
   const connection = detectConnection();
   const gpu = await detectGPU();
   const screen = detectScreenSize();
@@ -205,8 +260,9 @@ export async function getPerformanceSettings(): Promise<PerformanceSettings> {
  */
 function estimateMemory(): number {
   // Use performance API to estimate
-  if (performance && (performance as any).memory) {
-    const jsHeapLimit = (performance as any).memory.jsHeapSizeLimit;
+  const perfWithMemory = performance as PerformanceWithMemory;
+  if (perfWithMemory.memory) {
+    const jsHeapLimit = perfWithMemory.memory.jsHeapSizeLimit;
     // Rough estimate: total memory is ~4x JS heap limit
     return Math.round((jsHeapLimit / 1024 / 1024 / 1024) * 4);
   }
@@ -223,7 +279,8 @@ function estimateMemory(): number {
  * Detect connection speed
  */
 function detectConnection(): 'slow' | 'medium' | 'fast' {
-  const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  const navWithConn = navigator as NavigatorWithConnection;
+  const conn = navWithConn.connection || navWithConn.mozConnection || navWithConn.webkitConnection;
 
   if (!conn) return 'medium';
 
@@ -241,14 +298,14 @@ async function detectGPU(): Promise<'low' | 'medium' | 'high'> {
   try {
     // Try to get GPU info from WebGL
     const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const gl = canvas.getContext('webgl') as WebGLRenderingContext | null;
 
     if (!gl) return 'low';
 
-    const debugInfo = (gl as any).getExtension('WEBGL_debug_renderer_info');
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info') as WebGLDebugRendererInfo | null;
     if (!debugInfo) return 'medium';
 
-    const renderer = (gl as any).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
+    const renderer = (gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) as string).toLowerCase();
 
     // High-end GPUs
     if (
@@ -294,7 +351,7 @@ function isTouchDevice(): boolean {
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
-    (navigator as any).msMaxTouchPoints > 0
+    ((navigator as NavigatorWithMsTouch).msMaxTouchPoints ?? 0) > 0
   );
 }
 
@@ -320,7 +377,7 @@ function isBatterySaving(): boolean {
 
   // Check battery API if available
   if ('getBattery' in navigator) {
-    (navigator as any).getBattery().then((battery: any) => {
+    (navigator as NavigatorWithBattery).getBattery().then((battery) => {
       return battery.charging === false && battery.level < 0.2;
     });
   }

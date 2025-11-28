@@ -30,14 +30,14 @@ const runningTasks = new Set<number>();
  */
 const requestIdleCallbackPolyfill =
   window.requestIdleCallback ||
-  function (callback: IdleRequestCallback, _options?: IdleRequestOptions) {
+  function (callback: IdleRequestCallback, _options?: IdleRequestOptions): number {
     const start = Date.now();
     return setTimeout(() => {
       callback({
         didTimeout: false,
         timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
       } as IdleDeadline);
-    }, 1) as any;
+    }, 1) as unknown as number;
   };
 
 /**
@@ -202,7 +202,7 @@ export class IdleBatch {
 /**
  * Debounce function that runs during idle time
  */
-export function idleDebounce<T extends (...args: any[]) => any>(
+export function idleDebounce<T extends (...args: unknown[]) => unknown>(
   callback: T,
   wait: number = 300,
   options: IdleWorkOptions = {}
@@ -210,7 +210,7 @@ export function idleDebounce<T extends (...args: any[]) => any>(
   let timeoutId: NodeJS.Timeout | null = null;
   let taskId: number | null = null;
 
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     // Clear previous timeout and task
     if (timeoutId) clearTimeout(timeoutId);
     if (taskId !== null) cancelIdleWork(taskId);
@@ -226,7 +226,7 @@ export function idleDebounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function that runs during idle time
  */
-export function idleThrottle<T extends (...args: any[]) => any>(
+export function idleThrottle<T extends (...args: unknown[]) => unknown>(
   callback: T,
   wait: number = 300,
   options: IdleWorkOptions = {}
@@ -234,7 +234,7 @@ export function idleThrottle<T extends (...args: any[]) => any>(
   let lastRun = 0;
   let taskId: number | null = null;
 
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     const now = Date.now();
 
     if (now - lastRun >= wait) {

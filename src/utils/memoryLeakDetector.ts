@@ -7,6 +7,15 @@
 
 import { subscriptionCleanup } from '../services/subscriptionCleanup';
 
+/** Performance with Chrome memory API */
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 interface MemorySnapshot {
   timestamp: Date;
   heapUsed: number;
@@ -14,11 +23,21 @@ interface MemorySnapshot {
   subscriptionCount: number;
 }
 
+interface LeakWarningDetails {
+  heapUsedMB?: string;
+  heapTotalMB?: string;
+  count?: number;
+  breakdown?: Record<string, number>;
+  oldHeapMB?: string;
+  newHeapMB?: string;
+  growthRate?: string;
+}
+
 interface LeakWarning {
   type: 'heap' | 'subscriptions' | 'heap_growth';
   severity: 'low' | 'medium' | 'high';
   message: string;
-  details: any;
+  details: LeakWarningDetails;
   timestamp: Date;
 }
 
@@ -72,7 +91,8 @@ class MemoryLeakDetector {
    * Take a memory snapshot
    */
   private takeSnapshot(): void {
-    const memoryInfo = (performance as any).memory;
+    const perfWithMemory = performance as PerformanceWithMemory;
+    const memoryInfo = perfWithMemory.memory;
 
     if (!memoryInfo) {
       // memory API not available (only in Chrome)
@@ -259,7 +279,8 @@ class MemoryLeakDetector {
     snapshotCount: number;
     warningCount: number;
   } | null {
-    const memoryInfo = (performance as any).memory;
+    const perfWithMemory = performance as PerformanceWithMemory;
+    const memoryInfo = perfWithMemory.memory;
 
     if (!memoryInfo) {
       return null;
@@ -355,7 +376,7 @@ class MemoryLeakDetector {
    * Check if memory API is available
    */
   isSupported(): boolean {
-    return !!(performance as any).memory;
+    return !!(performance as PerformanceWithMemory).memory;
   }
 }
 
