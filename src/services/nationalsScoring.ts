@@ -117,6 +117,11 @@ export interface ScoringInput {
   notes?: string;
 }
 
+// Import ElementProgressStats from nationalsStore
+import type { ElementProgressStats } from '@/stores/nationalsStore';
+// Re-export for consumers
+export type { ElementProgressStats };
+
 export class NationalsScoring {
   private licenseKey: string;
 
@@ -206,7 +211,7 @@ export class NationalsScoring {
   /**
    * Submit a score to the database
    */
-  async submitScore(input: ScoringInput): Promise<{ data: NationalsScore | null; error: any }> {
+  async submitScore(input: ScoringInput): Promise<{ data: NationalsScore | null; error: unknown }> {
     try {
       const score = this.createScore(input);
 
@@ -231,7 +236,7 @@ return { data, error: null };
   /**
    * Update an existing score
    */
-  async updateScore(scoreId: number, input: Partial<ScoringInput>): Promise<{ data: NationalsScore | null; error: any }> {
+  async updateScore(scoreId: number, input: Partial<ScoringInput>): Promise<{ data: NationalsScore | null; error: unknown }> {
     try {
       // Get existing score
       const { data: existingScore, error: fetchError } = await supabase
@@ -287,7 +292,7 @@ return { data, error: null };
   /**
    * Get current leaderboard
    */
-  async getLeaderboard(limit?: number): Promise<{ data: LeaderboardEntry[]; error: any }> {
+  async getLeaderboard(limit?: number): Promise<{ data: LeaderboardEntry[]; error: unknown }> {
     try {
       let query = supabase
         .from('nationals_rankings')
@@ -316,7 +321,7 @@ return { data, error: null };
   /**
    * Get top 100 qualifiers for finals
    */
-  async getQualifiers(): Promise<{ data: LeaderboardEntry[]; error: any }> {
+  async getQualifiers(): Promise<{ data: LeaderboardEntry[]; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('nationals_rankings')
@@ -339,7 +344,7 @@ return { data, error: null };
   /**
    * Get scores for a specific dog
    */
-  async getDogScores(entryId: number): Promise<{ data: NationalsScore[]; error: any }> {
+  async getDogScores(entryId: number): Promise<{ data: NationalsScore[]; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('nationals_scores')
@@ -364,7 +369,7 @@ return { data, error: null };
   /**
    * Get element progress statistics
    */
-  async getElementProgress(): Promise<{ data: any[]; error: any }> {
+  async getElementProgress(): Promise<{ data: ElementProgressStats[]; error: unknown }> {
     try {
       const { data, error } = await supabase
         .from('nationals_scores')
@@ -387,7 +392,7 @@ return { data, error: null };
   /**
    * Force recalculation of all rankings
    */
-  async recalculateRankings(): Promise<{ success: boolean; error: any }> {
+  async recalculateRankings(): Promise<{ success: boolean; error: unknown }> {
     try {
       const { error } = await supabase.rpc('calculate_nationals_rankings');
 
@@ -410,7 +415,7 @@ return { success: true, error: null };
     cutLinePoints: number;
     cutLineTime: number;
     qualifiedCount: number;
-    error: any
+    error: unknown;
   }> {
     try {
       const { data, error } = await supabase
