@@ -1,6 +1,6 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { AuthProvider } from './contexts/AuthContext';
@@ -32,6 +32,8 @@ import { notificationIntegration } from './services/notificationIntegration';
 import { scheduleAutoCleanup } from './utils/cacheManager';
 import { subscriptionCleanup } from './services/subscriptionCleanup';
 import { DatabaseRecovery } from './components/diagnostics/DatabaseRecovery';
+import { clearReplicationCaches } from './services/replication/initReplication';
+import { logger } from './utils/logger';
 import './utils/quickRecovery'; // Auto-setup recovery functions
 // memoryLeakDetector auto-starts via its module initialization (dev mode only)
 
@@ -138,6 +140,53 @@ const persister = createSyncStoragePersister({
   key: 'myK9Q-react-query-cache',
 });
 
+/**
+ * Hook to detect show switches and clear caches
+ * This is a defensive measure in addition to logout cache clearing
+ * Handles edge cases where license key changes without full logout
+ */
+function useShowSwitchCacheCleanup(licenseKey: string | undefined) {
+  const queryClient = useQueryClient();
+  const previousLicenseKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Skip if no license key (user not logged in)
+    if (!licenseKey) {
+      previousLicenseKeyRef.current = null;
+      return;
+    }
+
+    // Detect license key change (show switch)
+    if (
+      previousLicenseKeyRef.current !== null &&
+      previousLicenseKeyRef.current !== licenseKey
+    ) {
+      logger.log(`[App] 🔄 Show switch detected: ${previousLicenseKeyRef.current} → ${licenseKey}`);
+
+      // Clear React Query in-memory cache for old show
+      // This removes queries with the old license key
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const key = query.queryKey;
+          // Remove queries that include the old license key
+          return Array.isArray(key) && key.includes(previousLicenseKeyRef.current);
+        }
+      });
+      logger.log('[App] ✅ React Query cache cleared for old show');
+
+      // Clear IndexedDB replication caches
+      clearReplicationCaches().then(() => {
+        logger.log('[App] ✅ IndexedDB caches cleared for show switch');
+      }).catch((error) => {
+        logger.error('[App] ⚠️ Failed to clear IndexedDB caches:', error);
+      });
+    }
+
+    // Update tracked license key
+    previousLicenseKeyRef.current = licenseKey;
+  }, [licenseKey, queryClient]);
+}
+
 // Hook to handle route changes and cleanup subscriptions
 function useRouteChangeCleanup() {
   const location = useLocation();
@@ -177,6 +226,9 @@ function AppWithAuth() {
 
   // Auto-switch push notification subscription when license key changes
   usePushNotificationAutoSwitch(showContext?.licenseKey);
+
+  // Clear caches when show/license key changes (defensive measure)
+  useShowSwitchCacheCleanup(showContext?.licenseKey);
 
   // Handle service worker messages (notification clicks)
   useServiceWorkerMessages();

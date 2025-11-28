@@ -339,6 +339,11 @@ export async function testSupabaseRealTime(): Promise<() => void> {
  * Initialize debug functions on window object for browser console access
  */
 export function initializeDebugFunctions(): void {
+  // Only register debug functions in development mode
+  if (!import.meta.env.DEV) {
+    return;
+  }
+
   if (typeof window !== 'undefined') {
     const debugWindow = window as EntryDebugWindow;
     debugWindow.debugMarkInRing = debugMarkInRing;

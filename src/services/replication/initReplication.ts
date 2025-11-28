@@ -21,7 +21,8 @@ import {
   replicatedAnnouncementsTable,
   replicatedAnnouncementReadsTable,
   replicatedPushSubscriptionsTable,
-  replicatedPushNotificationConfigTable,
+  // NOTE: replicatedPushNotificationConfigTable removed - table contains secrets
+  // that are only accessible via service_role (see Migration 028)
   replicatedStatsViewTable,
   replicatedEventStatisticsTable,
   replicatedNationalsRankingsTable,
@@ -33,6 +34,15 @@ import { logger } from '@/utils/logger';
 
 // Track if we've already initialized to prevent duplicate initialization
 let isInitialized = false;
+
+/**
+ * Reset initialization state (call on logout)
+ * Allows replication to reinitialize with a new license key after show switch
+ */
+export function resetReplicationState(): void {
+  isInitialized = false;
+  logger.log('[Replication] State reset - ready for new show initialization');
+}
 
 /**
  * Initialize the replication system
@@ -123,7 +133,9 @@ export async function initializeReplication(): Promise<void> {
     manager.registerTable('announcements', replicatedAnnouncementsTable);
     manager.registerTable('announcement_reads', replicatedAnnouncementReadsTable);
     manager.registerTable('push_subscriptions', replicatedPushSubscriptionsTable);
-    manager.registerTable('push_notification_config', replicatedPushNotificationConfigTable);
+    // NOTE: push_notification_config is NOT registered for client-side replication
+    // because it contains secrets (trigger_secret, anon_key) protected by RLS
+    // that only allows service_role access. The browser client uses anon key.
 
     // Statistics Views (Day 18)
     manager.registerTable('view_stats_summary', replicatedStatsViewTable);
@@ -135,7 +147,7 @@ export async function initializeReplication(): Promise<void> {
     // Audit Log View (Day 20)
     manager.registerTable('view_audit_log', replicatedAuditLogViewTable);
 
-    logger.log('[Replication] Registered 16 tables');
+    logger.log('[Replication] Registered 15 tables');
 
     // Issue #4 Fix: Wait for all subscriptions to be ready before starting sync
     logger.log('[Replication] Waiting for subscriptions to initialize...');

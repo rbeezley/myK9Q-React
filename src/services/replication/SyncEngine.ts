@@ -22,9 +22,7 @@ import { REPLICATION_STORES } from './ReplicatedTable';
 import { openDB, type IDBPDatabase } from 'idb';
 import { MutationManager, type MutationManagerConfig } from './MutationManager';
 import { SyncExecutor, type SyncExecutorOptions } from './SyncExecutor';
-
-const DB_NAME = 'myK9Q_Replication';
-const DB_VERSION = 1;
+import { DB_NAME, DB_VERSION } from './replicationConstants';
 
 export interface SyncOptions {
   /** Force full sync even if incremental is available */
@@ -189,6 +187,15 @@ export class SyncEngine {
    */
   async uploadPendingMutations(): Promise<SyncResult[]> {
     return this.mutationManager.uploadPendingMutations();
+  }
+
+  /**
+   * Clear all pending mutations (call on logout/show switch)
+   * Prevents stale mutations from previous shows being uploaded
+   * Delegates to MutationManager
+   */
+  async clearAllMutations(): Promise<void> {
+    return this.mutationManager.clearAllMutations();
   }
 
   // ========================================

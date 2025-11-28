@@ -50,7 +50,14 @@ export class ReplicatedPushNotificationConfigTable extends ReplicatedTable<PushN
 
     if (error) {
       // Config might not exist yet - return empty array
-      if (error.code === 'PGRST116') {
+      // PGRST116: No rows returned
+      // 406: Not Acceptable (table might not exist or RLS blocking)
+      // 42P01: Undefined table
+      if (error.code === 'PGRST116' || error.code === '406' || error.code === '42P01') {
+        return [];
+      }
+      // Also handle HTTP status 406 (Not Acceptable) - table may not exist
+      if (error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
         return [];
       }
       throw new Error(`Failed to fetch push notification config: ${error.message}`);

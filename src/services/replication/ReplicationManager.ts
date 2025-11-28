@@ -287,6 +287,7 @@ export class ReplicationManager {
   async clearAllCaches(): Promise<void> {
     logger.log('[ReplicationManager] Clearing all caches...');
 
+    // Clear all table caches
     const tableNames = Array.from(this.tables.keys());
 
     for (const tableName of tableNames) {
@@ -301,7 +302,15 @@ export class ReplicationManager {
       }
     }
 
-    logger.log('[ReplicationManager] ✅ All caches cleared');
+    // CRITICAL: Also clear pending mutations to prevent stale data uploads
+    try {
+      await this.syncEngine.clearAllMutations();
+      logger.log('[ReplicationManager] ✅ Cleared pending mutations');
+    } catch (error) {
+      logger.error('[ReplicationManager] Failed to clear mutations:', error);
+    }
+
+    logger.log('[ReplicationManager] ✅ All caches and mutations cleared');
   }
 
   /**

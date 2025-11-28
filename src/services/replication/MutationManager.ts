@@ -420,6 +420,28 @@ export class MutationManager {
   // ========================================
 
   /**
+   * Clear all pending mutations (call on logout/show switch)
+   * Prevents stale mutations from previous shows being uploaded
+   */
+  async clearAllMutations(): Promise<void> {
+    try {
+      const db = await this.getDb();
+
+      // Clear all pending mutations from IndexedDB
+      const tx = db.transaction(REPLICATION_STORES.PENDING_MUTATIONS, 'readwrite');
+      await tx.store.clear();
+      await tx.done;
+
+      // Also clear the localStorage backup
+      localStorage.removeItem('replication_mutation_backup');
+
+      logger.log('[MutationManager] ✅ Cleared all pending mutations and localStorage backup');
+    } catch (error) {
+      logger.error('[MutationManager] Failed to clear mutations:', error);
+    }
+  }
+
+  /**
    * Clean up resources
    */
   destroy(): void {

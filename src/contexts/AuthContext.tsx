@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
-import { initializeReplication } from '@/services/replication/initReplication';
+import { initializeReplication, clearReplicationCaches, resetReplicationState } from '@/services/replication/initReplication';
 import { logger } from '@/utils/logger';
 
 interface ShowContext {
@@ -121,7 +121,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    logger.log('[Auth] Logging out and clearing all caches...');
+
     const newAuthState = {
       isAuthenticated: false,
       role: null,
@@ -133,6 +135,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(newAuthState);
     localStorage.removeItem('myK9Q_auth');
     sessionStorage.removeItem('auth');
+
+    // CRITICAL: Clear all caches to prevent multi-tenant data leakage
+    try {
+      // Clear React Query persisted cache from localStorage
+      localStorage.removeItem('myK9Q-react-query-cache');
+      logger.log('[Auth] ✅ React Query cache cleared');
+
+      // Clear IndexedDB replication caches
+      await clearReplicationCaches();
+      logger.log('[Auth] ✅ IndexedDB replication caches cleared');
+
+      // Reset replication state so it can reinitialize with new license key
+      resetReplicationState();
+      logger.log('[Auth] ✅ Replication state reset');
+    } catch (error) {
+      logger.error('[Auth] ⚠️ Error clearing caches on logout:', error);
+      // Continue with logout even if cache clearing fails
+    }
+
+    logger.log('[Auth] ✅ Logout complete - all caches cleared');
   }, []);
 
   const canAccess = useCallback((permission: keyof UserPermissions): boolean => {

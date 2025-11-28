@@ -46,7 +46,8 @@ const manager = getReplicationManager();
     const cachedClass = await classesTable.get(primaryClassId.toString());
 
     if (!cachedClass) {
-      console.warn(`[REPLICATION] Class ${primaryClassId} not found in cache, falling back to Supabase`);
+      // This is expected during initial sync when cache is empty - don't log as warning
+      // The caller will fall back to Supabase, which is the correct behavior
       return null;
     }
 

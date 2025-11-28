@@ -44,6 +44,9 @@ export interface EventStatistics {
  * Server-authoritative (no client writes).
  */
 export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatistics> {
+  // Track if dormant message has been logged this session (avoid log spam)
+  private static dormantLoggedOnce = false;
+
   constructor() {
     super('event_statistics');
   }
@@ -210,8 +213,11 @@ export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatist
     // DORMANT TABLE CHECK: event_statistics doesn't exist in database yet
     // Return success with 0 rows to prevent error spam during sync
     // TODO: Remove this check when event_statistics migration is created
-    // eslint-disable-next-line no-console
-    console.log('[ReplicatedEventStatisticsTable] ⏸️ Skipping sync - table is dormant (not yet in database)');
+    if (!ReplicatedEventStatisticsTable.dormantLoggedOnce) {
+      // eslint-disable-next-line no-console
+      console.log('[ReplicatedEventStatisticsTable] ⏸️ Skipping sync - table is dormant (not yet in database)');
+      ReplicatedEventStatisticsTable.dormantLoggedOnce = true;
+    }
     return {
       tableName: this.tableName,
       success: true,
