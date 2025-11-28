@@ -16,25 +16,38 @@
 
 import { supabase } from '@/lib/supabase';
 
+/** Base entry data that may be involved in conflicts */
+export interface ConflictEntryData {
+  updated_at?: string;
+  check_in_status?: number;
+  running_order?: number;
+  time?: number;
+  faults?: number;
+  placement?: number;
+  score?: number;
+  qualifying?: boolean;
+  [key: string]: unknown; // Allow additional fields
+}
+
 export type ConflictType = 'score' | 'status' | 'entry_data';
 
 export interface Conflict {
   id: string;
   entryId: string;
   type: ConflictType;
-  localData: any;
-  remoteData: any;
+  localData: ConflictEntryData;
+  remoteData: ConflictEntryData;
   localTimestamp: number;
   remoteTimestamp: number;
   detected: number;
   status: 'pending' | 'resolved' | 'ignored';
   resolution?: 'local' | 'remote' | 'merge';
-  mergedData?: any;
+  mergedData?: ConflictEntryData;
 }
 
 export interface ConflictResolution {
   action: 'local' | 'remote' | 'merge';
-  mergedData?: any;
+  mergedData?: ConflictEntryData;
 }
 
 // In-memory conflict store
@@ -45,8 +58,8 @@ const conflicts: Map<string, Conflict> = new Map();
  */
 export function detectConflict(
   entryId: string,
-  localData: any,
-  remoteData: any,
+  localData: ConflictEntryData,
+  remoteData: ConflictEntryData,
   type: ConflictType
 ): Conflict | null {
   // No conflict if data is the same
@@ -133,8 +146,11 @@ export function autoResolveConflict(conflict: Conflict): ConflictResolution | nu
 /**
  * Try to merge entry data by combining non-conflicting changes
  */
-function tryMergeEntryData(local: any, remote: any): any | null {
-  const merged = { ...remote }; // Start with remote as base
+function tryMergeEntryData(
+  local: ConflictEntryData,
+  remote: ConflictEntryData
+): ConflictEntryData | null {
+  const merged: ConflictEntryData = { ...remote }; // Start with remote as base
   let hasConflict = false;
 
   // List of fields to check for conflicts
@@ -182,7 +198,7 @@ export async function resolveConflict(
   conflict.mergedData = resolution.mergedData;
 
   // Apply resolution to database
-  let dataToSave: any;
+  let dataToSave: ConflictEntryData;
 
   switch (resolution.action) {
     case 'local':
@@ -192,7 +208,7 @@ export async function resolveConflict(
       dataToSave = conflict.remoteData;
       break;
     case 'merge':
-      dataToSave = resolution.mergedData;
+      dataToSave = resolution.mergedData ?? conflict.remoteData;
       break;
   }
 
@@ -265,8 +281,8 @@ export function getConflictSummary(conflict: Conflict): {
       return {
         title: 'Status Conflict',
         description: 'This entry status changed both locally and remotely',
-        localLabel: `Your status: ${formatStatus(conflict.localData.check_in_status)}`,
-        remoteLabel: `Remote status: ${formatStatus(conflict.remoteData.check_in_status)}`,
+        localLabel: `Your status: ${formatStatus(conflict.localData.check_in_status ?? 0)}`,
+        remoteLabel: `Remote status: ${formatStatus(conflict.remoteData.check_in_status ?? 0)}`,
       };
 
     case 'entry_data':
@@ -287,7 +303,7 @@ export function getConflictSummary(conflict: Conflict): {
   }
 }
 
-function formatScore(data: any): string {
+function formatScore(data: ConflictEntryData): string {
   if (data.time && data.faults !== undefined) {
     return `${data.time}s, ${data.faults} faults`;
   }
