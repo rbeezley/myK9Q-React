@@ -3,20 +3,134 @@
  * Offloads CPU-intensive operations from main thread
  */
 
+/** Raw class data from Supabase views/tables */
+interface RawClassData {
+  id?: number;
+  level?: string;
+  class_level?: string;
+  element?: string;
+  element_type?: string;
+  classtype?: string;
+  class_name?: string;
+  classname?: string;
+  trial_date?: string;
+  trial_number?: string | number;
+  section?: string;
+  judge_name?: string;
+  judge?: string;
+  entry_total_count?: number;
+  entry_completed_count?: number;
+  entry_pending_count?: number;
+  class_status?: number | string;
+  in_progress?: number;
+  class_completed?: boolean;
+  current_entry_id?: number;
+  start_time?: string;
+  end_time?: string;
+  class_order?: number;
+}
+
+/** Raw entry data from Supabase views/tables */
+interface RawEntryData {
+  id: number;
+  armband?: string | number;
+  armband_number?: string | number;
+  call_name?: string;
+  dog_name?: string;
+  breed?: string;
+  handler?: string;
+  handler_name?: string;
+  handler_location?: string;
+  handler_city?: string;
+  class_id?: number;
+  classid_fk?: number;
+  in_ring?: boolean;
+  is_scored?: boolean;
+  score?: number;
+  placement?: number;
+  search_time?: number;
+  element?: string;
+  level?: string;
+  trial_date?: string;
+  trial_number?: string | number;
+  sort_order?: number;
+  checkin_status?: string | number;
+  section?: string;
+}
+
+/** Transformed class data */
+interface TransformedClass {
+  id: number;
+  class_name: string;
+  element_type: string;
+  judge_name: string;
+  status: 'in-progress' | 'completed' | 'scheduled';
+  current_entry_id?: number;
+  start_time?: string;
+  end_time?: string;
+  entry_total_count: number;
+  entry_completed_count: number;
+  entry_pending_count: number;
+  level: string;
+  trial_date: string;
+  trial_number: string | number;
+  class_order: number;
+}
+
+/** Transformed entry data */
+interface TransformedEntry {
+  id: number;
+  armband: string;
+  dog_name: string;
+  breed: string;
+  handler_name: string;
+  handler_location: string;
+  class_id?: number;
+  status: 'in_ring' | 'completed' | 'waiting';
+  score?: number;
+  placement?: number;
+  search_time?: number;
+  element?: string;
+  level?: string;
+  trial_date?: string;
+  trial_number?: string | number;
+  sort_order?: number;
+  checkin_status?: string | number;
+  section?: string;
+}
+
+/** Processed data result */
+interface ProcessedData {
+  inProgressClasses: TransformedClass[];
+  currentClass: TransformedClass | null;
+  currentEntry: TransformedEntry | null;
+  nextEntries: TransformedEntry[];
+  entriesByClass: Record<string, TransformedEntry[]>;
+}
+
+/** Message payload types */
+type TransformPayload =
+  | RawClassData[]
+  | RawEntryData[]
+  | { classes: TransformedClass[]; entries: TransformedEntry[] };
+
 interface TransformMessage {
   type: 'TRANSFORM_CLASSES' | 'TRANSFORM_ENTRIES' | 'PROCESS_DATA';
-  payload: any;
+  payload: TransformPayload;
 }
+
+/** Response result types */
+type TransformResult = TransformedClass[] | TransformedEntry[] | ProcessedData | null;
 
 interface TransformResponse {
   type: string;
-  result: any;
+  result: TransformResult;
   error?: string;
 }
 
 // Transform class data with section merging
-function transformClassData(rawClasses: any[]): any[] {
-  const classGroups = rawClasses.reduce((groups: { [key: string]: any[] }, cls) => {
+function transformClassData(rawClasses: RawClassData[]): TransformedClass[] {
+  const classGroups = rawClasses.reduce((groups: Record<string, RawClassData[]>, cls) => {
     const level = cls.level || cls.class_level || 'Unknown';
     const element = cls.element || cls.element_type || cls.classtype || 'Unknown';
     const trialDate = cls.trial_date || '';
@@ -35,8 +149,8 @@ function transformClassData(rawClasses: any[]): any[] {
     return groups;
   }, {});
 
-  return Object.values(classGroups).map((groupClasses, index) => {
-    const mergedCounts = groupClasses.reduce((totals, cls) => ({
+  return Object.values(classGroups).map((groupClasses, index): TransformedClass => {
+    const mergedCounts = groupClasses.reduce((totals: { entry_total_count: number; entry_completed_count: number; entry_pending_count: number }, cls) => ({
       entry_total_count: totals.entry_total_count + (cls.entry_total_count || 0),
       entry_completed_count: totals.entry_completed_count + (cls.entry_completed_count || 0),
       entry_pending_count: totals.entry_pending_count + (cls.entry_pending_count || 0),
@@ -79,8 +193,8 @@ function transformClassData(rawClasses: any[]): any[] {
 }
 
 // Transform entry data
-function transformEntryData(rawEntries: any[]): any[] {
-  return rawEntries.map(entry => ({
+function transformEntryData(rawEntries: RawEntryData[]): TransformedEntry[] {
+  return rawEntries.map((entry): TransformedEntry => ({
     id: entry.id,
     armband: String(entry.armband || entry.armband_number || 'N/A'),
     dog_name: entry.call_name || entry.dog_name || 'Unknown Dog',
@@ -103,7 +217,7 @@ function transformEntryData(rawEntries: any[]): any[] {
 }
 
 // Process data (find in-progress classes, etc.)
-function processData(classes: any[], entries: any[]) {
+function processData(classes: TransformedClass[], entries: TransformedEntry[]): ProcessedData {
   const inProgressClasses = classes
     .filter(cls => cls.status === 'in-progress')
     .sort((a, b) => {
@@ -111,13 +225,13 @@ function processData(classes: any[], entries: any[]) {
         return (a.trial_date || '').localeCompare(b.trial_date || '');
       }
       if (a.trial_number !== b.trial_number) {
-        return (a.trial_number || '').localeCompare(b.trial_number || '');
+        return String(a.trial_number || '').localeCompare(String(b.trial_number || ''));
       }
       return (a.class_order || 0) - (b.class_order || 0);
     });
 
   // Group entries by class
-  const entriesByClass = entries.reduce((groups: { [key: string]: any[] }, entry) => {
+  const entriesByClass = entries.reduce((groups: Record<string, TransformedEntry[]>, entry) => {
     const level = entry.level || 'Unknown';
     const element = entry.element || 'Unknown';
     const trialDate = entry.trial_date || '';
@@ -149,20 +263,22 @@ self.onmessage = (event: MessageEvent<TransformMessage>) => {
   const { type, payload } = event.data;
 
   try {
-    let result: any;
+    let result: TransformResult;
 
     switch (type) {
       case 'TRANSFORM_CLASSES':
-        result = transformClassData(payload);
+        result = transformClassData(payload as RawClassData[]);
         break;
 
       case 'TRANSFORM_ENTRIES':
-        result = transformEntryData(payload);
+        result = transformEntryData(payload as RawEntryData[]);
         break;
 
-      case 'PROCESS_DATA':
-        result = processData(payload.classes, payload.entries);
+      case 'PROCESS_DATA': {
+        const processPayload = payload as { classes: TransformedClass[]; entries: TransformedEntry[] };
+        result = processData(processPayload.classes, processPayload.entries);
         break;
+      }
 
       default:
         throw new Error(`Unknown message type: ${type}`);

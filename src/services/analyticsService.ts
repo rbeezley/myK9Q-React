@@ -10,11 +10,23 @@
  * - Device and network characteristics
  */
 
+/** Extended Navigator interface for non-standard browser APIs */
+interface NavigatorWithExtensions extends Navigator {
+  deviceMemory?: number;
+  connection?: {
+    type?: string;
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+    saveData?: boolean;
+  };
+}
+
 export interface AnalyticsEvent {
   name: string;
   category: string;
   value?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: number;
 }
 
@@ -126,7 +138,7 @@ export class AnalyticsService {
     name: string,
     category: string,
     value?: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     if (!this.enabled) return;
 
@@ -173,7 +185,7 @@ export class AnalyticsService {
     actionName: string,
     success: boolean,
     duration?: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     const status = success ? 'success' : 'error';
     this.trackEvent(`action_${actionName}`, 'action', duration || 0, {
@@ -191,7 +203,7 @@ export class AnalyticsService {
   /**
    * Track page view
    */
-  trackPageView(pageName: string, metadata?: Record<string, any>): void {
+  trackPageView(pageName: string, metadata?: Record<string, unknown>): void {
     this.trackEvent('page_view', 'navigation', undefined, {
       page: pageName,
       timestamp: Date.now(),
@@ -236,7 +248,7 @@ export class AnalyticsService {
   /**
    * Track offline usage
    */
-  trackOfflineEvent(eventName: string, metadata?: Record<string, any>): void {
+  trackOfflineEvent(eventName: string, metadata?: Record<string, unknown>): void {
     this.trackEvent(eventName, 'offline', undefined, {
       ...metadata,
       offline: true,
@@ -249,7 +261,7 @@ export class AnalyticsService {
   trackSyncConflict(
     entityType: string,
     resolution: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     this.trackEvent('sync_conflict', 'data_sync', undefined, {
       entityType,
@@ -332,6 +344,7 @@ export class AnalyticsService {
    */
   private getDeviceInfo(): DeviceInfo {
     const ua = navigator.userAgent;
+    const nav = navigator as NavigatorWithExtensions;
 
     return {
       userAgent: ua,
@@ -341,9 +354,9 @@ export class AnalyticsService {
       browserType: this.getBrowserType(),
       browserVersion: this.getBrowserVersion(),
       screenSize: `${window.innerWidth}x${window.innerHeight}`,
-      deviceMemory: (navigator as any).deviceMemory,
+      deviceMemory: nav.deviceMemory,
       hardwareConcurrency: navigator.hardwareConcurrency,
-      networkType: (navigator as any).connection?.type,
+      networkType: nav.connection?.type,
     };
   }
 

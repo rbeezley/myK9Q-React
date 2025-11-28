@@ -7,6 +7,23 @@
 
 import { useEffect, useState } from 'react';
 
+/** Network Information API connection object */
+interface NetworkInformationConnection {
+  type?: 'wifi' | 'ethernet' | 'cellular' | 'bluetooth' | 'none' | 'unknown' | 'other';
+  effectiveType?: 'slow-2g' | '2g' | '3g' | '4g' | 'wifi';
+  downlink?: number;
+  saveData?: boolean;
+  addEventListener: (type: string, listener: () => void) => void;
+  removeEventListener: (type: string, listener: () => void) => void;
+}
+
+/** Extended Navigator interface for Network Information API */
+interface NavigatorWithNetworkInfo extends Navigator {
+  connection?: NetworkInformationConnection;
+  mozConnection?: NetworkInformationConnection;
+  webkitConnection?: NetworkInformationConnection;
+}
+
 export type ConnectionType = 'wifi' | 'cellular' | 'unknown' | 'offline';
 
 interface ConnectionInfo {
@@ -26,7 +43,8 @@ function getConnectionInfo(): ConnectionInfo {
   }
 
   // Check for Network Information API
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  const nav = navigator as NavigatorWithNetworkInfo;
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
   if (connection) {
     // Determine connection type
@@ -78,7 +96,8 @@ export function useConnectionWarning() {
     window.addEventListener('offline', updateConnection);
 
     // Listen for connection changes (if supported)
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    const nav = navigator as NavigatorWithNetworkInfo;
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
     if (connection) {
       connection.addEventListener('change', updateConnection);
     }
