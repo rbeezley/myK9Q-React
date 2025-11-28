@@ -24,6 +24,42 @@ import type { Entry } from '@/services/replication/tables/ReplicatedEntriesTable
 // TYPE DEFINITIONS
 // ============================================================
 
+/** Cached trial data from IndexedDB */
+interface CachedTrialData {
+  trial_name: string;
+  trial_date: string;
+  trial_number?: number;
+  trialid?: number; // Legacy field name
+}
+
+/** Cached class data from IndexedDB (view_class_summary format) */
+interface CachedClassData {
+  class_id: number;
+  element: string;
+  level: string;
+  section: string;
+  class_name?: string;
+  class_order?: number;
+  class_type?: string;
+  judge_name?: string;
+  is_completed?: boolean;
+  class_status?: string;
+  time_limit_seconds?: number;
+  time_limit_area2_seconds?: number;
+  time_limit_area3_seconds?: number;
+  area_count?: number;
+  briefing_time?: string;
+  break_until?: string;
+  start_time?: string;
+  self_checkin_enabled?: boolean;
+}
+
+/** Visibility override data from class_result_visibility_overrides table */
+interface VisibilityOverride {
+  class_id: number;
+  preset_name: 'open' | 'standard' | 'review';
+}
+
 export interface ClassEntry {
   id: number;
   element: string;
@@ -108,19 +144,19 @@ async function fetchTrialInfo(
     const cached = await idbCache.get(`trial-info-${licenseKey}-${trialId}`);
     if (cached && cached.data) {
       logger.log('✅ Using cached trial info from IndexedDB');
-      const trialData: any = cached.data;
+      const trialData = cached.data as CachedTrialData;
 
       // Still need to load class data for counts
       const cachedClassData = await idbCache.get(`class-summary-${licenseKey}-${trialId}`);
       if (cachedClassData && cachedClassData.data) {
-        const classData: any = cachedClassData.data;
+        const classData = cachedClassData.data as CachedClassData[];
         return {
           trial_name: trialData.trial_name,
           trial_date: trialData.trial_date,
-          trial_number: trialData.trial_number || trialData.trialid,
+          trial_number: trialData.trial_number ?? trialData.trialid ?? 0,
           total_classes: classData.length || 0,
-          pending_classes: classData.filter((c: any) => c.is_completed !== true).length || 0,
-          completed_classes: classData.filter((c: any) => c.is_completed === true).length || 0
+          pending_classes: classData.filter((c) => c.is_completed !== true).length || 0,
+          completed_classes: classData.filter((c) => c.is_completed === true).length || 0
         };
       }
     }
@@ -377,7 +413,7 @@ logger.log('📭 Cache is empty, falling back to Supabase');
               // Create map of class_id to preset_name
               // CRITICAL: Use string keys to match cls.id type (prevents silent lookup failures)
               const visibilityMap = new Map<string, 'open' | 'standard' | 'review'>();
-              (visibilityData || []).forEach((override: any) => {
+              ((visibilityData || []) as VisibilityOverride[]).forEach((override) => {
                 visibilityMap.set(String(override.class_id), override.preset_name);
               });
 
@@ -410,11 +446,11 @@ logger.log('📭 Cache is empty, falling back to Supabase');
 
   // Try IndexedDB cache first (for offline support)
   const cached = await idbCache.get(`class-summary-${licenseKey}-${trialId}`);
-  let classData: any = null;
+  let classData: CachedClassData[] | null = null;
 
   if (cached && cached.data) {
     logger.log('✅ Using cached class summary from IndexedDB');
-    classData = cached.data;
+    classData = cached.data as CachedClassData[];
   } else {
     // Load classes with pre-calculated entry counts using view_class_summary
     const { data, error: classError } = await supabase
@@ -428,7 +464,7 @@ logger.log('📭 Cache is empty, falling back to Supabase');
       throw classError;
     }
 
-    classData = data;
+    classData = data as CachedClassData[] | null;
   }
 
   if (!classData) return [];
@@ -437,11 +473,11 @@ logger.log('📭 Cache is empty, falling back to Supabase');
 
   // Load ALL entries for this trial using getClassEntries from entryService
   // This properly queries the results table separately and joins in JavaScript
-  const classIds = classData.map((c: any) => c.class_id);
+  const classIds = classData.map((c) => c.class_id);
   const allTrialEntries = await getClassEntries(classIds, licenseKey);
 
   // Process classes with entry data
-  const processedClasses = classData.map((cls: any) => {
+  const processedClasses = classData.map((cls) => {
     // Filter entries for this specific class using class_id
     const entryData = allTrialEntries.filter(entry =>
       entry.classId === cls.class_id
@@ -493,18 +529,17 @@ logger.log('📭 Cache is empty, falling back to Supabase');
     const sectionPart = cls.section && cls.section !== '-' ? ` ${cls.section}` : '';
     const className = `${cls.element} ${cls.level}${sectionPart}`.trim();
 
-    return {
+    const classEntry: ClassEntry = {
       id: cls.class_id,
       element: cls.element,
       level: cls.level,
       section: cls.section,
       class_name: className,
       class_order: cls.class_order || 999, // Default high value for classes without order
-      class_type: cls.class_type,
       judge_name: cls.judge_name || 'TBA',
       entry_count: entryCount,
       completed_count: completedCount,
-      class_status: (cls.class_status?.trim() || 'no-status') as 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed',
+      class_status: (cls.class_status?.trim() || 'no-status') as ClassEntry['class_status'],
       is_completed: cls.is_completed || false,
       is_favorite: false, // Will be updated by component with localStorage
       time_limit_seconds: cls.time_limit_seconds,
@@ -519,10 +554,11 @@ logger.log('📭 Cache is empty, falling back to Supabase');
       visibility_preset: 'standard', // Will be populated below
       dogs: dogs
     };
+    return classEntry;
   });
 
   // Sort classes by class_order first, then element, level, section
-  const sortedClasses = processedClasses.sort((a: any, b: any) => {
+  const sortedClasses = processedClasses.sort((a, b) => {
     // Primary sort: class_order (ascending)
     if (a.class_order !== b.class_order) {
       return a.class_order - b.class_order;
@@ -552,7 +588,7 @@ logger.log('📭 Cache is empty, falling back to Supabase');
 
   // Fetch visibility presets for all classes
   try {
-    const classIds = sortedClasses.map((c: any) => c.id);
+    const classIds = sortedClasses.map((c) => c.id);
     const { data: visibilityData } = await supabase
       .from('class_result_visibility_overrides')
       .select('class_id, preset_name')
@@ -561,12 +597,12 @@ logger.log('📭 Cache is empty, falling back to Supabase');
     // Create map of class_id to preset_name
     // CRITICAL: Use string keys to match cls.id type (prevents silent lookup failures)
     const visibilityMap = new Map<string, 'open' | 'standard' | 'review'>();
-    (visibilityData || []).forEach((override: any) => {
+    ((visibilityData || []) as VisibilityOverride[]).forEach((override) => {
       visibilityMap.set(String(override.class_id), override.preset_name);
     });
 
     // Update classes with their visibility presets
-    sortedClasses.forEach((cls: any) => {
+    sortedClasses.forEach((cls) => {
       cls.visibility_preset = visibilityMap.get(String(cls.id)) || 'standard';
     });
   } catch (error) {

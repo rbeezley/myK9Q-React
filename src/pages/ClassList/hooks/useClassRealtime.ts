@@ -8,17 +8,33 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import type { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { ClassEntry } from './useClassListData';
 
 /**
- * Payload type for real-time updates
+ * Record type for class data in real-time updates
+ */
+interface ClassRecord {
+  id: number;
+  class_status?: string;
+  is_completed?: boolean;
+}
+
+/**
+ * Payload type for real-time updates (internal use)
  */
 export interface RealtimePayload {
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
-  new: any;
-  old: any;
+  new: ClassRecord | null;
+  old: ClassRecord | null;
 }
+
+/**
+ * Supabase payload type alias for postgres_changes
+ */
+type SupabaseRealtimePayload = RealtimePostgresChangesPayload<{
+  [key: string]: unknown;
+}>;
 
 /**
  * Custom hook for managing real-time class updates
@@ -75,21 +91,23 @@ export function useClassRealtime(
   supabaseClient: SupabaseClient
 ): void {
   // Memoize the payload handler to avoid recreating on every render
-  const handleRealtimeUpdate = useCallback((payload: RealtimePayload) => {
+  const handleRealtimeUpdate = useCallback((payload: SupabaseRealtimePayload) => {
     // For UPDATE events, update local state directly (optimistic update)
-    if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
-setClasses(prev => prev.map(c =>
-        c.id === payload.new.id
+    const newRecord = payload.new as ClassRecord | undefined;
+    const oldRecord = payload.old as ClassRecord | undefined;
+    if (payload.eventType === 'UPDATE' && newRecord && oldRecord) {
+      setClasses(prev => prev.map(c =>
+        c.id === newRecord.id
           ? {
               ...c,
-              class_status: payload.new.class_status || 'none',
-              is_completed: payload.new.is_completed || false
+              class_status: (newRecord.class_status as ClassEntry['class_status']) || 'no-status',
+              is_completed: newRecord.is_completed || false
             }
           : c
       ));
     } else {
       // For INSERT/DELETE, do full refresh
-refetch();
+      refetch();
     }
   }, [setClasses, refetch]);
 

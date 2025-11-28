@@ -4,13 +4,14 @@ import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { Bell, Volume2, Mic, AlertCircle, CheckCircle } from 'lucide-react';
+import type { BrowserCompatibility } from '../components/PushNotificationSettings';
 
 interface NotificationSettingsProps {
     isPushSubscribed: boolean;
     isSubscribing: boolean;
     permissionState: NotificationPermission;
     onPushToggle: (enabled: boolean) => void;
-    browserCompatibility: any;
+    browserCompatibility: BrowserCompatibility | null;
 }
 
 export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
@@ -89,7 +90,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                         action={
                             <select
                                 value={settings.notifyYourTurnLeadDogs}
-                                onChange={(e) => updateSettings({ notifyYourTurnLeadDogs: parseInt(e.target.value) as any })}
+                                onChange={(e) => updateSettings({ notifyYourTurnLeadDogs: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 })}
                                 className="settings-select"
                                 style={{
                                     backgroundColor: 'var(--input-bg)',

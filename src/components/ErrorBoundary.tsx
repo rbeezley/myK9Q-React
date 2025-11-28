@@ -208,7 +208,7 @@ export const withErrorBoundary = <P extends object>(
 
 // Hook for throwing errors that will be caught by error boundary
 export const useErrorHandler = () => {
-  return React.useCallback((error: Error | string, _errorInfo?: any) => {
+  return React.useCallback((error: Error | string, _errorInfo?: ErrorInfo) => {
     if (typeof error === 'string') {
       throw new Error(error);
     }

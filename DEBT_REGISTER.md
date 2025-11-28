@@ -210,7 +210,7 @@ Medium - maintainability issue, fix opportunistically.
 Quick fixes, complex external types, migration from JavaScript.
 
 **Progress (2025-11-27):**
-Fixed 24 `any` types in core production files:
+Fixed 37 `any` types in core production files across 20 files:
 | File | Before | After | Change |
 |------|--------|-------|--------|
 | `useScoresheetCore.ts` | 2 `any` | 0 | `AreaScore[keyof AreaScore]` |
@@ -229,12 +229,16 @@ Fixed 24 `any` types in core production files:
 | `Stats.tsx` | 2 `any` | 0 | Inline type for parsed JSON |
 | `useCompetitionAdminData.ts` | 3 `any` | 0 | `RawClassSummaryData`, `RawVisibilityOverride` |
 | `useOptimisticUpdate.ts` | 2 `any` | 0 | `instanceof Error` check for message |
+| `useClassListData.ts` | 8 `any` | 0 | `CachedTrialData`, `CachedClassData`, `VisibilityOverride` interfaces |
+| `useClassRealtime.ts` | 2 `any` | 0 | `SupabaseRealtimePayload` type for realtime |
+| `ErrorBoundary.tsx` | 1 `any` | 0 | `ErrorInfo` type for error handler |
+| `NotificationSettings.tsx` | 2 `any` | 0 | `BrowserCompatibility`, union type for lead dogs |
 
 **Remaining Categories:**
 - **Test files (~150):** Keep - mocking requires `as any`
 - **Debug/diagnostic (~30):** Low priority
 - **Generic utilities (~50):** May need `any` for flexibility
-- **Core business logic (~32):** High priority for future fixes
+- **Core business logic (~19):** High priority for future fixes
 
 **Proposed Solution:**
 1. ~~Enable `noImplicitAny` in tsconfig.json~~ (too aggressive for existing codebase)
@@ -253,7 +257,7 @@ Medium - type safety is important but most `any` usage is in non-critical paths.
 - Blocked By: None
 - Related: None
 
-**Status:** In Progress (24 fixed in 16 files, ~32 high-priority remaining)
+**Status:** In Progress (37 fixed in 20 files, ~19 high-priority remaining)
 
 **Assignee:** Unassigned
 
