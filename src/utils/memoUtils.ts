@@ -6,13 +6,13 @@
  * for common patterns in the myK9Q app.
  */
 
-import { memo, useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import type { Entry } from '@/stores/entryStore';
 
 /**
  * Shallow comparison for props (default React.memo behavior)
  */
-export function shallowEqual(objA: any, objB: any): boolean {
+export function shallowEqual(objA: unknown, objB: unknown): boolean {
   if (Object.is(objA, objB)) {
     return true;
   }
@@ -26,8 +26,12 @@ export function shallowEqual(objA: any, objB: any): boolean {
     return false;
   }
 
-  const keysA = Object.keys(objA);
-  const keysB = Object.keys(objB);
+  // Cast to Record for indexing after type narrowing
+  const recordA = objA as Record<string, unknown>;
+  const recordB = objB as Record<string, unknown>;
+
+  const keysA = Object.keys(recordA);
+  const keysB = Object.keys(recordB);
 
   if (keysA.length !== keysB.length) {
     return false;
@@ -36,8 +40,8 @@ export function shallowEqual(objA: any, objB: any): boolean {
   for (let i = 0; i < keysA.length; i++) {
     const key = keysA[i];
     if (
-      !Object.prototype.hasOwnProperty.call(objB, key) ||
-      !Object.is(objA[key], objB[key])
+      !Object.prototype.hasOwnProperty.call(recordB, key) ||
+      !Object.is(recordA[key], recordB[key])
     ) {
       return false;
     }
@@ -50,7 +54,7 @@ export function shallowEqual(objA: any, objB: any): boolean {
  * Deep comparison for nested objects
  * Use sparingly - expensive operation
  */
-export function deepEqual(objA: any, objB: any): boolean {
+export function deepEqual(objA: unknown, objB: unknown): boolean {
   if (Object.is(objA, objB)) {
     return true;
   }
@@ -64,8 +68,12 @@ export function deepEqual(objA: any, objB: any): boolean {
     return false;
   }
 
-  const keysA = Object.keys(objA);
-  const keysB = Object.keys(objB);
+  // Cast to Record for indexing after type narrowing
+  const recordA = objA as Record<string, unknown>;
+  const recordB = objB as Record<string, unknown>;
+
+  const keysA = Object.keys(recordA);
+  const keysB = Object.keys(recordB);
 
   if (keysA.length !== keysB.length) {
     return false;
@@ -73,8 +81,8 @@ export function deepEqual(objA: any, objB: any): boolean {
 
   for (const key of keysA) {
     if (
-      !Object.prototype.hasOwnProperty.call(objB, key) ||
-      !deepEqual(objA[key], objB[key])
+      !Object.prototype.hasOwnProperty.call(recordB, key) ||
+      !deepEqual(recordA[key], recordB[key])
     ) {
       return false;
     }
@@ -123,7 +131,7 @@ export function entryScoringEqual(
 export function useMemoizedArray<T, R>(
   array: T[],
   transform: (arr: T[]) => R[],
-  deps: any[] = []
+  deps: React.DependencyList = []
 ): R[] {
   return useMemo(() => {
     if (!array || array.length === 0) return [];
@@ -138,7 +146,7 @@ export function useMemoizedArray<T, R>(
 export function useMemoizedFilter<T>(
   array: T[],
   predicate: (item: T) => boolean,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ): T[] {
   return useMemo(() => {
     if (!array || array.length === 0) return [];
@@ -153,7 +161,7 @@ export function useMemoizedFilter<T>(
 export function useMemoizedSort<T>(
   array: T[],
   compareFn: (a: T, b: T) => number,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ): T[] {
   return useMemo(() => {
     if (!array || array.length === 0) return [];
@@ -165,10 +173,9 @@ export function useMemoizedSort<T>(
 /**
  * Memoize object transformations
  */
-export function useMemoizedObject<T extends Record<string, any>>(
-   
+export function useMemoizedObject<T extends Record<string, unknown>>(
   factory: () => T,
-  deps: any[]
+  deps: React.DependencyList
 ): T {
   return useMemo(factory, deps);
 }
@@ -179,9 +186,7 @@ export function useMemoizedObject<T extends Record<string, any>>(
  */
 export function useMemoizedCallback<T extends (...args: any[]) => any>(
   callback: T,
-   
-  deps: any[]
-   
+  deps: React.DependencyList
 ): T {
   return useMemo(() => callback, deps);
 }
