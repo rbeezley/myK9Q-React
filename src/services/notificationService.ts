@@ -8,6 +8,17 @@
 import { useSettingsStore } from '@/stores/settingsStore';
 import voiceAnnouncementService from './voiceAnnouncementService';
 
+/**
+ * Type guard for Badging API support
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Badging_API
+ */
+function hasBadgingAPI(nav: Navigator): nav is Navigator & {
+  setAppBadge: (count: number) => Promise<void>;
+  clearAppBadge: () => Promise<void>;
+} {
+  return 'setAppBadge' in nav && 'clearAppBadge' in nav;
+}
+
 export type NotificationType =
   | 'class_starting'
   | 'your_turn'
@@ -635,15 +646,15 @@ return id;
    * Update PWA badge count
    */
   private async updateBadgeCount(increment: number): Promise<void> {
-    if ('setAppBadge' in navigator) {
+    if (hasBadgingAPI(navigator)) {
       try {
         const currentBadge = await this.getBadgeCount();
         const newBadge = Math.max(0, currentBadge + increment);
 
         if (newBadge > 0) {
-          await (navigator as any).setAppBadge(newBadge);
+          await navigator.setAppBadge(newBadge);
         } else {
-          await (navigator as any).clearAppBadge();
+          await navigator.clearAppBadge();
         }
       } catch (error) {
         console.warn('Could not update badge count:', error);
@@ -664,9 +675,9 @@ return id;
    * Clear badge count
    */
   async clearBadge(): Promise<void> {
-    if ('clearAppBadge' in navigator) {
+    if (hasBadgingAPI(navigator)) {
       try {
-        await (navigator as any).clearAppBadge();
+        await navigator.clearAppBadge();
         localStorage.setItem('notification_badge_count', '0');
       } catch (error) {
         console.warn('Could not clear badge:', error);

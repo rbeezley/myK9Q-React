@@ -8,6 +8,18 @@
 
 import { supabase } from '../lib/supabase';
 
+/** Nested show data from joined query */
+interface NestedShow {
+  license_key: string;
+  show_type?: string;
+}
+
+/** Nested trial data with shows from joined query */
+interface NestedTrial {
+  show_id: number;
+  shows: NestedShow;
+}
+
 /**
  * Recalculate all placements for one or more classes using database function
  *
@@ -99,7 +111,7 @@ export async function manuallyRecalculatePlacements(
       throw new Error(`Failed to fetch class data: ${classError?.message}`);
     }
 
-    const trial = classData.trials as any;
+    const trial = classData.trials as unknown as NestedTrial;
     const show = trial.shows;
     const licenseKey = show.license_key;
     const isNationals = show.show_type?.toLowerCase().includes('national') || false;

@@ -25,6 +25,11 @@ import type { SyncOptions } from './SyncEngine';
 import type { ReplicatedTableName } from '@/config/featureFlags';
 import { logger } from '@/utils/logger';
 
+/** Type guard to check if a table has a cleanup method */
+function hasCleanup(table: ReplicatedTable<{ id: string }>): table is ReplicatedTable<{ id: string }> & { cleanup: () => Promise<void> } {
+  return typeof (table as unknown as { cleanup?: () => Promise<void> }).cleanup === 'function';
+}
+
 export interface ReplicationManagerConfig {
   /** Auto-sync interval in milliseconds (default: 5 min) */
   autoSyncInterval?: number;
@@ -517,8 +522,8 @@ export class ReplicationManager {
     for (const [tableName, table] of this.tables) {
       try {
         // If table has a cleanup method, call it
-        if (typeof (table as any).cleanup === 'function') {
-          await (table as any).cleanup();
+        if (hasCleanup(table)) {
+          await table.cleanup();
         }
       } catch (error) {
         logger.warn(`[ReplicationManager] Error cleaning up table ${tableName}:`, error);

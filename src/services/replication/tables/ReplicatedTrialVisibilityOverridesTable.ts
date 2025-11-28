@@ -39,6 +39,13 @@ export interface TrialVisibilityOverrides {
   updated_at?: string;
 }
 
+/**
+ * Raw override from Supabase with joined data
+ */
+interface RawOverrideWithJoins extends TrialVisibilityOverrides {
+  trials?: unknown;
+}
+
 export class ReplicatedTrialVisibilityOverridesTable extends ReplicatedTable<TrialVisibilityOverrides> {
   constructor() {
     super('trial_result_visibility_overrides'); // TTL managed by feature flags
@@ -107,7 +114,7 @@ export class ReplicatedTrialVisibilityOverridesTable extends ReplicatedTable<Tri
       // Process each override
       for (const rawOverride of remoteOverrides) {
         // Flatten the response (remove nested trials/shows objects from join)
-        const { trials: _trials, ...remoteOverride } = rawOverride as any;
+        const { trials: _trials, ...remoteOverride } = rawOverride as RawOverrideWithJoins;
 
         // Convert ID to string for consistent IndexedDB key format
         const overrideId = String(remoteOverride.id);

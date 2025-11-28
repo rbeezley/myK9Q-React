@@ -70,14 +70,17 @@ export function getAnimationConfig(
   };
 }
 
+/** Motion variant value types (number, string, or nested object for transforms) */
+type MotionVariantValue = Record<string, string | number | Record<string, string | number>>;
+
 /**
  * Framer Motion variants with reduce motion support
  */
 export const createMotionVariants = (config: {
-  initial?: Record<string, any>;
-  animate?: Record<string, any>;
-  exit?: Record<string, any>;
-  transition?: Record<string, any>;
+  initial?: MotionVariantValue;
+  animate?: MotionVariantValue;
+  exit?: MotionVariantValue;
+  transition?: MotionVariantValue;
 }) => {
   const reduced = shouldReduceMotion();
 
@@ -254,8 +257,8 @@ export function addAnimationEndListener(
   callback: (event: AnimationEvent) => void
 ): () => void {
   if (shouldReduceMotion()) {
-    // Execute callback immediately
-    setTimeout(callback as any, 0);
+    // Execute callback immediately with a synthetic event
+    setTimeout(() => callback({} as AnimationEvent), 0);
     return () => {}; // No cleanup needed
   }
 
@@ -274,8 +277,8 @@ export function addTransitionEndListener(
   callback: (event: TransitionEvent) => void
 ): () => void {
   if (shouldReduceMotion()) {
-    // Execute callback immediately
-    setTimeout(callback as any, 0);
+    // Execute callback immediately with a synthetic event
+    setTimeout(() => callback({} as TransitionEvent), 0);
     return () => {}; // No cleanup needed
   }
 

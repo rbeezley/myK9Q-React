@@ -27,6 +27,12 @@ interface SyncResult {
   error?: string;
 }
 
+/** Realtime payload data for user_preferences updates */
+interface RealtimePreferencePayload {
+  device_id: string | null;
+  settings: AppSettings;
+}
+
 /**
  * Get user/device identifier for preferences
  * Uses auth user ID if available, otherwise uses device-specific ID
@@ -240,9 +246,10 @@ async function mergeSettings(
   const merged = { ...cloudSettings };
 
   // Preserve device-specific settings from local
+  // Use type assertion with Record to allow dynamic key assignment
   deviceSpecificKeys.forEach((key) => {
     if (localSettings[key] !== undefined) {
-      (merged as any)[key] = localSettings[key];
+      (merged as Record<keyof AppSettings, unknown>)[key] = localSettings[key];
     }
   });
 
@@ -298,9 +305,9 @@ export function subscribeToSettingsUpdates(
       },
       (payload) => {
         // Only notify if update is from a different device
-        const data = payload.new as any;
+        const data = payload.new as RealtimePreferencePayload;
         if (data.device_id !== deviceId) {
-onUpdate(data.settings);
+          onUpdate(data.settings);
         }
       }
     )

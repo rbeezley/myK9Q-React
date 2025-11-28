@@ -18,6 +18,12 @@ export interface DiagnosticResult {
   canAutoFix: boolean;
 }
 
+/** Window with IndexedDB diagnostic functions attached */
+interface DiagnosticsWindow extends Window {
+  diagnoseIndexedDB?: typeof logDiagnosticReport;
+  cleanupIndexedDB?: typeof attemptAutoCleanup;
+}
+
 /**
  * Run comprehensive IndexedDB diagnostics
  */
@@ -312,6 +318,7 @@ console.log('%c═════════════════════�
  * Usage in browser console: window.diagnoseIndexedDB()
  */
 if (typeof window !== 'undefined') {
-  (window as any).diagnoseIndexedDB = logDiagnosticReport;
-  (window as any).cleanupIndexedDB = attemptAutoCleanup;
+  const diagWindow = window as DiagnosticsWindow;
+  diagWindow.diagnoseIndexedDB = logDiagnosticReport;
+  diagWindow.cleanupIndexedDB = attemptAutoCleanup;
 }

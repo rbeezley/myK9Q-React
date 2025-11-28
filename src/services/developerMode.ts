@@ -21,11 +21,48 @@ export interface DevToolsConfig {
   logPerformanceMarks: boolean;
 }
 
+/** Network request record for dev tools */
+interface NetworkRequest {
+  url: string;
+  method: string;
+  status: number;
+  duration: number;
+  timestamp: number;
+}
+
+/** State change record for dev tools */
+interface StateChange {
+  store: string;
+  action: string;
+  timestamp: number;
+  data: unknown;
+}
+
+/** Dev tools exposed on window object */
+interface DevToolsExport {
+  getPerformanceMarks: () => [string, number][];
+  getNetworkRequests: () => NetworkRequest[];
+  getStateChanges: () => StateChange[];
+  clearNetworkRequests: () => never[];
+  clearStateChanges: () => never[];
+  clearPerformanceMarks: () => void;
+  exportData: () => {
+    performanceMarks: [string, number][];
+    networkRequests: NetworkRequest[];
+    stateChanges: StateChange[];
+  };
+}
+
+/** Window with dev tools attached */
+interface DevToolsWindow extends Window {
+  __DEV_TOOLS__?: DevToolsExport;
+}
+
 class DeveloperModeService {
   private initialized = false;
   private performanceMarks: Map<string, number> = new Map();
-  private networkRequests: Array<{ url: string; method: string; status: number; duration: number; timestamp: number }> = [];
-  private stateChanges: Array<{ store: string; action: string; timestamp: number; data: unknown }> = [];
+  private networkRequests: NetworkRequest[] = [];
+  private stateChanges: StateChange[] = [];
 
   /**
    * Check if developer mode is enabled
@@ -70,7 +107,8 @@ console.log('📊 Available Tools:', this.getConfig());
 
     // Expose developer tools to window for console access
     if (typeof window !== 'undefined') {
-      (window as any).__DEV_TOOLS__ = {
+      const devWindow = window as DevToolsWindow;
+      devWindow.__DEV_TOOLS__ = {
         getPerformanceMarks: () => Array.from(this.performanceMarks.entries()),
         getNetworkRequests: () => this.networkRequests,
         getStateChanges: () => this.stateChanges,

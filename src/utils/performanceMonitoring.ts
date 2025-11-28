@@ -12,6 +12,15 @@ interface PerformanceMetric {
   timestamp: number;
 }
 
+/**
+ * Layout Shift entry for CLS measurement
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/LayoutShift
+ */
+interface LayoutShiftEntry extends PerformanceEntry {
+  hadRecentInput: boolean;
+  value: number;
+}
+
 class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
   private isEnabled: boolean;
@@ -98,8 +107,9 @@ class PerformanceMonitor {
 
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (!(entry as any).hadRecentInput) {
-            clsValue += (entry as any).value;
+          const layoutShift = entry as LayoutShiftEntry;
+          if (!layoutShift.hadRecentInput) {
+            clsValue += layoutShift.value;
 
             this.recordMetric({
               name: 'CLS',

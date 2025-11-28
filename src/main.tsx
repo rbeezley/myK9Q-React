@@ -46,12 +46,20 @@ const updateSW = registerSW({
 // Also initialize replication immediately for faster startup
 initializeReplication().catch(console.error)
 
+// Debug window interface for development tools
+interface DebugWindow extends Window {
+  debugForceFullSync?: () => Promise<void>;
+  debugInspectCache?: (tableName?: string) => Promise<unknown[] | undefined>;
+}
+
 // Expose debug functions (development only)
 if (import.meta.env.DEV && typeof window !== 'undefined') {
+  const debugWindow = window as DebugWindow;
+
   // Force full sync
-  (window as any).debugForceFullSync = async () => {
+  debugWindow.debugForceFullSync = async () => {
     const { triggerFullSync } = await import('./services/replication/initReplication')
-    const auth = JSON.parse(localStorage.getItem('myK9Q_auth') || '{}')
+    const auth = JSON.parse(localStorage.getItem('myK9Q_auth') || '{}') as { showContext?: { licenseKey?: string } }
     const licenseKey = auth.showContext?.licenseKey
     if (!licenseKey) {
       console.error('❌ No license key found')
@@ -61,7 +69,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
   }
 
   // Inspect cache contents
-  (window as any).debugInspectCache = async (tableName = 'classes') => {
+  debugWindow.debugInspectCache = async (tableName = 'classes') => {
     const { getReplicationManager } = await import('./services/replication/initReplication')
     const manager = getReplicationManager()
     if (!manager) {

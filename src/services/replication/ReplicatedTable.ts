@@ -92,6 +92,17 @@ export abstract class ReplicatedTable<T extends { id: string }> {
   }
 
   // ========================================
+  // PUBLIC ACCESSORS
+  // ========================================
+
+  /**
+   * Get the table name (public accessor for protected property)
+   */
+  public getTableName(): string {
+    return this.tableName;
+  }
+
+  // ========================================
   // DATABASE INITIALIZATION
   // ========================================
 

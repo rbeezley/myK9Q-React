@@ -183,7 +183,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       showId: show.id.toString(),
       showName: show.show_name,
       clubName: show.club_name,
-      showDate: (show as any).start_date,
+      showDate: show.show_date,
       licenseKey: show.license_key,
       org: show.organization || licenseData?.organization || '', // Try show table first, then fallback
       competition_type: show.show_type || licenseData?.show_type || 'Regular',

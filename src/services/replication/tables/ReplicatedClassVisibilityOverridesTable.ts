@@ -39,6 +39,13 @@ export interface ClassVisibilityOverrides {
   updated_at?: string;
 }
 
+/**
+ * Raw override from Supabase with joined data
+ */
+interface RawOverrideWithJoins extends ClassVisibilityOverrides {
+  classes?: unknown;
+}
+
 export class ReplicatedClassVisibilityOverridesTable extends ReplicatedTable<ClassVisibilityOverrides> {
   constructor() {
     super('class_result_visibility_overrides'); // TTL managed by feature flags
@@ -110,7 +117,7 @@ export class ReplicatedClassVisibilityOverridesTable extends ReplicatedTable<Cla
       // Process each override
       for (const rawOverride of remoteOverrides) {
         // Flatten the response (remove nested classes/trials/shows objects from join)
-        const { classes: _classes, ...remoteOverride } = rawOverride as any;
+        const { classes: _classes, ...remoteOverride } = rawOverride as RawOverrideWithJoins;
 
         // Convert ID to string for consistent IndexedDB key format
         const overrideId = String(remoteOverride.id);

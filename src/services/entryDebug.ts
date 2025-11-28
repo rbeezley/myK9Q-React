@@ -10,6 +10,20 @@ import { updateEntryCheckinStatus } from './entryService';
  * These functions are exposed to the browser console for debugging.
  */
 
+/** Window with entry debug functions attached */
+interface EntryDebugWindow extends Window {
+  debugMarkInRing?: typeof debugMarkInRing;
+  testSupabaseConnection?: typeof testSupabaseConnection;
+  testRealTimeEvents?: typeof testRealTimeEvents;
+  testUnfilteredRealTime?: typeof testUnfilteredRealTime;
+  debugMonitorEntry?: typeof debugMonitorEntry;
+  debugStopwatchIssue?: typeof debugStopwatchIssue;
+  debugTestCheckinUpdate?: typeof debugTestCheckinUpdate;
+  testSupabaseRealTime?: typeof testSupabaseRealTime;
+  unsubscribeUnfiltered?: () => void;
+  stopMonitoring?: () => void;
+}
+
 /**
  * Test function to manually update in_ring status for debugging subscriptions
  * This function can be called from browser console: window.debugMarkInRing(entryId, true/false)
@@ -151,7 +165,8 @@ export async function testUnfilteredRealTime(): Promise<void> {
     });
 
   // Return unsubscribe function
-  (window as any).unsubscribeUnfiltered = () => {
+  const debugWindow = window as EntryDebugWindow;
+  debugWindow.unsubscribeUnfiltered = () => {
     console.log('🔌 Unsubscribing from unfiltered test...');
     testSub.unsubscribe();
   };
@@ -227,7 +242,8 @@ export async function debugMonitorEntry(entryId: number): Promise<void> {
     });
 
   // Store unsubscribe function globally
-  (window as any).stopMonitoring = () => {
+  const debugWindow = window as EntryDebugWindow;
+  debugWindow.stopMonitoring = () => {
     console.log(`🔌 Stopping monitor for entry ${entryId}`);
     monitor.unsubscribe();
   };
@@ -324,14 +340,15 @@ export async function testSupabaseRealTime(): Promise<() => void> {
  */
 export function initializeDebugFunctions(): void {
   if (typeof window !== 'undefined') {
-    (window as any).debugMarkInRing = debugMarkInRing;
-    (window as any).testSupabaseConnection = testSupabaseConnection;
-    (window as any).testRealTimeEvents = testRealTimeEvents;
-    (window as any).testUnfilteredRealTime = testUnfilteredRealTime;
-    (window as any).debugMonitorEntry = debugMonitorEntry;
-    (window as any).debugStopwatchIssue = debugStopwatchIssue;
-    (window as any).debugTestCheckinUpdate = debugTestCheckinUpdate;
-    (window as any).testSupabaseRealTime = testSupabaseRealTime;
+    const debugWindow = window as EntryDebugWindow;
+    debugWindow.debugMarkInRing = debugMarkInRing;
+    debugWindow.testSupabaseConnection = testSupabaseConnection;
+    debugWindow.testRealTimeEvents = testRealTimeEvents;
+    debugWindow.testUnfilteredRealTime = testUnfilteredRealTime;
+    debugWindow.debugMonitorEntry = debugMonitorEntry;
+    debugWindow.debugStopwatchIssue = debugStopwatchIssue;
+    debugWindow.debugTestCheckinUpdate = debugTestCheckinUpdate;
+    debugWindow.testSupabaseRealTime = testSupabaseRealTime;
 
     console.log('🧪 Debug functions available:');
     console.log('  - window.debugMarkInRing(entryId, true/false)');

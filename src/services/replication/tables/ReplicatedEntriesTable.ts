@@ -52,6 +52,14 @@ export interface Entry {
 }
 
 /**
+ * Raw entry from Supabase with joined data
+ * Used to extract and flatten the response
+ */
+interface RawEntryWithJoins extends Entry {
+  classes?: unknown;
+}
+
+/**
  * Concrete implementation for entries table
  */
 export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
@@ -167,7 +175,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
         for (const rawEntry of remoteEntries) {
           // Flatten the response (remove nested classes/trials/shows objects)
-          const { classes: _classes, ...remoteEntry } = rawEntry as any;
+          const { classes: _classes, ...remoteEntry } = rawEntry as RawEntryWithJoins;
 
           // Convert ID to string for consistent IndexedDB key format
           const entryId = String(remoteEntry.id);
@@ -320,7 +328,7 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
     // Filter by license_key if needed (for multi-tenant isolation)
     if (licenseKey) {
-      return entries.filter((entry) => (entry as any).license_key === licenseKey);
+      return entries.filter((entry) => entry.license_key === licenseKey);
     }
 
     return entries;

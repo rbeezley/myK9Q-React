@@ -2,6 +2,18 @@ import { supabase } from '@/lib/supabase';
 import { shouldCheckCompletion } from '@/utils/validationUtils';
 import { recalculatePlacementsForClass } from '../placementService';
 
+/** Nested show data from joined query */
+interface NestedShow {
+  license_key: string;
+  show_type?: string;
+}
+
+/** Nested trial data with shows from joined query */
+interface NestedTrial {
+  show_id: number;
+  shows: NestedShow;
+}
+
 /**
  * Class Completion Service
  *
@@ -200,7 +212,7 @@ async function recalculateFinalPlacements(classId: number): Promise<void> {
     }
 
     if (classData && classData.trials) {
-      const trial = classData.trials as any;
+      const trial = classData.trials as unknown as NestedTrial;
       const show = trial.shows;
       const licenseKey = show.license_key;
       const isNationals = show.show_type?.toLowerCase().includes('national') || false;

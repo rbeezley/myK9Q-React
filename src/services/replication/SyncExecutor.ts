@@ -17,6 +17,20 @@ import type { SyncMetadata, SyncResult, SyncProgress } from './types';
 import { logger } from '@/utils/logger';
 
 /**
+ * Chrome-specific memory info interface
+ * @see https://developer.chrome.com/docs/web-platform/memory-measurement/
+ */
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
+
+/**
  * Options for sync operations
  */
 export interface SyncExecutorOptions {
@@ -66,11 +80,11 @@ export class SyncExecutor {
    * Full sync: Download all data for a table
    */
   async fullSync(
-    table: ReplicatedTable<any>,
+    table: ReplicatedTable<{ id: string }>,
     options: SyncExecutorOptions
   ): Promise<SyncResult> {
     const startTime = Date.now();
-    const tableName = (table as any).tableName;
+    const tableName = table.getTableName();
 
     try {
       logger.log(`🔄 [SyncExecutor] Starting full sync for ${tableName}...`);
@@ -215,8 +229,9 @@ export class SyncExecutor {
       currentPage++;
 
       // Day 25-26 MEDIUM Fix: Memory monitoring - pause if heap size high
-      if ((performance as any).memory) {
-        const heapMB = (performance as any).memory.usedJSHeapSize / 1024 / 1024;
+      const perfWithMemory = performance as PerformanceWithMemory;
+      if (perfWithMemory.memory) {
+        const heapMB = perfWithMemory.memory.usedJSHeapSize / 1024 / 1024;
         if (heapMB > 100) {
           logger.warn(`⚠️ [SyncExecutor] High memory usage (${heapMB.toFixed(2)} MB), pausing for GC...`);
           await new Promise(resolve => setTimeout(resolve, 100)); // Allow GC
@@ -334,11 +349,11 @@ export class SyncExecutor {
    * Incremental sync: Download only changed data since last sync
    */
   async incrementalSync(
-    table: ReplicatedTable<any>,
+    table: ReplicatedTable<{ id: string }>,
     options: SyncExecutorOptions
   ): Promise<SyncResult> {
     const startTime = Date.now();
-    const tableName = (table as any).tableName;
+    const tableName = table.getTableName();
 
     try {
       // Get last sync timestamp
