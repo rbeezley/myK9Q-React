@@ -28,6 +28,32 @@ interface ClassEntry {
   }[];
 }
 
+/** Raw class data from tbl_class_queue */
+interface RawClassData {
+  id: number;
+  element: string;
+  level: string;
+  section: string;
+  class_type: string;
+  judge_name: string | null;
+  class_status: string | null;
+}
+
+/** Raw entry data from view_entry_class_join_distinct */
+interface RawEntryData {
+  id: number;
+  armband: number;
+  call_name: string;
+  breed: string;
+  handler: string;
+  in_ring: boolean;
+  checkin_status: number;
+  is_scored: boolean;
+  element: string;
+  level: string;
+  section: string;
+}
+
 interface TrialInfo {
   trial_name: string;
   trial_date: string;
@@ -146,14 +172,17 @@ export const ClassList: React.FC = () => {
         }
 
         // Process classes with entry data
-        const processedClasses = classData.map((cls: any) => {
-          const entryData = (allTrialEntries || []).filter(entry => 
-            entry.element === cls.element && 
-            entry.level === cls.level && 
+        const typedClassData = classData as RawClassData[];
+        const typedEntries = (allTrialEntries || []) as RawEntryData[];
+
+        const processedClasses = typedClassData.map((cls) => {
+          const entryData = typedEntries.filter(entry =>
+            entry.element === cls.element &&
+            entry.level === cls.level &&
             entry.section === cls.section
           );
-          
-          const dogs = (entryData || []).map(entry => ({
+
+          const dogs = entryData.map(entry => ({
             id: entry.id,
             armband: entry.armband,
             call_name: entry.call_name,
@@ -167,7 +196,7 @@ export const ClassList: React.FC = () => {
           const entryCount = dogs.length;
           const completedCount = dogs.filter(dog => dog.is_scored).length;
           const className = `${cls.element} ${cls.level} ${cls.section}`.trim();
-          
+
           return {
             id: cls.id,
             element: cls.element,
@@ -178,7 +207,7 @@ export const ClassList: React.FC = () => {
             judge_name: cls.judge_name || 'TBA',
             entry_count: entryCount,
             completed_count: completedCount,
-            class_status: cls.class_status || 'pending',
+            class_status: (cls.class_status || 'pending') as ClassEntry['class_status'],
             is_favorite: false,
             dogs: dogs
           };

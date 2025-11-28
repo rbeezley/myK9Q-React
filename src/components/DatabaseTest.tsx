@@ -3,9 +3,18 @@ import { testDatabaseConnection } from '../services/authService';
 import { supabase } from '../lib/supabase';
 import { generatePasscodesFromLicenseKey } from '../utils/auth';
 
+/** Show data from database for display in test panel */
+interface ShowTestData {
+  id: number;
+  show_name: string;
+  club_name: string;
+  show_date: string;
+  license_key: string;
+}
+
 export const DatabaseTest: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
-  const [showData, setShowData] = useState<any[]>([]);
+  const [showData, setShowData] = useState<ShowTestData[]>([]);
   const [samplePasscodes, setSamplePasscodes] = useState<string[]>([]);
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -48,7 +57,7 @@ export const DatabaseTest: React.FC = () => {
         return;
       }
 
-      setShowData(shows || []);
+      setShowData((shows || []) as ShowTestData[]);
       
       // Generate sample passcodes from the first show
       if (shows && shows.length > 0) {
@@ -65,9 +74,9 @@ export const DatabaseTest: React.FC = () => {
       }
       
       setConnectionStatus('connected');
-    } catch (err: any) {
+    } catch (err) {
       setConnectionStatus('failed');
-      setError(`Connection error: ${err.message}`);
+      setError(`Connection error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

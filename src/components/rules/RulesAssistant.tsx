@@ -145,7 +145,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
     );
   };
 
-  const formatMeasurement = (key: string, value: any): string => {
+  const formatMeasurement = (key: string, value: string | number | boolean): string => {
     const labels: Record<string, string> = {
       min_area_sq_ft: 'Min Area',
       max_area_sq_ft: 'Max Area',

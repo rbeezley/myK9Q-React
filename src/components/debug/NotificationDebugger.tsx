@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
+/** Debug info collected from notification system checks */
+interface NotificationDebugInfo {
+  notificationSupport?: boolean;
+  notificationPermission?: NotificationPermission;
+  serviceWorkerSupport?: boolean;
+  serviceWorkerReady?: boolean;
+  serviceWorkerActive?: boolean;
+  serviceWorkerError?: string;
+  currentLicense?: string | null;
+  notificationPrefs?: string | null;
+}
+
 export const NotificationDebugger: React.FC = () => {
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<NotificationDebugInfo>({});
   const [testResults, setTestResults] = useState<string[]>([]);
 
   const checkNotificationStatus = async () => {
-    const info: any = {};
+    const info: NotificationDebugInfo = {};
 
     // Check notification support
     info.notificationSupport = 'Notification' in window;

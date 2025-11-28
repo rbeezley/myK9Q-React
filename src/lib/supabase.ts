@@ -94,7 +94,7 @@ export interface EntryQueue {
   health_timestamp: string | null;
   health_comment: string | null;
   online_order_number: string | null;
-  myk9q_entry_data: any | null;
+  myk9q_entry_data: Record<string, unknown> | null;
   access_entry_id: number | null;
   access_class_id: number | null;
   access_trial_id: number | null;

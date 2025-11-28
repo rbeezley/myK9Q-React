@@ -14,6 +14,25 @@ interface DiagnosticResult {
   exclusionReason: string;
 }
 
+/** Entry data from view_stats_summary */
+interface StatsEntry {
+  armband_number: string;
+  dog_call_name: string;
+  element: string;
+  result_status: string;
+  is_scored: boolean;
+}
+
+/** Aggregated dog data during processing */
+interface DogAggregate {
+  armbandNumber: string;
+  dogCallName: string;
+  entries: StatsEntry[];
+  elements: Set<string>;
+  qualifiedElements: Set<string>;
+  statuses: Set<string>;
+}
+
 interface Props {
   licenseKey: string;
   showId: string;
@@ -46,9 +65,9 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
             .eq('show_id', showId);
 
           if (statsData) {
-            const dogMap = new Map<string, any>();
+            const dogMap = new Map<string, DogAggregate>();
 
-            statsData.forEach((entry: any) => {
+            (statsData as StatsEntry[]).forEach((entry) => {
               const key = entry.armband_number;
               if (!dogMap.has(key)) {
                 dogMap.set(key, {
@@ -61,7 +80,7 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
                 });
               }
 
-              const dog = dogMap.get(key);
+              const dog = dogMap.get(key)!;
               dog.entries.push(entry);
               dog.elements.add(entry.element);
               if (entry.result_status === 'qualified') {
@@ -70,13 +89,13 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
               dog.statuses.add(entry.result_status);
             });
 
-            const diagnostics = Array.from(dogMap.values()).map(dog => {
-              const hasNonQualified = Array.from(dog.statuses).some((s: any) =>
+            const diagnostics = Array.from(dogMap.values()).map((dog: DogAggregate) => {
+              const hasNonQualified = Array.from(dog.statuses).some((s) =>
                 ['nq', 'excused', 'absent', 'withdrawn'].includes(s)
               );
 
               let reason = 'Should be clean sweep';
-              if (dog.entries.some((e: any) => !e.is_scored)) {
+              if (dog.entries.some((e) => !e.is_scored)) {
                 reason = 'Not all entries scored';
               } else if (dog.elements.size !== dog.qualifiedElements.size) {
                 reason = `Not all elements qualified (${dog.qualifiedElements.size}/${dog.elements.size})`;
@@ -88,7 +107,7 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
                 armbandNumber: dog.armbandNumber,
                 dogCallName: dog.dogCallName,
                 totalEntries: dog.entries.length,
-                scoredEntries: dog.entries.filter((e: any) => e.is_scored).length,
+                scoredEntries: dog.entries.filter((e) => e.is_scored).length,
                 uniqueElementsScored: dog.elements.size,
                 uniqueElementsQualified: dog.qualifiedElements.size,
                 hasNonQualified,

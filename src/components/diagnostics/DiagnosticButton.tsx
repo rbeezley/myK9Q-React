@@ -32,7 +32,7 @@ export function DiagnosticButton() {
 
     // Also check console for specific error patterns
     const originalConsoleError = console.error;
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       const message = args.join(' ');
       if (
         message.includes('Failed to open database') ||

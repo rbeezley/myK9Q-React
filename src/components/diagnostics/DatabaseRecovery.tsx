@@ -234,11 +234,11 @@ handleAutoRecovery();
         setRecoveryStatus('Additional steps needed. Please follow the instructions below.');
         setShowManualInstructions(true);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('[DatabaseRecovery] Optimization error or timeout:', error);
 
       // If it's a timeout, provide a more direct solution
-      if (error?.message === 'Recovery timeout') {
+      if (error instanceof Error && error.message === 'Recovery timeout') {
         setRecoveryStatus('The optimization is taking longer than expected. Please use the manual steps below.');
       } else {
         setRecoveryStatus('Please follow these simple steps to continue.');

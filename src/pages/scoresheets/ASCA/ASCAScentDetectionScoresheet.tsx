@@ -159,7 +159,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
     };
   }, []); // Fixed: removed currentEntry?.id dependency
   
-  const handleAreaUpdate = (areaIndex: number, field: keyof SearchArea, value: any) => {
+  const handleAreaUpdate = (areaIndex: number, field: keyof SearchArea, value: SearchArea[keyof SearchArea]) => {
     setSearchAreas(prev => prev.map((area, index) => 
       index === areaIndex ? { ...area, [field]: value } : area
     ));
