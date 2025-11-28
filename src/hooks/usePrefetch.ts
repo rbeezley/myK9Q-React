@@ -67,7 +67,7 @@ interface PrefetchOptions {
  * Extended queue item with fetcher function
  */
 interface PrefetchQueueData {
-  fetcher: () => Promise<any>;
+  fetcher: () => Promise<unknown>;
 }
 
 // ========================================
@@ -75,7 +75,7 @@ interface PrefetchQueueData {
 // ========================================
 
 /** Global prefetch cache (L1 - in-memory) */
-const prefetchCache = new Map<string, CachedData<any>>();
+const prefetchCache = new Map<string, CachedData<unknown>>();
 
 /** Global prefetch queue (for prioritization) */
 const prefetchQueue: PriorityQueueItem<PrefetchQueueData>[] = [];

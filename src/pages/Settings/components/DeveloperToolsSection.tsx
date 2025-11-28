@@ -108,7 +108,7 @@ export function DeveloperToolsSection(): React.ReactElement {
             action={
               <select
                 value={settings.consoleLogging}
-                onChange={(e) => updateSettings({ consoleLogging: e.target.value as any })}
+                onChange={(e) => updateSettings({ consoleLogging: e.target.value as 'none' | 'errors' | 'all' })}
                 className="settings-select"
                 style={{
                   background: 'rgba(255,255,255,0.05)',

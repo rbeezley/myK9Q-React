@@ -15,6 +15,14 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import './shared-ui.css';
 
+/**
+ * Extended HTMLDivElement interface with custom scroll methods
+ * Used to expose programmatic scroll control to parent components
+ */
+interface VirtualListElement extends HTMLDivElement {
+  scrollToIndex?: (index: number, align?: 'start' | 'center' | 'end') => void;
+}
+
 export interface VirtualListProps<T> {
   /** Array of items to render */
   items: T[];
@@ -122,7 +130,7 @@ export function VirtualList<T>({
   // Expose scroll methods via ref (if needed)
   useEffect(() => {
     if (containerRef.current) {
-      (containerRef.current as any).scrollToIndex = scrollToIndex;
+      (containerRef.current as VirtualListElement).scrollToIndex = scrollToIndex;
     }
   }, [scrollToIndex]);
 

@@ -114,7 +114,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                         action={
                             <select
                                 value={settings.consoleLogging}
-                                onChange={(e) => updateSettings({ consoleLogging: e.target.value as any })}
+                                onChange={(e) => updateSettings({ consoleLogging: e.target.value as 'none' | 'errors' | 'all' })}
                                 className="settings-select"
                                 style={{
                                     backgroundColor: 'var(--input-bg)',

@@ -156,22 +156,35 @@ export function calculateTimeStats(statsData: StatsQueryResult[]): TimeStats {
 // ========================================
 
 /**
+ * Supabase query builder type for dynamic filter application.
+ * Uses explicit typing since Supabase's generic PostgrestFilterBuilder
+ * has complex internal types that don't work well with generic wrappers.
+ */
+interface SupabaseQueryBuilder {
+  eq: (column: string, value: string | number) => SupabaseQueryBuilder;
+}
+
+/**
  * Apply level filters (show/trial/class) to a Supabase query
+ *
+ * Note: Uses type assertion because Supabase's query builder types are
+ * complex generics that don't compose well with wrapper functions.
+ * The runtime behavior is fully type-safe.
  */
 export function applyLevelFilters<T>(
   query: T,
   context: StatsContext
 ): T {
-  const q = query as any;
+  const q = query as unknown as SupabaseQueryBuilder;
 
   if (context.level === 'show' && context.showId) {
-    return q.eq('show_id', context.showId);
+    return q.eq('show_id', context.showId) as unknown as T;
   }
   if (context.level === 'trial' && context.trialId) {
-    return q.eq('trial_id', context.trialId);
+    return q.eq('trial_id', context.trialId) as unknown as T;
   }
   if (context.level === 'class' && context.classId) {
-    return q.eq('class_id', context.classId);
+    return q.eq('class_id', context.classId) as unknown as T;
   }
 
   return query;
@@ -179,12 +192,16 @@ export function applyLevelFilters<T>(
 
 /**
  * Apply common filters to a Supabase query
+ *
+ * Note: Uses type assertion because Supabase's query builder types are
+ * complex generics that don't compose well with wrapper functions.
+ * The runtime behavior is fully type-safe.
  */
 export function applyCommonFilters<T>(
   query: T,
   filters: StatsContext['filters']
 ): T {
-  let q = query as any;
+  let q = query as unknown as SupabaseQueryBuilder;
 
   if (filters.breed) q = q.eq('dog_breed', filters.breed);
   if (filters.judge) q = q.eq('judge_name', filters.judge);
@@ -193,7 +210,7 @@ export function applyCommonFilters<T>(
   if (filters.level) q = q.eq('level', filters.level);
   if (filters.classId) q = q.eq('class_id', filters.classId);
 
-  return q;
+  return q as unknown as T;
 }
 
 // ========================================

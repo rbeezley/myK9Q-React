@@ -9,6 +9,17 @@
  */
 
 /**
+ * Window-like interface for idle callback support
+ * Covers both browser and Node.js environments
+ */
+interface IdleCallbackWindow {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (id: number) => void;
+  setTimeout: (callback: () => void, ms: number) => number;
+  clearTimeout: (id: number) => void;
+}
+
+/**
  * Options for idle callback scheduling
  */
 export interface IdleCallbackOptions {
@@ -37,13 +48,13 @@ export function scheduleIdleTask(
   callback: () => void,
   options: IdleCallbackOptions = {}
 ): number {
-  const win = typeof window !== 'undefined' ? window : (globalThis as any);
+  const win: IdleCallbackWindow = typeof window !== 'undefined' ? window : globalThis as IdleCallbackWindow;
 
-  if ('requestIdleCallback' in win) {
+  if (win.requestIdleCallback) {
     return win.requestIdleCallback(callback, options);
   }
   // Fallback for Safari: use setTimeout with short delay
-  return win.setTimeout(callback, 1) as number;
+  return win.setTimeout(callback, 1);
 }
 
 /**
@@ -60,9 +71,9 @@ export function scheduleIdleTask(
  * ```
  */
 export function cancelIdleTask(id: number): void {
-  const win = typeof window !== 'undefined' ? window : (globalThis as any);
+  const win: IdleCallbackWindow = typeof window !== 'undefined' ? window : globalThis as IdleCallbackWindow;
 
-  if ('cancelIdleCallback' in win) {
+  if (win.cancelIdleCallback) {
     win.cancelIdleCallback(id);
   } else {
     win.clearTimeout(id);

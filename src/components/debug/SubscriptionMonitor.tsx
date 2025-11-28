@@ -12,13 +12,39 @@ import { Activity, AlertTriangle, CheckCircle, RefreshCw, Trash2, X, Database } 
 import { useSettingsStore } from '@/stores/settingsStore';
 import './SubscriptionMonitor.css';
 
+/** Health report returned by subscriptionCleanup.generateHealthReport() */
+interface HealthReport {
+  activeCount: number;
+  byType: Record<string, number>;
+  oldestSubscription: { key: string; ageMinutes: number } | null;
+  recentCleanups: number;
+  averageCleanupSize: number;
+}
+
+/** Leak check result returned by subscriptionCleanup.checkForLeaks() */
+interface LeakCheckResult {
+  hasLeaks: boolean;
+  count: number;
+  oldestAge: number;
+  details: SubscriptionInfo[];
+}
+
+/** Memory stats returned by memoryLeakDetector.getCurrentStats() */
+interface MemoryStats {
+  heapUsedMB: number;
+  heapTotalMB: number;
+  subscriptionCount: number;
+  snapshotCount: number;
+  warningCount: number;
+}
+
 export const SubscriptionMonitor: React.FC = () => {
   const { settings } = useSettingsStore();
   const [isOpen, setIsOpen] = useState(false);
   const [subscriptions, setSubscriptions] = useState<SubscriptionInfo[]>([]);
-  const [healthReport, setHealthReport] = useState<any>(null);
-  const [leakCheck, setLeakCheck] = useState<any>(null);
-  const [memoryStats, setMemoryStats] = useState<any>(null);
+  const [healthReport, setHealthReport] = useState<HealthReport | null>(null);
+  const [leakCheck, setLeakCheck] = useState<LeakCheckResult | null>(null);
+  const [memoryStats, setMemoryStats] = useState<MemoryStats | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Refresh data
@@ -146,7 +172,7 @@ export const SubscriptionMonitor: React.FC = () => {
         <div className="health-summary">
           <div className="stat-card">
             <div className="stat-label">Active Subscriptions</div>
-            <div className={`stat-value ${healthReport?.activeCount > 10 ? 'warning' : ''}`}>
+            <div className={`stat-value ${(healthReport?.activeCount ?? 0) > 10 ? 'warning' : ''}`}>
               {healthReport?.activeCount || 0}
             </div>
           </div>

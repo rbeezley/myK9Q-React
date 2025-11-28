@@ -8,10 +8,28 @@
  */
 
 import { useState, useEffect } from 'react';
-import { performanceMonitor } from '@/services/performanceMonitor';
-import { analyticsService } from '@/services/analyticsService';
+import { performanceMonitor, type PerformanceMetric } from '@/services/performanceMonitor';
+import { analyticsService, type UserSession, type FeatureUsageStats } from '@/services/analyticsService';
 import { useSettingsStore } from '@/stores/settingsStore';
 import './shared-monitoring.css';
+
+/** Metric stats returned by performanceMonitor.getMetricStats() */
+interface MetricStats {
+  avg: number;
+  min: number;
+  max: number;
+  p50: number;
+  p95: number;
+  count: number;
+}
+
+/** Web vitals data structure */
+interface WebVitals {
+  fcp: MetricStats | null;
+  lcp: MetricStats | null;
+  cls: MetricStats | null;
+  fid: MetricStats | null;
+}
 
 export function MonitoringDashboard() {
   const { settings } = useSettingsStore();
@@ -75,8 +93,8 @@ export function MonitoringDashboard() {
  * Performance Metrics Panel
  */
 function PerformancePanel() {
-  const [metrics, setMetrics] = useState<any[]>([]);
-  const [webVitals, setWebVitals] = useState<any>({});
+  const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
+  const [webVitals, setWebVitals] = useState<WebVitals>({ fcp: null, lcp: null, cls: null, fid: null });
 
   useEffect(() => {
     const updateMetrics = () => {
@@ -180,8 +198,8 @@ function PerformancePanel() {
  * Analytics Panel
  */
 function AnalyticsPanel() {
-  const [session, setSession] = useState<any>(null);
-  const [features, setFeatures] = useState<any[]>([]);
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [features, setFeatures] = useState<FeatureUsageStats[]>([]);
 
   useEffect(() => {
     const updateAnalytics = () => {
@@ -208,7 +226,7 @@ function AnalyticsPanel() {
               <div className="info-item">
                 <div className="label">Duration</div>
                 <div className="value">
-                  {(session.duration / 1000 / 60).toFixed(1)} minutes
+                  {((session.duration ?? 0) / 1000 / 60).toFixed(1)} minutes
                 </div>
               </div>
               <div className="info-item">

@@ -47,7 +47,7 @@ export interface UseOfflineRouteOptions {
    * Data fetchers for predicted routes
    * Map of route path -> data fetcher function
    */
-  dataFetchers?: { [path: string]: () => Promise<any> };
+  dataFetchers?: { [path: string]: () => Promise<unknown> };
 }
 
 export function useOfflineRoute(options: UseOfflineRouteOptions = {}) {

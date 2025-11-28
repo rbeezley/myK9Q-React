@@ -840,10 +840,11 @@ return entriesData || [];
         }}
         onStatusChange={(status: string, timeValue?: string) => {
           if (selectedClassForStatus) {
+            const typedStatus = status as ClassEntry['class_status'];
             if (timeValue) {
-              handleClassStatusChangeWithTime(selectedClassForStatus.id, status as any, timeValue);
+              handleClassStatusChangeWithTime(selectedClassForStatus.id, typedStatus, timeValue);
             } else {
-              handleClassStatusChange(selectedClassForStatus.id, status as any);
+              handleClassStatusChange(selectedClassForStatus.id, typedStatus);
             }
           }
         }}

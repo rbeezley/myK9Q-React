@@ -25,7 +25,7 @@ export const AppearanceSettings: React.FC = () => {
                 action={
                     <select
                         value={settings.theme}
-                        onChange={(e) => updateSettings({ theme: e.target.value as any })}
+                        onChange={(e) => updateSettings({ theme: e.target.value as 'light' | 'dark' | 'auto' })}
                         className="settings-select"
                         style={{
                             backgroundColor: 'var(--input-bg)',
@@ -79,7 +79,7 @@ export const AppearanceSettings: React.FC = () => {
                 action={
                     <select
                         value={settings.fontSize}
-                        onChange={(e) => updateSettings({ fontSize: e.target.value as any })}
+                        onChange={(e) => updateSettings({ fontSize: e.target.value as 'small' | 'medium' | 'large' })}
                         className="settings-select"
                         style={{
                             backgroundColor: 'var(--input-bg)',
@@ -104,7 +104,7 @@ export const AppearanceSettings: React.FC = () => {
                 action={
                     <select
                         value={settings.density}
-                        onChange={(e) => updateSettings({ density: e.target.value as any })}
+                        onChange={(e) => updateSettings({ density: e.target.value as 'compact' | 'comfortable' | 'spacious' })}
                         className="settings-select"
                         style={{
                             backgroundColor: 'var(--input-bg)',

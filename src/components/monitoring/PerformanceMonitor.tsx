@@ -9,6 +9,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import developerModeService from '@/services/developerMode';
 import './shared-monitoring.css';
 
+/**
+ * Chrome-specific memory info interface
+ * This is a non-standard API available only in Chrome
+ */
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
+
 export const PerformanceMonitor: React.FC = () => {
   const [fps, setFps] = useState(60);
   const [memory, setMemory] = useState({ used: 0, limit: 0 });
@@ -51,7 +65,8 @@ export const PerformanceMonitor: React.FC = () => {
     let memoryInterval: NodeJS.Timeout | undefined;
     if (config.showMemory && 'memory' in performance) {
       const updateMemory = () => {
-        const mem = (performance as any).memory;
+        const perfWithMemory = performance as PerformanceWithMemory;
+        const mem = perfWithMemory.memory;
         if (mem) {
           setMemory({
             used: Math.round(mem.usedJSHeapSize / 1048576), // Convert to MB

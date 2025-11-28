@@ -7,6 +7,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+/**
+ * Extended navigator interface for iOS Safari's standalone property
+ * This property is non-standard but exists on iOS Safari
+ */
+interface NavigatorStandalone extends Navigator {
+  standalone?: boolean;
+}
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -65,7 +73,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
     // Check if running in standalone mode (installed as PWA)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true || // iOS Safari
+      (window.navigator as NavigatorStandalone).standalone === true || // iOS Safari
       document.referrer.includes('android-app://'); // Android
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
