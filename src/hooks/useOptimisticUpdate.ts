@@ -121,10 +121,11 @@ export function useOptimisticUpdate(): OptimisticUpdateResult {
         setRetryCount(attempts);
 
         // Check if it's a network error (offline)
+        const errorMessage = err instanceof Error ? err.message : '';
         const isNetworkError =
           err instanceof TypeError ||
-          (err as any).message?.includes('Failed to fetch') ||
-          (err as any).message?.includes('Network request failed');
+          errorMessage.includes('Failed to fetch') ||
+          errorMessage.includes('Network request failed');
 
         // If network error and haven't exceeded retries, wait and retry
         if (isNetworkError && attempts <= maxRetries) {

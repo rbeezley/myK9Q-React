@@ -35,6 +35,39 @@ interface UseTVDataOptions {
   pollingInterval?: number;
 }
 
+/** Raw class data from view_tv_classes_status Supabase view */
+interface RawClassData {
+  id: number;
+  trial_date: string;
+  trial_number: number;
+  element: string;
+  display_level: string;
+  section?: string;
+  class_name: string;
+  judge_name?: string;
+  class_status?: string;
+  planned_start_time?: string | null;
+}
+
+/** Raw entry data from view_entry_class_join_normalized Supabase view */
+interface RawEntryData {
+  id: number;
+  armband_number: number;
+  dog_call_name: string;
+  dog_breed?: string;
+  handler_name: string;
+  is_scored: boolean;
+  is_in_ring: boolean;
+  result_status?: string;
+  section?: string;
+  exhibitor_order?: number;
+  trial_date: string;
+  trial_number: number;
+  element: string;
+  level: string;
+  entry_status: string | null;
+}
+
 interface UseTVDataReturn {
   inProgressClasses: ClassInfo[];
   entriesByClass: Record<string, EntryInfo[]>;
@@ -95,8 +128,8 @@ export const useTVData = ({
 
         // Transform classes (counts will be calculated from entry data below)
         // Note: Novice A & B are already combined by the view!
-        const transformedClasses: ClassInfo[] = (classes || [])
-          .map((cls: any) => ({
+        const transformedClasses: ClassInfo[] = (classes as RawClassData[] || [])
+          .map((cls) => ({
             id: cls.id.toString(),
             trial_date: cls.trial_date,
             trial_number: cls.trial_number,
@@ -141,7 +174,7 @@ export const useTVData = ({
 
         // Fetch entries for all in-progress classes
         // NOTE: Split into batches to avoid URL length limits with .in() clause
-        let entries: any[] = [];
+        let entries: RawEntryData[] = [];
         if (transformedClasses.length > 0) {
           const classIds = transformedClasses.map(c => parseInt(c.id));
           const batchSize = 10; // Safe batch size for URL length
@@ -200,7 +233,7 @@ export const useTVData = ({
         const countsPerClass = new Map<string, {total: number, completed: number}>();
 
         if (entries.length > 0) {
-          entries.forEach((entry: any) => {
+          entries.forEach((entry) => {
             const key = `${entry.trial_date}-${entry.trial_number}-${entry.element}-${entry.level}`;
             if (!entriesByClassKey[key]) {
               entriesByClassKey[key] = [];

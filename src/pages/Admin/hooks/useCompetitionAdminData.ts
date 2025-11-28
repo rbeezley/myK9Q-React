@@ -46,6 +46,28 @@ export interface TrialInfo {
   visibility_preset?: VisibilityPreset;
 }
 
+/** Raw class data from view_class_summary Supabase view */
+interface RawClassSummaryData {
+  class_id: number;
+  trial_id: number;
+  element: string;
+  level: string;
+  section: string;
+  judge_name: string;
+  trial_date?: string;
+  trial_number?: number;
+  is_completed?: boolean;
+  self_checkin_enabled?: boolean;
+  total_entries?: number;
+  scored_entries?: number;
+}
+
+/** Raw visibility override from class_result_visibility_overrides table */
+interface RawVisibilityOverride {
+  class_id: number;
+  preset_name: VisibilityPreset;
+}
+
 export interface ShowInfo {
   showName: string;
   organization: string;
@@ -100,7 +122,8 @@ async function fetchClasses(licenseKey: string): Promise<ClassInfo[]> {
   if (error) throw error;
 
   // Fetch visibility overrides for all classes
-  const classIds = (data || []).map((classData: any) => classData.class_id);
+  const rawData = (data || []) as RawClassSummaryData[];
+  const classIds = rawData.map((classData) => classData.class_id);
   const { data: visibilityData } = await supabase
     .from('class_result_visibility_overrides')
     .select('class_id, preset_name')
@@ -109,12 +132,12 @@ async function fetchClasses(licenseKey: string): Promise<ClassInfo[]> {
   // Create map of class_id to preset_name
   // CRITICAL: Use string keys for consistency (prevents number/string type mismatch bugs)
   const visibilityMap = new Map<string, VisibilityPreset>();
-  (visibilityData || []).forEach((override: any) => {
+  ((visibilityData || []) as RawVisibilityOverride[]).forEach((override) => {
     visibilityMap.set(String(override.class_id), override.preset_name);
   });
 
   // Map view columns to ClassInfo interface
-  const classes = (data || []).map((classData: any) => ({
+  const classes = rawData.map((classData) => ({
     id: classData.class_id,
     trial_id: classData.trial_id,
     element: classData.element,

@@ -138,8 +138,8 @@ export const Stats: React.FC = () => {
             trialDate: d.trial_date,
             trialNumber: d.trial_id ? trialNumberMap.get(String(d.trial_id)) : undefined
           })).filter(Boolean))]
-            .map(c => JSON.parse(c))
-            .sort((a: any, b: any) => a.name.localeCompare(b.name));
+            .map(c => JSON.parse(c) as { id: number; name: string; trialDate: string; trialNumber?: number })
+            .sort((a, b) => a.name.localeCompare(b.name));
 
           setFilterOptions(prev => ({
             ...prev,
