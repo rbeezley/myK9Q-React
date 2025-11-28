@@ -11,6 +11,12 @@
  * - Browser API compatibility checks
  */
 
+/** Navigator with Badging API (experimental, Chrome 81+) */
+interface NavigatorWithBadge extends Navigator {
+  setAppBadge(contents?: number): Promise<void>;
+  clearAppBadge(): Promise<void>;
+}
+
 /**
  * Sound configuration for notifications
  */
@@ -118,11 +124,11 @@ export async function updateBadgeCount(increment: number): Promise<void> {
     const newBadge = Math.max(0, currentBadge + increment);
 
     if (newBadge > 0) {
-      await (navigator as any).setAppBadge(newBadge);
+      await (navigator as NavigatorWithBadge).setAppBadge(newBadge);
       // Store for retrieval since Badge API doesn't provide getter
       localStorage.setItem('notification_badge_count', String(newBadge));
     } else {
-      await (navigator as any).clearAppBadge();
+      await (navigator as NavigatorWithBadge).clearAppBadge();
       localStorage.setItem('notification_badge_count', '0');
     }
   } catch (error) {
@@ -166,7 +172,7 @@ export async function clearBadge(): Promise<void> {
   }
 
   try {
-    await (navigator as any).clearAppBadge();
+    await (navigator as NavigatorWithBadge).clearAppBadge();
     localStorage.setItem('notification_badge_count', '0');
   } catch (error) {
     console.warn('Could not clear badge:', error);

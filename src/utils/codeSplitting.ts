@@ -6,6 +6,18 @@
 
 import { lazy, ComponentType } from 'react';
 
+/**
+ * A preloadable lazy component with optional preload method
+ * Generic constraint uses Record for props flexibility
+ */
+export type PreloadableLazyComponent<T extends ComponentType<Record<string, unknown>>> =
+  React.LazyExoticComponent<T> & { preload?: () => Promise<void> };
+
+/**
+ * Cached component type - unknown since components can have any shape
+ */
+type CachedComponent = unknown;
+
 export interface LazyOptions {
   /** Retry attempts on failure */
   retries?: number;
@@ -23,7 +35,7 @@ export interface LazyOptions {
 /**
  * Enhanced lazy loading with retry logic
  */
-export function lazyWithRetry<T extends ComponentType<any>>(
+export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
   importFn: () => Promise<{ default: T }>,
   options: LazyOptions = {}
 ): React.LazyExoticComponent<T> & { preload: () => Promise<void> } {
@@ -76,7 +88,7 @@ export function lazyWithRetry<T extends ComponentType<any>>(
  * Preload multiple components
  */
 export async function preloadComponents(
-  components: Array<React.LazyExoticComponent<any> & { preload?: () => Promise<void> }>
+  components: Array<PreloadableLazyComponent<ComponentType<Record<string, unknown>>>>
 ): Promise<void> {
   const promises = components.map(Component => {
     if (Component.preload) {
@@ -92,7 +104,7 @@ export async function preloadComponents(
  * Preload component on hover (for links/buttons)
  */
 export function usePreloadOnHover(
-  component: React.LazyExoticComponent<any> & { preload?: () => Promise<void> }
+  component: PreloadableLazyComponent<ComponentType<Record<string, unknown>>>
 ) {
   return {
     onMouseEnter: () => {
@@ -112,7 +124,7 @@ export function usePreloadOnHover(
  * Preload component on viewport intersection
  */
 export function preloadOnIntersection(
-  component: React.LazyExoticComponent<any> & { preload?: () => Promise<void> },
+  component: PreloadableLazyComponent<ComponentType<Record<string, unknown>>>,
   element: HTMLElement | null,
   options: IntersectionObserverInit = {}
 ): () => void {
@@ -141,14 +153,14 @@ export function preloadOnIntersection(
  * Preload components based on route
  */
 export interface RoutePreloadConfig {
-  [route: string]: Array<React.LazyExoticComponent<any> & { preload?: () => Promise<void> }>;
+  [route: string]: Array<PreloadableLazyComponent<ComponentType<Record<string, unknown>>>>;
 }
 
 const routePreloadMap: RoutePreloadConfig = {};
 
 export function registerRoutePreload(
   route: string,
-  components: Array<React.LazyExoticComponent<any> & { preload?: () => Promise<void> }>
+  components: Array<PreloadableLazyComponent<ComponentType<Record<string, unknown>>>>
 ): void {
   routePreloadMap[route] = components;
 }
@@ -218,13 +230,13 @@ function predictAndPreload(): void {
 /**
  * Component cache for faster re-renders
  */
-const componentCache = new Map<string, any>();
+const componentCache = new Map<string, CachedComponent>();
 
-export function getCachedComponent(key: string): any {
+export function getCachedComponent(key: string): CachedComponent {
   return componentCache.get(key);
 }
 
-export function setCachedComponent(key: string, component: any): void {
+export function setCachedComponent(key: string, component: CachedComponent): void {
   componentCache.set(key, component);
 }
 
@@ -274,7 +286,7 @@ export function getAllChunkStats(): { [chunk: string]: ReturnType<typeof getChun
  * Prefetch chunks during idle time
  */
 export function prefetchChunksDuringIdle(
-  components: Array<React.LazyExoticComponent<any> & { preload?: () => Promise<void> }>
+  components: Array<PreloadableLazyComponent<ComponentType<Record<string, unknown>>>>
 ): void {
   if (!window.requestIdleCallback) {
     // Fallback for browsers without requestIdleCallback
@@ -295,7 +307,7 @@ export function prefetchChunksDuringIdle(
  * Preloads essential chunks immediately after initial render
  */
 export async function preloadCriticalChunks(
-  chunks: Array<React.LazyExoticComponent<any> & { preload?: () => Promise<void> }>
+  chunks: Array<PreloadableLazyComponent<ComponentType<Record<string, unknown>>>>
 ): Promise<void> {
   // Wait for initial render to complete
   await new Promise(resolve => {

@@ -18,7 +18,7 @@ import { cache as idbCache } from '@/utils/indexedDB';
 export interface CachedRoute {
   path: string;
   timestamp: number;
-  data?: any;
+  data?: unknown;
   html?: string;
 }
 
@@ -66,7 +66,7 @@ async function saveVisitedRoutes() {
 /**
  * Mark a route as visited and cache its data
  */
-export async function markRouteVisited(path: string, data?: any) {
+export async function markRouteVisited(path: string, data?: unknown) {
   visitedRoutes.add(path);
   await saveVisitedRoutes();
 
@@ -116,7 +116,7 @@ export async function getCachedRoute(path: string): Promise<CachedRoute | null> 
 /**
  * Prefetch a route and its data
  */
-export async function prefetchRoute(path: string, fetchData: () => Promise<any>) {
+export async function prefetchRoute(path: string, fetchData: () => Promise<unknown>) {
   // Skip if already visited
   if (isRouteVisited(path)) {
 return;
@@ -135,7 +135,7 @@ const data = await fetchData();
  */
 export async function prefetchLikelyRoutes(
   currentPath: string,
-  dataFetchers: { [path: string]: () => Promise<any> }
+  dataFetchers: { [path: string]: () => Promise<unknown> }
 ) {
   const predictions = predictNextRoutes(currentPath);
 

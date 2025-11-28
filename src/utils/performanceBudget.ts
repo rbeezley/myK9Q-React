@@ -5,6 +5,45 @@
  * Alerts when performance regresses beyond acceptable thresholds.
  */
 
+/**
+ * Largest Contentful Paint entry type
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/LargestContentfulPaint
+ */
+interface LargestContentfulPaintEntry extends PerformanceEntry {
+  renderTime: number;
+  loadTime: number;
+  size: number;
+  element?: Element;
+  url: string;
+  id: string;
+}
+
+/**
+ * First Input Delay entry type (PerformanceEventTiming)
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEventTiming
+ */
+interface FirstInputEntry extends PerformanceEntry {
+  processingStart: number;
+  processingEnd: number;
+  cancelable: boolean;
+  target?: Node;
+}
+
+/**
+ * Layout Shift entry type
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/LayoutShift
+ */
+interface LayoutShiftEntry extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
+  lastInputTime: number;
+  sources: Array<{
+    node?: Node;
+    previousRect: DOMRectReadOnly;
+    currentRect: DOMRectReadOnly;
+  }>;
+}
+
 export interface PerformanceMetrics {
   /** Largest Contentful Paint (ms) */
   lcp: number | null;
@@ -165,7 +204,7 @@ export function collectMetrics(): PerformanceMetrics {
       // LCP
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1] as any;
+        const lastEntry = entries[entries.length - 1] as LargestContentfulPaintEntry;
         metrics.lcp = lastEntry.renderTime || lastEntry.loadTime;
       });
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
@@ -173,8 +212,9 @@ export function collectMetrics(): PerformanceMetrics {
       // FID
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          metrics.fid = entry.processingStart - entry.startTime;
+        entries.forEach((entry) => {
+          const fidEntry = entry as FirstInputEntry;
+          metrics.fid = fidEntry.processingStart - fidEntry.startTime;
         });
       });
       fidObserver.observe({ type: 'first-input', buffered: true });
@@ -183,9 +223,10 @@ export function collectMetrics(): PerformanceMetrics {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value;
+        entries.forEach((entry) => {
+          const layoutEntry = entry as LayoutShiftEntry;
+          if (!layoutEntry.hadRecentInput) {
+            clsValue += layoutEntry.value;
             metrics.cls = clsValue;
           }
         });
