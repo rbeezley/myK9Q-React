@@ -5,9 +5,20 @@
  * to automatically fix database corruption issues.
  */
 
+/** Window with quick recovery functions for console access */
+interface WindowWithRecovery extends Window {
+  disableReplication?: () => void;
+  enableReplication?: () => void;
+  replicationStatus?: () => { enabled: boolean; reason?: string };
+  fixDatabase?: () => Promise<void>;
+  clearAllData?: () => Promise<void>;
+}
+
 export function setupQuickRecovery() {
   // Make recovery function available globally
   if (typeof window !== 'undefined') {
+    const win = window as WindowWithRecovery;
+
     // Import replication config
     import('../services/replication/replicationConfig').then(({
       disableReplication,
@@ -15,34 +26,34 @@ export function setupQuickRecovery() {
       getReplicationStatus
     }) => {
       // Add replication control functions
-      (window as any).disableReplication = () => {
+      win.disableReplication = () => {
         disableReplication('Manual disable via console');
-};
+      };
 
-      (window as any).enableReplication = () => {
+      win.enableReplication = () => {
         enableReplication();
-};
+      };
 
-      (window as any).replicationStatus = () => {
+      win.replicationStatus = () => {
         const status = getReplicationStatus();
-return status;
+        return status;
       };
     });
 
     // One-liner function users can run
-    (window as any).fixDatabase = async () => {
-try {
+    win.fixDatabase = async () => {
+      try {
         // Dynamically load and execute the recovery script
         const script = document.createElement('script');
         script.src = '/recovery.js';
         document.head.appendChild(script);
       } catch (error) {
         console.error('Failed to load recovery script:', error);
-}
+      }
     };
 
     // Also provide a quick clear function
-    (window as any).clearAllData = async () => {
+    win.clearAllData = async () => {
       if (!confirm('⚠️ This will clear ALL local data. Are you sure?')) {
         return;
       }

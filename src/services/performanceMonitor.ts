@@ -208,7 +208,7 @@ export class PerformanceMonitor {
     try {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          const eventTiming = entry as any as EventTiming;
+          const eventTiming = entry as unknown as EventTiming;
           const duration = eventTiming.processingEnd - eventTiming.processingStart;
 
           if (entry.name === 'first-input') {
@@ -279,7 +279,7 @@ export class PerformanceMonitor {
     name: string,
     value: number,
     unit: 'ms' | 'score' = 'ms',
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     if (!this.enabled || value < 0) return;
 
@@ -342,7 +342,7 @@ export class PerformanceMonitor {
   async measureAction<T>(
     actionName: string,
     action: () => Promise<T>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<T> {
     const startTime = performance.now();
     try {
@@ -525,8 +525,9 @@ export class PerformanceMonitor {
 
   private getDeviceTier(): string {
     // This would integrate with your device detection
-    if ((navigator as any).deviceMemory) {
-      const memory = (navigator as any).deviceMemory;
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    if (nav.deviceMemory) {
+      const memory = nav.deviceMemory;
       if (memory >= 8) return 'high';
       if (memory >= 4) return 'medium';
       return 'low';
@@ -561,7 +562,7 @@ declare global {
     processingStart: number;
     processingEnd: number;
     cancelable?: boolean;
-    toJSON(): any;
+    toJSON(): Record<string, unknown>;
   }
 }
 

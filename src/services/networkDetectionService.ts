@@ -8,6 +8,26 @@
 type ConnectionType = 'wifi' | 'cellular' | 'ethernet' | 'bluetooth' | 'unknown';
 type EffectiveType = 'slow-2g' | '2g' | '3g' | '4g' | 'unknown';
 
+/**
+ * Network Information API connection type
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation
+ */
+interface NetworkInformationConnection {
+  type?: string;
+  effectiveType?: EffectiveType;
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+  addEventListener(event: 'change', handler: () => void): void;
+}
+
+/** Navigator with Network Information API (non-standard) */
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformationConnection;
+  mozConnection?: NetworkInformationConnection;
+  webkitConnection?: NetworkInformationConnection;
+}
+
 export interface NetworkInfo {
   isOnline: boolean;
   connectionType: ConnectionType;
@@ -75,18 +95,15 @@ class NetworkDetectionService {
   /**
    * Get connection object from various browser APIs
    */
-  private getConnection(): any {
-    return (
-      (navigator as any).connection ||
-      (navigator as any).mozConnection ||
-      (navigator as any).webkitConnection
-    );
+  private getConnection(): NetworkInformationConnection | undefined {
+    const nav = navigator as NavigatorWithConnection;
+    return nav.connection || nav.mozConnection || nav.webkitConnection;
   }
 
   /**
    * Determine connection type from connection object
    */
-  private getConnectionType(connection: any): ConnectionType {
+  private getConnectionType(connection: NetworkInformationConnection): ConnectionType {
     const type = connection.type;
 
     if (!type) {

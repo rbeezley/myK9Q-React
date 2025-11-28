@@ -5,13 +5,16 @@
  * Considers both user settings and system preferences.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import {
   getAnimationConfig,
   subscribeToReduceMotionChanges,
   type AnimationConfig,
 } from '@/utils/reduceMotionUtils';
+
+/** Motion prop values type for animation libraries like Framer Motion */
+type MotionPropValue = Record<string, unknown>;
 
 /**
  * Main hook for reduce motion preference
@@ -102,10 +105,10 @@ export function useTransitionStyles(baseMs = 300): React.CSSProperties {
  * Hook for Framer Motion animation props
  */
 export function useMotionProps(config?: {
-  initial?: Record<string, any>;
-  animate?: Record<string, any>;
-  exit?: Record<string, any>;
-  transition?: Record<string, any>;
+  initial?: MotionPropValue;
+  animate?: MotionPropValue;
+  exit?: MotionPropValue;
+  transition?: MotionPropValue;
 }) {
   const reduced = useReduceMotion();
 
@@ -211,7 +214,7 @@ export function useSpringConfig(preset: 'gentle' | 'wobbly' | 'stiff' | 'slow' =
 /**
  * Hook for safe requestAnimationFrame
  */
-export function useSafeRAF(callback: FrameRequestCallback, deps: any[] = []) {
+export function useSafeRAF(callback: FrameRequestCallback, deps: React.DependencyList = []) {
   const reduced = useReduceMotion();
 
   useEffect(() => {
@@ -235,7 +238,7 @@ export function useSafeRAF(callback: FrameRequestCallback, deps: any[] = []) {
 export function useTransitionEnd(
   ref: React.RefObject<HTMLElement>,
   callback: (event: TransitionEvent) => void,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ) {
   const reduced = useReduceMotion();
 
@@ -263,7 +266,7 @@ export function useTransitionEnd(
 export function useAnimationEnd(
   ref: React.RefObject<HTMLElement>,
   callback: (event: AnimationEvent) => void,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ) {
   const reduced = useReduceMotion();
 
