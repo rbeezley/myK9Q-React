@@ -5,7 +5,7 @@
  * React hooks for device-aware performance optimization.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   detectDeviceCapabilities,
   getPerformanceSettings,
@@ -101,7 +101,7 @@ export function useDeviceFeature(
  */
 export function useIdleCallback(
   callback: () => void | Promise<void>,
-  deps: any[] = [],
+  deps: React.DependencyList = [],
   priority: 'high' | 'medium' | 'low' = 'medium'
 ): void {
   useEffect(() => {
@@ -118,7 +118,7 @@ export function useIdleCallback(
  */
 export function useIdleComputation<T>(
   computation: () => T,
-  deps: any[] = [],
+  deps: React.DependencyList = [],
   priority: 'high' | 'medium' | 'low' = 'medium'
 ): T | null {
   const [result, setResult] = useState<T | null>(null);
@@ -135,9 +135,9 @@ export function useIdleComputation<T>(
 /**
  * Hook for adaptive debounce based on device tier
  */
-export function useAdaptiveDebounce<T extends (...args: any[]) => any>(
+export function useAdaptiveDebounce<T extends (...args: unknown[]) => unknown>(
   callback: T,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ): T {
   const settings = usePerformanceSettings();
 
@@ -158,9 +158,9 @@ export function useAdaptiveDebounce<T extends (...args: any[]) => any>(
 /**
  * Hook for adaptive throttle based on device tier
  */
-export function useAdaptiveThrottle<T extends (...args: any[]) => any>(
+export function useAdaptiveThrottle<T extends (...args: unknown[]) => unknown>(
   callback: T,
-  deps: any[] = []
+  deps: React.DependencyList = []
 ): T {
   const settings = usePerformanceSettings();
   const lastRun = useMemo(() => ({ value: 0 }), []);

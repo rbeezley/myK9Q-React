@@ -10,6 +10,17 @@ import { detectDeviceCapabilities, getPerformanceSettings } from '@/utils/device
 import { networkDetectionService } from './networkDetectionService';
 import type { AppSettings } from '@/stores/settingsStore';
 
+/** Type for AppSettings property values */
+type SettingsValue = AppSettings[keyof AppSettings];
+
+/** Navigator with Battery API (non-standard) */
+interface NavigatorWithBattery extends Navigator {
+  getBattery(): Promise<{ level: number; charging: boolean }>;
+}
+
+/** Type for user roles */
+type UserRole = 'admin' | 'judge' | 'steward' | 'exhibitor';
+
 export interface SmartDefaultsContext {
   /** Device capabilities */
   deviceTier: 'low' | 'medium' | 'high';
@@ -49,7 +60,7 @@ export async function detectDefaultsContext(userRole?: string): Promise<SmartDef
 
   if ('getBattery' in navigator) {
     try {
-      const battery = await (navigator as any).getBattery();
+      const battery = await (navigator as NavigatorWithBattery).getBattery();
       batteryLevel = battery.level;
       isCharging = battery.charging;
     } catch {
@@ -70,7 +81,7 @@ export async function detectDefaultsContext(userRole?: string): Promise<SmartDef
     connectionType: networkInfo.connectionType,
     connectionQuality,
     isFirstLaunch,
-    userRole: userRole as any,
+    userRole: userRole as UserRole | undefined,
     batteryLevel,
     isCharging,
   };
@@ -178,7 +189,7 @@ export async function applySmartDefaults(
   }
 
   // Otherwise, only fill in undefined/null values
-  const mergedSettings: any = { ...currentSettings };
+  const mergedSettings = { ...currentSettings } as AppSettings & Record<string, SettingsValue>;
 
   Object.keys(smartDefaults).forEach((key) => {
     if (mergedSettings[key] === undefined || mergedSettings[key] === null) {
@@ -186,7 +197,7 @@ export async function applySmartDefaults(
     }
   });
 
-  return mergedSettings as AppSettings;
+  return mergedSettings;
 }
 
 /**
@@ -279,8 +290,8 @@ export async function getOptimizationSuggestions(
   category: string;
   suggestion: string;
   setting: keyof AppSettings;
-  currentValue: any;
-  recommendedValue: any;
+  currentValue: SettingsValue;
+  recommendedValue: SettingsValue;
   impact: 'low' | 'medium' | 'high';
 }>> {
   const validation = await validateSettings(currentSettings);
@@ -288,8 +299,8 @@ export async function getOptimizationSuggestions(
     category: string;
     suggestion: string;
     setting: keyof AppSettings;
-    currentValue: any;
-    recommendedValue: any;
+    currentValue: SettingsValue;
+    recommendedValue: SettingsValue;
     impact: 'low' | 'medium' | 'high';
   }> = [];
 

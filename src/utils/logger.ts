@@ -49,29 +49,29 @@ function shouldLog(level: 'log' | 'warn' | 'error' | 'debug' | 'info'): boolean 
 }
 
 export const logger = {
-  log: (...args: any[]) => {
+  log: (...args: unknown[]) => {
     if (shouldLog('log')) {
       console.log(...args);
     }
   },
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     if (shouldLog('warn')) {
       console.warn(...args);
     }
   },
-  error: (...args: any[]) => {
+  error: (...args: unknown[]) => {
     // Always log errors unless explicitly disabled
     const setting = getConsoleLoggingSetting();
     if (setting !== 'none') {
       console.error(...args);
     }
   },
-  debug: (...args: any[]) => {
+  debug: (...args: unknown[]) => {
     if (shouldLog('debug')) {
       console.log('[DEBUG]', ...args);
     }
   },
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     if (shouldLog('info')) {
       console.info(...args);
     }
