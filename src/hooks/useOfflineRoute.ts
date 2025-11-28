@@ -59,7 +59,7 @@ export function useOfflineRoute(options: UseOfflineRouteOptions = {}) {
    * Mark current route as visited with data
    */
   const markVisited = useCallback(
-    async (data?: any) => {
+    async (data?: unknown) => {
       await markRouteVisited(location.pathname, data);
     },
     [location.pathname]

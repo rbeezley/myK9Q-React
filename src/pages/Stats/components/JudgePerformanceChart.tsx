@@ -7,8 +7,27 @@ interface JudgePerformanceChartProps {
   onBarClick?: (judge: string) => void;
 }
 
+/** Extended judge data with display name and color for chart rendering */
+interface ChartJudgeData extends JudgeStat {
+  displayName: string;
+  color: string;
+}
+
+/** Recharts tooltip props */
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ChartJudgeData }>;
+}
+
+/** Recharts axis tick props */
+interface AxisTickProps {
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+}
+
 // Custom tooltip component
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload && payload[0]) {
     const data = payload[0].payload;
     return (
@@ -74,11 +93,12 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 // Custom X-axis tick component for mobile
-const CustomXAxisTick = ({ x, y, payload }: any) => {
+const CustomXAxisTick = ({ x = 0, y = 0, payload }: AxisTickProps) => {
   const maxLength = window.innerWidth < 640 ? 12 : 20;
-  const displayText = payload.value.length > maxLength
-    ? payload.value.substring(0, maxLength - 1) + '…'
-    : payload.value;
+  const value = payload?.value || '';
+  const displayText = value.length > maxLength
+    ? value.substring(0, maxLength - 1) + '…'
+    : value;
 
   return (
     <g transform={`translate(${x},${y})`}>
@@ -149,9 +169,11 @@ const JudgePerformanceChart: React.FC<JudgePerformanceChartProps> = ({ data, onB
         <Bar
           dataKey="qualificationRate"
           fill="var(--primary)"
-          onClick={(data: any) => {
-            if (onBarClick && data.judgeName) {
-              onBarClick(data.judgeName);
+          onClick={(data) => {
+            // Recharts passes the data payload - cast to access our data type
+            const payload = data as unknown as ChartJudgeData;
+            if (onBarClick && payload?.judgeName) {
+              onBarClick(payload.judgeName);
             }
           }}
           style={{ cursor: onBarClick ? 'pointer' : 'default' }}

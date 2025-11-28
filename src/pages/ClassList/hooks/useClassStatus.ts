@@ -190,7 +190,12 @@ return { success: true };
 
     // Convert 'no-status' to null for database
     const dbStatus = status === 'no-status' ? null : status;
-    const updateData: any = {
+    const updateData: {
+      class_status: string | null;
+      briefing_time?: string;
+      break_until?: string;
+      start_time?: string;
+    } = {
       class_status: dbStatus
     };
 

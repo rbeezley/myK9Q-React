@@ -7,8 +7,26 @@ interface QualificationChartProps {
   onSegmentClick?: (filters: { breed?: string; judge?: string }) => void;
 }
 
+/** Data shape for pie chart entries */
+interface PieChartEntry {
+  name: string;
+  value: number;
+  percentage: number;
+  color: string;
+}
+
+/** Recharts tooltip props for pie chart */
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: PieChartEntry;
+  }>;
+}
+
 // Custom tooltip component
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload && payload[0]) {
     const data = payload[0];
     return (
@@ -76,8 +94,10 @@ const QualificationChart: React.FC<QualificationChartProps> = ({ data, onSegment
   ].filter(item => item.value > 0); // Only show segments with data
 
   // Custom label
-  const renderCustomLabel = (entry: any) => {
-    if (entry.percentage < 5) return null; // Don't show label for small segments
+  const renderCustomLabel = (props: unknown) => {
+    // Recharts PieLabelRenderProps - cast to access our data
+    const entry = props as PieChartEntry;
+    if (!entry?.percentage || entry.percentage < 5) return null; // Don't show label for small segments
     return `${entry.percentage.toFixed(1)}%`;
   };
 

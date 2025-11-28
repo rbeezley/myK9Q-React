@@ -8,8 +8,39 @@ interface DogStatisticsProps {
   dogName: string;
 }
 
+/** Data shape for pie chart entries */
+interface PieChartEntry {
+  name: string;
+  value: number;
+  percentage: number;
+  color: string;
+}
+
+/** Data shape for bar chart (judge performance) entries */
+interface BarChartEntry {
+  judgeName: string;
+  displayName: string;
+  classesJudged: number;
+  qualifiedCount: number;
+  qualificationRate: number;
+  averageQualifiedTime: number | null;
+  totalTimes: number[];
+}
+
+/** Recharts tooltip props for pie chart */
+interface PieTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: PieChartEntry }>;
+}
+
+/** Recharts tooltip props for bar chart */
+interface BarTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: BarChartEntry }>;
+}
+
 // Custom tooltip for pie chart
-const CustomPieTooltip = ({ active, payload }: any) => {
+const CustomPieTooltip = ({ active, payload }: PieTooltipProps) => {
   if (active && payload && payload[0]) {
     const data = payload[0].payload;
     return (
@@ -42,7 +73,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 };
 
 // Custom tooltip for bar chart
-const CustomBarTooltip = ({ active, payload }: any) => {
+const CustomBarTooltip = ({ active, payload }: BarTooltipProps) => {
   if (active && payload && payload[0]) {
     const data = payload[0].payload;
     return (
@@ -331,8 +362,10 @@ export const DogStatistics: React.FC<DogStatisticsProps> = ({ classes, dogName }
   }
 
   // Custom label for pie chart
-  const renderCustomLabel = (entry: any) => {
-    if (entry.percentage < 5) return null; // Don't show label for small segments
+  const renderCustomLabel = (props: unknown) => {
+    // Recharts PieLabelRenderProps - cast to access our data
+    const entry = props as PieChartEntry;
+    if (!entry?.percentage || entry.percentage < 5) return null; // Don't show label for small segments
     return `${entry.percentage.toFixed(1)}%`;
   };
 
