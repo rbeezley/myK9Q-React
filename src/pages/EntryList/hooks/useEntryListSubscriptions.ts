@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { subscribeToEntryUpdates } from '../../../services/entryService';
 import type { RealtimeChannel as _RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimePayload } from '../../../services/entry';
 
 interface UseEntryListSubscriptionsOptions {
   classIds: number[];
   licenseKey: string;
   onRefresh: (forceRefresh?: boolean) => void;
-  onEntryUpdate?: (payload: any) => void;
+  onEntryUpdate?: (payload: RealtimePayload) => void;
   enabled?: boolean;
 }
 

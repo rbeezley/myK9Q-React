@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { useNationalsStore } from '../stores/nationalsStore';
+import { useNationalsStore, type ElementProgressStats } from '../stores/nationalsStore';
 import {
   ScoringInput,
   ElementType,
@@ -28,7 +28,7 @@ export interface UseNationalsScoringReturn {
   // Data
   leaderboard: LeaderboardEntry[];
   qualifiers: LeaderboardEntry[];
-  elementProgress: any[];
+  elementProgress: ElementProgressStats[];
   advancementStatus: {
     cutLinePoints: number;
     cutLineTime: number;
@@ -44,8 +44,8 @@ export interface UseNationalsScoringReturn {
   lastUpdated: Date | null;
 
   // Scoring actions
-  submitScore: (input: ScoringInput) => Promise<{ success: boolean; error?: any }>;
-  updateScore: (scoreId: number, input: Partial<ScoringInput>) => Promise<{ success: boolean; error?: any }>;
+  submitScore: (input: ScoringInput) => Promise<{ success: boolean; error?: unknown }>;
+  updateScore: (scoreId: number, input: Partial<ScoringInput>) => Promise<{ success: boolean; error?: unknown }>;
   startScoring: (entryId: number, element: ElementType, day: CompetitionDay) => void;
   stopScoring: () => void;
 

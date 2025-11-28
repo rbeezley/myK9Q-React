@@ -105,7 +105,7 @@ export async function authenticatePasscode(passcode: string): Promise<ShowData |
       showId: matchedShow.id.toString(),
       showName: matchedShow.show_name,
       clubName: matchedShow.club_name,
-      showDate: (matchedShow as any).start_date,
+      showDate: matchedShow.show_date,
       licenseKey: matchedShow.license_key,
       org: licenseData?.organization || '', // Get org from shows table
       competition_type: licenseData?.show_type || 'Regular',

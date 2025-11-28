@@ -326,11 +326,12 @@ export function useHomeDashboardData(
 
         // Only invalidate if scoring-related fields changed
         if (payload.eventType === 'UPDATE') {
-          const oldEntry = payload.old as any;
-          const newEntry = payload.new as any;
+          // Extract is_scored from payload records (Supabase realtime provides Record<string, unknown>)
+          const oldIsScored = (payload.old as Record<string, unknown> | undefined)?.is_scored;
+          const newIsScored = (payload.new as Record<string, unknown> | undefined)?.is_scored;
 
           // Check if is_scored changed (this affects trial counts)
-          if (oldEntry.is_scored !== newEntry.is_scored) {
+          if (oldIsScored !== newIsScored) {
             logger.log('📊 Score status changed, invalidating trials...');
             invalidateTrialsDebounced();
           }

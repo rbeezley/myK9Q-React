@@ -210,7 +210,7 @@ Medium - maintainability issue, fix opportunistically.
 Quick fixes, complex external types, migration from JavaScript.
 
 **Progress (2025-11-27):**
-Fixed 11 `any` types in core production files:
+Fixed 16 `any` types in core production files:
 | File | Before | After | Change |
 |------|--------|-------|--------|
 | `useScoresheetCore.ts` | 2 `any` | 0 | `AreaScore[keyof AreaScore]` |
@@ -221,12 +221,16 @@ Fixed 11 `any` types in core production files:
 | `useEntryListActions.ts` | 1 `any` | 0 | `as unknown as ReplicatedEntriesTable` |
 | `entryService.ts` | 1 `any` | 0 | `RealtimePayload` type |
 | `nationalsStore.ts` | 2 `any` | 0 | `unknown` for error type |
+| `useHomeDashboardData.ts` | 2 `any` | 0 | `Record<string, unknown>` for payload |
+| `useNationalsScoring.ts` | 3 `any` | 0 | `ElementProgressStats[]`, `unknown` for errors |
+| `useEntryListSubscriptions.ts` | 1 `any` | 0 | `RealtimePayload` type |
+| `authService.ts` | 1 `any` | 0 | Fixed bug: `show_date` not `start_date` |
 
 **Remaining Categories:**
 - **Test files (~150):** Keep - mocking requires `as any`
 - **Debug/diagnostic (~30):** Low priority
 - **Generic utilities (~50):** May need `any` for flexibility
-- **Core business logic (~45):** High priority for future fixes
+- **Core business logic (~40):** High priority for future fixes
 
 **Proposed Solution:**
 1. ~~Enable `noImplicitAny` in tsconfig.json~~ (too aggressive for existing codebase)
@@ -245,7 +249,7 @@ Medium - type safety is important but most `any` usage is in non-critical paths.
 - Blocked By: None
 - Related: None
 
-**Status:** In Progress (11 fixed, ~45 high-priority remaining)
+**Status:** In Progress (16 fixed in 12 files, ~40 high-priority remaining)
 
 **Assignee:** Unassigned
 
@@ -686,7 +690,7 @@ Used composition pattern to extract focused modules:
 6. ~~**DEBT-005** - SyncEngine refactor~~ ✅ **RESOLVED** (2025-11-26)
 7. ~~**DEBT-006/007** - UI component refactor~~ ✅ **RESOLVED** (2025-11-26)
 8. ~~**DEBT-013** - BUG comments~~ ✅ **RESOLVED** (2025-11-27) - Audit found 0 in source
-9. **DEBT-011** - `any` types - ⚡ **IN PROGRESS** - 6 fixed in core files (2025-11-27)
+9. **DEBT-011** - `any` types - ⚡ **IN PROGRESS** - 16 fixed in 12 files (2025-11-27)
 10. **DEBT-014** - TODO comments - ✅ **CLEANED** - 2 removed, 6 valid remaining (2025-11-27)
 11. **Others** - Address opportunistically
 
