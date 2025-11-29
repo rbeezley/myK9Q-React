@@ -23,9 +23,22 @@
 
 - **Research exhibitor monetization opportunities** - Brainstorm premium features and services that exhibitors would be willing to pay for to ensure app sustainability and growth. **Problem:** Need to identify viable revenue streams from the exhibitor user segment while maintaining value proposition. Current app is free but needs to explore sustainable monetization models that align with user needs and willingness to pay. **Files:** Consider researching competitive apps, analyzing user feedback in existing features (`src/pages/Home/`, `src/pages/EntryList/`, `src/pages/Settings/`), and documenting findings in new `docs/monetization-strategy.md`. **Solution:** Analyze exhibitor pain points throughout their show workflow, research competitive pricing models in dog show management space, evaluate premium feature opportunities (advanced analytics, training history, performance tracking, premium notifications, ad-free experience, priority support), and assess subscription vs one-time payment models.
 
-## Consolidate IndexedDB Databases - 2025-11-28 15:39
+## Consolidate IndexedDB Databases - 2025-11-28 15:39 🔄 IN PROGRESS
 
-- **Consolidate myK9Q and myK9Q_Replication IndexedDB databases** - Migrate legacy cache functionality into the unified replication database to simplify architecture. **Problem:** Currently running two separate IndexedDB databases: `myK9Q` (legacy general cache with stores: cache, metadata, pendingMutations) and `myK9Q_Replication` (new table replication system with stores: replication_data, replication_sync_metadata, replication_pending_mutations). This duplication adds complexity to cache clearing on logout/show-switch, increases browser storage overhead, and creates confusion about which database stores what. **Files:** `src/utils/indexedDB.ts:1-350` (legacy myK9Q database), `src/services/replication/DatabaseManager.ts:1-200` (myK9Q_Replication database), `src/contexts/AuthContext.tsx:logout` (must clear both), `src/services/replication/ReplicationManager.ts:clearAllCaches` (only clears replication DB). **Solution:** Migrate legacy cache stores into the replication database schema, update all IndexedDB operations to use single database, deprecate and remove `indexedDB.ts` legacy implementation, ensure show-switch cache clearing works with unified database.
+- **Phase 1-4 Complete:** Main prefetch cache migrated to consolidated database.
+  - ✅ Created `prefetch_cache` store in myK9Q_Replication (DB_VERSION 4)
+  - ✅ Created [PrefetchCacheManager.ts](src/services/replication/PrefetchCacheManager.ts) with same API as legacy cache
+  - ✅ Migrated [usePrefetch.ts](src/hooks/usePrefetch.ts) to use consolidated database
+  - ✅ Updated cache clearing to handle both databases during transition
+  - ✅ Added deprecation notice to [indexedDB.ts](src/utils/indexedDB.ts)
+  - ✅ Tracked in [DEBT_REGISTER.md](DEBT_REGISTER.md) as DEBT-016
+
+- **Remaining (5 files):** Low priority - app works with backward compatibility
+  - `offlineQueueStore.ts` - uses mutations store (needs MutationManager)
+  - `offlineRouter.ts` - uses cache store
+  - `useClassListData.ts` - uses cache store
+  - `preloadService.ts` - uses cache + metadata stores
+  - `autoDownloadService.ts` - uses cache store
 
 ## Hide Debug Functions in Production - 2025-11-28 15:43 ✅ COMPLETE
 

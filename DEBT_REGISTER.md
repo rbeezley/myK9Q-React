@@ -6,16 +6,18 @@
 
 ## Summary
 
-- **Total Debt Items:** 13 (10 resolved)
+- **Total Debt Items:** 15 (11 resolved)
 - **Critical:** 2 ✅ (2 resolved)
 - **High:** 4 ✅ (4 resolved)
-- **Medium:** 6 (3 resolved ✅)
+- **Medium:** 8 (4 resolved ✅)
 - **Low:** 2
-- **Estimated Total Effort:** 1-2 days (reduced from 15-20)
+- **Estimated Total Effort:** 2-3 days (reduced from 15-20)
 
 ---
 
 ## Active Debt Items
+
+---
 
 ### DEBT-008: High Complexity Functions (PARTIALLY RESOLVED)
 
@@ -461,6 +463,40 @@ Low - address opportunistically when modifying these files.
 ---
 
 ## Resolved Debt Items
+
+### ✅ DEBT-016: IndexedDB Consolidation (RESOLVED)
+
+**Category:** Architecture | **Severity:** Medium | **Resolved:** 2025-11-28
+
+**Original Problem:** Two separate IndexedDB databases existed: `myK9Q` (legacy) and `myK9Q_Replication` (new). This caused complex cache clearing on logout/show-switch, browser storage overhead, and confusion about which database stores what.
+
+**Solution Applied:**
+- Bumped DB_VERSION from 3 → 4 → 5
+- Added `PREFETCH_CACHE` store to consolidated database (v4)
+- Added `OFFLINE_QUEUE` store for offline mutations (v5)
+- Created `PrefetchCacheManager.ts` and `MutationQueueManager.ts`
+- Migrated all 6 consumers:
+  - ✅ `usePrefetch.ts` → uses `prefetchCache`
+  - ✅ `offlineRouter.ts` → uses `prefetchCache`
+  - ✅ `autoDownloadService.ts` → uses `prefetchCache`
+  - ✅ `useClassListData.ts` → uses `prefetchCache`
+  - ✅ `preloadService.ts` → uses `prefetchCache` (with `metadata:` prefix)
+  - ✅ `offlineQueueStore.ts` → uses `mutationQueue`
+- Deleted legacy `indexedDB.ts` file
+
+**Results:**
+- **Before:** Two separate IndexedDB databases, complex cache clearing, 6 files importing legacy
+- **After:** Single unified `myK9Q_Replication` database (v5), 0 legacy imports
+- **Database Stores:** `replicated_tables`, `sync_metadata`, `pending_mutations`, `prefetch_cache`, `offline_queue`
+
+**Key Improvements:**
+- Single database for all persistent storage
+- Simplified cache clearing on logout/show-switch
+- Reduced browser storage overhead
+- Clear separation of concerns with dedicated managers
+- No backward compatibility baggage
+
+---
 
 ### ✅ DEBT-013: BUG Comments Not Addressed (RESOLVED)
 

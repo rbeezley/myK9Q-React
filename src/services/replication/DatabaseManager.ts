@@ -26,11 +26,14 @@ import { logDiagnosticReport as defaultLogDiagnostics } from '@/utils/indexedDBD
 
 /**
  * Object store names for the replication system
+ * v4: Added PREFETCH_CACHE for consolidated IndexedDB (migrated from legacy myK9Q database)
  */
 export const REPLICATION_STORES = {
   REPLICATED_TABLES: 'replicated_tables',
   SYNC_METADATA: 'sync_metadata',
   PENDING_MUTATIONS: 'pending_mutations',
+  PREFETCH_CACHE: 'prefetch_cache', // v4: Consolidated from legacy myK9Q.cache store
+  OFFLINE_QUEUE: 'offline_queue', // v5: Consolidated from legacy myK9Q.mutations store
 } as const;
 
 /**
@@ -152,6 +155,29 @@ function createObjectStores(
     });
     mutationStore.createIndex('status', 'status', { unique: false });
     mutationStore.createIndex('tableName', 'tableName', { unique: false });
+  }
+
+  // v4: Create prefetch_cache store (consolidated from legacy myK9Q database)
+  // This store holds prefetch data with TTL expiration for the usePrefetch hook
+  if (!db.objectStoreNames.contains(REPLICATION_STORES.PREFETCH_CACHE)) {
+    logger.log(`[DatabaseManager] Creating PREFETCH_CACHE store (v4 consolidation)...`);
+    const prefetchStore = db.createObjectStore(REPLICATION_STORES.PREFETCH_CACHE, {
+      keyPath: 'key',
+    });
+    prefetchStore.createIndex('timestamp', 'timestamp', { unique: false });
+    prefetchStore.createIndex('ttl', 'ttl', { unique: false });
+  }
+
+  // v5: Create offline_queue store (consolidated from legacy myK9Q.mutations)
+  // This store holds offline score submissions for the offlineQueueStore
+  if (!db.objectStoreNames.contains(REPLICATION_STORES.OFFLINE_QUEUE)) {
+    logger.log(`[DatabaseManager] Creating OFFLINE_QUEUE store (v5 consolidation)...`);
+    const offlineQueueStore = db.createObjectStore(REPLICATION_STORES.OFFLINE_QUEUE, {
+      keyPath: 'id',
+    });
+    offlineQueueStore.createIndex('status', 'status', { unique: false });
+    offlineQueueStore.createIndex('timestamp', 'timestamp', { unique: false });
+    offlineQueueStore.createIndex('type', 'type', { unique: false });
   }
 
   logger.log(`[DatabaseManager] Upgrade callback complete`);

@@ -9,6 +9,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 
 const WARNING_TIME_MS = 5 * 60 * 1000; // 5 minutes before logout
 
@@ -20,6 +21,7 @@ export function useAutoLogout() {
   const lastActivityRef = useRef<number>(0);
   const [showWarning, setShowWarning] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
+  const [pendingScoresBlocking, setPendingScoresBlocking] = useState(false);
 
   // Initialize lastActivityRef in useEffect
   useEffect(() => {
@@ -63,7 +65,22 @@ setShowWarning(true);
 
     // Set logout timeout
     timeoutRef.current = setTimeout(() => {
-setShowWarning(false);
+      // Check for pending scores before auto-logout
+      const pendingCount = useOfflineQueueStore.getState().getPendingCount();
+
+      if (pendingCount > 0) {
+        // Block auto-logout - pending scores would be lost!
+        console.warn(
+          `[AUTO_LOGOUT] Blocked - ${pendingCount} pending score(s) would be lost. Extending session.`
+        );
+        setPendingScoresBlocking(true);
+        setShowWarning(true);
+        // Keep showing warning but don't logout
+        return;
+      }
+
+      setShowWarning(false);
+      setPendingScoresBlocking(false);
       logout();
     }, timeoutMs);
   }, [settings.autoLogout, logout, isAuthenticated]);
@@ -78,15 +95,29 @@ setShowWarning(false);
 resetTimer();
   }, [resetTimer]);
 
-  // Logout immediately
+  // Logout immediately (but still check for pending scores)
   const logoutNow = useCallback(() => {
-setShowWarning(false);
+    const pendingCount = useOfflineQueueStore.getState().getPendingCount();
+
+    if (pendingCount > 0) {
+      // Block logout - show pending scores warning instead
+      console.warn(
+        `[AUTO_LOGOUT] logoutNow blocked - ${pendingCount} pending score(s) would be lost`
+      );
+      setPendingScoresBlocking(true);
+      // Keep warning visible but don't logout
+      return;
+    }
+
+    setShowWarning(false);
+    setPendingScoresBlocking(false);
     logout();
   }, [logout]);
 
   // Dismiss warning (user became active)
   const dismissWarning = useCallback(() => {
-resetTimer();
+    setPendingScoresBlocking(false);
+    resetTimer();
   }, [resetTimer]);
 
   useEffect(() => {
@@ -149,5 +180,7 @@ resetTimer();
     extendSession,
     logoutNow,
     dismissWarning,
+    /** True if auto-logout is blocked due to pending scores */
+    pendingScoresBlocking,
   };
 }

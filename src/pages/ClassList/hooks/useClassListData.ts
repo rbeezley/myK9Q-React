@@ -15,7 +15,7 @@ import { supabase } from '../../../lib/supabase';
 import { getClassEntries } from '../../../services/entryService';
 import { getLevelSortOrder } from '../../../lib/utils';
 import { logger } from '../../../utils/logger';
-import { cache as idbCache } from '@/utils/indexedDB';
+import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '@/services/replication/tables/ReplicatedEntriesTable';
@@ -141,13 +141,13 @@ async function fetchTrialInfo(
 
   // Try IndexedDB cache first (for offline support)
   if (licenseKey) {
-    const cached = await idbCache.get(`trial-info-${licenseKey}-${trialId}`);
+    const cached = await prefetchCache.get(`trial-info-${licenseKey}-${trialId}`);
     if (cached && cached.data) {
       logger.log('✅ Using cached trial info from IndexedDB');
       const trialData = cached.data as CachedTrialData;
 
       // Still need to load class data for counts
-      const cachedClassData = await idbCache.get(`class-summary-${licenseKey}-${trialId}`);
+      const cachedClassData = await prefetchCache.get(`class-summary-${licenseKey}-${trialId}`);
       if (cachedClassData && cachedClassData.data) {
         const classData = cachedClassData.data as CachedClassData[];
         return {
@@ -373,7 +373,8 @@ logger.log('🔄 Fetching classes from replicated cache...');
       if (classesTable && entriesTable) {
         try {
           // Get classes for this trial from cache
-          const cachedClasses = await classesTable.getAll();
+          // CRITICAL: Pass license_key to filter classes to current show only (multi-tenant isolation)
+          const cachedClasses = await classesTable.getAll(licenseKey);
 
           // Convert trialId to number for comparison (route params are strings, DB trial_id is number)
           const trialIdNum = parseInt(trialId, 10);
@@ -387,7 +388,9 @@ logger.log('📭 Cache is empty, falling back to Supabase');
             // Fall through to Supabase query below
           } else {
             // Get entries for this trial from cache
-            const cachedEntries = await entriesTable.getAll();
+            // CRITICAL: Pass license_key to filter entries to current show only
+            // Without this, entries from all cached shows would be returned (multi-tenant leak)
+            const cachedEntries = await entriesTable.getAll(licenseKey);
 
             // If entries cache is empty but classes exist, fall back to Supabase
             // This handles the case where entries haven't synced yet or cache was partially cleared
@@ -445,7 +448,7 @@ logger.log('📭 Cache is empty, falling back to Supabase');
   logger.log('🔍 Fetching classes for trial ID:', trialId);
 
   // Try IndexedDB cache first (for offline support)
-  const cached = await idbCache.get(`class-summary-${licenseKey}-${trialId}`);
+  const cached = await prefetchCache.get(`class-summary-${licenseKey}-${trialId}`);
   let classData: CachedClassData[] | null = null;
 
   if (cached && cached.data) {

@@ -10,8 +10,8 @@
 /** Database name for local IndexedDB storage */
 export const DB_NAME = 'myK9Q_Replication';
 
-/** Database schema version */
-export const DB_VERSION = 3;
+/** Database schema version - v5 adds offline_queue store for consolidated IndexedDB */
+export const DB_VERSION = 5;
 
 /** Total number of tables managed by replication system */
 export const TOTAL_REPLICATED_TABLES = 16;

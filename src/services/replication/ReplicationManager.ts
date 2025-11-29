@@ -310,6 +310,24 @@ export class ReplicationManager {
       logger.error('[ReplicationManager] Failed to clear mutations:', error);
     }
 
+    // v4: Clear prefetch cache (consolidated from legacy myK9Q database)
+    try {
+      const { prefetchCache } = await import('./PrefetchCacheManager');
+      await prefetchCache.clear();
+      logger.log('[ReplicationManager] ✅ Cleared prefetch cache');
+    } catch (error) {
+      logger.error('[ReplicationManager] Failed to clear prefetch cache:', error);
+    }
+
+    // v5: Clear offline queue (consolidated from legacy myK9Q.mutations)
+    try {
+      const { mutationQueue } = await import('./MutationQueueManager');
+      await mutationQueue.clear();
+      logger.log('[ReplicationManager] ✅ Cleared offline queue');
+    } catch (error) {
+      logger.error('[ReplicationManager] Failed to clear offline queue:', error);
+    }
+
     logger.log('[ReplicationManager] ✅ All caches and mutations cleared');
   }
 

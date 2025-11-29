@@ -14,6 +14,7 @@ import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequireme
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
+import { NoEntriesDialog } from '../../components/dialogs/NoEntriesDialog';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
@@ -101,6 +102,10 @@ export const ClassList: React.FC = () => {
 
   // Max time warning is local-only (not in shared hook)
   const [showMaxTimeWarning, setShowMaxTimeWarning] = useState(false);
+
+  // No entries dialog state - shown when clicking a class with 0 entries
+  const [noEntriesDialogOpen, setNoEntriesDialogOpen] = useState(false);
+  const [noEntriesClassName, setNoEntriesClassName] = useState<string | undefined>(undefined);
 
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -248,6 +253,13 @@ return entriesData || [];
 
   const handleViewEntries = (classEntry: ClassEntry) => {
     hapticFeedback.medium();
+
+    // Check if class has no entries - show popup instead of navigating to empty page
+    if (classEntry.entry_count === 0) {
+      setNoEntriesClassName(classEntry.class_name);
+      setNoEntriesDialogOpen(true);
+      return;
+    }
 
     // Check if max time warning should be shown
     if (shouldShowMaxTimeWarning() && !isMaxTimeSet(classEntry)) {
@@ -880,6 +892,16 @@ return entriesData || [];
           // Refresh class data after settings update
           refetch();
         }}
+      />
+
+      {/* No Entries Dialog - shown when clicking a class with 0 entries */}
+      <NoEntriesDialog
+        isOpen={noEntriesDialogOpen}
+        onClose={() => {
+          setNoEntriesDialogOpen(false);
+          setNoEntriesClassName(undefined);
+        }}
+        className={noEntriesClassName}
       />
 
       {/* Filter Panel Slide-out */}

@@ -87,7 +87,8 @@ export async function getClassEntries(
 
     // Try replication cache first (if enabled)
     if (useReplication) {
-      const cachedEntries = await getEntriesFromReplicationCache(classIdArray, primaryClassId);
+      // Pass license_key to filter entries to current show only (multi-tenant isolation)
+      const cachedEntries = await getEntriesFromReplicationCache(classIdArray, primaryClassId, licenseKey);
       if (cachedEntries !== null) {
         return cachedEntries;
       }

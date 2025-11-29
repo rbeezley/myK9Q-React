@@ -14,7 +14,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { cache as idbCache, metadata as idbMetadata } from '@/utils/indexedDB';
+import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
 import type { Entry } from '@/stores/entryStore';
 
 export interface PreloadProgress {
@@ -148,7 +148,7 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
 
     // Cache classes
     const classesKey = `classes:${licenseKey}`;
-    await idbCache.set(classesKey, classes || [], ttl);
+    await prefetchCache.set(classesKey, classes || [], ttl);
     currentItem += classes?.length || 0;
     updateProgress('classes', classes?.length || 0, estimate.classCount);
 
@@ -165,7 +165,7 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
 
     // Cache trials
     const trialsKey = `trials:${licenseKey}`;
-    await idbCache.set(trialsKey, trials || [], ttl);
+    await prefetchCache.set(trialsKey, trials || [], ttl);
     currentItem += trials?.length || 0;
     updateProgress('trials', trials?.length || 0, estimate.trialCount);
 
@@ -200,7 +200,7 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
 
     // Cache all entries
     const entriesKey = `entries:${licenseKey}`;
-    await idbCache.set(entriesKey, allEntries, ttl);
+    await prefetchCache.set(entriesKey, allEntries, ttl);
 
     // Calculate actual size (rough estimate)
     const actualSize = JSON.stringify({
@@ -221,7 +221,8 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
       entryCount: allEntries.length,
     };
 
-    await idbMetadata.set(`preloaded-show:${licenseKey}`, preloadedShow);
+    // Store metadata using prefetchCache with 'metadata:' prefix
+    await prefetchCache.set(`metadata:preloaded-show:${licenseKey}`, preloadedShow, ttl);
 
     // Stage 5: Complete
     updateProgress('complete', totalItems, totalItems);
@@ -249,10 +250,10 @@ return preloadedShow;
  */
 export async function isShowPreloaded(licenseKey: string): Promise<boolean> {
   try {
-    const metadata = await idbMetadata.get(`preloaded-show:${licenseKey}`);
-    if (!metadata?.value) return false;
+    const cached = await prefetchCache.get<PreloadedShow>(`metadata:preloaded-show:${licenseKey}`);
+    if (!cached?.data) return false;
 
-    const show = metadata.value as PreloadedShow;
+    const show = cached.data;
 
     // Check if expired
     if (show.expiresAt < Date.now()) {
@@ -272,10 +273,10 @@ export async function isShowPreloaded(licenseKey: string): Promise<boolean> {
  */
 export async function getPreloadedShow(licenseKey: string): Promise<PreloadedShow | null> {
   try {
-    const metadata = await idbMetadata.get(`preloaded-show:${licenseKey}`);
-    if (!metadata?.value) return null;
+    const cached = await prefetchCache.get<PreloadedShow>(`metadata:preloaded-show:${licenseKey}`);
+    if (!cached?.data) return null;
 
-    const show = metadata.value as PreloadedShow;
+    const show = cached.data;
 
     // Check if expired
     if (show.expiresAt < Date.now()) {
@@ -295,17 +296,17 @@ export async function getPreloadedShow(licenseKey: string): Promise<PreloadedSho
  */
 export async function getAllPreloadedShows(): Promise<PreloadedShow[]> {
   try {
-    const allMetadata = await idbMetadata.getAll();
+    const allCached = await prefetchCache.getAll();
 
-    // Filter for preloaded show metadata
-    const showMetadata = allMetadata.filter((m) => m.key.startsWith('preloaded-show:'));
+    // Filter for preloaded show metadata entries
+    const showEntries = allCached.filter((entry) => entry.key.startsWith('metadata:preloaded-show:'));
 
     // Filter out expired shows
     const now = Date.now();
     const validShows: PreloadedShow[] = [];
 
-    for (const metadata of showMetadata) {
-      const show = metadata.value as PreloadedShow;
+    for (const entry of showEntries) {
+      const show = entry.data as PreloadedShow;
       if (show.expiresAt > now) {
         validShows.push(show);
       } else {
@@ -328,13 +329,12 @@ export async function deletePreloadedShow(licenseKey: string): Promise<void> {
   try {
     // Delete cached data
     await Promise.all([
-      idbCache.delete(`classes:${licenseKey}`),
-      idbCache.delete(`trials:${licenseKey}`),
-      idbCache.delete(`entries:${licenseKey}`),
-      idbMetadata.delete(`preloaded-show:${licenseKey}`),
+      prefetchCache.delete(`classes:${licenseKey}`),
+      prefetchCache.delete(`trials:${licenseKey}`),
+      prefetchCache.delete(`entries:${licenseKey}`),
+      prefetchCache.delete(`metadata:preloaded-show:${licenseKey}`),
     ]);
-
-} catch (error) {
+  } catch (error) {
     console.error('❌ Failed to delete preloaded show:', error);
     throw error;
   }
@@ -372,13 +372,13 @@ export async function getTotalStorageUsage(): Promise<{
  */
 export async function cleanupExpiredShows(): Promise<number> {
   try {
-    const allMetadata = await idbMetadata.getAll();
-    const showMetadata = allMetadata.filter((m) => m.key.startsWith('preloaded-show:'));
+    const allCached = await prefetchCache.getAll();
+    const showEntries = allCached.filter((entry) => entry.key.startsWith('metadata:preloaded-show:'));
     const now = Date.now();
     let deletedCount = 0;
 
-    for (const metadata of showMetadata) {
-      const show = metadata.value as PreloadedShow;
+    for (const entry of showEntries) {
+      const show = entry.data as PreloadedShow;
       if (show.expiresAt < now) {
         await deletePreloadedShow(show.licenseKey);
         deletedCount++;
@@ -404,9 +404,9 @@ export async function extendShowExpiration(
     if (!show) return null;
 
     show.expiresAt = Date.now() + additionalTtl;
-    await idbMetadata.set(`preloaded-show:${licenseKey}`, show);
+    await prefetchCache.set(`metadata:preloaded-show:${licenseKey}`, show, additionalTtl);
 
-return show;
+    return show;
   } catch (error) {
     console.error('❌ Failed to extend show expiration:', error);
     return null;

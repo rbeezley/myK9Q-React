@@ -13,7 +13,7 @@
  * - Use prefetchRoute() for likely next routes
  */
 
-import { cache as idbCache } from '@/utils/indexedDB';
+import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
 
 export interface CachedRoute {
   path: string;
@@ -43,10 +43,10 @@ export function initOfflineRouter() {
  */
 async function loadVisitedRoutes() {
   try {
-    const cached = await idbCache.get<string[]>('visited-routes');
+    const cached = await prefetchCache.get<string[]>('visited-routes');
     if (cached?.data) {
       cached.data.forEach((route) => visitedRoutes.add(route));
-}
+    }
   } catch (error) {
     console.error('Failed to load visited routes:', error);
   }
@@ -57,7 +57,7 @@ async function loadVisitedRoutes() {
  */
 async function saveVisitedRoutes() {
   try {
-    await idbCache.set('visited-routes', Array.from(visitedRoutes), ROUTE_CACHE_TTL);
+    await prefetchCache.set('visited-routes', Array.from(visitedRoutes), ROUTE_CACHE_TTL);
   } catch (error) {
     console.error('Failed to save visited routes:', error);
   }
@@ -78,8 +78,8 @@ export async function markRouteVisited(path: string, data?: unknown) {
   };
 
   try {
-    await idbCache.set(`route:${path}`, cached, ROUTE_CACHE_TTL);
-} catch (error) {
+    await prefetchCache.set(`route:${path}`, cached, ROUTE_CACHE_TTL);
+  } catch (error) {
     console.error(`Failed to cache route ${path}:`, error);
   }
 }
@@ -96,13 +96,13 @@ export function isRouteVisited(path: string): boolean {
  */
 export async function getCachedRoute(path: string): Promise<CachedRoute | null> {
   try {
-    const cached = await idbCache.get<CachedRoute>(`route:${path}`);
+    const cached = await prefetchCache.get<CachedRoute>(`route:${path}`);
     if (!cached?.data) return null;
 
     // Check if expired
     const age = Date.now() - cached.data.timestamp;
     if (age > ROUTE_CACHE_TTL) {
-      await idbCache.delete(`route:${path}`);
+      await prefetchCache.delete(`route:${path}`);
       return null;
     }
 
@@ -197,11 +197,11 @@ export async function clearRoutingCache() {
   try {
     const routes = Array.from(visitedRoutes);
     for (const route of routes) {
-      await idbCache.delete(`route:${route}`);
+      await prefetchCache.delete(`route:${route}`);
     }
     visitedRoutes.clear();
-    await idbCache.delete('visited-routes');
-} catch (error) {
+    await prefetchCache.delete('visited-routes');
+  } catch (error) {
     console.error('Failed to clear routing cache:', error);
   }
 }

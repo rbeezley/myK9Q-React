@@ -15,7 +15,7 @@
 
 import { getClassEntries } from './entryService';
 import { supabase } from '../lib/supabase';
-import { cache as idbCache } from '@/utils/indexedDB';
+import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
 
 interface DownloadProgress {
   current: number;
@@ -62,7 +62,7 @@ export async function autoDownloadShow(
   try {
 // 1. Check if already cached and fresh (< 30 min old)
     const cacheKey = `auto-download-${licenseKey}`;
-    const cached = await idbCache.get<CachedDownload>(cacheKey);
+    const cached = await prefetchCache.get<CachedDownload>(cacheKey);
 
     if (cached && cached.data.downloaded && Date.now() - cached.timestamp < 30 * 60 * 1000) {
       return {
@@ -177,7 +177,7 @@ for (const trialId of trialIds) {
           .single();
 
         if (trialData) {
-          await idbCache.set(
+          await prefetchCache.set(
             `trial-info-${licenseKey}-${trialId}`,
             trialData,
             30 * 60 * 1000
@@ -192,7 +192,7 @@ for (const trialId of trialIds) {
           .order('class_order');
 
         if (classSummary) {
-          await idbCache.set(
+          await prefetchCache.set(
             `class-summary-${licenseKey}-${trialId}`,
             classSummary,
             30 * 60 * 1000
@@ -212,7 +212,7 @@ for (const trialId of trialIds) {
       timestamp: Date.now()
     };
 
-    await idbCache.set(cacheKey, cacheData, 30 * 60 * 1000); // 30 min TTL
+    await prefetchCache.set(cacheKey, cacheData, 30 * 60 * 1000); // 30 min TTL
 
     const success = errors.length === 0;
     if (errors.length > 0) {
@@ -241,7 +241,7 @@ for (const trialId of trialIds) {
 export async function isShowCached(licenseKey: string): Promise<boolean> {
   try {
     const cacheKey = `auto-download-${licenseKey}`;
-    const cached = await idbCache.get<CachedDownload>(cacheKey);
+    const cached = await prefetchCache.get<CachedDownload>(cacheKey);
 
     if (!cached || !cached.data.downloaded) {
       return false;
@@ -266,7 +266,7 @@ export async function isShowCached(licenseKey: string): Promise<boolean> {
 export async function getCacheStatus(licenseKey: string) {
   try {
     const cacheKey = `auto-download-${licenseKey}`;
-    const cached = await idbCache.get<CachedDownload>(cacheKey);
+    const cached = await prefetchCache.get<CachedDownload>(cacheKey);
 
     if (!cached || !cached.data.downloaded) {
       return {
@@ -308,8 +308,8 @@ export async function getCacheStatus(licenseKey: string) {
 export async function clearAutoDownloadCache(licenseKey: string): Promise<void> {
   try {
     const cacheKey = `auto-download-${licenseKey}`;
-    await idbCache.delete(cacheKey);
-} catch (error) {
+    await prefetchCache.delete(cacheKey);
+  } catch (error) {
     console.error('❌ [AUTO-DOWNLOAD] Error clearing cache:', error);
   }
 }

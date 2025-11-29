@@ -21,11 +21,13 @@ import { determineEntryStatus } from '@/utils/statusUtils';
  *
  * @param classIdArray - Array of class IDs to fetch entries for (supports combined Novice A & B view)
  * @param primaryClassId - The primary class ID (first in array)
+ * @param licenseKey - The show's license key for multi-tenant isolation
  * @returns Entry[] from cache, or null if cache miss
  */
 export async function getEntriesFromReplicationCache(
   classIdArray: number[],
-  primaryClassId: number
+  primaryClassId: number,
+  licenseKey?: string
 ): Promise<Entry[] | null> {
 const manager = getReplicationManager();
   if (!manager) {
@@ -52,7 +54,8 @@ const manager = getReplicationManager();
     }
 
 // Get all entries from cache and filter for requested classes
-    const cachedEntries = await entriesTable.getAll();
+    // CRITICAL: Pass license_key to filter entries to current show only (multi-tenant isolation)
+    const cachedEntries = await entriesTable.getAll(licenseKey);
     const classEntries = cachedEntries.filter(entry =>
       classIdArray.includes(parseInt(entry.class_id, 10))
     );

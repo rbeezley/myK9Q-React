@@ -30,7 +30,7 @@
  */
 
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { cache as idbCache } from '@/utils/indexedDB';
+import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
 import {
   isCacheValid,
   createCacheEntry,
@@ -74,8 +74,8 @@ interface PrefetchQueueData {
 // GLOBAL STATE (shared across components)
 // ========================================
 
-/** Global prefetch cache (L1 - in-memory) */
-const prefetchCache = new Map<string, CachedData<unknown>>();
+/** Global prefetch cache (L1 - in-memory) - renamed to avoid conflict with imported prefetchCache */
+const inMemoryPrefetchCache = new Map<string, CachedData<unknown>>();
 
 /** Global prefetch queue (for prioritization) */
 const prefetchQueue: PriorityQueueItem<PrefetchQueueData>[] = [];
@@ -91,11 +91,11 @@ const activePrefetches = new Set<string>();
  * Validate and return L1 (in-memory) cached data
  */
 function getL1Cache<T>(key: string): T | null {
-  const cached = prefetchCache.get(key);
+  const cached = inMemoryPrefetchCache.get(key);
   if (!cached) return null;
 
   if (!isCacheValid(cached)) {
-    prefetchCache.delete(key);
+    inMemoryPrefetchCache.delete(key);
     return null;
   }
 
@@ -122,19 +122,20 @@ function validateIdbCacheEntry<T>(idbCached: { data: unknown; timestamp: number;
 
 /**
  * Try to get data from L2 (IndexedDB) cache
+ * Uses consolidated prefetchCache from myK9Q_Replication database
  */
 async function getL2Cache<T>(key: string): Promise<{ data: T; cacheEntry: CachedData<T> } | null> {
   try {
-    const idbCached = await idbCache.get<T>(key);
-    if (!idbCached || !idbCached.data) return null;
+    const cached = await prefetchCache.get<T>(key);
+    if (!cached || !cached.data) return null;
 
-    const cacheEntry = validateIdbCacheEntry<T>(idbCached);
+    const cacheEntry = validateIdbCacheEntry<T>(cached);
     if (!cacheEntry) {
-      await idbCache.delete(key);
+      await prefetchCache.delete(key);
       return null;
     }
 
-    return { data: idbCached.data as T, cacheEntry };
+    return { data: cached.data as T, cacheEntry };
   } catch (error) {
     logger.error(`Failed to load from IndexedDB: ${key}`, error);
     return null;
@@ -143,10 +144,11 @@ async function getL2Cache<T>(key: string): Promise<{ data: T; cacheEntry: Cached
 
 /**
  * Store data in L2 (IndexedDB) cache
+ * Uses consolidated prefetchCache from myK9Q_Replication database
  */
 async function setL2Cache<T>(key: string, data: T, ttlSeconds: number): Promise<void> {
   try {
-    await idbCache.set(key, data, ttlSeconds * 1000);
+    await prefetchCache.set(key, data, ttlSeconds * 1000);
   } catch (error) {
     logger.error(`Failed to persist prefetch to IndexedDB: ${key}`, error);
   }
@@ -154,23 +156,24 @@ async function setL2Cache<T>(key: string, data: T, ttlSeconds: number): Promise<
 
 /**
  * Clear cache entries matching a pattern
+ * Uses consolidated prefetchCache from myK9Q_Replication database
  */
 async function clearCachePattern(pattern: string | RegExp): Promise<void> {
   const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
 
   // Clear L1 (in-memory)
-  for (const [key] of prefetchCache.entries()) {
+  for (const [key] of inMemoryPrefetchCache.entries()) {
     if (regex.test(key)) {
-      prefetchCache.delete(key);
+      inMemoryPrefetchCache.delete(key);
     }
   }
 
-  // Clear L2 (IndexedDB)
+  // Clear L2 (IndexedDB) - using consolidated prefetchCache
   try {
-    const allEntries = await idbCache.getAll();
+    const allEntries = await prefetchCache.getAll();
     const deletePromises = allEntries
       .filter((entry) => regex.test(entry.key))
-      .map((entry) => idbCache.delete(entry.key));
+      .map((entry) => prefetchCache.delete(entry.key));
     await Promise.all(deletePromises);
   } catch (error) {
     logger.error('Failed to clear IndexedDB prefetch cache pattern', error);
@@ -179,11 +182,12 @@ async function clearCachePattern(pattern: string | RegExp): Promise<void> {
 
 /**
  * Clear all cache entries
+ * Uses consolidated prefetchCache from myK9Q_Replication database
  */
 async function clearAllCache(): Promise<void> {
-  prefetchCache.clear();
+  inMemoryPrefetchCache.clear();
   try {
-    await idbCache.clear();
+    await prefetchCache.clear();
   } catch (error) {
     logger.error('Failed to clear IndexedDB prefetch cache', error);
   }
@@ -219,7 +223,7 @@ export function usePrefetch() {
     const idbResult = await getL2Cache<T>(key);
     if (idbResult) {
       // Populate L1 cache
-      prefetchCache.set(key, idbResult.cacheEntry);
+      inMemoryPrefetchCache.set(key, idbResult.cacheEntry);
       return idbResult.data;
     }
 
@@ -232,7 +236,7 @@ export function usePrefetch() {
   const setCached = useCallback(async <T,>(key: string, data: T, ttl: number, persist: boolean = true) => {
     // L1: Store in memory using cache helper
     const cacheEntry = createCacheEntry(data, ttl);
-    prefetchCache.set(key, cacheEntry);
+    inMemoryPrefetchCache.set(key, cacheEntry);
 
     // L2: Store in IndexedDB (async, non-blocking)
     if (persist) {
@@ -381,8 +385,8 @@ export function usePrefetch() {
     /** Whether currently prefetching */
     isPrefetching,
 
-    /** Number of items in cache */
-    cacheSize: prefetchCache.size,
+    /** Number of items in L1 (in-memory) cache */
+    cacheSize: inMemoryPrefetchCache.size,
 
     /** Number of items in queue */
     queueSize: prefetchQueue.length,

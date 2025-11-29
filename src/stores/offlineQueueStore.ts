@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { mutations as idbMutations } from '@/utils/indexedDB';
+import { mutationQueue } from '@/services/replication/MutationQueueManager';
 import { haptic } from '@/hooks/useHapticFeedback';
 
 export interface QueuedScore {
@@ -100,7 +100,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
         // Persist to IndexedDB
         try {
-          await idbMutations.set({
+          await mutationQueue.set({
             id: queueItem.id,
             type: 'SUBMIT_SCORE',
             data: queueItem,
@@ -108,7 +108,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
             retries: 0,
             status: 'pending',
           });
-} catch (error) {
+        } catch (error) {
           console.error('❌ Failed to persist score to IndexedDB:', error);
         }
 
@@ -129,8 +129,8 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
         // Remove from IndexedDB
         try {
-          await idbMutations.delete(id);
-} catch (error) {
+          await mutationQueue.delete(id);
+        } catch (error) {
           console.error('❌ Failed to remove score from IndexedDB:', error);
         }
       },
@@ -272,7 +272,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
 
         // Remove from IndexedDB
         try {
-          await idbMutations.delete(id);
+          await mutationQueue.delete(id);
           haptic.success();
         } catch (error) {
           console.error('❌ Failed to remove completed score from IndexedDB:', error);
@@ -282,14 +282,14 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
       // Hydrate queue from IndexedDB on startup
       hydrate: async () => {
         try {
-          const mutations = await idbMutations.getAll();
+          const mutations = await mutationQueue.getAll();
           const scores = mutations
             .filter(m => m.type === 'SUBMIT_SCORE')
             .map(m => m.data as QueuedScore);
 
           if (scores.length > 0) {
             set({ queue: scores });
-// Auto-sync if online
+            // Auto-sync if online
             if (get().isOnline) {
               setTimeout(() => get().startSync(), 1000);
             }

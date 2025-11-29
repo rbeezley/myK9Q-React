@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { ErrorState, PullToRefresh, TabBar, Tab, FilterPanel, SortOption } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
-import { Clock, CheckCircle, Trophy, ArrowUpDown } from 'lucide-react';
+import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
@@ -75,6 +75,7 @@ export const EntryList: React.FC = () => {
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false);
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
@@ -136,6 +137,16 @@ export const EntryList: React.FC = () => {
     const timer = setTimeout(() => setIsLoaded(true), 250);
     return () => clearTimeout(timer);
   }, []);
+
+  // Track when initial data load completes to distinguish "loading" from "empty class"
+  useEffect(() => {
+    // When isRefreshing goes from true to false, we've completed a fetch
+    if (!isRefreshing && !hasCompletedInitialLoad) {
+      // Small delay to ensure state has settled
+      const timer = setTimeout(() => setHasCompletedInitialLoad(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isRefreshing, hasCompletedInitialLoad]);
 
   // Scoresheet route helper
   const getScoreSheetRoute = useCallback((entry: Entry): string => {
@@ -451,8 +462,8 @@ export const EntryList: React.FC = () => {
 
   const hasActiveFilters = searchTerm.length > 0 || sortOrder !== 'run';
 
-  // Loading state
-  if (!entries.length && !fetchError) {
+  // Loading state - show spinner while we haven't completed initial load
+  if (!hasCompletedInitialLoad && !fetchError) {
     return (
       <div className="entry-list-container">
         <div className="loading">Loading entries...</div>
@@ -469,6 +480,33 @@ export const EntryList: React.FC = () => {
           onRetry={refresh}
           isRetrying={isRefreshing}
         />
+      </div>
+    );
+  }
+
+  // Empty state - class exists but has no entries
+  if (hasCompletedInitialLoad && entries.length === 0) {
+    return (
+      <div className="entry-list-container">
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <Users size={48} />
+          </div>
+          <h2 className="empty-state-title">No Entries Yet</h2>
+          {classInfo?.className && (
+            <p className="empty-state-class-name">{classInfo.className}</p>
+          )}
+          <p className="empty-state-message">
+            This class doesn't have any entries yet.
+            Entries will appear once they are registered.
+          </p>
+          <div className="empty-state-action">
+            <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={16} />
+              Go Back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

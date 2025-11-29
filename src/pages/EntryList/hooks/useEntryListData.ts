@@ -265,19 +265,23 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
       let classEntries = relevantEntries
         .map((entry) => transformReplicatedEntry(entry, classData));
 
-      if (classEntries.length === 0) {
-        logger.log('📭 Cache is empty, falling back to Supabase');
-        return null;
-      }
-
-      // Apply visibility and build class info using helpers
-      classEntries = await applyVisibilityToEntries(classEntries, classData, licenseKey, userRole);
+      // Build classInfo even if entries are empty - allows showing class name in empty state
       const classInfo = buildSingleClassInfo(
         classData,
         classId,
         classEntries,
         classData.judge_name || 'No Judge Assigned'
       );
+
+      // If entries are empty but class exists, still return classInfo
+      // This allows the UI to show "No entries in [Class Name]" instead of generic message
+      if (classEntries.length === 0) {
+        logger.log('📭 Class exists but has no entries in cache');
+        return { entries: [], classInfo };
+      }
+
+      // Apply visibility for non-empty entries
+      classEntries = await applyVisibilityToEntries(classEntries, classData, licenseKey, userRole);
 
       return { entries: classEntries, classInfo };
     } catch (error) {
@@ -294,54 +298,56 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
   ): Promise<EntryListData> {
     let classEntries = await getClassEntries(parseInt(classId), licenseKey);
 
-    if (classEntries.length === 0) {
-      return { entries: [], classInfo: null };
-    }
-
-    const firstEntry = classEntries[0];
-
-    // Fetch class data for visibility
+    // Always fetch class data - needed for classInfo even when entries are empty
     const { data: classData } = await supabase
       .from('classes')
-      .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
+      .select('element, level, section, judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at, time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds, area_count')
       .eq('id', parseInt(classId))
       .single();
 
-    // Apply visibility flags
-    if (classData) {
-      const visibilityFlags = await fetchVisibilityFlagsWithFallback(
-        parseInt(classId),
-        classData.trial_id,
-        licenseKey,
-        userRole,
-        classData.class_status === 'completed' || classData.is_completed === true,
-        classData.results_released_at || null
-      );
-      classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
+    // If class doesn't exist, return null classInfo
+    if (!classData) {
+      return { entries: [], classInfo: null };
     }
 
-    // Build class info from first entry (Supabase doesn't return full Class type)
+    // Build classInfo from class data (works even with empty entries)
+    const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
     const completedEntries = classEntries.filter(e => e.isScored).length;
-    const sectionPart = firstEntry.section && firstEntry.section !== '-' ? ` ${firstEntry.section}` : '';
 
     const classInfo: ClassInfo = {
-      className: `${firstEntry.element} ${firstEntry.level}${sectionPart}`,
-      element: firstEntry.element || '',
-      level: firstEntry.level || '',
-      section: firstEntry.section || '',
-      trialDate: firstEntry.trialDate || '',
-      trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
-      judgeName: classData?.judge_name || 'No Judge Assigned',
+      className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
+      element: classData.element || '',
+      level: classData.level || '',
+      section: classData.section || '',
+      trialDate: classEntries[0]?.trialDate || '',
+      trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
+      judgeName: classData.judge_name || 'No Judge Assigned',
       actualClassId: parseInt(classId),
-      selfCheckin: classData?.self_checkin_enabled ?? true,
-      classStatus: classData?.class_status || 'pending',
+      selfCheckin: classData.self_checkin_enabled ?? true,
+      classStatus: classData.class_status || 'pending',
       totalEntries: classEntries.length,
       completedEntries,
-      timeLimit: firstEntry.timeLimit,
-      timeLimit2: firstEntry.timeLimit2,
-      timeLimit3: firstEntry.timeLimit3,
-      areas: firstEntry.areas
+      timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
+      timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
+      timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
+      areas: classData.area_count
     };
+
+    // If no entries, return empty array with classInfo
+    if (classEntries.length === 0) {
+      return { entries: [], classInfo };
+    }
+
+    // Apply visibility flags for non-empty entries
+    const visibilityFlags = await fetchVisibilityFlagsWithFallback(
+      parseInt(classId),
+      classData.trial_id,
+      licenseKey,
+      userRole,
+      classData.class_status === 'completed' || classData.is_completed === true,
+      classData.results_released_at || null
+    );
+    classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
 
     return { entries: classEntries, classInfo };
   }

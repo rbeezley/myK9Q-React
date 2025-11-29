@@ -110,8 +110,9 @@ async function fetchDogDetails(
       throw new Error('Required tables not registered');
     }
 
-    // Get all entries and filter by armband
-    const allEntries = await entriesTable.getAll() as Entry[];
+    // Get all entries for this show and filter by armband
+    // CRITICAL: Pass license_key to filter entries to current show only (multi-tenant isolation)
+    const allEntries = await entriesTable.getAll(licenseKey) as Entry[];
     const dogEntries = allEntries.filter(
       entry => entry.armband_number === parseInt(armband)
     );
@@ -125,8 +126,9 @@ async function fetchDogDetails(
     logger.log(`[REPLICATION] ✅ Found ${dogEntries.length} entries for armband ${armband}`);
 
     // Get all classes and trials for joins
-    const allClasses = await classesTable.getAll() as Class[];
-    const allTrials = await trialsTable.getAll() as Trial[];
+    // CRITICAL: Pass license_key to filter to current show only (multi-tenant isolation)
+    const allClasses = await classesTable.getAll(licenseKey) as Class[];
+    const allTrials = await trialsTable.getAll(licenseKey) as Trial[];
 
     // Create lookup maps for performance
     const classMap = new Map(allClasses.map(c => [c.id, c]));

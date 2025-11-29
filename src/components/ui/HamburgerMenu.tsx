@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
+import { useSafeLogout } from '../../hooks/useSafeLogout';
 import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { RulesAssistant } from '../rules/RulesAssistant';
+import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
 import './shared-ui.css';
 import { version } from '../../../package.json';
 
@@ -52,9 +54,19 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   });
 
   const navigate = useNavigate();
-  const { showContext, role, logout } = useAuth();
+  const { showContext, role } = useAuth();
   const { unreadCount: _announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
   const { unreadCount, togglePanel } = useNotifications();
+
+  // Safe logout - prevents data loss from pending scores
+  const {
+    safeLogout,
+    showWarningDialog,
+    closeWarningDialog,
+    pendingCount,
+    isOnline,
+    isSyncing,
+  } = useSafeLogout();
 
   // Initialize announcement store with current show context
   useEffect(() => {
@@ -287,7 +299,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               {/* Logout */}
               <button
                 className="menu-item logout"
-                onClick={() => handleMenuItemClick(() => logout())}
+                onClick={() => handleMenuItemClick(() => safeLogout())}
               >
                 <span>Logout</span>
               </button>
@@ -313,6 +325,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
       <RulesAssistant
         isOpen={isRulesAssistantOpen}
         onClose={() => setIsRulesAssistantOpen(false)}
+      />
+
+      {/* Pending Scores Warning Dialog */}
+      <PendingScoresWarningDialog
+        isOpen={showWarningDialog}
+        onClose={closeWarningDialog}
+        pendingCount={pendingCount}
+        isOnline={isOnline}
+        isSyncing={isSyncing}
       />
     </>
   );
