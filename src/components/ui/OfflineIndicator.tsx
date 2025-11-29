@@ -28,6 +28,20 @@ type IndicatorMode =
   | 'pending'
   | 'hidden';
 
+/**
+ * Context for determining indicator mode
+ * Groups related state for mode determination logic
+ */
+interface IndicatorModeContext {
+  isOnline: boolean;
+  pendingCount: number;
+  syncingCount: number;
+  failedCount: number;
+  connectionQuality: ConnectionQuality;
+  slowConnectionDismissed: boolean;
+  isSyncing: boolean;
+}
+
 
 // ========================================
 // HELPER FUNCTIONS (extracted for reduced complexity)
@@ -73,15 +87,17 @@ function determineConnectionType(networkInfo: NetworkInfo): string {
 /**
  * Determine which indicator mode to display
  */
-function determineIndicatorMode(
-  isOnline: boolean,
-  pendingCount: number,
-  syncingCount: number,
-  failedCount: number,
-  connectionQuality: ConnectionQuality,
-  slowConnectionDismissed: boolean,
-  isSyncing: boolean
-): IndicatorMode {
+function determineIndicatorMode(ctx: IndicatorModeContext): IndicatorMode {
+  const {
+    isOnline,
+    pendingCount,
+    syncingCount,
+    failedCount,
+    connectionQuality,
+    slowConnectionDismissed,
+    isSyncing
+  } = ctx;
+
   // Slow connection warning (online, no sync issues, not dismissed)
   if (
     isOnline &&
@@ -285,7 +301,7 @@ export function OfflineIndicator() {
   }, [connectionQuality, slowConnectionDismissed]);
 
   // Determine which mode to render
-  const mode = determineIndicatorMode(
+  const mode = determineIndicatorMode({
     isOnline,
     pendingCount,
     syncingCount,
@@ -293,7 +309,7 @@ export function OfflineIndicator() {
     connectionQuality,
     slowConnectionDismissed,
     isSyncing
-  );
+  });
 
   // Render based on mode
   switch (mode) {

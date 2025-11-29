@@ -24,6 +24,19 @@ import type {
 } from '../types/visibility';
 
 /**
+ * Context for evaluating result field visibility
+ * Groups related parameters for visibility determination
+ */
+export interface VisibilityEvaluationContext {
+  classId: number;
+  trialId: number;
+  licenseKey: string;
+  userRole: UserRole;
+  isClassComplete: boolean;
+  resultsReleasedAt: string | null;
+}
+
+/**
  * Resolve visibility settings for a specific class
  * Uses cascading inheritance: class override → trial override → show default
  *
@@ -177,22 +190,14 @@ function resolvePreset(
  * IMPORTANT: Judges and admins ALWAYS see all fields regardless of settings
  * Stewards and exhibitors subject to configured visibility rules
  *
- * @param classId - Class ID
- * @param trialId - Trial ID
- * @param licenseKey - Show license key
- * @param userRole - User's role (admin/judge/steward/exhibitor)
- * @param isClassComplete - Whether class has finished (all dogs scored)
- * @param resultsReleasedAt - Timestamp when results manually released (null if not released)
+ * @param ctx - Visibility evaluation context containing class, trial, user, and state info
  * @returns Flags indicating which fields should be shown
  */
 export async function getVisibleResultFields(
-  classId: number,
-  trialId: number,
-  licenseKey: string,
-  userRole: UserRole,
-  isClassComplete: boolean,
-  resultsReleasedAt: string | null
+  ctx: VisibilityEvaluationContext
 ): Promise<VisibleResultFields> {
+  const { classId, trialId, licenseKey, userRole, isClassComplete, resultsReleasedAt } = ctx;
+
   // Judges and admins bypass all restrictions - they always see everything
   if (userRole === 'admin' || userRole === 'judge') {
     return {

@@ -21,9 +21,9 @@ import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
 import { useClassDialogs } from './hooks/useClassDialogs';
-import { useClassStatus } from './hooks/useClassStatus';
+import { useClassStatus, type StatusDependencies } from './hooks/useClassStatus';
 import { useClassRealtime } from './hooks/useClassRealtime';
-import { usePrintReports } from './hooks/usePrintReports';
+import { usePrintReports, type ReportDependencies } from './hooks/usePrintReports';
 import { useFavoriteClasses } from './hooks/useFavoriteClasses';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
 
@@ -179,28 +179,31 @@ export const ClassList: React.FC = () => {
     await refetch();
   }, [refetch, hapticFeedback]);
 
+  // Report dependencies - grouped for cleaner function signatures
+  const reportDeps: ReportDependencies = useMemo(() => ({
+    classes,
+    trialInfo,
+    licenseKey: showContext?.licenseKey || '',
+    organization: showContext?.org || '',
+    onComplete: () => setActivePopup(null)
+  }), [classes, trialInfo, showContext, setActivePopup]);
+
   // Print report wrappers (delegates to usePrintReports hook)
   const handleGenerateCheckIn = useCallback(async (classId: number) => {
     if (!showContext?.licenseKey) return;
-    const result = await handleCheckInHook(
-      classId, classes, trialInfo, showContext.licenseKey, showContext.org || '',
-      () => setActivePopup(null)
-    );
+    const result = await handleCheckInHook(classId, reportDeps);
     if (!result.success && result.error) {
       alert(result.error);
     }
-  }, [handleCheckInHook, classes, trialInfo, showContext, setActivePopup]);
+  }, [handleCheckInHook, showContext?.licenseKey, reportDeps]);
 
   const handleGenerateResults = useCallback(async (classId: number) => {
     if (!showContext?.licenseKey) return;
-    const result = await handleResultsHook(
-      classId, classes, trialInfo, showContext.licenseKey, showContext.org || '',
-      () => setActivePopup(null)
-    );
+    const result = await handleResultsHook(classId, reportDeps);
     if (!result.success && result.error) {
       alert(result.error);
     }
-  }, [handleResultsHook, classes, trialInfo, showContext, setActivePopup]);
+  }, [handleResultsHook, showContext?.licenseKey, reportDeps]);
 
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
@@ -291,22 +294,30 @@ return entriesData || [];
     navigate(`/class/${classEntry.id}/entries`);
   };
 
+  // Status dependencies - grouped for cleaner function signatures
+  const statusDeps: StatusDependencies = useMemo(() => ({
+    classes,
+    setClasses,
+    supabaseClient: supabase,
+    refetch
+  }), [classes, refetch]);
+
   // Wrapper for status changes with time (delegates to useClassStatus hook)
   const handleClassStatusChangeWithTime = useCallback(async (
     classId: number,
     status: ClassEntry['class_status'],
     timeValue: string
   ) => {
-    await handleStatusChangeWithTimeHook(classId, status, timeValue, classes, setClasses, supabase, refetch);
-  }, [handleStatusChangeWithTimeHook, classes, refetch]);
+    await handleStatusChangeWithTimeHook(classId, status, timeValue, statusDeps);
+  }, [handleStatusChangeWithTimeHook, statusDeps]);
 
   // Wrapper for status changes without time (delegates to useClassStatus hook)
   const handleClassStatusChange = useCallback(async (
     classId: number,
     status: ClassEntry['class_status']
   ) => {
-    await handleStatusChangeHook(classId, status, classes, setClasses, supabase, refetch);
-  }, [handleStatusChangeHook, classes, refetch]);
+    await handleStatusChangeHook(classId, status, statusDeps);
+  }, [handleStatusChangeHook, statusDeps]);
 
   // Wrapper for favorite toggle (delegates to useFavoriteClasses hook, adds haptic feedback)
   const toggleFavorite = useCallback((classId: number) => {

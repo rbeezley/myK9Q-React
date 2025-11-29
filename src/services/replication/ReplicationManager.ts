@@ -115,14 +115,16 @@ export class ReplicationManager {
     this.syncOrchestrator = new SyncOrchestrator(
       syncConfig,
       this.syncEngine,
-      // Callback for getting a table
-      <T extends { id: string }>(tableName: string) => this.getTable<T>(tableName),
-      // Callback for getting all table names
-      () => this.getRegisteredTables(),
-      // Callback for notifying cache updates
-      (tableName: string) => this.notifyCacheUpdated(tableName),
-      // Callback for getting cache stats (option A - avoids circular dependency)
-      () => this.getCacheStats()
+      {
+        // Callback for getting a table
+        getTable: <T extends { id: string }>(tableName: string) => this.getTable<T>(tableName),
+        // Callback for getting all table names
+        getTableNames: () => this.getRegisteredTables(),
+        // Callback for notifying cache updates
+        notifyCacheUpdate: (tableName: string) => this.notifyCacheUpdated(tableName),
+        // Callback for getting cache stats (avoids circular dependency)
+        getCacheStats: () => this.getCacheStats()
+      }
     );
 
     // Initialize ConnectionManager

@@ -20,6 +20,16 @@ export interface StatusOperationResult {
 }
 
 /**
+ * Dependencies for status operations - grouped to reduce parameter count
+ */
+export interface StatusDependencies {
+  classes: ClassEntry[];
+  setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>;
+  supabaseClient: SupabaseClient;
+  refetch: () => void | Promise<void>;
+}
+
+/**
  * Hook return type
  */
 export interface UseClassStatusReturn {
@@ -33,19 +43,13 @@ export interface UseClassStatusReturn {
   handleStatusChange: (
     classId: number,
     status: ClassEntry['class_status'],
-    classes: ClassEntry[],
-    setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
-    supabaseClient: SupabaseClient,
-    refetch: () => void | Promise<void>
+    deps: StatusDependencies
   ) => Promise<StatusOperationResult>;
   handleStatusChangeWithTime: (
     classId: number,
     status: ClassEntry['class_status'],
     timeValue: string,
-    classes: ClassEntry[],
-    setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
-    supabaseClient: SupabaseClient,
-    refetch: () => void | Promise<void>
+    deps: StatusDependencies
   ) => Promise<StatusOperationResult>;
 }
 
@@ -77,15 +81,11 @@ export interface UseClassStatusReturn {
  *     handleStatusChange
  *   } = useClassStatus();
  *
+ *   // Create deps object once
+ *   const statusDeps = { classes, setClasses, supabaseClient: supabase, refetch };
+ *
  *   const handleComplete = async (classId: number) => {
- *     const result = await handleStatusChange(
- *       classId,
- *       'completed',
- *       classes,
- *       setClasses,
- *       supabase,
- *       refetch
- *     );
+ *     const result = await handleStatusChange(classId, 'completed', statusDeps);
  *     if (!result.success) {
  *       console.error(result.error);
  *     }
@@ -99,7 +99,6 @@ export interface UseClassStatusReturn {
  *         setSelectedClassForStatus(null);
  *       }}
  *       classEntry={selectedClassForStatus}
- *       onStatusChange={handleStatusChange}
  *     />
  *   );
  * }
@@ -117,17 +116,16 @@ export function useClassStatus(): UseClassStatusReturn {
   const handleStatusChange = useCallback(async (
     classId: number,
     status: ClassEntry['class_status'],
-    classes: ClassEntry[],
-    setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
-    supabaseClient: SupabaseClient,
-    refetch: () => void | Promise<void>
+    deps: StatusDependencies
   ): Promise<StatusOperationResult> => {
-// Find paired class IDs (for combined Novice A & B)
+    const { classes, setClasses, supabaseClient, refetch } = deps;
+
+    // Find paired class IDs (for combined Novice A & B)
     const classEntry = classes.find(c => c.id === classId);
     const pairedId = classEntry?.pairedClassId;
     const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
 
-// Convert 'no-status' to null for database
+    // Convert 'no-status' to null for database
     const dbStatus = status === 'no-status' ? null : status;
     const updateData = {
       class_status: dbStatus
@@ -159,7 +157,7 @@ export function useClassStatus(): UseClassStatusReturn {
         };
       }
 
-return { success: true };
+      return { success: true };
     } catch (error) {
       console.error('💥 Exception updating class status:', error);
       await refetch();
@@ -178,12 +176,11 @@ return { success: true };
     classId: number,
     status: ClassEntry['class_status'],
     timeValue: string,
-    classes: ClassEntry[],
-    setClasses: React.Dispatch<React.SetStateAction<ClassEntry[]>>,
-    supabaseClient: SupabaseClient,
-    refetch: () => void | Promise<void>
+    deps: StatusDependencies
   ): Promise<StatusOperationResult> => {
-// Find paired class IDs
+    const { classes, setClasses, supabaseClient, refetch } = deps;
+
+    // Find paired class IDs
     const classEntry = classes.find(c => c.id === classId);
     const pairedId = classEntry?.pairedClassId;
     const idsToUpdate = pairedId ? [classId, pairedId] : [classId];
@@ -256,7 +253,7 @@ return { success: true };
         };
       }
 
-return { success: true };
+      return { success: true };
     } catch (error) {
       console.error('💥 Exception updating class status:', error);
       await refetch();

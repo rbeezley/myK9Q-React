@@ -77,6 +77,17 @@ export type NotifyCacheUpdateCallback = (tableName: string) => void;
 export type GetCacheStatsCallback = () => Promise<CacheStatsResult>;
 
 /**
+ * Grouped callbacks for SyncOrchestrator
+ * Reduces constructor parameters by bundling related callbacks
+ */
+export interface SyncOrchestratorCallbacks {
+  getTable: GetTableCallback;
+  getTableNames: GetTableNamesCallback;
+  notifyCacheUpdate: NotifyCacheUpdateCallback;
+  getCacheStats: GetCacheStatsCallback;
+}
+
+/**
  * SyncOrchestrator - handles all sync coordination concerns
  */
 export class SyncOrchestrator {
@@ -105,17 +116,14 @@ export class SyncOrchestrator {
   constructor(
     config: SyncOrchestratorConfig,
     syncEngine: SyncEngine,
-    getTable: GetTableCallback,
-    getTableNames: GetTableNamesCallback,
-    notifyCacheUpdate: NotifyCacheUpdateCallback,
-    getCacheStats: GetCacheStatsCallback
+    callbacks: SyncOrchestratorCallbacks
   ) {
     this.config = config;
     this.syncEngine = syncEngine;
-    this.getTable = getTable;
-    this.getTableNames = getTableNames;
-    this.notifyCacheUpdate = notifyCacheUpdate;
-    this.getCacheStats = getCacheStats;
+    this.getTable = callbacks.getTable;
+    this.getTableNames = callbacks.getTableNames;
+    this.notifyCacheUpdate = callbacks.notifyCacheUpdate;
+    this.getCacheStats = callbacks.getCacheStats;
 
     logger.log('✅ [SyncOrchestrator] Initialized');
   }

@@ -4,8 +4,9 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import { useClassStatus } from './useClassStatus';
+import { useClassStatus, type StatusDependencies } from './useClassStatus';
 import type { ClassEntry } from './useClassListData';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock Supabase client
 const createMockSupabaseClient = () => ({
@@ -92,6 +93,14 @@ describe('useClassStatus', () => {
     mockRefetch = vi.fn().mockResolvedValue(undefined);
   });
 
+  // Helper to create deps object for tests
+  const createDeps = (supabaseClient: ReturnType<typeof createMockSupabaseClient>): StatusDependencies => ({
+    classes: mockClasses,
+    setClasses: mockSetClasses,
+    supabaseClient: supabaseClient as unknown as SupabaseClient,
+    refetch: mockRefetch
+  });
+
   describe('Initialization', () => {
     it('should initialize with closed dialog', () => {
       const { result } = renderHook(() => useClassStatus());
@@ -170,10 +179,7 @@ describe('useClassStatus', () => {
         statusResult = await result.current.handleStatusChange(
           3, // Class without pairing
           'in_progress',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -192,10 +198,7 @@ describe('useClassStatus', () => {
         await result.current.handleStatusChange(
           1, // Class with pairing (paired with 2)
           'completed',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -220,10 +223,7 @@ describe('useClassStatus', () => {
         await result.current.handleStatusChange(
           3,
           'no-status',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -232,13 +232,12 @@ describe('useClassStatus', () => {
 
     it('should handle database errors gracefully', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const mockSupabase = {
-        from: vi.fn(() => ({
-          update: vi.fn(() => ({
-            in: vi.fn(() => Promise.resolve({ error: { message: 'Database error' } }))
-          }))
+      const mockSupabase = createMockSupabaseClient();
+      mockSupabase.from = vi.fn(() => ({
+        update: vi.fn(() => ({
+          in: vi.fn(() => Promise.resolve({ error: { message: 'Database error' } }))
         }))
-      };
+      }));
 
       const { result } = renderHook(() => useClassStatus());
 
@@ -247,10 +246,7 @@ describe('useClassStatus', () => {
         statusResult = await result.current.handleStatusChange(
           3,
           'in_progress',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -278,10 +274,7 @@ describe('useClassStatus', () => {
         await result.current.handleStatusChange(
           1,
           'completed',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -303,10 +296,7 @@ describe('useClassStatus', () => {
           3,
           'briefing',
           '08:00',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -328,10 +318,7 @@ describe('useClassStatus', () => {
           3,
           'break',
           '10:30',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -353,10 +340,7 @@ describe('useClassStatus', () => {
           3,
           'start_time',
           '09:00',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -375,10 +359,7 @@ describe('useClassStatus', () => {
           3,
           'briefing',
           '08:00',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -399,10 +380,7 @@ describe('useClassStatus', () => {
           1, // Paired with class 2
           'break',
           '11:00',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -416,13 +394,12 @@ describe('useClassStatus', () => {
 
     it('should handle time update errors', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const mockSupabase = {
-        from: vi.fn(() => ({
-          update: vi.fn(() => ({
-            in: vi.fn(() => Promise.resolve({ error: { message: 'Time update failed' } }))
-          }))
+      const mockSupabase = createMockSupabaseClient();
+      mockSupabase.from = vi.fn(() => ({
+        update: vi.fn(() => ({
+          in: vi.fn(() => Promise.resolve({ error: { message: 'Time update failed' } }))
         }))
-      };
+      }));
 
       const { result } = renderHook(() => useClassStatus());
 
@@ -432,10 +409,7 @@ describe('useClassStatus', () => {
           3,
           'briefing',
           '08:00',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          createDeps(mockSupabase)
         );
       });
 
@@ -453,6 +427,7 @@ describe('useClassStatus', () => {
     it('should handle complete class workflow', async () => {
       const mockSupabase = createMockSupabaseClient();
       const { result } = renderHook(() => useClassStatus());
+      const deps = createDeps(mockSupabase);
 
       // 1. Open dialog
       act(() => {
@@ -466,10 +441,7 @@ describe('useClassStatus', () => {
           1,
           'briefing',
           '08:00',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          deps
         );
         expect(result1.success).toBe(true);
       });
@@ -480,10 +452,7 @@ describe('useClassStatus', () => {
         const result2 = await result.current.handleStatusChange(
           1,
           'in_progress',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          deps
         );
         expect(result2.success).toBe(true);
       });
@@ -493,10 +462,7 @@ describe('useClassStatus', () => {
         const result3 = await result.current.handleStatusChange(
           1,
           'completed',
-          mockClasses,
-          mockSetClasses,
-          mockSupabase as any,
-          mockRefetch
+          deps
         );
         expect(result3.success).toBe(true);
       });
@@ -506,13 +472,12 @@ describe('useClassStatus', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // First call fails
-      const failingSupabase = {
-        from: vi.fn(() => ({
-          update: vi.fn(() => ({
-            in: vi.fn(() => Promise.resolve({ error: { message: 'Network error' } }))
-          }))
+      const failingSupabase = createMockSupabaseClient();
+      failingSupabase.from = vi.fn(() => ({
+        update: vi.fn(() => ({
+          in: vi.fn(() => Promise.resolve({ error: { message: 'Network error' } }))
         }))
-      };
+      }));
 
       const { result } = renderHook(() => useClassStatus());
 
@@ -520,10 +485,7 @@ describe('useClassStatus', () => {
         const result1 = await result.current.handleStatusChange(
           3,
           'completed',
-          mockClasses,
-          mockSetClasses,
-          failingSupabase as any,
-          mockRefetch
+          createDeps(failingSupabase)
         );
         expect(result1.success).toBe(false);
       });
@@ -535,10 +497,7 @@ describe('useClassStatus', () => {
         const result2 = await result.current.handleStatusChange(
           3,
           'completed',
-          mockClasses,
-          mockSetClasses,
-          successSupabase as any,
-          mockRefetch
+          createDeps(successSupabase)
         );
         expect(result2.success).toBe(true);
       });

@@ -51,6 +51,16 @@ export interface EntryListData {
 // VISIBILITY HELPERS
 // =============================================================================
 
+/** Context for visibility flag lookups - grouped to reduce parameter count */
+export interface VisibilityContext {
+  classId: number;
+  trialId: number;
+  licenseKey: string;
+  role: UserRole;
+  isClassComplete: boolean;
+  resultsReleasedAt: string | null;
+}
+
 /** Default visibility flags - used when fetch fails (fail-open for better UX) */
 const DEFAULT_VISIBILITY_FLAGS: VisibleResultFields = {
   showPlacement: true,
@@ -76,22 +86,18 @@ export function applyVisibilityFlags(entry: Entry, visibilityFlags: VisibleResul
  * Fetch visibility flags with error handling - returns defaults on failure
  */
 export async function fetchVisibilityFlagsWithFallback(
-  classId: number,
-  trialId: number,
-  licenseKey: string,
-  role: UserRole,
-  isClassComplete: boolean,
-  resultsReleasedAt: string | null
+  ctx: VisibilityContext
 ): Promise<VisibleResultFields> {
   try {
-    return await getVisibleResultFields(
-      classId,
-      trialId,
-      licenseKey,
-      role,
-      isClassComplete,
-      resultsReleasedAt
-    );
+    // Pass context directly - service now accepts VisibilityEvaluationContext
+    return await getVisibleResultFields({
+      classId: ctx.classId,
+      trialId: ctx.trialId,
+      licenseKey: ctx.licenseKey,
+      userRole: ctx.role,
+      isClassComplete: ctx.isClassComplete,
+      resultsReleasedAt: ctx.resultsReleasedAt
+    });
   } catch (error) {
     logger.error('❌ Error fetching visibility settings, defaulting to show all:', error);
     return DEFAULT_VISIBILITY_FLAGS;
@@ -108,14 +114,14 @@ export async function applyVisibilityToEntries(
   role: UserRole
 ): Promise<Entry[]> {
   const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
-  const visibilityFlags = await fetchVisibilityFlagsWithFallback(
-    parseInt(String(classData.id)),
-    classData.trial_id,
+  const visibilityFlags = await fetchVisibilityFlagsWithFallback({
+    classId: parseInt(String(classData.id)),
+    trialId: classData.trial_id,
     licenseKey,
     role,
     isClassComplete,
-    classData.results_released_at || null
-  );
+    resultsReleasedAt: classData.results_released_at || null
+  });
   return entries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
 }
 
@@ -318,14 +324,14 @@ export async function fetchFromSupabase(
     return { entries: [], classInfo };
   }
 
-  const visibilityFlags = await fetchVisibilityFlagsWithFallback(
-    parseInt(classId),
-    classData.trial_id,
+  const visibilityFlags = await fetchVisibilityFlagsWithFallback({
+    classId: parseInt(classId),
+    trialId: classData.trial_id,
     licenseKey,
-    userRole,
-    classData.class_status === 'completed' || classData.is_completed === true,
-    classData.results_released_at || null
-  );
+    role: userRole,
+    isClassComplete: classData.class_status === 'completed' || classData.is_completed === true,
+    resultsReleasedAt: classData.results_released_at || null
+  });
   classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
 
   return { entries: classEntries, classInfo };
@@ -416,22 +422,22 @@ export async function fetchCombinedFromSupabase(
     const entriesB = combinedEntries.filter(e => e.classId === parseInt(classIdB));
 
     const [visibilityFlagsA, visibilityFlagsB] = await Promise.all([
-      fetchVisibilityFlagsWithFallback(
-        parseInt(classIdA),
-        classDataA.trial_id,
+      fetchVisibilityFlagsWithFallback({
+        classId: parseInt(classIdA),
+        trialId: classDataA.trial_id,
         licenseKey,
-        userRole,
-        classDataA.class_status === 'completed' || classDataA.is_completed === true,
-        classDataA.results_released_at || null
-      ),
-      fetchVisibilityFlagsWithFallback(
-        parseInt(classIdB),
-        classDataB.trial_id,
+        role: userRole,
+        isClassComplete: classDataA.class_status === 'completed' || classDataA.is_completed === true,
+        resultsReleasedAt: classDataA.results_released_at || null
+      }),
+      fetchVisibilityFlagsWithFallback({
+        classId: parseInt(classIdB),
+        trialId: classDataB.trial_id,
         licenseKey,
-        userRole,
-        classDataB.class_status === 'completed' || classDataB.is_completed === true,
-        classDataB.results_released_at || null
-      )
+        role: userRole,
+        isClassComplete: classDataB.class_status === 'completed' || classDataB.is_completed === true,
+        resultsReleasedAt: classDataB.results_released_at || null
+      })
     ]);
 
     const processedA = entriesA.map(entry => applyVisibilityFlags(entry, visibilityFlagsA));

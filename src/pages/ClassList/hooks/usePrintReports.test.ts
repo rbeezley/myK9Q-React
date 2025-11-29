@@ -4,7 +4,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import { usePrintReports } from './usePrintReports';
+import { usePrintReports, type ReportDependencies } from './usePrintReports';
 import * as reportService from '@/services/reportService';
 import * as entryService from '@/services/entryService';
 import * as organizationUtils from '@/utils/organizationUtils';
@@ -116,6 +116,16 @@ describe('usePrintReports', () => {
     vi.mocked(reportService.generateResultsSheet).mockReturnValue();
   });
 
+  // Helper to create deps object for tests
+  const createDeps = (overrides?: Partial<ReportDependencies>): ReportDependencies => ({
+    classes: mockClasses,
+    trialInfo: mockTrialInfo,
+    licenseKey: 'license-123',
+    organization: 'Test Club',
+    onComplete: mockOnComplete,
+    ...overrides
+  });
+
   afterEach(async () => {
     // Clean up after each test to prevent contamination
     // Flush any pending promises/timers before resetting mocks
@@ -140,14 +150,7 @@ describe('usePrintReports', () => {
 
       let reportResult;
       await act(async () => {
-        reportResult = await result.current.handleGenerateCheckIn(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        reportResult = await result.current.handleGenerateCheckIn(1, createDeps());
       });
 
       expect(reportResult).toEqual({ success: true });
@@ -176,11 +179,7 @@ describe('usePrintReports', () => {
       await act(async () => {
         reportResult = await result.current.handleGenerateCheckIn(
           999, // Non-existent class
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
+          createDeps()
         );
       });
 
@@ -202,11 +201,7 @@ describe('usePrintReports', () => {
       await act(async () => {
         reportResult = await result.current.handleGenerateCheckIn(
           1,
-          mockClasses,
-          mockTrialInfo,
-          '', // Empty license key
-          'Test Club',
-          mockOnComplete
+          createDeps({ licenseKey: '' }) // Empty license key
         );
       });
 
@@ -225,14 +220,7 @@ describe('usePrintReports', () => {
 
       let reportResult;
       await act(async () => {
-        reportResult = await result.current.handleGenerateCheckIn(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        reportResult = await result.current.handleGenerateCheckIn(1, createDeps());
       });
 
       expect(reportResult).toEqual({
@@ -251,11 +239,7 @@ describe('usePrintReports', () => {
       await act(async () => {
         reportResult = await result.current.handleGenerateCheckIn(
           1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club'
-          // No callback
+          createDeps({ onComplete: undefined }) // No callback
         );
       });
 
@@ -269,10 +253,7 @@ describe('usePrintReports', () => {
       await act(async () => {
         await result.current.handleGenerateCheckIn(
           1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Custom Organization'
+          createDeps({ organization: 'Custom Organization' })
         );
       });
 
@@ -293,14 +274,7 @@ describe('usePrintReports', () => {
 
       let reportResult;
       await act(async () => {
-        reportResult = await result.current.handleGenerateResults(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        reportResult = await result.current.handleGenerateResults(1, createDeps());
       });
 
       expect(reportResult).toEqual({ success: true });
@@ -329,14 +303,7 @@ describe('usePrintReports', () => {
 
       let reportResult;
       await act(async () => {
-        reportResult = await result.current.handleGenerateResults(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        reportResult = await result.current.handleGenerateResults(1, createDeps());
       });
 
       expect(reportResult).toEqual({
@@ -352,13 +319,7 @@ describe('usePrintReports', () => {
 
       let reportResult;
       await act(async () => {
-        reportResult = await result.current.handleGenerateResults(
-          999,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club'
-        );
+        reportResult = await result.current.handleGenerateResults(999, createDeps());
       });
 
       expect(reportResult).toEqual({
@@ -377,13 +338,7 @@ describe('usePrintReports', () => {
 
       let reportResult;
       await act(async () => {
-        reportResult = await result.current.handleGenerateResults(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club'
-        );
+        reportResult = await result.current.handleGenerateResults(1, createDeps());
       });
 
       expect(reportResult).toEqual({
@@ -399,13 +354,7 @@ describe('usePrintReports', () => {
       const { result } = renderHook(() => usePrintReports());
 
       await act(async () => {
-        await result.current.handleGenerateResults(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club'
-        );
+        await result.current.handleGenerateResults(1, createDeps());
       });
 
       expect(reportService.generateResultsSheet).toHaveBeenCalledWith(
@@ -423,10 +372,7 @@ describe('usePrintReports', () => {
       await act(async () => {
         await result.current.handleGenerateResults(
           1,
-          mockClasses,
-          null, // No trial info
-          'license-123',
-          'Test Club'
+          createDeps({ trialInfo: null }) // No trial info
         );
       });
 
@@ -447,18 +393,12 @@ describe('usePrintReports', () => {
       vi.mocked(mockOnComplete).mockClear();
 
       const { result } = renderHook(() => usePrintReports());
+      const deps = createDeps();
 
       // 1. Generate check-in sheet
       let result1;
       await act(async () => {
-        result1 = await result.current.handleGenerateCheckIn(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        result1 = await result.current.handleGenerateCheckIn(1, deps);
       });
 
       expect(result1.success).toBe(true);
@@ -466,14 +406,7 @@ describe('usePrintReports', () => {
 
       // 2. Generate for different class
       await act(async () => {
-        await result.current.handleGenerateCheckIn(
-          2,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        await result.current.handleGenerateCheckIn(2, deps);
       });
 
       expect(mockOnComplete).toHaveBeenCalledTimes(2);
@@ -485,14 +418,7 @@ describe('usePrintReports', () => {
 
       // Generate results sheet
       await act(async () => {
-        const result1 = await result.current.handleGenerateResults(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club',
-          mockOnComplete
-        );
+        const result1 = await result.current.handleGenerateResults(1, createDeps());
         expect(result1.success).toBe(true);
       });
 
@@ -508,16 +434,11 @@ describe('usePrintReports', () => {
       vi.mocked(entryService.getClassEntries).mockRejectedValueOnce(new Error('Network error'));
 
       const { result } = renderHook(() => usePrintReports());
+      const deps = createDeps({ onComplete: undefined });
 
       let result1;
       await act(async () => {
-        result1 = await result.current.handleGenerateCheckIn(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club'
-        );
+        result1 = await result.current.handleGenerateCheckIn(1, deps);
       });
 
       expect(result1.success).toBe(false);
@@ -527,13 +448,7 @@ describe('usePrintReports', () => {
 
       let result2;
       await act(async () => {
-        result2 = await result.current.handleGenerateCheckIn(
-          1,
-          mockClasses,
-          mockTrialInfo,
-          'license-123',
-          'Test Club'
-        );
+        result2 = await result.current.handleGenerateCheckIn(1, deps);
       });
 
       expect(result2.success).toBe(true);

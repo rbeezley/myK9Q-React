@@ -23,24 +23,27 @@ export interface ReportOperationResult {
 }
 
 /**
+ * Dependencies for report operations - grouped to reduce parameter count
+ */
+export interface ReportDependencies {
+  classes: ClassEntry[];
+  trialInfo: TrialInfo | null;
+  licenseKey: string;
+  organization: string;
+  onComplete?: () => void;
+}
+
+/**
  * Hook return type
  */
 export interface UsePrintReportsReturn {
   handleGenerateCheckIn: (
     classId: number,
-    classes: ClassEntry[],
-    trialInfo: TrialInfo | null,
-    licenseKey: string,
-    organization: string,
-    onComplete?: () => void
+    deps: ReportDependencies
   ) => Promise<ReportOperationResult>;
   handleGenerateResults: (
     classId: number,
-    classes: ClassEntry[],
-    trialInfo: TrialInfo | null,
-    licenseKey: string,
-    organization: string,
-    onComplete?: () => void
+    deps: ReportDependencies
   ) => Promise<ReportOperationResult>;
 }
 
@@ -65,29 +68,18 @@ export interface UsePrintReportsReturn {
  * function ClassList() {
  *   const { handleGenerateCheckIn, handleGenerateResults } = usePrintReports();
  *
+ *   // Create deps object once
+ *   const reportDeps = { classes, trialInfo, licenseKey, organization, onComplete: closePopup };
+ *
  *   const printCheckIn = async (classId: number) => {
- *     const result = await handleGenerateCheckIn(
- *       classId,
- *       classes,
- *       trialInfo,
- *       licenseKey,
- *       organization,
- *       () => closePopup()
- *     );
+ *     const result = await handleGenerateCheckIn(classId, reportDeps);
  *     if (!result.success) {
  *       alert(result.error);
  *     }
  *   };
  *
  *   const printResults = async (classId: number) => {
- *     const result = await handleGenerateResults(
- *       classId,
- *       classes,
- *       trialInfo,
- *       licenseKey,
- *       organization,
- *       () => closePopup()
- *     );
+ *     const result = await handleGenerateResults(classId, reportDeps);
  *     if (!result.success) {
  *       alert(result.error);
  *     }
@@ -109,12 +101,10 @@ export function usePrintReports(): UsePrintReportsReturn {
    */
   const handleGenerateCheckIn = useCallback(async (
     classId: number,
-    classes: ClassEntry[],
-    trialInfo: TrialInfo | null,
-    licenseKey: string,
-    organization: string,
-    onComplete?: () => void
+    deps: ReportDependencies
   ): Promise<ReportOperationResult> => {
+    const { classes, trialInfo, licenseKey, organization, onComplete } = deps;
+
     try {
       const classData = classes.find(c => c.id === classId);
       if (!classData) {
@@ -172,12 +162,10 @@ export function usePrintReports(): UsePrintReportsReturn {
    */
   const handleGenerateResults = useCallback(async (
     classId: number,
-    classes: ClassEntry[],
-    trialInfo: TrialInfo | null,
-    licenseKey: string,
-    organization: string,
-    onComplete?: () => void
+    deps: ReportDependencies
   ): Promise<ReportOperationResult> => {
+    const { classes, trialInfo, licenseKey, organization, onComplete } = deps;
+
     try {
       const classData = classes.find(c => c.id === classId);
       if (!classData) {

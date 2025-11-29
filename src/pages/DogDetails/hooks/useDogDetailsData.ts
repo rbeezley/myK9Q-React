@@ -156,14 +156,14 @@ async function fetchDogDetails(
 
         // Fetch visibility settings for this class (role-based)
         // Note: results_released_at not available in replicated Class yet - using null
-        const visibleFields = await getVisibleResultFields(
-          parseInt(entry.class_id),
-          classData?.trial_id || 0,
+        const visibleFields = await getVisibleResultFields({
+          classId: parseInt(entry.class_id),
+          trialId: classData?.trial_id || 0,
           licenseKey,
-          (currentRole || 'exhibitor') as UserRole,
-          classData?.is_completed || false,
-          null // results_released_at not available in replicated table
-        );
+          userRole: (currentRole || 'exhibitor') as UserRole,
+          isClassComplete: classData?.is_completed || false,
+          resultsReleasedAt: null // results_released_at not available in replicated table
+        });
 
         return {
           id: parseInt(entry.id), // Entry ID (used for status updates)
@@ -247,14 +247,14 @@ async function fetchDogDetails(
           statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
 
         // Fetch visibility settings for this class (role-based)
-        const visibleFields = await getVisibleResultFields(
-          entry.class_id,
-          entry.trial_id,
+        const visibleFields = await getVisibleResultFields({
+          classId: entry.class_id,
+          trialId: entry.trial_id,
           licenseKey,
-          (currentRole || 'exhibitor') as UserRole,
-          entry.is_completed || false,
-          entry.results_released_at
-        );
+          userRole: (currentRole || 'exhibitor') as UserRole,
+          isClassComplete: entry.is_completed || false,
+          resultsReleasedAt: entry.results_released_at
+        });
 
         return {
           id: entry.id, // Entry ID
