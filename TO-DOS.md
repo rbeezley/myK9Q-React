@@ -1,9 +1,9 @@
 # Outstanding Tasks
 
 
-## Test Pull-to-Refresh Mobile UX - 2025-11-20 20:02
+## Test Pull-to-Refresh Mobile UX - 2025-11-20 ✅ COMPLETE
 
-- **Verify PTR improvements on production mobile** - Test pull-to-refresh activation threshold and scrolling behavior on app.myk9q.com after deployment. **Problem:** Pull-to-refresh was interfering with scrolling through long dog lists on mobile home page. Changes deployed (20px activation threshold, increased trigger distance) need real-world mobile testing to confirm they solve the issue. **Files:** `src/components/ui/PullToRefresh.tsx:85-101` (activation threshold logic), `src/pages/Home/Home.tsx:367-372` (PTR configuration). **Solution:** Test on actual mobile device: (1) Verify normal scrolling works smoothly without triggering PTR, (2) Verify intentional pull-down from top triggers refresh after deliberate gesture, (3) If still problematic, consider increasing activation threshold to 30-40px or adding user setting to disable PTR.
+- **VERIFIED:** PTR improvements working correctly on production mobile. 20px activation threshold and increased trigger distance successfully prevent accidental activation during scrolling while still allowing intentional pull-to-refresh gestures.
 
 ## Scoresheet Refactoring - 2025-11-25 ✅ COMPLETE
 
@@ -23,30 +23,30 @@
 
 - **Research exhibitor monetization opportunities** - Brainstorm premium features and services that exhibitors would be willing to pay for to ensure app sustainability and growth. **Problem:** Need to identify viable revenue streams from the exhibitor user segment while maintaining value proposition. Current app is free but needs to explore sustainable monetization models that align with user needs and willingness to pay. **Files:** Consider researching competitive apps, analyzing user feedback in existing features (`src/pages/Home/`, `src/pages/EntryList/`, `src/pages/Settings/`), and documenting findings in new `docs/monetization-strategy.md`. **Solution:** Analyze exhibitor pain points throughout their show workflow, research competitive pricing models in dog show management space, evaluate premium feature opportunities (advanced analytics, training history, performance tracking, premium notifications, ad-free experience, priority support), and assess subscription vs one-time payment models.
 
-## Consolidate IndexedDB Databases - 2025-11-28 15:39 🔄 IN PROGRESS
+## Consolidate IndexedDB Databases - 2025-11-28 ✅ COMPLETE
 
-- **Phase 1-4 Complete:** Main prefetch cache migrated to consolidated database.
-  - ✅ Created `prefetch_cache` store in myK9Q_Replication (DB_VERSION 4)
-  - ✅ Created [PrefetchCacheManager.ts](src/services/replication/PrefetchCacheManager.ts) with same API as legacy cache
-  - ✅ Migrated [usePrefetch.ts](src/hooks/usePrefetch.ts) to use consolidated database
-  - ✅ Updated cache clearing to handle both databases during transition
-  - ✅ Added deprecation notice to [indexedDB.ts](src/utils/indexedDB.ts)
-  - ✅ Tracked in [DEBT_REGISTER.md](DEBT_REGISTER.md) as DEBT-016
+**Status:** All files migrated to consolidated `myK9Q_Replication` database.
 
-- **Remaining (5 files):** Low priority - app works with backward compatibility
-  - `offlineQueueStore.ts` - uses mutations store (needs MutationManager)
-  - `offlineRouter.ts` - uses cache store
-  - `useClassListData.ts` - uses cache store
-  - `preloadService.ts` - uses cache + metadata stores
-  - `autoDownloadService.ts` - uses cache store
+**Summary:**
+- ✅ Created `prefetch_cache` store in myK9Q_Replication (DB_VERSION 4)
+- ✅ Created [PrefetchCacheManager.ts](src/services/replication/PrefetchCacheManager.ts) with same API as legacy cache
+- ✅ Created [MutationQueueManager.ts](src/services/replication/MutationQueueManager.ts) for offline queue
+- ✅ Migrated all 5 remaining files:
+  - `offlineQueueStore.ts` → uses `MutationQueueManager`
+  - `offlineRouter.ts` → uses `PrefetchCacheManager`
+  - `useClassListData.ts` → uses `PrefetchCacheManager`
+  - `preloadService.ts` → uses `PrefetchCacheManager`
+  - `autoDownloadService.ts` → uses `PrefetchCacheManager`
+- ✅ Deleted legacy `indexedDB.ts`
+- ✅ Tracked in [DEBT_REGISTER.md](DEBT_REGISTER.md) as DEBT-016
 
 ## Hide Debug Functions in Production - 2025-11-28 15:43 ✅ COMPLETE
 
 - **FIXED:** Wrapped `initializeDebugFunctions()` in `if (!import.meta.env.DEV) return;` check at [entryDebug.ts:342-345](src/services/entryDebug.ts#L342-L345). Debug functions no longer register or log in production builds.
 
-## Investigate Memory Leak Warning - 2025-11-28 15:46
+## Investigate Memory Leak Warning - 2025-11-28 ✅ FALSE POSITIVE
 
-- **Investigate memory leak warning on Classes page** - Heap growing 50% in 5 minutes (29MB to 44MB) reported by memoryLeakDetector. **Problem:** memoryLeakDetector.ts:228 reports rapid heap growth when navigating to Classes page. Could be Vite HMR false positive in dev mode, or could indicate a real memory leak (uncleared subscriptions, event listeners, or timers). **Files:** `src/utils/memoryLeakDetector.ts:187-228` (detection logic), `src/pages/ClassList/` (page being viewed when warning appeared). **Solution:** Test in production build to rule out HMR false positive. If persists, use Chrome DevTools Memory tab to take heap snapshots and identify retained objects.
+- **RESOLVED:** Heap growth (29MB → 44MB) is expected Vite HMR behavior in development mode. Memory detector only runs in dev mode. All ClassList hooks and useEffects have proper cleanup. No action needed - this is normal for active React development with HMR.
 
 ## Reduce Entries Sync Log Verbosity - 2025-11-28 15:46 ✅ COMPLETE
 
