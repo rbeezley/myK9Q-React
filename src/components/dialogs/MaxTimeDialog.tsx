@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, Clock, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
+import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import './shared-dialog.css';
 import './MaxTimeDialog.css';
 
@@ -485,6 +487,31 @@ const { error } = await supabase
         console.error('❌ Error updating max times:', error);
         setErrorMessage('Failed to save max times. Please try again.');
         return;
+      }
+
+      // Update IndexedDB cache directly to avoid stale data on refetch
+      try {
+        const manager = await ensureReplicationManager();
+        const classesTable = manager.getTable<Class>('classes');
+
+        if (classesTable) {
+          for (const id of idsToUpdate) {
+            const existingClass = await classesTable.get(String(id));
+            if (existingClass) {
+              // Update only the time fields
+              const updatedClass: Class = {
+                ...existingClass,
+                time_limit_seconds: updateData.time_limit_seconds || undefined,
+                time_limit_area2_seconds: updateData.time_limit_area2_seconds || undefined,
+                time_limit_area3_seconds: updateData.time_limit_area3_seconds || undefined,
+              };
+              await classesTable.set(String(id), updatedClass, false);
+            }
+          }
+        }
+      } catch (cacheError) {
+        // Non-fatal - cache will be updated on next sync
+        console.warn('⚠️ [MaxTimeDialog] Failed to update IndexedDB cache:', cacheError);
       }
 
 // Show appropriate success message

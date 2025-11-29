@@ -129,8 +129,8 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   letter-spacing: 0.1em;
   transition: all 0.2s;
-  background: white;
-  color: var(--foreground);
+  background: var(--input-bg, white);
+  color: var(--input-text, var(--foreground));
   text-align: center;
   min-height: 3.5rem;  /* Mobile: larger min-height */
   /* Prevent zoom on iOS */
@@ -400,7 +400,7 @@
 
   .max-time-dialog .dialog-footer {
     flex-direction: row;  /* Desktop: row layout */
-    gap: 0;  /* Desktop: no gap (spacing handled by justify-content) */
+    gap: var(--token-space-lg);  /* Desktop: spacing between buttons */
   }
 
   .time-range-info {
@@ -512,7 +512,7 @@
 .theme-dark .time-input {
   background: var(--card);
   border-color: var(--token-text-secondary);
-  color: var(--surface-subtle);
+  color: #ffffff;
 }
 
 .theme-dark .time-input:focus {
@@ -539,12 +539,12 @@
 }
 
 .theme-dark .help-text {
-  background: var(--foreground);
+  background: var(--card, #1e293b);
   border-left-color: var(--primary);
 }
 
 .theme-dark .help-text p {
-  color: var(--border);
+  color: var(--muted-foreground, #94a3b8);
 }
 
 .theme-dark .dictated-time-item {
