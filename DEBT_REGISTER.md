@@ -6,12 +6,12 @@
 
 ## Summary
 
-- **Total Debt Items:** 15 (13 resolved)
+- **Total Debt Items:** 15 (14 resolved)
 - **Critical:** 2 ✅ (2 resolved)
 - **High:** 4 ✅ (4 resolved)
-- **Medium:** 8 (6 resolved ✅)
+- **Medium:** 8 (7 resolved ✅)
 - **Low:** 2
-- **Estimated Total Effort:** 1-2 days (reduced from 15-20)
+- **Estimated Total Effort:** <1 day (reduced from 15-20)
 
 ---
 
@@ -89,7 +89,7 @@ Medium - important for maintainability. Worst offender (useStatsData.ts at 86) h
 
 ---
 
-### DEBT-009: Deep Nesting (up to 11 levels)
+### DEBT-009: Deep Nesting (up to 11 levels) - RESOLVED ✅
 
 **Category:** Code Quality
 
@@ -97,16 +97,21 @@ Medium - important for maintainability. Worst offender (useStatsData.ts at 86) h
 
 **Created:** 2025-11-26
 
-**Location:**
-- File(s):
-  - `src/stores/announcementStore.ts` - 11 levels
-  - ~~`src/pages/EntryList/hooks/useEntryListData.ts` - 11 levels~~ ✅ REFACTORED (2025-11-28) - nested functions extracted to helpers module
-  - `src/pages/Home/hooks/useHomeDashboardData.ts` - 9 levels
-  - `src/pages/Stats/components/CleanSweepDiagnostic.tsx` - 9 levels
-- Component/Module: Various
+**Resolved:** 2025-11-28
+
+**Location (9 files, 23 ESLint max-depth violations fixed):**
+- ~~`src/stores/announcementStore.ts`~~ - 4 violations (5-7 levels) ✅
+- ~~`src/utils/cacheManager.ts`~~ - 7 violations (5 levels) ✅
+- ~~`src/pages/ClassList/hooks/useClassListData.ts`~~ - 3 violations (5-7 levels) ✅
+- ~~`src/services/scoresheetAutoSave.ts`~~ - 3 violations (5 levels) ✅
+- ~~`src/components/announcements/NotificationSettings.tsx`~~ - 1 violation (5 levels) ✅
+- ~~`src/pages/Home/hooks/useHomeDashboardData.ts`~~ - 1 violation (6 levels) ✅
+- ~~`src/services/dataExportService.ts`~~ - 2 violations (5 levels) ✅
+- ~~`src/services/databaseDetectionService.ts`~~ - 1 violation (5 levels) ✅
+- ~~`src/services/entry/entryStatusManagement.ts`~~ - 1 violation (5 levels) ✅
 
 **Description:**
-275 instances of code nested more than 4 levels deep. Worst cases reach 11 levels of nesting.
+23 ESLint max-depth violations (code nested more than 4 levels deep) found across 9 files.
 
 **Impact:**
 - **Business Impact:** Slower development velocity
@@ -114,16 +119,33 @@ Medium - important for maintainability. Worst offender (useStatsData.ts at 86) h
 - **Risk:** Logic errors hidden in deep branches
 
 **Root Cause:**
-Complex conditional logic, nested callbacks, nested JSX.
+Complex conditional logic, nested callbacks, nested loops.
 
-**Proposed Solution:**
-1. Early returns to reduce nesting
-2. Extract nested logic into helper functions
-3. Use guard clauses
-4. Flatten promise chains with async/await
-5. Extract nested JSX into sub-components
+**Solution Applied:**
+1. ✅ Early returns (guard clauses) to reduce nesting depth
+2. ✅ Extract nested logic into helper functions
+3. ✅ Use `continue` statements in loops to flatten conditionals
+4. ✅ Flatten promise chains with async/await
 
-**Effort Estimate:** 2-3 days
+**Helper Functions Created:**
+| File | Helpers Added |
+|------|---------------|
+| `announcementStore.ts` | `isProcessedKey()`, `handleAnnouncementMetadataChange()` |
+| `cacheManager.ts` | `backupLocalStorage()`, `backupSessionStorage()`, `isOldEntry()`, `shouldPreserveKey()`, `shouldPreserveDatabase()`, `cleanupIndexedDBEntries()`, `cleanOldServiceWorkerCaches()` |
+| `useClassListData.ts` | `applyVisibilityPresets()`, `tryLoadFromReplicatedCache()` |
+| `NotificationSettings.tsx` | `handleGrantedPermission()` |
+| `useHomeDashboardData.ts` | `tryLoadEntriesFromCache()` |
+| `dataExportService.ts` | `clearMyK9QIndexedDBDatabases()` |
+| `databaseDetectionService.ts` | `findLegacyShowMatch()` |
+| `entryStatusManagement.ts` | `shouldSkipInRingUpdate()` |
+
+**Results:**
+- **Before:** 23 ESLint max-depth violations
+- **After:** 0 violations
+- **Files modified:** 10 (9 source + style improvements)
+- **Lines changed:** +509, -386
+
+**Effort:** ~2 hours
 
 **Priority Justification:**
 Medium - readability issue that compounds over time.
@@ -133,11 +155,11 @@ Medium - readability issue that compounds over time.
 - Blocked By: None
 - Related: DEBT-008
 
-**Status:** Open
+**Status:** ✅ Resolved
 
-**Assignee:** Unassigned
+**Assignee:** Completed
 
-**Target Resolution:** Q2 2026
+**Target Resolution:** ✅ Resolved 2025-11-28
 
 ---
 
@@ -738,7 +760,7 @@ Used composition pattern to extract focused modules:
 ### By Severity
 - Critical: 2 items (2 resolved ✅)
 - High: 4 items (4 resolved ✅)
-- Medium: 8 items (6 resolved ✅)
+- Medium: 8 items (7 resolved ✅)
 - Low: 2 items (1 audited)
 
 ### Aging
@@ -771,7 +793,7 @@ Used composition pattern to extract focused modules:
 9. ~~**DEBT-011** - `any` types~~ ✅ **RESOLVED** (2025-11-28) - 143 fixed, 0 remaining in production
 10. ~~**DEBT-012** - Long parameter lists~~ ✅ **RESOLVED** (2025-11-28) - 12 violations fixed with typed interfaces
 11. **DEBT-014** - TODO comments - ✅ **CLEANED** - 2 removed, 6 valid remaining (2025-11-27)
-12. **DEBT-009** - Deep nesting (23 violations) - Next priority
+12. ~~**DEBT-009** - Deep nesting~~ ✅ **RESOLVED** (2025-11-28) - 23 violations fixed via helper functions + early returns
 13. **Others** - Address opportunistically
 
 ---
