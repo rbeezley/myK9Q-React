@@ -424,18 +424,24 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       );
     }
 
-// CRITICAL: Trigger immediate sync to update UI without refresh
-    // This ensures the entry moves back to pending/checked-in tab immediately
-    await triggerImmediateEntrySync('resetEntryScore');
+// CRITICAL FIX: Update local cache directly instead of relying on sync.
+    // The sync fetches from read replicas which may have stale 'completed' status
+    // due to replication lag, overwriting our correct local changes.
+    // eslint-disable-next-line no-console
+    console.log(`🔄 [resetEntryScore] Updating local cache for entry ${entryId} -> entry_status='no-status'`);
+    await updateLocalCacheEntry(entryId, { entry_status: 'no-status', is_in_ring: false });
 
-    // Check if class should be marked as incomplete
+    // Fire-and-forget sync for eventual consistency (other clients, background refresh)
+    // Don't await - local cache already updated, sync runs in background
+    triggerImmediateEntrySync('resetEntryScore').catch(err =>
+      console.warn('⚠️ [resetEntryScore] Background sync failed:', err)
+    );
+
+    // Fire-and-forget class completion check (non-blocking)
     if (entryData?.class_id) {
-      try {
-        await checkAndUpdateClassCompletion(entryData.class_id);
-      } catch (completionError) {
-        console.error('⚠️ Failed to check class completion:', completionError);
-        // Non-critical error - score reset was successful
-      }
+      checkAndUpdateClassCompletion(entryData.class_id).catch(completionError =>
+        console.error('⚠️ Failed to check class completion:', completionError)
+      );
     }
 
     return true;
