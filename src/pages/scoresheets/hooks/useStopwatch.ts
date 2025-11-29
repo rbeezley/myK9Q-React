@@ -260,7 +260,7 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
     // Announce when crossing the 30-second threshold (prevents race condition)
     // Trigger when: 29 < remaining <= 30 seconds
     if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
-voiceAnnouncementService.announceTimeRemaining(30);
+      voiceAnnouncementService.announceTimeRemaining(30);
       has30SecondAnnouncedRef.current = true;
     }
 

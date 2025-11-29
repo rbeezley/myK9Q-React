@@ -4,7 +4,7 @@ import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
-import { Mic, Timer, Hash, Trophy, Volume2 } from 'lucide-react';
+import { Mic, Timer, Volume2 } from 'lucide-react';
 
 export const ScoringSettings: React.FC = () => {
     const { settings, updateSettings } = useSettingsStore();
@@ -39,7 +39,7 @@ export const ScoringSettings: React.FC = () => {
                                     color: 'var(--input-text)',
                                     padding: '6px 12px',
                                     borderRadius: '8px',
-                                    maxWidth: '150px'
+                                    minWidth: '180px'
                                 }}
                             >
                                 <option value="">Default</option>
@@ -79,35 +79,11 @@ export const ScoringSettings: React.FC = () => {
                     <SettingsRow
                         icon={<Timer size={20} />}
                         label="Timer Countdown"
-                        description="Announce 30s, 10s, 5s warnings"
+                        description="Announce 30 second warning"
                         action={
                             <SettingsToggle
                                 checked={settings.announceTimerCountdown}
                                 onChange={(checked) => updateSettings({ announceTimerCountdown: checked })}
-                            />
-                        }
-                    />
-
-                    <SettingsRow
-                        icon={<Hash size={20} />}
-                        label="Run Number"
-                        description="Announce armband and dog name"
-                        action={
-                            <SettingsToggle
-                                checked={settings.announceRunNumber}
-                                onChange={(checked) => updateSettings({ announceRunNumber: checked })}
-                            />
-                        }
-                    />
-
-                    <SettingsRow
-                        icon={<Trophy size={20} />}
-                        label="Results"
-                        description="Announce qualification & placement"
-                        action={
-                            <SettingsToggle
-                                checked={settings.announceResults}
-                                onChange={(checked) => updateSettings({ announceResults: checked })}
                             />
                         }
                     />

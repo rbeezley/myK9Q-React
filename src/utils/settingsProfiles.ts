@@ -45,7 +45,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
 
       // Notifications - essential only
       enableNotifications: true,
-      notificationSound: false,
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
@@ -80,7 +79,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
 
       // Notifications - all enabled
       enableNotifications: true,
-      notificationSound: true,
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
@@ -115,7 +113,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
 
       // Notifications - results only
       enableNotifications: true,
-      notificationSound: false,
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
@@ -150,7 +147,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
 
       // Notifications - all types
       enableNotifications: true,
-      notificationSound: true,
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 

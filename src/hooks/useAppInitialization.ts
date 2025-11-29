@@ -3,6 +3,7 @@ import { useSettingsStore, initializeSettings } from '../stores/settingsStore';
 import { performanceMonitor } from '../services/performanceMonitor';
 import { analyticsService } from '../services/analyticsService';
 import { notificationIntegration } from '../services/notificationIntegration';
+import voiceAnnouncementService from '../services/voiceAnnouncementService';
 import developerModeService from '../services/developerMode';
 import { subscriptionCleanup } from '../services/subscriptionCleanup';
 import { metricsApiService } from '../services/metricsApiService';
@@ -33,6 +34,37 @@ export function useAppInitialization() {
     if (!cancelled) {
       initializeSettings();
     }
+
+    // Initialize voice announcement service configuration from settings
+    // Note: The service now subscribes to the settings store directly (see voiceAnnouncementService.ts)
+    // We just need to configure the voice settings here
+    const initVoiceConfig = () => {
+      const { settings } = useSettingsStore.getState();
+      const voices = voiceAnnouncementService.getAvailableVoices();
+      const selectedVoice = settings.voiceName
+        ? voices.find(v => v.name === settings.voiceName) || null
+        : null;
+      voiceAnnouncementService.setDefaultConfig({
+        voice: selectedVoice,
+        lang: navigator.language || 'en-US',
+        rate: settings.voiceRate,
+      });
+    };
+
+    initVoiceConfig();
+
+    // Subscribe to settings changes to update voice configuration
+    const unsubscribeVoice = useSettingsStore.subscribe((state) => {
+      const voices = voiceAnnouncementService.getAvailableVoices();
+      const selectedVoice = state.settings.voiceName
+        ? voices.find(v => v.name === state.settings.voiceName) || null
+        : null;
+      voiceAnnouncementService.setDefaultConfig({
+        voice: selectedVoice,
+        lang: navigator.language || 'en-US',
+        rate: state.settings.voiceRate,
+      });
+    });
 
     // Apply device-specific CSS classes
     applyDeviceClasses();
@@ -73,6 +105,7 @@ export function useAppInitialization() {
       cancelled = true;
       stopMonitoring();
       stopAutoCleanup();
+      unsubscribeVoice();
       notificationIntegration.destroy();
       subscriptionCleanup.cleanupAll();
       window.removeEventListener('beforeunload', handleBeforeUnload);

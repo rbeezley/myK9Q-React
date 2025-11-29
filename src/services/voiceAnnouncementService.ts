@@ -192,7 +192,25 @@ class VoiceAnnouncementService {
    * Announce text using speech synthesis
    */
   public announce(options: AnnouncementOptions): void {
-    if (!this.isEnabled || !this.synthesis) {
+    // Check if enabled - also check localStorage as fallback for race conditions
+    // where the store subscription hasn't fired yet
+    let enabled = this.isEnabled;
+    if (!enabled) {
+      try {
+        const stored = localStorage.getItem('myK9Q_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          enabled = parsed?.state?.settings?.voiceAnnouncements === true;
+          if (enabled) {
+            this.isEnabled = true; // Sync the state
+          }
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
+    if (!enabled || !this.synthesis) {
       return;
     }
 
@@ -353,59 +371,6 @@ this.currentUtterance = null;
   }
 
   /**
-   * Announce class/run number
-   */
-  public announceRunNumber(armbandNumber: string, dogName: string): void {
-    this.announce({
-      text: `Number ${armbandNumber}, ${dogName}`,
-      priority: 'normal',
-    });
-  }
-
-  /**
-   * Announce qualification status
-   */
-  public announceQualification(qualified: boolean, score?: number): void {
-    let text = qualified ? 'Qualified' : 'Not Qualified';
-    if (score !== undefined) {
-      text += `, score ${score}`;
-    }
-
-    this.announce({
-      text,
-      priority: 'normal',
-    });
-  }
-
-  /**
-   * Announce placement
-   */
-  public announcePlacement(placement: number, dogName: string): void {
-    let ordinal = '';
-    switch (placement) {
-      case 1:
-        ordinal = 'First place';
-        break;
-      case 2:
-        ordinal = 'Second place';
-        break;
-      case 3:
-        ordinal = 'Third place';
-        break;
-      case 4:
-        ordinal = 'Fourth place';
-        break;
-      default:
-        ordinal = `${placement}th place`;
-    }
-
-    this.announce({
-      text: `${ordinal}, ${dogName}`,
-      priority: 'normal',
-    });
-  }
-
-  /**
    * Announce fault/error
    */
   public announceFault(faultType: string): void {
@@ -458,5 +423,22 @@ this.currentUtterance = null;
 
 // Singleton instance
 const voiceAnnouncementService = new VoiceAnnouncementService();
+
+// Subscribe to settings store to keep voice service in sync
+// This runs when the module is imported, ensuring the service
+// is properly initialized regardless of component mount order
+import('../stores/settingsStore').then(({ useSettingsStore }) => {
+  // Initial sync from current state (may be default or hydrated)
+  const initialState = useSettingsStore.getState();
+  voiceAnnouncementService.setEnabled(initialState.settings.voiceAnnouncements);
+
+  // Subscribe to future changes (including hydration from localStorage)
+  useSettingsStore.subscribe((state) => {
+    const enabled = state.settings.voiceAnnouncements;
+    if (voiceAnnouncementService.getEnabled() !== enabled) {
+      voiceAnnouncementService.setEnabled(enabled);
+    }
+  });
+});
 
 export default voiceAnnouncementService;

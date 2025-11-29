@@ -31,7 +31,6 @@ export interface AppSettings {
 
   // Notifications
   enableNotifications: boolean;
-  notificationSound: boolean;
   voiceNotifications: boolean; // Speak push notifications aloud (your turn, results, etc.)
   showBadges: boolean;
   notifyYourTurnLeadDogs: 1 | 2 | 3 | 4 | 5; // How many dogs ahead to notify
@@ -40,9 +39,7 @@ export interface AppSettings {
   voiceAnnouncements: boolean;
   voiceName: string; // Voice name to use (empty = browser default)
   voiceRate: number; // 0.5 to 2.0 (speed)
-  announceTimerCountdown: boolean; // Announce 30s, 10s, 5s, etc.
-  announceRunNumber: boolean; // Announce armband number and dog name
-  announceResults: boolean; // Announce qualification/placement
+  announceTimerCountdown: boolean; // Announce 30 second warning
 
   // Privacy & Security
   autoLogout: 480; // minutes, fixed at 8 hours
@@ -97,7 +94,6 @@ const defaultSettings: AppSettings = {
 
   // Notifications
   enableNotifications: false, // Default: disabled (users must explicitly opt-in)
-  notificationSound: true,
   voiceNotifications: false, // Default: disabled (users must opt-in)
   showBadges: true,
   notifyYourTurnLeadDogs: 3, // Default: notify when 3 dogs ahead
@@ -107,8 +103,6 @@ const defaultSettings: AppSettings = {
   voiceName: '', // Empty = browser default
   voiceRate: 1.0,
   announceTimerCountdown: true,
-  announceRunNumber: true,
-  announceResults: true,
 
   // Privacy & Security
   autoLogout: 480, // Default: 8 hours (typical trial length)

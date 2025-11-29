@@ -317,9 +317,8 @@ describe('smartDefaults', () => {
 
       const defaults = await generateSmartDefaults(context);
 
-      // Judges get voice announcements and notification sound enabled
+      // Judges get voice announcements enabled
       expect(defaults.voiceAnnouncements).toBe(true);
-      expect(defaults.notificationSound).toBe(true);
     });
 
     it('should apply exhibitor role defaults', async () => {

@@ -3,7 +3,7 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Bell, Volume2, Mic, AlertCircle, CheckCircle } from 'lucide-react';
+import { Bell, Mic, AlertCircle, CheckCircle } from 'lucide-react';
 import type { BrowserCompatibility } from '../components/PushNotificationSettings';
 
 interface NotificationSettingsProps {
@@ -106,18 +106,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                                 <option value="4">4th in line</option>
                                 <option value="5">5th in line</option>
                             </select>
-                        }
-                    />
-
-                    <SettingsRow
-                        icon={<Volume2 size={20} />}
-                        label="Sound"
-                        description="Play sound with alerts"
-                        action={
-                            <SettingsToggle
-                                checked={settings.notificationSound}
-                                onChange={(checked) => updateSettings({ notificationSound: checked })}
-                            />
                         }
                     />
 

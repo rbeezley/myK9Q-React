@@ -154,7 +154,8 @@ export function Settings() {
             />
           )}
 
-          {shouldShowSection('Scoring') && ( // Conditional rendering
+          {/* Scoring settings only for judges/stewards/admins - not exhibitors */}
+          {role !== 'exhibitor' && shouldShowSection('Scoring') && (
             <ScoringSettings />
           )}
 

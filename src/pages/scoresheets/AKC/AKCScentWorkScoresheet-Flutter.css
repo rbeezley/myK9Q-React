@@ -499,6 +499,19 @@
   box-shadow: 0 6px var(--token-space-xl) rgba(239, 68, 68, 0.4);
 }
 
+.timer-btn-start.reset {
+  background: rgba(148, 163, 184, 0.3);
+  color: var(--scoresheet-text);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(148, 163, 184, 0.3);
+}
+
+.timer-btn-start.reset:hover {
+  background: rgba(148, 163, 184, 0.45);
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 6px var(--token-space-xl) rgba(148, 163, 184, 0.4);
+}
+
 .timer-secondary {
   position: absolute;
   top: var(--token-space-2xl);
@@ -783,7 +796,7 @@
 .scoresheet-btn-cancel, .scoresheet-btn-save {
   flex: 1;
   height: 56px;
-  border-radius: 28px;
+  border-radius: var(--token-space-lg); /* Rounded rectangle to match dialog buttons */
   border: none;
   font-size: 18px;
   font-weight: 600;

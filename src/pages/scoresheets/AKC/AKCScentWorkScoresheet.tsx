@@ -101,6 +101,9 @@ export const AKCScentWorkScoresheet: React.FC = () => {
       if (areas.length === 1) {
         handleAreaUpdate(0, 'time', formattedTime);
       }
+      // Auto-set result to NQ with Max Time reason when timer expires
+      setQualifying('NQ');
+      setNonQualifyingReason('Max Time');
     }
   });
 
@@ -244,9 +247,15 @@ export const AKCScentWorkScoresheet: React.FC = () => {
                     Stop
                   </button>
                 ) : stopwatch.time > 0 ? (
-                  <button className="timer-btn-start resume" onClick={stopwatch.start} title="Continue timing">
-                    Resume
-                  </button>
+                  stopwatch.isTimeExpired() ? (
+                    <button className="timer-btn-start reset" onClick={stopwatch.reset} title="Reset timer">
+                      Reset
+                    </button>
+                  ) : (
+                    <button className="timer-btn-start resume" onClick={stopwatch.start} title="Continue timing">
+                      Resume
+                    </button>
+                  )
                 ) : (
                   <button className="timer-btn-start start" onClick={stopwatch.start}>
                     Start

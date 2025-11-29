@@ -111,7 +111,6 @@ export async function generateSmartDefaults(
 
     // Notification Settings
     enableNotifications: true,
-    notificationSound: context.deviceTier !== 'low',
     showBadges: true,
     notifyYourTurnLeadDogs: 3,
 
@@ -149,16 +148,14 @@ export async function generateSmartDefaults(
 function getRoleBasedDefaults(role?: string): Partial<AppSettings> {
   const defaults: Partial<AppSettings> = {};
 
-  // Judges typically want voice announcements and notifications
+  // Judges typically want voice announcements
   if (role === 'judge') {
     defaults.voiceAnnouncements = true;
-    defaults.notificationSound = true;
   }
 
   // Stewards may prefer quieter notifications
   if (role === 'steward') {
     defaults.voiceAnnouncements = false;
-    defaults.notificationSound = false;
   }
 
   // Exhibitors get simpler interface
@@ -215,7 +212,6 @@ export async function getRecommendedSettings(
         reduceMotion: true,
         enableBlur: false,
         enableShadows: false,
-        notificationSound: false,
         hapticFeedback: false,
         voiceAnnouncements: false,
       };
@@ -226,7 +222,6 @@ export async function getRecommendedSettings(
         reduceMotion: false,
         enableBlur: true,
         enableShadows: true,
-        notificationSound: true,
         hapticFeedback: true,
         density: 'spacious',
       };

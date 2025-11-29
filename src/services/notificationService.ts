@@ -103,14 +103,6 @@ class NotificationService {
   private queueProcessingInterval: number | null = null;
   private registration: ServiceWorkerRegistration | null = null;
 
-  // Sound files (to be added to public directory)
-  private sounds: Record<string, string> = {
-    default: '/sounds/notification-default.mp3',
-    urgent: '/sounds/notification-urgent.mp3',
-    success: '/sounds/notification-success.mp3',
-    warning: '/sounds/notification-warning.mp3',
-  };
-
   private constructor() {
     this.initializeServiceWorker();
     this.startQueueProcessing();
@@ -370,11 +362,6 @@ return null;
     const { settings } = useSettingsStore.getState();
 
     try {
-      // Play sound if enabled
-      if (settings.notificationSound && !payload.silent) {
-        this.playNotificationSound(payload.priority || 'normal');
-      }
-
       // Trigger haptic feedback if enabled
       if (settings.hapticFeedback && 'vibrate' in navigator) {
         const vibrationPattern = this.getVibrationPattern(payload.priority || 'normal');
@@ -529,22 +516,6 @@ return id;
   clearQueue(): void {
     this.queue = [];
 }
-
-  /**
-   * Play notification sound
-   */
-  private playNotificationSound(priority: string): void {
-    try {
-      const soundFile = priority === 'urgent' ? this.sounds.urgent : this.sounds.default;
-      const audio = new Audio(soundFile);
-      audio.volume = 0.5;
-      audio.play().catch(err => {
-        console.warn('Could not play notification sound:', err);
-      });
-    } catch (error) {
-      console.warn('Error playing notification sound:', error);
-    }
-  }
 
   /**
    * Get vibration pattern for priority
