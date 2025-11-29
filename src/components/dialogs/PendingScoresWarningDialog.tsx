@@ -1,32 +1,91 @@
 /**
  * PendingScoresWarningDialog
  *
- * Shown when a user attempts to logout while there are unsynced scores.
- * Prevents accidental data loss by blocking logout until scores are synced.
+ * Shows warnings when a user attempts to logout:
+ * 1. pending_scores - Blocks logout because unsynced scores would be lost
+ * 2. offline - Warns that they can't log back in without connectivity
  */
 
 import React from 'react';
-import { AlertTriangle, Wifi, WifiOff, CloudOff } from 'lucide-react';
+import { AlertTriangle, WifiOff, Wifi, CloudOff } from 'lucide-react';
+import type { LogoutWarningType } from '@/hooks/useSafeLogout';
 import './PendingScoresWarningDialog.css';
 
 interface PendingScoresWarningDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  warningType: LogoutWarningType;
   pendingCount: number;
   isOnline: boolean;
   isSyncing: boolean;
-  onForceLogout?: () => void; // Optional: allow force logout (with warning)
+  onForceLogout?: () => void; // Used for offline warning to allow proceeding
 }
 
 export const PendingScoresWarningDialog: React.FC<PendingScoresWarningDialogProps> = ({
   isOpen,
   onClose,
+  warningType,
   pendingCount,
   isOnline,
   isSyncing,
+  onForceLogout,
 }) => {
   if (!isOpen) return null;
 
+  // Render different content based on warning type
+  if (warningType === 'offline') {
+    return (
+      <div className="pending-scores-dialog-overlay" onClick={onClose}>
+        <div
+          className="pending-scores-dialog"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="pending-scores-dialog-icon offline-warning">
+            <WifiOff size={48} />
+          </div>
+
+          <h2 className="pending-scores-dialog-title">
+            You're Offline
+          </h2>
+
+          <p className="pending-scores-dialog-message">
+            If you logout now, you <strong>won't be able to login</strong> until you have connectivity.
+          </p>
+
+          <p className="pending-scores-dialog-warning">
+            Login requires an internet connection to verify your passcode.
+          </p>
+
+          <div className="pending-scores-dialog-instructions">
+            <h3>Are you sure?</h3>
+            <p>
+              If you're about to move to an area without WiFi (like an exterior search),
+              consider staying logged in so you can continue scoring.
+            </p>
+          </div>
+
+          <div className="pending-scores-dialog-actions offline-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Stay Logged In
+            </button>
+            {onForceLogout && (
+              <button
+                className="btn btn-danger"
+                onClick={onForceLogout}
+              >
+                Logout Anyway
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default: pending_scores warning
   return (
     <div className="pending-scores-dialog-overlay" onClick={onClose}>
       <div

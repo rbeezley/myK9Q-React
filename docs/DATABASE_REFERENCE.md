@@ -45,7 +45,7 @@ Class definitions for trials (e.g., Novice A, Masters B).
 - **level** (text): Class level (e.g., "Novice", "Masters")
 - **section** (text): Section letter (e.g., "A", "B")
 - **judge_name** (text): Assigned judge
-- **class_status** (text): Current status (NULL = no-status, 'setup', 'briefing', 'break', 'start_time', 'in-progress', 'completed')
+- **class_status** (text, NOT NULL): Current status ('no-status' (default), 'setup', 'briefing', 'break', 'start_time', 'in_progress', 'completed')
 - **briefing_time** (text): Time for briefing status
 - **break_until** (text): Time for break status
 - **start_time** (text): Time for start_time status
@@ -64,7 +64,7 @@ Class definitions for trials (e.g., Novice A, Masters B).
 - **updated_at** (timestamp): Last update timestamp
 
 **Important Notes**:
-- `class_status = NULL` represents "No Status" in the UI
+- `class_status = 'no-status'` represents "No Status" in the UI (migration 20251129, matches entries.entry_status)
 - Time fields (briefing_time, break_until, start_time) store formatted time strings
 - `actual_start_time` and `actual_end_time` are automatically populated by database triggers
 - Always filter by `license_key` via trial/show joins for multi-tenant isolation

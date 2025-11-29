@@ -438,8 +438,13 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
     );
 
     // Fire-and-forget class completion check (non-blocking)
+    // CRITICAL: Pass entryId as justResetEntryId to handle read replica lag
+    // Without this, the read replica might still show the entry as scored,
+    // causing the class to incorrectly stay on Completed tab
     if (entryData?.class_id) {
-      checkAndUpdateClassCompletion(entryData.class_id).catch(completionError =>
+      // eslint-disable-next-line no-console
+      console.log(`🔄 [resetEntryScore] Triggering class completion check with justResetEntryId=${entryId}`);
+      checkAndUpdateClassCompletion(entryData.class_id, undefined, undefined, entryId).catch(completionError =>
         console.error('⚠️ Failed to check class completion:', completionError)
       );
     }

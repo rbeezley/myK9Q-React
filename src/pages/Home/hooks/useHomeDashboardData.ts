@@ -143,25 +143,36 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
  * Try to load entries from replicated cache
  * Returns null if cache is not available or empty (signals fallback needed)
  * Extracted to reduce nesting depth (DEBT-009)
+ *
+ * CRITICAL: Must filter by licenseKey to prevent cross-show data leakage
+ * IndexedDB cache may contain stale data from previous sessions/shows
+ *
+ * @param licenseKey - The current show's license key to filter by
  */
-async function tryLoadEntriesFromCache(): Promise<EntryData[] | null> {
+async function tryLoadEntriesFromCache(licenseKey: string): Promise<EntryData[] | null> {
   const manager = await ensureReplicationManager();
   const table = manager.getTable('entries');
   if (!table) return null;
 
-  // Don't pass licenseKey - entries are already filtered during sync
   const cachedEntries = await table.getAll() as Entry[];
-  logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
+  logger.log(`✅ Loaded ${cachedEntries.length} total entries from cache`);
 
-  if (cachedEntries.length === 0) {
-    logger.log('📭 Cache is empty, falling back to Supabase');
+  // CRITICAL: Filter by license_key to prevent showing dogs from other shows
+  // This handles both stale cache from dev sessions AND production show switching
+  const filteredEntries = cachedEntries.filter(entry => entry.license_key === licenseKey);
+  logger.log(`🔒 Filtered to ${filteredEntries.length} entries for license_key: ${licenseKey}`);
+
+  // If no entries match current license key, fall back to Supabase
+  // This ensures we don't serve stale data from a different show
+  if (filteredEntries.length === 0) {
+    logger.log('📭 No entries for current show in cache, falling back to Supabase');
     return null;
   }
 
   // Transform replicated Entry to EntryData format
   const uniqueDogs = new Map<number, EntryData>();
 
-  cachedEntries.forEach(entry => {
+  filteredEntries.forEach(entry => {
     if (!uniqueDogs.has(entry.armband_number)) {
       uniqueDogs.set(entry.armband_number, {
         id: parseInt(entry.id, 10),
@@ -198,7 +209,7 @@ logger.log('🐕 fetchEntries called with licenseKey:', licenseKey);
   logger.log('🔄 Fetching entries from replicated cache...');
 
   try {
-    const cachedResult = await tryLoadEntriesFromCache();
+    const cachedResult = await tryLoadEntriesFromCache(licenseKey);
     if (cachedResult) {
       return cachedResult;
     }

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
 import { initializeReplication, clearReplicationCaches, resetReplicationState } from '@/services/replication/initReplication';
+import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { logger } from '@/utils/logger';
 
 interface ShowContext {
@@ -73,11 +74,61 @@ const saveAuthToStorage = (authState: AuthState) => {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>(loadAuthFromStorage);
 
-  const login = useCallback((passcode: string, showData: ShowContext) => {
+  const login = useCallback(async (passcode: string, showData: ShowContext) => {
+    // CRITICAL: Clear caches on EVERY login to ensure fresh data
+    // This handles:
+    // 1. Show switch (different license key)
+    // 2. Re-login after logout (previousLicenseKey is null but cache may be stale)
+    // 3. Re-login to same show (cache may be stale from previous session)
+    const previousLicenseKey = authState.showContext?.licenseKey;
+    const newLicenseKey = showData.licenseKey;
+    const isShowSwitch = previousLicenseKey && previousLicenseKey !== newLicenseKey;
+    const isFreshLogin = !previousLicenseKey; // No previous session (logged out or first login)
+
+    logger.log(`[Auth] 🔐 Login: previous=${previousLicenseKey || 'none'}, new=${newLicenseKey}, isShowSwitch=${isShowSwitch}, isFreshLogin=${isFreshLogin}`);
+
+    // CRITICAL: Check for pending offline scores before clearing caches
+    // Losing offline scores would be a catastrophic data loss
+    const pendingCount = useOfflineQueueStore.getState().getPendingCount();
+    const failedCount = useOfflineQueueStore.getState().getFailedCount();
+
+    if (pendingCount > 0 || failedCount > 0) {
+      // DO NOT clear caches if there are pending offline scores
+      // The old show's data will remain in cache, but that's better than losing scores
+      logger.error(
+        `[Auth] ⛔ BLOCKING cache clear - ${pendingCount} pending + ${failedCount} failed offline scores would be lost!`
+      );
+      logger.log(
+        `[Auth] ⚠️ Proceeding with login but keeping old cache. User should sync scores first.`
+      );
+      // Don't clear caches - proceed with login but leave old data in place
+      // The license_key filter in useHomeDashboardData will prevent cross-show data display
+    } else {
+      // Safe to clear caches - no pending offline scores
+      // Clear on EVERY login to ensure fresh data (cache will be repopulated by initializeReplication)
+      logger.log(`[Auth] ✅ No pending offline scores, clearing caches for fresh start...`);
+      try {
+        // Clear React Query persisted cache from localStorage
+        localStorage.removeItem('myK9Q-react-query-cache');
+        logger.log('[Auth] ✅ React Query cache cleared');
+
+        // Clear IndexedDB replication caches
+        await clearReplicationCaches();
+        logger.log('[Auth] ✅ IndexedDB replication caches cleared');
+
+        // Reset replication state so it can reinitialize with new license key
+        resetReplicationState();
+        logger.log('[Auth] ✅ Replication state reset');
+      } catch (error) {
+        logger.error('[Auth] ⚠️ Error clearing caches on login:', error);
+        // Continue with login even if cache clearing fails
+      }
+    }
+
     // Parse role from passcode (first character)
     const rolePrefix = passcode.charAt(0).toLowerCase();
     let role: UserRole;
-    
+
     switch (rolePrefix) {
       case 'a':
         role = 'admin';
@@ -111,15 +162,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Initialize replication after login
     // Previously skipped at app startup due to missing license key
     // Now that license key is available, trigger initialization and sync
-    initializeReplication()
-      .then(() => {
-        logger.log('[Auth] ✅ Replication initialized after login');
-      })
-      .catch((error) => {
-        logger.error('[Auth] ❌ Failed to initialize replication after login:', error);
-        // Don't throw - app should work without replication
-      });
-  }, []);
+    try {
+      await initializeReplication();
+      logger.log('[Auth] ✅ Replication initialized after login');
+    } catch (error) {
+      logger.error('[Auth] ❌ Failed to initialize replication after login:', error);
+      // Don't throw - app should work without replication
+    }
+  }, [authState.showContext?.licenseKey]);
 
   const logout = useCallback(async () => {
     logger.log('[Auth] Logging out and clearing all caches...');

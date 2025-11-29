@@ -375,6 +375,10 @@ return true;
  * - Query database for classId if not provided (fallback, slower)
  * - Run in background, don't block score save response
  *
+ * **Read Replica Workaround**:
+ * - Pass the entryId we just scored to the class completion function
+ * - This ensures the entry is counted as scored even if read replica is stale
+ *
  * @param entryId - Entry ID that was scored
  * @param classId - Optional class ID (performance optimization)
  * @param pairedClassId - Optional paired class for Novice A & B
@@ -386,11 +390,15 @@ async function triggerBackgroundClassCompletion(
   classId?: number,
   pairedClassId?: number
 ): Promise<void> {
+  // eslint-disable-next-line no-console
+  console.log(`🔄 [scoreSubmission] triggerBackgroundClassCompletion:`, { entryId, classId, pairedClassId });
+
   if (classId) {
 // Fire and forget - check class completion in background
+    // CRITICAL: Pass entryId to work around read replica lag
     (async () => {
       try {
-        await checkAndUpdateClassCompletion(classId, pairedClassId);
+        await checkAndUpdateClassCompletion(classId, pairedClassId, entryId);
 } catch (error) {
         console.error('⚠️ [Background] Failed to check class completion:', error);
       }
@@ -405,9 +413,10 @@ const { data: entryData } = await supabase
 
     if (entryData) {
       // Fire and forget - check class completion in background
+      // CRITICAL: Pass entryId to work around read replica lag
       (async () => {
         try {
-          await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId);
+          await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId, entryId);
 } catch (error) {
           console.error('⚠️ [Background] Failed to check class completion:', error);
         }

@@ -89,3 +89,33 @@
 - [DogDetails.tsx:369-397](src/pages/DogDetails/DogDetails.tsx#L369-L397) - Added button and toast UI
 - [DogDetails.css:250-331](src/pages/DogDetails/DogDetails.css#L250-L331) - Added header row, button, and toast styles
 
+---
+
+## Future Consideration: Dog Performance Analytics - 2025-11-29
+
+**Status:** Infrastructure exists, needs database table and UI
+
+**Context:**
+A `ReplicatedEventStatisticsTable` class exists at [src/services/replication/tables/ReplicatedEventStatisticsTable.ts](src/services/replication/tables/ReplicatedEventStatisticsTable.ts) but is currently **dormant** (table doesn't exist in database).
+
+**What it could enable:**
+- Dog history lookup by AKC registration number
+- Public leaderboards and statistics
+- Breed performance analytics
+- Q rate tracking across shows
+- Results release control (`results_released` flag)
+
+**Authentication consideration:**
+Current passcode model (shared codes like `aa260`, `jf472`) works for per-show access but **cannot identify individual users** for "My Dogs" features. Options:
+1. **Dog registration lookup** (simplest) - Anyone can look up any dog by AKC#
+2. **Individual user accounts** - Add email/password auth (significant change)
+3. **Exhibitor-specific passcodes** - Generate unique codes at registration
+
+**To implement:**
+1. Create `event_statistics` database migration
+2. Add trigger/batch job to populate from scored entries
+3. Build lookup UI (by registration number)
+4. Remove "dormant" check from ReplicatedEventStatisticsTable.sync()
+
+**Priority:** Low - nice-to-have analytics feature, not core functionality
+
