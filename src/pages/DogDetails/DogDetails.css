@@ -508,6 +508,90 @@
   font-weight: 500;
 }
 
+/* ========== PLACEMENT BADGE (matches EntryList style) ========== */
+
+.placement-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) 0.625rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.placement-badge-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.placement-badge.place-1 {
+  color: var(--token-placement-1);
+}
+
+.placement-badge.place-2 {
+  color: var(--token-placement-2);
+}
+
+.placement-badge.place-3 {
+  color: var(--token-placement-3);
+}
+
+.placement-badge.place-4,
+.placement-badge.place-5 {
+  color: var(--token-placement-4);
+}
+
+/* Dark mode placement badge */
+.theme-dark .placement-badge {
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+/* ========== TIME & FAULTS BADGES (matches EntryList style) ========== */
+
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) 0.625rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  line-height: 1;
+}
+
+.faults-badge-subtle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) 0.625rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--token-text-secondary);
+  line-height: 1;
+}
+
+/* Badge icon styling */
+.badge-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* Dimmed state for unavailable results */
+.time-badge.dimmed,
+.faults-badge-subtle.dimmed {
+  opacity: 0.6;
+}
+
 /* ========== CLASS INFORMATION ========== */
 
 .class-info {

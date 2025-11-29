@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Circle, Check, AlertTriangle, XCircle, Star, Bell, Target } from 'lucide-react';
+import { Circle, Check, AlertTriangle, XCircle, Star, Bell, Target, Clock } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import {
@@ -52,8 +52,8 @@ export const NationalsResultBadges: React.FC<NationalsResultBadgesProps> = ({ en
   <div className="nationals-scoresheet-improved">
     {/* Header Row: Placement, Time, and Result badges */}
     <div className="nationals-header-row">
-      {entry.showPlacement !== false && entry.placement && (
-        <PlacementBadge placement={entry.placement} />
+      {entry.showPlacement !== false && (entry.placement ?? 0) > 0 && (
+        <PlacementBadge placement={entry.placement!} />
       )}
       {entry.showTime !== false && (
         <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
@@ -111,7 +111,7 @@ export const RegularResultBadges: React.FC<RegularResultBadgesProps> = ({ entry 
 
   const showPlacement =
     entry.showPlacement !== false &&
-    entry.placement &&
+    (entry.placement ?? 0) > 0 &&
     !isNonQualifyingResult(entry.resultText);
 
   return (
@@ -127,12 +127,16 @@ export const RegularResultBadges: React.FC<RegularResultBadgesProps> = ({ entry 
       )}
 
       {entry.showTime !== false && (
-        <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+        <span className="time-badge">
+          <Clock size={14} className="badge-icon" />
+          {formatTimeForDisplay(entry.searchTime || null)}
+        </span>
       )}
 
       {entry.showFaults !== false && (
         <span className="faults-badge-subtle">
-          {entry.faultCount || 0}&nbsp;{entry.faultCount === 1 ? 'Fault' : 'Faults'}
+          <AlertTriangle size={14} className="badge-icon" />
+          {entry.faultCount || 0} {entry.faultCount === 1 ? 'Fault' : 'Faults'}
         </span>
       )}
     </div>

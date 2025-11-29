@@ -12,11 +12,11 @@ import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
 import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
 import { DogStatistics } from './components/DogStatistics';
+import { PlacementBadge } from '../EntryList/SortableEntryCardComponents';
 import type { DogResultEntry } from '../../components/reports/DogResultsSheet';
 import {
   ArrowLeft,
   RefreshCw,
-  Trophy,
   Clock,
   AlertTriangle,
   ThumbsUp,
@@ -521,44 +521,33 @@ export const DogDetails: React.FC = () => {
                      entry.position !== 9996 &&
                      entry.position > 0 &&
                      isQualified && (
-                      <div className="position-badge-inline">
-                        <Trophy size={16} />
-                        <span className="position-number">{entry.position}</span>
-                      </div>
+                      <PlacementBadge placement={entry.position} />
                     )}
 
                     {/* Time - show if visible, otherwise show availability message */}
                     {entry.visibleFields?.showTime ? (
-                      <div className="stat-item">
-                        <Clock />
-                        <span className="stat-value">
-                          {formatTime(entry.search_time)}
-                        </span>
-                      </div>
+                      <span className="time-badge">
+                        <Clock size={14} className="badge-icon" />
+                        {formatTime(entry.search_time)}
+                      </span>
                     ) : (
-                      <div className="stat-item dimmed">
-                        <Clock />
-                        <span className="stat-value">
-                          ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.timeTiming || 'class_complete')}
-                        </span>
-                      </div>
+                      <span className="time-badge dimmed">
+                        <Clock size={14} className="badge-icon" />
+                        ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.timeTiming || 'class_complete')}
+                      </span>
                     )}
 
                     {/* Faults - show if visible, otherwise show availability message */}
                     {entry.visibleFields?.showFaults ? (
-                      <div className="stat-item">
-                        <AlertTriangle />
-                        <span className="stat-value">
-                          {entry.fault_count || 0} faults
-                        </span>
-                      </div>
+                      <span className="faults-badge-subtle">
+                        <AlertTriangle size={14} className="badge-icon" />
+                        {entry.fault_count || 0} {entry.fault_count === 1 ? 'Fault' : 'Faults'}
+                      </span>
                     ) : (
-                      <div className="stat-item dimmed">
-                        <AlertTriangle />
-                        <span className="stat-value">
-                          ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.faultsTiming || 'class_complete')}
-                        </span>
-                      </div>
+                      <span className="faults-badge-subtle dimmed">
+                        <AlertTriangle size={14} className="badge-icon" />
+                        ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.faultsTiming || 'class_complete')}
+                      </span>
                     )}
                   </div>
                 )}
