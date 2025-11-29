@@ -131,8 +131,14 @@ async function fetchDogDetails(
     const allTrials = await trialsTable.getAll(licenseKey) as Trial[];
 
     // Create lookup maps for performance
-    const classMap = new Map(allClasses.map(c => [c.id, c]));
-    const trialMap = new Map(allTrials.map(t => [t.id, t]));
+    // Use String() to ensure consistent key types for lookups
+    const classMap = new Map(allClasses.map(c => [String(c.id), c]));
+    const trialMap = new Map(allTrials.map(t => [String(t.id), t]));
+
+    // Debug: Log if no classes found
+    if (allClasses.length === 0) {
+      logger.warn('[DogDetails] ⚠️ No classes found in cache - class info will be missing');
+    }
 
     // Set dog info from first entry
     const firstEntry = dogEntries[0];
@@ -146,8 +152,14 @@ async function fetchDogDetails(
     // Process all entries - join with classes and trials
     const classesWithVisibility = await Promise.all(
       dogEntries.map(async (entry) => {
-        const classData = classMap.get(entry.class_id);
+        // Use String() for consistent lookup
+        const classData = classMap.get(String(entry.class_id));
         const trialData = classData ? trialMap.get(String(classData.trial_id)) : undefined;
+
+        // Debug: Log if class data not found for an entry
+        if (!classData) {
+          logger.warn(`[DogDetails] ⚠️ No class data found for entry ${entry.id}, class_id: ${entry.class_id}`);
+        }
 
         // Map entry status
         const statusText = entry.entry_status || 'no-status';
@@ -181,12 +193,12 @@ async function fetchDogDetails(
           checked_in: check_in_status !== 'no-status',
           check_in_status,
           position: entry.final_placement,
-          // Map additional fields
-          element: classData?.element,
-          level: classData?.level,
+          // Map additional fields - provide fallbacks for display
+          element: classData?.element || 'Unknown',
+          level: classData?.level || 'Class',
           section: classData?.section,
           trial_number: undefined, // trial_number not in Trial schema
-          judge_name: classData?.judge_name,
+          judge_name: classData?.judge_name || undefined,
           // Visibility fields
           trial_id: classData?.trial_id,
           is_completed: classData?.is_completed || false,

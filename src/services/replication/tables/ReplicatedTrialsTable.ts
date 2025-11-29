@@ -79,8 +79,18 @@ export class ReplicatedTrialsTable extends ReplicatedTable<Trial> {
         .gt('updated_at', new Date(lastSync).toISOString())
         .order('updated_at', { ascending: true });
 
-      // Flatten the response (remove nested shows object)
-      const remoteTrials = rawTrials?.map(({ shows: _shows, ...trialData }) => trialData) || [];
+      // Flatten the response and extract license_key from nested shows
+      const remoteTrials = rawTrials?.map((rawTrial) => {
+        // Extract license_key from nested structure
+        const extractedLicenseKey = (rawTrial.shows as { license_key?: string })?.license_key;
+
+        // Remove nested shows object and add license_key at top level
+        const { shows: _shows, ...trialData } = rawTrial;
+        return {
+          ...trialData,
+          license_key: extractedLicenseKey || licenseKey, // Fall back to provided licenseKey
+        };
+      }) || [];
 
       if (error) {
         errors.push(error.message);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -27,7 +27,9 @@ import {
   Circle,
   Star,
   MoreVertical,
-  FileText
+  FileText,
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
 import './DogDetails.css';
 import './components/DogStatistics.css';
@@ -55,6 +57,17 @@ export const DogDetails: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [activePopup, setActivePopup] = useState<number | null>(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+
+  // Bulk check-in state
+  const [isCheckingInAll, setIsCheckingInAll] = useState(false);
+  const [checkInAllSuccess, setCheckInAllSuccess] = useState<string | null>(null);
+
+  // Calculate pending entries (not checked in and not scored)
+  const pendingEntries = useMemo(() => {
+    return classes.filter(entry =>
+      entry.check_in_status === 'no-status' && !entry.is_scored
+    );
+  }, [classes]);
 
   // Set loaded class after data loads to prevent CSS rehydration issues
   useEffect(() => {
@@ -180,6 +193,43 @@ export const DogDetails: React.FC = () => {
     );
 
     setShowHeaderMenu(false);
+  };
+
+  const handleCheckInAll = async () => {
+    if (pendingEntries.length === 0 || isCheckingInAll) return;
+
+    setIsCheckingInAll(true);
+    setCheckInAllSuccess(null);
+    hapticFeedback.impact('medium');
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Process all pending entries
+    for (const entry of pendingEntries) {
+      try {
+        await updateEntryCheckinStatus(entry.id, 'checked-in');
+        successCount++;
+      } catch (error) {
+        console.error(`Failed to check in entry ${entry.id}:`, error);
+        failCount++;
+      }
+    }
+
+    setIsCheckingInAll(false);
+
+    // Show success message
+    if (failCount === 0) {
+      setCheckInAllSuccess(`✓ Checked in to ${successCount} ${successCount === 1 ? 'class' : 'classes'}`);
+    } else {
+      setCheckInAllSuccess(`Checked in to ${successCount} of ${successCount + failCount} classes`);
+    }
+
+    // Clear success message after 3 seconds
+    setTimeout(() => setCheckInAllSuccess(null), 3000);
+
+    // Refetch to update the UI
+    await refetch();
   };
 
   const handleOpenPopup = (event: React.MouseEvent<HTMLButtonElement>, classId: number) => {
@@ -316,7 +366,35 @@ export const DogDetails: React.FC = () => {
 
         {/* Class Entry Cards with Status Indicators */}
         <div className="classes-section">
-        <h3 className="classes-header">Class Entries</h3>
+        <div className="classes-header-row">
+          <h3 className="classes-header">Class Entries</h3>
+          <button
+            className={`check-in-all-button ${pendingEntries.length === 0 ? 'disabled' : ''}`}
+            onClick={handleCheckInAll}
+            disabled={pendingEntries.length === 0 || isCheckingInAll}
+            title={pendingEntries.length === 0 ? 'All classes already checked in' : `Check in to ${pendingEntries.length} classes`}
+          >
+            {isCheckingInAll ? (
+              <>
+                <Loader2 size={16} className="spinning" style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                <span>Checking In...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                <span>Check In All{pendingEntries.length > 0 ? ` (${pendingEntries.length})` : ''}</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Success Toast */}
+        {checkInAllSuccess && (
+          <div className="check-in-success-toast">
+            <CheckCircle size={18} style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+            <span>{checkInAllSuccess}</span>
+          </div>
+        )}
 
         <div className="classes-grid">
         {classes.map((entry) => {

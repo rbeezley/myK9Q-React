@@ -98,8 +98,18 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
 
       const { data: rawClasses, error } = await query.order('updated_at', { ascending: true });
 
-      // Flatten the response (remove nested trials/shows objects)
-      const remoteClasses = rawClasses?.map(({ trials: _trials, ...classData }) => classData) || [];
+      // Flatten the response and extract license_key from nested trials.shows
+      const remoteClasses = rawClasses?.map((rawClass) => {
+        // Extract license_key from nested structure
+        const extractedLicenseKey = (rawClass.trials as { shows?: { license_key?: string } })?.shows?.license_key;
+
+        // Remove nested trials object and add license_key at top level
+        const { trials: _trials, ...classData } = rawClass;
+        return {
+          ...classData,
+          license_key: extractedLicenseKey || licenseKey, // Fall back to provided licenseKey
+        };
+      }) || [];
 
       if (error) {
         throw new Error(`Supabase query failed: ${error.message}`);

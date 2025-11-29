@@ -258,10 +258,46 @@ export class DatabaseManager {
   async getDatabase(tableName: string): Promise<IDBPDatabase> {
     this.logger.log(`[${tableName}] init() called - sharedDB: ${!!sharedDB}, dbInitPromise: ${!!dbInitPromise}`);
 
-    // Return shared instance if already initialized
+    // Return shared instance if already initialized AND connection is healthy
     if (sharedDB) {
-      this.logger.log(`[${tableName}] Using existing sharedDB`);
-      return sharedDB;
+      // HEALTH CHECK: Verify connection is still valid
+      // When IndexedDB is manually deleted from DevTools, the connection enters "closing" state
+      // and any transaction on it will fail with "The database connection is closing"
+      try {
+        // Check 1: Verify object stores exist (synchronous, cheap)
+        const storeNames = sharedDB.objectStoreNames;
+        if (!storeNames.contains(REPLICATION_STORES.REPLICATED_TABLES)) {
+          throw new Error('Object stores missing - database may have been recreated');
+        }
+
+        // Check 2: Try to start a transaction to detect "closing" state
+        // This is the only reliable way to detect a stale connection
+        // Note: Creating a transaction on a closing DB throws synchronously
+        // We don't need to do anything with the transaction - just creating it verifies the connection
+        sharedDB.transaction(REPLICATION_STORES.SYNC_METADATA, 'readonly');
+        // Transaction auto-completes immediately (readonly with no operations)
+
+        this.logger.log(`[${tableName}] Using existing sharedDB (health check passed)`);
+        return sharedDB;
+      } catch (healthCheckError) {
+        // Connection is stale - reset and reinitialize
+        const errorMsg = healthCheckError instanceof Error ? healthCheckError.message : String(healthCheckError);
+
+        // Only log warning if this is a "closing" error (expected after manual delete)
+        // Other errors should be logged as errors
+        if (errorMsg.includes('closing')) {
+          this.logger.warn(`[${tableName}] Database connection is closing, reinitializing...`);
+        } else {
+          this.logger.warn(`[${tableName}] Database health check failed, reinitializing...`, healthCheckError);
+        }
+
+        sharedDB = null;
+        dbInitPromise = null;
+        dbInitInProgress = false;
+        tableInitQueue = Promise.resolve();
+        tablesInitialized = 0;
+        // Fall through to reinitialize
+      }
     }
 
     // If initialization is in progress, wait for it AND join the queue

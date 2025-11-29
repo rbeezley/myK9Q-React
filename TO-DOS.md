@@ -19,9 +19,16 @@
 
 **Files:** See `docs/SCORESHEET_REFACTORING_PLAN.md` for full details. Hooks at `src/pages/scoresheets/hooks/`.
 
-## Monetization Strategy Research - 2025-11-23 19:30
+## Monetization Strategy Research - 2025-11-23 19:30 ✅ COMPLETE
 
-- **Research exhibitor monetization opportunities** - Brainstorm premium features and services that exhibitors would be willing to pay for to ensure app sustainability and growth. **Problem:** Need to identify viable revenue streams from the exhibitor user segment while maintaining value proposition. Current app is free but needs to explore sustainable monetization models that align with user needs and willingness to pay. **Files:** Consider researching competitive apps, analyzing user feedback in existing features (`src/pages/Home/`, `src/pages/EntryList/`, `src/pages/Settings/`), and documenting findings in new `docs/monetization-strategy.md`. **Solution:** Analyze exhibitor pain points throughout their show workflow, research competitive pricing models in dog show management space, evaluate premium feature opportunities (advanced analytics, training history, performance tracking, premium notifications, ad-free experience, priority support), and assess subscription vs one-time payment models.
+**Status:** Strategy document completed at [docs/monetization-strategy.md](docs/monetization-strategy.md)
+
+**Summary:**
+- Recommended freemium model with Pro tier at $4.99/mo or $39.99/year
+- Key Pro features: Cloud favorites sync, historical analytics, email notifications, advanced export
+- No existing premium code in codebase - greenfield opportunity
+- Competitive analysis shows unique B2C position (most competitors are B2B)
+- Break-even at ~12 Pro subscribers
 
 ## Consolidate IndexedDB Databases - 2025-11-28 ✅ COMPLETE
 
@@ -59,4 +66,26 @@
 ## Reduce Individual Entry Cache Logging - 2025-11-28 15:49 ✅ COMPLETE
 
 - **FIXED:** Replaced 647+ individual log lines with single summary: `logger.log(\`[${this.tableName}] ✅ Cached ${entriesToCache.length} entries\`)` at [ReplicatedEntriesTable.ts:189-190](src/services/replication/tables/ReplicatedEntriesTable.ts#L189-L190).
+
+## Class Card Progress Bar Divider - 2025-11-28 21:19
+
+- **Convert class card divider to progress bar** - Replace the static dividing line on class cards with a progress bar that shows class completion progress. **Problem:** The dividing line is purely decorative and takes up space without providing value. A progress bar would serve dual-purpose: visual separation AND status information at a glance. **Files:** `src/pages/ClassList/ClassCard.tsx`, `src/pages/ClassList/ClassList.css`. **Solution:** Replace `<hr>` or border divider with a thin progress bar (2-4px height) showing `scoredCount / totalEntries` percentage. Use existing entry data already available in the component.
+
+## Dog Details Check-In All Button - 2025-11-28 21:22 ✅ COMPLETE
+
+- **IMPLEMENTED:** Added "Check In All" button to Dog Details page header row.
+
+**Features:**
+- Button appears in the "Class Entries" header row (Option A placement)
+- Shows count of pending classes: "Check In All (3)"
+- Disabled state when no pending entries (grayed out with 60% opacity)
+- Loading state with spinner during check-in
+- Success toast shows "✓ Checked in to X classes" for 3 seconds
+- Handles partial failures gracefully
+
+**Files Modified:**
+- [DogDetails.tsx:61-70](src/pages/DogDetails/DogDetails.tsx#L61-L70) - Added state and pendingEntries calculation
+- [DogDetails.tsx:198-233](src/pages/DogDetails/DogDetails.tsx#L198-L233) - Added handleCheckInAll function
+- [DogDetails.tsx:369-397](src/pages/DogDetails/DogDetails.tsx#L369-L397) - Added button and toast UI
+- [DogDetails.css:250-331](src/pages/DogDetails/DogDetails.css#L250-L331) - Added header row, button, and toast styles
 

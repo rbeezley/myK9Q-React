@@ -42,8 +42,16 @@ export interface ClassVisibilityOverrides {
 /**
  * Raw override from Supabase with joined data
  */
-interface RawOverrideWithJoins extends ClassVisibilityOverrides {
-  classes?: unknown;
+interface RawOverrideWithJoins extends Omit<ClassVisibilityOverrides, 'license_key'> {
+  classes?: {
+    trial_id?: number;
+    trials?: {
+      show_id?: number;
+      shows?: {
+        license_key?: string;
+      };
+    };
+  };
 }
 
 export class ReplicatedClassVisibilityOverridesTable extends ReplicatedTable<ClassVisibilityOverrides> {
@@ -116,11 +124,23 @@ export class ReplicatedClassVisibilityOverridesTable extends ReplicatedTable<Cla
 
       // Process each override
       for (const rawOverride of remoteOverrides) {
-        // Flatten the response (remove nested classes/trials/shows objects from join)
-        const { classes: _classes, ...remoteOverride } = rawOverride as RawOverrideWithJoins;
+        const typedRawOverride = rawOverride as RawOverrideWithJoins;
+
+        // Extract license_key from nested structure (classes → trials → shows)
+        const extractedLicenseKey = typedRawOverride.classes?.trials?.shows?.license_key;
+
+        // Flatten the response (remove nested classes object from join)
+        const { classes: _classes, ...overrideData } = typedRawOverride;
+
+        // Create properly typed override with license_key
+        const remoteOverride: ClassVisibilityOverrides = {
+          ...overrideData,
+          id: String(overrideData.id),
+          license_key: extractedLicenseKey || licenseKey, // Fall back to provided licenseKey
+        };
 
         // Convert ID to string for consistent IndexedDB key format
-        const overrideId = String(remoteOverride.id);
+        const overrideId = remoteOverride.id;
         const localOverride = await this.get(overrideId);
 
         if (localOverride) {

@@ -240,11 +240,94 @@
 }
 
 .classes-header {
-  margin-bottom: var(--token-space-xl);
+  margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--foreground);
   letter-spacing: -0.02em;
+}
+
+/* ========== CLASSES HEADER ROW ========== */
+
+.classes-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-lg);
+  margin-bottom: var(--token-space-xl);
+}
+
+/* ========== CHECK IN ALL BUTTON ========== */
+
+.check-in-all-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-lg);
+  background: var(--status-checked-in);
+  color: white;
+  border: none;
+  border-radius: var(--token-space-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 36px;
+}
+
+.check-in-all-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  filter: brightness(1.1);
+}
+
+.check-in-all-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.check-in-all-button:disabled,
+.check-in-all-button.disabled {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.check-in-all-button .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ========== CHECK IN SUCCESS TOAST ========== */
+
+.check-in-success-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-xl);
+  margin-bottom: var(--token-space-lg);
+  background: var(--status-checked-in);
+  color: white;
+  border-radius: var(--token-space-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideInFade 0.3s ease;
+}
+
+@keyframes slideInFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ========== CLASS CARDS GRID ========== */

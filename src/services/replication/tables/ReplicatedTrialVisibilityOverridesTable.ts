@@ -42,8 +42,13 @@ export interface TrialVisibilityOverrides {
 /**
  * Raw override from Supabase with joined data
  */
-interface RawOverrideWithJoins extends TrialVisibilityOverrides {
-  trials?: unknown;
+interface RawOverrideWithJoins extends Omit<TrialVisibilityOverrides, 'license_key'> {
+  trials?: {
+    show_id?: number;
+    shows?: {
+      license_key?: string;
+    };
+  };
 }
 
 export class ReplicatedTrialVisibilityOverridesTable extends ReplicatedTable<TrialVisibilityOverrides> {
@@ -113,11 +118,23 @@ export class ReplicatedTrialVisibilityOverridesTable extends ReplicatedTable<Tri
 
       // Process each override
       for (const rawOverride of remoteOverrides) {
-        // Flatten the response (remove nested trials/shows objects from join)
-        const { trials: _trials, ...remoteOverride } = rawOverride as RawOverrideWithJoins;
+        const typedRawOverride = rawOverride as RawOverrideWithJoins;
+
+        // Extract license_key from nested structure (trials → shows)
+        const extractedLicenseKey = typedRawOverride.trials?.shows?.license_key;
+
+        // Flatten the response (remove nested trials object from join)
+        const { trials: _trials, ...overrideData } = typedRawOverride;
+
+        // Create properly typed override with license_key
+        const remoteOverride: TrialVisibilityOverrides = {
+          ...overrideData,
+          id: String(overrideData.id),
+          license_key: extractedLicenseKey || licenseKey, // Fall back to provided licenseKey
+        };
 
         // Convert ID to string for consistent IndexedDB key format
-        const overrideId = String(remoteOverride.id);
+        const overrideId = remoteOverride.id;
         const localOverride = await this.get(overrideId);
 
         if (localOverride) {
