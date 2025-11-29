@@ -174,6 +174,39 @@ return {
   }
 }
 
+/** Legacy show record type */
+type LegacyShowRecord = { mobile_app_lic_key?: string; [key: string]: unknown };
+
+/**
+ * Find a matching show in legacy database by passcode
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function findLegacyShowMatch(
+  legacyShows: unknown[],
+  passcode: string,
+  validatePasscodeAgainstLicenseKey: (passcode: string, licenseKey: string) => unknown
+): DetectionResult | null {
+  for (const show of legacyShows) {
+    // Legacy database uses mobile_app_lic_key field
+    const legacyShow = show as LegacyShowRecord;
+    if (!legacyShow.mobile_app_lic_key) continue;
+    if (!validatePasscodeAgainstLicenseKey(passcode, legacyShow.mobile_app_lic_key)) continue;
+
+    // Pass passcode to Flutter app for auto-login (backwards compatible)
+    const flutterUrl = new URL(FLUTTER_APP_URL);
+    flutterUrl.searchParams.set('passcode', passcode);
+
+    return {
+      database: 'legacy',
+      redirectUrl: flutterUrl.toString(),
+      showData: legacyShow as Record<string, unknown>,
+      message: 'Show found in legacy database - redirecting to Flutter app (auto-login if supported)'
+    };
+  }
+
+  return null;
+}
+
 /**
  * Enhanced detection that actually validates the passcode
  * This is the recommended approach during migration
@@ -221,24 +254,8 @@ return {
         .order('created_at', { ascending: false });
 
       if (!legacyError && legacyShows) {
-        for (const show of legacyShows) {
-          // Legacy database uses mobile_app_lic_key field
-          // Type assertion needed since we don't have legacy database types
-          const legacyShow = show as { mobile_app_lic_key?: string; [key: string]: unknown };
-          if (legacyShow.mobile_app_lic_key && validatePasscodeAgainstLicenseKey(passcode, legacyShow.mobile_app_lic_key)) {
-// Pass passcode to Flutter app for auto-login (backwards compatible)
-            // If Flutter doesn't read the URL param, user can still login manually
-            const flutterUrl = new URL(FLUTTER_APP_URL);
-            flutterUrl.searchParams.set('passcode', passcode);
-
-return {
-              database: 'legacy',
-              redirectUrl: flutterUrl.toString(),
-              showData: show,
-              message: 'Show found in legacy database - redirecting to Flutter app (auto-login if supported)'
-            };
-          }
-        }
+        const legacyMatch = findLegacyShowMatch(legacyShows, passcode, validatePasscodeAgainstLicenseKey);
+        if (legacyMatch) return legacyMatch;
       }
     }
 

@@ -29,6 +29,29 @@ const defaultPreferences: NotificationPreferences = {
   vibrationEnabled: true
 };
 
+/**
+ * Handle granted notification permission
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function handleGrantedPermission(
+  currentLicenseKey: string | null,
+  setPreferences: React.Dispatch<React.SetStateAction<NotificationPreferences>>
+): Promise<void> {
+  try {
+    const subscription = await serviceWorkerManager.subscribeToPushNotifications();
+    // Store subscription with push notification service
+    if (subscription && currentLicenseKey) {
+      const userId = sessionStorage.getItem('user_session_id') || 'anonymous';
+      pushNotificationService.storeSubscription(subscription, currentLicenseKey, userId);
+    }
+    setPreferences(prev => ({ ...prev, enabled: true }));
+  } catch (subscriptionError) {
+    console.warn('Push subscription failed, but basic notifications will still work:', subscriptionError);
+    // Even if push subscription fails, basic notifications can still work
+    setPreferences(prev => ({ ...prev, enabled: true }));
+  }
+}
+
 export const NotificationSettings: React.FC = () => {
   const { currentLicenseKey } = useAnnouncementStore();
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
@@ -72,20 +95,7 @@ export const NotificationSettings: React.FC = () => {
 
         if (permission === 'granted') {
           // Subscribe to push notifications using service worker manager
-          try {
-            const subscription = await serviceWorkerManager.subscribeToPushNotifications();
-// Store subscription with push notification service
-            if (subscription && currentLicenseKey) {
-              const userId = sessionStorage.getItem('user_session_id') || 'anonymous';
-              pushNotificationService.storeSubscription(subscription, currentLicenseKey, userId);
-            }
-
-            setPreferences(prev => ({ ...prev, enabled: true }));
-          } catch (subscriptionError) {
-            console.warn('Push subscription failed, but basic notifications will still work:', subscriptionError);
-            // Even if push subscription fails, basic notifications can still work
-            setPreferences(prev => ({ ...prev, enabled: true }));
-          }
+          await handleGrantedPermission(currentLicenseKey, setPreferences);
         }
       } catch (error) {
         console.error('Error requesting notification permission:', error);

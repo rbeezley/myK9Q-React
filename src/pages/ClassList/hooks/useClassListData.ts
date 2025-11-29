@@ -348,6 +348,82 @@ async function processClassesWithEntries(
 }
 
 /**
+ * Fetch and apply visibility presets to classes
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function applyVisibilityPresets(classes: ClassEntry[]): Promise<void> {
+  if (classes.length === 0) return;
+
+  try {
+    const classIds = classes.map(c => c.id);
+    const { data: visibilityData } = await supabase
+      .from('class_result_visibility_overrides')
+      .select('class_id, preset_name')
+      .in('class_id', classIds);
+
+    // CRITICAL: Use string keys to match cls.id type (prevents silent lookup failures)
+    const visibilityMap = new Map<string, 'open' | 'standard' | 'review'>();
+    ((visibilityData || []) as VisibilityOverride[]).forEach((override) => {
+      visibilityMap.set(String(override.class_id), override.preset_name);
+    });
+
+    // Update classes with their visibility presets
+    classes.forEach(cls => {
+      cls.visibility_preset = visibilityMap.get(String(cls.id)) || 'standard';
+    });
+  } catch (error) {
+    logger.error('❌ Error fetching visibility presets:', error);
+    // Continue with default 'standard' preset
+  }
+}
+
+/**
+ * Try to load classes from replicated cache
+ * Returns null if cache is not available or empty (signals fallback needed)
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function tryLoadFromReplicatedCache(
+  trialId: string,
+  licenseKey: string
+): Promise<ClassEntry[] | null> {
+  const manager = await ensureReplicationManager();
+  const classesTable = manager.getTable<Class>('classes');
+  const entriesTable = manager.getTable<Entry>('entries');
+
+  if (!classesTable || !entriesTable) return null;
+
+  // CRITICAL: Pass license_key to filter classes to current show only (multi-tenant isolation)
+  const cachedClasses = await classesTable.getAll(licenseKey);
+  const trialIdNum = parseInt(trialId, 10);
+  const trialClasses = cachedClasses.filter((cls) => cls.trial_id === trialIdNum);
+
+  if (trialClasses.length === 0) {
+    logger.log('📭 Cache is empty, falling back to Supabase');
+    return null;
+  }
+
+  // CRITICAL: Pass license_key to filter entries to current show only
+  const cachedEntries = await entriesTable.getAll(licenseKey);
+
+  if (cachedEntries.length === 0) {
+    logger.log('📭 Entries cache is empty, falling back to Supabase');
+    return null;
+  }
+
+  // Process classes with entry data
+  const processedClasses = await processClassesWithEntries(
+    trialClasses,
+    cachedEntries,
+    licenseKey
+  );
+
+  // Fetch and apply visibility presets
+  await applyVisibilityPresets(processedClasses);
+
+  return processedClasses;
+}
+
+/**
  * Fetch classes with entries and sorting
  */
 async function fetchClasses(
@@ -360,88 +436,17 @@ async function fetchClasses(
   }
 
   // Always use replication (no feature flags - development only, no existing users)
-  const isReplicationEnabled = true;
+  logger.log('🔄 Fetching classes from replicated cache...');
 
-  if (isReplicationEnabled) {
-logger.log('🔄 Fetching classes from replicated cache...');
-
-    try {
-      const manager = await ensureReplicationManager();
-      const classesTable = manager.getTable<Class>('classes');
-      const entriesTable = manager.getTable<Entry>('entries');
-
-      if (classesTable && entriesTable) {
-        try {
-          // Get classes for this trial from cache
-          // CRITICAL: Pass license_key to filter classes to current show only (multi-tenant isolation)
-          const cachedClasses = await classesTable.getAll(licenseKey);
-
-          // Convert trialId to number for comparison (route params are strings, DB trial_id is number)
-          const trialIdNum = parseInt(trialId, 10);
-          const trialClasses = cachedClasses.filter(
-            (cls) => cls.trial_id === trialIdNum
-          );
-
-// If cache is empty, fall back to Supabase (cache may still be syncing)
-          if (trialClasses.length === 0) {
-logger.log('📭 Cache is empty, falling back to Supabase');
-            // Fall through to Supabase query below
-          } else {
-            // Get entries for this trial from cache
-            // CRITICAL: Pass license_key to filter entries to current show only
-            // Without this, entries from all cached shows would be returned (multi-tenant leak)
-            const cachedEntries = await entriesTable.getAll(licenseKey);
-
-            // If entries cache is empty but classes exist, fall back to Supabase
-            // This handles the case where entries haven't synced yet or cache was partially cleared
-            if (cachedEntries.length === 0) {
-              logger.log('📭 Entries cache is empty, falling back to Supabase');
-              // Fall through to Supabase query below
-            } else {
-              // Process classes with entry data (same logic as before)
-              const processedClasses = await processClassesWithEntries(
-                trialClasses,
-                cachedEntries,
-                licenseKey
-              );
-
-// Fetch visibility presets for all classes
-            try {
-              const classIds = processedClasses.map(c => c.id);
-              const { data: visibilityData } = await supabase
-                .from('class_result_visibility_overrides')
-                .select('class_id, preset_name')
-                .in('class_id', classIds);
-
-              // Create map of class_id to preset_name
-              // CRITICAL: Use string keys to match cls.id type (prevents silent lookup failures)
-              const visibilityMap = new Map<string, 'open' | 'standard' | 'review'>();
-              ((visibilityData || []) as VisibilityOverride[]).forEach((override) => {
-                visibilityMap.set(String(override.class_id), override.preset_name);
-              });
-
-              // Update classes with their visibility presets
-              processedClasses.forEach(cls => {
-                cls.visibility_preset = visibilityMap.get(String(cls.id)) || 'standard';
-              });
-            } catch (error) {
-              logger.error('❌ Error fetching visibility presets:', error);
-              // Continue with default 'standard' preset
-            }
-
-            return processedClasses;
-            } // Close: if entries cache not empty
-          } // Close: if classes cache not empty
-
-        } catch (error) {
-          logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
-          // Fall through to Supabase query
-        }
-      }
-    } catch (managerError) {
-      logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
-      // Fall through to Supabase query
+  try {
+    const cachedResult = await tryLoadFromReplicatedCache(trialId, licenseKey);
+    if (cachedResult) {
+      return cachedResult;
     }
+    // Cache returned null - fall through to Supabase
+  } catch (error) {
+    logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+    // Fall through to Supabase query
   }
 
   // Fall back to original Supabase implementation

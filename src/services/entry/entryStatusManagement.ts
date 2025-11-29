@@ -31,6 +31,28 @@ import type { Entry } from '../replication/tables/ReplicatedEntriesTable';
  */
 
 /**
+ * Check if in-ring status update should be skipped (already in desired state)
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function shouldSkipInRingUpdate(entryId: number, inRing: boolean): Promise<boolean> {
+  const manager = getReplicationManager();
+  if (!manager) return false;
+
+  const entriesTable = manager.getTable('entries');
+  if (!entriesTable) return false;
+
+  const cachedEntry = await entriesTable.get(String(entryId)) as Entry | undefined;
+  if (!cachedEntry) return false;
+
+  const currentlyInRing = cachedEntry.entry_status === 'in-ring';
+  if (currentlyInRing !== inRing) return false;
+
+  // eslint-disable-next-line no-console
+  console.log(`⏭️ [markInRing] Entry ${entryId} already ${inRing ? 'in-ring' : 'not in-ring'} - skipping DB call`);
+  return true;
+}
+
+/**
  * Mark an entry as being in the ring (or remove from ring)
  *
  * **Business Rules**:
@@ -66,21 +88,8 @@ export async function markInRing(
   try {
     // OPTIMIZATION: Check local cache first to avoid redundant DB calls
     // This makes the function idempotent - multiple calls with same state are no-ops
-    const manager = getReplicationManager();
-    if (manager) {
-      const entriesTable = manager.getTable('entries');
-      if (entriesTable) {
-        const cachedEntry = await entriesTable.get(String(entryId)) as Entry | undefined;
-        if (cachedEntry) {
-          const currentlyInRing = cachedEntry.entry_status === 'in-ring';
-          if (currentlyInRing === inRing) {
-            // eslint-disable-next-line no-console
-            console.log(`⏭️ [markInRing] Entry ${entryId} already ${inRing ? 'in-ring' : 'not in-ring'} - skipping DB call`);
-            return true;
-          }
-        }
-      }
-    }
+    const skipUpdate = await shouldSkipInRingUpdate(entryId, inRing);
+    if (skipUpdate) return true;
 
     // When removing from ring (inRing=false), check if entry is already scored
     // If scored, don't change status back to 'no-status' - keep it as 'completed'

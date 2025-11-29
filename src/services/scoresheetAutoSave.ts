@@ -185,14 +185,14 @@ class ScoresheetAutoSaveService {
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith(this.STORAGE_PREFIX)) {
-          const stored = localStorage.getItem(key);
-          if (stored) {
-            const draft: ScoresheetDraft = JSON.parse(stored);
-            if (draft.entryId === entryId) {
-              drafts.push(draft);
-            }
-          }
+        if (!key || !key.startsWith(this.STORAGE_PREFIX)) continue;
+
+        const stored = localStorage.getItem(key);
+        if (!stored) continue;
+
+        const draft: ScoresheetDraft = JSON.parse(stored);
+        if (draft.entryId === entryId) {
+          drafts.push(draft);
         }
       }
     } catch (error) {
@@ -372,24 +372,24 @@ class ScoresheetAutoSaveService {
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(this.STORAGE_PREFIX)) {
-        const value = localStorage.getItem(key);
-        if (value) {
-          draftCount++;
-          totalSize += value.length;
+      if (!key || !key.startsWith(this.STORAGE_PREFIX)) continue;
 
-          try {
-            const draft: ScoresheetDraft = JSON.parse(value);
-            if (oldestDraft === null || draft.lastSaved < oldestDraft) {
-              oldestDraft = draft.lastSaved;
-            }
-            if (newestDraft === null || draft.lastSaved > newestDraft) {
-              newestDraft = draft.lastSaved;
-            }
-          } catch {
-            // Skip invalid drafts
-          }
+      const value = localStorage.getItem(key);
+      if (!value) continue;
+
+      draftCount++;
+      totalSize += value.length;
+
+      try {
+        const draft: ScoresheetDraft = JSON.parse(value);
+        if (oldestDraft === null || draft.lastSaved < oldestDraft) {
+          oldestDraft = draft.lastSaved;
         }
+        if (newestDraft === null || draft.lastSaved > newestDraft) {
+          newestDraft = draft.lastSaved;
+        }
+      } catch {
+        // Skip invalid drafts
       }
     }
 

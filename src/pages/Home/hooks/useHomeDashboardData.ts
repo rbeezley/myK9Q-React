@@ -140,6 +140,49 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
 }
 
 /**
+ * Try to load entries from replicated cache
+ * Returns null if cache is not available or empty (signals fallback needed)
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function tryLoadEntriesFromCache(): Promise<EntryData[] | null> {
+  const manager = await ensureReplicationManager();
+  const table = manager.getTable('entries');
+  if (!table) return null;
+
+  // Don't pass licenseKey - entries are already filtered during sync
+  const cachedEntries = await table.getAll() as Entry[];
+  logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
+
+  if (cachedEntries.length === 0) {
+    logger.log('📭 Cache is empty, falling back to Supabase');
+    return null;
+  }
+
+  // Transform replicated Entry to EntryData format
+  const uniqueDogs = new Map<number, EntryData>();
+
+  cachedEntries.forEach(entry => {
+    if (!uniqueDogs.has(entry.armband_number)) {
+      uniqueDogs.set(entry.armband_number, {
+        id: parseInt(entry.id, 10),
+        armband: entry.armband_number,
+        call_name: entry.dog_call_name,
+        breed: entry.dog_breed || '',
+        handler: entry.handler_name,
+        is_favorite: false, // Will be updated by component after favorites load
+        class_name: undefined, // No class info in replicated Entry yet
+        is_scored: entry.is_scored
+      });
+    }
+  });
+
+  const processedEntries = Array.from(uniqueDogs.values());
+  logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
+
+  return processedEntries;
+}
+
+/**
  * Fetch entries (unique dogs by armband)
  * Uses replicated cache when enabled, falls back to Supabase
  */
@@ -151,59 +194,18 @@ logger.log('🐕 fetchEntries called with licenseKey:', licenseKey);
     return [];
   }
 
-  // Replication enabled after fixing initialization race conditions
-  const isReplicationEnabled = true;
+  // Try replicated cache first
+  logger.log('🔄 Fetching entries from replicated cache...');
 
-  if (isReplicationEnabled) {
-logger.log('🔄 Fetching entries from replicated cache...');
-
-    try {
-      const manager = await ensureReplicationManager();
-      const table = manager.getTable('entries');
-      if (table) {
-        try {
-          // Don't pass licenseKey - entries are already filtered during sync
-          // (entries don't have license_key field, they're linked via classes → trials → shows)
-          const cachedEntries = await table.getAll() as Entry[];
-logger.log(`✅ Loaded ${cachedEntries.length} entries from cache`);
-
-          // If cache is empty, fall back to Supabase (cache may still be syncing)
-          if (cachedEntries.length === 0) {
-logger.log('📭 Cache is empty, falling back to Supabase');
-            // Fall through to Supabase query
-          } else {
-            // Transform replicated Entry to EntryData format
-            const uniqueDogs = new Map<number, EntryData>();
-
-            cachedEntries.forEach(entry => {
-              if (!uniqueDogs.has(entry.armband_number)) {
-                uniqueDogs.set(entry.armband_number, {
-                  id: parseInt(entry.id, 10),
-                  armband: entry.armband_number,
-                  call_name: entry.dog_call_name,
-                  breed: entry.dog_breed || '',
-                  handler: entry.handler_name,
-                  is_favorite: false, // Will be updated by component after favorites load
-                  class_name: undefined, // No class info in replicated Entry yet
-                  is_scored: entry.is_scored
-                });
-              }
-            });
-
-            const processedEntries = Array.from(uniqueDogs.values());
-logger.log('🐕 Processed unique dogs from cache:', processedEntries.length);
-
-            return processedEntries;
-          }
-        } catch (error) {
-          logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
-          // Fall through to Supabase query
-        }
-      }
-    } catch (managerError) {
-      logger.error('❌ Error initializing replication manager, falling back to Supabase:', managerError);
-      // Fall through to Supabase query
+  try {
+    const cachedResult = await tryLoadEntriesFromCache();
+    if (cachedResult) {
+      return cachedResult;
     }
+    // Cache returned null - fall through to Supabase
+  } catch (error) {
+    logger.error('❌ Error loading from replicated cache, falling back to Supabase:', error);
+    // Fall through to Supabase query
   }
 
   // Fall back to original Supabase query

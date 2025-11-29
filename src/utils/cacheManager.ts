@@ -17,6 +17,39 @@ let undoData: {
 } | null = null;
 
 /**
+ * Backup localStorage items (excluding auth and settings)
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function backupLocalStorage(): Record<string, string> {
+  const backup: Record<string, string> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if (key.includes('myK9Q_auth') || key.includes('myK9Q_settings')) continue;
+
+    const value = localStorage.getItem(key);
+    if (value) backup[key] = value;
+  }
+  return backup;
+}
+
+/**
+ * Backup sessionStorage items
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function backupSessionStorage(): Record<string, string> {
+  const backup: Record<string, string> = {};
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (!key) continue;
+
+    const value = sessionStorage.getItem(key);
+    if (value) backup[key] = value;
+  }
+  return backup;
+}
+
+/**
  * Clear all service worker caches
  */
 async function clearServiceWorkerCaches(): Promise<void> {
@@ -132,30 +165,9 @@ export async function clearAllCaches(options: {
   try {
     // Save data for undo if enabled
     if (enableUndo) {
-      const localStorageBackup: Record<string, string> = {};
-      const sessionStorageBackup: Record<string, string> = {};
-
-      // Backup localStorage (except auth and settings)
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && !key.includes('myK9Q_auth') && !key.includes('myK9Q_settings')) {
-          const value = localStorage.getItem(key);
-          if (value) localStorageBackup[key] = value;
-        }
-      }
-
-      // Backup sessionStorage
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i);
-        if (key) {
-          const value = sessionStorage.getItem(key);
-          if (value) sessionStorageBackup[key] = value;
-        }
-      }
-
       undoData = {
-        localStorage: localStorageBackup,
-        sessionStorage: sessionStorageBackup,
+        localStorage: backupLocalStorage(),
+        sessionStorage: backupSessionStorage(),
       };
 
       // Set timeout to clear undo data
@@ -226,6 +238,94 @@ export function canUndoCacheClear(): boolean {
 }
 
 /**
+ * Check if a localStorage entry is old and should be cleaned up
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function isOldEntry(value: string, cutoffTime: number): boolean {
+  try {
+    const data = JSON.parse(value);
+    if (!data || typeof data !== 'object') return false;
+
+    const timestamp = data.timestamp || data.lastUpdated || data.createdAt || data.updatedAt;
+    if (!timestamp) return false;
+
+    return new Date(timestamp).getTime() < cutoffTime;
+  } catch {
+    // Not JSON or invalid - skip
+    return false;
+  }
+}
+
+/**
+ * Check if a key should be preserved during cleanup
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function shouldPreserveKey(key: string): boolean {
+  return (
+    key.includes('myK9Q_auth') ||
+    key.includes('myK9Q_settings') ||
+    key.includes('dog_favorites')
+  );
+}
+
+/**
+ * Check if a database should be preserved during cleanup
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function shouldPreserveDatabase(dbName: string): boolean {
+  return (
+    dbName.includes('auth') ||
+    dbName.includes('firebase') ||
+    dbName.includes('workbox')
+  );
+}
+
+/**
+ * Cleanup IndexedDB entries (placeholder - requires schema knowledge)
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function cleanupIndexedDBEntries(): Promise<number> {
+  if (!('indexedDB' in window)) return 0;
+
+  try {
+    const databases = await indexedDB.databases();
+    for (const db of databases) {
+      if (!db.name || shouldPreserveDatabase(db.name)) continue;
+      // Actual cleanup would require per-database schema knowledge
+    }
+    return 0;
+  } catch (error) {
+    logger.warn('Could not auto-cleanup IndexedDB:', error);
+    return 1; // Return error count
+  }
+}
+
+/**
+ * Clean old service worker caches with timestamps in their names
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function cleanOldServiceWorkerCaches(cutoffTime: number): Promise<{ cleaned: number }> {
+  if (!('caches' in window)) return { cleaned: 0 };
+
+  let cleaned = 0;
+  const cacheNames = await caches.keys();
+
+  for (const cacheName of cacheNames) {
+    const match = cacheName.match(/(\d{13})/); // Unix timestamp in ms
+    if (!match) continue;
+
+    const cacheTime = parseInt(match[1], 10);
+    if (cacheTime >= cutoffTime) continue;
+
+    await caches.delete(cacheName);
+    cleaned++;
+    logger.log(`Auto-cleanup: Deleted old cache: ${cacheName}`);
+  }
+
+  return { cleaned };
+}
+
+/**
  * Auto-cleanup old cached data (older than 30 days)
  * This runs automatically in the background to prevent storage bloat
  */
@@ -240,85 +340,30 @@ export async function autoCleanupOldData(): Promise<{ cleaned: number; errors: n
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
       if (!key) continue;
+      if (shouldPreserveKey(key)) continue;
 
-      // Skip auth, settings, and favorites
-      if (
-        key.includes('myK9Q_auth') ||
-        key.includes('myK9Q_settings') ||
-        key.includes('dog_favorites')
-      ) {
-        continue;
-      }
+      const value = localStorage.getItem(key);
+      if (!value) continue;
 
-      try {
-        const value = localStorage.getItem(key);
-        if (!value) continue;
-
-        // Try to parse as JSON and check for timestamp
-        const data = JSON.parse(value);
-        if (data && typeof data === 'object') {
-          const timestamp =
-            data.timestamp || data.lastUpdated || data.createdAt || data.updatedAt;
-
-          if (timestamp && new Date(timestamp).getTime() < cutoffTime) {
-            localStorage.removeItem(key);
-            cleaned++;
-            logger.log(`Auto-cleanup: Removed old data for key: ${key}`);
-          }
-        }
-      } catch {
-        // Not JSON or no timestamp - skip
+      if (isOldEntry(value, cutoffTime)) {
+        localStorage.removeItem(key);
+        cleaned++;
+        logger.log(`Auto-cleanup: Removed old data for key: ${key}`);
       }
     }
 
     // Clean IndexedDB entries (if we can access them)
-    if ('indexedDB' in window) {
-      try {
-        const databases = await indexedDB.databases();
-        for (const db of databases) {
-          const dbName = db.name;
-          if (!dbName) continue;
-
-          // Skip auth and system databases
-          if (
-            dbName.includes('auth') ||
-            dbName.includes('firebase') ||
-            dbName.includes('workbox')
-          ) {
-            continue;
-          }
-
-          // Check database modification time if available
-          // Note: Most browsers don't expose this, so this is best-effort
-          // In practice, IndexedDB cleanup would need to be done per-database
-          // with knowledge of the schema
-        }
-      } catch (error) {
-        logger.warn('Could not auto-cleanup IndexedDB:', error);
-        errors++;
-      }
-    }
+    // Note: Most browsers don't expose modification time, so this is best-effort
+    // In practice, IndexedDB cleanup needs per-database schema knowledge
+    errors += await cleanupIndexedDBEntries();
 
     // Clean service worker caches older than 30 days
-    if ('caches' in window) {
-      try {
-        const cacheNames = await caches.keys();
-        for (const cacheName of cacheNames) {
-          // Check if cache name has a timestamp
-          const match = cacheName.match(/(\d{13})/); // Unix timestamp in ms
-          if (match) {
-            const cacheTime = parseInt(match[1], 10);
-            if (cacheTime < cutoffTime) {
-              await caches.delete(cacheName);
-              cleaned++;
-              logger.log(`Auto-cleanup: Deleted old cache: ${cacheName}`);
-            }
-          }
-        }
-      } catch (error) {
-        logger.warn('Could not auto-cleanup caches:', error);
-        errors++;
-      }
+    try {
+      const cacheResult = await cleanOldServiceWorkerCaches(cutoffTime);
+      cleaned += cacheResult.cleaned;
+    } catch (error) {
+      logger.warn('Could not auto-cleanup caches:', error);
+      errors++;
     }
 
     if (cleaned > 0) {

@@ -153,6 +153,26 @@ export async function exportPersonalData(licenseKey?: string): Promise<void> {
 }
 
 /**
+ * Clear all myK9Q IndexedDB databases
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function clearMyK9QIndexedDBDatabases(): Promise<void> {
+  try {
+    // Get all database names (not supported in all browsers)
+    const databases = await window.indexedDB.databases?.();
+    if (!databases) return;
+
+    for (const db of databases) {
+      if (!db.name || !db.name.startsWith('myK9Q')) continue;
+      window.indexedDB.deleteDatabase(db.name);
+      logger.info(`Deleted IndexedDB: ${db.name}`);
+    }
+  } catch (error) {
+    logger.warn('Could not enumerate IndexedDB databases:', error);
+  }
+}
+
+/**
  * Clear all user data except authentication
  * (Allows user to continue using app but resets preferences)
  */
@@ -199,20 +219,7 @@ export async function clearAllData(options: {
 
     // Clear IndexedDB if it exists
     if (window.indexedDB) {
-      try {
-        // Get all database names (not supported in all browsers)
-        const databases = await window.indexedDB.databases?.();
-        if (databases) {
-          for (const db of databases) {
-            if (db.name && db.name.startsWith('myK9Q')) {
-              window.indexedDB.deleteDatabase(db.name);
-              logger.info(`Deleted IndexedDB: ${db.name}`);
-            }
-          }
-        }
-      } catch (error) {
-        logger.warn('Could not enumerate IndexedDB databases:', error);
-      }
+      await clearMyK9QIndexedDBDatabases();
     }
 
     // Clear sessionStorage

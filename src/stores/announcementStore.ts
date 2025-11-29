@@ -84,6 +84,58 @@ const generateUserIdentifier = (): string => {
   return AnnouncementService.generateUserIdentifier();
 };
 
+/**
+ * Helper to update push subscription when switching shows
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+async function updatePushSubscriptionForShow(licenseKey: string): Promise<void> {
+  // Check if notifications are enabled
+  const settings = localStorage.getItem('myK9Q_settings');
+  if (!settings) return;
+
+  const parsed = JSON.parse(settings);
+  if (!parsed.enableNotifications) return;
+
+  // Get user role
+  const authData = localStorage.getItem('myK9Q_auth');
+  if (!authData) return;
+
+  const { role } = JSON.parse(authData);
+
+  // Dynamically import push service
+  const { default: PushNotificationService } = await import('../services/pushNotificationService');
+
+  // Only update if already subscribed
+  const isSubscribed = await PushNotificationService.isSubscribed();
+  if (!isSubscribed) return;
+
+  // Get favorite armbands for this show
+  const favoriteArmbands = getFavoriteArmbands(licenseKey);
+
+  await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
+}
+
+/**
+ * Helper to parse favorite armbands from localStorage
+ * Extracted to reduce nesting depth (DEBT-009)
+ */
+function getFavoriteArmbands(licenseKey: string): number[] {
+  const favoritesKey = `dog_favorites_${licenseKey}`;
+  const savedFavorites = localStorage.getItem(favoritesKey);
+  if (!savedFavorites) return [];
+
+  try {
+    const parsed = JSON.parse(savedFavorites);
+    if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
+      return parsed;
+    }
+  } catch {
+    // Invalid JSON, return empty
+  }
+
+  return [];
+}
+
 export const useAnnouncementStore = create<AnnouncementState>()(
   devtools(
     (set, get) => ({
@@ -149,45 +201,9 @@ return;
         serviceWorkerManager.updateLicenseKey(licenseKey);
 
         // Auto-update push subscription if notifications are enabled
-        (async () => {
-          try {
-            const settings = localStorage.getItem('myK9Q_settings');
-            if (settings) {
-              const parsed = JSON.parse(settings);
-              if (parsed.enableNotifications) {
-                const authData = localStorage.getItem('myK9Q_auth');
-                if (authData) {
-                  const { role } = JSON.parse(authData);
-                  const { default: PushNotificationService } = await import('../services/pushNotificationService');
-
-                  // Check if already subscribed
-                  const isSubscribed = await PushNotificationService.isSubscribed();
-                  if (isSubscribed) {
-// Get favorite armbands from localStorage
-                    const favoritesKey = `dog_favorites_${licenseKey}`;
-                    const savedFavorites = localStorage.getItem(favoritesKey);
-                    let favoriteArmbands: number[] = [];
-
-                    if (savedFavorites) {
-                      try {
-                        const parsed = JSON.parse(savedFavorites);
-                        if (Array.isArray(parsed) && parsed.every(id => typeof id === 'number')) {
-                          favoriteArmbands = parsed;
-                        }
-                      } catch (error) {
-                        console.error('[Push Auto-Switch] Error parsing favorites:', error);
-                      }
-                    }
-
-                    await PushNotificationService.subscribe(role, licenseKey, favoriteArmbands);
-}
-                }
-              }
-            }
-          } catch (error) {
-            console.error('[Push Auto-Switch] Failed to update subscription:', error);
-          }
-        })();
+        updatePushSubscriptionForShow(licenseKey).catch(error => {
+          console.error('[Push Auto-Switch] Failed to update subscription:', error);
+        });
 
         // Auto-fetch announcements for new license
         Promise.all([
