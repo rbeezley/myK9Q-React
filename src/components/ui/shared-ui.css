@@ -1006,7 +1006,10 @@
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
-  height: 100%;
+  flex: 1; /* Fill available space in flex parent */
+  min-height: 0; /* Required for flex children to shrink properly */
+  display: flex;
+  flex-direction: column;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain; /* Prevent browser pull-to-refresh */
 }
@@ -1026,6 +1029,10 @@
 }
 
 .pull-to-refresh-content {
+  flex: 1; /* Fill available space */
+  min-height: 0; /* Required for flex children to shrink properly */
+  display: flex;
+  flex-direction: column;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }

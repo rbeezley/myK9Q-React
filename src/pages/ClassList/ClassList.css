@@ -31,8 +31,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: var(--token-space-4xl);
-  /* Force list to extend to bottom - subtract header, ticker, search/tabs (~360px total) */
-  min-height: calc(100vh - 360px);
+  min-height: 0; /* Required for flex children to fill available space */
   /* Smooth scrolling for better UX */
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;

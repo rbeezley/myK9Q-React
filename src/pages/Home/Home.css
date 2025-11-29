@@ -921,9 +921,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: var(--token-space-4xl);
-  /* Force list to extend to bottom - subtract header, ticker, trials, search, tabs (~420px total) */
-  min-height: calc(100vh - 420px);
-  height: calc(100vh - 420px);
+  min-height: 0; /* Required for flex children to shrink and fill properly */
 }
 
 .entry-card {
