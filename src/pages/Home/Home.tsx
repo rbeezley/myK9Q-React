@@ -302,7 +302,7 @@ export const Home: React.FC = () => {
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 120, // Estimated height of each ROW (card min-height 85px + padding + gap)
+    estimateSize: () => 130, // Estimated height of each ROW (card min-height 85px + 16px padding + 16px gap + buffer)
     overscan: 5, // Render 5 extra rows above/below viewport for smoother scrolling
   });
 
