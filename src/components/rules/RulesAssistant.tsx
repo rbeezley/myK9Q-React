@@ -5,10 +5,12 @@ import {  X,
   Loader2,
   AlertCircle,
   Info,
-  Flag
+  Flag,
+  Check
 } from 'lucide-react';
 import { RulesService, type Rule, type RulesServiceError } from '../../services/rulesService';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 import './RulesAssistant.css';
 
 interface RulesAssistantProps {
@@ -26,6 +28,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
   const [_isOnline, setIsOnline] = useState(navigator.onLine);
+  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
   // Parse organization and sport from showContext.org (e.g., "AKC Scent Work")
   const parseOrgAndSport = (orgString: string): { organizationCode: string; sportCode: string } => {
@@ -52,6 +55,9 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
     : { organizationCode: 'AKC', sportCode: 'scent-work' }; // Fallback defaults
 
   const handleSearch = useCallback(async (searchQuery: string, forceRefresh = false) => {
+    // Reset feedback status when starting a new search
+    setFeedbackStatus('idle');
+
     if (!searchQuery.trim()) {
       setResults([]);
       setAnswer(null);
@@ -132,17 +138,35 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
     setExpandedRuleId(expandedRuleId === ruleId ? null : ruleId);
   };
 
-  const handleReportIssue = () => {
-    // For now, show an alert. Later this can be enhanced to send to a feedback system
-    alert(
-      `Thank you for helping improve the Rules Assistant!\n\n` +
-      `To report this issue:\n\n` +
-      `1. Email: support@myk9q.com\n` +
-      `2. Include your question: "${query}"\n` +
-      `3. Describe what's incorrect\n` +
-      `4. (Optional) Include the correct answer\n\n` +
-      `We review all feedback to improve accuracy.`
-    );
+  const handleReportIssue = async () => {
+    if (feedbackStatus === 'submitting' || feedbackStatus === 'success') return;
+
+    setFeedbackStatus('submitting');
+
+    try {
+      const { error: insertError } = await supabase
+        .from('rules_feedback')
+        .insert({
+          question: query,
+          ai_response: answer || '',
+          show_id: showContext?.showId ? parseInt(showContext.showId, 10) : null,
+          license_key: showContext?.licenseKey || null,
+        });
+
+      if (insertError) {
+        console.error('Failed to submit feedback:', insertError);
+        setFeedbackStatus('error');
+        // Reset after 3 seconds so user can retry
+        setTimeout(() => setFeedbackStatus('idle'), 3000);
+      } else {
+        setFeedbackStatus('success');
+        // Keep success state visible
+      }
+    } catch (err) {
+      console.error('Failed to submit feedback:', err);
+      setFeedbackStatus('error');
+      setTimeout(() => setFeedbackStatus('idle'), 3000);
+    }
   };
 
   const formatMeasurement = (key: string, value: string | number | boolean): string => {
@@ -317,11 +341,31 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
             <div className="rules-answer-text">{answer}</div>
             <button
               onClick={handleReportIssue}
-              className="rules-report-issue-btn"
-              title="Report an incorrect answer"
+              className={`rules-report-issue-btn ${feedbackStatus === 'success' ? 'success' : ''}`}
+              title={feedbackStatus === 'success' ? 'Issue reported' : 'Report an incorrect answer'}
+              disabled={feedbackStatus === 'submitting' || feedbackStatus === 'success'}
             >
-              <Flag size={14} />
-              <span>Report Issue</span>
+              {feedbackStatus === 'submitting' ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Reporting...</span>
+                </>
+              ) : feedbackStatus === 'success' ? (
+                <>
+                  <Check size={14} />
+                  <span>Reported - Thanks!</span>
+                </>
+              ) : feedbackStatus === 'error' ? (
+                <>
+                  <AlertCircle size={14} />
+                  <span>Failed - Retry</span>
+                </>
+              ) : (
+                <>
+                  <Flag size={14} />
+                  <span>Report Issue</span>
+                </>
+              )}
             </button>
             {results.length > 0 && (
               <div className="rules-source-hint">

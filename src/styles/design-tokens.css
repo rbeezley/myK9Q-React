@@ -166,6 +166,8 @@
   --onboarding-logo-gradient: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
   --token-warning-contrast: #c2410c;
   --token-error-contrast: #dc2626;
+  --token-warning-bg: rgba(251, 191, 36, 0.1);
+  --token-error-bg: rgba(239, 68, 68, 0.1);
 
   /* Placement Colors (for emoji badges) */
   --token-placement-1: var(--checkin-in-ring); /* Blue */
@@ -399,6 +401,8 @@
   --token-success-contrast: var(--status-checked-in);
   --token-warning-contrast: #fef3c7;
   --token-error-contrast: var(--status-pulled);
+  --token-warning-bg: rgba(251, 191, 36, 0.15);
+  --token-error-bg: rgba(239, 68, 68, 0.15);
 
   /* Result Status Colors (brighter for dark mode) */
   --token-result-qualified: #34d399;

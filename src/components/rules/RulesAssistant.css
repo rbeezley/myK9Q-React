@@ -121,8 +121,8 @@
   align-items: flex-start;
   gap: var(--token-space-md);
   padding: var(--token-space-lg) var(--token-space-2xl);
-  background-color: rgba(251, 191, 36, 0.1);
-  border-left: 3px solid #f59e0b;
+  background-color: var(--token-warning-bg);
+  border-left: 3px solid var(--token-warning);
   color: var(--foreground);
   font-size: var(--token-font-xs);
   line-height: 1.5;
@@ -132,12 +132,12 @@
 .rules-beta-disclaimer svg {
   flex-shrink: 0;
   margin-top: 1px;
-  color: #f59e0b;
+  color: var(--token-warning);
 }
 
 .rules-beta-disclaimer strong {
   font-weight: var(--token-font-weight-semibold);
-  color: #d97706;
+  color: var(--token-warning-contrast);
 }
 
 /* Search Container */
@@ -312,9 +312,9 @@
   gap: var(--token-space-sm);
   padding: var(--token-space-sm) var(--token-space-md);
   background-color: transparent;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--token-error-bg);
   border-radius: var(--token-space-md);
-  color: #dc2626;
+  color: var(--token-error-contrast);
   font-size: var(--token-font-xs);
   font-weight: var(--token-font-weight-medium);
   cursor: pointer;
@@ -323,17 +323,32 @@
 }
 
 .rules-report-issue-btn:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: #dc2626;
+  background-color: var(--token-error-bg);
+  border-color: var(--token-error-contrast);
 }
 
 .rules-report-issue-btn:active {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: var(--token-error-bg);
   transform: scale(0.98);
+}
+
+.rules-report-issue-btn.success {
+  border-color: var(--token-success);
+  color: var(--token-success);
+  cursor: default;
+}
+
+.rules-report-issue-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
 }
 
 .rules-report-issue-btn svg {
   flex-shrink: 0;
+}
+
+.rules-report-issue-btn svg.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .rules-source-hint {

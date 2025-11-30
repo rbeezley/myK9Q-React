@@ -20,7 +20,20 @@ export const Login: React.FC = () => {
   const [redirectUrl, setRedirectUrl] = useState('');
   const [preparingOffline, setPreparingOffline] = useState(false);
   const [offlineProgress, setOfflineProgress] = useState<OfflinePreparationProgress | null>(null);
+  const [funMessageIndex, setFunMessageIndex] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Fun dog show themed messages for the loading overlay
+  const funMessages = [
+    'Getting your show ready...',
+    'Polishing the trophies...',
+    'Ensuring this data is Best in Show...',
+    'Grooming the database...',
+    'Stacking the entries just right...',
+    'Preparing the ring...',
+    'Checking the armbands...',
+    'Warming up the judges...',
+  ];
   const navigate = useNavigate();
   const { login } = useAuth();
   const hapticFeedback = useHapticFeedback();
@@ -29,6 +42,20 @@ export const Login: React.FC = () => {
   useEffect(() => {
 inputRefs.current[0]?.focus();
   }, []);
+
+  // Rotate fun messages every 2.5 seconds while preparing offline
+  useEffect(() => {
+    if (!preparingOffline || offlineProgress?.complete) {
+      setFunMessageIndex(0); // Reset when done
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setFunMessageIndex((prev) => (prev + 1) % funMessages.length);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [preparingOffline, offlineProgress?.complete, funMessages.length]);
 
   const handleInputChange = (index: number, value: string) => {
     // Only allow single character
@@ -321,14 +348,12 @@ inputRefs.current[0]?.focus();
               )}
             </div>
             <h2 className="offline-prep-title">
-              {offlineProgress?.complete ? 'Ready!' : 'Preparing for Offline Use'}
+              {offlineProgress?.complete ? 'Ready!' : funMessages[funMessageIndex]}
             </h2>
             <p className="offline-prep-description">
               {offlineProgress?.complete
                 ? 'You can now use the app without wifi'
-                : offlineProgress?.phase === 'chunks'
-                  ? 'Loading app components...'
-                  : 'Syncing show data...'}
+                : 'Preparing for offline use'}
             </p>
             <div className="offline-prep-progress">
               <div className="offline-prep-step">
