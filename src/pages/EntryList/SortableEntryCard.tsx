@@ -74,7 +74,7 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
     isDragging,
   } = useSortable({
     id: entry.id,
-    disabled: isInRing // Disable dragging for in-ring dogs
+    disabled: !isDragMode || isInRing // Disable dragging when NOT in drag mode or for in-ring dogs
   });
 
   const style = {
