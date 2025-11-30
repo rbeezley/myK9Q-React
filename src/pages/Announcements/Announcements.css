@@ -14,34 +14,37 @@
 /* Header - inherits from global .page-header in page-container.css */
 .announcements-header {
   justify-content: space-between;
+  position: relative; /* For absolute centering of title */
 }
 
-.header-center {
-  flex: 1;
-  text-align: center;
-  margin: 0 var(--token-space-xl);
-}
-
-.header-title {
+/* Match Home page header center pattern */
+.announcements-header .header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--token-space-lg);
-  position: relative;
   justify-content: center;
+  gap: var(--token-space-sm);
+}
+
+.announcements-header .header-center h1 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 590;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-md);
 }
 
 .header-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 20px;
+  height: 20px;
   color: var(--primary);
-}
-
-.announcements-header h1 {
-  font-size: 1.125rem;
-  font-weight: 590;
-  margin: 0;
-  color: var(--foreground);
-  letter-spacing: -0.02em;
 }
 
 .unread-badge {
@@ -378,7 +381,7 @@ button.action-btn.active svg {
   padding: var(--token-space-lg) var(--token-space-xl);  /* Mobile: padding */
 }
 
-.header-center h1 {
+.announcements-header .header-center h1 {
   font-size: 1.125rem;  /* Mobile: title size */
 }
 
@@ -420,7 +423,7 @@ button.action-btn.active svg {
     padding: var(--token-space-xl) 0;  /* Desktop: larger padding */
   }
 
-  .header-center h1 {
+  .announcements-header .header-center h1 {
     font-size: 1.25rem;  /* Desktop: larger title */
   }
 

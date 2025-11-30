@@ -158,13 +158,13 @@ export const Announcements: React.FC = () => {
         <CompactOfflineIndicator />
 
         <div className="header-center">
-          <div className="header-title">
+          <h1>
             <Bell className="header-icon" />
-            <h1>Announcements</h1>
+            Announcements
             {unreadCount > 0 && (
               <span className="unread-badge">{unreadCount}</span>
             )}
-          </div>
+          </h1>
         </div>
 
         <div className="header-actions">
