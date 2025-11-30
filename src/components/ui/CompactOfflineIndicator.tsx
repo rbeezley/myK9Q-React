@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { WifiOff, Cloud, CloudUpload, CheckCircle } from 'lucide-react';
+import { Wifi, WifiOff, Cloud, CloudUpload } from 'lucide-react';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import './shared-ui.css';
 
@@ -119,7 +119,7 @@ export function CompactOfflineIndicator({ className = '' }: CompactOfflineIndica
       aria-label={tooltip}
     >
       {mode === 'online' && (
-        <CheckCircle
+        <Wifi
           className="compact-offline-icon"
           size={18}
           strokeWidth={2}
