@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
 import { initializeReplication, clearReplicationCaches, resetReplicationState } from '@/services/replication/initReplication';
+import { destroyReplicationManager } from '@/services/replication';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { logger } from '@/utils/logger';
 
@@ -23,9 +24,17 @@ interface AuthState {
   passcode: string | null;
 }
 
+export interface LogoutResult {
+  success: boolean;
+  blocked?: boolean;
+  message?: string;
+  pendingCount?: number;
+  failedCount?: number;
+}
+
 interface AuthContextType extends AuthState {
   login: (passcode: string, showData: ShowContext) => void;
-  logout: () => void;
+  logout: () => Promise<LogoutResult>;
   canAccess: (permission: keyof UserPermissions) => boolean;
 }
 
@@ -116,6 +125,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await clearReplicationCaches();
         logger.log('[Auth] ✅ IndexedDB replication caches cleared');
 
+        // CRITICAL: Destroy the old ReplicationManager instance
+        // This ensures new login creates a fresh manager with the new license key
+        destroyReplicationManager();
+        logger.log('[Auth] ✅ ReplicationManager destroyed');
+
         // Reset replication state so it can reinitialize with new license key
         resetReplicationState();
         logger.log('[Auth] ✅ Replication state reset');
@@ -171,9 +185,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [authState.showContext?.licenseKey]);
 
-  const logout = useCallback(async () => {
-    logger.log('[Auth] Logging out and clearing all caches...');
+  const logout = useCallback(async (): Promise<LogoutResult> => {
+    logger.log('[Auth] Attempting logout...');
 
+    // CRITICAL: Check for pending offline scores - block logout to prevent data loss
+    const pendingCount = useOfflineQueueStore.getState().getPendingCount();
+    const failedCount = useOfflineQueueStore.getState().getFailedCount();
+    const totalUnsynced = pendingCount + failedCount;
+
+    if (totalUnsynced > 0) {
+      const message = `You have ${totalUnsynced} unsynced score${totalUnsynced > 1 ? 's' : ''}. ` +
+        `Please sync your scores before logging out to avoid data loss.`;
+
+      logger.warn(`[Auth] ⛔ BLOCKING logout - ${pendingCount} pending + ${failedCount} failed offline scores`);
+
+      return {
+        success: false,
+        blocked: true,
+        message,
+        pendingCount,
+        failedCount,
+      };
+    }
+
+    // Safe to proceed with logout
     const newAuthState = {
       isAuthenticated: false,
       role: null,
@@ -186,15 +221,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('myK9Q_auth');
     sessionStorage.removeItem('auth');
 
-    // CRITICAL: Clear all caches to prevent multi-tenant data leakage
+    // Clear all caches
     try {
       // Clear React Query persisted cache from localStorage
       localStorage.removeItem('myK9Q-react-query-cache');
       logger.log('[Auth] ✅ React Query cache cleared');
 
-      // Clear IndexedDB replication caches
+      // Safe to clear all caches including offline queue (no pending scores)
       await clearReplicationCaches();
       logger.log('[Auth] ✅ IndexedDB replication caches cleared');
+
+      // CRITICAL: Destroy the old ReplicationManager instance
+      // This ensures next login creates a fresh manager with the new license key
+      destroyReplicationManager();
+      logger.log('[Auth] ✅ ReplicationManager destroyed');
 
       // Reset replication state so it can reinitialize with new license key
       resetReplicationState();
@@ -204,7 +244,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Continue with logout even if cache clearing fails
     }
 
-    logger.log('[Auth] ✅ Logout complete - all caches cleared');
+    logger.log('[Auth] ✅ Logout complete');
+    return { success: true };
   }, []);
 
   const canAccess = useCallback((permission: keyof UserPermissions): boolean => {

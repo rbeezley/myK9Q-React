@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, RefreshCw, MoreVertical, Printer, ClipboardCheck, ListOrdered, Trophy } from 'lucide-react';
-import { HamburgerMenu, SyncIndicator, RefreshIndicator, FilterTriggerButton } from '../../../components/ui';
+import { HamburgerMenu, CompactOfflineIndicator, SyncIndicator, RefreshIndicator, FilterTriggerButton } from '../../../components/ui';
 import { formatTrialDate } from '../../../utils/dateUtils';
 import type { ClassInfo } from '../hooks';
 
@@ -91,6 +91,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
         }}
         currentPage="entries"
       />
+      <CompactOfflineIndicator />
       <div className="class-info">
         <div className="class-title-row">
           <h1>

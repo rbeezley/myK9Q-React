@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import type { Announcement } from '../../stores/announcementStore';
-import { HamburgerMenu, PullToRefresh } from '../../components/ui';
+import { HamburgerMenu, CompactOfflineIndicator, PullToRefresh } from '../../components/ui';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { AnnouncementCard } from '../../components/announcements/AnnouncementCard';
 import { CreateAnnouncementModal } from '../../components/announcements/CreateAnnouncementModal';
@@ -111,6 +111,7 @@ export const Announcements: React.FC = () => {
       {/* Header with Hamburger Menu, Title, and Actions */}
       <header className="page-header announcements-header">
         <HamburgerMenu currentPage="announcements" />
+        <CompactOfflineIndicator />
 
         <div className="header-center">
           <div className="header-title">

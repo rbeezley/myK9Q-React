@@ -64,6 +64,14 @@ export const Home: React.FC = () => {
     setDarkMode(!darkMode);
   };
 
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.blocked) {
+      // Show alert to user about pending scores
+      alert(result.message);
+    }
+  };
+
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
@@ -216,9 +224,9 @@ export const Home: React.FC = () => {
       
       {/* Header */}
       <header className="apple-header">
-        <button 
+        <button
           className="apple-button-secondary"
-          onClick={logout}
+          onClick={handleLogout}
           style={{ padding: '0.75rem', borderRadius: '0.75rem', minWidth: '44px' }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">

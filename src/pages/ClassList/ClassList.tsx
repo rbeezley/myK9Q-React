@@ -6,7 +6,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { HamburgerMenu, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
+import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { ArrowLeft, RefreshCw, Target, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
@@ -576,6 +576,7 @@ return entriesData || [];
             action: () => navigate('/home')
           }}
         />
+        <CompactOfflineIndicator />
 
         <div className="trial-info">
           <h1>

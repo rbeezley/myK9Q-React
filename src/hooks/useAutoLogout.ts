@@ -9,7 +9,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 
 const WARNING_TIME_MS = 5 * 60 * 1000; // 5 minutes before logout
 
@@ -64,14 +63,14 @@ setShowWarning(true);
     }
 
     // Set logout timeout
-    timeoutRef.current = setTimeout(() => {
-      // Check for pending scores before auto-logout
-      const pendingCount = useOfflineQueueStore.getState().getPendingCount();
+    timeoutRef.current = setTimeout(async () => {
+      // Call logout - it now returns a result indicating if blocked
+      const result = await logout();
 
-      if (pendingCount > 0) {
-        // Block auto-logout - pending scores would be lost!
+      if (result.blocked) {
+        // Logout was blocked due to pending scores
         console.warn(
-          `[AUTO_LOGOUT] Blocked - ${pendingCount} pending score(s) would be lost. Extending session.`
+          `[AUTO_LOGOUT] Blocked - ${result.pendingCount} pending + ${result.failedCount} failed score(s) would be lost. Extending session.`
         );
         setPendingScoresBlocking(true);
         setShowWarning(true);
@@ -81,7 +80,6 @@ setShowWarning(true);
 
       setShowWarning(false);
       setPendingScoresBlocking(false);
-      logout();
     }, timeoutMs);
   }, [settings.autoLogout, logout, isAuthenticated]);
 
@@ -96,13 +94,14 @@ resetTimer();
   }, [resetTimer]);
 
   // Logout immediately (but still check for pending scores)
-  const logoutNow = useCallback(() => {
-    const pendingCount = useOfflineQueueStore.getState().getPendingCount();
+  const logoutNow = useCallback(async () => {
+    // Call logout - it now returns a result indicating if blocked
+    const result = await logout();
 
-    if (pendingCount > 0) {
+    if (result.blocked) {
       // Block logout - show pending scores warning instead
       console.warn(
-        `[AUTO_LOGOUT] logoutNow blocked - ${pendingCount} pending score(s) would be lost`
+        `[AUTO_LOGOUT] logoutNow blocked - ${result.pendingCount} pending + ${result.failedCount} failed score(s) would be lost`
       );
       setPendingScoresBlocking(true);
       // Keep warning visible but don't logout
@@ -111,7 +110,6 @@ resetTimer();
 
     setShowWarning(false);
     setPendingScoresBlocking(false);
-    logout();
   }, [logout]);
 
   // Dismiss warning (user became active)

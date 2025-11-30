@@ -5,7 +5,7 @@ import { usePermission } from '../../hooks/usePermission';
 import { updateEntryCheckinStatus } from '../../services/entryService';
 import { getAvailabilityMessage } from '../../services/resultVisibilityService';
 import { generateDogResultsSheet } from '../../services/reportService';
-import { Button, HamburgerMenu, ArmbandBadge, TrialDateBadge } from '../../components/ui';
+import { Button, HamburgerMenu, CompactOfflineIndicator, ArmbandBadge, TrialDateBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
@@ -303,13 +303,14 @@ export const DogDetails: React.FC = () => {
       
       {/* Header with outdoor-ready contrast */}
       <header className="page-header dog-header">
-        <HamburgerMenu 
+        <HamburgerMenu
           backNavigation={{
             label: "Back",
             action: () => navigate(-1)
           }}
         />
-        
+        <CompactOfflineIndicator />
+
         <h1>{dogInfo.call_name}</h1>
 
         <div className="header-actions">

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { HamburgerMenu, SettingsSearch, useSearchableSettings } from '@/components/ui';
+import { HamburgerMenu, CompactOfflineIndicator, SettingsSearch, useSearchableSettings } from '@/components/ui';
 import { Settings as SettingsIcon, MoreVertical, RefreshCw, AlertCircle } from 'lucide-react';
 import { useSettingsLogic } from './hooks/useSettingsLogic';
 
@@ -80,6 +80,7 @@ export function Settings() {
     <div className="settings-container" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <header className="page-header settings-header" style={{ background: 'transparent', backdropFilter: 'none' }}>
         <HamburgerMenu currentPage="settings" />
+        <CompactOfflineIndicator />
         <div className="header-content" onClick={handleDevModeTap}>
           <h1>
             <SettingsIcon className="title-icon" />

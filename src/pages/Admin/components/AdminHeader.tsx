@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HamburgerMenu } from '../../../components/ui';
+import { HamburgerMenu, CompactOfflineIndicator } from '../../../components/ui';
 import { RefreshCw, Settings, History, MoreVertical } from 'lucide-react';
 import type { ShowInfo } from '../hooks/useCompetitionAdminData';
 
@@ -60,6 +60,7 @@ export function AdminHeader({
     <header className="page-header admin-header">
       <div className="header-content">
         <HamburgerMenu currentPage="admin" />
+        <CompactOfflineIndicator />
         <div className="header-info">
           <div className="header-title">
             <Settings className="header-icon" />

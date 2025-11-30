@@ -2381,6 +2381,102 @@
   }
 }
 
+/* ========== C O M P A C T O F F L I N E I N D I C A T O R COMPONENT ==========
+ * A small, non-intrusive status icon that sits next to the hamburger menu.
+ * Shows offline/sync status without blocking UI elements.
+ */
+
+.compact-offline-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-left: var(--token-space-md);
+  cursor: default;
+  transition: opacity 0.2s ease;
+}
+
+.compact-offline-indicator:hover {
+  opacity: 0.8;
+}
+
+/* Icon sizing */
+.compact-offline-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* State colors */
+.compact-offline-online .compact-offline-icon {
+  color: var(--success);
+  opacity: 0.6;
+}
+
+.compact-offline-offline .compact-offline-icon {
+  color: var(--warning);
+}
+
+.compact-offline-pending .compact-offline-icon {
+  color: var(--primary);
+}
+
+.compact-offline-syncing .compact-offline-icon {
+  color: var(--primary);
+}
+
+/* Syncing animation */
+.compact-offline-syncing .compact-offline-syncing {
+  animation: compactSyncPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes compactSyncPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+/* Count badge */
+.compact-offline-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  color: white;
+  background: var(--destructive);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Offline state uses warning color for badge */
+.compact-offline-offline .compact-offline-badge {
+  background: var(--warning);
+}
+
+/* Pending/syncing state uses primary color for badge */
+.compact-offline-pending .compact-offline-badge,
+.compact-offline-syncing .compact-offline-badge {
+  background: var(--primary);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .compact-offline-syncing .compact-offline-syncing {
+    animation: none;
+  }
+}
+
 /* ========== B O T T O M S H E E T COMPONENT ==========
 /* BottomSheet.css */
 
