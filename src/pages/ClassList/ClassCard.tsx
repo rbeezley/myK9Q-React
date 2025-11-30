@@ -302,6 +302,18 @@ export const ClassCard: React.FC<ClassCardProps> = ({
             )}
           </div>
 
+          {/* Progress Bar - Visual separator showing class completion */}
+          {classEntry.entry_count > 0 && (
+            <div className="class-progress-bar">
+              <div
+                className="class-progress-fill"
+                style={{
+                  width: `${(classEntry.completed_count / classEntry.entry_count) * 100}%`
+                }}
+              />
+            </div>
+          )}
+
           {/* Contextual Preview - Display actual dog armband numbers */}
           {classEntry.dogs.length > 0 ? (
             <div className="contextual-preview-condensed">
@@ -347,13 +359,14 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               )}
             </div>
           ) : (
-            <div className="no-entries">
-              <Users className="no-entries-icon" />
-              <p>No entries yet</p>
-              <p className="no-entries-subtitle">
-                Dogs will appear when registered
-              </p>
-            </div>
+            <>
+              {/* Empty progress bar track for visual consistency */}
+              <div className="class-progress-bar" />
+              <div className="no-entries">
+                <Users className="no-entries-icon" />
+                <span>No entries yet</span>
+              </div>
+            </>
           )}
         </div>
 

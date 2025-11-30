@@ -67,9 +67,24 @@
 
 - **FIXED:** Replaced 647+ individual log lines with single summary: `logger.log(\`[${this.tableName}] ✅ Cached ${entriesToCache.length} entries\`)` at [ReplicatedEntriesTable.ts:189-190](src/services/replication/tables/ReplicatedEntriesTable.ts#L189-L190).
 
-## Class Card Progress Bar Divider - 2025-11-28 21:19
+## Class Card Progress Bar Divider - 2025-11-28 21:19 ✅ COMPLETE
 
-- **Convert class card divider to progress bar** - Replace the static dividing line on class cards with a progress bar that shows class completion progress. **Problem:** The dividing line is purely decorative and takes up space without providing value. A progress bar would serve dual-purpose: visual separation AND status information at a glance. **Files:** `src/pages/ClassList/ClassCard.tsx`, `src/pages/ClassList/ClassList.css`. **Solution:** Replace `<hr>` or border divider with a thin progress bar (2-4px height) showing `scoredCount / totalEntries` percentage. Use existing entry data already available in the component.
+- **IMPLEMENTED:** Replaced static dividing line with a progress bar showing class completion.
+
+**How it works:**
+- **Gray track** = Total entries in class
+- **Teal fill** = % of dogs scored (width grows left-to-right)
+- **Green fill** = 100% complete (all dogs scored)
+
+**No-entries state:**
+- Shows gray line for visual consistency
+- Icon and "No entries yet" on one line (compact)
+
+**Files Modified:**
+- [ClassCard.tsx:305-315](src/pages/ClassList/ClassCard.tsx#L305-L315) - Added progress bar element
+- [ClassCard.tsx:362-369](src/pages/ClassList/ClassCard.tsx#L362-L369) - Updated no-entries to inline layout
+- [ClassList.css:789-808](src/pages/ClassList/ClassList.css#L789-L808) - Added progress bar styles
+- [ClassList.css:1306-1331](src/pages/ClassList/ClassList.css#L1306-L1331) - Updated no-entries to flex-row
 
 ## Dog Details Check-In All Button - 2025-11-28 21:22 ✅ COMPLETE
 
