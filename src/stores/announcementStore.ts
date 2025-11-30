@@ -234,8 +234,14 @@ return;
             {} // No filters at store level
           );
 
-          // Calculate unread count
-          const unreadCount = announcementsWithReadStatus.filter(a => !a.is_read).length;
+          // Calculate unread count (excluding expired announcements)
+          const now = new Date();
+          const unreadCount = announcementsWithReadStatus.filter(a => {
+            if (a.is_read) return false;
+            // Exclude expired announcements from count
+            if (a.expires_at && new Date(a.expires_at) < now) return false;
+            return true;
+          }).length;
 
           set({
             announcements: announcementsWithReadStatus,

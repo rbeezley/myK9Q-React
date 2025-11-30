@@ -43,11 +43,17 @@
 
 /* Dark mode overrides for text visibility */
 .theme-dark .rules-beta-disclaimer {
-  color: var(--token-text-secondary);
+  color: var(--foreground);
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+.theme-dark .rules-beta-disclaimer strong {
+  color: var(--token-warning);
 }
 
 .theme-dark .rules-help-text {
-  color: var(--token-text-secondary);
+  color: var(--foreground);
+  background-color: rgba(20, 184, 166, 0.15);
 }
 
 @media (max-width: 640px) {

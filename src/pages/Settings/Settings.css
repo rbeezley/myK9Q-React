@@ -147,6 +147,12 @@
   background: var(--accent);
 }
 
+.settings-header .dropdown-divider {
+  height: 1px;
+  margin: var(--token-space-sm) 0;
+  background: var(--border);
+}
+
 .settings-header .dropdown-item svg {
   flex-shrink: 0;
   color: var(--muted-foreground);

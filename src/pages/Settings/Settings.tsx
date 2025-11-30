@@ -97,6 +97,7 @@ export function Settings() {
           </button>
           {showHeaderMenu && (
             <div className="dropdown-menu">
+              {/* Refresh - Primary action */}
               <button
                 className="dropdown-item"
                 onClick={() => {
@@ -107,6 +108,11 @@ export function Settings() {
                 <RefreshCw size={18} />
                 <span>Refresh</span>
               </button>
+
+              {/* Divider */}
+              <div className="dropdown-divider" />
+
+              {/* Secondary actions */}
               <button
                 className="dropdown-item"
                 onClick={() => {

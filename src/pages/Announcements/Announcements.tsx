@@ -127,6 +127,9 @@ export const Announcements: React.FC = () => {
   };
 
   // Get filtered announcements and apply sorting
+  // IMPORTANT: Include `announcements` in deps - getFilteredAnnouncements is a stable
+  // function reference that doesn't change when data changes, so we need the data itself
+  // as a dependency to trigger recalculation
   const filteredAnnouncements = React.useMemo(() => {
     const filtered = getFilteredAnnouncements();
 
@@ -148,14 +151,16 @@ export const Announcements: React.FC = () => {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [getFilteredAnnouncements, sortOrder]);
+  }, [announcements, getFilteredAnnouncements, sortOrder]);
 
   return (
     <div className="announcements-container">
       {/* Header with Hamburger Menu, Title, and Actions */}
       <header className="page-header announcements-header">
-        <HamburgerMenu currentPage="announcements" />
-        <CompactOfflineIndicator />
+        <div className="header-left">
+          <HamburgerMenu currentPage="announcements" />
+          <CompactOfflineIndicator />
+        </div>
 
         <div className="header-center">
           <h1>
@@ -182,21 +187,7 @@ export const Announcements: React.FC = () => {
             {/* Dropdown Menu */}
             {showMenuDropdown && (
               <div className="dropdown-menu announcements-menu">
-                {/* Create Announcement */}
-                {canCreateAnnouncements && (
-                  <button
-                    onClick={() => {
-                      setShowCreateModal(true);
-                      setShowMenuDropdown(false);
-                    }}
-                    className="dropdown-item"
-                  >
-                    <Plus size={18} />
-                    <span>Create Announcement</span>
-                  </button>
-                )}
-
-                {/* Refresh Button */}
+                {/* Refresh - Primary action, always first */}
                 <button
                   onClick={() => {
                     handleRefresh();
@@ -209,7 +200,10 @@ export const Announcements: React.FC = () => {
                   <span>Refresh</span>
                 </button>
 
-                {/* Filter Toggle */}
+                {/* Divider */}
+                <div className="dropdown-divider" />
+
+                {/* Search & Sort */}
                 <button
                   onClick={() => {
                     setShowFilterPanel(true);
@@ -232,6 +226,20 @@ export const Announcements: React.FC = () => {
                   >
                     <CheckCircle size={18} />
                     <span>Mark All as Read</span>
+                  </button>
+                )}
+
+                {/* Create Announcement - Role-specific action */}
+                {canCreateAnnouncements && (
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(true);
+                      setShowMenuDropdown(false);
+                    }}
+                    className="dropdown-item"
+                  >
+                    <Plus size={18} />
+                    <span>Create Announcement</span>
                   </button>
                 )}
 

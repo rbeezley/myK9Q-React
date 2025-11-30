@@ -165,6 +165,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
 
           {showActionsMenu && (
             <div className="actions-dropdown-menu">
+              {/* Refresh - Primary action */}
               <button
                 onClick={() => {
                   setShowActionsMenu(false);
@@ -176,6 +177,11 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'rotating' : ''}`} />
                 Refresh
               </button>
+
+              {/* Divider after primary action */}
+              <div className="menu-divider" />
+
+              {/* Secondary actions */}
               {actionsMenu.showRunOrder && actionsMenu.onRunOrderClick && (
                 <button
                   onClick={() => {
@@ -201,7 +207,11 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
                   Recalculate Placements
                 </button>
               )}
+
+              {/* Divider before print options */}
               <div className="menu-divider" />
+
+              {/* Print options */}
               {actionsMenu.printOptions.map((option, index) => (
                 <button
                   key={index}

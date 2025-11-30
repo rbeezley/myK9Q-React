@@ -140,7 +140,7 @@
 }
 
 .actions-trigger:hover {
-  background: var(--surface-variant);
+  background: var(--muted);
   color: var(--foreground);
 }
 
@@ -179,7 +179,7 @@
 }
 
 .action-item:hover {
-  background: var(--surface-variant);
+  background: var(--muted);
 }
 
 .action-item.delete:hover {
@@ -538,7 +538,7 @@
   justify-content: space-between;
   padding: var(--token-space-xl);
   border-bottom: 1px solid var(--border);
-  background: var(--surface-variant);
+  background: var(--muted);
 }
 
 .header-left {
@@ -705,7 +705,7 @@ button.filter-option.high.active {
 .filter-summary {
   padding: var(--token-space-lg) var(--token-space-xl);
   border-top: 1px solid var(--border);
-  background: var(--surface-variant);
+  background: var(--muted);
   text-align: center;
 }
 
@@ -752,7 +752,7 @@ button.filter-option.high.active {
   justify-content: space-between;
   padding: var(--token-space-3xl);
   border-bottom: 1px solid var(--border);
-  background: var(--surface-variant);
+  background: var(--muted);
 }
 
 .header-left h2 {
@@ -1007,7 +1007,7 @@ button.filter-option.high.active {
 }
 
 .preview-announcement {
-  background: var(--surface-variant);
+  background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: var(--token-space-xl);
@@ -1109,7 +1109,7 @@ button.filter-option.high.active {
   gap: var(--token-space-lg);
   padding: var(--token-space-3xl);
   border-top: 1px solid var(--border);
-  background: var(--surface-variant);
+  background: var(--muted);
 }
 
 .btn {

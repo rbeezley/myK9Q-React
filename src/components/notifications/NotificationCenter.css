@@ -27,12 +27,13 @@
   bottom: 0;
   width: 420px;
   max-width: 90vw;
-  background: white;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  background-color: var(--background);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
   z-index: 10001;
   display: flex;
   flex-direction: column;
   animation: slide-in-right 0.3s ease-out;
+  overflow: hidden;
 }
 
 @keyframes slide-in-right {
@@ -44,27 +45,32 @@
   }
 }
 
-/* Header */
+/* Header - Matches Rules Assistant and Search & Sort panels */
 .notif-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: var(--brand-gradient);
-  color: white;
+  padding: var(--token-space-2xl);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
+  flex-shrink: 0;
 }
 
 .notif-panel-title {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--token-space-lg);
+}
+
+.notif-panel-title svg {
+  color: var(--primary);
 }
 
 .notif-panel-title h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--token-font-xl);
+  font-weight: var(--token-font-weight-semibold);
+  color: var(--foreground);
 }
 
 .notif-unread-badge {
@@ -74,7 +80,7 @@
   min-width: 24px;
   height: 24px;
   padding: 0 8px;
-  background: #dc2626;
+  background: var(--danger);
   color: white;
   border-radius: 12px;
   font-size: 13px;
@@ -82,20 +88,24 @@
 }
 
 .notif-close-btn {
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  padding: 8px;
-  border-radius: 8px;
-  color: white;
+  padding: var(--token-space-md);
+  border-radius: var(--token-space-md);
+  color: var(--token-text-tertiary);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .notif-close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background-color: var(--muted);
+}
+
+.notif-close-btn:active {
+  background-color: var(--border);
 }
 
 /* Filter Tabs */
@@ -410,10 +420,7 @@
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
 }
 
-.theme-dark .notif-panel-header {
-  border-bottom-color: #2a2a2a;
-  background: var(--brand-gradient-dark);
-}
+/* Dark mode header inherits from base styles via CSS variables - no override needed */
 
 .theme-dark .notif-filter-tabs {
   border-bottom-color: #2a2a2a;

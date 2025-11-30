@@ -148,24 +148,29 @@
   display: contents;
 }
 
+/* Label - secondary, muted styling */
 .requirement-content label {
   grid-column: 2;
   grid-row: 1;
   display: flex;
   align-items: center;
-  font-size: 0.75rem;  /* Mobile: smaller font */
-  font-weight: 600;
-  color: var(--foreground);
+  font-size: 0.6875rem;  /* Mobile: small label */
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   line-height: 1.2;
-  margin: 0 0 var(--token-space-xs) 0;  /* Mobile: smaller margin */
+  margin: 0;
 }
 
+/* Value - hero, prominent styling */
 .requirement-content .requirement-value {
   grid-column: 1 / -1;
   grid-row: 2;
-  font-size: 0.875rem;  /* Mobile: smaller font */
-  color: var(--muted-foreground);
-  line-height: 1.2;  /* Mobile: tighter line height */
+  font-size: 1.125rem;  /* Mobile: larger, prominent */
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.3;
   padding-left: 0;
   margin: 0;
   word-wrap: break-word;
@@ -249,13 +254,12 @@
   }
 
   .requirement-content label {
-    font-size: 1rem;  /* Desktop: larger font */
-    margin-bottom: 0;  /* Desktop: no extra margin */
+    font-size: 0.75rem;  /* Desktop: slightly larger label */
   }
 
   .requirement-content .requirement-value {
-    font-size: var(--token-space-lg);  /* Desktop: larger font */
-    line-height: 1.3;  /* Desktop: more relaxed line height */
+    font-size: 1.5rem;  /* Desktop: large, prominent value */
+    line-height: 1.3;
   }
 }
 
@@ -295,12 +299,13 @@
   border-color: var(--primary);
 }
 
+/* Dark mode: Labels stay muted, values stay prominent */
 .theme-dark .requirement-content label {
-  color: var(--token-text-white);
+  color: var(--token-text-secondary);
 }
 
 .theme-dark .requirement-content .requirement-value {
-  color: var(--token-text-muted);
+  color: var(--foreground);
 }
 
 .theme-dark .no-data-state h3 {

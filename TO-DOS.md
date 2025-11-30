@@ -139,3 +139,64 @@ Current passcode model (shared codes like `aa260`, `jf472`) works for per-show a
 - [Announcements.css](src/pages/Announcements/Announcements.css) - Removed unused banner/search CSS
 - [AnnouncementComponents.css](src/components/announcements/AnnouncementComponents.css) - Fixed form inputs to use `--input-bg`/`--input-text`, added `.theme-dark` overrides for modal
 
+## Standardize 3-Dot Menu Pattern - 2025-11-30 13:30 ✅ COMPLETE
+
+- **Standardized 3-dot overflow menu across all pages** - Refresh is now first, followed by divider, then other actions.
+
+**Pattern Applied To:**
+- ✅ **Announcements** - Refresh → divider → Search/Sort, Mark All Read, Create, Settings
+- ✅ **Settings** - Refresh → divider → Reset All
+- ✅ **Entry List** - Refresh → divider → Run Order, Recalculate → divider → Print options
+
+**Files Modified:**
+- [Announcements.tsx:187-257](src/pages/Announcements/Announcements.tsx#L187-L257) - Reordered menu items
+- [Announcements.css:186-191](src/pages/Announcements/Announcements.css#L186-L191) - Added `.dropdown-divider` style
+- [Settings.tsx:98-127](src/pages/Settings/Settings.tsx#L98-L127) - Added divider after Refresh
+- [Settings.css:150-154](src/pages/Settings/Settings.css#L150-L154) - Added `.dropdown-divider` style
+- [EntryListHeader.tsx:166-232](src/pages/EntryList/components/EntryListHeader.tsx#L166-L232) - Added divider after Refresh
+
+## Class Requirements Dialog Value Prominence - 2025-11-30 13:33 ✅ COMPLETE
+
+- **Swapped visual hierarchy** - Values are now the hero (large, bold, prominent), labels are secondary (small, muted, uppercase).
+
+**Before → After:**
+| Element | Before | After |
+|---------|--------|-------|
+| **Label** | `0.75rem`, `600 weight`, `--foreground` | `0.6875rem`, `500 weight`, `--muted-foreground`, uppercase |
+| **Value** | `0.875rem`, normal weight, `--muted-foreground` | `1.125rem` (mobile) / `1.5rem` (desktop), `700 weight`, `--foreground` |
+
+**Bug Fixed:** Desktop font-size was using `var(--token-space-lg)` (spacing token = 12px) instead of actual font size.
+
+**Files Modified:**
+- [ClassRequirementsDialog.css:151-177](src/components/dialogs/ClassRequirementsDialog.css#L151-L177) - Swapped label/value hierarchy
+- [ClassRequirementsDialog.css:256-263](src/components/dialogs/ClassRequirementsDialog.css#L256-L263) - Fixed desktop overrides
+- [ClassRequirementsDialog.css:302-309](src/components/dialogs/ClassRequirementsDialog.css#L302-L309) - Updated dark mode
+
+## Rules Assistant Dark Mode Text Visibility - 2025-11-30 ✅ COMPLETE
+
+- **FIXED:** Beta disclaimer and help text were nearly invisible in dark mode due to using `var(--token-text-secondary)`.
+
+**Changes:**
+- Beta disclaimer: Changed to `var(--foreground)` with amber-tinted background `rgba(245, 158, 11, 0.15)`
+- Beta disclaimer strong text: Uses `var(--token-warning)` for amber accent
+- Help text: Changed to `var(--foreground)` with teal-tinted background `rgba(20, 184, 166, 0.15)`
+
+**Files Modified:**
+- [RulesAssistant.css:44-57](src/components/rules/RulesAssistant.css#L44-L57) - Added dark mode overrides for text visibility
+
+## Inbox Panel Header Consistency - 2025-11-30 ✅ COMPLETE
+
+- **FIXED:** Inbox panel header now matches Rules Assistant and Search & Sort slide-out panels.
+
+**Before → After:**
+| Element | Before | After |
+|---------|--------|-------|
+| **Background** | `var(--brand-gradient)` (teal gradient) | `var(--card)` (neutral) |
+| **Title text** | White | `var(--foreground)` |
+| **Icon** | White | `var(--primary)` (teal) |
+| **Close button** | White on translucent | `var(--token-text-tertiary)` on transparent |
+
+**Files Modified:**
+- [NotificationCenter.css:47-108](src/components/notifications/NotificationCenter.css#L47-L108) - Updated header to use design tokens
+- [NotificationCenter.css:22-37](src/components/notifications/NotificationCenter.css#L22-L37) - Updated panel to use `var(--background)`
+
