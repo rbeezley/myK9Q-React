@@ -158,3 +158,19 @@ export function isNationalsCompetition(
 ): boolean {
   return !!showContext?.competition_type?.toLowerCase().includes('national');
 }
+
+/**
+ * Get the display time for an entry based on result status.
+ * Non-qualifying results (NQ, Absent, Excused, Withdrawn) show "00:00.00"
+ * Qualified results show actual time.
+ */
+export function getDisplayTime(
+  searchTime: number | string | null | undefined,
+  resultText: string | null | undefined,
+  formatFn: (time: number | string | null) => string
+): string {
+  if (isNonQualifyingResult(resultText)) {
+    return '00:00.00';
+  }
+  return formatFn(searchTime ?? null);
+}

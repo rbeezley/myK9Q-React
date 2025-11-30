@@ -307,7 +307,7 @@ await manager.syncTable('classes');
         const [year, month, day] = rawDate.split('T')[0].split('-');
         const formatted = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
         onTrialDateLoadedRef.current?.(formatted);
-        onTrialNumberLoadedRef.current?.('1');
+        onTrialNumberLoadedRef.current?.(String(trialData.trial_number || '1'));
       }
 
       // Get all entries for this class

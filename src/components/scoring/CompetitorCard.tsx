@@ -1,6 +1,7 @@
 import React from 'react';
 import { Entry } from '../../stores/entryStore';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
+import { isNonQualifyingResult } from '../../pages/EntryList/sortableEntryCardUtils';
 import './shared-scoring.css';
 
 interface CompetitorCardProps {
@@ -99,10 +100,10 @@ export const CompetitorCard: React.FC<CompetitorCardProps> = ({
         
         {entry.isScored && (
           <div className="score-summary">
-            {entry.searchTime && (
+            {(entry.searchTime || entry.resultText) && (
               <div className="score-item">
                 <label>Time</label>
-                <p>{formatTimeForDisplay(entry.searchTime || null)}</p>
+                <p>{isNonQualifyingResult(entry.resultText) ? '00:00.00' : formatTimeForDisplay(entry.searchTime || null)}</p>
               </div>
             )}
             

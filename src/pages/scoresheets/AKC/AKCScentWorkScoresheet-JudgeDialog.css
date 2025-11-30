@@ -410,17 +410,17 @@ body.dialog-open {
 }
 
 .dialog-btn.confirm {
-  background: var(--token-success);
+  background: var(--primary);
   color: white;
 }
 
 .dialog-btn.confirm:hover {
-  background: var(--token-success-contrast);
+  filter: brightness(1.1);
   transform: scale(1.02);
 }
 
 .dialog-btn.confirm:disabled {
-  background: rgba(16, 185, 129, 0.5);
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }

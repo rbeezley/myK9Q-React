@@ -16,7 +16,8 @@ import {
   getPlacementEmoji,
   getPlacementText,
   getStatusConfig,
-  isNationalsCompetition
+  isNationalsCompetition,
+  getDisplayTime
 } from './sortableEntryCardUtils';
 
 // ========================================
@@ -56,7 +57,7 @@ export const NationalsResultBadges: React.FC<NationalsResultBadgesProps> = ({ en
         <PlacementBadge placement={entry.placement!} />
       )}
       {entry.showTime !== false && (
-        <span className="time-badge">{formatTimeForDisplay(entry.searchTime || null)}</span>
+        <span className="time-badge">{getDisplayTime(entry.searchTime, entry.resultText, formatTimeForDisplay)}</span>
       )}
       {entry.showQualification !== false && (
         <span className={`result-badge ${getResultClassName(entry.resultText)}`}>
@@ -106,8 +107,8 @@ interface RegularResultBadgesProps {
 }
 
 export const RegularResultBadges: React.FC<RegularResultBadgesProps> = ({ entry }) => {
-  // Only show if there's a search time
-  if (!entry.searchTime) return null;
+  // Only show if entry is scored (removed searchTime check - NQ entries may not have time)
+  if (!entry.isScored) return null;
 
   const showPlacement =
     entry.showPlacement !== false &&
@@ -129,7 +130,7 @@ export const RegularResultBadges: React.FC<RegularResultBadgesProps> = ({ entry 
       {entry.showTime !== false && (
         <span className="time-badge">
           <Clock size={14} className="badge-icon" />
-          {formatTimeForDisplay(entry.searchTime || null)}
+          {getDisplayTime(entry.searchTime, entry.resultText, formatTimeForDisplay)}
         </span>
       )}
 

@@ -56,6 +56,14 @@ function formatQualifying(qualifying: string | null): string {
   }
 }
 
+/**
+ * Check if result is non-qualifying (NQ, Absent, Excused, Withdrawn)
+ */
+function isNonQualifying(qualifying: string | null): boolean {
+  const q = (qualifying || '').toUpperCase();
+  return q === 'NQ' || q === 'ABS' || q === 'EX' || q === 'WD';
+}
+
 export const ScoreConfirmationDialog: React.FC<ScoreConfirmationDialogProps> = ({
   isOpen,
   onClose,
@@ -74,13 +82,20 @@ export const ScoreConfirmationDialog: React.FC<ScoreConfirmationDialogProps> = (
 
   const isMultiArea = areas.length > 1;
 
+  // Build trial info parts, filtering out empty values
+  const trialInfoParts = [
+    trialDate,
+    trialNumber ? `Trial ${trialNumber}` : '',
+    entry.element ? `${entry.element} ${entry.level || ''}`.trim() : ''
+  ].filter(Boolean);
+
   return (
     <div className="judge-confirmation-overlay">
       <div className="judge-confirmation-dialog">
         <div className="dialog-header">
           <h2>Score Confirmation</h2>
           <div className="trial-info-line">
-            {trialDate} • Trial {trialNumber}{entry.element ? ` • ${entry.element} ${entry.level || ''}` : ''}
+            {trialInfoParts.join(' • ') || 'Trial Information'}
           </div>
         </div>
 
@@ -110,19 +125,25 @@ export const ScoreConfirmationDialog: React.FC<ScoreConfirmationDialogProps> = (
                 {areas.map((area, index) => (
                   <div key={index} className="score-item time-container">
                     <span className="item-label">{area.areaName} Time</span>
-                    <span className="item-value time-value">{area.time || '0:00.00'}</span>
+                    <span className="item-value time-value">
+                      {isNonQualifying(qualifying) ? '0:00.00' : (area.time || '0:00.00')}
+                    </span>
                   </div>
                 ))}
                 <div className="score-item time-container total-time">
                   <span className="item-label">Total Time</span>
-                  <span className="item-value time-value total">{calculateTotalTime()}</span>
+                  <span className="item-value time-value total">
+                    {isNonQualifying(qualifying) ? '0:00.00' : calculateTotalTime()}
+                  </span>
                 </div>
               </>
             ) : (
               /* Single area: show time */
               <div className="score-item time-container">
                 <span className="item-label">Time</span>
-                <span className="item-value time-value">{areas[0]?.time || calculateTotalTime()}</span>
+                <span className="item-value time-value">
+                  {isNonQualifying(qualifying) ? '0:00.00' : (areas[0]?.time || calculateTotalTime())}
+                </span>
               </div>
             )}
 

@@ -19,6 +19,7 @@ export interface Trial {
   id: string;
   show_id: string;
   trial_date: string;
+  trial_number?: number;
   element: string;
   organization: string;
   competition_type?: string;

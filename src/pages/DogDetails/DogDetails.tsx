@@ -13,6 +13,7 @@ import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtil
 import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
 import { DogStatistics } from './components/DogStatistics';
 import { PlacementBadge } from '../EntryList/SortableEntryCardComponents';
+import { isNonQualifyingResult } from '../EntryList/sortableEntryCardUtils';
 import type { DogResultEntry } from '../../components/reports/DogResultsSheet';
 import {
   ArrowLeft,
@@ -260,7 +261,11 @@ export const DogDetails: React.FC = () => {
   const getStatusColor = getEntryStatusColor;
   const getStatusLabel = getEntryStatusLabel;
 
-  const formatTime = (time: string | null) => {
+  const formatTime = (time: string | null, resultText?: string | null) => {
+    // Non-qualifying results (NQ, Absent, Excused, Withdrawn) show 00:00.00
+    if (isNonQualifyingResult(resultText)) {
+      return '00:00.00';
+    }
     return formatTimeForDisplay(time);
   };
 
@@ -528,7 +533,7 @@ export const DogDetails: React.FC = () => {
                     {entry.visibleFields?.showTime ? (
                       <span className="time-badge">
                         <Clock size={14} className="badge-icon" />
-                        {formatTime(entry.search_time)}
+                        {formatTime(entry.search_time, entry.result_text)}
                       </span>
                     ) : (
                       <span className="time-badge dimmed">
