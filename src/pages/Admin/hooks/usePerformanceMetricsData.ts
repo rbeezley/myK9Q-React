@@ -11,6 +11,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { metricsApiService, SessionSummaryRecord } from '../../../services/metricsApiService';
 import { logger } from '../../../utils/logger';
 
@@ -129,11 +130,28 @@ export function usePerformanceMetricsData(
   const sessionsQuery = useSessions(licenseKey, days);
   const statsQuery = useStats(licenseKey, days);
 
+  // Track online/offline status for graceful degradation
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return {
     sessions: sessionsQuery.data || [],
     stats: statsQuery.data || null,
     isLoading: sessionsQuery.isLoading || statsQuery.isLoading,
     isRefreshing: sessionsQuery.isFetching || statsQuery.isFetching,
+    isOffline,
     error: sessionsQuery.error || statsQuery.error,
     refetch: () => {
       sessionsQuery.refetch();

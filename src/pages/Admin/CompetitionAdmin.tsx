@@ -37,6 +37,7 @@ import {
 // Utils
 import { formatTrialDate } from '../../utils/dateUtils';
 import type { VisibilityPreset } from '../../types/visibility';
+import { OfflineFallback } from '@/components/ui';
 
 import './CompetitionAdmin.css';
 
@@ -44,7 +45,7 @@ export const CompetitionAdmin: React.FC = () => {
   const { licenseKey } = useParams<{ licenseKey: string }>();
 
   // Data fetching
-  const { showInfo, classes, trials, isLoading, error: queryError, refetch } = useCompetitionAdminData(licenseKey);
+  const { showInfo, classes, trials, isLoading, isOffline, error: queryError, refetch } = useCompetitionAdminData(licenseKey);
 
   // Admin name management
   const { adminName, setAdminName, requireAdminName } = useAdminName();
@@ -235,6 +236,15 @@ export const CompetitionAdmin: React.FC = () => {
       details: result.affectedClasses || []
     });
   };
+
+  // Offline state - show graceful degradation message
+  if (isOffline) {
+    return (
+      <OfflineFallback
+        message="Competition admin features require an internet connection. Please reconnect to manage classes and settings."
+      />
+    );
+  }
 
   // Loading state
   if (isLoading) {

@@ -13,7 +13,7 @@ import {
   type AuditLogFilters,
 } from '@/services/auditLogService';
 import { useAuditLogData } from './hooks/useAuditLogData';
-import { HamburgerMenu } from '@/components/ui';
+import { HamburgerMenu, OfflineFallback } from '@/components/ui';
 import { Clock, Filter, X, User, Calendar, Settings } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import './AuditLog.css';
@@ -32,6 +32,7 @@ const AuditLog: React.FC = () => {
     entries,
     administrators,
     isLoading: loading,
+    isOffline,
     error: queryError,
     refetch
   } = useAuditLogData(licenseKey, filters, limit);
@@ -61,6 +62,15 @@ const AuditLog: React.FC = () => {
           <p>You need administrator permissions to view the audit log.</p>
         </div>
       </div>
+    );
+  }
+
+  // Offline state - show graceful degradation message
+  if (isOffline) {
+    return (
+      <OfflineFallback
+        message="Audit log requires an internet connection. Please reconnect to view change history."
+      />
     );
   }
 

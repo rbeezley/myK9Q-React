@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { OfflineFallback } from '@/components/ui';
 
 interface DiagnosticResult {
   armbandNumber: string;
@@ -45,6 +46,21 @@ interface Props {
 export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
   const [results, setResults] = useState<DiagnosticResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // Track online/offline status for graceful degradation
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchDiagnostics = async () => {
@@ -131,6 +147,15 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
 
     fetchDiagnostics();
   }, [licenseKey, showId]);
+
+  // Offline state - show graceful degradation message
+  if (isOffline) {
+    return (
+      <OfflineFallback
+        message="Clean sweep diagnostics require an internet connection."
+      />
+    );
+  }
 
   if (loading) return <div>Loading diagnostics...</div>;
 

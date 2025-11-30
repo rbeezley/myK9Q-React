@@ -5,6 +5,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
+import type { Entry } from '@/services/replication';
+import { logger } from '@/utils/logger';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
@@ -235,7 +238,26 @@ export const ClassList: React.FC = () => {
     await prefetch(
       `class-entries-${classId}`,
       async () => {
-        // Fetch entries for this class
+        // Try replicated cache first (offline-first)
+        try {
+          const manager = await ensureReplicationManager();
+          const entriesTable = manager.getTable('entries');
+          if (entriesTable) {
+            const allEntries = await entriesTable.getAll() as Entry[];
+            const classEntries = allEntries
+              .filter(e => String(e.class_id) === String(classId))
+              .sort((a, b) => a.armband_number - b.armband_number);
+
+            if (classEntries.length > 0) {
+              logger.log('📡 Prefetched class entries from cache:', classId, classEntries.length);
+              return classEntries;
+            }
+          }
+        } catch (error) {
+          logger.error('❌ Error prefetching entries from cache:', error);
+        }
+
+        // Fall back to Supabase if cache miss
         const { data: entriesData } = await supabase
           .from('entries')
           .select(`
@@ -245,7 +267,8 @@ export const ClassList: React.FC = () => {
           .eq('class_id', classId)
           .order('armband_number', { ascending: true });
 
-return entriesData || [];
+        logger.log('📡 Prefetched class entries from Supabase:', classId, entriesData?.length || 0);
+        return entriesData || [];
       },
       {
         ttl: 60, // 1 minute cache

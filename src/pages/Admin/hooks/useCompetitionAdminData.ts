@@ -11,6 +11,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import type { VisibilityPreset } from '../../../types/visibility';
 
@@ -293,11 +294,28 @@ export function useCompetitionAdminData(licenseKey: string | undefined) {
   const classesQuery = useClasses(licenseKey);
   const trials = useTrials(licenseKey);
 
+  // Track online/offline status for graceful degradation
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return {
     showInfo: showInfoQuery.data,
     classes: classesQuery.data || [],
     trials,
     isLoading: showInfoQuery.isLoading || classesQuery.isLoading,
+    isOffline,
     error: showInfoQuery.error || classesQuery.error,
     refetch: () => {
       showInfoQuery.refetch();

@@ -43,6 +43,7 @@ interface UseStatsDataReturn {
   data: StatsData | null;
   isLoading: boolean;
   error: Error | null;
+  isOffline: boolean;
   refetch: () => void;
 }
 
@@ -131,7 +132,22 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
   const [data, setData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [_lastFetch, _setLastFetch] = useState(0);
+
+  // Track online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Build cache key from context
   const cacheKey = useMemo(() => {
@@ -154,6 +170,14 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
    * Main fetch function - orchestrates all data fetching
    */
   const fetchStats = async () => {
+    // Skip fetch if offline - stats require network connectivity
+    if (!navigator.onLine) {
+      setIsLoading(false);
+      setData(null);
+      logger.log('📊 Stats: Skipping fetch - offline');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -216,6 +240,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
     data,
     isLoading,
     error,
+    isOffline,
     refetch
   };
 }

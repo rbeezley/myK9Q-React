@@ -652,7 +652,7 @@ export function useClasses(trialId: string | undefined, licenseKey: string | und
     queryKey: classListKeys.classes(trialId || ''),
     queryFn: () => fetchClasses(trialId, licenseKey),
     enabled: !!trialId && !!licenseKey, // Only run if both are provided
-    staleTime: 0, // FORCE REFETCH EVERY TIME (for testing replication)
+    staleTime: 30 * 1000, // 30 seconds - entries can change frequently during scoring
     gcTime: 5 * 60 * 1000, // 5 minutes cache
     networkMode: 'always', // Run query even offline, will use cached data
     retry: false, // Don't retry when offline

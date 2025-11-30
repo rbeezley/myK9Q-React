@@ -7,7 +7,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useStatsData } from './hooks/useStatsData';
 import { supabase } from '../../lib/supabase';
 import { getLevelSortOrder } from '../../lib/utils';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
+import type { Trial, Class } from '@/services/replication';
+import { logger } from '@/utils/logger';
 import type { StatsLevel, StatsFilters } from './types/stats.types';
+import { OfflineFallback } from '@/components/ui';
 import './Stats.css';
 
 // Lazy load heavy chart components
@@ -54,18 +58,83 @@ export const Stats: React.FC = () => {
   }), [searchParams]);
 
   // Fetch stats data
-  const { data, isLoading, error, refetch } = useStatsData({
+  const { data, isLoading, error, isOffline, refetch } = useStatsData({
     level,
     showId: showContext?.showId,
     filters
   });
 
-  // Fetch filter options from view_stats_summary
+  // Fetch filter options - try cache first (offline-first)
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      if (!showContext?.licenseKey) return;
+      if (!showContext?.licenseKey || !showContext?.showId) return;
 
+      // Try to build filter options from replicated cache first
       try {
+        const manager = await ensureReplicationManager();
+        const trialsTable = manager.getTable('trials');
+        const classesTable = manager.getTable('classes');
+
+        if (trialsTable && classesTable) {
+          const allTrials = await trialsTable.getAll() as Trial[];
+          const allClasses = await classesTable.getAll() as Class[];
+
+          // Filter to current show
+          const showTrials = allTrials.filter(t => String(t.show_id) === String(showContext.showId));
+          const trialIds = new Set(showTrials.map(t => String(t.id)));
+          const showClasses = allClasses.filter(c => trialIds.has(String(c.trial_id)));
+
+          if (showTrials.length > 0 && showClasses.length > 0) {
+            logger.log('📊 Building Stats filter options from cache');
+
+            // Build trial number map
+            const trialNumberMap = new Map<string, number>();
+            const trialDateMap = new Map<string, string>();
+            showTrials.forEach(t => {
+              trialNumberMap.set(String(t.id), t.trial_number || 1);
+              trialDateMap.set(String(t.id), t.trial_date);
+            });
+
+            // Extract unique values from classes
+            const uniqueDates = [...new Set(showClasses.map(c => trialDateMap.get(String(c.trial_id))).filter(Boolean) as string[])].sort();
+            const uniqueElements = [...new Set(showClasses.map(c => c.element).filter(Boolean))].sort();
+            const uniqueLevels = [...new Set(showClasses.map(c => c.level).filter(Boolean))]
+              .sort((a, b) => getLevelSortOrder(a) - getLevelSortOrder(b));
+            const uniqueTrialNumbers = [...new Set(showTrials.map(t => t.trial_number).filter(Boolean) as number[])].sort((a, b) => a - b);
+
+            // Build classes list (filtered by trialId if specified)
+            let relevantClasses = showClasses;
+            if (trialId) {
+              relevantClasses = showClasses.filter(c => String(c.trial_id) === trialId);
+            }
+
+            const uniqueClasses = relevantClasses.map(c => ({
+              id: parseInt(String(c.id), 10),
+              name: `${c.element} - ${c.level}`,
+              trialDate: trialDateMap.get(String(c.trial_id)) || '',
+              trialNumber: trialNumberMap.get(String(c.trial_id))
+            })).sort((a, b) => a.name.localeCompare(b.name));
+
+            setFilterOptions({
+              trialDates: uniqueDates,
+              trialNumbers: uniqueTrialNumbers,
+              elements: uniqueElements,
+              levels: uniqueLevels,
+              classes: uniqueClasses
+            });
+
+            logger.log('✅ Stats filter options loaded from cache');
+            return; // Success - don't fall back to Supabase
+          }
+        }
+      } catch (error) {
+        logger.error('❌ Error loading Stats filter options from cache:', error);
+      }
+
+      // Fall back to Supabase queries
+      try {
+        logger.log('🔄 Fetching Stats filter options from Supabase...');
+
         const { data: statsData } = await supabase
           .from('view_stats_summary')
           .select('trial_date, trial_id, element, level, class_id')
@@ -147,7 +216,7 @@ export const Stats: React.FC = () => {
           }));
         }
       } catch (err) {
-        console.error('Error fetching filter options:', err);
+        logger.error('Error fetching filter options from Supabase:', err);
       }
     };
 
@@ -223,6 +292,15 @@ export const Stats: React.FC = () => {
 
     setSearchParams(params);
   };
+
+  // Offline state - show graceful degradation message
+  if (isOffline) {
+    return (
+      <OfflineFallback
+        message="Statistics require an internet connection. Please reconnect to view analytics."
+      />
+    );
+  }
 
   // Loading state
   if (isLoading) {

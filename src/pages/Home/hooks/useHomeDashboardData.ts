@@ -17,7 +17,7 @@ import { logger } from '../../../utils/logger';
 import { subscriptionCleanup } from '../../../services/subscriptionCleanup';
 import { debounce } from 'lodash';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
-import type { Entry } from '@/services/replication';
+import type { Entry, Trial, Class } from '@/services/replication';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -67,7 +67,66 @@ export const homeDashboardKeys = {
 // ============================================================
 
 /**
+ * Try to load trials from replicated cache
+ * Returns null if cache is not available or empty (signals fallback needed)
+ */
+async function tryLoadTrialsFromCache(showId: number): Promise<TrialData[] | null> {
+  try {
+    const manager = await ensureReplicationManager();
+    const trialsTable = manager.getTable('trials');
+    const classesTable = manager.getTable('classes');
+    const entriesTable = manager.getTable('entries');
+
+    if (!trialsTable) return null;
+
+    // Get trials for this show from cache (cast to proper types)
+    const allTrials = await trialsTable.getAll() as Trial[];
+    const showTrials = allTrials.filter(t => String(t.show_id) === String(showId));
+
+    logger.log(`✅ Loaded ${showTrials.length} trials from cache for show ${showId}`);
+
+    if (showTrials.length === 0) return null;
+
+    // Get classes and entries from cache for counts
+    const allClasses = classesTable ? await classesTable.getAll() as Class[] : [];
+    const allEntries = entriesTable ? await entriesTable.getAll() as Entry[] : [];
+
+    // Build trial data with counts from cached data
+    const processedTrials: TrialData[] = showTrials.map(trial => {
+      const trialId = String(trial.id);
+      const trialClasses = allClasses.filter(c => String(c.trial_id) === trialId);
+      const trialClassIds = new Set(trialClasses.map(c => String(c.id)));
+      const trialEntries = allEntries.filter(e => trialClassIds.has(String(e.class_id)));
+
+      const totalClasses = trialClasses.length;
+      const completedClasses = trialClasses.filter(c => c.is_completed).length;
+      const totalEntries = trialEntries.length;
+      const completedEntries = trialEntries.filter(e => e.is_scored).length;
+
+      return {
+        id: parseInt(trialId, 10),
+        show_id: parseInt(String(trial.show_id), 10),
+        trial_name: trial.element || '',
+        trial_date: trial.trial_date,
+        trial_number: trial.trial_number || 1,
+        trial_type: trial.competition_type || '',
+        classes_completed: completedClasses,
+        classes_total: totalClasses,
+        entries_completed: completedEntries,
+        entries_total: totalEntries
+      };
+    });
+
+    return processedTrials;
+  } catch (error) {
+    logger.error('❌ Error loading trials from cache:', error);
+    return null;
+  }
+}
+
+/**
  * Fetch trials with progress counts
+ * Uses replicated cache first (offline-first), falls back to Supabase
  */
 async function fetchTrials(showId: string | number | undefined): Promise<TrialData[]> {
   if (!showId) {
@@ -79,6 +138,20 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
   const numericShowId = typeof showId === 'string' ? parseInt(showId, 10) : showId;
 
   logger.log('🔍 Fetching trials for show ID:', numericShowId);
+
+  // Try replicated cache first (offline-first)
+  try {
+    const cachedTrials = await tryLoadTrialsFromCache(numericShowId);
+    if (cachedTrials && cachedTrials.length > 0) {
+      logger.log('✅ Using cached trials data:', cachedTrials.length, 'trials');
+      return cachedTrials;
+    }
+  } catch (error) {
+    logger.error('❌ Error loading from cache, falling back to Supabase:', error);
+  }
+
+  // Fall back to Supabase if cache miss or error
+  logger.log('🔄 Fetching trials from Supabase (cache miss or empty)...');
 
   // Load trials
   const { data: trialsData, error: trialsError } = await supabase

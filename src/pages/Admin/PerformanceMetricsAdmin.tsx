@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { metricsApiService, SessionSummaryRecord } from '@/services/metricsApiService';
 import { usePerformanceMetricsData } from './hooks/usePerformanceMetricsData';
-import { HamburgerMenu } from '@/components/ui';
+import { HamburgerMenu, OfflineFallback } from '@/components/ui';
 import './PerformanceMetricsAdmin.css';
 
 export function PerformanceMetricsAdmin() {
@@ -23,10 +23,20 @@ export function PerformanceMetricsAdmin() {
     sessions,
     stats,
     isLoading: loading,
+    isOffline,
   } = usePerformanceMetricsData(showContext?.licenseKey, selectedDays);
 
   if (!showContext?.licenseKey) {
     return <div className="error-message">Not authorized</div>;
+  }
+
+  // Offline state - show graceful degradation message
+  if (isOffline) {
+    return (
+      <OfflineFallback
+        message="Performance metrics require an internet connection. Please reconnect to view analytics."
+      />
+    );
   }
 
   return (

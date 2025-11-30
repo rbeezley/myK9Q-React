@@ -6,6 +6,8 @@ import { usePermission } from '../../hooks/usePermission';
 import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { supabase } from '../../lib/supabase';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
+import type { Class } from '@/services/replication';
 import { HamburgerMenu, CompactOfflineIndicator, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
@@ -203,14 +205,33 @@ export const Home: React.FC = () => {
     await prefetch(
       `trial-classes-${trialId}`,
       async () => {
-        // Fetch classes for this trial
+        // Try replicated cache first (offline-first)
+        try {
+          const manager = await ensureReplicationManager();
+          const classesTable = manager.getTable('classes');
+          if (classesTable) {
+            const allClasses = await classesTable.getAll() as Class[];
+            const trialClasses = allClasses
+              .filter(c => String(c.trial_id) === String(trialId))
+              .sort((a, b) => (a.class_order || 0) - (b.class_order || 0));
+
+            if (trialClasses.length > 0) {
+              logger.log('📡 Prefetched trial classes from cache:', trialId, trialClasses.length);
+              return trialClasses;
+            }
+          }
+        } catch (error) {
+          logger.error('❌ Error prefetching from cache:', error);
+        }
+
+        // Fall back to Supabase if cache miss
         const { data: classData } = await supabase
           .from('classes')
           .select('*')
           .eq('trial_id', trialId)
           .order('class_order');
 
-        logger.log('📡 Prefetched trial classes:', trialId, classData?.length || 0);
+        logger.log('📡 Prefetched trial classes from Supabase:', trialId, classData?.length || 0);
         return classData || [];
       },
       {

@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { logger } from '@/utils/logger';
 import { authenticatePasscode } from '../../services/authService';
 import { detectDatabaseWithValidation, isMigrationModeEnabled, V3ShowData } from '../../services/databaseDetectionService';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
 import { autoDownloadShow } from '../../services/autoDownloadService';
+import { prepareForOffline, wasRecentlyPrepared, type OfflinePreparationProgress } from '../../utils/chunkPrefetch';
+import { Loader2, Wifi, Database, CheckCircle } from 'lucide-react';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -15,6 +18,8 @@ export const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState('');
+  const [preparingOffline, setPreparingOffline] = useState(false);
+  const [offlineProgress, setOfflineProgress] = useState<OfflinePreparationProgress | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -128,6 +133,53 @@ inputRefs.current[0]?.focus();
     });
   };
 
+  /**
+   * Prepare app for offline use after successful login.
+   * Shows progress while loading chunks and syncing data.
+   * Skips overlay if already prepared within last 30 minutes.
+   */
+  const handlePostLoginPreparation = async (licenseKey: string) => {
+    // Skip the overlay if recently prepared (within 30 minutes)
+    // Chunks and data are already cached - just do a quick background refresh
+    if (wasRecentlyPrepared(licenseKey)) {
+      logger.log('[Login] Skipping offline prep overlay - recently prepared');
+      setIsLoading(false);
+      // Still trigger background refresh, but don't show overlay
+      triggerAutoDownload(licenseKey);
+      prepareForOffline(licenseKey, undefined, 10000).catch(() => {
+        // Ignore errors - this is a background refresh
+      });
+      navigate('/home');
+      return;
+    }
+
+    // First time for this show - show the preparation overlay
+    setIsLoading(false);
+    setPreparingOffline(true);
+
+    try {
+      // Run offline preparation with progress feedback
+      await prepareForOffline(
+        licenseKey,
+        (progress) => setOfflineProgress(progress),
+        20000 // 20 second timeout (then continues in background)
+      );
+
+      // Also trigger auto-download (runs in parallel/background)
+      triggerAutoDownload(licenseKey);
+
+      // Small delay to show completion state
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (error) {
+      console.warn('[Login] Offline preparation failed, continuing anyway:', error);
+    }
+
+    // Navigate to home regardless of preparation success
+    // (worst case, some things load on-demand)
+    setPreparingOffline(false);
+    navigate('/home');
+  };
+
   const handleSubmitWithPasscode = async (passcodeArray: string[]) => {
     const fullPasscode = passcodeArray.join('');
 
@@ -187,12 +239,9 @@ inputRefs.current[0]?.focus();
           };
           login(fullPasscode, showDataWithType);
 
-          // 🚀 AUTO-DOWNLOAD: Start background download for offline use
-          // All roles (admin, judge, steward, exhibitor) benefit from cached data
-          // Always enabled - offline-first architecture
-          triggerAutoDownload(showDataWithType.licenseKey);
-
-          navigate('/home');
+          // 🚀 OFFLINE PREPARATION: Load chunks + sync data before navigating
+          // Critical for judges who log in then walk to exterior areas (no wifi)
+          await handlePostLoginPreparation(showDataWithType.licenseKey);
           return;
         }
       }
@@ -213,12 +262,9 @@ inputRefs.current[0]?.focus();
       };
       login(fullPasscode, showDataWithType);
 
-      // 🚀 AUTO-DOWNLOAD: Start background download for offline use
-      // All roles (admin, judge, steward, exhibitor) benefit from cached data
-      // Always enabled - offline-first architecture
-      triggerAutoDownload(showDataWithType.licenseKey);
-
-      navigate('/home');
+      // 🚀 OFFLINE PREPARATION: Load chunks + sync data before navigating
+      // Critical for judges who log in then walk to exterior areas (no wifi)
+      await handlePostLoginPreparation(showDataWithType.licenseKey);
     } catch (err) {
       console.error('Login error:', err);
 
@@ -261,6 +307,55 @@ inputRefs.current[0]?.focus();
       {/* Show transition message when redirecting to legacy app */}
       {showTransition && (
         <TransitionMessage onComplete={handleTransitionComplete} />
+      )}
+
+      {/* Offline Preparation Overlay */}
+      {preparingOffline && (
+        <div className="offline-prep-overlay">
+          <div className="offline-prep-content">
+            <div className="offline-prep-icon">
+              {offlineProgress?.complete ? (
+                <CheckCircle className="h-12 w-12 text-primary animate-in fade-in" />
+              ) : (
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+              )}
+            </div>
+            <h2 className="offline-prep-title">
+              {offlineProgress?.complete ? 'Ready!' : 'Preparing for Offline Use'}
+            </h2>
+            <p className="offline-prep-description">
+              {offlineProgress?.complete
+                ? 'You can now use the app without wifi'
+                : offlineProgress?.phase === 'chunks'
+                  ? 'Loading app components...'
+                  : 'Syncing show data...'}
+            </p>
+            <div className="offline-prep-progress">
+              <div className="offline-prep-step">
+                <div className={`prep-step-icon ${offlineProgress && offlineProgress.chunksLoaded > 0 ? 'complete' : ''}`}>
+                  <Wifi className="h-4 w-4" />
+                </div>
+                <span>App Components</span>
+                {offlineProgress && (
+                  <span className="prep-step-count">
+                    {offlineProgress.chunksLoaded}/{offlineProgress.chunksTotal}
+                  </span>
+                )}
+              </div>
+              <div className="offline-prep-step">
+                <div className={`prep-step-icon ${offlineProgress?.phase === 'data' && offlineProgress.dataTablesReady > 0 ? 'complete' : ''}`}>
+                  <Database className="h-4 w-4" />
+                </div>
+                <span>Show Data</span>
+                {offlineProgress && offlineProgress.phase === 'data' && (
+                  <span className="prep-step-count">
+                    {offlineProgress.dataTablesReady}/{offlineProgress.dataTablesTotal}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Login page */}

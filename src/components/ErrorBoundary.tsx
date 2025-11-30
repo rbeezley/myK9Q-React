@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, Bug, WifiOff } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -65,17 +66,53 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   /**
-   * Detect if error is a chunk/module load failure (usually offline-related)
+   * Detect if error is a chunk/module load failure or network-related
+   * Shows offline-friendly UI for better UX when the user has no connectivity
    */
   private isChunkLoadError = (): boolean => {
-    const errorMessage = this.state.error?.message?.toLowerCase() || '';
-    return (
+    const error = this.state.error;
+    const errorMessage = error?.message?.toLowerCase() || '';
+    const errorName = error?.name?.toLowerCase() || '';
+    const errorString = String(error).toLowerCase();
+
+    // Check if browser reports offline
+    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+
+    // Log for debugging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      logger.log('[ErrorBoundary] Error details:', {
+        message: error?.message,
+        name: error?.name,
+        isOffline,
+        errorString: errorString.slice(0, 200)
+      });
+    }
+
+    // Pattern matching for various offline/network error scenarios
+    const isNetworkError = (
+      // Chunk loading failures
       errorMessage.includes('failed to fetch dynamically imported module') ||
       errorMessage.includes('loading chunk') ||
       errorMessage.includes('loading css chunk') ||
+      // General fetch failures (Supabase, dynamic imports)
       errorMessage.includes('failed to fetch') ||
-      errorMessage.includes('network error')
+      errorMessage.includes('fetch failed') ||
+      errorMessage.includes('networkerror') ||
+      errorMessage.includes('network error') ||
+      errorMessage.includes('network request failed') ||
+      // TypeError from failed fetch (common in some browsers)
+      (errorName === 'typeerror' && errorMessage.includes('fetch')) ||
+      // Supabase-specific errors
+      errorMessage.includes('connection') ||
+      errorMessage.includes('socket') ||
+      // Check stringified error (catches wrapped errors)
+      errorString.includes('failed to fetch') ||
+      errorString.includes('networkerror')
     );
+
+    // If browser is offline, show offline UI for any error
+    // (user can't do much without connectivity anyway)
+    return isNetworkError || isOffline;
   };
 
   private copyErrorDetails = () => {

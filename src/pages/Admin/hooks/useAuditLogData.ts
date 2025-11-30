@@ -11,6 +11,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import {
   fetchAuditLog,
   getUniqueAdministrators,
@@ -122,11 +123,28 @@ export function useAuditLogData(
   const entriesQuery = useAuditLogEntries(licenseKey, filters, limit);
   const administratorsQuery = useAdministrators(licenseKey);
 
+  // Track online/offline status for graceful degradation
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return {
     entries: entriesQuery.data || [],
     administrators: administratorsQuery.data || [],
     isLoading: entriesQuery.isLoading || administratorsQuery.isLoading,
     isRefreshing: entriesQuery.isFetching || administratorsQuery.isFetching,
+    isOffline,
     error: entriesQuery.error || administratorsQuery.error,
     refetch: () => {
       entriesQuery.refetch();

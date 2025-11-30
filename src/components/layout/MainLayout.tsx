@@ -5,7 +5,6 @@ import { AutoLogoutWarning } from '../ui/AutoLogoutWarning';
 import { ToastContainer } from '../notifications/ToastContainer';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { OfflineIndicator } from '../ui/OfflineIndicator';
-import { OfflineQueueStatus } from '../ui/OfflineQueueStatus';
 import { MonitoringDashboard } from '../monitoring/MonitoringDashboard';
 import { PerformanceMonitor } from '../monitoring/PerformanceMonitor';
 import { NetworkInspector } from '../monitoring/NetworkInspector';
@@ -59,7 +58,6 @@ export function MainLayout({ children, autoLogout }: MainLayoutProps) {
       <ToastContainer />
       <NotificationCenter />
       <OfflineIndicator />
-      <OfflineQueueStatus />
       <MonitoringDashboard />
 
       {/* Developer Tools */}

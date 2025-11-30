@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
+import type { Class, Entry, Trial } from '@/services/replication';
+import { logger } from '@/utils/logger';
 
 export interface ClassInfo {
   id: string;
@@ -93,32 +96,7 @@ export const useTVData = ({
 
     const fetchData = async () => {
       try {
-        // Fetch classes using the combined view (handles Novice A & B combining at DB level)
-        // NOTE: Removed total_entry_count and completed_entry_count - we calculate these from actual entry data
-        const { data: classes, error: classError } = await supabase
-          .from('view_combined_classes')
-          .select(`
-            id,
-            element,
-            level,
-            section,
-            class_name,
-            display_level,
-            judge_name,
-            class_status,
-            trial_date,
-            trial_number,
-            planned_start_time,
-            license_key
-          `)
-          .eq('license_key', licenseKey)
-          .in('class_status', ['in_progress', 'briefing', 'start_time', 'setup'])
-          .order('trial_date')
-          .order('trial_number');
-
-        if (classError) throw classError;
-
-        // Priority mapping for sorting
+        // Priority mapping for sorting (used in both cache and Supabase paths)
         const priorityMap: Record<string, number> = {
           'in_progress': 1,
           'briefing': 2,
@@ -126,93 +104,197 @@ export const useTVData = ({
           'setup': 4
         };
 
-        // Transform classes (counts will be calculated from entry data below)
-        // Note: Novice A & B are already combined by the view!
-        const transformedClasses: ClassInfo[] = (classes as RawClassData[] || [])
-          .map((cls) => ({
-            id: cls.id.toString(),
-            trial_date: cls.trial_date,
-            trial_number: cls.trial_number,
-            element_type: cls.element,
-            level: cls.display_level,  // Use display_level from view (handles "Novice" vs "Novice A")
-            section: cls.section,
-            class_name: cls.class_name,  // Use class_name from view (handles "Element Novice A & B")
-            judge_name: cls.judge_name,
-            entry_total_count: 0,  // Will be calculated from actual entries
-            entry_completed_count: 0,  // Will be calculated from actual entries
-            class_status: cls.class_status,
-            start_time: cls.planned_start_time
-          }))
-          .sort((a, b) => {
-            // First, sort by trial date
-            const dateCompare = a.trial_date.localeCompare(b.trial_date);
-            if (dateCompare !== 0) {
-              return dateCompare;
-            }
-
-            // Second, sort by trial number
-            if (a.trial_number !== b.trial_number) {
-              return a.trial_number - b.trial_number;
-            }
-
-            // Third, sort by status priority
-            const priorityA = priorityMap[a.class_status || 'setup'] || 99;
-            const priorityB = priorityMap[b.class_status || 'setup'] || 99;
-
-            if (priorityA !== priorityB) {
-              return priorityA - priorityB;
-            }
-
-            // Fourth, sort by start time (if available)
-            if (a.start_time && b.start_time) {
-              return a.start_time.localeCompare(b.start_time);
-            }
-
-            // Finally, fall back to element name
-            return (a.element_type || '').localeCompare(b.element_type || '');
-          });
-
-        // Fetch entries for all in-progress classes
-        // NOTE: Split into batches to avoid URL length limits with .in() clause
+        let transformedClasses: ClassInfo[] = [];
         let entries: RawEntryData[] = [];
-        if (transformedClasses.length > 0) {
-          const classIds = transformedClasses.map(c => parseInt(c.id));
-          const batchSize = 10; // Safe batch size for URL length
 
-          // Process in batches
-          for (let i = 0; i < classIds.length; i += batchSize) {
-            const batchIds = classIds.slice(i, i + batchSize);
+        // Try to load from cache first (offline-first)
+        let usedCache = false;
+        try {
+          const manager = await ensureReplicationManager();
+          const classesTable = manager.getTable('classes');
+          const entriesTable = manager.getTable('entries');
+          const trialsTable = manager.getTable('trials');
 
-            const { data: batchEntries, error: entryError } = await supabase
-              .from('view_entry_class_join_normalized')
-              .select(`
-                id,
-                armband_number,
-                dog_call_name,
-                dog_breed,
-                handler_name,
-                is_scored,
-                is_in_ring,
-                result_status,
-                section,
-                exhibitor_order,
-                trial_date,
-                trial_number,
-                element,
-                level,
-                entry_status
-              `)
-              .eq('license_key', licenseKey)
-              .in('class_id', batchIds)
-              .order('exhibitor_order');
+          if (classesTable && entriesTable && trialsTable) {
+            const allClasses = await classesTable.getAll() as Class[];
+            const allEntries = await entriesTable.getAll() as Entry[];
+            const allTrials = await trialsTable.getAll() as Trial[];
 
-            if (entryError) throw entryError;
+            // Filter classes by license_key and status
+            const activeStatuses = ['in_progress', 'briefing', 'start_time', 'setup'];
+            const filteredClasses = allClasses.filter(cls =>
+              cls.license_key === licenseKey &&
+              activeStatuses.includes(cls.class_status || '')
+            );
 
-            if (batchEntries) {
-              entries = [...entries, ...batchEntries];
+            if (filteredClasses.length > 0) {
+              logger.log('📺 Building TV data from cache:', filteredClasses.length, 'classes');
+
+              // Build trial lookup maps
+              const trialNumberMap = new Map<string, number>();
+              const trialDateMap = new Map<string, string>();
+              allTrials.forEach(t => {
+                trialNumberMap.set(String(t.id), t.trial_number || 1);
+                trialDateMap.set(String(t.id), t.trial_date);
+              });
+
+              // Transform classes from cache
+              transformedClasses = filteredClasses
+                .map((cls) => ({
+                  id: String(cls.id),
+                  trial_date: trialDateMap.get(String(cls.trial_id)) || '',
+                  trial_number: trialNumberMap.get(String(cls.trial_id)) || 1,
+                  element_type: cls.element,
+                  level: cls.level,
+                  section: cls.section,
+                  class_name: `${cls.element} ${cls.level}`,
+                  judge_name: cls.judge_name,
+                  entry_total_count: 0,
+                  entry_completed_count: 0,
+                  class_status: cls.class_status,
+                  start_time: cls.planned_start_time
+                }))
+                .sort((a, b) => {
+                  const dateCompare = a.trial_date.localeCompare(b.trial_date);
+                  if (dateCompare !== 0) return dateCompare;
+                  if (a.trial_number !== b.trial_number) return a.trial_number - b.trial_number;
+                  const priorityA = priorityMap[a.class_status || 'setup'] || 99;
+                  const priorityB = priorityMap[b.class_status || 'setup'] || 99;
+                  if (priorityA !== priorityB) return priorityA - priorityB;
+                  if (a.start_time && b.start_time) return a.start_time.localeCompare(b.start_time);
+                  return (a.element_type || '').localeCompare(b.element_type || '');
+                });
+
+              // Get entries for these classes
+              const classIdSet = new Set(filteredClasses.map(c => String(c.id)));
+              const filteredEntries = allEntries.filter(e =>
+                e.license_key === licenseKey &&
+                classIdSet.has(String(e.class_id))
+              );
+
+              // Map entries to RawEntryData format
+              entries = filteredEntries.map(e => {
+                const cls = filteredClasses.find(c => String(c.id) === String(e.class_id));
+                return {
+                  id: parseInt(String(e.id), 10),
+                  armband_number: e.armband_number,
+                  dog_call_name: e.dog_call_name,
+                  dog_breed: e.dog_breed,
+                  handler_name: e.handler_name,
+                  is_scored: e.is_scored,
+                  is_in_ring: e.is_in_ring || false,
+                  result_status: e.result_status,
+                  section: cls?.section,
+                  exhibitor_order: e.exhibitor_order,
+                  trial_date: trialDateMap.get(String(cls?.trial_id)) || '',
+                  trial_number: trialNumberMap.get(String(cls?.trial_id)) || 1,
+                  element: cls?.element || '',
+                  level: cls?.level || '',
+                  entry_status: e.entry_status || null
+                };
+              });
+
+              usedCache = true;
+              logger.log('✅ TV data loaded from cache:', transformedClasses.length, 'classes,', entries.length, 'entries');
             }
           }
+        } catch (cacheError) {
+          logger.error('❌ Error loading TV data from cache:', cacheError);
+        }
 
+        // Fall back to Supabase if cache didn't work
+        if (!usedCache) {
+          logger.log('🔄 Fetching TV data from Supabase...');
+
+          // Fetch classes using the combined view (handles Novice A & B combining at DB level)
+          const { data: classes, error: classError } = await supabase
+            .from('view_combined_classes')
+            .select(`
+              id,
+              element,
+              level,
+              section,
+              class_name,
+              display_level,
+              judge_name,
+              class_status,
+              trial_date,
+              trial_number,
+              planned_start_time,
+              license_key
+            `)
+            .eq('license_key', licenseKey)
+            .in('class_status', ['in_progress', 'briefing', 'start_time', 'setup'])
+            .order('trial_date')
+            .order('trial_number');
+
+          if (classError) throw classError;
+
+          // Transform classes from Supabase
+          transformedClasses = (classes as RawClassData[] || [])
+            .map((cls) => ({
+              id: cls.id.toString(),
+              trial_date: cls.trial_date,
+              trial_number: cls.trial_number,
+              element_type: cls.element,
+              level: cls.display_level,
+              section: cls.section,
+              class_name: cls.class_name,
+              judge_name: cls.judge_name,
+              entry_total_count: 0,
+              entry_completed_count: 0,
+              class_status: cls.class_status,
+              start_time: cls.planned_start_time
+            }))
+            .sort((a, b) => {
+              const dateCompare = a.trial_date.localeCompare(b.trial_date);
+              if (dateCompare !== 0) return dateCompare;
+              if (a.trial_number !== b.trial_number) return a.trial_number - b.trial_number;
+              const priorityA = priorityMap[a.class_status || 'setup'] || 99;
+              const priorityB = priorityMap[b.class_status || 'setup'] || 99;
+              if (priorityA !== priorityB) return priorityA - priorityB;
+              if (a.start_time && b.start_time) return a.start_time.localeCompare(b.start_time);
+              return (a.element_type || '').localeCompare(b.element_type || '');
+            });
+
+          // Fetch entries for all in-progress classes
+          if (transformedClasses.length > 0) {
+            const classIds = transformedClasses.map(c => parseInt(c.id));
+            const batchSize = 10;
+
+            for (let i = 0; i < classIds.length; i += batchSize) {
+              const batchIds = classIds.slice(i, i + batchSize);
+
+              const { data: batchEntries, error: entryError } = await supabase
+                .from('view_entry_class_join_normalized')
+                .select(`
+                  id,
+                  armband_number,
+                  dog_call_name,
+                  dog_breed,
+                  handler_name,
+                  is_scored,
+                  is_in_ring,
+                  result_status,
+                  section,
+                  exhibitor_order,
+                  trial_date,
+                  trial_number,
+                  element,
+                  level,
+                  entry_status
+                `)
+                .eq('license_key', licenseKey)
+                .in('class_id', batchIds)
+                .order('exhibitor_order');
+
+              if (entryError) throw entryError;
+
+              if (batchEntries) {
+                entries = [...entries, ...batchEntries];
+              }
+            }
+          }
         }
 
         // Helper to map check-in status text to numeric codes

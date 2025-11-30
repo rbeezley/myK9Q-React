@@ -3,6 +3,7 @@ import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth'
 import { initializeReplication, clearReplicationCaches, resetReplicationState } from '@/services/replication/initReplication';
 import { destroyReplicationManager } from '@/services/replication';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
+import { prefetchCriticalChunks, resetPrefetchState } from '@/utils/chunkPrefetch';
 import { logger } from '@/utils/logger';
 
 interface ShowContext {
@@ -183,6 +184,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.error('[Auth] ❌ Failed to initialize replication after login:', error);
       // Don't throw - app should work without replication
     }
+
+    // CRITICAL: Prefetch all lazy-loaded chunks for offline availability
+    // Judges log in at check-in (online) then walk to exterior search areas (offline)
+    // Without this, ClassList/EntryList chunks won't be available offline
+    prefetchCriticalChunks().catch(error => {
+      logger.warn('[Auth] ⚠️ Chunk prefetch failed (non-fatal):', error);
+    });
   }, [authState.showContext?.licenseKey]);
 
   const logout = useCallback(async (): Promise<LogoutResult> => {
@@ -239,6 +247,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Reset replication state so it can reinitialize with new license key
       resetReplicationState();
       logger.log('[Auth] ✅ Replication state reset');
+
+      // Reset chunk prefetch state so it re-prefetches on next login
+      resetPrefetchState();
+      logger.log('[Auth] ✅ Chunk prefetch state reset');
     } catch (error) {
       logger.error('[Auth] ⚠️ Error clearing caches on logout:', error);
       // Continue with logout even if cache clearing fails

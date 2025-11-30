@@ -529,3 +529,109 @@
     bottom: max(2.5rem, calc(env(safe-area-inset-bottom) + var(--token-space-xl)));
   }
 }
+
+/* ===== OFFLINE PREPARATION OVERLAY ===== */
+/* Shown after successful login while preparing for offline use */
+
+.offline-prep-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--login-dark-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.offline-prep-content {
+  text-align: center;
+  padding: var(--token-space-3xl);
+  max-width: 320px;
+}
+
+.offline-prep-icon {
+  margin-bottom: var(--token-space-xl);
+  display: flex;
+  justify-content: center;
+}
+
+.offline-prep-icon svg {
+  color: var(--accent-green);
+}
+
+.offline-prep-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--login-text-primary);
+  margin: 0 0 var(--token-space-md) 0;
+}
+
+.offline-prep-description {
+  font-size: 0.95rem;
+  color: var(--login-text-secondary);
+  margin: 0 0 var(--token-space-2xl) 0;
+}
+
+.offline-prep-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-md);
+}
+
+.offline-prep-step {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--token-radius-lg);
+  font-size: 0.9rem;
+  color: var(--login-text-secondary);
+}
+
+.prep-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.prep-step-icon svg {
+  width: 14px;
+  height: 14px;
+  color: var(--login-text-secondary);
+  transition: color 0.3s ease;
+}
+
+.prep-step-icon.complete {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  box-shadow: 0 0 12px var(--green-glow);
+}
+
+.prep-step-icon.complete svg {
+  color: white;
+}
+
+.prep-step-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--accent-green);
+  font-weight: 500;
+}
