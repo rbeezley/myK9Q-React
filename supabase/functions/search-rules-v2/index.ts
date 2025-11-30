@@ -2,11 +2,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// CORS restricted to production domain for security
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://app.myk9q.com",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  "https://app.myk9q.com",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+];
+
+/**
+ * Get CORS headers with dynamic origin checking
+ */
+function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
+  // Check if the request origin is in our allowed list
+  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)
+    ? requestOrigin
+    : ALLOWED_ORIGINS[0]; // Default to production
+
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 interface SearchRequest {
   query: string;
@@ -345,6 +362,9 @@ async function searchRules(
  * Main Edge Function handler
  */
 serve(async (req) => {
+  // Get CORS headers based on request origin
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -400,6 +420,19 @@ serve(async (req) => {
     console.log("Extracting answer from rules...");
     const answer = await extractAnswer(query, rules, anthropicKey);
     console.log("Extracted answer:", answer);
+
+    // Log query for anonymous usage analytics (fire-and-forget, non-blocking)
+    supabase
+      .from("rules_query_log")
+      .insert({
+        query,
+        results_count: rules.length,
+        answer_generated: rules.length > 0,
+        organization_code: organizationCode || null,
+        sport_code: sportCode || null,
+      })
+      .then(() => console.log("Query logged"))
+      .catch((err: Error) => console.error("Failed to log query:", err.message));
 
     // Return results
     return new Response(
