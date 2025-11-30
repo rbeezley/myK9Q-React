@@ -10,6 +10,64 @@ if (precacheManifest.length > 0) {
   workbox.precaching.precacheAndRoute(precacheManifest);
 }
 
+// ========================================
+// OFFLINE NAVIGATION & CACHING STRATEGIES
+// ========================================
+
+// Cache-first strategy for JS/CSS chunks (with network fallback)
+workbox.routing.registerRoute(
+  ({ request, url }) => {
+    // Match JS and CSS files from our origin
+    return (
+      url.origin === self.location.origin &&
+      (request.destination === 'script' || request.destination === 'style')
+    );
+  },
+  new workbox.strategies.CacheFirst({
+    cacheName: 'js-css-cache',
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 100,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+      }),
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+
+// Navigation requests: Try cache first, fall back to index.html for SPA routing
+workbox.routing.registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  async ({ event }) => {
+    try {
+      // Try network first for navigation
+      const networkResponse = await fetch(event.request);
+      return networkResponse;
+    } catch (error) {
+      // If network fails, return cached index.html (SPA fallback)
+      const cache = await caches.open('navigation-cache');
+      const cachedResponse = await cache.match('/index.html');
+      if (cachedResponse) {
+        console.log('📱 [SW] Serving cached index.html for offline navigation');
+        return cachedResponse;
+      }
+      // Last resort: try precache
+      return workbox.precaching.matchPrecache('/index.html');
+    }
+  }
+);
+
+// Cache index.html on first load
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('navigation-cache').then((cache) => {
+      return cache.add('/index.html');
+    })
+  );
+});
+
 // Get current license key from localStorage or session
 const getCurrentLicenseKey = async () => {
   // Try to get from various possible storage locations

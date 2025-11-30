@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Bug, WifiOff } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -64,6 +64,20 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
+  /**
+   * Detect if error is a chunk/module load failure (usually offline-related)
+   */
+  private isChunkLoadError = (): boolean => {
+    const errorMessage = this.state.error?.message?.toLowerCase() || '';
+    return (
+      errorMessage.includes('failed to fetch dynamically imported module') ||
+      errorMessage.includes('loading chunk') ||
+      errorMessage.includes('loading css chunk') ||
+      errorMessage.includes('failed to fetch') ||
+      errorMessage.includes('network error')
+    );
+  };
+
   private copyErrorDetails = () => {
     const errorDetails = {
       message: this.state.error?.message,
@@ -96,6 +110,56 @@ export class ErrorBoundary extends Component<Props, State> {
       // Custom fallback UI provided
       if (this.props.fallback) {
         return this.props.fallback;
+      }
+
+      const isOfflineError = this.isChunkLoadError();
+
+      // Offline/Chunk load error UI
+      if (isOfflineError) {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+              {/* Offline Icon */}
+              <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                <WifiOff className="w-8 h-8 text-orange-600" />
+              </div>
+
+              {/* Title */}
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">
+                Page Not Available Offline
+              </h1>
+
+              {/* Message */}
+              <p className="text-gray-600 mb-6">
+                This page needs an internet connection to load. Please check your connection and try again, or go back to the home page.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={this.handleReloadPage}
+                  className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Retry
+                </button>
+
+                <button
+                  onClick={this.handleGoHome}
+                  className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Home className="w-4 h-4" />
+                  Go to Home
+                </button>
+              </div>
+
+              {/* Tip */}
+              <p className="mt-6 text-sm text-gray-500">
+                💡 Tip: Visit pages while online to cache them for offline use.
+              </p>
+            </div>
+          </div>
+        );
       }
 
       // Default error UI

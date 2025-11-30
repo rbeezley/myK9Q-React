@@ -2409,20 +2409,20 @@
 
 /* State colors */
 .compact-offline-online .compact-offline-icon {
-  color: var(--success);
+  color: var(--success, #22c55e); /* Green with fallback */
   opacity: 0.6;
 }
 
 .compact-offline-offline .compact-offline-icon {
-  color: var(--warning);
+  color: var(--warning, #f59e0b); /* Orange with fallback */
 }
 
 .compact-offline-pending .compact-offline-icon {
-  color: var(--primary);
+  color: var(--primary, #3b82f6); /* Blue with fallback */
 }
 
 .compact-offline-syncing .compact-offline-icon {
-  color: var(--primary);
+  color: var(--primary, #3b82f6); /* Blue with fallback */
 }
 
 /* Syncing animation */
@@ -2454,20 +2454,20 @@
   line-height: 16px;
   text-align: center;
   color: white;
-  background: var(--destructive);
+  background: var(--destructive, #ef4444); /* Red with fallback */
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Offline state uses warning color for badge */
 .compact-offline-offline .compact-offline-badge {
-  background: var(--warning);
+  background: var(--warning, #f59e0b); /* Orange with fallback */
 }
 
 /* Pending/syncing state uses primary color for badge */
 .compact-offline-pending .compact-offline-badge,
 .compact-offline-syncing .compact-offline-badge {
-  background: var(--primary);
+  background: var(--primary, #3b82f6); /* Blue with fallback */
 }
 
 /* Reduced motion */
