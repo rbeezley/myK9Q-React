@@ -38,6 +38,8 @@ interface SortableEntryCardProps {
   onPrefetch?: (entry: Entry) => void;
   /** Section badge for combined views (A/B) */
   sectionBadge?: 'A' | 'B' | null;
+  /** Handler to open drag mode */
+  onOpenDragMode?: () => void;
 }
 
 // ========================================
@@ -56,8 +58,12 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
   setSelfCheckinDisabledDialog,
   onPrefetch,
   sectionBadge,
+  onOpenDragMode,
 }) => {
   const isInRing = entry.inRing || entry.status === 'in-ring';
+  const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const isLongPressRef = React.useRef(false);
+  const [isLongPressing, setIsLongPressing] = React.useState(false);
 
   const {
     attributes,
@@ -85,8 +91,34 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
   // Handle card click
   const handleCardClick = () => {
     if (isDragMode) return; // Disable navigation in drag mode
+    if (isLongPressRef.current) return; // Ignore click if it was a long press
     if (hasPermission('canScore')) handleEntryClick(entry);
   };
+
+  // Long press handlers
+  const startLongPress = React.useCallback(() => {
+    if (isDragMode || !onOpenDragMode) return;
+
+    isLongPressRef.current = false;
+    setIsLongPressing(true); // Start visual feedback
+
+    longPressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      setIsLongPressing(false); // End visual feedback
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+      onOpenDragMode();
+    }, 500); // 500ms long press
+  }, [isDragMode, onOpenDragMode]);
+
+  const cancelLongPress = React.useCallback(() => {
+    setIsLongPressing(false); // Cancel visual feedback
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
 
   // Handle status badge click
   const handleStatusBadgeClick = (e: React.MouseEvent) => {
@@ -108,7 +140,17 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={isDragMode ? 'sortable-item' : ''}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`${isDragMode ? 'sortable-item' : ''} ${isLongPressing ? 'long-pressing' : ''}`}
+      onTouchStart={startLongPress}
+      onTouchEnd={cancelLongPress}
+      onTouchMove={cancelLongPress}
+      onMouseDown={startLongPress}
+      onMouseUp={cancelLongPress}
+      onMouseLeave={cancelLongPress}
+    >
       {/* Drag handle (only shown in drag mode for non-in-ring entries) */}
       {isDragMode && !isInRing && (
         <div {...attributes} {...listeners} className="drag-handle-external">
@@ -124,9 +166,8 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
         handler={entry.handler}
         onClick={handleCardClick}
         onPrefetch={() => onPrefetch?.(entry)}
-        className={`${
-          hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
-        } ${entry.status === 'in-ring' ? 'in-ring' : ''}`}
+        className={`${hasPermission('canScore') && !entry.isScored ? 'clickable' : ''
+          } ${entry.status === 'in-ring' ? 'in-ring' : ''}`}
         statusBorder={getStatusBorderClass(entry)}
         resultBadges={<ResultBadges entry={entry} showContext={showContext} />}
         sectionBadge={sectionBadge}

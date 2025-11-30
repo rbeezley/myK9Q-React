@@ -3,7 +3,7 @@ import {
   DndContext,
   DragEndEvent,
   DragStartEvent,
-  rectIntersection,
+  closestCenter,
   SensorDescriptor,
   SensorOptions,
 } from '@dnd-kit/core';
@@ -49,6 +49,8 @@ export interface EntryListContentProps {
   onDragStart: (event: DragStartEvent) => void;
   /** DnD drag end handler */
   onDragEnd: (event: DragEndEvent) => Promise<void>;
+  /** Handler to open drag mode (long press) */
+  onOpenDragMode?: () => void;
 }
 
 /**
@@ -71,6 +73,7 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
   sensors,
   onDragStart,
   onDragEnd,
+  onOpenDragMode,
 }) => {
   if (entries.length === 0) {
     return (
@@ -84,7 +87,7 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={rectIntersection}
+      collisionDetection={closestCenter}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
@@ -107,6 +110,7 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
               setSelfCheckinDisabledDialog={onSelfCheckinDisabled}
               onPrefetch={onPrefetch}
               sectionBadge={showSectionBadges ? (entry.section as 'A' | 'B' | null) : undefined}
+              onOpenDragMode={onOpenDragMode}
             />
           ))}
         </div>

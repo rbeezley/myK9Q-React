@@ -8,18 +8,21 @@
 .entry-list-container {
   height: 100vh;
   overflow: hidden;
-  background: var(--secondary); /* Light: light gray background for better contrast with white containers */
+  background: var(--secondary);
+  /* Light: light gray background for better contrast with white containers */
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;
-  padding: 0 var(--token-space-lg); /* Add horizontal padding: 12px mobile */
+  padding: 0 var(--token-space-lg);
+  /* Add horizontal padding: 12px mobile */
 }
 
 /* Dark mode: darker background for contrast with cards */
 .theme-dark .entry-list-container {
-  background: var(--background); /* Uses global background token */
+  background: var(--background);
+  /* Uses global background token */
 }
 
 /* Scrollable content wrapper - contains entry grid that can scroll */
@@ -28,7 +31,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: var(--token-space-4xl);
-  min-height: 0; /* Required for flex children to fill available space */
+  min-height: 0;
+  /* Required for flex children to fill available space */
   /* Smooth scrolling for better UX */
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
@@ -46,10 +50,13 @@
   display: flex;
   align-items: center;
   gap: var(--token-space-md);
-  margin-left: auto;  /* Ensure buttons stay on the right */
-  flex-shrink: 0;     /* Prevent buttons from shrinking */
+  margin-left: auto;
+  /* Ensure buttons stay on the right */
+  flex-shrink: 0;
+  /* Prevent buttons from shrinking */
   position: relative;
-  z-index: var(--token-z-overlay);  /* Higher than announcement banner (50) and page-header (100) */
+  z-index: var(--token-z-overlay);
+  /* Higher than announcement banner (50) and page-header (100) */
 }
 
 /* Back button */
@@ -90,7 +97,8 @@
 /* Class/Trial info - Simplified for better mobile UX */
 .trial-info,
 .class-info {
-  flex: 1;  /* Take available space */
+  flex: 1;
+  /* Take available space */
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -99,12 +107,14 @@
   text-align: center;
   gap: 0;
   padding: 0 var(--token-space-md);
-  max-width: 100%;  /* Prevent overflow */
+  max-width: 100%;
+  /* Prevent overflow */
 }
 
 .trial-info h1,
 .class-info h1 {
-  font-size: 0.875rem;  /* Smaller for mobile */
+  font-size: 0.875rem;
+  /* Smaller for mobile */
   font-weight: 590;
   color: var(--foreground);
   margin: 0;
@@ -141,7 +151,8 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: var(--token-space-sm);
-  font-size: 0.8125rem;  /* Slightly larger for better readability */
+  font-size: 0.8125rem;
+  /* Slightly larger for better readability */
   color: var(--token-text-secondary);
   margin-top: var(--token-space-xs);
 }
@@ -253,11 +264,15 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.15);
-  z-index: var(--token-z-raised);  /* Inherits stacking context from parent .header-buttons (z-index: 300) */
-  min-width: 220px;  /* Increased width to prevent text wrapping */
-  max-width: calc(100vw - 2rem);  /* Prevent going off screen */
+  z-index: var(--token-z-raised);
+  /* Inherits stacking context from parent .header-buttons (z-index: 300) */
+  min-width: 220px;
+  /* Increased width to prevent text wrapping */
+  max-width: calc(100vw - 2rem);
+  /* Prevent going off screen */
   overflow: hidden;
-  margin-right: var(--token-space-sm);  /* Small margin from edge */
+  margin-right: var(--token-space-sm);
+  /* Small margin from edge */
 }
 
 .theme-dark .print-dropdown-menu {
@@ -312,9 +327,12 @@
   border: 1px solid var(--border);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  position: static;  /* Override sticky position */
-  top: auto;  /* Remove sticky top positioning */
-  z-index: auto;  /* Remove any z-index stacking context */
+  position: static;
+  /* Override sticky position */
+  top: auto;
+  /* Remove sticky top positioning */
+  z-index: auto;
+  /* Remove any z-index stacking context */
 }
 
 .status-tab {
@@ -369,7 +387,8 @@
   font-size: 0.875rem;
   font-weight: 600;
   white-space: nowrap;
-  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+  min-height: var(--comfortable-touch-target);
+  /* 36px - comfortable tap target */
 }
 
 .status-badge.not-checked-in {
@@ -719,7 +738,8 @@
 }
 
 .theme-dark .entry-card {
-  background: var(--card); /* Uses global card token */
+  background: var(--card);
+  /* Uses global card token */
 }
 
 /* Dark mode: Override status-specific backgrounds */
@@ -728,11 +748,9 @@
     0 0 0 1px var(--token-status-in-ring),
     0 4px 12px rgba(59, 130, 246, 0.25),
     inset -2px 0 8px rgba(59, 130, 246, 0.12);
-  background: linear-gradient(
-    to right,
-    rgba(59, 130, 246, 0.08) 0%,
-    transparent 40%
-  );
+  background: linear-gradient(to right,
+      rgba(59, 130, 246, 0.08) 0%,
+      transparent 40%);
 }
 
 .theme-dark .entry-card.status-in-ring:hover {
@@ -776,11 +794,9 @@
     0 0 0 1px var(--token-status-in-ring),
     0 4px 12px rgba(37, 99, 235, 0.15),
     inset -2px 0 8px rgba(37, 99, 235, 0.08);
-  background: linear-gradient(
-    to right,
-    rgba(37, 99, 235, 0.04) 0%,
-    transparent 40%
-  );
+  background: linear-gradient(to right,
+      rgba(37, 99, 235, 0.04) 0%,
+      transparent 40%);
   position: relative;
 }
 
@@ -892,14 +908,17 @@
   display: inline-flex;
   align-items: center;
   gap: var(--token-space-sm);
-  padding: var(--token-space-lg) var(--token-space-xl); /* Increased from 0.375rem 0.625rem for better tap target */
+  padding: var(--token-space-lg) var(--token-space-xl);
+  /* Increased from 0.375rem 0.625rem for better tap target */
   border-radius: var(--token-space-md);
-  font-size: 0.875rem; /* Increased from 0.6875rem for better readability */
+  font-size: 0.875rem;
+  /* Increased from 0.6875rem for better readability */
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+  min-height: var(--comfortable-touch-target);
+  /* 36px - comfortable tap target */
 }
 
 .checkin-status:hover {
@@ -912,7 +931,8 @@
 }
 
 .checkin-status.mobile-touch-target {
-  min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+  min-height: var(--comfortable-touch-target);
+  /* 36px - comfortable tap target */
   min-width: 90px;
   padding: var(--token-space-lg) var(--token-space-xl);
   font-size: 0.875rem;
@@ -921,7 +941,8 @@
 /* Check-in status colors */
 .checkin-status.not-checked-in {
   background: var(--token-status-none-bg);
-  color: #ffffff;  /* White text for readability on gray background */
+  color: #ffffff;
+  /* White text for readability on gray background */
 }
 
 .checkin-status.checked-in {
@@ -1039,14 +1060,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.3125rem 0.625rem; /* Slightly taller padding to match icon height in other badges */
+  padding: 0.3125rem 0.625rem;
+  /* Slightly taller padding to match icon height in other badges */
   border-radius: 0.75rem;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.025em;
   line-height: 1;
-  min-height: 1.375rem; /* Match height of badges with 14px icons */
+  min-height: 1.375rem;
+  /* Match height of badges with 14px icons */
   max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1119,9 +1142,12 @@
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  font-size: 0.6875rem; /* Smaller than other badges */
-  font-weight: 500; /* Less bold */
-  color: var(--token-text-secondary); /* More subtle color */
+  font-size: 0.6875rem;
+  /* Smaller than other badges */
+  font-weight: 500;
+  /* Less bold */
+  color: var(--token-text-secondary);
+  /* More subtle color */
   line-height: 1;
 }
 
@@ -1135,11 +1161,15 @@
 .regular-scoresheet-single-line {
   display: flex;
   align-items: center;
-  gap: var(--token-space-md); /* 8px spacing between badges */
+  gap: var(--token-space-md);
+  /* 8px spacing between badges */
   flex-wrap: wrap;
-  padding-top: var(--token-space-md);  /* Add top padding for divider spacing */
-  border-top: 1px solid var(--border);  /* Add divider line */
-  margin-top: var(--token-space-md);  /* Space above the divider */
+  padding-top: var(--token-space-md);
+  /* Add top padding for divider spacing */
+  border-top: 1px solid var(--border);
+  /* Add divider line */
+  margin-top: var(--token-space-md);
+  /* Space above the divider */
 }
 
 .placement-badge {
@@ -1221,7 +1251,8 @@
 /* Note: dnd-kit uses CSS transforms, so grid gap changes don't affect positioning. */
 /* We use margin on the items instead to create visual separation. */
 .grid-responsive.drag-mode {
-  gap: var(--token-space-2xl); /* Keep grid gap reasonable */
+  gap: var(--token-space-2xl);
+  /* Keep grid gap reasonable */
 }
 
 /* Add margin to cards in drag mode for visual separation */
@@ -1242,8 +1273,10 @@
 }
 
 .sortable-item {
-  position: relative; /* Positioning context for drag handle */
-  transition: margin 0.2s ease; /* Smooth transition when entering/exiting drag mode */
+  position: relative;
+  /* Positioning context for drag handle */
+  transition: margin 0.2s ease;
+  /* Smooth transition when entering/exiting drag mode */
 }
 
 .drag-handle-external {
@@ -1252,12 +1285,20 @@
   top: var(--token-space-sm);
   cursor: grab;
   color: var(--token-text-secondary);
-  padding: var(--token-space-sm);
+  padding: var(--token-space-md);
+  /* Increased from sm to md for larger touch target */
   background: var(--muted);
   border-radius: var(--token-space-sm);
-  opacity: 0.9; /* Always visible in drag mode for clear affordance */
+  opacity: 0.9;
+  /* Always visible in drag mode for clear affordance */
   transition: all 0.2s ease;
   z-index: 10;
+  /* Ensure minimum 44x44px touch target (Apple HIG recommendation) */
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .entry-card:hover .drag-handle-external {
@@ -1268,13 +1309,30 @@
   cursor: grabbing;
 }
 
+/* Long press animation */
+.long-pressing .entry-card {
+  transform: scale(0.96);
+  transition: transform 0.5s cubic-bezier(0.2, 0, 0, 1);
+  background: var(--muted);
+}
+
 .drag-overlay {
   opacity: 0.5;
 }
 
-.drag-preview {
-  transform: rotate(5deg);
-  box-shadow: 0 var(--token-space-md) var(--token-space-3xl) rgba(0, 0, 0, 0.2);
+/* Custom drag preview style - applied by dnd-kit when dragging */
+.sortable-item[style*="transform"] .entry-card {
+  /* This targets the item being dragged */
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02) rotate(1deg);
+  cursor: grabbing;
+  border-color: var(--primary);
+  z-index: 999;
+}
+
+/* Hide drag handle on the item being dragged to reduce clutter */
+.sortable-item[style*="transform"] .drag-handle-external {
+  opacity: 0;
 }
 
 /* ========== EMPTY STATE ========== */
@@ -1307,7 +1365,8 @@
 
 @media (min-width: 640px) {
   .entry-list-container {
-    padding: 0 var(--token-space-3xl); /* Desktop: 24px horizontal */
+    padding: 0 var(--token-space-3xl);
+    /* Desktop: 24px horizontal */
   }
 
   /* Show trial details on tablet and up */
@@ -1336,7 +1395,8 @@
     margin-right: 0;
     width: fit-content;
     font-size: 0.6875rem;
-    min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+    min-height: var(--comfortable-touch-target);
+    /* 36px - comfortable tap target */
     min-width: 60px;
     padding: 0.375rem var(--token-space-lg);
     cursor: pointer;
@@ -1372,7 +1432,8 @@
 
   .checkin-status.mobile-touch-target {
     font-size: 0.625rem;
-    min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+    min-height: var(--comfortable-touch-target);
+    /* 36px - comfortable tap target */
     min-width: 50px;
     padding: 0.3rem 0.6rem;
     margin-top: 0.375rem;
@@ -1387,6 +1448,7 @@
 /* ========== ACCESSIBILITY: REDUCED MOTION ========== */
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   .entry-card,
   .status-tab,
@@ -1427,7 +1489,8 @@
   background: var(--primary);
   color: var(--primary-foreground);
   border: none;
-  border-radius: 9999px; /* Pill shape */
+  border-radius: 9999px;
+  /* Pill shape */
 
   font-size: 1rem;
   font-weight: 600;
@@ -1448,6 +1511,7 @@
     opacity: 0;
     transform: translateY(20px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);

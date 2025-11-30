@@ -15,6 +15,7 @@ import { useRef, useCallback, useState } from 'react';
 import {
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -117,11 +118,20 @@ export function useDragAndDropEntries({
 
   // Configure DnD-kit sensors
   const sensors = useSensors(
+    // Mouse/trackpad support
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8, // Require 8px of movement before drag starts
       },
     }),
+    // Touch/mobile support with long-press activation
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,      // 250ms long-press to activate drag
+        tolerance: 5,    // Allow 5px of movement during long-press
+      },
+    }),
+    // Keyboard accessibility
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -135,9 +145,14 @@ export function useDragAndDropEntries({
     isDraggingRef.current = true;
     setIsDragging(true);
 
+    // Haptic feedback for mobile devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50); // Short 50ms vibration
+    }
+
     // Capture the current state at drag start - this won't change during the drag
     dragSnapshotRef.current = [...currentEntries];
-}, [currentEntries, isDraggingRef]);
+  }, [currentEntries, isDraggingRef]);
 
   /**
    * Handle drag end - Uses snapshot for stable index calculations
@@ -153,7 +168,7 @@ export function useDragAndDropEntries({
 
     // Must have a valid drop target and snapshot
     if (!over || active.id === over.id || !snapshot) {
-isDraggingRef.current = false;
+      isDraggingRef.current = false;
       setIsDragging(false);
       return;
     }
@@ -163,7 +178,7 @@ isDraggingRef.current = false;
     const targetIndex = snapshot.findIndex(entry => entry.id === over.id);
 
     if (oldIndex === -1 || targetIndex === -1) {
-isDraggingRef.current = false;
+      isDraggingRef.current = false;
       setIsDragging(false);
       return;
     }
@@ -173,13 +188,13 @@ isDraggingRef.current = false;
     if (inRingDogs.length > 0 && targetIndex === 0) {
       const draggedEntry = snapshot[oldIndex];
       if (!draggedEntry.inRing && draggedEntry.status !== 'in-ring') {
-isDraggingRef.current = false;
+        isDraggingRef.current = false;
         setIsDragging(false);
         return;
       }
     }
 
-// Create new reordered array from the snapshot
+    // Create new reordered array from the snapshot
     const reorderedEntries = arrayMove(snapshot, oldIndex, targetIndex);
 
     // Update exhibitor_order values locally
@@ -201,7 +216,7 @@ isDraggingRef.current = false;
     setIsUpdatingOrder(true);
     try {
       await updateExhibitorOrder(entriesWithNewOrder);
-} catch (error) {
+    } catch (error) {
       console.error('❌ Failed to update run order in database:', error);
       // The optimistic update already happened, so UI shows new order
       // If offline, the sync will happen later
@@ -213,7 +228,7 @@ isDraggingRef.current = false;
       setTimeout(() => {
         isDraggingRef.current = false;
         setIsDragging(false);
-}, gracePeriodMs);
+      }, gracePeriodMs);
     }
   }, [localEntries, setLocalEntries, setManualOrder, isDraggingRef, gracePeriodMs]);
 

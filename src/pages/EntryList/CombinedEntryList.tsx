@@ -562,6 +562,7 @@ export const CombinedEntryList: React.FC = () => {
             sensors={sensors}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
+            onOpenDragMode={handleOpenDragMode}
           />
         </div>
       </div>

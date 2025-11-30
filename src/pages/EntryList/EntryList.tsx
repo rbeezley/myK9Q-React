@@ -330,17 +330,17 @@ export const EntryList: React.FC = () => {
     setLocalEntries(prev => prev.map(entry =>
       entry.id === resetConfirmDialog.entry!.id
         ? {
-            ...entry,
-            isScored: false,
-            status: 'no-status',
-            checkinStatus: 'no-status',
-            checkedIn: false,
-            resultText: '',
-            searchTime: '',
-            faultCount: 0,
-            placement: undefined,
-            inRing: false
-          }
+          ...entry,
+          isScored: false,
+          status: 'no-status',
+          checkinStatus: 'no-status',
+          checkedIn: false,
+          resultText: '',
+          searchTime: '',
+          faultCount: 0,
+          placement: undefined,
+          inRing: false
+        }
         : entry
     ));
 
@@ -558,6 +558,7 @@ export const EntryList: React.FC = () => {
               sensors={sensors}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
+              onOpenDragMode={handleOpenDragMode}
             />
           </div>
         </div>
