@@ -244,6 +244,24 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
                 />
               </div>
 
+              {/* Content */}
+              <div className="form-group">
+                <label htmlFor="content" className="form-label">
+                  Content *
+                  <span className="char-count">{content.length}/2000</span>
+                </label>
+                <textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Enter announcement content..."
+                  className="form-textarea"
+                  rows={6}
+                  maxLength={2000}
+                  required
+                />
+              </div>
+
               {/* Priority */}
               <div className="form-group">
                 <label className="form-label">Priority *</label>
@@ -267,24 +285,6 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
                     </label>
                   ))}
                 </div>
-              </div>
-
-              {/* Content */}
-              <div className="form-group">
-                <label htmlFor="content" className="form-label">
-                  Content *
-                  <span className="char-count">{content.length}/2000</span>
-                </label>
-                <textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Enter announcement content..."
-                  className="form-textarea"
-                  rows={6}
-                  maxLength={2000}
-                  required
-                />
               </div>
 
               {/* Author Name (Optional) */}

@@ -123,17 +123,19 @@ Current passcode model (shared codes like `aa260`, `jf472`) works for per-show a
 
 - **Create Show Details page with contact and location links** - Add a dedicated page showing show information with actionable links for secretary email and show site address. **Problem:** Users currently have no way to view show details like secretary contact info, location on a map, or other show metadata. This information is available in the database but not exposed in the UI. **Files:** `src/pages/ShowDetails/ShowDetails.tsx` (new), `src/pages/ShowDetails/ShowDetails.css` (new), `src/App.tsx` (routing), `src/services/replication/tables/ReplicatedShowsTable.ts:18-35` (Show interface with secretary email, phone, location fields). **Solution:** Create new page accessible from ClassList or navigation. Display: show_name, club_name, start_date/end_date, show_secretary_name with `mailto:` link for email, show_secretary_phone with `tel:` link, location field with Google Maps link (`https://maps.google.com/?q={encoded_location}`), website link if available.
 
-## Fix Announcements Page UX Issues - 2025-11-30 09:10
+## Fix Announcements Page UX Issues - 2025-11-30 09:10 ✅ COMPLETE
 
-- **Fix header background color** - Match announcements header to other pages. **Problem:** Page header background doesn't match ClassList and other pages. **Files:** `src/pages/Announcements/Announcements.tsx:112`, `src/pages/Announcements/Announcements.css:14-17`. **Solution:** Update `announcements-header` to use same background styling as other page headers.
+**Summary:**
+- ✅ Removed "Connected to" banner (redundant info)
+- ✅ Notification Settings now navigates to Settings page
+- ✅ 3-dot menu closes on outside click
+- ✅ Header uses shared `.page-header` styles correctly
+- ✅ Replaced inline search/filters with slide-out FilterPanel
+- ✅ Added sorting options: Newest, Oldest, Priority, Unread
+- ✅ Fixed Create Announcement modal dark mode (white-on-white inputs)
 
-- **Convert to slide-out filter panel** - Replace inline filters with reusable FilterPanel component. **Problem:** Announcements uses its own inline filter/search UI instead of the consistent slide-out FilterPanel used elsewhere. **Files:** `src/pages/Announcements/Announcements.tsx:55` (showFilters state), `src/pages/Announcements/Announcements.tsx:264-271` (inline AnnouncementFilters), `src/components/ui/FilterPanel.tsx` (reusable component). **Solution:** Replace `AnnouncementFilters` with `FilterPanel` slide-out component, move search into the panel.
-
-- **Remove "Connected to" banner** - Delete the show context banner with license key and live updates status. **Problem:** This information is redundant/not needed on announcements page. **Files:** `src/pages/Announcements/Announcements.tsx:211-235` (banner JSX), `src/pages/Announcements/Announcements.css:176-241` (banner styles). **Solution:** Remove the `show-context-banner` section entirely.
-
-- **Move search to filter panel** - Relocate search input into the slide-out filter panel. **Problem:** Search is currently inline below header, inconsistent with other pages. **Files:** `src/pages/Announcements/Announcements.tsx:242-262` (search section), `src/pages/Announcements/Announcements.css:243-300` (search styles). **Solution:** Move search input into the FilterPanel component.
-
-- **Navigate to Settings for notifications** - Change notification settings to navigate to Settings page. **Problem:** Clicking "Notification Settings" displays inline settings instead of navigating to the Settings page. **Files:** `src/pages/Announcements/Announcements.tsx:195-204` (menu item), `src/pages/Announcements/Announcements.tsx:237-240` (inline NotificationSettings). **Solution:** Use `navigate('/settings')` and remove inline `NotificationSettings` component.
-
-- **Close 3-dot menu on outside click** - Add click-outside handler for dropdown menu. **Problem:** Menu stays open when clicking elsewhere on screen. **Files:** `src/pages/Announcements/Announcements.tsx:128-207` (menu container and dropdown). **Solution:** Add `useEffect` with click-outside listener to close `showMenuDropdown` when clicking outside `.menu-container`.
+**Files Modified:**
+- [Announcements.tsx](src/pages/Announcements/Announcements.tsx) - Simplified UI, added FilterPanel with sort
+- [Announcements.css](src/pages/Announcements/Announcements.css) - Removed unused banner/search CSS
+- [AnnouncementComponents.css](src/components/announcements/AnnouncementComponents.css) - Fixed form inputs to use `--input-bg`/`--input-text`, added `.theme-dark` overrides for modal
 

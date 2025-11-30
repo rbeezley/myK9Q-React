@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { useAnnouncementStore } from '../../stores/announcementStore';
@@ -7,13 +8,10 @@ import { HamburgerMenu, CompactOfflineIndicator, PullToRefresh } from '../../com
 import { useSettingsStore } from '@/stores/settingsStore';
 import { AnnouncementCard } from '../../components/announcements/AnnouncementCard';
 import { CreateAnnouncementModal } from '../../components/announcements/CreateAnnouncementModal';
-import { AnnouncementFilters } from '../../components/announcements/AnnouncementFilters';
 import { DeleteConfirmationModal } from '../../components/announcements/DeleteConfirmationModal';
-import { NotificationSettings } from '../../components/announcements/NotificationSettings';
+import { FilterPanel } from '../../components/ui/FilterPanel';
 import {
   Plus,
-  Search,
-  X,
   Bell,
   RefreshCw,
   Filter,
@@ -21,12 +19,18 @@ import {
   AlertTriangle,
   Info,
   Settings,
-  MoreVertical
+  MoreVertical,
+  ArrowDown,
+  ArrowUp,
+  AlertCircle,
+  Mail,
+  Search
 } from 'lucide-react';
 import './Announcements.css';
 import '../../components/announcements/AnnouncementComponents.css';
 
 export const Announcements: React.FC = () => {
+  const navigate = useNavigate();
   const { showContext, role } = useAuth();
   const { hasRole } = usePermission();
   const { settings } = useSettingsStore();
@@ -36,7 +40,6 @@ export const Announcements: React.FC = () => {
     isLoading,
     error,
     currentLicenseKey,
-    currentShowName,
     filters,
     setLicenseKey,
     fetchAnnouncements,
@@ -46,19 +49,41 @@ export const Announcements: React.FC = () => {
     clearFilters,
     getFilteredAnnouncements,
     enableRealtime: _enableRealtime,
-    isConnected,
     deleteAnnouncement
   } = useAnnouncementStore();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<string>('newest');
+
+  // Sort options for FilterPanel
+  const sortOptions = [
+    { value: 'newest', label: 'Newest', icon: <ArrowDown size={16} /> },
+    { value: 'oldest', label: 'Oldest', icon: <ArrowUp size={16} /> },
+    { value: 'priority', label: 'Priority', icon: <AlertCircle size={16} /> },
+    { value: 'unread', label: 'Unread', icon: <Mail size={16} /> },
+  ];
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; announcement: Announcement | null }>({ isOpen: false, announcement: null });
   const [isDeleting, setIsDeleting] = useState(false);
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!showMenuDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenuDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenuDropdown]);
 
   // Can create announcements if admin, judge, or steward
   const canCreateAnnouncements = hasRole(['admin', 'judge', 'steward']);
@@ -101,10 +126,29 @@ export const Announcements: React.FC = () => {
     }
   };
 
-  const filteredAnnouncements = getFilteredAnnouncements();
+  // Get filtered announcements and apply sorting
+  const filteredAnnouncements = React.useMemo(() => {
+    const filtered = getFilteredAnnouncements();
 
-  // Show context banner
-  const showContextBanner = currentShowName || currentLicenseKey;
+    // Priority order for sorting (urgent first, then high, then normal)
+    const priorityOrder: Record<string, number> = { urgent: 0, high: 1, normal: 2 };
+
+    return [...filtered].sort((a, b) => {
+      switch (sortOrder) {
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'priority':
+          return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
+        case 'unread':
+          // Unread first, then by date
+          if (a.is_read !== b.is_read) return a.is_read ? 1 : -1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'newest':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+  }, [getFilteredAnnouncements, sortOrder]);
 
   return (
     <div className="announcements-container">
@@ -125,7 +169,7 @@ export const Announcements: React.FC = () => {
 
         <div className="header-actions">
           {/* 3-Dot Menu */}
-          <div className="menu-container" style={{ position: 'relative' }}>
+          <div ref={menuRef} className="menu-container" style={{ position: 'relative' }}>
             <button
               onClick={() => setShowMenuDropdown(!showMenuDropdown)}
               className="action-btn menu-btn"
@@ -168,13 +212,13 @@ export const Announcements: React.FC = () => {
                 {/* Filter Toggle */}
                 <button
                   onClick={() => {
-                    setShowFilters(!showFilters);
+                    setShowFilterPanel(true);
                     setShowMenuDropdown(false);
                   }}
-                  className={`dropdown-item ${showFilters ? 'active' : ''}`}
+                  className="dropdown-item"
                 >
                   <Filter size={18} />
-                  <span>Filter</span>
+                  <span>Search & Sort</span>
                 </button>
 
                 {/* Mark All Read */}
@@ -194,10 +238,10 @@ export const Announcements: React.FC = () => {
                 {/* Notification Settings */}
                 <button
                   onClick={() => {
-                    setShowNotificationSettings(!showNotificationSettings);
+                    navigate('/settings');
                     setShowMenuDropdown(false);
                   }}
-                  className={`dropdown-item ${showNotificationSettings ? 'active' : ''}`}
+                  className="dropdown-item"
                 >
                   <Settings size={18} />
                   <span>Notification Settings</span>
@@ -208,67 +252,19 @@ export const Announcements: React.FC = () => {
         </div>
       </header>
 
-      {/* Show Context Banner */}
-      {showContextBanner && (
-        <div className="show-context-banner">
-          <div className="context-info">
-            <span className="context-label">📍 Connected to:</span>
-            <span className="context-name">{currentShowName || 'Current Show'}</span>
-            {currentLicenseKey && (
-              <span className="context-license">{currentLicenseKey.slice(0, 8)}...</span>
-            )}
-          </div>
-          <div className="context-status">
-            {isConnected ? (
-              <span className="status-connected">
-                <span className="status-dot"></span>
-                Live updates
-              </span>
-            ) : (
-              <span className="status-disconnected">
-                <span className="status-dot offline"></span>
-                Offline
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Notification Settings */}
-      {showNotificationSettings && (
-        <NotificationSettings />
-      )}
-
-      {/* Search Bar */}
-      <div className="search-section">
-        <div className="search-input-container">
-          <Search className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search announcements..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="clear-search-btn"
-            >
-              <X />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Filters */}
-      {showFilters && (
-        <AnnouncementFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          onClearFilters={clearFilters}
-        />
-      )}
+      {/* Filter Panel */}
+      <FilterPanel
+        isOpen={showFilterPanel}
+        onClose={() => setShowFilterPanel(false)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search announcements..."
+        sortOptions={sortOptions}
+        sortOrder={sortOrder}
+        onSortChange={setSortOrder}
+        resultsLabel={`${filteredAnnouncements.length} of ${announcements.length} announcements`}
+        title="Search & Sort"
+      />
 
       {/* Content with Pull to Refresh */}
       <PullToRefresh

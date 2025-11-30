@@ -41,13 +41,13 @@
   overflow: hidden;
 }
 
-/* Ensure opaque background in both themes */
-:root .rules-panel {
-  background-color: #fefefe;
+/* Dark mode overrides for text visibility */
+.theme-dark .rules-beta-disclaimer {
+  color: var(--token-text-secondary);
 }
 
-:root.dark .rules-panel {
-  background-color: #1a1d23;
+.theme-dark .rules-help-text {
+  color: var(--token-text-secondary);
 }
 
 @media (max-width: 640px) {

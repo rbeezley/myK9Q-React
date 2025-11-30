@@ -173,132 +173,6 @@ button.action-btn.active svg {
   color: currentColor;
 }
 
-/* Show Context Banner */
-.show-context-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--token-space-lg) var(--token-space-lg);
-  background: var(--info-subtle);
-  border-bottom: 1px solid var(--border);
-  color: var(--info);
-}
-
-.context-info {
-  display: flex;
-  align-items: center;
-  gap: var(--token-space-md);
-  font-size: 0.875rem;
-}
-
-.context-label {
-  font-weight: 500;
-}
-
-.context-name {
-  font-weight: 600;
-}
-
-.context-license {
-  background: var(--surface);
-  padding: var(--token-space-xs) 0.375rem;
-  border-radius: 0.25rem;
-  font-family: monospace;
-  font-size: 0.75rem;
-  color: var(--token-text-secondary);
-}
-
-.context-status {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-}
-
-.status-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--success);
-  animation: pulse 2s infinite;
-}
-
-.status-dot.offline {
-  background: var(--warning);
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.status-connected {
-  color: var(--success);
-}
-
-.status-disconnected {
-  color: var(--warning);
-}
-
-/* Search Section */
-.search-section {
-  padding: var(--token-space-xl) var(--token-space-lg) 0;
-}
-
-.search-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-/* .search-icon is defined in shared-components.css */
-
-.search-input {
-  width: 100%;
-  padding: var(--token-space-lg) var(--token-space-xl) var(--token-space-lg) 2.5rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  background: var(--surface);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.search-input:focus {
-  border-color: var(--primary);
-}
-
-.search-input::placeholder {
-  color: var(--token-text-secondary);
-}
-
-.clear-search-btn {
-  position: absolute;
-  right: var(--token-space-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: 0.25rem;
-  background: var(--surface-variant);
-  color: var(--token-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.clear-search-btn:hover {
-  background: var(--danger-subtle);
-  color: var(--danger);
-}
-
-.clear-search-btn svg {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
 /* Content Area */
 .announcements-content {
   padding: var(--token-space-xl) var(--token-space-lg);
@@ -508,17 +382,6 @@ button.action-btn.active svg {
   font-size: 1.125rem;  /* Mobile: title size */
 }
 
-.show-context-banner {
-  padding: var(--token-space-md) var(--token-space-xl);  /* Mobile: padding */
-  flex-direction: column;  /* Mobile: stack vertically */
-  align-items: flex-start;  /* Mobile: align left */
-  gap: var(--token-space-md);  /* Mobile: gap */
-}
-
-.context-info {
-  flex-wrap: wrap;  /* Mobile: wrap */
-}
-
 .active-filters-summary {
   left: var(--token-space-xl);  /* Mobile: edges */
   right: var(--token-space-xl);
@@ -570,18 +433,6 @@ button.action-btn.active svg {
     height: 2.5rem;
   }
 
-  /* Show Context Banner */
-  .show-context-banner {
-    padding: var(--token-space-lg) var(--token-space-xl);  /* Desktop: larger padding */
-    flex-direction: row;  /* Desktop: horizontal layout */
-    align-items: center;  /* Desktop: center align */
-    gap: var(--token-space-lg);  /* Desktop: larger gap */
-  }
-
-  .context-info {
-    flex-wrap: nowrap;  /* Desktop: no wrap */
-  }
-
   /* Active Filters Summary */
   .active-filters-summary {
     left: 50%;  /* Desktop: center */
@@ -604,16 +455,6 @@ button.action-btn.active svg {
 
 /* Desktop (1024px+) */
 @media (min-width: 1024px) {
-  /* Show Context Banner */
-  .show-context-banner {
-    padding: var(--token-space-lg) var(--token-space-3xl);
-  }
-
-  /* Search Section */
-  .search-section {
-    padding: var(--token-space-xl) var(--token-space-3xl) 0;
-  }
-
   /* Content Area */
   .announcements-content {
     padding: var(--token-space-xl) var(--token-space-3xl);

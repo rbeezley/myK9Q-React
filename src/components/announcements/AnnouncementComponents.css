@@ -861,8 +861,8 @@ button.filter-option.high.active {
   padding: var(--token-space-lg);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
-  background: var(--surface);
-  color: var(--foreground);
+  background: var(--input-bg);
+  color: var(--input-text);
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.2s ease;
@@ -872,6 +872,43 @@ button.filter-option.high.active {
 .form-input:focus,
 .form-textarea:focus {
   border-color: var(--primary);
+  background: var(--input-bg);
+  color: var(--input-text);
+}
+
+/* Dark mode: ensure inputs stay dark on all states */
+.theme-dark .form-input,
+.theme-dark .form-textarea {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  color-scheme: dark;
+}
+
+.theme-dark .form-input:focus,
+.theme-dark .form-textarea:focus,
+.theme-dark .form-input:active,
+.theme-dark .form-textarea:active {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Override browser autofill styles in dark mode */
+.theme-dark .form-input:-webkit-autofill,
+.theme-dark .form-input:-webkit-autofill:hover,
+.theme-dark .form-input:-webkit-autofill:focus,
+.theme-dark .form-textarea:-webkit-autofill,
+.theme-dark .form-textarea:-webkit-autofill:hover,
+.theme-dark .form-textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #1f2937 inset !important;
+  -webkit-text-fill-color: #f9fafb !important;
+  caret-color: #f9fafb !important;
+}
+
+/* Text selection in dark mode */
+.theme-dark .form-input::selection,
+.theme-dark .form-textarea::selection {
+  background: var(--primary);
+  color: white;
 }
 
 .form-textarea {
@@ -1187,4 +1224,26 @@ button.filter-option.high.active {
   .announcement-filters {
     margin: 0 var(--token-space-3xl) var(--token-space-xl);
   }
+}
+
+/* Dark Mode Overrides for Modals */
+.theme-dark .modal-content {
+  background: var(--card);
+}
+
+.theme-dark .modal-header,
+.theme-dark .modal-footer {
+  background: var(--muted);
+}
+
+.theme-dark .preview-announcement {
+  background: var(--muted);
+}
+
+.theme-dark .priority-card {
+  background: var(--card);
+}
+
+.theme-dark .priority-card:hover {
+  background: var(--muted);
 }
