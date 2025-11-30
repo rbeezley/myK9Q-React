@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
 import { initializeReplication, clearReplicationCaches, resetReplicationState } from '@/services/replication/initReplication';
 import { destroyReplicationManager } from '@/services/replication';
@@ -254,15 +254,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [authState.permissions]);
 
 
+  // Memoize context value to prevent infinite re-render loops
+  // Without this, a new object is created every render, causing all consumers
+  // to re-render, which can trigger state updates that cause more renders
+  const contextValue = useMemo(
+    () => ({
+      ...authState,
+      login,
+      logout,
+      canAccess,
+    }),
+    [authState, login, logout, canAccess]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        login,
-        logout,
-        canAccess,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
