@@ -1014,6 +1014,12 @@
   overscroll-behavior-y: contain; /* Prevent browser pull-to-refresh */
 }
 
+/* When PTR is disabled, fully block native pull-to-refresh */
+.pull-to-refresh.ptr-disabled {
+  overscroll-behavior-y: none;
+  touch-action: pan-y; /* Allow vertical scroll but prevent native PTR */
+}
+
 .pull-to-refresh-indicator {
   position: absolute;
   top: -60px;

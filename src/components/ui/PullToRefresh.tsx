@@ -273,7 +273,7 @@ export function PullToRefresh({
   return (
     <div
       ref={containerRef}
-      className={`pull-to-refresh ${className}`}
+      className={`pull-to-refresh ${className} ${!enabled ? 'ptr-disabled' : ''}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
