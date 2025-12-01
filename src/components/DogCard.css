@@ -134,6 +134,44 @@
   position: relative;
 }
 
+/* Drag handle inside card */
+.dog-card-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  cursor: grab;
+  padding: var(--token-space-xs);
+  margin-left: calc(-1 * var(--token-space-sm));
+  border-radius: var(--token-space-sm);
+  transition: color 0.2s, background 0.2s;
+  touch-action: none;
+  align-self: center;
+}
+
+.dog-card-drag-handle:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.dog-card-drag-handle:active {
+  cursor: grabbing;
+  color: var(--primary);
+}
+
+.dog-card-drag-handle .drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--token-space-xs);
+}
+
+/* Adjust card when it has a drag handle */
+.dog-card.has-drag-handle {
+  padding-left: var(--token-space-md);
+}
+
 /* Armband badge - flex item on left */
 .dog-card-armband {
   flex-shrink: 0;

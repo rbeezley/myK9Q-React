@@ -588,20 +588,20 @@ function AppWithAuth() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister }}
-      >
-        <BrowserRouter>
-          <AuthProvider>
-            <NotificationProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
+      <BrowserRouter>
+        <AuthProvider>
+          <NotificationProvider>
+            <ErrorBoundary>
               <AppWithAuth />
-            </NotificationProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </PersistQueryClientProvider>
-    </ErrorBoundary>
+            </ErrorBoundary>
+          </NotificationProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </PersistQueryClientProvider>
   );
 }
 

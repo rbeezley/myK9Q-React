@@ -151,13 +151,6 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
       onMouseUp={cancelLongPress}
       onMouseLeave={cancelLongPress}
     >
-      {/* Drag handle (only shown in drag mode for non-in-ring entries) */}
-      {isDragMode && !isInRing && (
-        <div {...attributes} {...listeners} className="drag-handle-external">
-          <GripVertical size={24} />
-        </div>
-      )}
-
       <DogCard
         key={entry.id}
         armband={entry.armband}
@@ -171,6 +164,11 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
         statusBorder={getStatusBorderClass(entry)}
         resultBadges={<ResultBadges entry={entry} showContext={showContext} />}
         sectionBadge={sectionBadge}
+        dragHandle={isDragMode && !isInRing ? (
+          <div {...attributes} {...listeners} className="drag-handle">
+            <GripVertical size={20} />
+          </div>
+        ) : undefined}
         actionButton={
           !entry.isScored ? (
             <StatusBadge

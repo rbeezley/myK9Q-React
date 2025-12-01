@@ -27,8 +27,8 @@
   top: 0;
   right: 0;
   height: 100vh;
-  width: 320px;
-  max-width: 90vw;
+  width: 75vw;
+  max-width: 360px;
   background-color: var(--background);
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
   z-index: 9999;
@@ -38,10 +38,18 @@
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
+/* Tablet: slightly narrower percentage */
+@media (min-width: 641px) and (max-width: 1024px) {
   .filter-panel {
-    width: 100%;
-    max-width: none;
+    width: 50vw;
+    max-width: 400px;
+  }
+}
+
+/* Desktop: fixed width is fine */
+@media (min-width: 1025px) {
+  .filter-panel {
+    width: 320px;
   }
 }
 

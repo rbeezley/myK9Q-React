@@ -1251,8 +1251,27 @@
 /* Note: dnd-kit uses CSS transforms, so grid gap changes don't affect positioning. */
 /* We use margin on the items instead to create visual separation. */
 .grid-responsive.drag-mode {
-  gap: var(--token-space-2xl);
-  /* Keep grid gap reasonable */
+  gap: var(--token-space-3xl);
+}
+
+/* Add margin to sortable items for larger drop targets */
+.grid-responsive.drag-mode .sortable-item {
+  margin-bottom: var(--token-space-md);
+  position: relative;
+}
+
+/* Visual drop zone indicator between cards */
+.grid-responsive.drag-mode .sortable-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--token-space-xl));
+  height: var(--token-space-lg);
+  background: transparent;
+  border-radius: var(--token-space-sm);
+  transition: background 0.15s ease;
+  pointer-events: none;
 }
 
 @media (min-width: 1024px) {

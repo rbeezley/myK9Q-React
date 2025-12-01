@@ -16,6 +16,8 @@ interface DogCardProps {
   sectionBadge?: 'A' | 'B' | null; // Section badge for combined Novice A & B view
   /** Prefetch data on hover/touch (optional) */
   onPrefetch?: () => void;
+  /** Drag handle element for reordering (optional) */
+  dragHandle?: React.ReactNode;
 }
 
 export const DogCard = React.memo<DogCardProps>(({
@@ -30,6 +32,7 @@ export const DogCard = React.memo<DogCardProps>(({
   resultBadges,
   sectionBadge,
   onPrefetch,
+  dragHandle,
 }) => {
   const haptic = useHapticFeedback();
 
@@ -52,12 +55,18 @@ export const DogCard = React.memo<DogCardProps>(({
 
   return (
     <div
-      className={`dog-card ${onClick ? 'touchable' : ''} ${statusBorder} ${className}`}
+      className={`dog-card ${onClick ? 'touchable' : ''} ${statusBorder} ${className} ${dragHandle ? 'has-drag-handle' : ''}`}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onTouchStart={handleTouchStart}
     >
       <div className="dog-card-content">
+        {/* Drag handle - rendered inside card on the left */}
+        {dragHandle && (
+          <div className="dog-card-drag-handle">
+            {dragHandle}
+          </div>
+        )}
         <div className="dog-card-armband">
           <ArmbandBadge number={armband} />
           {sectionBadge && (
@@ -92,6 +101,7 @@ export const DogCard = React.memo<DogCardProps>(({
     prevProps.armband === nextProps.armband &&
     prevProps.callName === nextProps.callName &&
     prevProps.statusBorder === nextProps.statusBorder &&
-    prevProps.className === nextProps.className
+    prevProps.className === nextProps.className &&
+    !!prevProps.dragHandle === !!nextProps.dragHandle
   );
 });
