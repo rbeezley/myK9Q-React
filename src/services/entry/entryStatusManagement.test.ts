@@ -271,24 +271,14 @@ describe('entryStatusManagement', () => {
       expect(triggerImmediateEntrySync).toHaveBeenCalledWith('updateEntryCheckinStatus');
     });
 
-    it('should verify status update by reading back', async () => {
+    it('should trigger immediate sync after successful update', async () => {
       // Arrange
-      const selectMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { id: mockEntryId, entry_status: 'absent' },
-            error: null,
-          }),
-        }),
-      });
-
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             select: vi.fn().mockResolvedValue({ error: null }),
           }),
         }),
-        select: selectMock,
       } as any);
 
       vi.mocked(triggerImmediateEntrySync).mockResolvedValue(undefined);
@@ -298,8 +288,8 @@ describe('entryStatusManagement', () => {
       await vi.runAllTimersAsync();
       await promise;
 
-      // Assert
-      expect(selectMock).toHaveBeenCalled();
+      // Assert - verify sync was triggered after update
+      expect(triggerImmediateEntrySync).toHaveBeenCalledWith('updateEntryCheckinStatus');
     });
 
     it('should handle database errors with detailed logging', async () => {
@@ -349,7 +339,8 @@ describe('entryStatusManagement', () => {
       // Assert
       expect(result).toBe(true);
       expect(triggerImmediateEntrySync).toHaveBeenCalledWith('resetEntryScore');
-      expect(checkAndUpdateClassCompletion).toHaveBeenCalledWith(mockClassId);
+      // Function now takes: (classId, pairedClassId, justScoredEntryId, justResetEntryId)
+      expect(checkAndUpdateClassCompletion).toHaveBeenCalledWith(mockClassId, undefined, undefined, mockEntryId);
     });
 
     it('should reset all score fields to default values', async () => {

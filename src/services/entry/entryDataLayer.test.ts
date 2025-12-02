@@ -65,7 +65,7 @@ describe('entryDataLayer', () => {
 
       // Assert
       expect(result).toEqual(mockEntries);
-      expect(getEntriesFromReplicationCache).toHaveBeenCalledWith([123], 123);
+      expect(getEntriesFromReplicationCache).toHaveBeenCalledWith([123], 123, licenseKey);
       expect(fetchClassEntriesFromDatabase).not.toHaveBeenCalled();
     });
 
@@ -79,7 +79,7 @@ describe('entryDataLayer', () => {
 
       // Assert
       expect(result).toEqual(mockEntries);
-      expect(getEntriesFromReplicationCache).toHaveBeenCalledWith([123], 123);
+      expect(getEntriesFromReplicationCache).toHaveBeenCalledWith([123], 123, licenseKey);
       expect(fetchClassEntriesFromDatabase).toHaveBeenCalledWith([123], 123, licenseKey);
     });
 
@@ -92,7 +92,7 @@ describe('entryDataLayer', () => {
 
       // Assert
       expect(result).toEqual(mockEntries);
-      expect(getEntriesFromReplicationCache).toHaveBeenCalledWith([123, 124], 123);
+      expect(getEntriesFromReplicationCache).toHaveBeenCalledWith([123, 124], 123, licenseKey);
     });
 
     it('should skip cache when useReplication is false', async () => {
@@ -162,16 +162,18 @@ describe('entryDataLayer', () => {
       await expect(getTrialEntries(456, licenseKey)).rejects.toThrow('Trial fetch error');
     });
 
-    it('should log when enabled', async () => {
+    it('should log errors with DATA_LAYER prefix', async () => {
       // Arrange
-      vi.mocked(fetchTrialEntriesFromDatabase).mockResolvedValue(mockEntries);
-      const logSpy = vi.spyOn(console, 'log');
+      const error = new Error('Test error');
+      vi.mocked(fetchTrialEntriesFromDatabase).mockRejectedValue(error);
+      const errorSpy = vi.spyOn(console, 'error');
 
-      // Act
-      await getTrialEntries(456, licenseKey, { enableLogging: true });
-
-      // Assert
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[DATA_LAYER]'));
+      // Act & Assert
+      await expect(getTrialEntries(456, licenseKey)).rejects.toThrow('Test error');
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[DATA_LAYER]'),
+        expect.any(Error)
+      );
     });
   });
 

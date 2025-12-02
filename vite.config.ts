@@ -36,10 +36,10 @@ export default defineConfig({
       'src/services/entryReplication.test.ts',
       'src/services/entry/classCompletionService.test.ts',
       'src/services/entry/entryBatchOperations.test.ts',
-      'src/services/entry/entryDataLayer.test.ts',
-      'src/services/entry/entryStatusManagement.test.ts',
-      'src/services/entry/entrySubscriptions.test.ts',
-      'src/services/entry/scoreSubmission.test.ts',
+      // Re-enabled: entryDataLayer.test.ts (fixed licenseKey assertions)
+      // Re-enabled: entryStatusManagement.test.ts (fixed function signature assertions)
+      'src/services/entry/entrySubscriptions.test.ts', // Needs: logging assertion updates
+      'src/services/entry/scoreSubmission.test.ts', // Needs: function signature + batch result updates
       'src/pages/Admin/components/AdminNameDialog.test.tsx',
       'src/pages/scoresheets/components/AreaInputs.test.tsx',
       'src/pages/scoresheets/components/NationalsPointsDisplay.test.tsx',
