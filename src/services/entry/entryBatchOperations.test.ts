@@ -56,12 +56,12 @@ describe('entryBatchOperations', () => {
       expect(supabase.from).toHaveBeenCalledWith('entries');
       expect(updateMock).toHaveBeenCalledTimes(5);
 
-      // Verify 1-based indexing
-      expect(updateMock).toHaveBeenNthCalledWith(1, { exhibitor_order: 1 });
-      expect(updateMock).toHaveBeenNthCalledWith(2, { exhibitor_order: 2 });
-      expect(updateMock).toHaveBeenNthCalledWith(3, { exhibitor_order: 3 });
-      expect(updateMock).toHaveBeenNthCalledWith(4, { exhibitor_order: 4 });
-      expect(updateMock).toHaveBeenNthCalledWith(5, { exhibitor_order: 5 });
+      // Verify 1-based indexing (updated_at is also included in updates)
+      expect(updateMock).toHaveBeenNthCalledWith(1, expect.objectContaining({ exhibitor_order: 1 }));
+      expect(updateMock).toHaveBeenNthCalledWith(2, expect.objectContaining({ exhibitor_order: 2 }));
+      expect(updateMock).toHaveBeenNthCalledWith(3, expect.objectContaining({ exhibitor_order: 3 }));
+      expect(updateMock).toHaveBeenNthCalledWith(4, expect.objectContaining({ exhibitor_order: 4 }));
+      expect(updateMock).toHaveBeenNthCalledWith(5, expect.objectContaining({ exhibitor_order: 5 }));
     });
 
     it('should update correct entry IDs', async () => {
@@ -123,11 +123,11 @@ describe('entryBatchOperations', () => {
       await updateExhibitorOrder(reordered);
 
       // Assert - Entry 5 should now be exhibitor_order 1
-      expect(updateMock).toHaveBeenNthCalledWith(1, { exhibitor_order: 1 });
+      expect(updateMock).toHaveBeenNthCalledWith(1, expect.objectContaining({ exhibitor_order: 1 }));
       // Entry 1 should now be exhibitor_order 2
-      expect(updateMock).toHaveBeenNthCalledWith(2, { exhibitor_order: 2 });
+      expect(updateMock).toHaveBeenNthCalledWith(2, expect.objectContaining({ exhibitor_order: 2 }));
       // Entry 3 should now be exhibitor_order 3
-      expect(updateMock).toHaveBeenNthCalledWith(3, { exhibitor_order: 3 });
+      expect(updateMock).toHaveBeenNthCalledWith(3, expect.objectContaining({ exhibitor_order: 3 }));
     });
 
     it('should throw error if any update fails', async () => {
@@ -195,7 +195,7 @@ describe('entryBatchOperations', () => {
       // Assert
       expect(result).toBe(true);
       expect(updateMock).toHaveBeenCalledTimes(1);
-      expect(updateMock).toHaveBeenCalledWith({ exhibitor_order: 1 });
+      expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({ exhibitor_order: 1 }));
     });
 
     it('should handle large batch of entries', async () => {
@@ -221,8 +221,8 @@ describe('entryBatchOperations', () => {
       // Assert
       expect(result).toBe(true);
       expect(updateMock).toHaveBeenCalledTimes(50);
-      expect(updateMock).toHaveBeenNthCalledWith(1, { exhibitor_order: 1 });
-      expect(updateMock).toHaveBeenNthCalledWith(50, { exhibitor_order: 50 });
+      expect(updateMock).toHaveBeenNthCalledWith(1, expect.objectContaining({ exhibitor_order: 1 }));
+      expect(updateMock).toHaveBeenNthCalledWith(50, expect.objectContaining({ exhibitor_order: 50 }));
     });
   });
 
@@ -404,7 +404,7 @@ describe('entryBatchOperations', () => {
 
       // Assert - Entry 3 should now be first (exhibitor_order = 1)
       const firstUpdate = updateMock.mock.calls[0][0];
-      expect(firstUpdate).toEqual({ exhibitor_order: 1 });
+      expect(firstUpdate).toMatchObject({ exhibitor_order: 1 });
     });
 
     it('should handle drag-and-drop move from start to end', async () => {
@@ -426,7 +426,7 @@ describe('entryBatchOperations', () => {
 
       // Assert - Entry 1 should now be last (exhibitor_order = 5)
       const lastUpdate = updateMock.mock.calls[4][0];
-      expect(lastUpdate).toEqual({ exhibitor_order: 5 });
+      expect(lastUpdate).toMatchObject({ exhibitor_order: 5 });
     });
 
     it('should handle complete reversal of list', async () => {
@@ -449,9 +449,9 @@ describe('entryBatchOperations', () => {
       // Assert
       expect(updateMock).toHaveBeenCalledTimes(5);
       // Entry 5 should be first
-      expect(updateMock).toHaveBeenNthCalledWith(1, { exhibitor_order: 1 });
+      expect(updateMock).toHaveBeenNthCalledWith(1, expect.objectContaining({ exhibitor_order: 1 }));
       // Entry 1 should be last
-      expect(updateMock).toHaveBeenNthCalledWith(5, { exhibitor_order: 5 });
+      expect(updateMock).toHaveBeenNthCalledWith(5, expect.objectContaining({ exhibitor_order: 5 }));
     });
   });
 });
