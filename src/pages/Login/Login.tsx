@@ -429,9 +429,8 @@ inputRefs.current[0]?.focus();
                       onPaste={index === 0 ? handlePaste : undefined}
                       className={`passcode-input ${error ? 'error' : ''} ${digit ? 'filled' : ''}`}
                       disabled={isLoading}
-                      inputMode="text"
-                      autoComplete="one-time-code"
-                      autoCapitalize="characters"
+                      inputMode="email"
+                      autoComplete="off"
                       aria-label={`Passcode digit ${index + 1}`}
                     />
                   </div>

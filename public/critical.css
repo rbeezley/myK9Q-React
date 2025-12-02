@@ -1,11 +1,14 @@
 /**
  * CRITICAL CSS - Loaded synchronously before first paint
  *
- * This file MUST include all styles needed to prevent FOUC (Flash of Unstyled Content).
- * Keep this file as small as possible while including:
- * 1. Essential CSS variables (colors, spacing, etc.)
+ * IMPORTANT: This file should ONLY contain:
+ * 1. CSS variables (colors, spacing, etc.)
  * 2. Accent color themes (applied by theme-init.js)
- * 3. Base component styles that would cause layout shift if missing
+ * 3. Basic html/body/root styles
+ * 4. Loading indicator
+ *
+ * DO NOT add component styles here - they belong in component CSS files.
+ * Adding component styles here causes hydration/caching conflicts.
  */
 
 /* ============================================
@@ -30,7 +33,7 @@
   --shadow-medium: rgba(0, 0, 0, 0.3);
   --shadow-subtle: rgba(0, 0, 0, 0.1);
 
-  /* Spacing Tokens (critical for layout) */
+  /* Spacing Tokens */
   --token-space-xs: 0.125rem;
   --token-space-sm: 0.25rem;
   --token-space-md: 0.5rem;
@@ -126,7 +129,7 @@ html.accent-purple {
 }
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT (minimal - prevents white flash)
    ============================================ */
 html, body {
   margin: 0;
@@ -145,186 +148,8 @@ html, body {
 }
 
 /* ============================================
-   CRITICAL COMPONENT STYLES
-   (Prevents layout shift for key components)
-   ============================================ */
-
-/* Armband Badge - prevents large/blue flash */
-.armband-badge {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-radius: 1rem;
-  width: 3.5rem;
-  height: 3.5rem;
-  min-width: 3.5rem;
-  min-height: 3.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.125rem;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
-}
-
-/* Dog Card - prevents overlap/height issues */
-.dog-card {
-  background: var(--overlay-white-heavy);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  padding: var(--token-space-lg);
-  min-height: 70px;
-  position: relative;
-  overflow: hidden;
-}
-
-.theme-dark .dog-card {
-  background: var(--card);
-}
-
-/* Dog Card Content Layout */
-.dog-card-content {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--token-space-lg);
-}
-
-.dog-card-armband {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--token-space-md);
-}
-
-.dog-card-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--token-space-xs);
-}
-
-/* Grid Layout - prevents overlap */
-.grid-responsive {
-  display: grid;
-  gap: var(--token-space-lg);
-  grid-template-columns: 1fr;
-}
-
-/* Page Container - prevents layout shift */
-.page-container {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--background);
-  color: var(--foreground);
-  padding: var(--token-space-lg);
-}
-
-/* Page Header - prevents flash of unstyled header */
-.page-header {
-  position: sticky;
-  top: 0;
-  z-index: var(--token-z-modal);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: var(--overlay-white-heavy);
-  border-bottom: 1px solid var(--border);
-  padding: var(--token-space-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--token-space-xl);
-  min-height: 60px;
-}
-
-.theme-dark .page-header {
-  background: var(--overlay-dark-heavy);
-}
-
-.page-header h1 {
-  display: flex;
-  align-items: center;
-  gap: var(--token-space-md);
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-/* Tab Bar - prevents layout shift on pages with tabs */
-.tab-bar {
-  margin: 0 auto var(--token-space-lg);
-  max-width: 600px;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: var(--token-space-md);
-  padding: var(--token-space-xs);
-  display: flex;
-  justify-content: center;
-  gap: var(--token-space-xs);
-}
-
-.tab-bar-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--token-space-md);
-  padding: var(--token-space-md) var(--token-space-lg);
-  background: transparent;
-  border: none;
-  border-radius: 0.375rem;
-  color: var(--muted-foreground);
-  font-size: 0.8125rem;
-  font-weight: 400;
-  cursor: pointer;
-  min-height: 44px;
-  flex: 1 1 auto;
-}
-
-.tab-bar-button.active {
-  background: var(--card);
-  color: var(--primary);
-  box-shadow: var(--token-shadow-sm);
-  font-weight: 500;
-}
-
-/* Tab Count Badge */
-.tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--token-space-xs) 0.375rem;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 0.75rem;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  min-width: 1.25rem;
-  height: 1.125rem;
-}
-
-.tab-bar-button.active .tab-count {
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-
-.theme-dark .tab-count {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-/* Class Card - for ClassList page */
-.class-card {
-  background: var(--overlay-white-heavy);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: var(--token-space-lg);
-  position: relative;
-  overflow: hidden;
-}
-
-.theme-dark .class-card {
-  background: var(--card);
-}
-
-/* ============================================
    LOADING INDICATOR
+   (Shows while React is loading)
    ============================================ */
 #root:empty::before {
   content: "";
