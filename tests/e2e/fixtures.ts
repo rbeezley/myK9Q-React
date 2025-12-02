@@ -7,8 +7,9 @@ import { test as base, expect, Page } from '@playwright/test';
  * for E2E testing of the dog show scoring application.
  */
 
-// Test credentials
-export const TEST_PASSCODE = 'AA260'; // Will be entered as uppercase
+// Test credentials - use PROD_PASSCODE env var for production testing
+// Default is the dev test passcode, set PROD_PASSCODE=AAC99 for production
+export const TEST_PASSCODE = process.env.PROD_PASSCODE || 'AA260';
 
 /**
  * Navigate from landing page to login page

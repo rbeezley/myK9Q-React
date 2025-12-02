@@ -23,6 +23,9 @@
     "test:e2e:ui": "npx playwright test --config=playwright.e2e.config.ts --ui",
     "test:e2e:headed": "npx playwright test --config=playwright.e2e.config.ts --headed",
     "test:e2e:debug": "npx playwright test --config=playwright.e2e.config.ts --debug",
+    "test:e2e:prod": "cross-env PROD_PASSCODE=AAC99 npx playwright test --config=playwright.prod.config.ts",
+    "test:e2e:prod:headed": "cross-env PROD_PASSCODE=AAC99 npx playwright test --config=playwright.prod.config.ts --headed",
+    "test:e2e:ci": "npx playwright test --config=playwright.ci.config.ts",
     "playwright:install": "npx playwright install chromium"
   },
   "dependencies": {
