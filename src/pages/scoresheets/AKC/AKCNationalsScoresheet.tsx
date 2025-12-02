@@ -20,6 +20,7 @@ import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/
 import { DogCard } from '../../../components/DogCard';
 import { X, ClipboardCheck } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
+import { NATIONALS_SCORING } from '../../../constants/nationalsConstants';
 import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
@@ -131,10 +132,10 @@ export const AKCNationalsScoresheet: React.FC = () => {
   const calculateNationalsPoints = useCallback(() => {
     if (isExcused) return 0;
 
-    const correctPoints = alertsCorrect * 10;
-    const incorrectPenalty = alertsIncorrect * 5;
-    const faultPenalty = faultCount * 2;
-    const finishErrorPenalty = finishCallErrors * 5;
+    const correctPoints = alertsCorrect * NATIONALS_SCORING.CORRECT_ALERT_POINTS;
+    const incorrectPenalty = alertsIncorrect * NATIONALS_SCORING.INCORRECT_ALERT_PENALTY;
+    const faultPenalty = faultCount * NATIONALS_SCORING.FAULT_PENALTY;
+    const finishErrorPenalty = finishCallErrors * NATIONALS_SCORING.FINISH_CALL_ERROR_PENALTY;
 
     return correctPoints - incorrectPenalty - faultPenalty - finishErrorPenalty;
   }, [isExcused, alertsCorrect, alertsIncorrect, faultCount, finishCallErrors]);

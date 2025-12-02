@@ -24,6 +24,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { NATIONALS_SCORING, NATIONALS_VALIDATION } from '../constants/nationalsConstants';
 
 // Types matching our database schema
 export type ElementType = 'CONTAINER' | 'BURIED' | 'INTERIOR' | 'EXTERIOR' | 'HD_CHALLENGE';
@@ -138,10 +139,10 @@ export class NationalsScoring {
       return 0;
     }
 
-    const correctPoints = input.alerts_correct * 10;
-    const incorrectPenalty = input.alerts_incorrect * 5;
-    const faultPenalty = input.faults * 2;
-    const finishErrorPenalty = input.finish_call_errors * 5;
+    const correctPoints = input.alerts_correct * NATIONALS_SCORING.CORRECT_ALERT_POINTS;
+    const incorrectPenalty = input.alerts_incorrect * NATIONALS_SCORING.INCORRECT_ALERT_PENALTY;
+    const faultPenalty = input.faults * NATIONALS_SCORING.FAULT_PENALTY;
+    const finishErrorPenalty = input.finish_call_errors * NATIONALS_SCORING.FINISH_CALL_ERROR_PENALTY;
 
     const totalPoints = correctPoints - incorrectPenalty - faultPenalty - finishErrorPenalty;
 
@@ -160,7 +161,7 @@ export class NationalsScoring {
       day: input.day,
       judge_id: input.judge_id,
       points: 0,
-      time_seconds: 120, // Max time for excused
+      time_seconds: NATIONALS_SCORING.MAX_TIME_SECONDS, // Max time for excused
       alerts_correct: 0,
       alerts_incorrect: 0,
       faults: 0,
@@ -185,8 +186,11 @@ export class NationalsScoring {
     // Calculate points
     const points = this.calculatePoints(input);
 
-    // Ensure time is within bounds (0-120 seconds)
-    const time_seconds = Math.max(0, Math.min(120, input.time_seconds));
+    // Ensure time is within bounds
+    const time_seconds = Math.max(
+      NATIONALS_VALIDATION.TIME_MIN,
+      Math.min(NATIONALS_VALIDATION.TIME_MAX, input.time_seconds)
+    );
 
     return {
       entry_id: input.entry_id,
@@ -202,7 +206,7 @@ export class NationalsScoring {
       finish_call_errors: input.finish_call_errors,
       excused: false,
       disqualified: input.disqualified || false,
-      no_time: time_seconds >= 120,
+      no_time: time_seconds >= NATIONALS_VALIDATION.TIME_MAX,
       notes: input.notes,
       mobile_app_lic_key: this.licenseKey
     };
@@ -425,7 +429,7 @@ return { success: true, error: null };
         .gt('day1_points', 0)
         .gt('day2_points', 0)
         .order('rank', { ascending: true })
-        .limit(100);
+        .limit(NATIONALS_SCORING.TOP_QUALIFIERS_COUNT);
 
       if (error) {
         console.error('Error fetching advancement status:', error);
@@ -434,8 +438,8 @@ return { success: true, error: null };
 
       const qualifiedCount = data?.length || 0;
 
-      if (qualifiedCount >= 100) {
-        const cutOffEntry = data[99]; // 100th place (0-indexed)
+      if (qualifiedCount >= NATIONALS_SCORING.TOP_QUALIFIERS_COUNT) {
+        const cutOffEntry = data[NATIONALS_SCORING.TOP_QUALIFIERS_COUNT - 1]; // 100th place (0-indexed)
         const cutLinePoints = cutOffEntry.day1_points + cutOffEntry.day2_points;
         const cutLineTime = cutOffEntry.day1_time_seconds + cutOffEntry.day2_time_seconds;
 
@@ -460,24 +464,24 @@ return { success: true, error: null };
       errors.push('Armband is required');
     }
 
-    if (input.alerts_correct < 0 || input.alerts_correct > 10) {
-      errors.push('Correct alerts must be between 0 and 10');
+    if (input.alerts_correct < NATIONALS_VALIDATION.ALERTS_CORRECT_MIN || input.alerts_correct > NATIONALS_VALIDATION.ALERTS_CORRECT_MAX) {
+      errors.push(`Correct alerts must be between ${NATIONALS_VALIDATION.ALERTS_CORRECT_MIN} and ${NATIONALS_VALIDATION.ALERTS_CORRECT_MAX}`);
     }
 
-    if (input.alerts_incorrect < 0 || input.alerts_incorrect > 10) {
-      errors.push('Incorrect alerts must be between 0 and 10');
+    if (input.alerts_incorrect < NATIONALS_VALIDATION.ALERTS_INCORRECT_MIN || input.alerts_incorrect > NATIONALS_VALIDATION.ALERTS_INCORRECT_MAX) {
+      errors.push(`Incorrect alerts must be between ${NATIONALS_VALIDATION.ALERTS_INCORRECT_MIN} and ${NATIONALS_VALIDATION.ALERTS_INCORRECT_MAX}`);
     }
 
-    if (input.faults < 0 || input.faults > 20) {
-      errors.push('Faults must be between 0 and 20');
+    if (input.faults < NATIONALS_VALIDATION.FAULTS_MIN || input.faults > NATIONALS_VALIDATION.FAULTS_MAX) {
+      errors.push(`Faults must be between ${NATIONALS_VALIDATION.FAULTS_MIN} and ${NATIONALS_VALIDATION.FAULTS_MAX}`);
     }
 
-    if (input.finish_call_errors < 0 || input.finish_call_errors > 10) {
-      errors.push('Finish call errors must be between 0 and 10');
+    if (input.finish_call_errors < NATIONALS_VALIDATION.FINISH_CALL_ERRORS_MIN || input.finish_call_errors > NATIONALS_VALIDATION.FINISH_CALL_ERRORS_MAX) {
+      errors.push(`Finish call errors must be between ${NATIONALS_VALIDATION.FINISH_CALL_ERRORS_MIN} and ${NATIONALS_VALIDATION.FINISH_CALL_ERRORS_MAX}`);
     }
 
-    if (input.time_seconds < 0 || input.time_seconds > 120) {
-      errors.push('Time must be between 0 and 120 seconds');
+    if (input.time_seconds < NATIONALS_VALIDATION.TIME_MIN || input.time_seconds > NATIONALS_VALIDATION.TIME_MAX) {
+      errors.push(`Time must be between ${NATIONALS_VALIDATION.TIME_MIN} and ${NATIONALS_VALIDATION.TIME_MAX} seconds`);
     }
 
     // Element type validation

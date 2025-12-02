@@ -10,6 +10,7 @@ import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
 import { SyncIndicator } from '../../../components/ui';
 import { ClipboardCheck } from 'lucide-react';
 import { ensureReplicationManager } from '../../../utils/replicationHelper';
+import { FASTCAT_COURSE } from '../../../constants/fastcatConstants';
 import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '../../../stores/entryStore';
@@ -57,8 +58,8 @@ export const AKCFastCatScoresheet: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // FastCat course is 100 yards
-  const COURSE_LENGTH = 100; // yards
+  // FastCat course length from constants
+  const COURSE_LENGTH = FASTCAT_COURSE.LENGTH_YARDS;
 
   // Helper function - defined before useMemo
   const parseTimeToSeconds = (timeString: string): number => {
@@ -87,13 +88,12 @@ export const AKCFastCatScoresheet: React.FC = () => {
       return { mph: 0, points: 0 };
     }
 
-    // Calculate MPH: (Distance in yards * 3600) / (Time in seconds * 1760)
-    const calculatedMph = (COURSE_LENGTH * 3600) / (timeInSeconds * 1760);
+    // Calculate MPH: (Distance in yards * SECONDS_PER_HOUR) / (Time in seconds * YARDS_PER_MILE)
+    const calculatedMph = (COURSE_LENGTH * FASTCAT_COURSE.SECONDS_PER_HOUR) / (timeInSeconds * FASTCAT_COURSE.YARDS_PER_MILE);
     const roundedMph = Math.round(calculatedMph * 100) / 100; // Round to 2 decimal places
 
-    // Calculate points based on dog's height category
-    // This is a simplified point calculation - actual AKC formula is more complex
-    const basePoints = Math.round(calculatedMph * 2);
+    // Calculate points based on speed (simplified formula - see constants for full AKC formula notes)
+    const basePoints = Math.round(calculatedMph * FASTCAT_COURSE.POINTS_MULTIPLIER);
 
     return { mph: roundedMph, points: basePoints };
   }, [runTime, currentEntry, COURSE_LENGTH]);

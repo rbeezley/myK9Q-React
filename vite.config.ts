@@ -34,7 +34,6 @@ export default defineConfig({
       'tests/**/*.spec.tsx',
       // Temporarily exclude tests with Vitest collection issues (tracked as technical debt)
       'src/services/entryReplication.test.ts',
-      'src/__tests__/offline-first-pattern-consistency.test.ts',
       'src/services/entry/classCompletionService.test.ts',
       'src/services/entry/entryBatchOperations.test.ts',
       'src/services/entry/entryDataLayer.test.ts',
@@ -42,7 +41,6 @@ export default defineConfig({
       'src/services/entry/entrySubscriptions.test.ts',
       'src/services/entry/scoreSubmission.test.ts',
       'src/pages/Admin/components/AdminNameDialog.test.tsx',
-      'src/pages/EntryList/__tests__/EntryList.persistence.test.tsx',
       'src/pages/scoresheets/components/AreaInputs.test.tsx',
       'src/pages/scoresheets/components/NationalsPointsDisplay.test.tsx',
       'src/pages/scoresheets/components/TimerDisplay.test.tsx',
