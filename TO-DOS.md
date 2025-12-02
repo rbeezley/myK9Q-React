@@ -241,6 +241,35 @@ Current passcode model (shared codes like `aa260`, `jf472`) works for per-show a
 **Files Modified:**
 - [HamburgerMenu.tsx:185-223](src/components/ui/HamburgerMenu.tsx#L185-L223) - Reordered menu items with section comments
 
+## Fix CSS Rehydration Issue - 2025-12-02 ✅ COMPLETE
+
+- **FIXED:** Status badges showed gray text and armband numbers had incorrect styling on initial page load (fixed after browser refresh).
+
+**Root Cause:**
+- Component CSS (`ClassList.css`, `utilities.css`) loads asynchronously via ES module import in `main.tsx`
+- React can render before all CSS chunks are loaded
+- Status badges inherited gray text color instead of white
+- Armband numbers could render with unexpected styling during the CSS loading race condition
+
+**Solution:**
+Added minimal critical CSS fallbacks in `critical.css` that ensure elements look correct even before component CSS loads:
+- Status badges: Solid backgrounds with explicit white text (`color: #ffffff`)
+- Armband numbers: Simple inline text with no container styling
+
+**Files Modified:**
+- [critical.css](public/critical.css) - Added critical component fallbacks (status badges, armband numbers)
+- [index.html](index.html) - Bumped cache version `?v=3` → `?v=4`
+
+**Testing:**
+- Hard refresh (Ctrl+Shift+R) on ClassList page
+- Verify status badge text is white on colored backgrounds
+- Verify armband numbers display as simple inline teal text
+
+**Additional Fix (2025-12-02):**
+- Added dog card height fallbacks to prevent overlap on Home page during CSS loading
+- `.dog-card` and `.entry-card` now have `min-height: 70px`, `max-height: none`, and `overflow: hidden`
+- Cache version bumped to `?v=5`
+
 ## Inbox Panel Header Consistency - 2025-11-30 ✅ COMPLETE
 
 - **FIXED:** Inbox panel header now matches Rules Assistant and Search & Sort slide-out panels.

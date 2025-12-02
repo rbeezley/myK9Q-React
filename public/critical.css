@@ -1,14 +1,15 @@
 /**
  * CRITICAL CSS - Loaded synchronously before first paint
  *
- * IMPORTANT: This file should ONLY contain:
+ * This file contains:
  * 1. CSS variables (colors, spacing, etc.)
  * 2. Accent color themes (applied by theme-init.js)
  * 3. Basic html/body/root styles
  * 4. Loading indicator
+ * 5. Minimal fallback styles for components affected by CSS loading race conditions
  *
- * DO NOT add component styles here - they belong in component CSS files.
- * Adding component styles here causes hydration/caching conflicts.
+ * Note: Component fallbacks (status badges, armband numbers) prevent visual glitches
+ * during the brief window when React renders before component CSS loads.
  */
 
 /* ============================================
@@ -151,6 +152,73 @@ html, body {
 }
 
 * {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   CRITICAL COMPONENT FALLBACKS
+   Ensures elements look correct before component CSS loads
+   Prevents visual glitches during CSS loading race condition
+   ============================================ */
+
+/* Status Badge Fallbacks - White text on solid backgrounds */
+.status-badge,
+.class-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #9ca3af; /* Gray default */
+  color: #ffffff; /* White text */
+  border: none;
+}
+
+/* Status-specific background colors */
+.status-badge.no-status,
+.class-status-badge.no-status { background: #9ca3af; color: #ffffff; }
+.status-badge.setup,
+.class-status-badge.setup { background: #b45309; color: #ffffff; }
+.status-badge.briefing,
+.class-status-badge.briefing { background: #ff6b00; color: #ffffff; }
+.status-badge.break,
+.class-status-badge.break { background: #c000ff; color: #ffffff; }
+.status-badge.start-time,
+.class-status-badge.start-time { background: #14b8a6; color: #ffffff; }
+.status-badge.in-progress,
+.class-status-badge.in-progress { background: #0066ff; color: #ffffff; }
+.status-badge.completed,
+.class-status-badge.completed { background: #00cc66; color: #ffffff; }
+
+/* Armband Number Fallbacks - Simple inline text, no containers */
+.armband-number {
+  display: inline-flex;
+  align-items: center;
+  color: var(--primary, #14b8a6);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.armband-number.in-ring {
+  color: #f59e0b; /* Amber for in-ring dogs */
+}
+
+/* Dog Card Fallbacks - Prevent overlap during CSS loading */
+.dog-card,
+.entry-card {
+  min-height: 70px;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
