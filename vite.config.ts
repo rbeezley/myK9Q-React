@@ -33,7 +33,7 @@ export default defineConfig({
       'tests/**/*.spec.ts', // Exclude Playwright tests
       'tests/**/*.spec.tsx',
       // Temporarily exclude tests with Vitest collection issues (tracked as technical debt)
-      'src/services/entryReplication.test.ts',
+      // Re-enabled: entryReplication.test.ts
       // Re-enabled: classCompletionService.test.ts
       // Re-enabled: entryBatchOperations.test.ts
       // Re-enabled: entryDataLayer.test.ts (fixed licenseKey assertions)
