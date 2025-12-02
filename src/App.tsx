@@ -109,6 +109,11 @@ const Stats = React.lazy(() =>
     default: module.Stats
   }))
 );
+const ShowDetails = React.lazy(() =>
+  import('./pages/ShowDetails/ShowDetails').then(module => ({
+    default: module.ShowDetails
+  }))
+);
 const PerformanceMetricsAdmin = React.lazy(() =>
   import('./pages/Admin/PerformanceMetricsAdmin').then(module => ({
     default: module.PerformanceMetricsAdmin
@@ -439,6 +444,16 @@ function AppWithAuth() {
             <ProtectedRoute>
               <Suspense fallback={<PageLoader message="Loading class statistics..." />}>
                 <Stats />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/show/:licenseKey"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader message="Loading show info..." />}>
+                <ShowDetails />
               </Suspense>
             </ProtectedRoute>
           }

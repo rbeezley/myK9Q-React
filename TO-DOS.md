@@ -134,9 +134,32 @@ Current passcode model (shared codes like `aa260`, `jf472`) works for per-show a
 
 **Priority:** Low - nice-to-have analytics feature, not core functionality
 
-## Show Details Page with Contact Links - 2025-11-30 08:00
+## Show Details Page with Contact Links - 2025-11-30 08:00 ✅ COMPLETE
 
-- **Create Show Details page with contact and location links** - Add a dedicated page showing show information with actionable links for secretary email and show site address. **Problem:** Users currently have no way to view show details like secretary contact info, location on a map, or other show metadata. This information is available in the database but not exposed in the UI. **Files:** `src/pages/ShowDetails/ShowDetails.tsx` (new), `src/pages/ShowDetails/ShowDetails.css` (new), `src/App.tsx` (routing), `src/services/replication/tables/ReplicatedShowsTable.ts:18-35` (Show interface with secretary email, phone, location fields). **Solution:** Create new page accessible from ClassList or navigation. Display: show_name, club_name, start_date/end_date, show_secretary_name with `mailto:` link for email, show_secretary_phone with `tel:` link, location field with Google Maps link (`https://maps.google.com/?q={encoded_location}`), website link if available.
+- **IMPLEMENTED:** Show Info page with contact and location links accessible from hamburger menu.
+
+**Features:**
+- ✅ Event Details card: club name, event name, organization, dates, status badge
+- ✅ Location card (hidden if empty): site name, full site address with Google Maps link, website link, event URL link
+- ✅ Trial Secretary card (hidden if empty): name, `mailto:` email, `tel:` phone
+- ✅ Trial Chairman card (hidden if empty): name, `mailto:` email, `tel:` phone
+- ✅ Notes card (hidden if empty, trims whitespace)
+- ✅ Refresh button to sync latest data
+- ✅ Loading and error states
+- ✅ Compact styling to minimize scrolling
+
+**Database Fields Supported:**
+- Site info: `site_name`, `site_address`, `site_city`, `site_state`, `site_zip`, `location` (legacy)
+- Secretary: `secretary_name`/`show_secretary_name`, `secretary_email`/`show_secretary_email`, `secretary_phone`/`show_secretary_phone`
+- Chairman: `chairman_name`, `chairman_email`, `chairman_phone`
+- URLs: `website`, `event_url`
+
+**Files Created/Modified:**
+- [ShowDetails.tsx](src/pages/ShowDetails/ShowDetails.tsx) (new)
+- [ShowDetails.css](src/pages/ShowDetails/ShowDetails.css) (new)
+- [App.tsx](src/App.tsx) - Added `/show/:licenseKey` route
+- [HamburgerMenu.tsx](src/components/ui/HamburgerMenu.tsx) - Added "Show Info" nav item after Statistics
+- [ReplicatedShowsTable.ts](src/services/replication/tables/ReplicatedShowsTable.ts) - Updated Show interface with all fields
 
 ## Fix Announcements Page UX Issues - 2025-11-30 09:10 ✅ COMPLETE
 
@@ -198,6 +221,25 @@ Current passcode model (shared codes like `aa260`, `jf472`) works for per-show a
 
 **Files Modified:**
 - [RulesAssistant.css:44-57](src/components/rules/RulesAssistant.css#L44-L57) - Added dark mode overrides for text visibility
+
+## Hamburger Menu Logical Grouping - 2025-12-02 ✅ COMPLETE
+
+- **IMPLEMENTED:** Reorganized hamburger menu items into logical groups.
+
+**Final Structure:**
+| Section | Items |
+|---------|-------|
+| **Home** | Home |
+| **Show-related** | Show Info, Statistics |
+| **Communication** | Announcements, Inbox |
+| **Tools** | Rules Assistant (kept visible per user request) |
+| **Admin** | Run Order Display, Results Control (admin only) |
+| **Help & Support** | User Guide, Video Tutorials, About (collapsible) |
+| **Preferences** | Settings, Light/Dark Mode |
+| **Session** | Logout |
+
+**Files Modified:**
+- [HamburgerMenu.tsx:185-223](src/components/ui/HamburgerMenu.tsx#L185-L223) - Reordered menu items with section comments
 
 ## Inbox Panel Header Consistency - 2025-11-30 ✅ COMPLETE
 

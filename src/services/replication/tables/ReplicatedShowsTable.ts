@@ -17,19 +17,46 @@ import { logger } from '@/utils/logger';
 
 export interface Show {
   id: string;
+  license_key: string;
   show_name: string;
   club_name: string;
-  location?: string;
   start_date: string;
   end_date: string;
-  show_status?: string;
   organization: string;
+  show_type?: string;
+  show_status?: string;
+
+  // Site/Location info
+  site_name?: string;
+  site_address?: string;
+  site_city?: string;
+  site_state?: string;
+  site_zip?: string;
+  location?: string; // Legacy field
+
+  // Trial Secretary
+  secretary_name?: string;
+  secretary_email?: string;
+  secretary_phone?: string;
+  // Legacy field names (for backward compatibility)
   show_secretary_name?: string;
   show_secretary_email?: string;
   show_secretary_phone?: string;
+
+  // Chairman
+  chairman_name?: string;
+  chairman_email?: string;
+  chairman_phone?: string;
+
+  // URLs
   website?: string;
+  event_url?: string;
+  logo_url?: string;
+
+  // Other
   notes?: string;
-  license_key: string;
+  app_version?: string;
+  self_checkin_enabled?: boolean;
   created_at?: string;
   updated_at?: string;
 }

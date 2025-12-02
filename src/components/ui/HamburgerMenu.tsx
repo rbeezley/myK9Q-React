@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText, Building2 } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { RulesAssistant } from '../rules/RulesAssistant';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -33,7 +33,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -165,7 +165,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 </>
               )}
 
-              {/* Main Navigation */}
+              {/* Main Navigation - Event Context */}
               <button
                 className={`menu-item ${currentPage === 'home' ? 'active' : ''}`}
                 onClick={() => handleMenuItemClick(() => navigate('/home'))}
@@ -173,7 +173,35 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <HomeIcon className="menu-icon" />
                 <span>Home</span>
               </button>
-              
+
+              <button
+                className={`menu-item ${currentPage === 'show' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate(`/show/${showContext?.licenseKey}`))}
+              >
+                <Building2 className="menu-icon" />
+                <span>Show Info</span>
+              </button>
+
+              {/* Show-related */}
+              <button
+                className={`menu-item ${currentPage === 'stats' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/stats'))}
+              >
+                <BarChart3 className="menu-icon" />
+                <span>Statistics</span>
+              </button>
+
+              <div className="menu-divider"></div>
+
+              {/* Communication */}
+              <button
+                className={`menu-item ${currentPage === 'announcements' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/announcements'))}
+              >
+                <BookOpen className="menu-icon" />
+                <span>Announcements</span>
+              </button>
+
               <button
                 className="menu-item"
                 onClick={() => handleMenuItemClick(() => togglePanel())}
@@ -187,36 +215,13 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span>Inbox</span>
               </button>
 
-              <button
-                className={`menu-item ${currentPage === 'announcements' ? 'active' : ''}`}
-                onClick={() => handleMenuItemClick(() => navigate('/announcements'))}
-              >
-                <BookOpen className="menu-icon" />
-                <span>Announcements</span>
-              </button>
-
+              {/* Tools */}
               <button
                 className="menu-item"
                 onClick={() => handleMenuItemClick(() => setIsRulesAssistantOpen(true))}
               >
                 <FileText className="menu-icon" />
                 <span>Rules Assistant</span>
-              </button>
-
-              <button
-                className={`menu-item ${currentPage === 'settings' ? 'active' : ''}`}
-                onClick={() => handleMenuItemClick(() => navigate('/settings'))}
-              >
-                <SettingsIcon className="menu-icon" />
-                <span>Settings</span>
-              </button>
-
-              <button
-                className={`menu-item ${currentPage === 'stats' ? 'active' : ''}`}
-                onClick={() => handleMenuItemClick(() => navigate('/stats'))}
-              >
-                <BarChart3 className="menu-icon" />
-                <span>Statistics</span>
               </button>
 
               {/* Admin Section - Only show for admin users */}
@@ -289,7 +294,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
               <div className="menu-divider"></div>
 
-              {/* Theme Toggle */}
+              {/* Configuration */}
+              <button
+                className={`menu-item ${currentPage === 'settings' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/settings'))}
+              >
+                <SettingsIcon className="menu-icon" />
+                <span>Settings</span>
+              </button>
+
               <button
                 className="menu-item"
                 onClick={() => handleMenuItemClick(toggleTheme)}
@@ -297,6 +310,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 {darkMode ? <Sun className="menu-icon" /> : <Moon className="menu-icon" />}
                 <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
+
+              <div className="menu-divider"></div>
 
               {/* Logout */}
               <button
