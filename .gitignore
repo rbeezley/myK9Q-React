@@ -125,4 +125,9 @@ scripts/test-supabase-connection.js
 
 # E2E test artifacts
 playwright-report-e2e/
+playwright-report-ci/
+playwright-report-prod/
 testsprite_tests/
+
+# Generated analysis files
+codebase_improvement_suggestions.md
