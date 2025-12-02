@@ -14,17 +14,17 @@ if (precacheManifest.length > 0) {
 // OFFLINE NAVIGATION & CACHING STRATEGIES
 // ========================================
 
-// Cache-first strategy for JS/CSS chunks (with network fallback)
+// Cache-first strategy for JS chunks
 workbox.routing.registerRoute(
   ({ request, url }) => {
-    // Match JS and CSS files from our origin
+    // Match JS files from our origin
     return (
       url.origin === self.location.origin &&
-      (request.destination === 'script' || request.destination === 'style')
+      request.destination === 'script'
     );
   },
   new workbox.strategies.CacheFirst({
-    cacheName: 'js-css-cache',
+    cacheName: 'js-cache',
     plugins: [
       new workbox.expiration.ExpirationPlugin({
         maxEntries: 100,
@@ -34,6 +34,30 @@ workbox.routing.registerRoute(
         statuses: [0, 200],
       }),
     ],
+  })
+);
+
+// Network-first strategy for CSS to prevent stale styles during rehydration
+workbox.routing.registerRoute(
+  ({ request, url }) => {
+    // Match CSS files from our origin
+    return (
+      url.origin === self.location.origin &&
+      request.destination === 'style'
+    );
+  },
+  new workbox.strategies.NetworkFirst({
+    cacheName: 'css-cache',
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 24 * 60 * 60, // 1 day (shorter TTL for CSS)
+      }),
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+    networkTimeoutSeconds: 3, // Fall back to cache if network is slow
   })
 );
 

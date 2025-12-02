@@ -217,12 +217,12 @@ export default defineConfig({
               }
             }
           },
-          // Cache JavaScript and CSS chunks with CacheFirst strategy
+          // Cache JavaScript chunks with CacheFirst strategy
           {
-            urlPattern: /\/assets\/.*\.(js|css)$/,
+            urlPattern: /\/assets\/.*\.js$/,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'assets-cache',
+              cacheName: 'js-assets-cache',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
@@ -230,6 +230,22 @@ export default defineConfig({
               cacheableResponse: {
                 statuses: [0, 200]
               }
+            }
+          },
+          // Use NetworkFirst for CSS to prevent stale styles during rehydration
+          {
+            urlPattern: /\/assets\/.*\.css$/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'css-assets-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day (shorter TTL for CSS)
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              networkTimeoutSeconds: 3 // Fall back to cache if network is slow
             }
           }
         ]

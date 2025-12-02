@@ -12,7 +12,10 @@
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
-  min-height: 70px;  /* Mobile: smaller min-height */
+  min-height: 70px;  /* Mobile: smaller min-height - explicit to prevent height issues during hydration */
+  max-height: none; /* Ensure no max-height constraint causes overlap */
+  display: flex;
+  flex-direction: column;
 }
 
 .theme-dark .dog-card {

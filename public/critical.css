@@ -27,6 +27,9 @@
   --primary: #14b8a6;
   --primary-hover: #0d9488;
   --primary-foreground: #ffffff;
+  
+  /* Accent Color - Defaults to primary, overridden by accent classes */
+  --accent-color: var(--primary);
 
   /* Overlay/Shadow Colors */
   --overlay-white-heavy: rgba(255, 255, 255, 0.8);
@@ -101,6 +104,7 @@ html.accent-green {
   --primary: #14b8a6;
   --primary-hover: #0d9488;
   --accent-primary: #14b8a6;
+  --accent-color: #14b8a6;
   --accent-glow: rgba(20, 184, 166, 0.3);
 }
 
@@ -109,6 +113,7 @@ html.accent-blue {
   --primary: #3b82f6;
   --primary-hover: #2563eb;
   --accent-primary: #3b82f6;
+  --accent-color: #3b82f6;
   --accent-glow: rgba(59, 130, 246, 0.3);
 }
 
@@ -117,6 +122,7 @@ html.accent-orange {
   --primary: #f97316;
   --primary-hover: #ea580c;
   --accent-primary: #f97316;
+  --accent-color: #f97316;
   --accent-glow: rgba(249, 115, 22, 0.3);
 }
 
@@ -125,6 +131,7 @@ html.accent-purple {
   --primary: #8b5cf6;
   --primary-hover: #7c3aed;
   --accent-primary: #8b5cf6;
+  --accent-color: #8b5cf6;
   --accent-glow: rgba(139, 92, 246, 0.3);
 }
 

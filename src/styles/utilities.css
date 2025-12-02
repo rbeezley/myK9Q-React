@@ -311,43 +311,43 @@
 /* Class Status Colors - Solid backgrounds with white text */
 /* Default for all class status badges - fallback gray for any undefined status */
 .class-status-badge {
-  background: var(--status-none);
-  color: var(--status-none-text);
+  background: var(--status-none, #9ca3af);
+  color: var(--status-none-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.no-status {
-  background: var(--status-none);
-  color: var(--status-none-text);
+  background: var(--status-none, #9ca3af);
+  color: var(--status-none-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.setup {
-  background: var(--status-setup);
-  color: var(--status-setup-text);
+  background: var(--status-setup, #b45309);
+  color: var(--status-setup-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.briefing {
-  background: var(--status-briefing);
-  color: var(--status-briefing-text);
+  background: var(--status-briefing, #ff6b00);
+  color: var(--status-briefing-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.break {
-  background: var(--status-break);
-  color: var(--status-break-text);
+  background: var(--status-break, #c000ff);
+  color: var(--status-break-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.start-time {
-  background: var(--status-start-time);
-  color: var(--status-start-time-text);
+  background: var(--status-start-time, #14b8a6);
+  color: var(--status-start-time-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.in-progress {
-  background: var(--status-in-progress);
-  color: var(--status-in-progress-text);
+  background: var(--status-in-progress, #0066ff);
+  color: var(--status-in-progress-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.completed {
-  background: var(--status-completed);
-  color: var(--status-completed-text);
+  background: var(--status-completed, #00cc66);
+  color: var(--status-completed-text, #ffffff); /* Explicit fallback to white text */
 }
 
 /* Entry Check-in Status Colors */

@@ -935,7 +935,8 @@
   box-shadow: var(--token-shadow-md);
   position: relative;
   overflow: hidden;
-  min-height: 85px;
+  min-height: 85px; /* Explicit min-height to prevent height issues during hydration */
+  max-height: none; /* Ensure no max-height constraint causes overlap */
   display: flex;
   flex-direction: column;
 }

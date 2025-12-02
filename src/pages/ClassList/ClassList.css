@@ -825,6 +825,7 @@
 /* Armband numbers use theme accent color */
 .contextual-preview-condensed .armband-number {
   color: var(--accent-color, var(--primary)); /* Use theme accent */
+  font-size: 0.8125rem; /* Explicit font-size to prevent size issues during hydration */
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -850,6 +851,7 @@
 }
 
 .preview-pill .armband {
+  font-size: 0.75rem; /* Explicit font-size to prevent size issues during hydration */
   font-weight: 600;
   color: var(--accent-color, var(--primary)); /* Use theme accent */
 }
@@ -1199,9 +1201,9 @@
 }
 
 .dog-armband {
-  font-size: 1.25rem;
+  font-size: 1.25rem; /* Explicit font-size to prevent size issues during hydration */
   font-weight: 700;
-  color: var(--primary);
+  color: var(--accent-color, var(--primary)); /* Use theme accent with fallback */
   margin-bottom: 0.375rem;
 }
 
