@@ -122,3 +122,7 @@ data/*.pdf
 
 # Test scripts with hardcoded credentials (security)
 scripts/test-supabase-connection.js
+
+# E2E test artifacts
+playwright-report-e2e/
+testsprite_tests/
