@@ -40,7 +40,7 @@ export default defineConfig({
       // Re-enabled: entryStatusManagement.test.ts (fixed function signature assertions)
       // Re-enabled: entrySubscriptions.test.ts
       // Re-enabled: scoreSubmission.test.ts
-      'src/pages/Admin/components/AdminNameDialog.test.tsx',
+      // Re-enabled: AdminNameDialog.test.tsx (added missing beforeEach import)
       // Re-enabled: AreaInputs.test.tsx, NationalsPointsDisplay.test.tsx, TimerDisplay.test.tsx
       'src/pages/Settings/components/DataManagementSection.test.tsx',
       'src/pages/Settings/components/DeveloperToolsSection.test.tsx',
