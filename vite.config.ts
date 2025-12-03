@@ -38,7 +38,7 @@ export default defineConfig({
       // Re-enabled: entryBatchOperations.test.ts
       // Re-enabled: entryDataLayer.test.ts (fixed licenseKey assertions)
       // Re-enabled: entryStatusManagement.test.ts (fixed function signature assertions)
-      'src/services/entry/entrySubscriptions.test.ts', // Needs: logging assertion updates
+      // Re-enabled: entrySubscriptions.test.ts
       'src/services/entry/scoreSubmission.test.ts', // Needs: function signature + batch result updates
       'src/pages/Admin/components/AdminNameDialog.test.tsx',
       // Re-enabled: AreaInputs.test.tsx, NationalsPointsDisplay.test.tsx, TimerDisplay.test.tsx
