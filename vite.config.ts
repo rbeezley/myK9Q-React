@@ -43,7 +43,7 @@ export default defineConfig({
       // Re-enabled: AdminNameDialog.test.tsx (added missing beforeEach import)
       // Re-enabled: AreaInputs.test.tsx, NationalsPointsDisplay.test.tsx, TimerDisplay.test.tsx
       // Re-enabled: DataManagementSection.test.tsx (added missing beforeEach import)
-      'src/pages/Settings/components/DeveloperToolsSection.test.tsx',
+      // Re-enabled: DeveloperToolsSection.test.tsx
       'src/pages/Settings/components/PushNotificationSettings.test.tsx',
       'src/pages/Settings/sections/VoiceSettingsSection.test.tsx',
     ],

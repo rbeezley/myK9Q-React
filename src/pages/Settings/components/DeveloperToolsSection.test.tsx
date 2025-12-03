@@ -64,8 +64,9 @@ describe('DeveloperToolsSection', () => {
 
       render(<DeveloperToolsSection />);
 
-      const toggle = screen.getByRole('checkbox');
-      fireEvent.click(toggle);
+      // When developer mode is on, there are multiple checkboxes - first one is developer mode toggle
+      const toggles = screen.getAllByRole('checkbox');
+      fireEvent.click(toggles[0]);
 
       expect(mockUpdateSettings).toHaveBeenCalledWith({ developerMode: false });
     });
@@ -420,9 +421,9 @@ describe('DeveloperToolsSection', () => {
       // All tools visible
       expect(screen.getByText('FPS Counter')).toBeInTheDocument();
 
-      // Disable developer mode
-      const toggle = screen.getByRole('checkbox');
-      fireEvent.click(toggle);
+      // Disable developer mode - when all tools are on, first checkbox is the developer mode toggle
+      const toggles = screen.getAllByRole('checkbox');
+      fireEvent.click(toggles[0]);
       expect(mockUpdateSettings).toHaveBeenCalledWith({ developerMode: false });
 
       // Simulate settings update
