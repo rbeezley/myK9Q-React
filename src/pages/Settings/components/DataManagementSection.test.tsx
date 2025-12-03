@@ -3,13 +3,13 @@
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DataManagementSection, StorageUsage } from './DataManagementSection';
 
 // Mock the dataExportService
 vi.mock('@/services/dataExportService', () => ({
   formatBytes: (bytes: number) => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return '0.00 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -108,7 +108,7 @@ describe('DataManagementSection', () => {
     it('should call onExportData when clicked', () => {
       render(<DataManagementSection {...defaultProps} />);
 
-      const exportDataRow = screen.getByText('Export My Data').closest('[role="button"]');
+      const exportDataRow = screen.getByText('Export My Data').closest('.settings-row');
       fireEvent.click(exportDataRow!);
 
       expect(mockOnExportData).toHaveBeenCalledTimes(1);
@@ -133,7 +133,7 @@ describe('DataManagementSection', () => {
     it('should call onExportSettings when clicked', () => {
       render(<DataManagementSection {...defaultProps} />);
 
-      const exportSettingsRow = screen.getByText('Export Settings').closest('[role="button"]');
+      const exportSettingsRow = screen.getByText('Export Settings').closest('.settings-row');
       fireEvent.click(exportSettingsRow!);
 
       expect(mockOnExportSettings).toHaveBeenCalledTimes(1);
@@ -151,7 +151,7 @@ describe('DataManagementSection', () => {
     it('should call onImportSettings when clicked', () => {
       render(<DataManagementSection {...defaultProps} />);
 
-      const importSettingsRow = screen.getByText('Import Settings').closest('[role="button"]');
+      const importSettingsRow = screen.getByText('Import Settings').closest('.settings-row');
       fireEvent.click(importSettingsRow!);
 
       expect(mockOnImportSettings).toHaveBeenCalledTimes(1);
@@ -169,7 +169,7 @@ describe('DataManagementSection', () => {
     it('should call onClearData when clicked', () => {
       render(<DataManagementSection {...defaultProps} />);
 
-      const clearDataRow = screen.getByText('Clear All Data').closest('[role="button"]');
+      const clearDataRow = screen.getByText('Clear All Data').closest('.settings-row');
       fireEvent.click(clearDataRow!);
 
       expect(mockOnClearData).toHaveBeenCalledTimes(1);
@@ -192,7 +192,7 @@ describe('DataManagementSection', () => {
     it('should have isDestructive prop', () => {
       const { container } = render(<DataManagementSection {...defaultProps} />);
 
-      const clearDataRow = screen.getByText('Clear All Data').closest('[role="button"]');
+      const clearDataRow = screen.getByText('Clear All Data').closest('.settings-row');
       // The SettingsRow component should handle the isDestructive styling
       expect(clearDataRow).toBeInTheDocument();
     });
@@ -202,7 +202,7 @@ describe('DataManagementSection', () => {
     it('should not trigger other callbacks when one is clicked', () => {
       render(<DataManagementSection {...defaultProps} />);
 
-      const exportDataRow = screen.getByText('Export My Data').closest('[role="button"]');
+      const exportDataRow = screen.getByText('Export My Data').closest('.settings-row');
       fireEvent.click(exportDataRow!);
 
       expect(mockOnExportData).toHaveBeenCalledTimes(1);
@@ -214,9 +214,9 @@ describe('DataManagementSection', () => {
     it('should allow clicking multiple buttons sequentially', () => {
       render(<DataManagementSection {...defaultProps} />);
 
-      const exportDataRow = screen.getByText('Export My Data').closest('[role="button"]');
-      const exportSettingsRow = screen.getByText('Export Settings').closest('[role="button"]');
-      const importSettingsRow = screen.getByText('Import Settings').closest('[role="button"]');
+      const exportDataRow = screen.getByText('Export My Data').closest('.settings-row');
+      const exportSettingsRow = screen.getByText('Export Settings').closest('.settings-row');
+      const importSettingsRow = screen.getByText('Import Settings').closest('.settings-row');
 
       fireEvent.click(exportDataRow!);
       fireEvent.click(exportSettingsRow!);
@@ -236,7 +236,7 @@ describe('DataManagementSection', () => {
       expect(screen.getByText(/5\.00 MB used/)).toBeInTheDocument();
 
       // User exports data
-      const exportDataRow = screen.getByText('Export My Data').closest('[role="button"]');
+      const exportDataRow = screen.getByText('Export My Data').closest('.settings-row');
       fireEvent.click(exportDataRow!);
 
       expect(mockOnExportData).toHaveBeenCalled();
@@ -246,12 +246,12 @@ describe('DataManagementSection', () => {
       render(<DataManagementSection {...defaultProps} />);
 
       // User exports settings from old device
-      const exportSettingsRow = screen.getByText('Export Settings').closest('[role="button"]');
+      const exportSettingsRow = screen.getByText('Export Settings').closest('.settings-row');
       fireEvent.click(exportSettingsRow!);
       expect(mockOnExportSettings).toHaveBeenCalled();
 
       // User imports settings on new device
-      const importSettingsRow = screen.getByText('Import Settings').closest('[role="button"]');
+      const importSettingsRow = screen.getByText('Import Settings').closest('.settings-row');
       fireEvent.click(importSettingsRow!);
       expect(mockOnImportSettings).toHaveBeenCalled();
     });
@@ -260,7 +260,7 @@ describe('DataManagementSection', () => {
       const { rerender } = render(<DataManagementSection {...defaultProps} />);
 
       // User initiates clear
-      const clearDataRow = screen.getByText('Clear All Data').closest('[role="button"]');
+      const clearDataRow = screen.getByText('Clear All Data').closest('.settings-row');
       fireEvent.click(clearDataRow!);
       expect(mockOnClearData).toHaveBeenCalled();
 
@@ -307,7 +307,8 @@ describe('DataManagementSection', () => {
 
       const icons = container.querySelectorAll('svg');
       // Database + 2x Download + Upload + Trash = 5 icons
-      expect(icons.length).toBe(5);
+      // Plus 4 ChevronRight icons for clickable rows = 9 total
+      expect(icons.length).toBe(9);
     });
   });
 });
