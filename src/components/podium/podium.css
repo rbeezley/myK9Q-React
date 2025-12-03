@@ -201,3 +201,105 @@
     width: 100%;
   }
 }
+
+/* ===== ANIMATIONS ===== */
+
+/* Slide-up animation keyframes */
+@keyframes podium-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale-in animation for badges */
+@keyframes podium-badge-pop {
+  0% {
+    transform: translateX(-50%) scale(0);
+  }
+  70% {
+    transform: translateX(-50%) scale(1.15);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* Shimmer effect for 1st place */
+@keyframes podium-shimmer {
+  0% {
+    box-shadow: var(--podium-first-glow), 0 3px 8px rgba(0, 0, 0, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), 0 3px 8px rgba(0, 0, 0, 0.25);
+  }
+  100% {
+    box-shadow: var(--podium-first-glow), 0 3px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Apply animations when animate class is present */
+.podium-position--animate {
+  animation: podium-slide-up 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+/* Staggered delays based on placement */
+.podium-position--animate.podium-position--first {
+  animation-delay: 0.1s;
+}
+
+.podium-position--animate.podium-position--second {
+  animation-delay: 0.25s;
+}
+
+.podium-position--animate.podium-position--third {
+  animation-delay: 0.4s;
+}
+
+.podium-position--animate.podium-position--fourth {
+  animation-delay: 0.55s;
+}
+
+/* Badge pop animation */
+.podium-position--animate .podium-position__badge {
+  animation: podium-badge-pop 0.4s ease-out forwards;
+  animation-delay: inherit;
+  transform: translateX(-50%) scale(0);
+}
+
+/* 1st place shimmer effect */
+.podium-position--animate.podium-position--first .podium-position__badge {
+  animation:
+    podium-badge-pop 0.4s ease-out forwards,
+    podium-shimmer 2s ease-in-out 0.6s infinite;
+}
+
+/* Card animation variant (for PodiumCard) */
+.podium-card--animate {
+  animation: podium-slide-up 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+@media (prefers-reduced-motion: reduce) {
+  .podium-position--animate,
+  .podium-card--animate {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .podium-position--animate .podium-position__badge {
+    animation: none;
+    transform: translateX(-50%) scale(1);
+  }
+
+  .podium-position--first .podium-position__badge {
+    animation: none;
+  }
+}

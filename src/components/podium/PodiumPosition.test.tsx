@@ -55,4 +55,21 @@ describe('PodiumPosition', () => {
     render(<PodiumPosition {...defaultProps} armband={42} />);
     expect(screen.getByText('#42')).toBeInTheDocument();
   });
+
+  describe('animation', () => {
+    it('does not apply animate class by default', () => {
+      const { container } = render(<PodiumPosition {...defaultProps} />);
+      expect(container.querySelector('.podium-position--animate')).not.toBeInTheDocument();
+    });
+
+    it('applies animate class when animate prop is true', () => {
+      const { container } = render(<PodiumPosition {...defaultProps} animate={true} />);
+      expect(container.querySelector('.podium-position--animate')).toBeInTheDocument();
+    });
+
+    it('does not apply animate class when animate prop is false', () => {
+      const { container } = render(<PodiumPosition {...defaultProps} animate={false} />);
+      expect(container.querySelector('.podium-position--animate')).not.toBeInTheDocument();
+    });
+  });
 });

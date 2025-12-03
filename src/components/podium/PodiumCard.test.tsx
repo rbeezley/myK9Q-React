@@ -75,4 +75,28 @@ describe('PodiumCard', () => {
     render(<PodiumCard {...defaultProps} element="Handler Discrimination" />);
     expect(screen.getByText('🎯')).toBeInTheDocument();
   });
+
+  describe('animation', () => {
+    it('does not apply animate class by default', () => {
+      const { container } = render(<PodiumCard {...defaultProps} />);
+      expect(container.querySelector('.podium-card--animate')).not.toBeInTheDocument();
+    });
+
+    it('applies animate class when animate prop is true', () => {
+      const { container } = render(<PodiumCard {...defaultProps} animate={true} />);
+      expect(container.querySelector('.podium-card--animate')).toBeInTheDocument();
+    });
+
+    it('passes animate prop to child PodiumPosition components', () => {
+      const { container } = render(<PodiumCard {...defaultProps} animate={true} />);
+      const positions = container.querySelectorAll('.podium-position--animate');
+      expect(positions.length).toBe(4);
+    });
+
+    it('does not animate children when animate is false', () => {
+      const { container } = render(<PodiumCard {...defaultProps} animate={false} />);
+      const positions = container.querySelectorAll('.podium-position--animate');
+      expect(positions.length).toBe(0);
+    });
+  });
 });

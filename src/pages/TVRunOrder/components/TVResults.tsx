@@ -26,6 +26,7 @@ export function TVResults({ classes }: TVResultsProps) {
               section={cls.section}
               placements={cls.placements}
               variant="compact"
+              animate={true}
             />
           </div>
         ))}

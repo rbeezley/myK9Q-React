@@ -30,12 +30,14 @@ export function PodiumPosition({
   dogName,
   breed,
   armband,
+  animate = false,
 }: PodiumPositionProps) {
   const placementClass = PLACEMENT_CLASSES[placement];
   const placementLabel = PLACEMENT_LABELS[placement];
+  const animateClass = animate ? 'podium-position--animate' : '';
 
   return (
-    <div className={`podium-position ${placementClass}`}>
+    <div className={`podium-position ${placementClass} ${animateClass}`.trim()}>
       <div className="podium-position__card">
         <div className="podium-position__badge">{placementLabel}</div>
         <div className="podium-position__handler">{handlerName}</div>
