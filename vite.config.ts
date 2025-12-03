@@ -44,8 +44,8 @@ export default defineConfig({
       // Re-enabled: AreaInputs.test.tsx, NationalsPointsDisplay.test.tsx, TimerDisplay.test.tsx
       // Re-enabled: DataManagementSection.test.tsx (added missing beforeEach import)
       // Re-enabled: DeveloperToolsSection.test.tsx
-      'src/pages/Settings/components/PushNotificationSettings.test.tsx',
-      'src/pages/Settings/sections/VoiceSettingsSection.test.tsx',
+      // Re-enabled: PushNotificationSettings.test.tsx
+      // Re-enabled: VoiceSettingsSection.test.tsx
     ],
     coverage: {
       reporter: ['text', 'json', 'html'],

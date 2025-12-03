@@ -80,7 +80,11 @@ describe('PushNotificationSettings', () => {
         />
       );
 
-      const icon = container.querySelector('[color="#f59e0b"]');
+      // Lucide icons render color as SVG stroke attribute, not color attribute
+      // Verify icon exists in warning section by finding SVG near the warning text
+      const warningText = screen.getByText('Browser Not Supported');
+      const warningSection = warningText.closest('div[style*="rgba(245, 158, 11"]');
+      const icon = warningSection?.querySelector('svg');
       expect(icon).toBeInTheDocument();
     });
 
@@ -117,7 +121,11 @@ describe('PushNotificationSettings', () => {
         />
       );
 
-      const icon = container.querySelector('[color="#ef4444"]');
+      // Lucide icons render color as SVG stroke attribute, not color attribute
+      // Verify icon exists in error section by finding SVG near the blocked text
+      const blockedText = screen.getByText('Notifications Blocked');
+      const errorSection = blockedText.closest('div[style*="rgba(239, 68, 68"]');
+      const icon = errorSection?.querySelector('svg');
       expect(icon).toBeInTheDocument();
     });
 
@@ -166,7 +174,11 @@ describe('PushNotificationSettings', () => {
         />
       );
 
-      const icon = container.querySelector('[color="#10b981"]');
+      // Lucide icons render color as SVG stroke attribute, not color attribute
+      // Verify icon exists in success section by finding SVG near the active text
+      const activeText = screen.getByText('Active & Ready');
+      const successSection = activeText.closest('div[style*="rgba(16, 185, 129"]');
+      const icon = successSection?.querySelector('svg');
       expect(icon).toBeInTheDocument();
     });
 

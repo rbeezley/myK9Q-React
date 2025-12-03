@@ -12,6 +12,26 @@ vi.mock('@/stores/settingsStore', () => ({
   useSettingsStore: vi.fn()
 }));
 
+// Mock SpeechSynthesisUtterance (not available in jsdom)
+class MockSpeechSynthesisUtterance {
+  text: string;
+  rate: number = 1;
+  pitch: number = 1;
+  volume: number = 1;
+  voice: SpeechSynthesisVoice | null = null;
+  lang: string = '';
+  onend: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  onstart: (() => void) | null = null;
+
+  constructor(text: string = '') {
+    this.text = text;
+  }
+}
+
+// Install mock globally before tests
+(globalThis as any).SpeechSynthesisUtterance = MockSpeechSynthesisUtterance;
+
 describe('VoiceSettingsSection', () => {
   const mockUpdateSettings = vi.fn();
   const mockGetVoices = vi.fn();
