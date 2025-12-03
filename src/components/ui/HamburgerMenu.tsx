@@ -33,7 +33,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show' | 'results';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
