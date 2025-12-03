@@ -69,9 +69,17 @@ export default [
       // - useStatsData.ts (86 → extracted to statsDataHelpers.ts)
       // - SortableEntryCard (64 → extracted to sortableEntryCardUtils.ts)
       // - ShowDetails (51 → extracted to ShowDetailsComponents.tsx)
-      // Threshold lowered 90 → 50 on 2025-12-03 (Phase 5.1)
-      // TODO: Lower thresholds gradually: 50 -> 30 -> 15 (target)
-      'complexity': ['error', { max: 50 }], // Lowered from 90 (Dec 2025)
+      // - useEntryNavigation (38 → extracted to useEntryNavigationHelpers.ts)
+      // - AKCNationalsScoresheet (37 → extracted to AKCNationalsScoresheetHelpers.ts)
+      // - preloadService (36 → extracted to preloadServiceHelpers.ts)
+      // - CreateAnnouncementModal (35 → extracted to createAnnouncementHelpers.ts)
+      // - useDogDetailsData (34 → extracted to dogDetailsDataHelpers.ts)
+      // Threshold: 90 → 50 (2025-12-03) → 40 (2025-12-03)
+      // Remaining files over 30: AKCNationalsScoresheet (38), dogDetailsDataHelpers (38),
+      //   CreateAnnouncementModal (35), DogDetails (33), EntryListHeader (33),
+      //   SubscriptionMonitor (32), notificationService (32)
+      // TODO: Continue lowering: 40 -> 30 -> 20 (target)
+      'complexity': ['error', { max: 40 }], // Lowered from 50 (Dec 2025)
       'max-depth': ['error', { max: 8 }] // Current max in codebase is 8
     }
   }

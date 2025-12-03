@@ -11,6 +11,13 @@ import {
   Info,
   WifiOff
 } from 'lucide-react';
+import {
+  validateAnnouncementForm,
+  validateOnlineStatus,
+  prepareAnnouncementData,
+  PRIORITY_OPTIONS,
+  getPriorityOption,
+} from './createAnnouncementHelpers';
 
 interface CreateAnnouncementModalProps {
   licenseKey: string;
@@ -85,46 +92,28 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (!title.trim()) {
-      setError('Title is required');
+    // Validate form data
+    const formValidation = validateAnnouncementForm({ title, content, priority, authorName, expiresAt });
+    if (!formValidation.isValid) {
+      setError(formValidation.error!);
       return;
     }
 
-    if (!content.trim()) {
-      setError('Content is required');
-      return;
-    }
-
-    if (title.length > 200) {
-      setError('Title must be 200 characters or less');
-      return;
-    }
-
-    if (content.length > 2000) {
-      setError('Content must be 2000 characters or less');
-      return;
-    }
-
-    // Check if online before attempting to create/update announcement
-    if (!navigator.onLine) {
-      setError('You must be online to create or update announcements. Please check your internet connection and try again.');
+    // Check online status
+    const onlineValidation = validateOnlineStatus();
+    if (!onlineValidation.isValid) {
+      setError(onlineValidation.error!);
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const announcementData = {
-        title: title.trim(),
-        content: content.trim(),
-        priority,
-        author_role: userRole! as 'admin' | 'judge' | 'steward',
-        author_name: authorName.trim() || undefined,
-        expires_at: expiresAt ? new Date(expiresAt).toISOString() : undefined,
-        license_key: licenseKey,
-        is_active: true
-      };
+      const announcementData = prepareAnnouncementData(
+        { title, content, priority, authorName, expiresAt },
+        userRole as 'admin' | 'judge' | 'steward',
+        licenseKey
+      );
 
       if (isEditing) {
         await updateAnnouncement(editingAnnouncement!.id, announcementData);
@@ -133,19 +122,13 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
       }
 
       onSuccess();
-    } catch (error) {
-      console.error('Error saving announcement:', error);
-      setError(error instanceof Error ? error.message : 'Failed to save announcement');
+    } catch (err) {
+      console.error('Error saving announcement:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save announcement');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const priorityOptions = [
-    { value: 'normal', label: 'Normal', icon: '📢', description: 'Standard announcement' },
-    { value: 'high', label: 'High Priority', icon: '⚠️', description: 'Important information' },
-    { value: 'urgent', label: 'Urgent', icon: '🚨', description: 'Critical updates only' }
-  ];
 
   const roleInfo = AnnouncementService.getRoleBadgeInfo(userRole! as 'admin' | 'judge' | 'steward');
 
@@ -199,8 +182,8 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
               <div className="preview-header">
                 <h3>Preview</h3>
                 <div className={`priority-badge ${priority}`}>
-                  {priorityOptions.find(p => p.value === priority)?.icon}
-                  {priorityOptions.find(p => p.value === priority)?.label}
+                  {getPriorityOption(priority)?.icon}
+                  {getPriorityOption(priority)?.label}
                 </div>
               </div>
               <div className="preview-announcement">
@@ -266,7 +249,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
               <div className="form-group">
                 <label className="form-label">Priority *</label>
                 <div className="priority-selector">
-                  {priorityOptions.map(option => (
+                  {PRIORITY_OPTIONS.map(option => (
                     <label key={option.value} className="priority-option">
                       <input
                         type="radio"

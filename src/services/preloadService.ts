@@ -15,7 +15,17 @@
 
 import { supabase } from '@/lib/supabase';
 import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
-import type { Entry } from '@/stores/entryStore';
+
+// Extracted helpers for reduced complexity
+import {
+  createProgressUpdater,
+  fetchShowInfo,
+  fetchAndCacheClasses,
+  fetchAndCacheTrials,
+  fetchAndCacheEntries,
+  createPreloadedShowMetadata,
+  checkAborted,
+} from './preloadServiceHelpers';
 
 export interface PreloadProgress {
   stage: 'preparing' | 'classes' | 'trials' | 'entries' | 'complete' | 'error';
@@ -101,125 +111,55 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
   let totalItems = 0;
   let currentItem = 0;
 
-  const updateProgress = (stage: PreloadProgress['stage'], current: number, total: number, currentItemName?: string) => {
-    const progress: PreloadProgress = {
-      stage,
-      current,
-      total,
-      percentage: total > 0 ? Math.round((current / total) * 100) : 0,
-      currentItem: currentItemName,
-    };
-    onProgress?.(progress);
-  };
+  const updateProgress = createProgressUpdater(onProgress);
 
   try {
-    // Stage 1: Preparing
+    // Stage 1: Preparing - fetch show info
     updateProgress('preparing', 0, 1);
+    const showData = await fetchShowInfo(licenseKey);
+    checkAborted(signal);
 
-    // Get show info
-    const { data: showData, error: showError } = await supabase
-      .from('shows')
-      .select('name')
-      .eq('license_key', licenseKey)
-      .single();
-
-    if (showError || !showData) {
-      throw new Error('Show not found');
-    }
-
-    if (signal?.aborted) {
-      throw new Error('Download cancelled');
-    }
-
-    // Get counts
+    // Get counts for progress tracking
     const estimate = await estimateShowSize(licenseKey);
     totalItems = estimate.classCount + estimate.trialCount + estimate.entryCount;
 
-    // Stage 2: Download Classes
+    // Stage 2: Download and cache classes
     updateProgress('classes', 0, estimate.classCount);
+    const classesResult = await fetchAndCacheClasses(licenseKey, ttl, signal);
+    currentItem += classesResult.count;
+    updateProgress('classes', classesResult.count, estimate.classCount);
 
-    const { data: classes, error: classError } = await supabase
-      .from('classes')
-      .select('*')
-      .eq('license_key', licenseKey);
-
-    if (classError) throw classError;
-    if (signal?.aborted) throw new Error('Download cancelled');
-
-    // Cache classes
-    const classesKey = `classes:${licenseKey}`;
-    await prefetchCache.set(classesKey, classes || [], ttl);
-    currentItem += classes?.length || 0;
-    updateProgress('classes', classes?.length || 0, estimate.classCount);
-
-    // Stage 3: Download Trials
+    // Stage 3: Download and cache trials
     updateProgress('trials', 0, estimate.trialCount);
+    const trialsResult = await fetchAndCacheTrials(licenseKey, ttl, signal);
+    currentItem += trialsResult.count;
+    updateProgress('trials', trialsResult.count, estimate.trialCount);
 
-    const { data: trials, error: trialError } = await supabase
-      .from('trials')
-      .select('*')
-      .eq('license_key', licenseKey);
-
-    if (trialError) throw trialError;
-    if (signal?.aborted) throw new Error('Download cancelled');
-
-    // Cache trials
-    const trialsKey = `trials:${licenseKey}`;
-    await prefetchCache.set(trialsKey, trials || [], ttl);
-    currentItem += trials?.length || 0;
-    updateProgress('trials', trials?.length || 0, estimate.trialCount);
-
-    // Stage 4: Download Entries (in batches)
+    // Stage 4: Download and cache entries (in batches)
     updateProgress('entries', 0, estimate.entryCount);
-
-    const allEntries: Entry[] = [];
-    let offset = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      if (signal?.aborted) throw new Error('Download cancelled');
-
-      const { data: entriesBatch, error: entryError } = await supabase
-        .from('view_entry_class_join_normalized')
-        .select('*')
-        .eq('license_key', licenseKey)
-        .range(offset, offset + BATCH_SIZE - 1)
-        .order('armband_number', { ascending: true });
-
-      if (entryError) throw entryError;
-
-      if (!entriesBatch || entriesBatch.length === 0) {
-        hasMore = false;
-      } else {
-        allEntries.push(...entriesBatch);
-        offset += BATCH_SIZE;
-        currentItem += entriesBatch.length;
-        updateProgress('entries', allEntries.length, estimate.entryCount, `Entry ${allEntries.length}/${estimate.entryCount}`);
-      }
-    }
-
-    // Cache all entries
-    const entriesKey = `entries:${licenseKey}`;
-    await prefetchCache.set(entriesKey, allEntries, ttl);
-
-    // Calculate actual size (rough estimate)
-    const actualSize = JSON.stringify({
-      classes,
-      trials,
-      entries: allEntries,
-    }).length;
-
-    // Save show metadata
-    const preloadedShow: PreloadedShow = {
+    const entriesResult = await fetchAndCacheEntries(
       licenseKey,
-      showName: showData.name,
-      downloadedAt: Date.now(),
-      expiresAt: Date.now() + ttl,
-      size: actualSize,
-      classCount: classes?.length || 0,
-      trialCount: trials?.length || 0,
-      entryCount: allEntries.length,
-    };
+      ttl,
+      estimate.entryCount,
+      BATCH_SIZE,
+      (fetched, total) => {
+        updateProgress('entries', fetched, total, `Entry ${fetched}/${total}`);
+      },
+      signal
+    );
+    currentItem += entriesResult.count;
+
+    // Create and save show metadata
+    const preloadedShow = createPreloadedShowMetadata(
+      licenseKey,
+      showData.name,
+      {
+        classes: classesResult.data,
+        trials: trialsResult.data,
+        entries: entriesResult.data,
+      },
+      ttl
+    );
 
     // Store metadata using prefetchCache with 'metadata:' prefix
     await prefetchCache.set(`metadata:preloaded-show:${licenseKey}`, preloadedShow, ttl);
@@ -227,20 +167,17 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
     // Stage 5: Complete
     updateProgress('complete', totalItems, totalItems);
 
-return preloadedShow;
+    return preloadedShow;
 
   } catch (error) {
     console.error('❌ Failed to preload show:', error);
-
-    const errorProgress: PreloadProgress = {
-      stage: 'error',
-      current: currentItem,
-      total: totalItems,
-      percentage: totalItems > 0 ? Math.round((currentItem / totalItems) * 100) : 0,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-    onProgress?.(errorProgress);
-
+    updateProgress(
+      'error',
+      currentItem,
+      totalItems,
+      undefined,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     throw error;
   }
 }

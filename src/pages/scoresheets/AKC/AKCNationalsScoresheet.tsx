@@ -20,13 +20,28 @@ import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/
 import { DogCard } from '../../../components/DogCard';
 import { X, ClipboardCheck } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
-import { NATIONALS_SCORING } from '../../../constants/nationalsConstants';
-import { formatSecondsToTime } from '../../../utils/timeUtils';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
 
 // Shared hooks from refactoring
 import { useScoresheetCore, useEntryNavigation } from '../hooks';
+
+// Extracted helpers (complexity refactoring)
+import {
+  type NationalsQualifyingResult,
+  formatStopwatchTime,
+  convertTimeToSeconds,
+  parseMaxTimeToMs,
+  calculateNationalsPoints,
+  mapElementToNationalsType,
+  shouldShow30SecondWarning,
+  isTimeExpired,
+  getTimerWarningMessage,
+  getRemainingTimeString,
+  createExcusedAreas,
+  calculateTotalMaxTime,
+  updateAreasFromAlerts
+} from './AKCNationalsScoresheetHelpers';
 
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
@@ -34,9 +49,6 @@ import './AKCScentWorkScoresheet-Flutter.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
 import '../../../styles/containers.css';
 import '../../../components/wireframes/NationalsWireframe.css';
-
-// Nationals-specific qualifying results
-type NationalsQualifyingResult = 'Qualified' | 'Absent' | 'Excused';
 
 export const AKCNationalsScoresheet: React.FC = () => {
   const { showContext } = useAuth();
@@ -125,46 +137,18 @@ export const AKCNationalsScoresheet: React.FC = () => {
   }, []);
 
   // ==========================================================================
-  // NATIONALS-SPECIFIC CALCULATIONS
+  // NATIONALS-SPECIFIC CALCULATIONS (use imported helpers)
   // ==========================================================================
 
-  // Calculate Nationals points in real-time
-  const calculateNationalsPoints = useCallback(() => {
-    if (isExcused) return 0;
-
-    const correctPoints = alertsCorrect * NATIONALS_SCORING.CORRECT_ALERT_POINTS;
-    const incorrectPenalty = alertsIncorrect * NATIONALS_SCORING.INCORRECT_ALERT_PENALTY;
-    const faultPenalty = faultCount * NATIONALS_SCORING.FAULT_PENALTY;
-    const finishErrorPenalty = finishCallErrors * NATIONALS_SCORING.FINISH_CALL_ERROR_PENALTY;
-
-    return correctPoints - incorrectPenalty - faultPenalty - finishErrorPenalty;
+  // Calculate Nationals points using imported helper
+  const getNationalsPoints = useCallback(() => {
+    return calculateNationalsPoints(isExcused, alertsCorrect, alertsIncorrect, faultCount, finishCallErrors);
   }, [isExcused, alertsCorrect, alertsIncorrect, faultCount, finishCallErrors]);
 
-  // Helper function: Convert time string to seconds
-  const convertTimeToSeconds = useCallback((timeString: string): number => {
-    const parts = timeString.split(':');
-    if (parts.length === 2) {
-      const minutes = parseInt(parts[0]) || 0;
-      const seconds = parseFloat(parts[1]) || 0;
-      return Math.round(minutes * 60 + seconds);
-    }
-    return Math.round(parseFloat(timeString) || 0);
-  }, []);
-
-  // Auto-calculate areas based on alerts
+  // Auto-calculate areas based on alerts using imported helper
   useEffect(() => {
     if (areas.length > 0) {
-      const updatedAreas = areas.map((area, index) => {
-        const correctForThisArea = index < alertsCorrect;
-        const incorrectForThisArea = index < alertsIncorrect && index >= alertsCorrect;
-
-        return {
-          ...area,
-          found: correctForThisArea || incorrectForThisArea,
-          correct: correctForThisArea
-        };
-      });
-
+      const updatedAreas = updateAreasFromAlerts(areas, alertsCorrect, alertsIncorrect);
       setAreas(updatedAreas);
     }
   }, [alertsCorrect, alertsIncorrect]);
@@ -183,26 +167,18 @@ export const AKCNationalsScoresheet: React.FC = () => {
       setFinishCallErrors(0);
       setFaultCount(0);
 
-      // Set max search time for all areas
-      const updatedAreas = areas.map((area, index) => ({
-        ...area,
-        time: getMaxTimeForArea(index),
-        found: false,
-        correct: false
-      }));
+      // Set max search time for all areas using helper
+      const updatedAreas = createExcusedAreas(areas, getMaxTimeForArea);
       setAreas(updatedAreas);
 
-      // Set total time to sum of all max times
-      const totalMaxTime = updatedAreas.reduce((sum, area) => {
-        const timeInSeconds = convertTimeToSeconds(area.time);
-        return sum + timeInSeconds;
-      }, 0);
-      setTotalTime(formatSecondsToTime(totalMaxTime));
+      // Set total time to sum of all max times using helper
+      const totalMaxTimeStr = calculateTotalMaxTime(updatedAreas, convertTimeToSeconds);
+      setTotalTime(totalMaxTimeStr);
     } else {
       setIsExcused(false);
     }
   }, [
-    areas, getMaxTimeForArea, convertTimeToSeconds, setAreas, setTotalTime,
+    areas, getMaxTimeForArea, setAreas, setTotalTime,
     setQualifying, setIsExcused, setAlertsCorrect, setAlertsIncorrect, setFinishCallErrors, setFaultCount
   ]);
 
@@ -210,15 +186,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
   // NATIONALS-SPECIFIC HELPERS
   // ==========================================================================
 
-  const mapElementToNationalsType = useCallback((element: string) => {
-    const elementLower = element?.toLowerCase() || '';
-    if (elementLower.includes('container')) return 'CONTAINER';
-    if (elementLower.includes('buried')) return 'BURIED';
-    if (elementLower.includes('interior')) return 'INTERIOR';
-    if (elementLower.includes('exterior')) return 'EXTERIOR';
-    if (elementLower.includes('handler') || elementLower.includes('discrimination')) return 'HD_CHALLENGE';
-    return 'CONTAINER'; // Default
-  }, []);
+  // Note: mapElementToNationalsType is now imported from helpers
 
   const getCurrentDay = useCallback((): 1 | 2 | 3 => {
     // This should be determined by your trial/class data
@@ -231,8 +199,8 @@ export const AKCNationalsScoresheet: React.FC = () => {
   // ==========================================================================
 
   const handleEnhancedSubmit = useCallback(async () => {
-if (!currentEntry) {
-return;
+    if (!currentEntry) {
+      return;
     }
 
     setShowConfirmation(false);
@@ -241,18 +209,12 @@ return;
     const finalQualifying = qualifying || 'Qualified';
     const finalTotalTime = totalTime || calculateTotalTime() || '0.00';
 
-    // Prepare area results
-    const areaResults: Record<string, string> = {};
-    areas.forEach(area => {
-      areaResults[area.areaName.toLowerCase()] = `${area.time}${area.found ? ' FOUND' : ' NOT FOUND'}${area.correct ? ' CORRECT' : ' INCORRECT'}`;
-    });
-
     // Use core's submitScore but with Nationals-specific data
     await core.submitScore(currentEntry, {
       correctCount: alertsCorrect,
       incorrectCount: alertsIncorrect,
       finishCallErrors: finishCallErrors,
-      points: calculateNationalsPoints()
+      points: getNationalsPoints()
     });
 
     // Also submit to nationals_scores table for TV dashboard
@@ -276,7 +238,7 @@ return;
           notes: undefined
         });
 
-} catch (nationalsError) {
+      } catch (nationalsError) {
         console.error('❌ Failed to submit Nationals score:', nationalsError);
         // Don't fail the whole submission - regular score still saved
       }
@@ -285,7 +247,6 @@ return;
     currentEntry,
     qualifying,
     totalTime,
-    areas,
     alertsCorrect,
     alertsIncorrect,
     finishCallErrors,
@@ -293,24 +254,15 @@ return;
     isExcused,
     showContext?.licenseKey,
     calculateTotalTime,
-    calculateNationalsPoints,
-    convertTimeToSeconds,
-    mapElementToNationalsType,
+    getNationalsPoints,
     getCurrentDay,
     core,
     setShowConfirmation
   ]);
 
   // ==========================================================================
-  // TIMER FUNCTIONS
+  // TIMER FUNCTIONS (formatStopwatchTime imported from helpers)
   // ==========================================================================
-
-  const formatStopwatchTime = (milliseconds: number): string => {
-    const totalSeconds = milliseconds / 1000;
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = (totalSeconds % 60).toFixed(2);
-    return `${minutes}:${seconds.padStart(5, '0')}`;
-  };
 
   const getNextEmptyAreaIndex = useCallback((): number => {
     return areas.findIndex(area => !area.time);
@@ -322,15 +274,8 @@ return;
     const maxTimeStr = getMaxTimeForArea(areaIndex);
     if (!maxTimeStr) return '';
 
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
-    const remainingMs = Math.max(0, maxTimeMs - stopwatchTime);
-    const remainingSeconds = remainingMs / 1000;
-    const mins = Math.floor(remainingSeconds / 60);
-    const secs = (remainingSeconds % 60).toFixed(2);
-
-    return `${mins}:${secs.padStart(5, '0')}`;
+    const maxTimeMs = parseMaxTimeToMs(maxTimeStr);
+    return getRemainingTimeString(stopwatchTime, maxTimeMs);
   }, [getNextEmptyAreaIndex, getMaxTimeForArea, stopwatchTime]);
 
   const resetStopwatch = useCallback(() => {
@@ -354,8 +299,7 @@ return;
       const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
       const maxTimeStr = getMaxTimeForArea(areaIndex);
       if (maxTimeStr) {
-        const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-        const maxTimeMs = (minutes * 60 + seconds) * 1000;
+        const maxTimeMs = parseMaxTimeToMs(maxTimeStr);
 
         if (currentTime >= maxTimeMs) {
           setIsStopwatchRunning(false);
@@ -393,47 +337,41 @@ return;
   }, [stopwatchTime, handleAreaUpdate, resetStopwatch]);
 
   // ==========================================================================
-  // 30-SECOND WARNING
+  // 30-SECOND WARNING (using imported helpers)
   // ==========================================================================
 
-  const shouldShow30SecondWarning = useCallback((): boolean => {
-    if (!isStopwatchRunning) return false;
-
-    const level = currentEntry?.level?.toLowerCase() || '';
-    if (level === 'master' || level === 'masters') return false;
-
+  // Get current max time in milliseconds for active area
+  const getCurrentMaxTimeMs = useCallback((): number => {
     const activeAreaIndex = getNextEmptyAreaIndex();
     const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
     const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return false;
+    return maxTimeStr ? parseMaxTimeToMs(maxTimeStr) : 0;
+  }, [getNextEmptyAreaIndex, getMaxTimeForArea]);
 
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+  const checkShow30SecondWarning = useCallback((): boolean => {
+    const maxTimeMs = getCurrentMaxTimeMs();
+    return shouldShow30SecondWarning({
+      isStopwatchRunning,
+      stopwatchTime,
+      level: currentEntry?.level || '',
+      maxTimeMs
+    });
+  }, [isStopwatchRunning, stopwatchTime, currentEntry?.level, getCurrentMaxTimeMs]);
 
-    const remainingMs = maxTimeMs - stopwatchTime;
-    return remainingMs > 0 && remainingMs <= 30000;
-  }, [isStopwatchRunning, currentEntry?.level, getNextEmptyAreaIndex, getMaxTimeForArea, stopwatchTime]);
+  const checkTimeExpired = useCallback((): boolean => {
+    const maxTimeMs = getCurrentMaxTimeMs();
+    return isTimeExpired(stopwatchTime, maxTimeMs);
+  }, [stopwatchTime, getCurrentMaxTimeMs]);
 
-  const isTimeExpired = useCallback((): boolean => {
-    const activeAreaIndex = getNextEmptyAreaIndex();
-    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-    const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return false;
-
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
-    return stopwatchTime > 0 && stopwatchTime >= maxTimeMs;
-  }, [getNextEmptyAreaIndex, getMaxTimeForArea, stopwatchTime]);
-
-  const getTimerWarningMessage = useCallback((): string | null => {
-    if (isTimeExpired()) {
-      return "Time Expired";
-    } else if (shouldShow30SecondWarning()) {
-      return "30 Second Warning";
-    }
-    return null;
-  }, [isTimeExpired, shouldShow30SecondWarning]);
+  const getWarningMessage = useCallback((): string | null => {
+    const maxTimeMs = getCurrentMaxTimeMs();
+    return getTimerWarningMessage(stopwatchTime, maxTimeMs, {
+      isStopwatchRunning,
+      stopwatchTime,
+      level: currentEntry?.level || '',
+      maxTimeMs
+    });
+  }, [stopwatchTime, isStopwatchRunning, currentEntry?.level, getCurrentMaxTimeMs]);
 
   // Voice announcement for 30-second warning
   const has30SecondAnnouncedRef = useRef(false);
@@ -451,26 +389,21 @@ return;
     const level = currentEntry?.level?.toLowerCase() || '';
     if (level === 'master' || level === 'masters') return;
 
-    const activeAreaIndex = getNextEmptyAreaIndex();
-    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
-    const maxTimeStr = getMaxTimeForArea(areaIndex);
-    if (!maxTimeStr) return;
-
-    const [minutes, seconds] = maxTimeStr.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
+    const maxTimeMs = getCurrentMaxTimeMs();
+    if (maxTimeMs <= 0) return;
 
     const remainingMs = maxTimeMs - stopwatchTime;
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
     if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
-voiceAnnouncementService.announceTimeRemaining(30);
+      voiceAnnouncementService.announceTimeRemaining(30);
       has30SecondAnnouncedRef.current = true;
     }
 
     if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
-  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, getNextEmptyAreaIndex, getMaxTimeForArea]);
+  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, getCurrentMaxTimeMs]);
 
   // Set scoring active state
   useEffect(() => {
@@ -574,7 +507,7 @@ voiceAnnouncementService.announceTimeRemaining(30);
           ⟲
         </button>
 
-        <div className={`timer-display-large ${shouldShow30SecondWarning() ? 'warning' : ''} ${isTimeExpired() ? 'expired' : ''}`}>
+        <div className={`timer-display-large ${checkShow30SecondWarning() ? 'warning' : ''} ${checkTimeExpired() ? 'expired' : ''}`}>
           {formatStopwatchTime(stopwatchTime)}
         </div>
         <div className="timer-countdown-display">
@@ -612,9 +545,9 @@ voiceAnnouncementService.announceTimeRemaining(30);
       </div>
 
       {/* Timer Warning Message */}
-      {getTimerWarningMessage() && (
-        <div className={`timer-warning ${getTimerWarningMessage() === 'Time Expired' ? 'expired' : 'warning'}`}>
-          {getTimerWarningMessage()}
+      {getWarningMessage() && (
+        <div className={`timer-warning ${getWarningMessage() === 'Time Expired' ? 'expired' : 'warning'}`}>
+          {getWarningMessage()}
         </div>
       )}
 
@@ -816,7 +749,7 @@ voiceAnnouncementService.announceTimeRemaining(30);
                 </div>
                 <div className="total-points">
                   <span className="total-label">Total Points:</span>
-                  <span className="total-value">{calculateNationalsPoints()}</span>
+                  <span className="total-value">{getNationalsPoints()}</span>
                 </div>
               </div>
 

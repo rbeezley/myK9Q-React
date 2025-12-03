@@ -11,7 +11,6 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { getVisibleResultFields } from '../../../services/resultVisibilityService';
 import type { VisibleResultFields, VisibilityTiming } from '../../../types/visibility';
 import type { CheckinStatus } from '../../../components/dialogs/CheckinStatusDialog';
 import type { UserRole } from '../../../utils/auth';
@@ -20,6 +19,12 @@ import { ensureReplicationManager } from '../../../utils/replicationHelper';
 import type { Entry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Trial } from '../../../services/replication/tables/ReplicatedTrialsTable';
+import {
+  extractDogInfo,
+  processEntriesToClassEntries,
+  type ClassData,
+  type TrialData
+} from './dogDetailsDataHelpers';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -131,87 +136,25 @@ async function fetchDogDetails(
     const allTrials = await trialsTable.getAll(licenseKey) as Trial[];
 
     // Create lookup maps for performance
-    // Use String() to ensure consistent key types for lookups
-    const classMap = new Map(allClasses.map(c => [String(c.id), c]));
-    const trialMap = new Map(allTrials.map(t => [String(t.id), t]));
+    const classMap = new Map<string, ClassData>(allClasses.map(c => [String(c.id), c as ClassData]));
+    const trialMap = new Map<string, TrialData>(allTrials.map(t => [String(t.id), t as TrialData]));
 
     // Debug: Log if no classes found
     if (allClasses.length === 0) {
       logger.warn('[DogDetails] ⚠️ No classes found in cache - class info will be missing');
     }
 
-    // Set dog info from first entry
-    const firstEntry = dogEntries[0];
-    const dogInfo: DogInfo = {
-      armband: firstEntry.armband_number,
-      call_name: firstEntry.dog_call_name || 'Unknown',
-      breed: firstEntry.dog_breed || 'Unknown',
-      handler: firstEntry.handler_name || 'Unknown'
-    };
-
-    // Process all entries - join with classes and trials
-    const classesWithVisibility = await Promise.all(
-      dogEntries.map(async (entry) => {
-        // Use String() for consistent lookup
-        const classData = classMap.get(String(entry.class_id));
-        const trialData = classData ? trialMap.get(String(classData.trial_id)) : undefined;
-
-        // Debug: Log if class data not found for an entry
-        if (!classData) {
-          logger.warn(`[DogDetails] ⚠️ No class data found for entry ${entry.id}, class_id: ${entry.class_id}`);
-        }
-
-        // Map entry status
-        const statusText = entry.entry_status || 'no-status';
-        const check_in_status: ClassEntry['check_in_status'] =
-          statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
-
-        // Fetch visibility settings for this class (role-based)
-        // Note: results_released_at not available in replicated Class yet - using null
-        const visibleFields = await getVisibleResultFields({
-          classId: parseInt(entry.class_id),
-          trialId: classData?.trial_id || 0,
-          licenseKey,
-          userRole: (currentRole || 'exhibitor') as UserRole,
-          isClassComplete: classData?.is_completed || false,
-          resultsReleasedAt: null // results_released_at not available in replicated table
-        });
-
-        return {
-          id: parseInt(entry.id), // Entry ID (used for status updates)
-          class_id: parseInt(entry.class_id), // Class ID (used for navigation)
-          class_name: classData?.element && classData?.level
-            ? `${classData.element} ${classData.level}`
-            : 'Unknown Class',
-          class_type: classData?.element || 'Unknown',
-          trial_name: trialData?.element || 'Unknown Trial', // trial_number not in schema
-          trial_date: trialData?.trial_date || '',
-          search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
-          fault_count: entry.total_faults || null,
-          result_text: entry.result_status || null,
-          is_scored: entry.is_scored || false,
-          checked_in: check_in_status !== 'no-status',
-          check_in_status,
-          position: entry.final_placement,
-          // Map additional fields - provide fallbacks for display
-          element: classData?.element || 'Unknown',
-          level: classData?.level || 'Class',
-          section: classData?.section,
-          trial_number: undefined, // trial_number not in Trial schema
-          judge_name: classData?.judge_name || undefined,
-          // Visibility fields
-          trial_id: classData?.trial_id,
-          is_completed: classData?.is_completed || false,
-          results_released_at: null, // Not available in replicated Class table
-          visibleFields
-        };
-      })
+    // Extract dog info and process entries using helpers
+    const dogInfo = extractDogInfo(dogEntries[0]);
+    const classesWithVisibility = await processEntriesToClassEntries(
+      dogEntries,
+      licenseKey,
+      currentRole,
+      classMap,
+      trialMap
     );
 
-    return {
-      dogInfo,
-      classes: classesWithVisibility
-    };
+    return { dogInfo, classes: classesWithVisibility };
     }
 
   } catch (error) {
@@ -241,68 +184,15 @@ async function fetchDogDetails(
 
     logger.log(`[REPLICATION] ✅ Loaded ${entries.length} entries from Supabase for armband ${armband}`);
 
-    // Set dog info from first entry
-    const firstEntry = entries[0];
-    const dogInfo: DogInfo = {
-      armband: firstEntry.armband_number,
-      call_name: firstEntry.dog_call_name || 'Unknown',
-      breed: firstEntry.dog_breed || 'Unknown',
-      handler: firstEntry.handler_name || 'Unknown'
-    };
-
-    // Process all entries with visibility
-    const classesWithVisibility = await Promise.all(
-      entries.map(async (entry) => {
-        // Map entry status
-        const statusText = entry.entry_status || 'no-status';
-        const check_in_status: ClassEntry['check_in_status'] =
-          statusText === 'in-ring' ? 'no-status' : statusText as CheckinStatus;
-
-        // Fetch visibility settings for this class (role-based)
-        const visibleFields = await getVisibleResultFields({
-          classId: entry.class_id,
-          trialId: entry.trial_id,
-          licenseKey,
-          userRole: (currentRole || 'exhibitor') as UserRole,
-          isClassComplete: entry.is_completed || false,
-          resultsReleasedAt: entry.results_released_at
-        });
-
-        return {
-          id: entry.id, // Entry ID
-          class_id: entry.class_id, // Class ID
-          class_name: entry.element && entry.level
-            ? `${entry.element} ${entry.level}`
-            : 'Unknown Class',
-          class_type: entry.element || 'Unknown',
-          trial_name: entry.trial_element || 'Unknown Trial',
-          trial_date: entry.trial_date || '',
-          search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
-          fault_count: entry.total_faults || null,
-          result_text: entry.result_status || null,
-          is_scored: entry.is_scored || false,
-          checked_in: check_in_status !== 'no-status',
-          check_in_status,
-          position: entry.final_placement,
-          // Additional fields
-          element: entry.element,
-          level: entry.level,
-          section: entry.section,
-          trial_number: entry.trial_number,
-          judge_name: entry.judge_name,
-          // Visibility fields
-          trial_id: entry.trial_id,
-          is_completed: entry.is_completed || false,
-          results_released_at: entry.results_released_at,
-          visibleFields
-        };
-      })
+    // Extract dog info and process entries using helpers
+    const dogInfo = extractDogInfo(entries[0]);
+    const classesWithVisibility = await processEntriesToClassEntries(
+      entries,
+      licenseKey,
+      currentRole
     );
 
-    return {
-      dogInfo,
-      classes: classesWithVisibility
-    };
+    return { dogInfo, classes: classesWithVisibility };
 
   } catch (error) {
     logger.error('[REPLICATION] ❌ Error loading dog details from Supabase:', error);

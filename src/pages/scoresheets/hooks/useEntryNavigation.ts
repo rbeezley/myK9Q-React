@@ -18,15 +18,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useScoringStore, useEntryStore } from '../../../stores';
-import type { Entry as StoreEntry } from '../../../stores/entryStore';
 import { useAuth } from '../../../contexts/AuthContext';
 import { markInRing } from '../../../services/entryService';
-import { ensureReplicationManager } from '../../../utils/replicationHelper';
-import { initializeAreas, type AreaScore } from '../../../services/scoresheets/areaInitialization';
-import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
-import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
-import type { Trial } from '../../../services/replication/tables/ReplicatedTrialsTable';
+import type { AreaScore } from '../../../services/scoresheets/areaInitialization';
 import type { Entry } from '../../../stores/entryStore';
+import {
+  type RouteState,
+  loadFromRouteState,
+  loadFromIndexedDB,
+  getMaxTimeForAreaHelper
+} from './useEntryNavigationHelpers';
 
 /**
  * Configuration options for entry navigation
@@ -78,39 +79,7 @@ export interface EntryNavigationReturn {
   reloadEntries: () => Promise<void>;
 }
 
-/**
- * Default max times based on AKC Scent Work requirements
- */
-function getDefaultMaxTime(element: string, level: string): string {
-  const elem = element?.toLowerCase() || '';
-  const lvl = level?.toLowerCase() || '';
-
-  // Container is always 2 minutes
-  if (elem.includes('container')) {
-    return '2:00';
-  }
-
-  // Interior is always 3 minutes
-  if (elem.includes('interior')) {
-    return '3:00';
-  }
-
-  // Exterior varies by level
-  if (elem.includes('exterior')) {
-    if (lvl.includes('excellent')) return '4:00';
-    if (lvl.includes('master')) return '5:00';
-    return '3:00';
-  }
-
-  // Buried varies by level
-  if (elem.includes('buried')) {
-    if (lvl.includes('excellent') || lvl.includes('master')) return '4:00';
-    return '3:00';
-  }
-
-  // Default fallback
-  return '3:00';
-}
+// Note: getDefaultMaxTime moved to useEntryNavigationHelpers.ts
 
 /**
  * Hook for managing entry loading and navigation in scoresheets
@@ -146,7 +115,7 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
   const { showContext } = useAuth();
 
   // Check for entry data passed via route state (instant load optimization)
-  const routeState = location.state as { entry?: StoreEntry; classInfo?: { element: string; level: string; section?: string } } | null;
+  const routeState = location.state as RouteState | null;
 
   // Store hooks
   const {
@@ -207,52 +176,31 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
   }, []);
 
   // ==========================================================================
-  // ENTRY LOADING
+  // ENTRY LOADING (refactored to use helper functions)
   // ==========================================================================
 
   const loadEntries = useCallback(async () => {
-if (!classId || !showContext?.licenseKey) {
-return;
+    if (!classId || !showContext?.licenseKey) {
+      return;
     }
 
     // FAST PATH: Use entry data from route state if available (instant load)
-    // This skips all IndexedDB operations for much faster rendering
     if (routeState?.entry && routeState?.classInfo) {
-      // eslint-disable-next-line no-console
-      console.log('⚡ [useEntryNavigation] Using route state for instant load');
+      const result = loadFromRouteState(routeState, isNationals);
 
-      const passedEntry = routeState.entry;
-      const passedClassInfo = routeState.classInfo;
-
-      // Set class info immediately
-      setClassInfo({
-        element: passedClassInfo.element,
-        level: passedClassInfo.level,
-        section: passedClassInfo.section
-      });
-
-      // Set entry immediately
-      setLocalEntries([passedEntry]);
-      setEntries([passedEntry]);
+      setClassInfo(result.classInfo);
+      setLocalEntries([result.entry]);
+      setEntries([result.entry]);
       setCurrentClassEntries(parseInt(classId));
-      setCurrentEntry(passedEntry);
+      setCurrentEntry(result.entry);
 
-      // Initialize areas and notify
-      const initialAreas = initializeAreas(
-        passedEntry.element || '',
-        passedEntry.level || '',
-        isNationals
-      );
-      onEntryLoadedRef.current?.(passedEntry, initialAreas);
-
-      // Mark in ring in background (fire-and-forget)
-      markInRing(passedEntry.id, true).catch(console.error);
+      onEntryLoadedRef.current?.(result.entry, result.areas);
 
       // Start scoring session if not already started
       if (!isScoring) {
         startScoringSession(
           parseInt(classId),
-          passedEntry.className || 'AKC Scent Work',
+          result.entry.className || 'AKC Scent Work',
           sportType,
           'judge-1',
           1
@@ -261,7 +209,7 @@ return;
 
       setIsLoading(false);
       onLoadingChangeRef.current?.(false);
-      return; // Skip the slow path
+      return;
     }
 
     // SLOW PATH: Load from IndexedDB (fallback for direct URL access)
@@ -269,112 +217,29 @@ return;
     onLoadingChangeRef.current?.(true);
 
     try {
-      // Ensure replication manager is initialized
-      const manager = await ensureReplicationManager();
-
-      const entriesTable = manager.getTable('entries');
-      const classesTable = manager.getTable('classes');
-      const trialsTable = manager.getTable('trials');
-
-      if (!entriesTable || !classesTable || !trialsTable) {
-        throw new Error('Required tables not registered');
-      }
-
-      // Get class information
-      let classData = await classesTable.get(classId) as Class | undefined;
-
-      if (!classData) {
-await manager.syncTable('classes');
-        classData = await classesTable.get(classId) as Class | undefined;
-
-        if (!classData) {
-          throw new Error(`Class ${classId} not found`);
-        }
-      }
-
-      // Store class info
-      setClassInfo({
-        element: classData.element,
-        level: classData.level,
-        section: classData.section
+      const result = await loadFromIndexedDB(classId, entryId, isNationals, {
+        onTrialDateLoaded: onTrialDateLoadedRef.current,
+        onTrialNumberLoaded: onTrialNumberLoadedRef.current
       });
 
-      // Get trial information
-      const trialData = await trialsTable.get(String(classData.trial_id)) as Trial | undefined;
-      if (trialData?.trial_date) {
-        // Format date as mm/dd/yyyy
-        const rawDate = trialData.trial_date;
-        const [year, month, day] = rawDate.split('T')[0].split('-');
-        const formatted = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
-        onTrialDateLoadedRef.current?.(formatted);
-        onTrialNumberLoadedRef.current?.(String(trialData.trial_number || '1'));
-      }
-
-      // Get all entries for this class
-      let allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-      const classIdStr = String(classId);
-      let classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
-
-      // If no entries found, try to sync
-      if (classEntries.length === 0) {
-await manager.syncTable('entries');
-        allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-        classEntries = allEntries.filter(entry => String(entry.class_id) === classIdStr);
-      }
-
-// Transform to Entry format
-      const transformedEntries: Entry[] = classEntries.map(entry => ({
-        id: parseInt(entry.id),
-        armband: entry.armband_number,
-        callName: entry.dog_call_name || 'Unknown',
-        breed: entry.dog_breed || 'Unknown',
-        handler: entry.handler_name || 'Unknown',
-        isScored: entry.is_scored || false,
-        status: (entry.entry_status as Entry['status']) || 'no-status',
-        classId: parseInt(entry.class_id),
-        className: `${classData.element} ${classData.level}`,
-        element: classData.element,
-        level: classData.level,
-        section: classData.section,
-        timeLimit: classData.time_limit_seconds ? String(classData.time_limit_seconds) : undefined,
-        timeLimit2: classData.time_limit_area2_seconds ? String(classData.time_limit_area2_seconds) : undefined,
-        timeLimit3: classData.time_limit_area3_seconds ? String(classData.time_limit_area3_seconds) : undefined,
-      }));
-
-      setLocalEntries(transformedEntries);
-      setEntries(transformedEntries);
+      setClassInfo(result.classInfo);
+      setLocalEntries(result.entries);
+      setEntries(result.entries);
       setCurrentClassEntries(parseInt(classId));
 
-      // Set current entry
-      let targetEntry: Entry | undefined;
-      if (entryId) {
-        targetEntry = transformedEntries.find(e => e.id === parseInt(entryId));
-      }
-      if (!targetEntry && transformedEntries.length > 0) {
-        targetEntry = transformedEntries[0];
-      }
-
-      if (targetEntry) {
-        setCurrentEntry(targetEntry);
-        await markInRing(targetEntry.id, true);
-
-        // Initialize areas and notify
-        const initialAreas = initializeAreas(
-          targetEntry.element || '',
-          targetEntry.level || '',
-          isNationals
-        );
-        onEntryLoadedRef.current?.(targetEntry, initialAreas);
+      if (result.targetEntry) {
+        setCurrentEntry(result.targetEntry);
+        onEntryLoadedRef.current?.(result.targetEntry, result.areas);
       }
 
       // Start scoring session if not already started
-      if (!isScoring && transformedEntries.length > 0) {
+      if (!isScoring && result.entries.length > 0) {
         startScoringSession(
           parseInt(classId),
-          transformedEntries[0].className || 'AKC Scent Work',
+          result.entries[0].className || 'AKC Scent Work',
           sportType,
           'judge-1',
-          transformedEntries.length
+          result.entries.length
         );
       }
 
@@ -391,8 +256,7 @@ await manager.syncTable('entries');
     isNationals,
     sportType,
     isScoring,
-    routeState, // Entry data passed from EntryList for instant load
-    // Callbacks removed from deps - using refs instead to prevent infinite re-render loops
+    routeState,
     setEntries,
     setCurrentClassEntries,
     setCurrentEntry,
@@ -431,47 +295,11 @@ await manager.syncTable('entries');
   }, [currentEntry, entries, navigateToEntry]);
 
   // ==========================================================================
-  // MAX TIME HELPER
+  // MAX TIME HELPER (refactored to use helper function)
   // ==========================================================================
 
   const getMaxTimeForArea = useCallback((areaIndex: number): string => {
-    if (!currentEntry) {
-      return '3:00';
-    }
-
-    // Try to get max time from entry data
-    let maxTime = '';
-    switch (areaIndex) {
-      case 0:
-        maxTime = currentEntry.timeLimit || '';
-        break;
-      case 1:
-        maxTime = currentEntry.timeLimit2 || '';
-        break;
-      case 2:
-        maxTime = currentEntry.timeLimit3 || '';
-        break;
-    }
-
-    // Convert if stored as seconds (e.g., 240 -> 4:00)
-    if (maxTime && !maxTime.includes(':')) {
-      const totalSeconds = parseInt(maxTime);
-      if (!isNaN(totalSeconds) && totalSeconds > 0) {
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        maxTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      }
-    }
-
-    // Fallback to defaults
-    if (!maxTime || maxTime === '' || maxTime === '0:00') {
-      maxTime = getDefaultMaxTime(
-        currentEntry.element || '',
-        currentEntry.level || ''
-      );
-    }
-
-    return maxTime;
+    return getMaxTimeForAreaHelper(currentEntry, areaIndex);
   }, [currentEntry]);
 
   // ==========================================================================
