@@ -65,10 +65,13 @@ export default [
       'no-undef': 'off', // TypeScript handles this better
       'no-console': ['warn', { allow: ['warn', 'error'] }], // Prevent debug console.log
       // DEBT-008: Complexity rules - prevent new high-complexity code
-      // Current worst: useStatsData.ts (86), SortableEntryCard (64), useEntryListData (59)
-      // These are tracked in DEBT_REGISTER.md for future refactoring
-      // TODO: Lower thresholds gradually: 90 -> 50 -> 30 -> 15 (target)
-      'complexity': ['error', { max: 90 }], // Allow current max, prevent worse
+      // Previous worst offenders have been refactored:
+      // - useStatsData.ts (86 → extracted to statsDataHelpers.ts)
+      // - SortableEntryCard (64 → extracted to sortableEntryCardUtils.ts)
+      // - ShowDetails (51 → extracted to ShowDetailsComponents.tsx)
+      // Threshold lowered 90 → 50 on 2025-12-03 (Phase 5.1)
+      // TODO: Lower thresholds gradually: 50 -> 30 -> 15 (target)
+      'complexity': ['error', { max: 50 }], // Lowered from 90 (Dec 2025)
       'max-depth': ['error', { max: 8 }] // Current max in codebase is 8
     }
   }

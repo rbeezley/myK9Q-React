@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'path'
 
 export default defineConfig({
@@ -125,6 +126,15 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    // Bundle visualizer - generates stats.html after build
+    // Run with: ANALYZE=true npm run build
+    process.env.ANALYZE === 'true' ? visualizer({
+      filename: 'stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap' // or 'sunburst', 'network'
+    }) : null,
     VitePWA({
       strategies: 'injectManifest', // Use our custom service worker
       srcDir: 'public',
