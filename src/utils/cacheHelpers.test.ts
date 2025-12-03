@@ -36,12 +36,14 @@ describe('isCacheValid', () => {
   });
 
   test('should return true for cache at exact TTL boundary', () => {
+    const now = Date.now();
     const cached: CachedData<any> = {
       data: {},
-      timestamp: Date.now() - 60000, // exactly 60 seconds ago
+      timestamp: now - 60000, // exactly 60 seconds ago
       ttl: 60
     };
-    expect(isCacheValid(cached)).toBe(true);
+    // Use fixed currentTime to avoid timing race condition
+    expect(isCacheValid(cached, now)).toBe(true);
   });
 
   test('should accept custom currentTime parameter', () => {
