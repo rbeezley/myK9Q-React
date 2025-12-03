@@ -17,7 +17,6 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { NationalsCounterSimple } from '../../../components/scoring/NationalsCounterSimple';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
-import { DogCard } from '../../../components/DogCard';
 import { X, ClipboardCheck } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
@@ -25,6 +24,10 @@ import { parseSmartTime } from '../../../utils/timeInputParsing';
 
 // Shared hooks from refactoring
 import { useScoresheetCore, useEntryNavigation } from '../hooks';
+
+// Extracted sub-components (complexity refactoring)
+import { NationalsTimerSection } from './components/NationalsTimerSection';
+import { NationalsConfirmationDialog } from './components/NationalsConfirmationDialog';
 
 // Extracted helpers (complexity refactoring)
 import {
@@ -496,60 +499,19 @@ export const AKCNationalsScoresheet: React.FC = () => {
         </div>
       </div>
 
-      {/* Timer Section */}
-      <div className="scoresheet-timer-card">
-        <button
-          className="timer-btn-reset"
-          onClick={resetStopwatch}
-          disabled={isStopwatchRunning}
-          title={isStopwatchRunning ? "Reset disabled while timer is running" : "Reset timer"}
-        >
-          ⟲
-        </button>
-
-        <div className={`timer-display-large ${checkShow30SecondWarning() ? 'warning' : ''} ${checkTimeExpired() ? 'expired' : ''}`}>
-          {formatStopwatchTime(stopwatchTime)}
-        </div>
-        <div className="timer-countdown-display">
-          {stopwatchTime > 0 ? (
-            <>Remaining: {getRemainingTime()}</>
-          ) : (
-            <>Max Time: {getMaxTimeForArea(getNextEmptyAreaIndex() >= 0 ? getNextEmptyAreaIndex() : 0)}</>
-          )}
-        </div>
-        <div className="timer-controls-flutter">
-          {isStopwatchRunning ? (
-            <button
-              className="timer-btn-start stop"
-              onClick={stopStopwatch}
-            >
-              Stop
-            </button>
-          ) : stopwatchTime > 0 ? (
-            <button
-              className="timer-btn-start resume"
-              onClick={startStopwatch}
-              title="Continue timing"
-            >
-              Resume
-            </button>
-          ) : (
-            <button
-              className="timer-btn-start start"
-              onClick={startStopwatch}
-            >
-              Start
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Timer Warning Message */}
-      {getWarningMessage() && (
-        <div className={`timer-warning ${getWarningMessage() === 'Time Expired' ? 'expired' : 'warning'}`}>
-          {getWarningMessage()}
-        </div>
-      )}
+      {/* Timer Section - Extracted Component */}
+      <NationalsTimerSection
+        stopwatchTime={stopwatchTime}
+        isStopwatchRunning={isStopwatchRunning}
+        showWarning={checkShow30SecondWarning()}
+        isExpired={checkTimeExpired()}
+        remainingTime={getRemainingTime()}
+        maxTimeDisplay={getMaxTimeForArea(getNextEmptyAreaIndex() >= 0 ? getNextEmptyAreaIndex() : 0)}
+        warningMessage={getWarningMessage()}
+        onReset={resetStopwatch}
+        onStart={startStopwatch}
+        onStop={stopStopwatch}
+      />
 
       {/* Time Input */}
       {areas.map((area, index) => (
@@ -673,103 +635,31 @@ export const AKCNationalsScoresheet: React.FC = () => {
         </div>
       )}
 
-      {/* Judge Confirmation Dialog */}
-      {showConfirmation && (
-        <div className="judge-confirmation-overlay">
-          <div className="judge-confirmation-dialog">
-            <div className="dialog-header">
-              <h2>Score Confirmation</h2>
-              <div className="trial-info-line">
-                {trialDate} • Trial {trialNumber} • {currentEntry.element} {currentEntry.level}
-              </div>
-            </div>
-
-            <div className="dialog-dog-card">
-              <DogCard
-                armband={currentEntry.armband}
-                callName={currentEntry.callName}
-                breed={currentEntry.breed}
-                handler={currentEntry.handler}
-                className="confirmation-dog-card"
-              />
-            </div>
-
-            <div className="score-details">
-              <div className="result-time-grid nationals-mode">
-                <div className="score-item">
-                  <span className="item-label">Result</span>
-                  <span className={`item-value result-${qualifying?.toLowerCase()}`}>
-                    {qualifying === 'Qualified' ? 'Qualified' :
-                     qualifying === 'Absent' ? 'Absent' :
-                     qualifying === 'Excused' ? 'Excused' : qualifying}
-                  </span>
-                </div>
-
-                {/* Multi-area search: show each area time + total */}
-                {areas.length > 1 ? (
-                  <>
-                    {areas.map((area, index) => (
-                      <div key={index} className="score-item time-container">
-                        <span className="item-label">{area.areaName} Time</span>
-                        <span className="item-value time-value">{area.time || '0:00.00'}</span>
-                      </div>
-                    ))}
-                    <div className="score-item time-container total-time">
-                      <span className="item-label">Total Time</span>
-                      <span className="item-value time-value total">{totalTime || calculateTotalTime()}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="score-item time-container">
-                    <span className="item-label">Time</span>
-                    <span className="item-value time-value">{areas[0]?.time || totalTime || calculateTotalTime()}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="nationals-breakdown">
-                <h3>Nationals Scoring</h3>
-                <div className="score-grid">
-                  <div className="score-item">
-                    <span className="item-label">Correct Calls</span>
-                    <span className="item-value positive">{alertsCorrect}</span>
-                  </div>
-                  <div className="score-item">
-                    <span className="item-label">Incorrect Calls</span>
-                    <span className="item-value negative">{alertsIncorrect}</span>
-                  </div>
-                  <div className="score-item">
-                    <span className="item-label">Faults</span>
-                    <span className="item-value negative">{faultCount}</span>
-                  </div>
-                  <div className="score-item">
-                    <span className="item-label">No Finish Calls</span>
-                    <span className="item-value negative">{finishCallErrors}</span>
-                  </div>
-                </div>
-                <div className="total-points">
-                  <span className="total-label">Total Points:</span>
-                  <span className="total-value">{getNationalsPoints()}</span>
-                </div>
-              </div>
-
-            </div>
-
-            <div className="dialog-actions">
-              <button className="dialog-btn cancel" onClick={() => setShowConfirmation(false)}>
-                Cancel
-              </button>
-              <button
-                className="dialog-btn confirm"
-                onClick={handleEnhancedSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Submitting...' : 'Confirm & Submit'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Judge Confirmation Dialog - Extracted Component */}
+      <NationalsConfirmationDialog
+        show={showConfirmation}
+        entry={{
+          armband: currentEntry.armband,
+          callName: currentEntry.callName,
+          breed: currentEntry.breed,
+          handler: currentEntry.handler,
+          element: currentEntry.element,
+          level: currentEntry.level
+        }}
+        trialDate={trialDate}
+        trialNumber={trialNumber}
+        qualifying={qualifying}
+        areas={areas}
+        totalTime={totalTime || calculateTotalTime()}
+        alertsCorrect={alertsCorrect}
+        alertsIncorrect={alertsIncorrect}
+        faultCount={faultCount}
+        finishCallErrors={finishCallErrors}
+        nationalsPoints={getNationalsPoints()}
+        isSubmitting={isSubmitting}
+        onCancel={() => setShowConfirmation(false)}
+        onConfirm={handleEnhancedSubmit}
+      />
       </div>
     </div>
     </>

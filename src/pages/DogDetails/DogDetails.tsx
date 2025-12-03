@@ -3,30 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { updateEntryCheckinStatus } from '../../services/entryService';
-import { getAvailabilityMessage } from '../../services/resultVisibilityService';
 import { generateDogResultsSheet } from '../../services/reportService';
-import { Button, HamburgerMenu, CompactOfflineIndicator, ArmbandBadge, TrialDateBadge } from '../../components/ui';
+import { Button, HamburgerMenu, CompactOfflineIndicator, ArmbandBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
 import { useHapticFeedback } from '../../utils/hapticFeedback';
-import { formatTimeForDisplay } from '../../utils/timeUtils';
-import { getEntryStatusColor, getEntryStatusLabel } from '../../utils/statusUtils';
 import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
 import { DogStatistics } from './components/DogStatistics';
-import { PlacementBadge } from '../EntryList/SortableEntryCardComponents';
-import { isNonQualifyingResult } from '../EntryList/sortableEntryCardUtils';
+import { DogDetailsClassCard } from './components/DogDetailsClassCard';
 import type { DogResultEntry } from '../../components/reports/DogResultsSheet';
 import {
   ArrowLeft,
   RefreshCw,
-  Clock,
-  AlertTriangle,
-  ThumbsUp,
-  XCircle,
-  Target,
-  User,
-  Check,
-  Circle,
-  Star,
   MoreVertical,
   FileText,
   CheckCircle,
@@ -257,17 +244,6 @@ export const DogDetails: React.FC = () => {
     setActivePopup(activePopup === classId ? null : classId);
   };
 
-  // Use centralized status utilities
-  const getStatusColor = getEntryStatusColor;
-  const getStatusLabel = getEntryStatusLabel;
-
-  const formatTime = (time: string | null, resultText?: string | null) => {
-    // Non-qualifying results (NQ, Absent, Excused, Withdrawn) show 00:00.00
-    if (isNonQualifyingResult(resultText)) {
-      return '00:00.00';
-    }
-    return formatTimeForDisplay(time);
-  };
 
   if (isLoading) {
     return (
@@ -403,164 +379,14 @@ export const DogDetails: React.FC = () => {
         )}
 
         <div className="classes-grid">
-        {classes.map((entry) => {
-          const statusColor = getStatusColor(entry);
-          const isScored = entry.is_scored;
-          const isQualified = statusColor === 'qualified';
-          const isNQ = statusColor === 'not-qualified';
-
-          return (
-            <div
+          {classes.map((entry) => (
+            <DogDetailsClassCard
               key={entry.id}
-              className={`class-card ${statusColor} clickable`}
-              style={{ position: 'relative', cursor: 'pointer' }}
-              onClick={() => handleClassCardClick(entry)}
-            >
-              {/* Corner Badge - Match EntryList design */}
-              <div className="class-card-action">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent card click when clicking status button
-                    if (!isScored) {
-                      handleOpenPopup(e, entry.id);
-                    }
-                  }}
-                  disabled={isScored}
-                  className={`status-badge ${statusColor}`}
-                >
-                  {/* Show actual result status for scored dogs - respect visibility */}
-                  {isScored ? (
-                    <>
-                      {/* Only show qualification status if visible */}
-                      {entry.visibleFields?.showQualification ? (
-                        <>
-                          {isQualified ? (
-                            <>
-                              <ThumbsUp size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                              <span className="status-text">Qualified</span>
-                            </>
-                          ) : isNQ ? (
-                            <>
-                              <XCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                              <span className="status-text">Not Qualified</span>
-                            </>
-                          ) : (
-                            <>
-                              <Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                              <span className="status-text">{getStatusLabel(entry)}</span>
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                          <span className="status-text">Results Pending</span>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {/* Check-in status icons */}
-                      {entry.check_in_status === 'checked-in' && <Check size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
-                      {entry.check_in_status === 'conflict' && <AlertTriangle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
-                      {entry.check_in_status === 'pulled' && <XCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
-                      {entry.check_in_status === 'at-gate' && <Star size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
-                      {entry.check_in_status === 'no-status' && <Circle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
-                      <span className="status-text">{getStatusLabel(entry)}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="class-content">
-                {/* Top row: Class Name */}
-                <h4 className="class-name" style={{
-                  margin: 0,
-                  fontSize: '1.125rem',
-                  fontWeight: 600,
-                  lineHeight: 1.2
-                }}>
-                  {[
-                    entry.element,
-                    entry.level,
-                    entry.section && entry.section !== '-' ? entry.section : null
-                  ].filter(Boolean).join(' • ')}
-                </h4>
-
-                {/* Second row: Judge */}
-                {entry.judge_name && (
-                  <p style={{
-                    margin: 0,
-                    marginBottom: 'var(--token-space-md)',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--muted-foreground)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.375rem'
-                  }}>
-                    <User size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-                    Judge: {entry.judge_name}
-                  </p>
-                )}
-
-                {/* Additional metadata row */}
-                <div className="class-meta-details">
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                    <TrialDateBadge date={entry.trial_date} />
-                  </span>
-                  {entry.trial_number && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      <Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-                      Trial {entry.trial_number}
-                    </span>
-                  )}
-                </div>
-
-                {/* Performance Stats - respect visibility settings */}
-                {entry.is_scored && (
-                  <div className="class-stats">
-                    {/* Placement Badge - show on results row if visible */}
-                    {entry.visibleFields?.showPlacement &&
-                     entry.position !== null &&
-                     entry.position !== undefined &&
-                     entry.position !== 9996 &&
-                     entry.position > 0 &&
-                     isQualified && (
-                      <PlacementBadge placement={entry.position} />
-                    )}
-
-                    {/* Time - show if visible, otherwise show availability message */}
-                    {entry.visibleFields?.showTime ? (
-                      <span className="time-badge">
-                        <Clock size={14} className="badge-icon" />
-                        {formatTime(entry.search_time, entry.result_text)}
-                      </span>
-                    ) : (
-                      <span className="time-badge dimmed">
-                        <Clock size={14} className="badge-icon" />
-                        ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.timeTiming || 'class_complete')}
-                      </span>
-                    )}
-
-                    {/* Faults - show if visible, otherwise show availability message */}
-                    {entry.visibleFields?.showFaults ? (
-                      <span className="faults-badge-subtle">
-                        <AlertTriangle size={14} className="badge-icon" />
-                        {entry.fault_count || 0} {entry.fault_count === 1 ? 'Fault' : 'Faults'}
-                      </span>
-                    ) : (
-                      <span className="faults-badge-subtle dimmed">
-                        <AlertTriangle size={14} className="badge-icon" />
-                        ⏳ {getAvailabilityMessage(entry.is_completed || false, entry.faultsTiming || 'class_complete')}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+              entry={entry}
+              onCardClick={handleClassCardClick}
+              onStatusClick={handleOpenPopup}
+            />
+          ))}
         </div>
         </div>
 

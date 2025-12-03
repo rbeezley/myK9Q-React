@@ -81,6 +81,84 @@ export function mapEntryStatus(statusText: string | null | undefined): CheckinSt
 }
 
 /**
+ * Parse ID to number (handles string IDs from different sources)
+ */
+function parseId(id: number | string): number {
+  return typeof id === 'string' ? parseInt(id) : id;
+}
+
+/**
+ * Derived field values from entry, class, and trial data
+ */
+interface DerivedFields {
+  element: string;
+  level: string;
+  section: string | null | undefined;
+  trialId: number;
+  isCompleted: boolean;
+  resultsReleasedAt: string | null;
+  judgeName: string | undefined;
+  trialName: string;
+  trialDate: string;
+}
+
+/**
+ * Extract derived fields with fallbacks between entry, class, and trial data
+ */
+function extractDerivedFields(
+  entry: RawEntryData,
+  classData?: ClassData,
+  trialData?: TrialData
+): DerivedFields {
+  return {
+    element: entry.element || classData?.element || 'Unknown',
+    level: entry.level || classData?.level || 'Class',
+    section: entry.section || classData?.section,
+    trialId: entry.trial_id || classData?.trial_id || 0,
+    isCompleted: entry.is_completed ?? classData?.is_completed ?? false,
+    resultsReleasedAt: entry.results_released_at ?? null,
+    judgeName: entry.judge_name || classData?.judge_name || undefined,
+    trialName: entry.trial_element || trialData?.element || 'Unknown Trial',
+    trialDate: entry.trial_date || trialData?.trial_date || ''
+  };
+}
+
+/**
+ * Build ClassEntry object from entry data and derived fields
+ */
+function buildClassEntry(
+  entry: RawEntryData,
+  fields: DerivedFields,
+  checkInStatus: CheckinStatus,
+  visibleFields: ClassEntry['visibleFields']
+): ClassEntry {
+  return {
+    id: parseId(entry.id),
+    class_id: parseId(entry.class_id),
+    class_name: fields.element && fields.level ? `${fields.element} ${fields.level}` : 'Unknown Class',
+    class_type: fields.element,
+    trial_name: fields.trialName,
+    trial_date: fields.trialDate,
+    search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
+    fault_count: entry.total_faults || null,
+    result_text: entry.result_status || null,
+    is_scored: entry.is_scored || false,
+    checked_in: checkInStatus !== 'no-status',
+    check_in_status: checkInStatus,
+    position: entry.final_placement ?? undefined,
+    element: fields.element,
+    level: fields.level,
+    section: fields.section ?? undefined,
+    trial_number: entry.trial_number ?? undefined,
+    judge_name: fields.judgeName,
+    trial_id: fields.trialId,
+    is_completed: fields.isCompleted,
+    results_released_at: fields.resultsReleasedAt,
+    visibleFields
+  };
+}
+
+/**
  * Process a single entry into a ClassEntry with visibility settings
  */
 export async function processEntryToClassEntry(
@@ -90,53 +168,20 @@ export async function processEntryToClassEntry(
   classData?: ClassData,
   trialData?: TrialData
 ): Promise<ClassEntry> {
-  const check_in_status = mapEntryStatus(entry.entry_status);
-
-  // Determine values - prefer direct entry fields (Supabase), fall back to joined data (cache)
-  const element = entry.element || classData?.element || 'Unknown';
-  const level = entry.level || classData?.level || 'Class';
-  const section = entry.section || classData?.section;
-  const trialId = entry.trial_id || classData?.trial_id || 0;
-  const isCompleted = entry.is_completed ?? classData?.is_completed ?? false;
-  const resultsReleasedAt = entry.results_released_at ?? null;
-  const judgeName = entry.judge_name || classData?.judge_name;
-  const trialName = entry.trial_element || trialData?.element || 'Unknown Trial';
-  const trialDate = entry.trial_date || trialData?.trial_date || '';
+  const checkInStatus = mapEntryStatus(entry.entry_status);
+  const fields = extractDerivedFields(entry, classData, trialData);
 
   // Fetch visibility settings for this class (role-based)
   const visibleFields = await getVisibleResultFields({
-    classId: typeof entry.class_id === 'string' ? parseInt(entry.class_id) : entry.class_id,
-    trialId,
+    classId: parseId(entry.class_id),
+    trialId: fields.trialId,
     licenseKey,
     userRole: (currentRole || 'exhibitor') as UserRole,
-    isClassComplete: isCompleted,
-    resultsReleasedAt
+    isClassComplete: fields.isCompleted,
+    resultsReleasedAt: fields.resultsReleasedAt
   });
 
-  return {
-    id: typeof entry.id === 'string' ? parseInt(entry.id) : entry.id,
-    class_id: typeof entry.class_id === 'string' ? parseInt(entry.class_id) : entry.class_id,
-    class_name: element && level ? `${element} ${level}` : 'Unknown Class',
-    class_type: element,
-    trial_name: trialName,
-    trial_date: trialDate,
-    search_time: entry.search_time_seconds ? `${entry.search_time_seconds}s` : null,
-    fault_count: entry.total_faults || null,
-    result_text: entry.result_status || null,
-    is_scored: entry.is_scored || false,
-    checked_in: check_in_status !== 'no-status',
-    check_in_status,
-    position: entry.final_placement ?? undefined,
-    element,
-    level,
-    section: section ?? undefined,
-    trial_number: entry.trial_number ?? undefined,
-    judge_name: judgeName ?? undefined,
-    trial_id: trialId,
-    is_completed: isCompleted,
-    results_released_at: resultsReleasedAt,
-    visibleFields
-  };
+  return buildClassEntry(entry, fields, checkInStatus, visibleFields);
 }
 
 /**

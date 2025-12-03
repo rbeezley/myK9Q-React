@@ -70,16 +70,18 @@ export default [
       // - SortableEntryCard (64 → extracted to sortableEntryCardUtils.ts)
       // - ShowDetails (51 → extracted to ShowDetailsComponents.tsx)
       // - useEntryNavigation (38 → extracted to useEntryNavigationHelpers.ts)
-      // - AKCNationalsScoresheet (37 → extracted to AKCNationalsScoresheetHelpers.ts)
+      // - AKCNationalsScoresheet (38 → extracted to NationalsTimerSection, NationalsConfirmationDialog)
+      // - dogDetailsDataHelpers (38 → refactored extractDerivedFields, buildClassEntry)
       // - preloadService (36 → extracted to preloadServiceHelpers.ts)
-      // - CreateAnnouncementModal (35 → extracted to createAnnouncementHelpers.ts)
-      // - useDogDetailsData (34 → extracted to dogDetailsDataHelpers.ts)
-      // Threshold: 90 → 50 (2025-12-03) → 40 (2025-12-03)
-      // Remaining files over 30: AKCNationalsScoresheet (38), dogDetailsDataHelpers (38),
-      //   CreateAnnouncementModal (35), DogDetails (33), EntryListHeader (33),
-      //   SubscriptionMonitor (32), notificationService (32)
-      // TODO: Continue lowering: 40 -> 30 -> 20 (target)
-      'complexity': ['error', { max: 40 }], // Lowered from 50 (Dec 2025)
+      // - CreateAnnouncementModal (35 → extracted to createAnnouncementComponents.tsx)
+      // - DogDetails (33 → extracted to DogDetailsClassCard.tsx)
+      // - EntryListHeader (33 → extracted to entryListHeaderHelpers.tsx)
+      // - SubscriptionMonitor (32 → extracted to subscriptionMonitorComponents.tsx)
+      // - notificationService (32 → extracted to notificationServiceHelpers.ts)
+      // Threshold history: 90 → 50 → 40 → 30 (2025-12-03)
+      // All files now below complexity 30!
+      // TODO: Continue lowering: 30 -> 20 (target)
+      'complexity': ['error', { max: 30 }], // Lowered from 40 (Dec 2025)
       'max-depth': ['error', { max: 8 }] // Current max in codebase is 8
     }
   }

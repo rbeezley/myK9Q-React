@@ -7,6 +7,11 @@
 
 import { useSettingsStore } from '@/stores/settingsStore';
 import voiceAnnouncementService from './voiceAnnouncementService';
+import {
+  getVibrationPattern,
+  generateAnnouncementText,
+  buildNotificationOptions
+} from './notificationServiceHelpers';
 
 /**
  * Type guard for Badging API support
@@ -374,24 +379,8 @@ return null;
         this.announceNotification(payload);
       }
 
-      // Create notification options
-      const options: NotificationOptions = {
-        body: payload.body,
-        icon: payload.icon || '/myK9Q-teal-192.png',
-        badge: payload.badge || '/myK9Q-teal-192.png',
-        tag: payload.tag || `notification-${notificationId}`,
-        data: {
-          ...payload.data,
-          id: notificationId,
-          type: payload.type,
-          timestamp: payload.timestamp || Date.now(),
-        },
-        requireInteraction: payload.requireInteraction || payload.priority === 'urgent',
-        silent: payload.silent || false,
-        ...(payload.vibrate ? { vibrate: payload.vibrate } : {}),
-        ...(payload.image ? { image: payload.image } : {}),
-        ...(payload.actions ? { actions: payload.actions } : {}),
-      };
+      // Create notification options (delegated to helper)
+      const options = buildNotificationOptions(payload, notificationId);
 
       // Send notification
       if (this.registration) {
@@ -518,88 +507,18 @@ return id;
 }
 
   /**
-   * Get vibration pattern for priority
+   * Get vibration pattern for priority (delegated to helper)
    */
   private getVibrationPattern(priority: string): number[] {
-    switch (priority) {
-      case 'urgent':
-        return [200, 100, 200, 100, 200]; // Triple pulse
-      case 'high':
-        return [200, 100, 200]; // Double pulse
-      case 'low':
-        return [100]; // Single short pulse
-      default:
-        return [150]; // Single medium pulse
-    }
+    return getVibrationPattern(priority);
   }
 
   /**
-   * Announce notification using voice synthesis
+   * Announce notification using voice synthesis (delegated to helper)
    */
   private announceNotification(payload: NotificationPayload): void {
     try {
-      // Create concise voice announcement based on notification type
-      let text = '';
-
-      switch (payload.type) {
-        case 'your_turn': {
-          // Extract dog name and armband from data or title
-          const dogName = payload.data?.callName || '';
-          const armband = payload.data?.armbandNumber || '';
-          const dogsAhead = payload.data?.dogsAhead || 1;
-
-          if (dogsAhead === 1) {
-            text = dogName ? `${dogName}, number ${armband}, you're up next` : 'You\'re up next';
-          } else {
-            text = dogName ? `${dogName}, number ${armband}, you're ${dogsAhead} dogs away` : `You're ${dogsAhead} dogs away`;
-          }
-          break;
-        }
-
-        case 'results_posted': {
-          const dogName = payload.data?.callName as string || '';
-          const placement = payload.data?.placement as number | undefined;
-          const qualified = payload.data?.qualified as boolean | undefined;
-
-          if (placement && typeof placement === 'number' && placement <= 4) {
-            const ordinals = ['', 'first', 'second', 'third', 'fourth'];
-            text = `${dogName}, ${ordinals[placement]} place`;
-            if (qualified) {
-              text += ', qualified';
-            }
-          } else {
-            text = dogName ? `Results posted for ${dogName}` : 'Results posted';
-          }
-          break;
-        }
-
-        case 'class_starting': {
-          const className = payload.data?.className || '';
-          text = className ? `${className} starting soon` : 'Class starting soon';
-          break;
-        }
-
-        case 'announcement':
-        case 'urgent_announcement': {
-          // For announcements, just announce the title (body might be too long)
-          text = payload.title.replace(/🚨/g, '').replace(/URGENT:/g, 'Urgent announcement,');
-          break;
-        }
-
-        case 'system_update': {
-          text = 'App update available';
-          break;
-        }
-
-        case 'sync_error': {
-          text = 'Sync error occurred';
-          break;
-        }
-
-        default:
-          // For unknown types, use title
-          text = payload.title;
-      }
+      const text = generateAnnouncementText(payload);
 
       if (text) {
         voiceAnnouncementService.announce({
