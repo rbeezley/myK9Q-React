@@ -139,3 +139,65 @@
   border: var(--podium-fourth-border);
   height: 32px;
 }
+
+/* PodiumCard styles */
+.podium-card {
+  background: var(--color-surface);
+  border-radius: var(--token-space-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.podium-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-xl);
+  background: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.podium-card__icon {
+  font-size: 28px;
+}
+
+.podium-card__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.podium-card__podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-xl);
+  padding-top: var(--token-space-3xl);
+}
+
+/* Horizontal layout - podium order: 2nd, 1st, 3rd, 4th */
+.podium-card__podium .podium-position:nth-child(1) { order: 2; } /* 1st in center */
+.podium-card__podium .podium-position:nth-child(2) { order: 1; } /* 2nd on left */
+.podium-card__podium .podium-position:nth-child(3) { order: 3; } /* 3rd on right */
+.podium-card__podium .podium-position:nth-child(4) { order: 4; } /* 4th far right */
+
+/* Mobile: vertical stack */
+@media (max-width: 639px) {
+  .podium-card__podium {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .podium-card__podium .podium-position {
+    order: unset !important;
+  }
+
+  .podium-position__platform {
+    display: none;
+  }
+
+  .podium-position__card {
+    width: 100%;
+  }
+}
