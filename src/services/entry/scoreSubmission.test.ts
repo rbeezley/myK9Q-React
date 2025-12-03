@@ -239,8 +239,8 @@ describe('scoreSubmission', () => {
       // Small delay to allow background task to start
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Assert
-      expect(checkAndUpdateClassCompletion).toHaveBeenCalledWith(classId, pairedClassId);
+      // Assert - now includes entryId as third argument (read replica workaround)
+      expect(checkAndUpdateClassCompletion).toHaveBeenCalledWith(classId, pairedClassId, mockEntryId);
     });
 
     it('should query for classId when not provided', async () => {
@@ -285,9 +285,9 @@ describe('scoreSubmission', () => {
       // Small delay to allow background task to start
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Assert
+      // Assert - now includes entryId as third argument (read replica workaround)
       expect(supabase.from).toHaveBeenCalledWith('view_entry_class_join_normalized');
-      expect(checkAndUpdateClassCompletion).toHaveBeenCalledWith(456, undefined);
+      expect(checkAndUpdateClassCompletion).toHaveBeenCalledWith(456, undefined, mockEntryId);
     });
 
     it('should handle database errors gracefully', async () => {
@@ -406,26 +406,45 @@ describe('scoreSubmission', () => {
         },
       ];
 
-      vi.mocked(supabase.from).mockReturnValue({
-        update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            select: vi.fn().mockResolvedValue({
-              data: [{ id: 1 }],
-              error: null,
+      // Use mockImplementation to handle both entries and view table lookups
+      vi.mocked(supabase.from).mockImplementation((table) => {
+        if (table === 'entries') {
+          return {
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                select: vi.fn().mockResolvedValue({
+                  data: [{ id: 1 }],
+                  error: null,
+                }),
+              }),
+            }),
+          } as any;
+        }
+        // view_entry_class_join_normalized lookup for background completion
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: { class_id: 456, license_key: 'test-key', show_id: 789 },
+                error: null,
+              }),
             }),
           }),
-        }),
-      } as any);
+        } as any;
+      });
 
       vi.mocked(triggerImmediateEntrySync).mockResolvedValue(undefined);
+      vi.mocked(checkAndUpdateClassCompletion).mockResolvedValue(undefined);
 
       // Act
       const result = await submitBatchScores(scores);
 
+      // Small delay to allow background tasks
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // Assert
       expect(result.successful).toEqual(['score1', 'score2', 'score3']);
       expect(result.failed).toEqual([]);
-      expect(supabase.from).toHaveBeenCalledTimes(3);
     });
 
     it('should continue processing on individual failures', async () => {
@@ -448,27 +467,40 @@ describe('scoreSubmission', () => {
         },
       ];
 
-      let callCount = 0;
-      vi.mocked(supabase.from).mockImplementation(() => {
-        callCount++;
-        if (callCount === 2) {
-          // Second score fails
+      let entriesCallCount = 0;
+      vi.mocked(supabase.from).mockImplementation((table) => {
+        if (table === 'entries') {
+          entriesCallCount++;
+          if (entriesCallCount === 2) {
+            // Second score fails
+            return {
+              update: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  select: vi.fn().mockResolvedValue({
+                    data: null,
+                    error: { message: 'Database error' },
+                  }),
+                }),
+              }),
+            } as any;
+          }
           return {
             update: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
                 select: vi.fn().mockResolvedValue({
-                  data: null,
-                  error: { message: 'Database error' },
+                  data: [{ id: 1 }],
+                  error: null,
                 }),
               }),
             }),
           } as any;
         }
+        // view_entry_class_join_normalized lookup for background completion
         return {
-          update: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              select: vi.fn().mockResolvedValue({
-                data: [{ id: 1 }],
+              single: vi.fn().mockResolvedValue({
+                data: { class_id: 456, license_key: 'test-key', show_id: 789 },
                 error: null,
               }),
             }),
@@ -477,9 +509,13 @@ describe('scoreSubmission', () => {
       });
 
       vi.mocked(triggerImmediateEntrySync).mockResolvedValue(undefined);
+      vi.mocked(checkAndUpdateClassCompletion).mockResolvedValue(undefined);
 
       // Act
       const result = await submitBatchScores(scores);
+
+      // Small delay to allow background tasks
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Assert
       expect(result.successful).toEqual(['score1', 'score3']);
