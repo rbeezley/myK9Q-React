@@ -27,6 +27,41 @@
   padding-left: var(--token-space-md);
 }
 
+/* View toggle button */
+.tv-runorder-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-lg);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--token-space-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-left: auto;
+  margin-right: var(--token-space-xl);
+}
+
+.tv-runorder-view-toggle:hover {
+  opacity: 0.9;
+}
+
+/* View indicator (when showing results only) */
+.tv-runorder-view-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-lg);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-left: auto;
+  margin-right: var(--token-space-xl);
+}
+
 /* 2x2 grid layout */
 .tv-runorder-grid {
   flex: 1;
