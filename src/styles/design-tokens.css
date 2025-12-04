@@ -16,9 +16,10 @@
   --brand-gradient: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
 
   /* ===== UI COLORS (Light Theme) ===== */
-  --background: #fefefe;
+  /* Warm premium backgrounds for Hero/Ruler brand archetype */
+  --background: #F8F7F4;  /* Warm off-white (was #fefefe) */
   --foreground: #0a0a0a;
-  --card: #ffffff;
+  --card: #FEFDFB;        /* Subtle cream tint (was #ffffff) */
   --card-foreground: #0a0a0a;
   --muted: #f6f6f6;
   --muted-foreground: #6b7280;
@@ -32,11 +33,11 @@
   --primary-hover: #0d9488;
   --primary-foreground: #ffffff;
   --accent-color: var(--primary);
-  --secondary: #f1f5f9;
+  --secondary: #F8F7F4;  /* Warm off-white (was #f1f5f9) - page container backgrounds */
   --secondary-foreground: #0f172a;
 
   /* Neutral Grays (Light Theme) - for theme switching */
-  --surface: #f1f5f9;              /* Light secondary surface */
+  --surface: #F8F7F4;              /* Warm off-white (was #f1f5f9) */
   --surface-subtle: #f3f4f6;        /* Very light surface */
   --surface-muted: #f5f5f5;         /* Light subtle surface */
   --surface-elevated: #ffffff;      /* Elevated card/modal background */
@@ -330,7 +331,7 @@
 /* ===== DARK THEME ===== */
 .theme-dark {
   /* UI Colors (Dark Mode) */
-  --background: #1a1d23;
+  --background: #1a1a1e;  /* Warmer charcoal (was #1a1d23) */
   --foreground: #ffffff;
   --card: #26292e;              /* Elevated card background - lighter than page for contrast */
   --card-foreground: #ffffff;

@@ -266,119 +266,43 @@
   min-width: 240px;
   max-width: 280px;
 
-  /* Glassmorphism - slightly stronger blur */
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Match entry-card styling exactly */
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 
-  /* Enhanced border */
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Standard border - matches entry cards */
+  border: 1px solid var(--border);
   border-radius: var(--token-radius-xl);
 
   cursor: pointer;
 
   /* Smooth Apple-style transitions */
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all var(--token-transition-slow);
 
-  /* Improved layered shadow */
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.04);
+  /* Standard shadow - matches entry cards */
+  box-shadow: var(--token-shadow-md);
 
   position: relative;
   color: var(--card-foreground);
   overflow: hidden;
 }
 
-/* Dark theme glass effect */
+/* Dark theme - matches entry-card */
 .theme-dark .trial-card {
-  background: rgba(38, 41, 46, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    0 1px 3px rgba(0, 0, 0, 0.2);
+  background: var(--card);
+  box-shadow: var(--token-shadow-md);
 }
 
-/* Gradient overlay for status-aware tints */
-.trial-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-  border-radius: inherit;
-  z-index: 0;
-}
-
-/* Active trial: Blue gradient (in-progress feel) */
-.trial-card.active {
-  border-left: 4px solid var(--status-in-progress);
-}
-
-.trial-card.active::before {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 122, 255, 0.12) 0%,
-    rgba(88, 86, 214, 0.06) 100%
-  );
-  opacity: 1;
-}
-
-/* Completed trial: Green gradient (success feel) */
-.trial-card.completed {
-  border-left: 4px solid var(--status-completed);
-}
-
-.trial-card.completed::before {
-  background: linear-gradient(
-    135deg,
-    rgba(52, 199, 89, 0.12) 0%,
-    rgba(48, 176, 80, 0.06) 100%
-  );
-  opacity: 1;
-}
-
-/* Upcoming trial: Muted purple/gray gradient (future feel) */
-.trial-card.upcoming {
-  border-left: 4px solid var(--muted-foreground);
-}
-
-.trial-card.upcoming::before {
-  background: linear-gradient(
-    135deg,
-    rgba(142, 142, 147, 0.10) 0%,
-    rgba(88, 86, 214, 0.05) 100%
-  );
-  opacity: 1;
-}
-
-/* Enhanced hover states with brightness change */
+/* Hover state - matches entry-card */
 .trial-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-.trial-card:hover::before {
-  opacity: 1;
-}
-
-/* Intensify gradient on hover for upcoming cards */
-.trial-card.upcoming:hover::before {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 122, 255, 0.08) 0%,
-    rgba(88, 86, 214, 0.05) 100%
-  );
+  transform: translateY(-2px);
+  box-shadow: var(--token-shadow-lg);
+  border-color: rgba(0, 122, 255, 0.3);
 }
 
 .theme-dark .trial-card:hover {
-  background: rgba(50, 54, 60, 0.95);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.4),
-    0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--token-shadow-lg);
 }
 
 .trial-card:active {

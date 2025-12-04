@@ -16,10 +16,10 @@
    ESSENTIAL CSS VARIABLES
    ============================================ */
 :root {
-  /* Base Theme Colors (Light) */
-  --background: #fefefe;
+  /* Base Theme Colors (Light) - Warm premium backgrounds */
+  --background: #F8F7F4;  /* Warm off-white */
   --foreground: #0a0a0a;
-  --card: #ffffff;
+  --card: #FEFDFB;        /* Subtle cream tint */
   --border: #e5e7eb;
   --muted: #f6f6f6;
   --input: #f3f4f6;
@@ -88,8 +88,8 @@
   --checkin-in-ring-text: #1a1a1a;
   --token-text-secondary: #6b7280;
 
-  /* Secondary/Surface Colors */
-  --secondary: #f1f5f9;
+  /* Secondary/Surface Colors - Warm premium backgrounds */
+  --secondary: #F8F7F4;  /* Warm off-white - page container backgrounds */
   --secondary-foreground: #0f172a;
 
   /* Shadows */
@@ -107,7 +107,7 @@
    DARK THEME
    ============================================ */
 .theme-dark {
-  --background: #1a1d23;
+  --background: #1a1a1e;  /* Warmer charcoal */
   --foreground: #ffffff;
   --card: rgba(30, 41, 59, 0.7);
   --border: #4a5568;

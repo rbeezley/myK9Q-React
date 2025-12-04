@@ -41,6 +41,9 @@ body,
 
 /* Root CSS Variables for Settings */
 :root {
+  /* App Background - defaults to warm off-white, overridden by theme classes */
+  --bg-app: #F8F7F4;
+
   /* Font Size Variables (Phase 1B) */
   --font-size-base: var(--token-space-xl);
   --font-size-small: 0.875rem;
@@ -121,8 +124,8 @@ html.font-large {
 /* Light Mode Overrides */
 @media (prefers-color-scheme: light) {
   :root.theme-auto {
-    --bg-app: #f1f5f9;
-    /* Soft Gray */
+    --bg-app: #F8F7F4;
+    /* Warm premium off-white */
     --bg-card: rgba(255, 255, 255, 0.7);
     /* Glass Light */
     --bg-card-hover: rgba(255, 255, 255, 0.9);
@@ -144,11 +147,12 @@ html.font-large {
 /* Force native controls (scrollbars, selects) to match the theme */
 :root.theme-dark {
   color-scheme: dark;
+  --bg-app: #1a1a1e;  /* Warmer charcoal */
 }
 
 :root.theme-light {
   color-scheme: light;
-  --bg-app: #f1f5f9;
+  --bg-app: #F8F7F4;  /* Warm premium off-white */
   --bg-card: rgba(255, 255, 255, 0.7);
   --bg-card-hover: rgba(255, 255, 255, 0.9);
   --border-glass: rgba(0, 0, 0, 0.05);
