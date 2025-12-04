@@ -95,7 +95,7 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
         items={entries.map(e => e.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className={`grid-responsive ${isDragMode ? 'drag-mode' : ''}`}>
+        <div className={`grid-responsive stagger-children ${isDragMode ? 'drag-mode' : ''}`}>
           {entries.map((entry) => (
             <SortableEntryCard
               key={`${entry.id}-${entry.status}-${entry.isScored}`}

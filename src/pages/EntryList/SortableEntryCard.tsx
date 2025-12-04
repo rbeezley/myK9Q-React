@@ -203,9 +203,26 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ entry, isDisabled, onClick })
     ? 'in-ring'
     : (entry.status || 'none').toLowerCase().replace(' ', '-');
 
+  // Track pulse animation state - triggers when timestamp changes
+  const entryTimestamp = (entry as Entry & { _timestamp?: number })._timestamp;
+  const [isAnimating, setIsAnimating] = React.useState(false);
+  const prevTimestampRef = React.useRef<number | undefined>(undefined);
+
+  React.useEffect(() => {
+    // Only animate if timestamp changed (not on initial mount)
+    if (entryTimestamp && prevTimestampRef.current !== undefined && entryTimestamp !== prevTimestampRef.current) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 500);
+      return () => clearTimeout(timer);
+    }
+    prevTimestampRef.current = entryTimestamp;
+  }, [entryTimestamp]);
+
+  const pulseClass = isAnimating ? 'status-just-changed' : '';
+
   return (
     <div
-      className={`status-badge checkin-status ${statusClass} ${isDisabled ? 'disabled' : ''}`}
+      className={`status-badge checkin-status ${statusClass} ${isDisabled ? 'disabled' : ''} ${pulseClass}`}
       style={{ textTransform: 'none' }}
       data-no-uppercase="true"
       onClick={onClick}

@@ -54,6 +54,9 @@ export const Home: React.FC = () => {
   const [entries, setEntries] = useState<EntryData[]>([]);
   const [trials, setTrials] = useState<TrialData[]>([]);
 
+  // Animation state for favorite burst effect
+  const [justToggledArmband, setJustToggledArmband] = useState<number | null>(null);
+
   // Virtual scrolling ref
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -162,6 +165,10 @@ export const Home: React.FC = () => {
   const toggleFavorite = useCallback(async (armband: number) => {
     logger.log('🐕 toggleFavorite called for armband:', armband);
     hapticFeedback.light();
+
+    // Trigger heart burst animation
+    setJustToggledArmband(armband);
+    setTimeout(() => setJustToggledArmband(null), 400);
 
     // Update the favoriteDogs set for localStorage persistence
     setFavoriteDogs(prev => {
@@ -536,7 +543,7 @@ export const Home: React.FC = () => {
                             <div className="entry-actions">
                               <button
                                 type="button"
-                                className={`favorite-button ${entry.is_favorite ? 'favorited' : ''}`}
+                                className={`favorite-button ${entry.is_favorite ? 'favorited' : ''} ${justToggledArmband === entry.armband ? 'favorite-just-toggled' : ''}`}
                                 onClick={(e) => {
                                   logger.log('🚨 Dog heart button clicked! Armband:', entry.armband, 'Target:', e.target);
                                   e.preventDefault();

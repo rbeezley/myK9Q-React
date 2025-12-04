@@ -141,7 +141,8 @@ export default defineConfig({
       filename: 'sw-custom.js',
       registerType: 'prompt', // Changed from 'autoUpdate' to 'prompt' to prevent auto-reload in dev
       devOptions: {
-        enabled: true, // Enable for offline testing
+        enabled: false, // Disabled to prevent stale chunk caching during development
+        // Set to true temporarily when testing offline functionality
         type: 'classic' // Use classic service worker (not ES module) because we use importScripts
       },
       injectManifest: {

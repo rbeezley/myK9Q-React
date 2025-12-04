@@ -7,12 +7,18 @@
 @import './styles/page-container.css';
 @import './styles/utilities.css';
 @import './styles/touch-feedback.css';
+@import './styles/micro-animations.css';
 @import './styles/touch-targets.css';
 @import './styles/one-handed-mode.css';
 @import './styles/performance.css';
 @import './styles/viewport.css';
 @import './styles/high-contrast.css';
 @import './styles/reduce-motion.css';
+
+/* Import shared UI component CSS upfront to prevent FOUC */
+/* These styles are used across multiple pages and must load before React renders */
+@import './components/ui/shared-ui.css';
+@import './components/DogCard.css';
 
 /* Import ALL page CSS upfront to prevent FOUC (Flash of Unstyled Content) */
 /* This ensures CSS is loaded synchronously before React renders, eliminating race conditions */
