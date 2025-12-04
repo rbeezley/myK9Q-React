@@ -188,6 +188,7 @@ html, body {
    ============================================ */
 
 /* Status Badge Fallbacks - White text on solid backgrounds */
+/* Use !important to override shared-scoring.css which has gray text for some states */
 .status-badge,
 .class-status-badge {
   display: inline-flex;
@@ -198,43 +199,57 @@ html, body {
   font-size: 0.75rem;
   font-weight: 600;
   background: #9ca3af; /* Gray default */
-  color: #ffffff; /* White text */
+  color: #ffffff !important; /* White text - MUST override gray from shared-scoring.css */
   border: none;
 }
 
-/* Status-specific background colors */
+/* Status-specific background colors - all with white text */
 .status-badge.no-status,
-.class-status-badge.no-status { background: #9ca3af; color: #ffffff; }
+.class-status-badge.no-status { background: #9ca3af; color: #ffffff !important; }
 .status-badge.setup,
-.class-status-badge.setup { background: #b45309; color: #ffffff; }
+.class-status-badge.setup { background: #b45309; color: #ffffff !important; }
 .status-badge.briefing,
-.class-status-badge.briefing { background: #ff6b00; color: #ffffff; }
+.class-status-badge.briefing { background: #ff6b00; color: #ffffff !important; }
 .status-badge.break,
-.class-status-badge.break { background: #c000ff; color: #ffffff; }
+.class-status-badge.break { background: #c000ff; color: #ffffff !important; }
 .status-badge.start-time,
-.class-status-badge.start-time { background: #14b8a6; color: #ffffff; }
+.class-status-badge.start-time { background: #14b8a6; color: #ffffff !important; }
 .status-badge.in-progress,
-.class-status-badge.in-progress { background: #0066ff; color: #ffffff; }
+.class-status-badge.in-progress { background: #0066ff; color: #ffffff !important; }
 .status-badge.completed,
-.class-status-badge.completed { background: #00cc66; color: #ffffff; }
+.class-status-badge.completed { background: #00cc66; color: #ffffff !important; }
+.status-badge.pending,
+.class-status-badge.pending { background: #9ca3af; color: #ffffff !important; }
 
-/* Armband Number Fallbacks - Simple inline text, no containers */
-.armband-number {
-  display: inline-flex;
-  align-items: center;
-  color: var(--primary, #14b8a6);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
-  line-height: 1.4;
+/* Armband Number Fallbacks for Class Cards - Override shared-scoring.css circle style */
+/* Must be more specific than shared-scoring.css `.armband-number` which has circle + blue */
+/* Use !important to guarantee override during FOUC */
+.contextual-preview-condensed .armband-number,
+.class-card .armband-number {
+  display: inline-flex !important;
+  align-items: center !important;
+  color: #14b8a6 !important; /* Teal - hardcoded to prevent blue from shared-scoring.css */
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  width: auto !important;
+  height: auto !important;
+  box-shadow: none !important;
 }
 
-.armband-number.in-ring {
-  color: #f59e0b; /* Amber for in-ring dogs */
+.contextual-preview-condensed .armband-number.in-ring,
+.class-card .armband-number.in-ring {
+  color: #f59e0b !important; /* Amber for in-ring dogs */
+}
+
+/* Generic armband-number fallback - only if not in class card context */
+.armband-number {
+  color: var(--primary, #14b8a6);
 }
 
 /* Armband Badge Fallback - Teal circular badge (Home page dog cards) */

@@ -60,10 +60,10 @@
   font-size: 36px;
   font-weight: bold;
   background: white;
-  color: #667eea;
+  color: #14b8a6;
   width: 70px;
   height: 70px;
-  border-radius: 50%;
+  border-radius: var(--token-radius-lg, 0.75rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,7 +87,7 @@
 
 .status-badge.pending {
   background: var(--surface-muted);
-  color: #666;
+  color: #ffffff;
 }
 
 .status-badge.in-ring {
