@@ -293,7 +293,10 @@
   --apple-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   /* ===== TYPOGRAPHY ===== */
-  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  /* Primary: Montserrat (loaded via Google Fonts in index.html) */
+  /* Fallback: System fonts for offline/slow connections */
+  --font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif; /* Reserved for celebration moments (The Podium) */
 
   --token-font-xs: 0.625rem;    /* 10px */
   --token-font-sm: 0.75rem;     /* var(--token-space-lg) */

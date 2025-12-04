@@ -1,7 +1,9 @@
 /* src/components/podium/podium.css */
 /* Championship Gala Podium - Luxurious Awards Ceremony Aesthetic */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap');
+/* Playfair Display: Reserved for celebration moments (The Podium) */
+/* Montserrat is loaded globally in index.html */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&display=swap');
 
 /* ===== COLOR TOKENS ===== */
 :root {

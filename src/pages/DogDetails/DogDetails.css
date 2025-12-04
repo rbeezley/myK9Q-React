@@ -10,7 +10,7 @@
   overflow: hidden;
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-family: var(--font-family);
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;

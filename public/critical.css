@@ -62,6 +62,30 @@
 
   /* Text Colors */
   --muted-foreground: #6b7280;
+
+  /* ===== STATUS BADGE COLORS (Critical - must load before React) ===== */
+  /* Class status badges */
+  --status-no-status-bg: #9ca3af;
+  --status-no-status-text: #ffffff;
+  --status-setup-bg: #b45309;
+  --status-briefing-bg: #ff6b00;
+  --status-in-progress-bg: #0066ff;
+  --status-completed-bg: #00cc66;
+  --status-break-bg: #c000ff;
+
+  /* Check-in status colors */
+  --checkin-none: #6b7280;
+  --checkin-none-text: #ffffff;
+  --checkin-checked-in: #22c55e;
+  --checkin-checked-in-text: #ffffff;
+  --checkin-conflict: #f97316;
+  --checkin-conflict-text: #ffffff;
+  --checkin-pulled: #dc3545;
+  --checkin-pulled-text: #ffffff;
+  --checkin-at-gate: #6f42c1;
+  --checkin-at-gate-text: #ffffff;
+  --checkin-in-ring: #f59e0b;
+  --checkin-in-ring-text: #1a1a1a;
   --token-text-secondary: #6b7280;
 
   /* Secondary/Surface Colors */
@@ -145,6 +169,8 @@ html, body {
   min-height: 100vh;
   background-color: var(--background);
   color: var(--foreground);
+  /* Montserrat is primary, system fonts as fallback */
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
 }
 
 #root {
@@ -209,6 +235,22 @@ html, body {
 
 .armband-number.in-ring {
   color: #f59e0b; /* Amber for in-ring dogs */
+}
+
+/* Armband Badge Fallback - Teal circular badge (Home page dog cards) */
+.apple-armband-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 50%;
+  background: var(--primary, #14b8a6); /* Teal default */
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9375rem;
 }
 
 /* Dog Card Fallbacks - Prevent overlap during CSS loading */
