@@ -12,7 +12,8 @@ type ViewMode = 'runorder' | 'results';
 
 export const TVRunOrder: React.FC = () => {
   const { licenseKey } = useParams<{ licenseKey: string }>();
-  const [currentPage, setCurrentPage] = useState(0);
+  const [runOrderPage, setRunOrderPage] = useState(0);
+  const [resultsPage, setResultsPage] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>('runorder');
 
   // Get real-time TV dashboard data
@@ -27,7 +28,7 @@ export const TVRunOrder: React.FC = () => {
     pollingInterval: 30000
   });
 
-  // Get completed class results
+  // Get completed class results (fetch up to 18 for 3 pages)
   const {
     completedClasses,
     isLoading: _resultsLoading,
@@ -36,7 +37,7 @@ export const TVRunOrder: React.FC = () => {
     licenseKey: licenseKey || '',
     enablePolling: true,
     pollingInterval: 60000,
-    maxResults: 8
+    maxResults: 18
   });
 
   // Auto-rotate between views (run order and results) every 30 seconds
@@ -54,41 +55,63 @@ export const TVRunOrder: React.FC = () => {
     }
   }, [inProgressClasses.length, completedClasses.length]);
 
-  // Calculate total pages
-  const totalPages = Math.ceil(inProgressClasses.length / 4);
+  // Calculate total pages (6 classes per page: 3 columns × 2 rows)
+  const runOrderTotalPages = Math.ceil(inProgressClasses.length / 6);
+  const resultsTotalPages = Math.ceil(completedClasses.length / 6);
 
-  // Reset page when class count changes
+  // Reset run order page when class count changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentPage(0);
+    setRunOrderPage(0);
   }, [inProgressClasses.length]);
 
-  // Navigation handlers
-  const goToPreviousPage = useCallback(() => {
-    setCurrentPage(prev => (prev === 0 ? totalPages - 1 : prev - 1));
-  }, [totalPages]);
-
-  const goToNextPage = useCallback(() => {
-    setCurrentPage(prev => (prev + 1) % totalPages);
-  }, [totalPages]);
-
-  // Auto-rotation if more than 4 classes in progress
+  // Reset results page when results count changes
   useEffect(() => {
-    if (inProgressClasses.length <= 4) {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setResultsPage(0);
+  }, [completedClasses.length]);
+
+  // Run Order navigation handlers
+  const goToPreviousRunOrderPage = useCallback(() => {
+    setRunOrderPage(prev => (prev === 0 ? runOrderTotalPages - 1 : prev - 1));
+  }, [runOrderTotalPages]);
+
+  const goToNextRunOrderPage = useCallback(() => {
+    setRunOrderPage(prev => (prev + 1) % runOrderTotalPages);
+  }, [runOrderTotalPages]);
+
+  // Results navigation handlers
+  const goToPreviousResultsPage = useCallback(() => {
+    setResultsPage(prev => (prev === 0 ? resultsTotalPages - 1 : prev - 1));
+  }, [resultsTotalPages]);
+
+  const goToNextResultsPage = useCallback(() => {
+    setResultsPage(prev => (prev + 1) % resultsTotalPages);
+  }, [resultsTotalPages]);
+
+  // Auto-rotation if more than 6 classes in progress
+  useEffect(() => {
+    if (inProgressClasses.length <= 6) {
       return;
     }
 
     const interval = setInterval(() => {
-      goToNextPage();
+      goToNextRunOrderPage();
     }, 45000); // 45 seconds per page
 
     return () => clearInterval(interval);
-  }, [inProgressClasses.length, goToNextPage]);
+  }, [inProgressClasses.length, goToNextRunOrderPage]);
 
-  // Get visible classes for current page (max 4)
+  // Get visible classes for current page (max 6: 3 columns × 2 rows)
   const visibleClasses = inProgressClasses.slice(
-    currentPage * 4,
-    currentPage * 4 + 4
+    runOrderPage * 6,
+    runOrderPage * 6 + 6
+  );
+
+  // Get visible results for current page
+  const visibleResults = completedClasses.slice(
+    resultsPage * 6,
+    resultsPage * 6 + 6
   );
 
   // Toggle view mode handler (must be before early returns for hooks rules)
@@ -114,16 +137,36 @@ export const TVRunOrder: React.FC = () => {
     if (completedClasses.length > 0) {
       return (
         <div className="tv-runorder-container">
-          <div className="tv-runorder-header-bar">
+          <div className="tv-runorder-header-bar tv-runorder-header-bar--podium">
             <div className="tv-runorder-menu">
               <HamburgerMenu currentPage="tv" />
             </div>
-            <div className="tv-runorder-view-indicator">
-              <Trophy size={20} />
-              <span>Results</span>
-            </div>
+            <h1 className="tv-runorder-podium-title">The Podium</h1>
           </div>
-          <TVResults classes={completedClasses} />
+          <TVResults classes={visibleResults} />
+
+          {/* Page navigation if more than 6 results */}
+          {completedClasses.length > 6 && (
+            <div className="tv-runorder-pagination">
+              <button
+                className="pagination-nav-btn"
+                onClick={goToPreviousResultsPage}
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <span className="pagination-info">
+                {resultsPage + 1} / {resultsTotalPages}
+              </span>
+              <button
+                className="pagination-nav-btn"
+                onClick={goToNextResultsPage}
+                aria-label="Next page"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -149,12 +192,19 @@ export const TVRunOrder: React.FC = () => {
   return (
     <div className="tv-runorder-container">
       {/* Header bar with hamburger menu and view toggle */}
-      <div className="tv-runorder-header-bar">
+      <div className={`tv-runorder-header-bar ${viewMode === 'results' ? 'tv-runorder-header-bar--podium' : ''}`}>
         <div className="tv-runorder-menu">
           <HamburgerMenu currentPage="tv" />
         </div>
 
-        {/* View mode indicator and toggle */}
+        {/* Show title based on view mode */}
+        {viewMode === 'results' ? (
+          <h1 className="tv-runorder-podium-title">The Podium</h1>
+        ) : (
+          <h1 className="tv-runorder-title">Run Order</h1>
+        )}
+
+        {/* View mode toggle button */}
         {showViewToggle && (
           <button
             className="tv-runorder-view-toggle"
@@ -163,13 +213,13 @@ export const TVRunOrder: React.FC = () => {
           >
             {viewMode === 'runorder' ? (
               <>
-                <ListOrdered size={20} />
-                <span>Run Order</span>
+                <Trophy size={20} />
+                <span>Results</span>
               </>
             ) : (
               <>
-                <Trophy size={20} />
-                <span>Results</span>
+                <ListOrdered size={20} />
+                <span>Run Order</span>
               </>
             )}
           </button>
@@ -194,31 +244,56 @@ export const TVRunOrder: React.FC = () => {
             })}
           </div>
 
-          {/* Page navigation if rotating */}
-          {inProgressClasses.length > 4 && (
+          {/* Page navigation if more than 6 classes */}
+          {inProgressClasses.length > 6 && (
             <div className="tv-runorder-pagination">
               <button
                 className="pagination-nav-btn"
-                onClick={goToPreviousPage}
+                onClick={goToPreviousRunOrderPage}
                 aria-label="Previous page"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={18} />
               </button>
               <span className="pagination-info">
-                Page {currentPage + 1} of {totalPages}
+                {runOrderPage + 1} / {runOrderTotalPages}
               </span>
               <button
                 className="pagination-nav-btn"
-                onClick={goToNextPage}
+                onClick={goToNextRunOrderPage}
                 aria-label="Next page"
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={18} />
               </button>
             </div>
           )}
         </>
       ) : (
-        <TVResults classes={completedClasses} />
+        <>
+          <TVResults classes={visibleResults} />
+
+          {/* Page navigation if more than 6 results */}
+          {completedClasses.length > 6 && (
+            <div className="tv-runorder-pagination">
+              <button
+                className="pagination-nav-btn"
+                onClick={goToPreviousResultsPage}
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <span className="pagination-info">
+                {resultsPage + 1} / {resultsTotalPages}
+              </span>
+              <button
+                className="pagination-nav-btn"
+                onClick={goToNextResultsPage}
+                aria-label="Next page"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

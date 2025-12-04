@@ -8,16 +8,11 @@ interface TVResultsProps {
 }
 
 export function TVResults({ classes }: TVResultsProps) {
-  // Show up to 4 results at a time
-  const visibleClasses = classes.slice(0, 4);
-
+  // Parent component handles pagination - classes is already sliced to max 6
   return (
     <div className="tv-results">
-      <div className="tv-results__header">
-        <h2>Recent Results</h2>
-      </div>
-      <div className="tv-results__grid">
-        {visibleClasses.map((cls) => (
+      <div className="tv-results__grid" data-variant="compact">
+        {classes.map((cls) => (
           <div key={cls.id} className="tv-results__card-wrapper">
             <PodiumCard
               className={cls.className}

@@ -237,11 +237,11 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <>
                   <div className="menu-divider"></div>
                   <button
-                    className={`menu-item ${currentPage === 'tv' ? 'active' : ''}`}
+                    className={`menu-item menu-item--desktop-only ${currentPage === 'tv' ? 'active' : ''}`}
                     onClick={() => handleMenuItemClick(() => navigate(`/tv/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
                   >
                     <Monitor className="menu-icon" />
-                    <span>Run Order Display</span>
+                    <span>TV Display</span>
                   </button>
 
                   <button
