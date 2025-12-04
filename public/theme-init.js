@@ -58,9 +58,13 @@
     if (theme === 'dark') {
       html.classList.add('theme-dark');
       html.classList.remove('theme-light');
+      // Set html background immediately to prevent flash (body doesn't exist yet)
+      html.style.backgroundColor = '#1a1a1e';
     } else {
       html.classList.add('theme-light');
       html.classList.remove('theme-dark');
+      // Set html background immediately to prevent flash
+      html.style.backgroundColor = '#F8F7F4';
     }
   }
 

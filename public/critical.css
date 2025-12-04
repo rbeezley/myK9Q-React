@@ -175,6 +175,31 @@ html, body {
 
 #root {
   min-height: 100vh;
+  background-color: var(--background);
+}
+
+/* Main page containers - prevent white flash */
+.home-container,
+.page-container,
+.entry-list-container,
+.class-list-container,
+.app-container {
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+/* Page loader - matches theme background */
+.page-loader-container {
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.page-loader-container .loader-text {
+  color: var(--muted-foreground);
+}
+
+.page-loader-container .loader-spinner {
+  color: var(--primary);
 }
 
 * {

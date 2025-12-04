@@ -18,18 +18,19 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     lg: 'w-12 h-12'
   };
 
+  // Use classes from critical.css for fullScreen to ensure theme colors load before React
   const containerClasses = fullScreen
-    ? 'min-h-screen flex items-center justify-center bg-gray-50'
+    ? 'page-loader-container min-h-screen flex items-center justify-center'
     : 'flex items-center justify-center p-8';
 
   return (
     <div className={containerClasses}>
       <div className="text-center">
-        <Loader2 
-          className={`${sizeClasses[size]} animate-spin text-blue-600 mx-auto mb-4`}
+        <Loader2
+          className={`${sizeClasses[size]} animate-spin mx-auto mb-4 loader-spinner`}
         />
         {message && (
-          <p className="text-gray-600 text-sm">{message}</p>
+          <p className="text-sm loader-text">{message}</p>
         )}
       </div>
     </div>
