@@ -52,7 +52,7 @@ export interface ClassEntry {
   judge_name?: string;
   // Visibility control fields
   trial_id?: number;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   results_released_at?: string | null;
   visibleFields?: VisibleResultFields;
   // For showing availability messages

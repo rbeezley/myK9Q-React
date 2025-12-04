@@ -1,5 +1,5 @@
 // src/pages/Results/Results.tsx
-import { useSearchParams, useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useResultsData } from './hooks/useResultsData';
 import { ResultsFilters } from './components/ResultsFilters';
@@ -9,18 +9,15 @@ import './Results.css';
 
 export function Results() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { licenseKey: urlLicenseKey } = useParams<{ licenseKey: string }>();
   const { showContext, role } = useAuth();
 
-  // Use URL param or fall back to auth context
-  const licenseKey = urlLicenseKey || showContext?.licenseKey || '';
-
-  // Get trialId from URL if provided
+  // Get optional trialId from URL if provided (for filtering to specific trial)
   const trialIdParam = searchParams.get('trialId');
-  const trialId = trialIdParam ? parseInt(trialIdParam, 10) : 0;
+  const trialId = trialIdParam ? parseInt(trialIdParam, 10) : undefined;
 
   const {
     completedClasses,
+    trials,
     isLoading,
     error,
     filters,
@@ -28,7 +25,7 @@ export function Results() {
     refetch,
   } = useResultsData({
     trialId,
-    licenseKey,
+    showId: showContext?.showId,
     userRole: role || 'exhibitor',
   });
 
@@ -36,20 +33,32 @@ export function Results() {
   const handleFilterChange = (newFilters: typeof filters) => {
     setFilters(newFilters);
     const params = new URLSearchParams(searchParams);
+
+    // Sync trial filter
+    if (newFilters.trial) {
+      params.set('trialId', String(newFilters.trial));
+    } else {
+      params.delete('trialId');
+    }
+
+    // Sync element filter
     if (newFilters.element) {
       params.set('element', newFilters.element);
     } else {
       params.delete('element');
     }
+
+    // Sync level filter
     if (newFilters.level) {
       params.set('level', newFilters.level);
     } else {
       params.delete('level');
     }
+
     setSearchParams(params);
   };
 
-  // Initialize filters from URL
+  // Initialize filters from URL (only on mount, not on every render)
   const initialElement = searchParams.get('element');
   const initialLevel = searchParams.get('level');
   if (
@@ -57,12 +66,13 @@ export function Results() {
     (initialLevel && filters.level !== initialLevel)
   ) {
     setFilters({
+      ...filters,
       element: initialElement,
       level: initialLevel,
     });
   }
 
-  if (!licenseKey) {
+  if (!showContext?.showId) {
     return (
       <div className="results-page results-page--empty">
         <div className="tv-runorder-header-bar">
@@ -79,34 +89,19 @@ export function Results() {
     );
   }
 
-  if (!trialId) {
-    return (
-      <div className="results-page results-page--empty">
-        <div className="tv-runorder-header-bar">
-          <div className="tv-runorder-menu">
-            <HamburgerMenu currentPage="results" />
-          </div>
-        </div>
-        <div className="results-page__empty">
-          <span className="results-page__empty-icon">📋</span>
-          <h2>Select a Trial</h2>
-          <p>Please select a trial to view results.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="results-page">
       <header className="results-page__header">
-        <div className="tv-runorder-menu">
+        <div className="results-page__header-menu">
           <HamburgerMenu currentPage="results" />
         </div>
-        <h1>Class Results</h1>
+        <h1 className="results-page__header-title">The Podium</h1>
+        <div className="results-page__header-spacer" />
       </header>
 
       <ResultsFilters
         filters={filters}
+        trials={trials}
         onFilterChange={handleFilterChange}
         resultCount={completedClasses.length}
       />
@@ -140,6 +135,7 @@ export function Results() {
                 level={cls.level}
                 section={cls.section}
                 placements={cls.placements}
+                animate={true}
               />
             ))}
           </div>

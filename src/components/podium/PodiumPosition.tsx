@@ -39,13 +39,15 @@ export function PodiumPosition({
   return (
     <div className={`podium-position ${placementClass} ${animateClass}`.trim()}>
       <div className="podium-position__card">
+        {/* Medal badge with placement text and CSS shine effect */}
         <div className="podium-position__badge">{placementLabel}</div>
         <div className="podium-position__handler">{handlerName}</div>
         <div className="podium-position__dog">"{dogName}"</div>
         <div className="podium-position__breed">{breed}</div>
         {armband && <div className="podium-position__armband">#{armband}</div>}
       </div>
-      <div className="podium-position__platform">{placement}</div>
+      {/* Platform - height and color convey rank, no number needed */}
+      <div className="podium-position__platform" />
     </div>
   );
 }

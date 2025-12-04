@@ -194,7 +194,7 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
             ) : (
               <span className="time-badge dimmed">
                 <Clock size={14} className="badge-icon" />
-                \u23F3 {getAvailabilityMessage(entry.is_completed || false, entry.timeTiming || 'class_complete')}
+                \u23F3 {getAvailabilityMessage(entry.is_scoring_finalized || false, entry.timeTiming || 'class_complete')}
               </span>
             )}
 
@@ -207,7 +207,7 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
             ) : (
               <span className="faults-badge-subtle dimmed">
                 <AlertTriangle size={14} className="badge-icon" />
-                \u23F3 {getAvailabilityMessage(entry.is_completed || false, entry.faultsTiming || 'class_complete')}
+                \u23F3 {getAvailabilityMessage(entry.is_scoring_finalized || false, entry.faultsTiming || 'class_complete')}
               </span>
             )}
           </div>

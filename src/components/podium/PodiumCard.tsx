@@ -12,21 +12,14 @@ export interface PodiumCardProps {
   animate?: boolean;
 }
 
-const ELEMENT_ICONS: Record<string, string> = {
-  'Container': '📦',
-  'Interior': '🏠',
-  'Exterior': '🌲',
-  'Buried': '🦴',
-  'Handler Discrimination': '🎯',
-};
+// Elegant symbol for all class headers - premium gala aesthetic
+const CLASS_ICON = '✦';
 
 export function PodiumCard({
   className,
-  element,
   placements,
   animate = false,
 }: PodiumCardProps) {
-  const icon = ELEMENT_ICONS[element] || '🏆';
   const animateClass = animate ? 'podium-card--animate' : '';
 
   // Sort placements by position
@@ -35,7 +28,7 @@ export function PodiumCard({
   return (
     <div className={`podium-card ${animateClass}`.trim()}>
       <div className="podium-card__header">
-        <span className="podium-card__icon">{icon}</span>
+        <span className="podium-card__icon">{CLASS_ICON}</span>
         <span className="podium-card__title">{className}</span>
       </div>
       <div className="podium-card__podium">

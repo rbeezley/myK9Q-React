@@ -28,7 +28,7 @@ const createMockClass = (
   entry_count: 10,
   completed_count: 0,
   class_status: 'no-status',
-  is_completed: false,
+  is_scoring_finalized: false,
   is_favorite: false,
   dogs: [],
   ...overrides,
@@ -66,7 +66,7 @@ describe('classFilterUtils', () => {
         element: 'Snooker',
         level: 'Master',
         section: '-',
-        is_completed: true,
+        is_scoring_finalized: true,
       }),
     ];
 
@@ -325,7 +325,7 @@ describe('classFilterUtils', () => {
         is_favorite: true,
       }),
       createMockClass(4, {
-        is_completed: true,
+        is_scoring_finalized: true,
         is_favorite: false,
       }),
       createMockClass(5, {
@@ -466,7 +466,7 @@ describe('classFilterUtils', () => {
         createMockClass(1, { is_favorite: true }),
         createMockClass(2, { class_status: 'completed' }),
         createMockClass(3, { is_favorite: true, class_status: 'in_progress' }),
-        createMockClass(4, { is_completed: true }),
+        createMockClass(4, { is_scoring_finalized: true }),
       ];
 
       const counts = getClassCounts(classes);

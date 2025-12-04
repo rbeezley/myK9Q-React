@@ -201,7 +201,7 @@ async function markClassCompleted(classId: number): Promise<void> {
   const { error: updateError } = await supabase
     .from('classes')
     .update({
-      is_completed: true,
+      is_scoring_finalized: true,
       class_status: 'completed',
     })
     .eq('id', classId);
@@ -216,7 +216,7 @@ async function markClassCompleted(classId: number): Promise<void> {
   }
 
   // CRITICAL: Update local cache to reflect the change immediately
-  await updateLocalClassCache(classId, { class_status: 'completed', is_completed: true });
+  await updateLocalClassCache(classId, { class_status: 'completed', is_scoring_finalized: true });
 
 // Recalculate placements now that class is complete
   await recalculateFinalPlacements(classId);
@@ -237,7 +237,7 @@ async function markClassInProgress(
 const { error: updateError } = await supabase
     .from('classes')
     .update({
-      is_completed: false,
+      is_scoring_finalized: false,
       class_status: 'in_progress',
     })
     .eq('id', classId);
@@ -252,7 +252,7 @@ const { error: updateError } = await supabase
   }
 
   // CRITICAL: Update local cache to reflect the change immediately
-  await updateLocalClassCache(classId, { class_status: 'in_progress', is_completed: false });
+  await updateLocalClassCache(classId, { class_status: 'in_progress', is_scoring_finalized: false });
 }
 
 /**
@@ -268,7 +268,7 @@ async function markClassNotStarted(classId: number): Promise<void> {
   const { error: updateError } = await supabase
     .from('classes')
     .update({
-      is_completed: false,
+      is_scoring_finalized: false,
       class_status: 'no-status',  // Matches entries.entry_status convention (migration 20251129)
     })
     .eq('id', classId);
@@ -283,7 +283,7 @@ async function markClassNotStarted(classId: number): Promise<void> {
   }
 
   // CRITICAL: Update local cache to reflect the change immediately
-  await updateLocalClassCache(classId, { class_status: 'no-status', is_completed: false });
+  await updateLocalClassCache(classId, { class_status: 'no-status', is_scoring_finalized: false });
 
   // eslint-disable-next-line no-console
   console.log(`✅ [classCompletion] Class ${classId} marked as no-status`);
@@ -365,7 +365,7 @@ await updateSingleClassCompletion(classId);
  */
 async function updateLocalClassCache(
   classId: number,
-  updates: { class_status?: string; is_completed?: boolean }
+  updates: { class_status?: string; is_scoring_finalized?: boolean }
 ): Promise<void> {
   try {
     const manager = getReplicationManager();
@@ -391,7 +391,7 @@ async function updateLocalClassCache(
     const updatedClass: Class = {
       ...currentClass,
       class_status: updates.class_status ?? currentClass.class_status,
-      is_completed: updates.is_completed ?? currentClass.is_completed,
+      is_scoring_finalized: updates.is_scoring_finalized ?? currentClass.is_scoring_finalized,
       updated_at: new Date().toISOString()
     };
 
@@ -401,7 +401,7 @@ async function updateLocalClassCache(
     // eslint-disable-next-line no-console
     console.log(`✅ [updateLocalClassCache] Updated class ${classId} in cache:`, {
       class_status: updatedClass.class_status,
-      is_completed: updatedClass.is_completed
+      is_scoring_finalized: updatedClass.is_scoring_finalized
     });
   } catch (error) {
     console.error('❌ [updateLocalClassCache] Failed to update cache:', error);

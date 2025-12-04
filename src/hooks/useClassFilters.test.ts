@@ -21,7 +21,7 @@ const createMockClass = (
   entry_count: 10,
   completed_count: 0,
   class_status: 'no-status',
-  is_completed: false,
+  is_scoring_finalized: false,
   is_favorite: false,
   dogs: [],
   ...overrides,
@@ -55,7 +55,7 @@ describe('useClassFilters', () => {
       element: 'Snooker',
       level: 'Master',
       class_order: 4,
-      is_completed: true,
+      is_scoring_finalized: true,
     }),
   ];
 

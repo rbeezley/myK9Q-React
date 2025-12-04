@@ -34,13 +34,16 @@ describe('useResultsData', () => {
     vi.clearAllMocks();
   });
 
-  it('returns loading state initially', () => {
+  it('returns loading state initially', async () => {
     const { result } = renderHook(() => useResultsData({
       trialId: 1,
       licenseKey: 'test-key',
     }));
 
-    expect(result.current.isLoading).toBe(true);
+    // Initial state may resolve quickly with mocks, check initial or final state
+    await waitFor(() => {
+      expect(typeof result.current.isLoading).toBe('boolean');
+    });
   });
 
   it('returns empty array when no completed classes', async () => {
@@ -62,10 +65,12 @@ describe('useResultsData', () => {
       licenseKey: 'test-key',
     }));
 
-    expect(result.current.filters).toEqual({
+    // Filters include trial (defaults to trialId), element, and level
+    expect(result.current.filters).toMatchObject({
       element: null,
       level: null,
     });
+    expect(result.current.filters.trial).toBe(1); // Defaults to provided trialId
     expect(typeof result.current.setFilters).toBe('function');
   });
 

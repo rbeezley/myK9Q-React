@@ -22,10 +22,10 @@ describe('PodiumCard', () => {
     expect(screen.getByText('Container Novice A')).toBeInTheDocument();
   });
 
-  it('renders element icon', () => {
+  it('renders class icon', () => {
     render(<PodiumCard {...defaultProps} />);
-    // Container element should show box icon
-    expect(screen.getByText('📦')).toBeInTheDocument();
+    // All classes use elegant diamond symbol (✦) for premium aesthetic
+    expect(screen.getByText('✦')).toBeInTheDocument();
   });
 
   it('renders all four placements', () => {
@@ -56,24 +56,14 @@ describe('PodiumCard', () => {
     expect(screen.queryByText('2nd')).not.toBeInTheDocument();
   });
 
-  it('renders Interior element icon', () => {
-    render(<PodiumCard {...defaultProps} element="Interior" />);
-    expect(screen.getByText('🏠')).toBeInTheDocument();
-  });
-
-  it('renders Exterior element icon', () => {
-    render(<PodiumCard {...defaultProps} element="Exterior" />);
-    expect(screen.getByText('🌲')).toBeInTheDocument();
-  });
-
-  it('renders Buried element icon', () => {
-    render(<PodiumCard {...defaultProps} element="Buried" />);
-    expect(screen.getByText('🦴')).toBeInTheDocument();
-  });
-
-  it('renders Handler Discrimination element icon', () => {
-    render(<PodiumCard {...defaultProps} element="Handler Discrimination" />);
-    expect(screen.getByText('🎯')).toBeInTheDocument();
+  it('uses consistent icon across all elements', () => {
+    // All elements use the same elegant ✦ symbol for premium aesthetic
+    const elements = ['Interior', 'Exterior', 'Buried', 'Handler Discrimination'];
+    elements.forEach(element => {
+      const { container, unmount } = render(<PodiumCard {...defaultProps} element={element} />);
+      expect(container.querySelector('.podium-card__icon')).toHaveTextContent('✦');
+      unmount();
+    });
   });
 
   describe('animation', () => {

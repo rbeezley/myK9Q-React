@@ -19,7 +19,7 @@ const mockClassEntry: ClassEntry = {
   entry_count: 10,
   completed_count: 0,
   class_status: 'no-status',
-  is_completed: false,
+  is_scoring_finalized: false,
   is_favorite: false,
   dogs: [],
 };
@@ -35,7 +35,7 @@ const mockClassEntry2: ClassEntry = {
   entry_count: 8,
   completed_count: 4,
   class_status: 'in_progress',
-  is_completed: false,
+  is_scoring_finalized: false,
   is_favorite: false,
   dogs: [],
 };

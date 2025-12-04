@@ -366,7 +366,7 @@ export const ClassList: React.FC = () => {
   }, [classes, hapticFeedback, toggleFavoriteHook]);
 
   const getStatusColor = useCallback((status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
-    // Check is_completed first for consistent coloring
+    // Check is_scoring_finalized first for consistent coloring
     if (classEntry) {
       const displayStatus = getClassDisplayStatus(classEntry);
       if (displayStatus === 'completed') return 'completed';
@@ -398,10 +398,10 @@ export const ClassList: React.FC = () => {
 
   // Helper function to format status with time in a structured way
   const getFormattedStatus = useCallback((classEntry: ClassEntry) => {
-    // Check is_completed first, then fall back to class_status
+    // Check is_scoring_finalized first, then fall back to class_status
     const displayStatus = getClassDisplayStatus(classEntry);
 
-    // If detected as completed via is_completed or entry counts, show Completed
+    // If detected as completed via is_scoring_finalized or entry counts, show Completed
     if (displayStatus === 'completed') {
       return { label: 'Completed', time: null };
     }
