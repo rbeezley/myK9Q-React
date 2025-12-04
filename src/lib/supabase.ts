@@ -59,7 +59,7 @@ export interface ClassQueue {
   area_count: number;
   self_checkin_enabled: boolean;
   realtime_results_enabled: boolean;
-  is_completed: boolean;
+  is_scoring_finalized: boolean;
   class_status: number;
   class_status_comment: string;
   // NOTE: Counter fields removed in migration 016 - calculate on-demand

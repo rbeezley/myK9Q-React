@@ -57,7 +57,7 @@ interface RawClassSummaryData {
   judge_name: string;
   trial_date?: string;
   trial_number?: number;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   self_checkin_enabled?: boolean;
   total_entries?: number;
   scored_entries?: number;
@@ -147,7 +147,7 @@ async function fetchClasses(licenseKey: string): Promise<ClassInfo[]> {
     judge_name: classData.judge_name,
     trial_date: classData.trial_date || '',
     trial_number: classData.trial_number?.toString() || '',
-    class_completed: classData.is_completed || false,
+    class_completed: classData.is_scoring_finalized || false,
     results_released_at: null,
     results_released_by: null,
     class_completed_at: null,

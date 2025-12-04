@@ -1,5 +1,35 @@
 # Outstanding Tasks
 
+## ⚠️ SECURITY: React Server Components Vulnerability - 2025-12-03
+
+**Priority:** HIGH - Security vulnerability
+
+**CVEs:**
+- **CVE-2025-55182** - React Server Components (RSC) - Arbitrary JavaScript execution
+- **CVE-2025-66478** - Next.js RSC implementation
+
+**Affected Versions:**
+- React 19.0.0, 19.1.0, 19.1.1, 19.2.0
+- Next.js 15.0.0 - 15.4.0
+
+**Current Status:**
+- myK9Q uses **React 19.2.0** (AFFECTED)
+- This app does NOT use Next.js or React Server Components
+- **Risk Level: LOW** - Vulnerability requires RSC usage, which this app doesn't have
+
+**Fix:**
+- Update to React 19.0.1, 19.1.2, or **19.2.1** (recommended)
+- Wait for npm to publish React 19.2.1, then run: `npm update react react-dom`
+
+**Files:** [package.json](package.json)
+
+**Notes:**
+While the current risk is low (no RSC usage), updating is recommended for:
+1. Defense in depth
+2. Staying current with security patches
+3. Preventing issues if RSC is added later
+
+---
 
 ## Test Pull-to-Refresh Mobile UX - 2025-11-20 ✅ COMPLETE
 
@@ -285,4 +315,104 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
 **Files Modified:**
 - [NotificationCenter.css:47-108](src/components/notifications/NotificationCenter.css#L47-L108) - Updated header to use design tokens
 - [NotificationCenter.css:22-37](src/components/notifications/NotificationCenter.css#L22-L37) - Updated panel to use `var(--background)`
+
+---
+
+## Future Consideration: App-Wide Typography Upgrade - 2025-12-03
+
+**Status:** To be explored
+
+**Context:**
+The Podium (results page) uses premium fonts that feel more elegant than the rest of the app:
+- **Playfair Display** - Elegant serif for titles and celebration moments
+- **Montserrat** - Clean, modern sans-serif for labels and body text
+
+**Current app fonts:** System defaults / basic sans-serif
+
+**Recommendation:**
+Consider adopting **Montserrat** as the primary app-wide font for a more premium feel, while keeping **Playfair Display** reserved for "celebration" moments like:
+- The Podium results
+- Q qualification announcements
+- Award/achievement displays
+- Welcome headers
+
+**Trade-offs:**
+| Pro | Con |
+|-----|-----|
+| More polished, professional appearance | ~50-100KB additional font download |
+| Better brand differentiation | Minor performance impact on first load |
+| Consistent premium feel across app | Requires updating all font declarations |
+| Montserrat is highly legible | Font preloading configuration needed |
+
+**To implement:**
+1. Add Montserrat to global CSS with font-display: swap
+2. Update CSS variables for font-family tokens
+3. Test across all pages for readability
+4. Measure performance impact (Lighthouse)
+5. Consider lazy-loading Playfair Display for special pages only
+
+**Priority:** Low - aesthetic enhancement, not core functionality
+
+---
+
+## Future Consideration: App-Wide Premium Background Upgrade - 2025-12-03
+
+**Status:** To be explored
+
+### Brand Analysis Summary
+
+Using brand archetype analysis, myK9Q was identified as:
+- **Primary Archetype: Hero (60%)** - Achievement, mastery, competition
+- **Secondary Archetype: Ruler (40%)** - Premium, authoritative, successful
+
+**Key Finding:** The Podium correctly expresses the Hero/Ruler archetype with its premium gold aesthetic. The rest of the app undersells the brand by using a cooler, more utilitarian (Sage/Everyman) visual language.
+
+### Current vs Proposed Colors
+
+| Token | Current (Cool) | Proposed (Warm) | Notes |
+|-------|----------------|-----------------|-------|
+| Light BG | `#f1f5f9` | `#F8F7F4` | Warmer, more premium feel |
+| Light Card | `#ffffff` | `#FEFDFB` | Subtle cream tint |
+| Dark BG | `#1a1d23` | `#1a1a1e` | Slightly warmer charcoal |
+
+### Accent Color Compatibility
+
+| Accent | With Warm BG | Notes |
+|--------|--------------|-------|
+| **Teal** `#14b8a6` | ✓ Excellent | Cool/warm contrast |
+| **Blue** `#3b82f6` | ✓ Excellent | Cool/warm contrast |
+| **Orange** `#f97316` | ✓ Good | Both warm, still sufficient contrast |
+| **Purple** `#8b5cf6` | ✓ Excellent | Cool/warm contrast |
+
+### Design Principles
+
+1. **Gold stays independent** - Achievement colors (gold/silver/bronze) remain constant regardless of user's accent choice
+2. **The Podium stays special** - Theatrical effects (sparkles, gradients, shine) remain exclusive to Results page
+3. **Warm backgrounds app-wide** - Creates cohesion without diluting The Podium's celebration moment
+
+### Implementation
+
+**Files to modify:**
+- [design-tokens.css](src/styles/design-tokens.css) - Update `:root` light mode variables
+- [index.css](src/index.css) - Update `.theme-light` and `@media (prefers-color-scheme: light)` sections
+
+**Changes:**
+```css
+/* In :root (light mode defaults) */
+--background: #F8F7F4;  /* Was #fefefe */
+--card: #FEFDFB;        /* Was #ffffff */
+
+/* In .theme-dark */
+--background: #1a1a1e;  /* Was #1a1d23 - subtle warm shift */
+```
+
+**Testing checklist:**
+- [ ] Test with all 4 accent colors (teal, blue, orange, purple)
+- [ ] Test both light and dark mode
+- [ ] Test on all major pages (Home, ClassList, EntryList, Stats, Settings)
+- [ ] Verify contrast ratios meet WCAG AA standards
+- [ ] Check for any hardcoded background colors that need updating
+
+**Priority:** Medium - Brand cohesion improvement, should be done after Podium feature is merged
+
 

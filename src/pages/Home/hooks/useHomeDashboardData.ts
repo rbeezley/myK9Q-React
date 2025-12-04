@@ -99,7 +99,7 @@ async function tryLoadTrialsFromCache(showId: number): Promise<TrialData[] | nul
       const trialEntries = allEntries.filter(e => trialClassIds.has(String(e.class_id)));
 
       const totalClasses = trialClasses.length;
-      const completedClasses = trialClasses.filter(c => c.is_completed).length;
+      const completedClasses = trialClasses.filter(c => c.is_scoring_finalized).length;
       const totalEntries = trialEntries.length;
       const completedEntries = trialEntries.filter(e => e.is_scored).length;
 
@@ -194,7 +194,7 @@ async function fetchTrials(showId: string | number | undefined): Promise<TrialDa
   const processedTrials: TrialData[] = trialsData.map(trial => {
     const trialClasses = classesByTrial.get(String(trial.id)) || [];
     const totalClasses = trialClasses.length;
-    const completedClasses = trialClasses.filter(c => c.is_completed).length;
+    const completedClasses = trialClasses.filter(c => c.is_scoring_finalized).length;
 
     // Sum pre-calculated entry counts from view
     const totalEntries = trialClasses.reduce((sum, c) => sum + (c.total_entries || 0), 0);
@@ -416,7 +416,7 @@ export function useHomeDashboardData(
           const oldIsScored = (payload.old as Record<string, unknown> | undefined)?.is_scored;
           const newIsScored = (payload.new as Record<string, unknown> | undefined)?.is_scored;
 
-          // Check if is_scored changed (this affects trial counts)
+          // Check if is_scored changed (this affects trial counts via is_scoring_finalized)
           if (oldIsScored !== newIsScored) {
             logger.log('📊 Score status changed, invalidating trials...');
             invalidateTrialsDebounced();

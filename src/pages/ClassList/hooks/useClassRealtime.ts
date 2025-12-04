@@ -17,7 +17,7 @@ import type { ClassEntry } from './useClassListData';
 interface ClassRecord {
   id: number;
   class_status?: string;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
 }
 
 /**
@@ -41,7 +41,7 @@ type SupabaseRealtimePayload = RealtimePostgresChangesPayload<{
  *
  * Provides real-time synchronization for:
  * - **Class Status Updates**: Optimistic local updates for status changes
- * - **Class Completion**: Updates is_completed flag in real-time
+ * - **Class Completion**: Updates is_scoring_finalized flag in real-time
  * - **Other Changes**: Full refresh for INSERT/DELETE operations
  *
  * **Optimistic Updates**: For UPDATE events, updates local state directly without refetch
@@ -101,7 +101,7 @@ export function useClassRealtime(
           ? {
               ...c,
               class_status: (newRecord.class_status as ClassEntry['class_status']) || 'no-status',
-              is_completed: newRecord.is_completed || false
+              is_scoring_finalized: newRecord.is_scoring_finalized || false
             }
           : c
       ));

@@ -24,6 +24,9 @@ dev-dist/
 *.swo
 *~
 
+# Git worktrees
+.worktrees/
+
 # OS files
 .DS_Store
 .DS_Store?

@@ -42,7 +42,7 @@ describe('getContextualPreview', () => {
       entry_count: 5,
       completed_count: 5,
       class_status: 'completed',
-      is_completed: true,
+      is_scoring_finalized: true,
       dogs: Array(5).fill({ is_scored: true, in_ring: false })
     });
 
@@ -123,7 +123,7 @@ describe('getFormattedStatus', () => {
   test('should format completed status', () => {
     const classEntry = createMockClass({
       class_status: 'completed',
-      is_completed: true,
+      is_scoring_finalized: true,
       entry_count: 5,
       completed_count: 5
     });
@@ -151,7 +151,7 @@ describe('getStatusColor', () => {
   test('should return correct color for completed', () => {
     const classEntry = createMockClass({
       class_status: 'completed',
-      is_completed: true
+      is_scoring_finalized: true
     });
     expect(getStatusColor(classEntry.class_status, classEntry)).toBe('completed');
   });
@@ -177,7 +177,7 @@ describe('getStatusLabel', () => {
   test('should return label for completed', () => {
     const classEntry = createMockClass({
       class_status: 'completed',
-      is_completed: true
+      is_scoring_finalized: true
     });
     const label = getStatusLabel(classEntry.class_status, classEntry);
     expect(label).toBe('Completed');

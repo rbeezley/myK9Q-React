@@ -39,20 +39,23 @@
   50% { opacity: 0.85; }
 }
 
-/* Armband badge - matching DogCard style */
+/* Armband badge - square design matching home page ArmbandBadge */
 .tv-entry-armband {
   flex-shrink: 0;
   width: 44px;  /* Mobile: smaller badge */
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   background: var(--primary);
-  border-radius: 50%;
+  border-radius: 0.75rem;  /* Rounded square like home page */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.125rem;  /* Mobile: smaller font */
   font-weight: 700;
   color: white;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(0, 0, 0, 0.15);
 }
 
 /* Section badge (for Novice A & B) - matching DogCard */
@@ -238,6 +241,8 @@
   .tv-entry-armband {
     width: 48px;  /* Desktop: larger badge */
     height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     font-size: 1.25rem;  /* Desktop: larger font */
   }
 

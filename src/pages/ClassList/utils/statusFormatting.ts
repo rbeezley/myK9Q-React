@@ -110,16 +110,16 @@ export function getContextualPreview(classEntry: ClassEntry): string {
  * getFormattedStatus({ class_status: 'in_progress', ... })
  * // Returns: { label: 'In Progress', time: null }
  *
- * // Completed via is_completed flag
- * getFormattedStatus({ is_completed: true, class_status: 'no-status', ... })
+ * // Completed via is_scoring_finalized flag
+ * getFormattedStatus({ is_scoring_finalized: true, class_status: 'no-status', ... })
  * // Returns: { label: 'Completed', time: null }
  * ```
  */
 export function getFormattedStatus(classEntry: ClassEntry): { label: string; time: string | null } {
-  // Check is_completed first, then fall back to class_status
+  // Check is_scoring_finalized first, then fall back to class_status
   const displayStatus = getClassDisplayStatus(classEntry);
 
-  // If detected as completed via is_completed or entry counts, show Completed
+  // If detected as completed via is_scoring_finalized or entry counts, show Completed
   if (displayStatus === 'completed') {
     return { label: 'Completed', time: null };
   }
@@ -159,7 +159,7 @@ export function getFormattedStatus(classEntry: ClassEntry): { label: string; tim
  * Get CSS status color class name for a class
  *
  * Determines the appropriate color class based on display status and manual class_status.
- * Respects priority: is_completed > manual class_status > automatic detection.
+ * Respects priority: is_scoring_finalized > manual class_status > automatic detection.
  *
  * @param status - The class_status from database
  * @param classEntry - Optional complete class entry for smart detection
@@ -189,7 +189,7 @@ export function getStatusColor(
   status: ClassEntry['class_status'],
   classEntry?: ClassEntry
 ): string {
-  // Check is_completed first for consistent coloring
+  // Check is_scoring_finalized first for consistent coloring
   if (classEntry) {
     const displayStatus = getClassDisplayStatus(classEntry);
     if (displayStatus === 'completed') return 'completed';

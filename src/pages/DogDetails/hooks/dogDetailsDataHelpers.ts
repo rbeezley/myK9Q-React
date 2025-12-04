@@ -36,7 +36,7 @@ export interface RawEntryData {
   trial_date?: string | null;
   trial_element?: string | null;
   judge_name?: string | null;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   results_released_at?: string | null;
 }
 
@@ -47,7 +47,7 @@ export interface ClassData {
   section?: string | null;
   trial_id?: number | null;
   judge_name?: string | null;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
 }
 
 export interface TrialData {
@@ -115,7 +115,7 @@ function extractDerivedFields(
     level: entry.level || classData?.level || 'Class',
     section: entry.section || classData?.section,
     trialId: entry.trial_id || classData?.trial_id || 0,
-    isCompleted: entry.is_completed ?? classData?.is_completed ?? false,
+    isCompleted: entry.is_scoring_finalized ?? classData?.is_scoring_finalized ?? false,
     resultsReleasedAt: entry.results_released_at ?? null,
     judgeName: entry.judge_name || classData?.judge_name || undefined,
     trialName: entry.trial_element || trialData?.element || 'Unknown Trial',
@@ -152,7 +152,7 @@ function buildClassEntry(
     trial_number: entry.trial_number ?? undefined,
     judge_name: fields.judgeName,
     trial_id: fields.trialId,
-    is_completed: fields.isCompleted,
+    is_scoring_finalized: fields.isCompleted,
     results_released_at: fields.resultsReleasedAt,
     visibleFields
   };

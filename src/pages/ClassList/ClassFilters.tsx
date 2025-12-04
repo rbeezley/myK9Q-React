@@ -14,7 +14,7 @@ interface ClassEntry {
   entry_count: number;
   completed_count: number;
   class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;
   time_limit_area2_seconds?: number;

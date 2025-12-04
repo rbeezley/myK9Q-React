@@ -42,7 +42,7 @@ interface CachedClassData {
   class_order?: number;
   class_type?: string;
   judge_name?: string;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   class_status?: string;
   time_limit_seconds?: number;
   time_limit_area2_seconds?: number;
@@ -71,7 +71,7 @@ export interface ClassEntry {
   entry_count: number;
   completed_count: number;
   class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;
   time_limit_area2_seconds?: number;
@@ -155,8 +155,8 @@ async function fetchTrialInfo(
           trial_date: trialData.trial_date,
           trial_number: trialData.trial_number ?? trialData.trialid ?? 0,
           total_classes: classData.length || 0,
-          pending_classes: classData.filter((c) => c.is_completed !== true).length || 0,
-          completed_classes: classData.filter((c) => c.is_completed === true).length || 0
+          pending_classes: classData.filter((c) => c.is_scoring_finalized !== true).length || 0,
+          completed_classes: classData.filter((c) => c.is_scoring_finalized === true).length || 0
         };
       }
     }
@@ -192,8 +192,8 @@ async function fetchTrialInfo(
     trial_date: trialData.trial_date,
     trial_number: trialData.trial_number || trialData.trialid,
     total_classes: classData?.length || 0,
-    pending_classes: classData?.filter(c => c.is_completed !== true).length || 0,
-    completed_classes: classData?.filter(c => c.is_completed === true).length || 0
+    pending_classes: classData?.filter(c => c.is_scoring_finalized !== true).length || 0,
+    completed_classes: classData?.filter(c => c.is_scoring_finalized === true).length || 0
   };
 
   return trialInfo;
@@ -300,7 +300,7 @@ async function processClassesWithEntries(
         | 'start_time'
         | 'in_progress'
         | 'completed',
-      is_completed: cls.is_completed || false,
+      is_scoring_finalized: cls.is_scoring_finalized || false,
       is_favorite: false, // Will be updated by component with localStorage
       time_limit_seconds: cls.time_limit_seconds,
       time_limit_area2_seconds: cls.time_limit_area2_seconds,
@@ -548,7 +548,7 @@ async function fetchClasses(
       entry_count: entryCount,
       completed_count: completedCount,
       class_status: (cls.class_status?.trim() || 'no-status') as ClassEntry['class_status'],
-      is_completed: cls.is_completed || false,
+      is_scoring_finalized: cls.is_scoring_finalized || false,
       is_favorite: false, // Will be updated by component with localStorage
       time_limit_seconds: cls.time_limit_seconds,
       time_limit_area2_seconds: cls.time_limit_area2_seconds,

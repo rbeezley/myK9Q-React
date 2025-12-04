@@ -31,7 +31,7 @@ export interface ClassDog {
 export interface ClassEntry {
   id: number;
   class_status: ClassStatus;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   entry_count: number;
   completed_count: number;
   dogs: ClassDog[];
@@ -51,11 +51,11 @@ export interface DogEntry {
 
 /**
  * Gets display status for a class (used for smart status detection)
- * Priority: is_completed > manual class_status > automatic detection
+ * Priority: is_scoring_finalized > manual class_status > automatic detection
  */
 export function getClassDisplayStatus(classEntry: ClassEntry): 'not-started' | 'in-progress' | 'completed' {
-  // PRIORITY 1: Check is_completed field (set automatically when all entries scored)
-  if (classEntry.is_completed === true) {
+  // PRIORITY 1: Check is_scoring_finalized field (set automatically when all entries scored)
+  if (classEntry.is_scoring_finalized === true) {
     return 'completed';
   }
 

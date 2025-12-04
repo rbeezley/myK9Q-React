@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText, Building2 } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText, Building2, Trophy } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { RulesAssistant } from '../rules/RulesAssistant';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -33,7 +33,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show' | 'results';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -191,6 +191,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span>Statistics</span>
               </button>
 
+              <button
+                className={`menu-item ${currentPage === 'results' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/results'))}
+              >
+                <Trophy className="menu-icon" />
+                <span>The Podium</span>
+              </button>
+
               <div className="menu-divider"></div>
 
               {/* Communication */}
@@ -229,11 +237,11 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <>
                   <div className="menu-divider"></div>
                   <button
-                    className={`menu-item ${currentPage === 'tv' ? 'active' : ''}`}
+                    className={`menu-item menu-item--desktop-only ${currentPage === 'tv' ? 'active' : ''}`}
                     onClick={() => handleMenuItemClick(() => navigate(`/tv/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
                   >
                     <Monitor className="menu-icon" />
-                    <span>Run Order Display</span>
+                    <span>TV Display</span>
                   </button>
 
                   <button

@@ -91,7 +91,7 @@ describe('entryReplication', () => {
       trial_id: 456,
       license_key: 'TEST-KEY',
       judge_name: 'Judge Smith',
-      is_completed: false,
+      is_scoring_finalized: false,
       class_status: 'not_started',
       created_at: '2025-01-19T00:00:00Z',
       updated_at: '2025-01-19T00:00:00Z'
@@ -401,7 +401,7 @@ describe('entryReplication', () => {
       trial_id: 456,
       license_key: 'TEST-KEY',
       judge_name: 'Judge Smith',
-      is_completed: false,
+      is_scoring_finalized: false,
       class_status: 'not_started',
       created_at: '2025-01-19T00:00:00Z',
       updated_at: '2025-01-19T00:00:00Z'

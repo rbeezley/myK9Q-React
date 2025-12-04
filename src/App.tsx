@@ -43,6 +43,7 @@ const EntryList = React.lazy(() => import('./pages/EntryList/EntryList'));
 const CombinedEntryList = React.lazy(() => import('./pages/EntryList/CombinedEntryList'));
 const Announcements = React.lazy(() => import('./pages/Announcements/Announcements').then(module => ({ default: module.Announcements })));
 const TVRunOrder = React.lazy(() => import('./pages/TVRunOrder/TVRunOrder').then(module => ({ default: module.TVRunOrder })));
+const Results = React.lazy(() => import('./pages/Results').then(module => ({ default: module.Results })));
 const CompetitionAdmin = React.lazy(() => import('./pages/Admin/CompetitionAdmin').then(module => ({ default: module.CompetitionAdmin })));
 const StatusPopupDemo = React.lazy(() => import('./demo/StatusPopupDemo'));
 
@@ -457,6 +458,22 @@ function AppWithAuth() {
           element={
             <Suspense fallback={<PageLoader message="Loading TV Display..." />}>
               <TVRunOrder />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/results"
+          element={
+            <Suspense fallback={<PageLoader message="Loading Results..." />}>
+              <Results />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/results/:licenseKey"
+          element={
+            <Suspense fallback={<PageLoader message="Loading Results..." />}>
+              <Results />
             </Suspense>
           }
         />

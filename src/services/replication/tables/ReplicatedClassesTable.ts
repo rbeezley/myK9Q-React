@@ -30,7 +30,7 @@ export interface Class {
   class_order?: number;
   self_checkin_enabled?: boolean;
   realtime_results_enabled?: boolean;
-  is_completed?: boolean;
+  is_scoring_finalized?: boolean;
   time_limit_seconds?: number;
   time_limit_area2_seconds?: number;
   time_limit_area3_seconds?: number;

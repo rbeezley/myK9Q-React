@@ -113,7 +113,7 @@ export async function applyVisibilityToEntries(
   licenseKey: string,
   role: UserRole
 ): Promise<Entry[]> {
-  const isClassComplete = classData.class_status === 'completed' || classData.is_completed === true;
+  const isClassComplete = classData.class_status === 'completed' || classData.is_scoring_finalized === true;
   const visibilityFlags = await fetchVisibilityFlagsWithFallback({
     classId: parseInt(String(classData.id)),
     trialId: classData.trial_id,
@@ -290,7 +290,7 @@ export async function fetchFromSupabase(
 
   const { data: classData } = await supabase
     .from('classes')
-    .select('element, level, section, judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at, time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds, area_count')
+    .select('element, level, section, judge_name, self_checkin_enabled, class_status, trial_id, is_scoring_finalized, results_released_at, time_limit_seconds, time_limit_area2_seconds, time_limit_area3_seconds, area_count')
     .eq('id', parseInt(classId))
     .single();
 
@@ -329,7 +329,7 @@ export async function fetchFromSupabase(
     trialId: classData.trial_id,
     licenseKey,
     role: userRole,
-    isClassComplete: classData.class_status === 'completed' || classData.is_completed === true,
+    isClassComplete: classData.class_status === 'completed' || classData.is_scoring_finalized === true,
     resultsReleasedAt: classData.results_released_at || null
   });
   classEntries = classEntries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
@@ -408,11 +408,11 @@ export async function fetchCombinedFromSupabase(
 
   const [{ data: classDataA }, { data: classDataB }] = await Promise.all([
     supabase.from('classes')
-      .select('judge_name, self_checkin_enabled, class_status, trial_id, is_completed, results_released_at')
+      .select('judge_name, self_checkin_enabled, class_status, trial_id, is_scoring_finalized, results_released_at')
       .eq('id', parseInt(classIdA))
       .single(),
     supabase.from('classes')
-      .select('judge_name, class_status, trial_id, is_completed, results_released_at')
+      .select('judge_name, class_status, trial_id, is_scoring_finalized, results_released_at')
       .eq('id', parseInt(classIdB))
       .single()
   ]);
@@ -427,7 +427,7 @@ export async function fetchCombinedFromSupabase(
         trialId: classDataA.trial_id,
         licenseKey,
         role: userRole,
-        isClassComplete: classDataA.class_status === 'completed' || classDataA.is_completed === true,
+        isClassComplete: classDataA.class_status === 'completed' || classDataA.is_scoring_finalized === true,
         resultsReleasedAt: classDataA.results_released_at || null
       }),
       fetchVisibilityFlagsWithFallback({
@@ -435,7 +435,7 @@ export async function fetchCombinedFromSupabase(
         trialId: classDataB.trial_id,
         licenseKey,
         role: userRole,
-        isClassComplete: classDataB.class_status === 'completed' || classDataB.is_completed === true,
+        isClassComplete: classDataB.class_status === 'completed' || classDataB.is_scoring_finalized === true,
         resultsReleasedAt: classDataB.results_released_at || null
       })
     ]);
