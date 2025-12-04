@@ -327,10 +327,12 @@ h6 {
 }
 
 /* Enable transitions after hydration is complete */
+/* Note: We only reset transition, NOT animation.
+   Setting animation: inherit would override explicit animations like stagger-children.
+   The cascade naturally applies correct animations once data-loaded="false" rule is inactive. */
 .entry-list-container[data-loaded="true"] *,
 .class-list-container[data-loaded="true"] *,
 .page-container[data-loaded="true"] *,
 .app-container[data-loaded="true"] * {
-  transition: inherit;
-  animation: inherit;
+  transition: revert;
 }

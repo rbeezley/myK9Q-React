@@ -75,6 +75,24 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
   onDragEnd,
   onOpenDragMode,
 }) => {
+  // Track when entries first load to trigger stagger animation
+  // Start with pending state (hidden), then switch to animating (stagger-in plays)
+  const [isAnimating, setIsAnimating] = React.useState(false);
+  const hasAnimatedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    // Only trigger animation on first load of entries (not on subsequent updates)
+    if (entries.length > 0 && !hasAnimatedRef.current) {
+      hasAnimatedRef.current = true;
+      // Double RAF ensures DOM is fully painted before animation class is added
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
+      });
+    }
+  }, [entries.length]);
+
   if (entries.length === 0) {
     return (
       <div className="no-entries">
@@ -95,7 +113,9 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
         items={entries.map(e => e.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className={`grid-responsive stagger-children ${isDragMode ? 'drag-mode' : ''}`}>
+        <div
+          className={`grid-responsive ${isAnimating ? 'stagger-children' : 'stagger-pending'} ${isDragMode ? 'drag-mode' : ''}`}
+        >
           {entries.map((entry) => (
             <SortableEntryCard
               key={`${entry.id}-${entry.status}-${entry.isScored}`}

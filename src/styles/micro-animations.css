@@ -9,7 +9,7 @@
 @keyframes stagger-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -101,34 +101,35 @@
 
 /* Container class to enable stagger on children */
 .stagger-children > * {
-  animation: stagger-in 0.35s var(--apple-ease) both;
+  animation: stagger-in 0.5s var(--apple-ease) both;
 }
 
 /* Auto-assign stagger delays to first 20 children */
+/* DEBUG: 100ms delays to make stagger very obvious */
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 280ms; }
-.stagger-children > *:nth-child(9) { animation-delay: 320ms; }
-.stagger-children > *:nth-child(10) { animation-delay: 360ms; }
-.stagger-children > *:nth-child(11) { animation-delay: 400ms; }
-.stagger-children > *:nth-child(12) { animation-delay: 440ms; }
-.stagger-children > *:nth-child(13) { animation-delay: 480ms; }
-.stagger-children > *:nth-child(14) { animation-delay: 520ms; }
-.stagger-children > *:nth-child(15) { animation-delay: 560ms; }
-.stagger-children > *:nth-child(16) { animation-delay: 600ms; }
-.stagger-children > *:nth-child(17) { animation-delay: 640ms; }
-.stagger-children > *:nth-child(18) { animation-delay: 680ms; }
-.stagger-children > *:nth-child(19) { animation-delay: 720ms; }
-.stagger-children > *:nth-child(20) { animation-delay: 760ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 500ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 600ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 700ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 800ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 900ms; }
+.stagger-children > *:nth-child(11) { animation-delay: 1000ms; }
+.stagger-children > *:nth-child(12) { animation-delay: 1100ms; }
+.stagger-children > *:nth-child(13) { animation-delay: 1200ms; }
+.stagger-children > *:nth-child(14) { animation-delay: 1300ms; }
+.stagger-children > *:nth-child(15) { animation-delay: 1400ms; }
+.stagger-children > *:nth-child(16) { animation-delay: 1500ms; }
+.stagger-children > *:nth-child(17) { animation-delay: 1600ms; }
+.stagger-children > *:nth-child(18) { animation-delay: 1700ms; }
+.stagger-children > *:nth-child(19) { animation-delay: 1800ms; }
+.stagger-children > *:nth-child(20) { animation-delay: 1900ms; }
 
 /* Cap delay for items beyond 20 to avoid excessive wait */
 .stagger-children > *:nth-child(n+21) {
-  animation-delay: 800ms;
+  animation-delay: 2000ms;
 }
 
 /* ===== STATUS BADGE PULSE CLASSES ===== */
@@ -264,6 +265,15 @@
   .entry-card:focus-within {
     transform: none;
   }
+}
+
+/* ===== STAGGER PENDING STATE ===== */
+/* Keep children hidden until animation is ready to play */
+/* Use !important to override any inherited styles during initial render */
+.stagger-pending > * {
+  opacity: 0 !important;
+  transform: translateY(30px) !important;
+  animation: none !important;
 }
 
 /* ===== HYDRATION PREVENTION ===== */
