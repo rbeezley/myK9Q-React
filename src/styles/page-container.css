@@ -36,6 +36,7 @@
   backdrop-filter: blur(20px);
   background: var(--overlay-white-heavy);
   border-bottom: 1px solid var(--border);
+  border-radius: 0 0 var(--token-radius-lg) var(--token-radius-lg);  /* Rounded bottom corners - iOS style */
   padding: var(--token-space-lg) var(--token-space-lg);  /* 12px vertical and horizontal on mobile */
   display: flex;
   align-items: center;

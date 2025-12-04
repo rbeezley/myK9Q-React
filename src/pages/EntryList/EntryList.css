@@ -15,6 +15,7 @@
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;
+  margin: 0; /* Match home-container - prevents extra space above header */
   padding: 0 var(--token-space-lg);
   /* Add horizontal padding: 12px mobile */
 }
@@ -41,9 +42,9 @@
 /* ========== HEADER ========== */
 
 /* Header inherits from global .page-header in page-container.css */
+/* Override Home.css .entry-list-header which has margin-top for a different element */
 .entry-list-header {
-  /* Let the header use default flex alignment from page-header */
-  /* HamburgerMenu + flex:1 centered content + header-buttons with margin-left:auto */
+  margin: 0; /* Mobile-first: flush to top for maximum screen space */
 }
 
 .header-buttons {
