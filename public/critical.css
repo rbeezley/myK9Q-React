@@ -305,6 +305,86 @@ html, body {
 }
 
 /* ============================================
+   ABOVE-THE-FOLD COMPONENT FALLBACKS
+   Prevents layout shift on initial render
+   ============================================ */
+
+/* Search Input - Home page header */
+.search-input-container,
+.search-controls-header {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-lg);
+}
+
+.search-input-full {
+  width: 100%;
+  padding: var(--token-space-md) var(--token-space-xl);
+  background: var(--input);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-md);
+  font-size: var(--token-font-md);
+  color: var(--foreground);
+}
+
+/* Tab Bar - Filter controls */
+.apple-tabs-container {
+  display: grid;
+  width: 100%;
+  border-radius: var(--token-radius-lg);
+  background: var(--muted);
+  padding: var(--token-space-sm);
+}
+
+.apple-tab-trigger {
+  border-radius: var(--token-radius-md);
+  padding: var(--token-space-lg) var(--token-space-xl);
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.apple-tab-trigger[data-state="active"],
+.apple-tab-trigger.active {
+  background: var(--card);
+  color: var(--foreground);
+}
+
+/* Class Card Structure - Prevents layout shift */
+.class-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-lg);
+  padding: var(--token-space-lg);
+  min-height: 80px;
+}
+
+/* Floating Action Button - Position immediately */
+.floating-action-button {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+  right: var(--token-space-xl);
+  z-index: 100;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ============================================
    LOADING INDICATOR
    (Shows while React is loading)
    ============================================ */

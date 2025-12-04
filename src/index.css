@@ -10,7 +10,7 @@
 @import './styles/micro-animations.css';
 @import './styles/touch-targets.css';
 @import './styles/one-handed-mode.css';
-@import './styles/performance.css';
+/* performance.css removed - device-tier classes not used */
 @import './styles/viewport.css';
 @import './styles/high-contrast.css';
 @import './styles/reduce-motion.css';
