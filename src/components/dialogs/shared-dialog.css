@@ -18,11 +18,11 @@
 
 .dialog-container {
   background: var(--card);
-  border-radius: 0;  /* Mobile: no border radius (full screen) */
+  border-radius: 0.75rem;  /* Mobile: subtle rounded corners */
   box-shadow: var(--token-shadow-xl);
   max-width: 100%;  /* Mobile: full width */
   width: 100%;
-  max-height: 100vh;  /* Mobile: full height */
+  max-height: calc(100vh - var(--token-space-4xl));  /* Mobile: leave some breathing room */
   overflow: visible;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,7 @@
   border-bottom: 1px solid var(--border);
   background: var(--muted);
   flex-shrink: 0;
-  border-radius: 1rem 1rem 0 0;
+  border-radius: 0.75rem 0.75rem 0 0;  /* Mobile: match container radius */
 }
 
 .theme-dark .dialog-header {
@@ -117,7 +117,7 @@
   padding: var(--token-space-xl);
   border-top: 1px solid var(--border);
   background: var(--muted);
-  border-radius: 0 0 1rem 1rem;
+  border-radius: 0 0 0.75rem 0.75rem;  /* Mobile: match container radius */
 }
 
 .theme-dark .dialog-footer {
@@ -281,7 +281,15 @@
   .dialog-container {
     max-width: 500px;  /* Desktop: fixed width */
     max-height: calc(100vh - 2rem);  /* Desktop: smaller max height */
-    border-radius: 1rem;  /* Desktop: rounded corners */
+    border-radius: 1rem;  /* Desktop: larger rounded corners */
+  }
+
+  .dialog-header {
+    border-radius: 1rem 1rem 0 0;  /* Desktop: match container radius */
+  }
+
+  .dialog-footer {
+    border-radius: 0 0 1rem 1rem;  /* Desktop: match container radius */
   }
 
   .dialog-content {

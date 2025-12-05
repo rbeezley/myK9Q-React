@@ -247,23 +247,23 @@
   align-items: center;  /* Mobile: center items */
   gap: var(--token-space-md);  /* Mobile: gap */
   padding: var(--token-space-lg);  /* Mobile: smaller padding */
-  background: var(--status-setup);
-  border: 1px solid #fef3c7;
+  background: #fef3c7;  /* Light amber - works in both themes */
+  border: 1px solid #f59e0b;
   border-radius: var(--token-space-md);
-  border-left: var(--token-space-sm) solid #fef3c7;
+  border-left: var(--token-space-sm) solid #f59e0b;
 }
 
 .notice-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--token-warning-contrast);
+  color: #92400e;  /* Dark amber - always visible */
   flex-shrink: 0;
 }
 
 .dictated-notice p {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--token-warning-contrast);
+  color: #78350f;  /* Dark brown - high contrast on light amber */
   line-height: 1.5;
 }
 
@@ -564,18 +564,8 @@
   color: #dbeafe;
 }
 
-.theme-dark .dictated-notice {
-  background: var(--token-warning-contrast);
-  border-color: var(--status-setup);
-}
-
-.theme-dark .dictated-notice p {
-  color: var(--primary);
-}
-
-.theme-dark .notice-icon {
-  color: var(--primary);
-}
+/* Note: .theme-dark overrides removed - dialog renders via portal outside theme wrapper
+   Using explicit colors in base styles that work in both light and dark themes */
 
 .theme-dark .time-preset-btn {
   background: var(--background-subtle);

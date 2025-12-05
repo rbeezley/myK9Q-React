@@ -832,6 +832,15 @@
 
 .confirmation-buttons {
   flex-direction: column-reverse;  /* Mobile: reverse order */
+  gap: var(--token-space-md);  /* Mobile: gap between stacked buttons */
+}
+
+.confirmation-buttons button {
+  width: 100%;  /* Mobile: full-width buttons */
+  min-height: 48px;  /* Mobile: comfortable touch target */
+  padding: var(--token-space-lg) var(--token-space-xl);  /* Mobile: adequate padding */
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 /* Desktop enhancements */
@@ -888,6 +897,13 @@
 
   .confirmation-buttons {
     flex-direction: row;  /* Desktop: default order */
+    gap: var(--token-space-xl);  /* Desktop: wider gap */
+  }
+
+  .confirmation-buttons button {
+    width: auto;  /* Desktop: natural width */
+    min-height: auto;  /* Desktop: let padding control height */
+    padding: var(--token-space-lg) var(--token-space-3xl);  /* Desktop: more horizontal padding */
   }
 }
 

@@ -18,6 +18,7 @@ import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { NoEntriesDialog } from '../../components/dialogs/NoEntriesDialog';
+import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
@@ -109,6 +110,10 @@ export const ClassList: React.FC = () => {
   // No entries dialog state - shown when clicking a class with 0 entries
   const [noEntriesDialogOpen, setNoEntriesDialogOpen] = useState(false);
   const [noEntriesClassName, setNoEntriesClassName] = useState<string | undefined>(undefined);
+
+  // No stats dialog state - shown when clicking Statistics for a class with no scored entries
+  const [noStatsDialogOpen, setNoStatsDialogOpen] = useState(false);
+  const [noStatsClassName, setNoStatsClassName] = useState<string | undefined>(undefined);
 
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -782,6 +787,15 @@ export const ClassList: React.FC = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     if (trialId && activePopup !== null) {
+                      // Check if class has any scored entries before navigating
+                      const classEntry = classes.find(c => c.id === activePopup);
+                      if (classEntry && classEntry.completed_count === 0) {
+                        // No scored entries - show dialog instead of navigating
+                        setNoStatsClassName(classEntry.class_name);
+                        setNoStatsDialogOpen(true);
+                        setActivePopup(null);
+                        return;
+                      }
                       navigate(`/stats/trial/${trialId}?classId=${activePopup}`);
                     }
                     setActivePopup(null);
@@ -937,6 +951,16 @@ export const ClassList: React.FC = () => {
           setNoEntriesClassName(undefined);
         }}
         className={noEntriesClassName}
+      />
+
+      {/* No Stats Dialog - shown when clicking Statistics for a class with no scored entries */}
+      <NoStatsDialog
+        isOpen={noStatsDialogOpen}
+        onClose={() => {
+          setNoStatsDialogOpen(false);
+          setNoStatsClassName(undefined);
+        }}
+        className={noStatsClassName}
       />
 
       {/* Filter Panel Slide-out */}

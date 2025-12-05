@@ -1270,6 +1270,7 @@
 .result-choice-chips-container {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--token-space-xl);
   width: 100%;
   max-width: none;
@@ -1303,9 +1304,9 @@
 }
 
 .result-choice-chips {
-  gap: var(--token-space-md);
+  gap: 6px;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;  /* All 4 chips on one line */
 }
 
 .choice-chip {
@@ -1318,7 +1319,7 @@
   transition: all 0.2s ease;
   background: var(--muted);
   color: var(--token-text-secondary);
-  min-width: 80px;
+  min-width: auto;  /* Let content determine width; desktop overrides in media query */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1398,14 +1399,15 @@ button.choice-chip.danger.selected {
 
 /* Responsive adjustments - Result Choice Chips */
 .result-choice-chips {
-  gap: 6px;  /* Mobile: small gap */
+  gap: 6px;  /* Mobile: compact gap */
   margin: var(--token-space-lg) 0;
+  flex-wrap: nowrap;  /* Keep all 4 chips on one line */
 }
 
 .choice-chip {
-  padding: 6px var(--token-space-lg);  /* Mobile: smaller padding */
+  padding: 6px 10px;  /* Mobile: compact padding to fit 4 chips */
   font-size: 13px;  /* Mobile: smaller font */
-  min-width: 70px;
+  min-width: auto;  /* Let chips size naturally to fit on one line */
 }
 
 /* Light theme support - removed redundant overrides since CSS variables handle both themes */

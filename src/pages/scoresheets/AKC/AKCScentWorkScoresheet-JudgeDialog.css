@@ -329,26 +329,26 @@ body.dialog-open {
 .time-container .time-value {
   font-size: var(--token-space-4xl);  /* Mobile: extra large (32px) */
   font-weight: 900;
-  color: var(--token-success);
+  color: var(--primary);  /* Use theme accent color */
 }
 
 /* Total time styling for multi-area searches */
 .score-item.total-time {
-  background: rgba(16, 185, 129, 0.15);
-  border: var(--token-space-xs) solid var(--status-checked-in);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);  /* Use theme accent color */
+  border: var(--token-space-xs) solid var(--primary);
   grid-column: 1 / -1; /* Span full width */
 }
 
 .score-item.total-time .item-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--token-success);
+  color: var(--primary);  /* Use theme accent color */
 }
 
 .score-item.total-time .time-value.total {
   font-size: var(--token-space-4xl);
   font-weight: 900;
-  color: var(--token-success);
+  color: var(--primary);  /* Use theme accent color */
 }
 
 .item-value.positive {
@@ -384,19 +384,21 @@ body.dialog-open {
 /* Dialog Actions */
 .dialog-actions {
   display: flex;
-  gap: var(--token-space-md);
+  flex-direction: column;  /* Mobile: stack buttons vertically */
+  gap: var(--token-space-lg);  /* Mobile: comfortable gap between buttons */
   margin-top: var(--token-space-lg);  /* Mobile: smaller margin */
 }
 
 .dialog-btn {
   flex: 1;
-  height: 40px;  /* Mobile: smaller height */
+  min-height: 48px;  /* Mobile: comfortable touch target */
   border-radius: var(--token-space-md);
   border: none;
-  font-size: 13px;  /* Mobile: smaller font */
+  font-size: 15px;  /* Mobile: readable font */
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  padding: var(--token-space-md) var(--token-space-lg);
 }
 
 .dialog-btn.cancel {
@@ -464,12 +466,13 @@ body.dialog-open {
   }
 
   .dialog-actions {
+    flex-direction: row;  /* Desktop: buttons side-by-side */
     margin-top: var(--token-space-xl);  /* Desktop: larger margin */
   }
 
   .dialog-btn {
-    height: 44px;  /* Desktop: larger height */
-    font-size: 14px;  /* Desktop: larger font */
+    min-height: 48px;  /* Desktop: comfortable touch target */
+    font-size: 16px;  /* Desktop: larger font */
   }
 
   .dog-summary {

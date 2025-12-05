@@ -299,13 +299,20 @@
 /* Empty & Error States */
 .stats-empty,
 .stats-error {
-  min-height: 60vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--token-space-3xl) var(--token-space-lg);
   text-align: center;
+  background: var(--secondary);  /* Light mode: light gray background */
+}
+
+/* Dark mode: use dark background */
+.theme-dark .stats-empty,
+.theme-dark .stats-error {
+  background: var(--background);
 }
 
 .empty-icon,

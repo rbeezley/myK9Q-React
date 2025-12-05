@@ -139,13 +139,19 @@ setRequirements(requirementsData);
 
     // Fall back to requirements text
     if (requirements && requirements.time_limit_text) {
-      // Use database field for time type (with fallback to string parsing for backward compatibility)
-      const timeType = requirements.time_type ||
-                      (requirements.time_limit_text.includes('-') ||
-                       requirements.time_limit_text.toLowerCase().includes('range')
-                        ? 'range' : 'fixed');
+      // Determine if this is actually a range by checking if the text contains a range indicator
+      // A range looks like "2:30 - 3:00" or "2 to 3 minutes"
+      const textLower = requirements.time_limit_text.toLowerCase();
+      const isActualRange = requirements.time_limit_text.includes(' - ') ||
+                           textLower.includes(' to ') ||
+                           /\d+\s*-\s*\d+/.test(requirements.time_limit_text);
 
-      const suffix = timeType === 'fixed' ? '(fixed)' :
+      // Only show "range allowed" if the time text actually represents a range
+      // A single value like "2 minutes" should be shown as fixed, not range
+      const timeType = isActualRange ? 'range' :
+                      requirements.time_type === 'dictated' ? 'dictated' : 'fixed';
+
+      const suffix = timeType === 'fixed' ? '' :  // No suffix for fixed times - cleaner UI
                     timeType === 'dictated' ? '(dictated by organization)' :
                     '(range allowed)';
 
@@ -158,7 +164,7 @@ setRequirements(requirementsData);
         ? (requirements.warning_notes ? ` - ${requirements.warning_notes}` : ' - No 30-second warning')
         : '';
 
-      return `${requirements.time_limit_text} ${suffix}${warningText}`;
+      return `${requirements.time_limit_text}${suffix ? ` ${suffix}` : ''}${warningText}`;
     }
 
     return 'Not specified';
