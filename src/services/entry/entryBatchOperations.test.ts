@@ -39,7 +39,9 @@ describe('entryBatchOperations', () => {
     it('should update exhibitor_order for all entries with 1-based indexing', async () => {
       // Arrange
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
@@ -66,7 +68,8 @@ describe('entryBatchOperations', () => {
 
     it('should update correct entry IDs', async () => {
       // Arrange
-      const eqMock = vi.fn().mockResolvedValue({ error: null });
+      const selectMock = vi.fn().mockResolvedValue({ error: null, data: [] });
+      const eqMock = vi.fn().mockReturnValue({ select: selectMock });
       const updateMock = vi.fn().mockReturnValue({
         eq: eqMock,
       });
@@ -92,7 +95,9 @@ describe('entryBatchOperations', () => {
       // Arrange
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ error: null }),
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+          }),
         }),
       } as any);
 
@@ -110,7 +115,9 @@ describe('entryBatchOperations', () => {
       const reordered = [mockEntries[4], mockEntries[0], mockEntries[2], mockEntries[1], mockEntries[3]];
 
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
@@ -137,13 +144,15 @@ describe('entryBatchOperations', () => {
       let callCount = 0;
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockImplementation(() => {
-            callCount++;
-            // Fail on second update
-            if (callCount === 2) {
-              return Promise.resolve({ error });
-            }
-            return Promise.resolve({ error: null });
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockImplementation(() => {
+              callCount++;
+              // Fail on second update
+              if (callCount === 2) {
+                return Promise.resolve({ error, data: null });
+              }
+              return Promise.resolve({ error: null, data: [] });
+            }),
           }),
         }),
       } as any);
@@ -158,7 +167,9 @@ describe('entryBatchOperations', () => {
 
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ error }),
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockResolvedValue({ error, data: null }),
+          }),
         }),
       } as any);
 
@@ -180,7 +191,9 @@ describe('entryBatchOperations', () => {
       const singleEntry = [mockEntries[0]];
 
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
@@ -206,7 +219,9 @@ describe('entryBatchOperations', () => {
       })) as Entry[];
 
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
@@ -390,7 +405,9 @@ describe('entryBatchOperations', () => {
       const reordered = [mockEntries[2], mockEntries[0], mockEntries[1], mockEntries[3], mockEntries[4]];
 
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
@@ -412,7 +429,9 @@ describe('entryBatchOperations', () => {
       const reordered = [mockEntries[1], mockEntries[2], mockEntries[3], mockEntries[4], mockEntries[0]];
 
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
@@ -434,7 +453,9 @@ describe('entryBatchOperations', () => {
       const reversed = [...mockEntries].reverse();
 
       const updateMock = vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({ error: null, data: [] }),
+        }),
       });
 
       vi.mocked(supabase.from).mockReturnValue({
