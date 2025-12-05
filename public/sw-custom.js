@@ -4,9 +4,15 @@
 // Import Workbox
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.6.0/workbox-sw.js');
 
+// Detect development mode (localhost or 127.0.0.1 with Vite's default port)
+const isDevelopment = self.location.hostname === 'localhost' ||
+                      self.location.hostname === '127.0.0.1' ||
+                      self.location.port === '5173';
+
 // Precache manifest - Vite PWA will inject this during build
+// Skip in development to avoid caching stale dev server files
 const precacheManifest = self.__WB_MANIFEST || [];
-if (precacheManifest.length > 0) {
+if (precacheManifest.length > 0 && !isDevelopment) {
   workbox.precaching.precacheAndRoute(precacheManifest);
 }
 
@@ -14,7 +20,9 @@ if (precacheManifest.length > 0) {
 // OFFLINE NAVIGATION & CACHING STRATEGIES
 // ========================================
 
-// Cache-first strategy for JS chunks
+// JS caching strategy:
+// - Development: NetworkFirst to always get fresh code from Vite dev server
+// - Production: CacheFirst for offline support
 workbox.routing.registerRoute(
   ({ request, url }) => {
     // Match JS files from our origin
@@ -23,18 +31,28 @@ workbox.routing.registerRoute(
       request.destination === 'script'
     );
   },
-  new workbox.strategies.CacheFirst({
-    cacheName: 'js-cache',
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 100,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-      }),
-      new workbox.cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
+  isDevelopment
+    ? new workbox.strategies.NetworkFirst({
+        cacheName: 'js-cache-dev',
+        plugins: [
+          new workbox.cacheableResponse.CacheableResponsePlugin({
+            statuses: [0, 200],
+          }),
+        ],
+        networkTimeoutSeconds: 5, // Fall back to cache only if network is slow
+      })
+    : new workbox.strategies.CacheFirst({
+        cacheName: 'js-cache',
+        plugins: [
+          new workbox.expiration.ExpirationPlugin({
+            maxEntries: 100,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          }),
+          new workbox.cacheableResponse.CacheableResponsePlugin({
+            statuses: [0, 200],
+          }),
+        ],
+      })
 );
 
 // Network-first strategy for CSS to prevent stale styles during rehydration

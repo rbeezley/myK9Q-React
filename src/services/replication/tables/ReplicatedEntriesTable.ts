@@ -96,7 +96,18 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
 
       // If cache is empty but we have a lastSync timestamp, it means the cache was cleared
       // Reset to epoch (0) to fetch all data
-      const lastSync = isCacheEmpty ? 0 : (metadata?.lastIncrementalSyncAt || 0);
+      //
+      // CROSS-TAB SYNC FIX: Add a 5-second buffer to lastSync to prevent race conditions.
+      // Problem: When Tab A updates entries and triggers sync, Tab B may receive the
+      // real-time notification and start its own sync. If Tab B's lastIncrementalSyncAt
+      // is very recent (close to or after Tab A's update timestamp), Tab B's query
+      // `updated_at > lastSync` can miss the updates.
+      //
+      // Solution: Query for entries updated in the last 5 seconds PLUS anything newer.
+      // This ensures we don't miss updates due to clock skew or timing race conditions.
+      const SYNC_BUFFER_MS = 5000; // 5 seconds buffer for cross-tab sync
+      const rawLastSync = isCacheEmpty ? 0 : (metadata?.lastIncrementalSyncAt || 0);
+      const lastSync = rawLastSync > SYNC_BUFFER_MS ? rawLastSync - SYNC_BUFFER_MS : 0;
 
       // Step 2: Fetch changes from server since last sync
       // Join through: entries → classes → trials → shows.license_key
@@ -144,11 +155,6 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         throw fetchError;
       }
 
-      // Only log sync results when entries are found (reduce noise during empty syncs)
-      if (remoteEntries && remoteEntries.length > 0) {
-        logger.log(`[${this.tableName}] 📊 Found ${remoteEntries.length} entries updated since ${new Date(lastSync).toISOString()}`);
-      }
-
       // Step 3: OPTIMIZED - Batch process remote entries to minimize transactions
       // Instead of individual get+set per entry (2N transactions), collect all and batch (1 transaction)
       if (remoteEntries && remoteEntries.length > 0) {
@@ -185,9 +191,6 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
         // Single batch write for all entries (1 transaction instead of N*2)
         if (entriesToCache.length > 0) {
           await this.batchSet(entriesToCache);
-
-          // Summary log only (not individual entries) to reduce console noise
-          logger.log(`[${this.tableName}] ✅ Cached ${entriesToCache.length} entries`);
         }
       }
 

@@ -308,7 +308,7 @@ export class ReplicatedTableCacheManager<T extends { id: string }> {
    * - Prevents notification starvation during continuous batch operations
    */
   async notifyListeners(): Promise<void> {
-    // CRITICAL FIX: Fire immediately if this is the first call
+    // Leading-edge debounce: Fire immediately if this is the first call
     if (!this.hasNotifiedLeadingEdge) {
       this.hasNotifiedLeadingEdge = true;
       await this.actuallyNotifyListeners();
@@ -337,7 +337,6 @@ export class ReplicatedTableCacheManager<T extends { id: string }> {
   private async actuallyNotifyListeners(): Promise<void> {
     const data = await this.getAllData();
     this.listeners.forEach((callback) => {
-      // CRITICAL FIX: Don't block on slow callbacks
       // Execute asynchronously so one slow listener doesn't block others
       Promise.resolve()
         .then(() => callback(data))

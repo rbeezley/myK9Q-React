@@ -188,6 +188,48 @@ html, body {
   min-height: 100vh;
 }
 
+/* Landing & Login page overrides - use their own dark themes */
+/* These pages have isolated dark themes and must NOT inherit app design tokens */
+body:has(.landing-page),
+body:has(.login-container) {
+  /* Override ALL design token variables that could leak light colors */
+  --background: #09090b !important;
+  --foreground: #fafafa !important;
+  --card: #18181b !important;
+  --card-foreground: #fafafa !important;
+  --surface: #18181b !important;
+  --muted: #27272a !important;
+  --muted-foreground: #a1a1aa !important;
+  --secondary: #18181b !important;
+  --secondary-foreground: #fafafa !important;
+}
+
+body:has(.landing-page),
+body:has(.landing-page) #root,
+body:has(.login-container),
+body:has(.login-container) #root {
+  background-color: #09090b !important;
+  color: #fafafa !important;
+}
+
+.landing-page,
+.landing-page *,
+.login-container,
+.login-container *,
+.login-background {
+  /* Force dark backgrounds on all elements */
+  --background: #09090b;
+  --card: #18181b;
+  --surface: #18181b;
+}
+
+/* Ensure login logo elements don't inherit app backgrounds */
+.login-container .logo-container,
+.login-container .logo-image,
+.login-container .logo-img {
+  background-color: transparent !important;
+}
+
 /* Page loader - matches theme background */
 .page-loader-container {
   background-color: var(--background);

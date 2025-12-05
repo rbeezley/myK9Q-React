@@ -481,7 +481,7 @@ section {
   height: 100%;
   object-fit: contain;
   border-radius: 1.9rem;
-  background: var(--color-void);
+  background: #09090b; /* Explicit dark - masks white PNG background */
 }
 
 .hero-brand {

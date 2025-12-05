@@ -141,102 +141,20 @@ Current passcode model (shared codes like `aa260`, `jf472`) works for per-show a
 
 **Priority:** Low - nice-to-have analytics feature, not core functionality
 
-## Future Consideration: App-Wide Typography Upgrade - 2025-12-03
+## App-Wide Typography Upgrade - 2025-12-03 ✅ COMPLETE
 
-**Status:** To be explored
+- **IMPLEMENTED:** Montserrat is now the primary app-wide font.
+- **Files:** [design-tokens.css:299](src/styles/design-tokens.css#L299), [critical.css:173](public/critical.css#L173)
+- **Note:** Playfair Display remains reserved for The Podium celebration moments.
 
-**Context:**
-The Podium (results page) uses premium fonts that feel more elegant than the rest of the app:
-- **Playfair Display** - Elegant serif for titles and celebration moments
-- **Montserrat** - Clean, modern sans-serif for labels and body text
+## App-Wide Premium Background Upgrade - 2025-12-03 ✅ COMPLETE
 
-**Current app fonts:** System defaults / basic sans-serif
-
-**Recommendation:**
-Consider adopting **Montserrat** as the primary app-wide font for a more premium feel, while keeping **Playfair Display** reserved for "celebration" moments like:
-- The Podium results
-- Q qualification announcements
-- Award/achievement displays
-- Welcome headers
-
-**Trade-offs:**
-| Pro | Con |
-|-----|-----|
-| More polished, professional appearance | ~50-100KB additional font download |
-| Better brand differentiation | Minor performance impact on first load |
-| Consistent premium feel across app | Requires updating all font declarations |
-| Montserrat is highly legible | Font preloading configuration needed |
-
-**To implement:**
-1. Add Montserrat to global CSS with font-display: swap
-2. Update CSS variables for font-family tokens
-3. Test across all pages for readability
-4. Measure performance impact (Lighthouse)
-5. Consider lazy-loading Playfair Display for special pages only
-
-**Priority:** Low - aesthetic enhancement, not core functionality
-
----
-
-## Future Consideration: App-Wide Premium Background Upgrade - 2025-12-03
-
-**Status:** To be explored
-
-### Brand Analysis Summary
-
-Using brand archetype analysis, myK9Q was identified as:
-- **Primary Archetype: Hero (60%)** - Achievement, mastery, competition
-- **Secondary Archetype: Ruler (40%)** - Premium, authoritative, successful
-
-**Key Finding:** The Podium correctly expresses the Hero/Ruler archetype with its premium gold aesthetic. The rest of the app undersells the brand by using a cooler, more utilitarian (Sage/Everyman) visual language.
-
-### Current vs Proposed Colors
-
-| Token | Current (Cool) | Proposed (Warm) | Notes |
-|-------|----------------|-----------------|-------|
-| Light BG | `#f1f5f9` | `#F8F7F4` | Warmer, more premium feel |
-| Light Card | `#ffffff` | `#FEFDFB` | Subtle cream tint |
-| Dark BG | `#1a1d23` | `#1a1a1e` | Slightly warmer charcoal |
-
-### Accent Color Compatibility
-
-| Accent | With Warm BG | Notes |
-|--------|--------------|-------|
-| **Teal** `#14b8a6` | ✓ Excellent | Cool/warm contrast |
-| **Blue** `#3b82f6` | ✓ Excellent | Cool/warm contrast |
-| **Orange** `#f97316` | ✓ Good | Both warm, still sufficient contrast |
-| **Purple** `#8b5cf6` | ✓ Excellent | Cool/warm contrast |
-
-### Design Principles
-
-1. **Gold stays independent** - Achievement colors (gold/silver/bronze) remain constant regardless of user's accent choice
-2. **The Podium stays special** - Theatrical effects (sparkles, gradients, shine) remain exclusive to Results page
-3. **Warm backgrounds app-wide** - Creates cohesion without diluting The Podium's celebration moment
-
-### Implementation
-
-**Files to modify:**
-- [design-tokens.css](src/styles/design-tokens.css) - Update `:root` light mode variables
-- [index.css](src/index.css) - Update `.theme-light` and `@media (prefers-color-scheme: light)` sections
-
-**Changes:**
-```css
-/* In :root (light mode defaults) */
---background: #F8F7F4;  /* Was #fefefe */
---card: #FEFDFB;        /* Was #ffffff */
-
-/* In .theme-dark */
---background: #1a1a1e;  /* Was #1a1d23 - subtle warm shift */
-```
-
-**Testing checklist:**
-- [ ] Test with all 4 accent colors (teal, blue, orange, purple)
-- [ ] Test both light and dark mode
-- [ ] Test on all major pages (Home, ClassList, EntryList, Stats, Settings)
-- [ ] Verify contrast ratios meet WCAG AA standards
-- [ ] Check for any hardcoded background colors that need updating
-
-**Priority:** Medium - Brand cohesion improvement, should be done after Podium feature is merged
+- **IMPLEMENTED:** Warm background colors applied across light and dark modes.
+- **Changes:**
+  - Light BG: `#F8F7F4` (warm off-white)
+  - Light Card: `#FEFDFB` (subtle cream)
+  - Dark BG: `#1a1a1e` (warmer charcoal)
+- **Files:** [design-tokens.css:20-40](src/styles/design-tokens.css#L20-L40), [design-tokens.css:334](src/styles/design-tokens.css#L334)
 
 ---
 
@@ -394,101 +312,33 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
 
 ---
 
-## Future Consideration: App-Wide Typography Upgrade - 2025-12-03
+## Drag-and-Drop ExhibitorOrder Cross-Tab Sync Issue - 2025-12-04 21:15
 
-**Status:** To be explored
+- **Debug cross-tab exhibitorOrder sync** - When Tab A reorders entries via drag-and-drop, Tab B doesn't reflect the new order despite receiving sync notifications. **Problem:** The entire sync chain appears to work (Realtime events fire, sync runs, cache updates, listeners notified, refresh called) but Tab B's UI continues showing the old exhibitor_order values. Other status changes (like "in-ring") DO sync correctly, suggesting the issue is specific to exhibitorOrder updates. **Files:** `src/services/entry/entryBatchOperations.ts:62-108` (updateExhibitorOrder), `src/pages/EntryList/hooks/useEntryListData.ts:97-132` (refresh with pending queue), `src/pages/EntryList/hooks/useDragAndDropEntries.ts:160-233` (handleDragEnd), `src/services/replication/ConnectionManager.ts:147-215` (broadcast/realtime handling), `src/services/replication/tables/ReplicatedEntriesTable.ts` (sync logic), `src/pages/EntryList/hooks/useEntryListDataHelpers.ts:238-285` (cache read). **Solution:** Debug logging has been added throughout the data flow chain. Next step is to test with two tabs and compare console logs to identify where the exhibitorOrder value stops being correct. Key logs to look for: 🔀 (drag), 📋 (Supabase update), 📡 (broadcast/realtime), 🔔 (subscription callback), 📦 (cache read), 📥 (UI state update).
 
-**Context:**
-The Podium (results page) uses premium fonts that feel more elegant than the rest of the app:
-- **Playfair Display** - Elegant serif for titles and celebration moments
-- **Montserrat** - Clean, modern sans-serif for labels and body text
+**Debug Logging Chain (in order):**
 
-**Current app fonts:** System defaults / basic sans-serif
+| Tab A (User drags) | Tab B (Should update) |
+|--------------------|-----------------------|
+| 🔀 useDragAndDropEntries - entries being reordered | 📡 ConnectionManager - broadcast/realtime received |
+| 📋 updateExhibitorOrder - what's sent to Supabase | 🔍 ReplicatedEntriesTable - sync query filter |
+| ✅ updateExhibitorOrder - Supabase response | 🔄 ReplicatedEntriesTable - entries being cached |
+| 🔄 triggerImmediateEntrySync - sync triggered | 🔔 ReplicatedTableCache - notifyListeners |
+| | 🔔 useEntryListData - subscription callback |
+| | 📦 useEntryListDataHelpers - raw cache entry |
+| | 📥 EntryList/CombinedEntryList - UI state update |
 
-**Recommendation:**
-Consider adopting **Montserrat** as the primary app-wide font for a more premium feel, while keeping **Playfair Display** reserved for "celebration" moments like:
-- The Podium results
-- Q qualification announcements
-- Award/achievement displays
-- Welcome headers
+**Hypothesis to test:**
+1. Is Tab B's sync query filter (updated_at > timestamp) missing the updates due to timing?
+2. Is the cache returning old data despite batchSet completing?
+3. Is the transformation in transformReplicatedEntry losing the value?
+4. Is React not re-rendering due to shallow comparison?
 
-**Trade-offs:**
-| Pro | Con |
-|-----|-----|
-| More polished, professional appearance | ~50-100KB additional font download |
-| Better brand differentiation | Minor performance impact on first load |
-| Consistent premium feel across app | Requires updating all font declarations |
-| Montserrat is highly legible | Font preloading configuration needed |
+**Test procedure:**
+1. Open Tab A to a class list, clear console
+2. Open Tab B to same class, clear console
+3. On Tab A, drag entry to reorder
+4. Compare both console logs - find where exhibitorOrder values diverge
 
-**To implement:**
-1. Add Montserrat to global CSS with font-display: swap
-2. Update CSS variables for font-family tokens
-3. Test across all pages for readability
-4. Measure performance impact (Lighthouse)
-5. Consider lazy-loading Playfair Display for special pages only
-
-**Priority:** Low - aesthetic enhancement, not core functionality
-
----
-
-## Future Consideration: App-Wide Premium Background Upgrade - 2025-12-03
-
-**Status:** To be explored
-
-### Brand Analysis Summary
-
-Using brand archetype analysis, myK9Q was identified as:
-- **Primary Archetype: Hero (60%)** - Achievement, mastery, competition
-- **Secondary Archetype: Ruler (40%)** - Premium, authoritative, successful
-
-**Key Finding:** The Podium correctly expresses the Hero/Ruler archetype with its premium gold aesthetic. The rest of the app undersells the brand by using a cooler, more utilitarian (Sage/Everyman) visual language.
-
-### Current vs Proposed Colors
-
-| Token | Current (Cool) | Proposed (Warm) | Notes |
-|-------|----------------|-----------------|-------|
-| Light BG | `#f1f5f9` | `#F8F7F4` | Warmer, more premium feel |
-| Light Card | `#ffffff` | `#FEFDFB` | Subtle cream tint |
-| Dark BG | `#1a1d23` | `#1a1a1e` | Slightly warmer charcoal |
-
-### Accent Color Compatibility
-
-| Accent | With Warm BG | Notes |
-|--------|--------------|-------|
-| **Teal** `#14b8a6` | ✓ Excellent | Cool/warm contrast |
-| **Blue** `#3b82f6` | ✓ Excellent | Cool/warm contrast |
-| **Orange** `#f97316` | ✓ Good | Both warm, still sufficient contrast |
-| **Purple** `#8b5cf6` | ✓ Excellent | Cool/warm contrast |
-
-### Design Principles
-
-1. **Gold stays independent** - Achievement colors (gold/silver/bronze) remain constant regardless of user's accent choice
-2. **The Podium stays special** - Theatrical effects (sparkles, gradients, shine) remain exclusive to Results page
-3. **Warm backgrounds app-wide** - Creates cohesion without diluting The Podium's celebration moment
-
-### Implementation
-
-**Files to modify:**
-- [design-tokens.css](src/styles/design-tokens.css) - Update `:root` light mode variables
-- [index.css](src/index.css) - Update `.theme-light` and `@media (prefers-color-scheme: light)` sections
-
-**Changes:**
-```css
-/* In :root (light mode defaults) */
---background: #F8F7F4;  /* Was #fefefe */
---card: #FEFDFB;        /* Was #ffffff */
-
-/* In .theme-dark */
---background: #1a1a1e;  /* Was #1a1d23 - subtle warm shift */
-```
-
-**Testing checklist:**
-- [ ] Test with all 4 accent colors (teal, blue, orange, purple)
-- [ ] Test both light and dark mode
-- [ ] Test on all major pages (Home, ClassList, EntryList, Stats, Settings)
-- [ ] Verify contrast ratios meet WCAG AA standards
-- [ ] Check for any hardcoded background colors that need updating
-
-**Priority:** Medium - Brand cohesion improvement, should be done after Podium feature is merged
-
+**Priority:** High - Core feature broken, impacts multi-device workflows
 

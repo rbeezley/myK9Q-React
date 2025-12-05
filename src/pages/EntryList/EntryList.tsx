@@ -125,7 +125,6 @@ export const EntryList: React.FC = () => {
   // Sync local entries with fetched data
   // NOTE: Duplicate detection was causing "thousands of messages" during sync.
   // Root cause fixed in ReplicatedTableBatch.ts - all IDs now normalized to strings.
-  // Diagnostic logging removed as it's no longer needed.
   useEffect(() => {
     if (entries.length > 0 && !isDraggingRef.current) {
       setLocalEntries(entries);

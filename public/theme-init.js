@@ -8,6 +8,17 @@
 
 (function() {
   try {
+    // CRITICAL: Check if we're on landing or login pages FIRST
+    // These pages have their own dark theme regardless of user settings
+    const path = window.location.pathname;
+    const isLandingOrLoginPage = path === '/' || path === '/login' || path === '/landing';
+
+    if (isLandingOrLoginPage) {
+      // Landing/Login pages always use dark theme
+      applyDarkLandingTheme();
+      return;
+    }
+
     // Read settings from localStorage (synchronous)
     const savedSettings = localStorage.getItem('myK9Q_settings');
 
@@ -76,5 +87,22 @@
 
     // Add selected accent color class
     html.classList.add('accent-' + color);
+  }
+
+  /**
+   * Apply dark theme for landing/login pages
+   * These pages have their own isolated dark design, independent of user settings
+   */
+  function applyDarkLandingTheme() {
+    const html = document.documentElement;
+
+    // Add a special class so CSS knows this is a landing/login page
+    html.classList.add('landing-theme');
+
+    // Set dark background immediately (no flash)
+    html.style.backgroundColor = '#09090b';
+
+    // Also apply teal accent for landing pages
+    html.classList.add('accent-green');
   }
 })();

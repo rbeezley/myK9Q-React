@@ -217,7 +217,7 @@ export function useDragAndDropEntries({
     try {
       await updateExhibitorOrder(entriesWithNewOrder);
     } catch (error) {
-      console.error('❌ Failed to update run order in database:', error);
+      console.error('Failed to update run order in database:', error);
       // The optimistic update already happened, so UI shows new order
       // If offline, the sync will happen later
     } finally {

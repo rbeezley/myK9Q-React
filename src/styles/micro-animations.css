@@ -285,3 +285,13 @@
   opacity: 1;
   transform: none;
 }
+
+/* ===== DRAG MODE OVERRIDE ===== */
+/* Disable stagger animation in drag mode so dnd-kit can control transforms */
+/* animation-fill-mode: both keeps final transform applied, which overrides inline styles */
+.drag-mode.stagger-children > *,
+.stagger-children.drag-mode > * {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}

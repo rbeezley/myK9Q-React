@@ -90,14 +90,18 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
 
   // Guard against re-entrant refresh calls that cause infinite loops
   const isRefreshingRef = useRef(false);
+  // Track if a refresh was requested while another was in progress
+  const pendingRefreshRef = useRef(false);
 
   // Fetch data function
   const refresh = useCallback(async () => {
-    // Prevent re-entrant calls that cause infinite loops
+    // If already refreshing, mark that we need another refresh after this one completes
     if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
       return;
     }
     isRefreshingRef.current = true;
+    pendingRefreshRef.current = false; // Clear any pending flag
     setIsRefreshing(true);
     setFetchError(null);
     try {
@@ -109,6 +113,13 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
     } finally {
       setIsRefreshing(false);
       isRefreshingRef.current = false;
+
+      // If a refresh was requested while we were busy, do it now
+      if (pendingRefreshRef.current) {
+        pendingRefreshRef.current = false;
+        // Use setTimeout to break the call stack and allow React to process
+        setTimeout(() => refresh(), 0);
+      }
     }
   }, [fetchFunction]);
 

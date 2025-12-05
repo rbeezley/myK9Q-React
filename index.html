@@ -1,20 +1,40 @@
 <!doctype html>
-<html lang="en" style="background-color: #F8F7F4;">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <!-- CRITICAL: Inline styles to prevent white flash - must be FIRST -->
   <style>
     /* Hardcoded backgrounds - no dependencies on external CSS */
-    html, body, #root, .page-loader-container, div[class*="container"] {
-      background-color: #F8F7F4 !important;
+    /* EXCEPTION: Landing and Login pages have their own dark theme */
+    html, body, #root, .page-loader-container {
+      background-color: #F8F7F4;
     }
     .theme-dark,
     .theme-dark body,
     .theme-dark #root,
-    .theme-dark .page-loader-container,
-    .theme-dark div[class*="container"] {
-      background-color: #1a1a1e !important;
+    .theme-dark .page-loader-container {
+      background-color: #1a1a1e;
+    }
+    /* Landing/Login pages - force dark backgrounds (override warm theme) */
+    /* .landing-theme is set by theme-init.js for instant dark background */
+    /* IMPORTANT: Only target main containers, NOT nested ones (to preserve gradient effects) */
+    .landing-theme,
+    .landing-theme body,
+    .landing-theme #root {
+      background-color: #09090b !important;
+    }
+    body:has(.landing-page),
+    body:has(.landing-page) #root,
+    body:has(.login-container),
+    body:has(.login-container) #root {
+      background-color: #09090b !important;
+    }
+    /* Only target the main landing-page element, let child containers be transparent */
+    .landing-page,
+    .login-container,
+    .login-background {
+      background-color: #09090b !important;
     }
   </style>
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -43,13 +63,13 @@
       CRITICAL: Must run BEFORE React to prevent FOUC
       Reads theme from localStorage and applies classes to <html>
     -->
-  <script src="/theme-init.js?v=4"></script>
+  <script src="/theme-init.js?v=5"></script>
 </head>
 
-<body style="background-color: #F8F7F4;">
-  <!-- Inline background prevents white flash before CSS loads -->
-  <!-- theme-init.js will update this for dark mode users -->
-  <div id="root" style="background-color: inherit; min-height: 100vh;"></div>
+<body>
+  <!-- Background color is set by inline <style> block in <head> -->
+  <!-- Landing/Login pages override to dark theme via :has() selectors -->
+  <div id="root" style="min-height: 100vh;"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

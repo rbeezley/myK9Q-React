@@ -63,32 +63,36 @@ export async function updateExhibitorOrder(
   reorderedEntries: Entry[]
 ): Promise<boolean> {
   try {
-// Update each entry with its new position (1-based indexing)
+    // Update each entry with its new position (1-based indexing)
+    // Use a single timestamp for all updates to ensure consistency
+    const updatedAtTimestamp = new Date().toISOString();
+
     const updates = reorderedEntries.map(async (entry, index) => {
       const newExhibitorOrder = index + 1; // 1-based indexing
 
       const { error } = await supabase
         .from('entries')
-        .update({ exhibitor_order: newExhibitorOrder, updated_at: new Date().toISOString() })
-        .eq('id', entry.id);
+        .update({ exhibitor_order: newExhibitorOrder, updated_at: updatedAtTimestamp })
+        .eq('id', entry.id)
+        .select('id, exhibitor_order');
 
       if (error) {
-        console.error(`❌ Failed to update entry ${entry.id}:`, error);
+        console.error(`Failed to update entry ${entry.id}:`, error);
         throw error;
       }
 
-return { id: entry.id, newOrder: newExhibitorOrder };
+      return { id: entry.id, newOrder: newExhibitorOrder };
     });
 
     // Execute all updates in parallel
     await Promise.all(updates);
 
-// Trigger immediate sync so UI updates instantly across all devices
+    // Trigger immediate sync so UI updates instantly across all devices
     await triggerImmediateEntrySync('updateExhibitorOrder');
 
     return true;
   } catch (error) {
-    console.error('❌ Error in updateExhibitorOrder:', error);
+    console.error('Error in updateExhibitorOrder:', error);
     throw error;
   }
 }

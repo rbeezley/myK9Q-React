@@ -151,9 +151,8 @@ export class ConnectionManager {
       this.broadcastChannel.onmessage = (event) => {
         const { type, tableName, licenseKey, originTabId } = event.data;
 
-        // CRITICAL FIX: Ignore our own messages
+        // Ignore our own messages
         if (originTabId === TAB_ID) {
-          logger.log(`[ConnectionManager] Ignoring own message for ${tableName}`);
           return;
         }
 
@@ -163,8 +162,6 @@ export class ConnectionManager {
         }
 
         if (type === 'table-changed') {
-          logger.log(`[ConnectionManager] Cross-tab sync: ${tableName} changed in tab ${originTabId}`);
-
           // Trigger incremental sync for this table
           this.syncTableCallback(tableName, false).catch((error) => {
             logger.error(`[ConnectionManager] Cross-tab sync failed for ${tableName}:`, error);
@@ -196,9 +193,7 @@ export class ConnectionManager {
               // All replicated tables now have license_key column for efficient filtering
               filter: `license_key=eq.${this.config.licenseKey}`,
             },
-            async (payload) => {
-              logger.log(`[ConnectionManager] Real-time change detected in ${tableName}:`, payload.eventType);
-
+            async (_payload) => {
               // Trigger incremental sync for this table and WAIT for it to complete
               // This ensures cache is updated before UI refreshes
               try {
@@ -208,7 +203,6 @@ export class ConnectionManager {
               }
 
               // Notify other tabs via BroadcastChannel (AFTER sync completes)
-              // Issue #8 Fix: Include originTabId to prevent echo
               this.broadcastTableChange(tableName);
             }
           )

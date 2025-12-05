@@ -363,12 +363,12 @@ export async function fetchCombinedFromReplicationCache(
     if (!classDataA || !classDataB) return null;
 
     const cachedEntries = await entriesTable.getAll();
-    let entriesA = cachedEntries
-      .filter((entry) => String(entry.class_id) === classIdA)
-      .map((entry) => transformReplicatedEntry(entry, classDataA));
-    let entriesB = cachedEntries
-      .filter((entry) => String(entry.class_id) === classIdB)
-      .map((entry) => transformReplicatedEntry(entry, classDataB));
+
+    const rawEntriesA = cachedEntries.filter((entry) => String(entry.class_id) === classIdA);
+    const rawEntriesB = cachedEntries.filter((entry) => String(entry.class_id) === classIdB);
+
+    let entriesA = rawEntriesA.map((entry) => transformReplicatedEntry(entry, classDataA));
+    let entriesB = rawEntriesB.map((entry) => transformReplicatedEntry(entry, classDataB));
 
     if (entriesA.length === 0 && entriesB.length === 0) {
       logger.log('📭 Cache is empty, falling back to Supabase');
