@@ -264,8 +264,8 @@
 /* Action button - absolute positioned in top right corner */
 .dog-card-action {
   position: absolute;
-  top: -1px;
-  right: -1px;
+  top: 0;
+  right: 0;
   z-index: var(--token-z-raised);
 }
 

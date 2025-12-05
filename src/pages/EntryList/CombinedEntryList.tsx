@@ -337,7 +337,8 @@ export const CombinedEntryList: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setResetMenuPosition({ top: rect.bottom + 4, left: rect.left });
+    // Use rect.right so menu extends LEFT from button (via translateX(-100%) in ResetMenuPopup)
+    setResetMenuPosition({ top: rect.bottom + 4, left: rect.right });
     setActiveResetMenu(entryId);
   }, []);
 

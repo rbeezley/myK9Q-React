@@ -58,6 +58,7 @@ export const ResetMenuPopup: React.FC<ResetMenuPopupProps> = ({
         position: 'fixed',
         top: `${position.top}px`,
         left: `${position.left}px`,
+        transform: 'translateX(-100%)', // Extend menu LEFT from anchor point
         zIndex: 10000
       }}
     >
