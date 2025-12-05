@@ -11,6 +11,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { SortableEntryCard } from '../SortableEntryCard';
 import { Entry } from '../../../stores/entryStore';
 import { UserPermissions } from '../../../utils/auth';
@@ -80,18 +81,26 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
   const [isAnimating, setIsAnimating] = React.useState(false);
   const hasAnimatedRef = React.useRef(false);
 
+  // AutoAnimate for smooth add/remove/reorder animations after initial load
+  // Disable during initial stagger animation to avoid conflicts
+  const [autoAnimateRef, enableAutoAnimate] = useAutoAnimate();
+
   React.useEffect(() => {
     // Only trigger animation on first load of entries (not on subsequent updates)
     if (entries.length > 0 && !hasAnimatedRef.current) {
       hasAnimatedRef.current = true;
+      // Disable AutoAnimate during initial stagger
+      enableAutoAnimate(false);
       // Double RAF ensures DOM is fully painted before animation class is added
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setIsAnimating(true);
+          // Re-enable AutoAnimate after stagger completes (~2s for 20 items)
+          setTimeout(() => enableAutoAnimate(true), 2500);
         });
       });
     }
-  }, [entries.length]);
+  }, [entries.length, enableAutoAnimate]);
 
   if (entries.length === 0) {
     return (
@@ -114,6 +123,7 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
         strategy={verticalListSortingStrategy}
       >
         <div
+          ref={autoAnimateRef}
           className={`grid-responsive ${isAnimating ? 'stagger-children' : 'stagger-pending'} ${isDragMode ? 'drag-mode' : ''}`}
         >
           {entries.map((entry) => (
