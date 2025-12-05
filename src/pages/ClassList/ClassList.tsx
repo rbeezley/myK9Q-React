@@ -102,6 +102,7 @@ export const ClassList: React.FC = () => {
   const {
     handleGenerateCheckIn: handleCheckInHook,
     handleGenerateResults: handleResultsHook,
+    handleGenerateScoresheet: handleScoresheetHook,
   } = usePrintReports();
 
   // Max time warning is local-only (not in shared hook)
@@ -212,6 +213,14 @@ export const ClassList: React.FC = () => {
       alert(result.error);
     }
   }, [handleResultsHook, showContext?.licenseKey, reportDeps]);
+
+  const handleGenerateScoresheet = useCallback(async (classId: number) => {
+    if (!showContext?.licenseKey) return;
+    const result = await handleScoresheetHook(classId, reportDeps);
+    if (!result.success && result.error) {
+      alert(result.error);
+    }
+  }, [handleScoresheetHook, showContext?.licenseKey, reportDeps]);
 
   // Helper function to check if max times are set for a class
   const isMaxTimeSet = (classEntry: ClassEntry): boolean => {
@@ -838,6 +847,22 @@ export const ClassList: React.FC = () => {
                   </div>
                   <div className="class-option-label">Results Sheet</div>
                   <div className="class-option-description">Print results report</div>
+                </button>
+
+                <button
+                  className="class-option-item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (activePopup !== null) {
+                      handleGenerateScoresheet(activePopup);
+                    }
+                  }}
+                >
+                  <div className="class-option-icon icon-primary">
+                    <ClipboardList size={20} />
+                  </div>
+                  <div className="class-option-label">Scoresheet</div>
+                  <div className="class-option-description">Print judge scoresheet</div>
                 </button>
               </div>
             </div>

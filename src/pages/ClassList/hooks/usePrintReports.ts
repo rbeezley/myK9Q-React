@@ -8,9 +8,10 @@
  */
 
 import { useCallback } from 'react';
-import { generateCheckInSheet, generateResultsSheet, type ReportClassInfo } from '@/services/reportService';
+import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, type ReportClassInfo, type ScoresheetClassInfo } from '@/services/reportService';
 import { getClassEntries } from '@/services/entryService';
 import { parseOrganizationData } from '@/utils/organizationUtils';
+import { supabase } from '@/lib/supabase';
 import type { ClassEntry, TrialInfo } from './useClassListData';
 import type { Entry } from '@/stores/entryStore';
 
@@ -42,6 +43,10 @@ export interface UsePrintReportsReturn {
     deps: ReportDependencies
   ) => Promise<ReportOperationResult>;
   handleGenerateResults: (
+    classId: number,
+    deps: ReportDependencies
+  ) => Promise<ReportOperationResult>;
+  handleGenerateScoresheet: (
     classId: number,
     deps: ReportDependencies
   ) => Promise<ReportOperationResult>;
@@ -228,8 +233,112 @@ export function usePrintReports(): UsePrintReportsReturn {
     }
   }, []);
 
+  /**
+   * Generate scoresheet for class
+   * Blank scoresheet for judges to record scores during trial
+   */
+  const handleGenerateScoresheet = useCallback(async (
+    classId: number,
+    deps: ReportDependencies
+  ): Promise<ReportOperationResult> => {
+    const { classes, trialInfo, licenseKey, organization, onComplete } = deps;
+
+    try {
+      const classData = classes.find(c => c.id === classId);
+      if (!classData) {
+        return {
+          success: false,
+          error: 'Class not found'
+        };
+      }
+
+      if (!licenseKey) {
+        return {
+          success: false,
+          error: 'License key required'
+        };
+      }
+
+      // Fetch entries for class
+      const entries = await getClassEntries(classId, licenseKey);
+
+      if (entries.length === 0) {
+        onComplete?.();
+        return {
+          success: false,
+          error: 'No entries to display in scoresheet'
+        };
+      }
+
+      // Parse organization data for header
+      const orgData = parseOrganizationData(organization);
+
+      // Fetch class requirements from database (hides, distractions, etc.)
+      // Skip for Master level - judge determines hides count
+      let hidesText: string | undefined;
+      let distractionsText: string | undefined;
+
+      const isMasterLevel = classData.level?.toLowerCase().includes('master');
+      if (!isMasterLevel && orgData.organization && classData.element && classData.level) {
+        try {
+          const { data: requirements } = await supabase
+            .from('class_requirements')
+            .select('hides, distractions')
+            .eq('organization', orgData.organization)
+            .eq('element', classData.element)
+            .eq('level', classData.level)
+            .single();
+
+          if (requirements) {
+            hidesText = requirements.hides;
+            distractionsText = requirements.distractions;
+          }
+        } catch (reqError) {
+          // Requirements fetch failed - continue with empty values (judge fills in)
+          console.warn('Could not fetch class requirements:', reqError);
+        }
+      }
+
+      // Build scoresheet class info (extends ReportClassInfo with time limits)
+      const scoresheetClassInfo: ScoresheetClassInfo = {
+        className: classData.class_name || '',
+        element: classData.element || '',
+        level: classData.level || '',
+        section: classData.section || '',
+        trialDate: trialInfo?.trial_date || '',
+        trialNumber: trialInfo?.trial_number?.toString() || '',
+        judgeName: classData.judge_name || 'TBD',
+        organization: orgData.organization,
+        activityType: orgData.activity_type,
+        // Include time limit data from class
+        timeLimitSeconds: classData.time_limit_seconds,
+        timeLimitArea2Seconds: classData.time_limit_area2_seconds,
+        timeLimitArea3Seconds: classData.time_limit_area3_seconds,
+        areaCount: classData.area_count,
+        // Include class requirements (only for non-Master levels)
+        hidesText,
+        distractionsText
+      };
+
+      // Generate scoresheet
+      generateScoresheetReport(scoresheetClassInfo, entries);
+
+      // Call completion callback (e.g., close popup)
+      onComplete?.();
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error generating scoresheet:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate scoresheet'
+      };
+    }
+  }, []);
+
   return {
     handleGenerateCheckIn,
     handleGenerateResults,
+    handleGenerateScoresheet,
   };
 }

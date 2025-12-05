@@ -13,6 +13,7 @@ import {
   MoreVertical,
   Printer,
   ClipboardCheck,
+  ClipboardList,
   ListOrdered,
   Trophy
 } from 'lucide-react';
@@ -25,7 +26,7 @@ export interface PrintOption {
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  icon: 'checkin' | 'results';
+  icon: 'checkin' | 'results' | 'scoresheet';
 }
 
 export interface ActionsMenuConfig {
@@ -138,6 +139,8 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
             >
               {option.icon === 'checkin' ? (
                 <Printer className="h-4 w-4" />
+              ) : option.icon === 'scoresheet' ? (
+                <ClipboardList className="h-4 w-4" />
               ) : (
                 <ClipboardCheck className="h-4 w-4" />
               )}

@@ -8,8 +8,9 @@ import { ErrorState, PullToRefresh, TabBar, Tab, FilterPanel, SortOption } from 
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
-import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
+import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
+import { supabase } from '../../lib/supabase';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { markInRing } from '../../services/entryService';
 import { applyRunOrderPreset } from '../../services/runOrderService';
@@ -440,6 +441,65 @@ export const EntryList: React.FC = () => {
     generateResultsSheet(reportClassInfo, localEntries);
   }, [classInfo, showContext?.org, localEntries]);
 
+  const handlePrintScoresheet = useCallback(async () => {
+    if (!classInfo) return;
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+
+    // Parse time limits from string format (e.g., "120" seconds or "2:00" format)
+    const parseTimeLimit = (timeStr?: string): number | undefined => {
+      if (!timeStr) return undefined;
+      // If it's already a number string, convert directly
+      const num = parseInt(timeStr, 10);
+      if (!isNaN(num)) return num;
+      return undefined;
+    };
+
+    // Fetch class requirements (hides, distractions) - skip for Master level
+    let hidesText: string | undefined;
+    let distractionsText: string | undefined;
+
+    const isMasterLevel = classInfo.level?.toLowerCase().includes('master');
+    if (!isMasterLevel && orgData.organization && classInfo.element && classInfo.level) {
+      try {
+        const { data: requirements } = await supabase
+          .from('class_requirements')
+          .select('hides, distractions')
+          .eq('organization', orgData.organization)
+          .eq('element', classInfo.element)
+          .eq('level', classInfo.level)
+          .single();
+
+        if (requirements) {
+          hidesText = requirements.hides;
+          distractionsText = requirements.distractions;
+        }
+      } catch (reqError) {
+        console.warn('Could not fetch class requirements:', reqError);
+      }
+    }
+
+    const scoresheetClassInfo: ScoresheetClassInfo = {
+      className: classInfo.className,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: classInfo.section || '',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type,
+      timeLimitSeconds: parseTimeLimit(classInfo.timeLimit),
+      timeLimitArea2Seconds: parseTimeLimit(classInfo.timeLimit2),
+      timeLimitArea3Seconds: parseTimeLimit(classInfo.timeLimit3),
+      areaCount: classInfo.areas,
+      hidesText,
+      distractionsText
+    };
+
+    generateScoresheetReport(scoresheetClassInfo, localEntries);
+  }, [classInfo, showContext?.org, localEntries]);
+
   // Tab configuration
   // NOTE: Use entryCounts (from full entries array) instead of pendingEntries.length/completedEntries.length
   // because those are derived from filteredEntries which is already tab-filtered, causing inactive tab to show 0
@@ -530,6 +590,7 @@ export const EntryList: React.FC = () => {
           printOptions: [
             { label: 'Check-In Sheet', onClick: handlePrintCheckIn, icon: 'checkin' },
             { label: 'Results Sheet', onClick: handlePrintResults, icon: 'results', disabled: completedEntries.length === 0 },
+            { label: 'Scoresheet', onClick: handlePrintScoresheet, icon: 'scoresheet' },
           ],
         }}
       />

@@ -342,3 +342,29 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
 
 **Priority:** High - Core feature broken, impacts multi-device workflows
 
+---
+
+## Printable Judge Scoresheets by Class - 2025-12-05 14:06
+
+- **Create printable scoresheet page for judges** - Generate paper scoresheets per class that judges can print or save as PDF for official record-keeping (1-year retention required). **Problem:** Judges need physical paper scoresheets to record scores during trials and must retain them for regulatory compliance. Currently no way to generate formatted scoresheets for a class. **Files:** `src/pages/Results/` (reference implementation for print/PDF pattern), `src/pages/scoresheets/` (existing digital scoresheet components for data structure reference). **Solution:** Create new page similar to Results that renders a printable scoresheet layout. Key elements from example image:
+  - **Header:** Trial date, Trial #, Judge name, Element, Level, Section
+  - **Requirements box:** Hides count, Distractions count/type, Time Limit
+  - **Used box:** Actual hides used, Time limits per area
+  - **Entry rows (one per dog):**
+    - Armband #, Dog name (call name)
+    - Registration #, Handler name
+    - Breed
+    - Qualified checkbox
+    - Handler Error / Safety Concern / Mild Disruption write-in fields
+    - Fault checkboxes: Incorrect Call, Harsh correction, Significant Disruption, Point to Hide, Max Time
+    - Time entry: MM:SS:TT columns
+  - **Footer:** Class Entries count
+  - Print-optimized CSS (fits on standard letter/A4 paper)
+
+**Access Points (same pattern as Check-In Sheets and Results):**
+  - Class List page → 3-dot menu per class → "Print Scoresheet"
+  - Entry List page → 3-dot menu → "Print Scoresheet"
+  - Combined Entry List page → 3-dot menu → "Print Scoresheet"
+
+**Priority:** Medium - Judges currently use external templates; this improves workflow efficiency
+

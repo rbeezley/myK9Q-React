@@ -9,7 +9,8 @@ import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrde
 import { Clock, CheckCircle, ArrowUpDown, Trophy, RefreshCw } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPreset } from '../../services/runOrderService';
-import { generateCheckInSheet, generateResultsSheet, ReportClassInfo } from '../../services/reportService';
+import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
+import { supabase } from '../../lib/supabase';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
 import { useEntryListData, useEntryListActions, useEntryListFilters, useDragAndDropEntries } from './hooks';
@@ -457,6 +458,96 @@ export const CombinedEntryList: React.FC = () => {
     generateResultsSheet(reportClassInfo, sectionBEntries);
   }, [classInfo, showContext?.org, entries]);
 
+  // Parse time limits from string format
+  const parseTimeLimit = (timeStr?: string): number | undefined => {
+    if (!timeStr) return undefined;
+    const num = parseInt(timeStr, 10);
+    if (!isNaN(num)) return num;
+    return undefined;
+  };
+
+  // Helper to fetch class requirements
+  const fetchClassRequirements = async (orgData: { organization: string }, element?: string, level?: string) => {
+    // Skip for Master level - judge determines hides count
+    const isMasterLevel = level?.toLowerCase().includes('master');
+    if (isMasterLevel || !orgData.organization || !element || !level) {
+      return { hidesText: undefined, distractionsText: undefined };
+    }
+
+    try {
+      const { data: requirements } = await supabase
+        .from('class_requirements')
+        .select('hides, distractions')
+        .eq('organization', orgData.organization)
+        .eq('element', element)
+        .eq('level', level)
+        .single();
+
+      if (requirements) {
+        return { hidesText: requirements.hides, distractionsText: requirements.distractions };
+      }
+    } catch (reqError) {
+      console.warn('Could not fetch class requirements:', reqError);
+    }
+    return { hidesText: undefined, distractionsText: undefined };
+  };
+
+  const handlePrintScoresheetSectionA = useCallback(async () => {
+    if (!classInfo) return;
+
+    const sectionAEntries = entries.filter(entry => entry.section === 'A');
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const { hidesText, distractionsText } = await fetchClassRequirements(orgData, classInfo.element, classInfo.level);
+
+    const scoresheetClassInfo: ScoresheetClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} Section A`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'A',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type,
+      timeLimitSeconds: parseTimeLimit(classInfo.timeLimit),
+      timeLimitArea2Seconds: parseTimeLimit(classInfo.timeLimit2),
+      timeLimitArea3Seconds: parseTimeLimit(classInfo.timeLimit3),
+      areaCount: classInfo.areas,
+      hidesText,
+      distractionsText
+    };
+
+    generateScoresheetReport(scoresheetClassInfo, sectionAEntries);
+  }, [classInfo, showContext?.org, entries]);
+
+  const handlePrintScoresheetSectionB = useCallback(async () => {
+    if (!classInfo) return;
+
+    const sectionBEntries = entries.filter(entry => entry.section === 'B');
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const { hidesText, distractionsText } = await fetchClassRequirements(orgData, classInfo.element, classInfo.level);
+
+    const scoresheetClassInfo: ScoresheetClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} Section B`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'B',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeNameB || classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type,
+      timeLimitSeconds: parseTimeLimit(classInfo.timeLimit),
+      timeLimitArea2Seconds: parseTimeLimit(classInfo.timeLimit2),
+      timeLimitArea3Seconds: parseTimeLimit(classInfo.timeLimit3),
+      areaCount: classInfo.areas,
+      hidesText,
+      distractionsText
+    };
+
+    generateScoresheetReport(scoresheetClassInfo, sectionBEntries);
+  }, [classInfo, showContext?.org, entries]);
+
   // Tab configuration
   const sectionTabs: Tab[] = useMemo(() => [
     { id: 'all', label: 'All Sections', count: entries.length },
@@ -526,6 +617,8 @@ export const CombinedEntryList: React.FC = () => {
             { label: 'Check-In Sheet (A & B)', onClick: handlePrintCheckIn, icon: 'checkin' },
             { label: 'Results - Section A', onClick: handlePrintResultsSectionA, icon: 'results', disabled: completedEntries.filter(e => e.section === 'A').length === 0 },
             { label: 'Results - Section B', onClick: handlePrintResultsSectionB, icon: 'results', disabled: completedEntries.filter(e => e.section === 'B').length === 0 },
+            { label: 'Scoresheet - Section A', onClick: handlePrintScoresheetSectionA, icon: 'scoresheet' },
+            { label: 'Scoresheet - Section B', onClick: handlePrintScoresheetSectionB, icon: 'scoresheet' },
           ],
         }}
       />
