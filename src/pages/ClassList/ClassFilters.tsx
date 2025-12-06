@@ -13,7 +13,7 @@ interface ClassEntry {
   judge_name: string;
   entry_count: number;
   completed_count: number;
-  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
+  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'offline-scoring' | 'completed';
   is_scoring_finalized?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;

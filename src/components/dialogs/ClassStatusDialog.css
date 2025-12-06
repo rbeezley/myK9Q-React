@@ -139,6 +139,10 @@
   background: var(--status-in-progress);
 }
 
+.status-item[style*="--status-offline-scoring"] .status-icon {
+  background: var(--status-offline-scoring);
+}
+
 .status-item[style*="--status-completed"] .status-icon {
   background: var(--status-completed);
 }
@@ -166,6 +170,10 @@
 
 .status-item[style*="--status-in-progress"] {
   --status-color: var(--status-in-progress);
+}
+
+.status-item[style*="--status-offline-scoring"] {
+  --status-color: var(--status-offline-scoring);
 }
 
 .status-item[style*="--status-completed"] {

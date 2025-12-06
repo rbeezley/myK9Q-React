@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
+import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar, WifiOff, AlertTriangle } from 'lucide-react';
+import { getStaleDataStatus, formatStaleTime } from '../../utils/staleDataUtils';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
 
@@ -13,7 +14,7 @@ interface ClassEntry {
   judge_name: string;
   entry_count: number;
   completed_count: number;
-  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
+  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'offline-scoring' | 'completed';
   is_scoring_finalized?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;
@@ -24,6 +25,7 @@ interface ClassEntry {
   briefing_time?: string;
   break_until?: string;
   planned_start_time?: string;
+  last_result_at?: string;
   self_checkin_enabled?: boolean;
   visibility_preset?: 'open' | 'standard' | 'review';
   dogs: {
@@ -79,6 +81,16 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     [classEntry, getFormattedStatus]
   );
 
+  // Check if run order data may be stale (for automatic offline detection)
+  // Uses class_status === 'in_progress' which is automatically set when first dog is scored
+  const staleStatus = useMemo(
+    () => getStaleDataStatus({
+      class_status: classEntry.class_status,
+      last_result_at: classEntry.last_result_at,
+    }),
+    [classEntry.class_status, classEntry.last_result_at]
+  );
+
   // Format planned start time for display
   const formatPlannedStartTime = (timestamp: string | undefined) => {
     if (!timestamp) return null;
@@ -107,6 +119,8 @@ export const ClassCard: React.FC<ClassCardProps> = ({
         return <CalendarClock size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
       case 'in_progress':
         return <PlayCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+      case 'offline-scoring':
+        return <WifiOff size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
       case 'completed':
         return <CheckCircle size={18} className="status-icon" style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
       default:
@@ -301,6 +315,24 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               </div>
             )}
           </div>
+
+          {/* Offline Scoring Warning - Manual indicator */}
+          {classEntry.class_status === 'offline-scoring' && (
+            <div className="offline-warning-banner">
+              <WifiOff size={14} />
+              <span>This class is being judged offline. Run order will update when the judge reconnects.</span>
+            </div>
+          )}
+
+          {/* Stale Data Warning - Automatic detection */}
+          {staleStatus.shouldShowWarning && (
+            <div className="stale-warning-banner">
+              <AlertTriangle size={14} />
+              <span>
+                Run order may be outdated. Last update: {formatStaleTime(staleStatus.minutesSinceLastResult!)}
+              </span>
+            </div>
+          )}
 
           {/* Progress Bar - Visual separator showing class completion */}
           {classEntry.entry_count > 0 && (

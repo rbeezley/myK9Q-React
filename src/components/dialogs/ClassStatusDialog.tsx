@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar, Circle } from 'lucide-react';
+import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar, Circle, WifiOff } from 'lucide-react';
 import './shared-dialog.css';
 import './ClassStatusDialog.css';
 
@@ -89,6 +89,14 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
       icon: Play,
       description: 'Class is actively running',
       colorVar: '--status-in-progress',
+      needsTime: false
+    },
+    {
+      id: 'offline-scoring',
+      label: 'Offline Scoring',
+      icon: WifiOff,
+      description: 'Judging offline - run order delayed',
+      colorVar: '--status-offline-scoring',
       needsTime: false
     },
     {

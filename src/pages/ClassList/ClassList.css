@@ -1789,3 +1789,78 @@
     animation: none;
   }
 }
+
+/* ========== OFFLINE/STALE DATA WARNING BANNERS ========== */
+
+/* Shared styles for both warning banners */
+.offline-warning-banner,
+.stale-warning-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  border-radius: var(--token-radius-md);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin-top: var(--token-space-md);
+}
+
+.offline-warning-banner svg,
+.stale-warning-banner svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* Offline Scoring Warning - Amber/Orange styling */
+.offline-warning-banner {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #b45309;
+}
+
+.theme-dark .offline-warning-banner {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.offline-warning-banner svg {
+  color: #d97706;
+}
+
+.theme-dark .offline-warning-banner svg {
+  color: #f59e0b;
+}
+
+/* Stale Data Warning - Yellow/Amber styling (slightly different from offline) */
+.stale-warning-banner {
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: #a16207;
+}
+
+.theme-dark .stale-warning-banner {
+  background: rgba(234, 179, 8, 0.15);
+  border-color: rgba(234, 179, 8, 0.4);
+  color: #fcd34d;
+}
+
+.stale-warning-banner svg {
+  color: #ca8a04;
+}
+
+.theme-dark .stale-warning-banner svg {
+  color: #eab308;
+}
+
+/* Status badge for offline-scoring */
+.class-card.status-offline-scoring {
+  border-left: 3px solid var(--status-offline-scoring, #f59e0b);
+}
+
+.status-badge.offline-scoring,
+.class-status-badge.status-offline-scoring {
+  background: var(--status-offline-scoring, #f59e0b);
+  color: var(--status-offline-scoring-text, #ffffff);
+}

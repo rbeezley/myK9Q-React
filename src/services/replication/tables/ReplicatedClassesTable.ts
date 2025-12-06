@@ -39,6 +39,7 @@ export interface Class {
   actual_end_time?: string;
   planned_start_time?: string;
   results_released_at?: string;
+  last_result_at?: string;  // Timestamp of last synced result (for stale data detection)
   license_key: string;
   created_at?: string;
   updated_at?: string;

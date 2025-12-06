@@ -116,6 +116,12 @@ export function getContextualPreview(classEntry: ClassEntry): string {
  * ```
  */
 export function getFormattedStatus(classEntry: ClassEntry): { label: string; time: string | null } {
+  // PRIORITY 1: Offline scoring status should always show as-is (user explicitly set it)
+  // This must be checked BEFORE smart detection to prevent override
+  if (classEntry.class_status === 'offline-scoring') {
+    return { label: 'Offline Scoring', time: null };
+  }
+
   // Check is_scoring_finalized first, then fall back to class_status
   const displayStatus = getClassDisplayStatus(classEntry);
 
@@ -151,6 +157,7 @@ export function getFormattedStatus(classEntry: ClassEntry): { label: string; tim
     case 'no-status':
       return { label: 'No Status', time: null };
     default:
+      // Note: offline-scoring is handled at the top of the function before smart detection
       return { label: 'No Status', time: null };
   }
 }
@@ -189,6 +196,12 @@ export function getStatusColor(
   status: ClassEntry['class_status'],
   classEntry?: ClassEntry
 ): string {
+  // PRIORITY 1: Offline scoring status should always use its own color
+  // This must be checked BEFORE smart detection to prevent override
+  if (status === 'offline-scoring') {
+    return 'offline-scoring';
+  }
+
   // Check is_scoring_finalized first for consistent coloring
   if (classEntry) {
     const displayStatus = getClassDisplayStatus(classEntry);
@@ -205,6 +218,7 @@ export function getStatusColor(
     case 'in_progress': return 'in-progress';
     case 'completed': return 'completed';
     default:
+      // Note: offline-scoring is handled at the top of the function before smart detection
       // Intelligent color based on actual class progress
       if (classEntry) {
         const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
@@ -277,6 +291,7 @@ export function getStatusLabel(
       return 'Start Time';
     }
     case 'in_progress': return 'In Progress';
+    case 'offline-scoring': return 'Offline Scoring';
     case 'completed': return 'Completed';
     default:
       // Show intelligent status when class_status is 'no-status'

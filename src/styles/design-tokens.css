@@ -102,6 +102,10 @@
   --status-in-progress: #0066ff;
   --status-in-progress-text: #ffffff;
 
+  /* Offline Scoring: Amber/Orange warning color */
+  --status-offline-scoring: #f59e0b;
+  --status-offline-scoring-text: #ffffff;
+
   /* Completed: Emerald green */
   --status-completed: #00cc66;
   --status-completed-text: #ffffff;

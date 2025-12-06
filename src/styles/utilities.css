@@ -345,6 +345,11 @@
   color: var(--status-in-progress-text, #ffffff); /* Explicit fallback to white text */
 }
 
+.status-badge.offline-scoring {
+  background: var(--status-offline-scoring, #f59e0b);
+  color: var(--status-offline-scoring-text, #ffffff); /* Explicit fallback to white text */
+}
+
 .status-badge.completed {
   background: var(--status-completed, #00cc66);
   color: var(--status-completed-text, #ffffff); /* Explicit fallback to white text */

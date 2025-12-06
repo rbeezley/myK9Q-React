@@ -70,7 +70,7 @@ export interface ClassEntry {
   judge_name: string;
   entry_count: number;
   completed_count: number;
-  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed';
+  class_status: 'no-status' | 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'offline-scoring' | 'completed';
   is_scoring_finalized?: boolean;
   is_favorite: boolean;
   time_limit_seconds?: number;
@@ -80,6 +80,8 @@ export interface ClassEntry {
   start_time?: string;
   briefing_time?: string;
   break_until?: string;
+  planned_start_time?: string;
+  last_result_at?: string; // Timestamp of last synced result (for stale data detection)
   pairedClassId?: number; // For combined Novice A & B classes
   self_checkin_enabled?: boolean; // Check-in mode
   visibility_preset?: 'open' | 'standard' | 'review'; // Result visibility setting
@@ -299,6 +301,7 @@ async function processClassesWithEntries(
         | 'break'
         | 'start_time'
         | 'in_progress'
+        | 'offline-scoring'
         | 'completed',
       is_scoring_finalized: cls.is_scoring_finalized || false,
       is_favorite: false, // Will be updated by component with localStorage
@@ -309,6 +312,8 @@ async function processClassesWithEntries(
       briefing_time: cls.briefing_time || undefined,
       break_until: cls.break_until || undefined,
       start_time: cls.start_time || undefined,
+      planned_start_time: cls.planned_start_time || undefined,
+      last_result_at: cls.last_result_at || undefined,
       self_checkin_enabled: cls.self_checkin_enabled ?? true, // Default to true (self check-in)
       visibility_preset: 'standard' as const, // Will be populated by fetchClasses
       dogs: dogs,

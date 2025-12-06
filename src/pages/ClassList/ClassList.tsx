@@ -380,6 +380,12 @@ export const ClassList: React.FC = () => {
   }, [classes, hapticFeedback, toggleFavoriteHook]);
 
   const getStatusColor = useCallback((status: ClassEntry['class_status'], classEntry?: ClassEntry) => {
+    // PRIORITY 1: Offline scoring status should always use its own color
+    // This must be checked BEFORE smart detection to prevent override
+    if (status === 'offline-scoring') {
+      return 'offline-scoring';
+    }
+
     // Check is_scoring_finalized first for consistent coloring
     if (classEntry) {
       const displayStatus = getClassDisplayStatus(classEntry);
@@ -396,6 +402,7 @@ export const ClassList: React.FC = () => {
       case 'in_progress': return 'in-progress';
       case 'completed': return 'completed';
       default:
+        // Note: offline-scoring is handled at the top of the function
         // Intelligent color based on actual class progress
         if (classEntry) {
           const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
@@ -412,6 +419,12 @@ export const ClassList: React.FC = () => {
 
   // Helper function to format status with time in a structured way
   const getFormattedStatus = useCallback((classEntry: ClassEntry) => {
+    // PRIORITY 1: Offline scoring status should always show as-is (user explicitly set it)
+    // This must be checked BEFORE smart detection to prevent override
+    if (classEntry.class_status === 'offline-scoring') {
+      return { label: 'Offline Scoring', time: null };
+    }
+
     // Check is_scoring_finalized first, then fall back to class_status
     const displayStatus = getClassDisplayStatus(classEntry);
 
@@ -447,6 +460,7 @@ export const ClassList: React.FC = () => {
         case 'no-status':
           return { label: 'No Status', time: null };
         default:
+          // Note: offline-scoring is handled at the top of the function
           return { label: 'No Status', time: null };
       }
     })();

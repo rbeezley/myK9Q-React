@@ -52,6 +52,14 @@ export const CLASS_STATUS = {
     icon: 'Play',
     description: 'Class actively running'
   },
+  OFFLINE_SCORING: {
+    value: 'offline-scoring',
+    label: 'Offline Scoring',
+    colorVar: '--status-offline-scoring',
+    textColorVar: '--status-offline-scoring-text',
+    icon: 'WifiOff',
+    description: 'Class is being judged offline - run order updates delayed'
+  },
   COMPLETED: {
     value: 'completed',
     label: 'Completed',

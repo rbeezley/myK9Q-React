@@ -10,7 +10,7 @@ import type { EntryStatus } from '../stores/entryStore';
 export type { EntryStatus } from '../stores/entryStore';
 
 // Type definitions
-export type ClassStatus = 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'completed' | 'no-status';
+export type ClassStatus = 'setup' | 'briefing' | 'break' | 'start_time' | 'in_progress' | 'offline-scoring' | 'completed' | 'no-status';
 export type EntryCheckInStatus = 'checked-in' | 'conflict' | 'pulled' | 'at-gate' | 'come-to-gate' | 'pending';
 export type EntryResultStatus = 'qualified' | 'not-qualified' | 'excused' | 'pending';
 
@@ -91,6 +91,12 @@ export function getClassStatusColor(
   status: ClassStatus,
   classEntry?: ClassEntry
 ): string {
+  // PRIORITY 1: Offline scoring status should always use its own color
+  // This must be checked BEFORE smart detection to prevent override
+  if (status === 'offline-scoring') {
+    return 'offline-scoring';
+  }
+
   // Check smart display status first if classEntry provided
   if (classEntry) {
     const displayStatus = getClassDisplayStatus(classEntry);
@@ -107,6 +113,7 @@ export function getClassStatusColor(
     case 'in_progress': return 'in-progress';
     case 'completed': return 'completed';
     default:
+      // Note: offline-scoring is handled at the top of the function before smart detection
       // Intelligent color based on actual class progress
       if (classEntry) {
         const isCompleted = classEntry.completed_count === classEntry.entry_count && classEntry.entry_count > 0;
@@ -130,6 +137,12 @@ export interface FormattedStatus {
 }
 
 export function getFormattedClassStatus(classEntry: ClassEntry): FormattedStatus {
+  // PRIORITY 1: Offline scoring status should always show as-is (user explicitly set it)
+  // This must be checked BEFORE smart detection to prevent override
+  if (classEntry.class_status === 'offline-scoring') {
+    return { label: 'Offline Scoring', time: null };
+  }
+
   // Check smart display status first
   const displayStatus = getClassDisplayStatus(classEntry);
 
@@ -162,6 +175,7 @@ export function getFormattedClassStatus(classEntry: ClassEntry): FormattedStatus
     case 'completed':
       return { label: 'Completed', time: null };
     default:
+      // Note: offline-scoring is handled at the top of the function before smart detection
       return { label: 'No Status', time: null };
   }
 }
