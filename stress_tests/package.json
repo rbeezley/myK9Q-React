@@ -1,0 +1,29 @@
+{
+  "name": "myk9q-stress-tests",
+  "version": "1.0.0",
+  "description": "Stress testing suite for myK9Qv3 dog show management app",
+  "scripts": {
+    "test:api": "k6 run test-results-fetch.js",
+    "test:api:scores": "k6 run test-score-submit.js",
+    "test:api:realtime": "k6 run test-realtime.js",
+    "test:api:light": "k6 run --vus 10 --duration 1m test-results-fetch.js",
+    "test:api:heavy": "k6 run --vus 200 --duration 5m test-results-fetch.js",
+    "test:frontend": "npx playwright test",
+    "test:kiosk": "npx playwright test kiosk-endurance.spec.js --project=kiosk",
+    "test:kiosk:short": "KIOSK_DURATION=5 npx playwright test kiosk-endurance.spec.js --project=kiosk",
+    "test:concurrent": "npx playwright test concurrent-users.spec.js --workers=10",
+    "test:mobile": "npx playwright test concurrent-users.spec.js --project=mobile",
+    "test:all": "npm run test:api && npm run test:frontend",
+    "playwright:install": "npx playwright install chromium",
+    "playwright:report": "npx playwright show-report playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "keywords": [
+    "stress-testing",
+    "load-testing",
+    "k6",
+    "playwright"
+  ]
+}

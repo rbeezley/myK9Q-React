@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# k6 binary (download locally)
+k6.zip
+k6-*/
+
+# Test reports (generated)
+playwright-report/
+test-results/
+*-summary.json
+
+# OS files
+.DS_Store
+Thumbs.db
