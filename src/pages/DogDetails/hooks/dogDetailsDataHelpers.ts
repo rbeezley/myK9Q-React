@@ -199,9 +199,10 @@ export function calculateQueuePosition(
     if (aIsInRing && !bIsInRing) return -1;
     if (!aIsInRing && bIsInRing) return 1;
 
-    // Then by exhibitor_order
-    const aOrder = a.exhibitor_order ?? a.armband_number ?? 9999;
-    const bOrder = b.exhibitor_order ?? b.armband_number ?? 9999;
+    // Then by exhibitor_order (treat 0 as "not set" and fall back to armband)
+    // This handles classes where run order was never rearranged (all exhibitor_order = 0)
+    const aOrder = (a.exhibitor_order && a.exhibitor_order > 0) ? a.exhibitor_order : (a.armband_number ?? 9999);
+    const bOrder = (b.exhibitor_order && b.exhibitor_order > 0) ? b.exhibitor_order : (b.armband_number ?? 9999);
     return aOrder - bOrder;
   });
 

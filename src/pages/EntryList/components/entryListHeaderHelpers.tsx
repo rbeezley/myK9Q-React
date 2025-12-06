@@ -162,24 +162,41 @@ import { formatTrialDate } from '../../../utils/dateUtils';
 interface TrialInfoProps {
   trialDate?: string | null;
   trialNumber?: string | null;
+  judgeName?: string | null;
 }
 
-export const TrialInfo: React.FC<TrialInfoProps> = ({ trialDate, trialNumber }) => {
+export const TrialInfo: React.FC<TrialInfoProps> = ({ trialDate, trialNumber, judgeName }) => {
   const showDate = trialDate && trialDate !== '';
   const showNumber = trialNumber && trialNumber !== '' && trialNumber !== '0';
-  const showSeparator = showDate && showNumber;
+  const showJudge = judgeName && judgeName !== '' && judgeName !== 'TBD';
+
+  // Build items array for clean separator handling
+  const items: React.ReactNode[] = [];
+
+  if (showDate) {
+    items.push(
+      <span key="date" className="trial-date-text">{formatTrialDate(trialDate)}</span>
+    );
+  }
+  if (showNumber) {
+    items.push(
+      <span key="number" className="trial-number-text">Trial {trialNumber}</span>
+    );
+  }
+  if (showJudge) {
+    items.push(
+      <span key="judge" className="trial-judge-text">Judge: {judgeName}</span>
+    );
+  }
 
   return (
     <div className="trial-info-simple">
-      {showDate && (
-        <span className="trial-date-text">{formatTrialDate(trialDate)}</span>
-      )}
-      {showSeparator && (
-        <span className="trial-separator">•</span>
-      )}
-      {showNumber && (
-        <span className="trial-number-text">Trial {trialNumber}</span>
-      )}
+      {items.map((item, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && <span className="trial-separator">•</span>}
+          {item}
+        </React.Fragment>
+      ))}
     </div>
   );
 };

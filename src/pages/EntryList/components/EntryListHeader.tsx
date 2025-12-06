@@ -85,6 +85,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
           <TrialInfo
             trialDate={classInfo?.trialDate}
             trialNumber={classInfo?.trialNumber}
+            judgeName={classInfo?.judgeName}
           />
         </div>
       </div>

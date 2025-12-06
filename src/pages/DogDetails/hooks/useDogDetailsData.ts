@@ -10,7 +10,8 @@
  * - Query invalidation helpers
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { VisibleResultFields, VisibilityTiming } from '../../../types/visibility';
 import type { CheckinStatus } from '../../../components/dialogs/CheckinStatusDialog';
 import type { UserRole } from '../../../utils/auth';
@@ -228,17 +229,69 @@ async function fetchDogDetails(
 
 /**
  * Hook to fetch dog details with class entries
+ *
+ * Real-time updates via replication cache subscription:
+ * - Subscribes to entries table changes (check-in status, scores, queue position)
+ * - Invalidates React Query cache when replication cache updates
+ * - Instant updates without polling overhead
  */
 export function useDogDetailsData(
   armband: string | undefined,
   licenseKey: string | undefined,
   currentRole: UserRole | null | undefined
 ) {
+  const queryClient = useQueryClient();
+  const queryKey = dogDetailsKeys.details(armband || '', licenseKey || '');
+
+  // Subscribe to replication cache changes for real-time updates
+  // When entries change (check-in, scores, run order), invalidate the query
+  useEffect(() => {
+    if (!armband || !licenseKey) return;
+
+    let unsubscribeEntries: (() => void) | undefined;
+    let unsubscribeClasses: (() => void) | undefined;
+
+    const setupSubscriptions = async () => {
+      try {
+        const manager = await ensureReplicationManager();
+        const entriesTable = manager.getTable('entries');
+        const classesTable = manager.getTable('classes');
+
+        if (entriesTable) {
+          unsubscribeEntries = entriesTable.subscribe(() => {
+            logger.log('[DogDetails] 🔄 Entries cache updated - invalidating query');
+            queryClient.invalidateQueries({ queryKey });
+          });
+        }
+
+        if (classesTable) {
+          unsubscribeClasses = classesTable.subscribe(() => {
+            logger.log('[DogDetails] 🔄 Classes cache updated - invalidating query');
+            queryClient.invalidateQueries({ queryKey });
+          });
+        }
+
+        logger.log('[DogDetails] ✅ Subscribed to real-time cache updates');
+      } catch (error) {
+        logger.error('[DogDetails] ❌ Failed to subscribe to cache updates:', error);
+      }
+    };
+
+    setupSubscriptions();
+
+    return () => {
+      if (unsubscribeEntries) unsubscribeEntries();
+      if (unsubscribeClasses) unsubscribeClasses();
+      logger.log('[DogDetails] 🗑️ Unsubscribed from cache updates');
+    };
+  }, [armband, licenseKey, queryClient, queryKey]);
+
   return useQuery({
-    queryKey: dogDetailsKeys.details(armband || '', licenseKey || ''),
+    queryKey,
     queryFn: () => fetchDogDetails(armband, licenseKey, currentRole),
     enabled: !!armband && !!licenseKey, // Only run if both are provided
-    staleTime: 1 * 60 * 1000, // 1 minute (class results change frequently)
+    staleTime: 30 * 1000, // 30 seconds - data stays fresh longer since we have real-time invalidation
     gcTime: 5 * 60 * 1000, // 5 minutes cache
+    // No polling needed - real-time updates via cache subscription above
   });
 }
