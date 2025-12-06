@@ -108,9 +108,21 @@ export const useTVData = ({
         let entries: RawEntryData[] = [];
 
         // Try to load from cache first (offline-first)
+        // NOTE: Only attempt cache if user is authenticated (has auth in localStorage)
+        // Public TV pages don't have auth, so skip cache to avoid repeated errors
         let usedCache = false;
-        try {
-          const manager = await ensureReplicationManager();
+        const hasAuth = (() => {
+          try {
+            const auth = JSON.parse(localStorage.getItem('myK9Q_auth') || '{}');
+            return !!auth.showContext?.licenseKey;
+          } catch {
+            return false;
+          }
+        })();
+
+        if (hasAuth) {
+          try {
+            const manager = await ensureReplicationManager();
           const classesTable = manager.getTable('classes');
           const entriesTable = manager.getTable('entries');
           const trialsTable = manager.getTable('trials');
@@ -198,9 +210,10 @@ export const useTVData = ({
               logger.log('✅ TV data loaded from cache:', transformedClasses.length, 'classes,', entries.length, 'entries');
             }
           }
-        } catch (cacheError) {
-          logger.error('❌ Error loading TV data from cache:', cacheError);
-        }
+          } catch (cacheError) {
+            logger.error('❌ Error loading TV data from cache:', cacheError);
+          }
+        } // end if (hasAuth)
 
         // Fall back to Supabase if cache didn't work
         if (!usedCache) {

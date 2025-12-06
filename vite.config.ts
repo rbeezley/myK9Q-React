@@ -33,6 +33,7 @@ export default defineConfig({
       'dist/**',
       'tests/**/*.spec.ts', // Exclude Playwright tests
       'tests/**/*.spec.tsx',
+      'stress_tests/**', // Exclude stress tests (separate Playwright setup)
       // Temporarily exclude tests with Vitest collection issues (tracked as technical debt)
       // Re-enabled: entryReplication.test.ts
       // Re-enabled: classCompletionService.test.ts
