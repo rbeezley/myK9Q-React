@@ -15,7 +15,8 @@ import {
   Circle,
   Star,
   User,
-  Target
+  Target,
+  Users
 } from 'lucide-react';
 import { TrialDateBadge } from '../../../components/ui';
 import { PlacementBadge } from '../../EntryList/SortableEntryCardComponents';
@@ -61,6 +62,61 @@ function renderCheckInStatusIcon(status: string | undefined) {
   }
 }
 
+/**
+ * Format queue position for display
+ */
+function formatQueuePosition(position: number | undefined, status: string | undefined): string | null {
+  if (status === 'pulled' || status === 'in-ring') return null;
+  if (position === undefined) return null;
+  if (position === 0) return 'Next up!';
+  return `${position} ${position === 1 ? 'dog' : 'dogs'} ahead`;
+}
+
+const ICON_STYLE_18 = { width: '18px', height: '18px', flexShrink: 0 } as const;
+
+/**
+ * Render the scored status badge content (Q/NQ/other)
+ */
+function renderScoredStatusContent(
+  entry: ClassEntry,
+  isQualified: boolean,
+  isNQ: boolean
+): React.ReactNode {
+  if (!entry.visibleFields?.showQualification) {
+    return (
+      <>
+        <Circle size={18} className="status-icon" style={ICON_STYLE_18} />
+        <span className="status-text">Results Pending</span>
+      </>
+    );
+  }
+
+  if (isQualified) {
+    return (
+      <>
+        <ThumbsUp size={18} className="status-icon" style={ICON_STYLE_18} />
+        <span className="status-text">Qualified</span>
+      </>
+    );
+  }
+
+  if (isNQ) {
+    return (
+      <>
+        <XCircle size={18} className="status-icon" style={ICON_STYLE_18} />
+        <span className="status-text">Not Qualified</span>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Check size={18} className="status-icon" style={ICON_STYLE_18} />
+      <span className="status-text">{getEntryStatusLabel(entry)}</span>
+    </>
+  );
+}
+
 export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
   entry,
   onCardClick,
@@ -70,7 +126,6 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
   const isScored = entry.is_scored;
   const isQualified = statusColor === 'qualified';
   const isNQ = statusColor === 'not-qualified';
-  const iconStyle = { width: '18px', height: '18px', flexShrink: 0 };
 
   return (
     <div
@@ -91,33 +146,7 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
           className={`status-badge ${statusColor}`}
         >
           {isScored ? (
-            <>
-              {entry.visibleFields?.showQualification ? (
-                <>
-                  {isQualified ? (
-                    <>
-                      <ThumbsUp size={18} className="status-icon" style={iconStyle} />
-                      <span className="status-text">Qualified</span>
-                    </>
-                  ) : isNQ ? (
-                    <>
-                      <XCircle size={18} className="status-icon" style={iconStyle} />
-                      <span className="status-text">Not Qualified</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check size={18} className="status-icon" style={iconStyle} />
-                      <span className="status-text">{getEntryStatusLabel(entry)}</span>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Circle size={18} className="status-icon" style={iconStyle} />
-                  <span className="status-text">Results Pending</span>
-                </>
-              )}
-            </>
+            renderScoredStatusContent(entry, isQualified, isNQ)
           ) : (
             <>
               {renderCheckInStatusIcon(entry.check_in_status)}
@@ -157,6 +186,14 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
             <User size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
             Judge: {entry.judge_name}
           </p>
+        )}
+
+        {/* Queue Position Badge - only show for pending (not scored) entries */}
+        {!entry.is_scored && formatQueuePosition(entry.queuePosition, entry.check_in_status) && (
+          <div className={`queue-position-badge ${entry.queuePosition === 0 ? 'next-up' : ''}`}>
+            <Users size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+            <span>{formatQueuePosition(entry.queuePosition, entry.check_in_status)}</span>
+          </div>
         )}
 
         {/* Additional metadata row */}

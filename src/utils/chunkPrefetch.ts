@@ -235,8 +235,13 @@ export async function prepareForOffline(
     const elapsed = Math.round(performance.now() - startTime);
     logger.log(`[OfflinePrep] ✅ Complete in ${elapsed}ms`);
 
-    // Mark as prepared so we can skip the overlay next time
-    markPrepared(licenseKey);
+    // Only mark as prepared if sync actually completed (not timed out)
+    // This ensures subsequent logins will still wait for sync if previous one timed out
+    if (dataSynced) {
+      markPrepared(licenseKey);
+    } else {
+      logger.warn('[OfflinePrep] ⚠️ Not marking as prepared - sync timed out or incomplete');
+    }
 
     onProgress?.({
       phase: 'data',

@@ -65,8 +65,10 @@ export class ReplicatedClassesTable extends ReplicatedTable<Class> {
       // Get last sync timestamp (single read transaction)
       const metadata = await this.getSyncMetadata();
 
-      // Check if cache is empty - if so, force full sync from epoch
-      const allCachedClasses = await this.getAll();
+      // Check if cache is empty FOR THIS SHOW - if so, force full sync from epoch
+      // CRITICAL: Pass licenseKey to filter by current show (multi-tenant isolation)
+      // Without this, cache from other shows would cause incremental sync to miss data
+      const allCachedClasses = await this.getAll(licenseKey);
       const isCacheEmpty = allCachedClasses.length === 0;
 
       // If cache is empty but we have a lastSync timestamp, it means the cache was cleared

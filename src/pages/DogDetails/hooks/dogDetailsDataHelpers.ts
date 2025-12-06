@@ -27,6 +27,8 @@ export interface RawEntryData {
   result_status?: string | null;
   is_scored?: boolean;
   final_placement?: number | null;
+  // Run order field
+  exhibitor_order?: number | null;
   // Optional fields from Supabase view
   element?: string | null;
   level?: string | null;
@@ -130,7 +132,8 @@ function buildClassEntry(
   entry: RawEntryData,
   fields: DerivedFields,
   checkInStatus: CheckinStatus,
-  visibleFields: ClassEntry['visibleFields']
+  visibleFields: ClassEntry['visibleFields'],
+  queuePosition?: number
 ): ClassEntry {
   return {
     id: parseId(entry.id),
@@ -154,8 +157,60 @@ function buildClassEntry(
     trial_id: fields.trialId,
     is_scoring_finalized: fields.isCompleted,
     results_released_at: fields.resultsReleasedAt,
-    visibleFields
+    visibleFields,
+    queuePosition
   };
+}
+
+/**
+ * Calculate queue position for an entry within its class.
+ * Returns the number of dogs ahead in the queue (0 = next up).
+ *
+ * Queue logic:
+ * - Only counts pending entries (not scored)
+ * - Excludes pulled entries from count
+ * - Sorts by exhibitor_order (run order)
+ * - Prioritizes in-ring entries (they're running, so 0 ahead for them)
+ */
+export function calculateQueuePosition(
+  entry: RawEntryData,
+  allEntries: RawEntryData[]
+): number | undefined {
+  // Skip if entry is already scored - no queue position needed
+  if (entry.is_scored) {
+    return undefined;
+  }
+
+  // Get all entries for this class
+  const classId = String(entry.class_id);
+  const classEntries = allEntries.filter(e => String(e.class_id) === classId);
+
+  // Filter to only pending entries (not scored, not pulled)
+  const pendingEntries = classEntries.filter(e =>
+    !e.is_scored &&
+    e.entry_status !== 'pulled'
+  );
+
+  // Sort by exhibitor_order (ascending), with in-ring entries first
+  const sortedEntries = [...pendingEntries].sort((a, b) => {
+    // In-ring entries always first
+    const aIsInRing = a.entry_status === 'in-ring';
+    const bIsInRing = b.entry_status === 'in-ring';
+    if (aIsInRing && !bIsInRing) return -1;
+    if (!aIsInRing && bIsInRing) return 1;
+
+    // Then by exhibitor_order
+    const aOrder = a.exhibitor_order ?? a.armband_number ?? 9999;
+    const bOrder = b.exhibitor_order ?? b.armband_number ?? 9999;
+    return aOrder - bOrder;
+  });
+
+  // Find this entry's position in the sorted list
+  const entryId = String(entry.id);
+  const position = sortedEntries.findIndex(e => String(e.id) === entryId);
+
+  // Return the number of dogs ahead (position is 0-indexed)
+  return position >= 0 ? position : undefined;
 }
 
 /**
@@ -166,7 +221,8 @@ export async function processEntryToClassEntry(
   licenseKey: string,
   currentRole: UserRole | null | undefined,
   classData?: ClassData,
-  trialData?: TrialData
+  trialData?: TrialData,
+  allEntries?: RawEntryData[]
 ): Promise<ClassEntry> {
   const checkInStatus = mapEntryStatus(entry.entry_status);
   const fields = extractDerivedFields(entry, classData, trialData);
@@ -181,7 +237,10 @@ export async function processEntryToClassEntry(
     resultsReleasedAt: fields.resultsReleasedAt
   });
 
-  return buildClassEntry(entry, fields, checkInStatus, visibleFields);
+  // Calculate queue position if we have all entries
+  const queuePosition = allEntries ? calculateQueuePosition(entry, allEntries) : undefined;
+
+  return buildClassEntry(entry, fields, checkInStatus, visibleFields, queuePosition);
 }
 
 /**
@@ -192,13 +251,14 @@ export async function processEntriesToClassEntries(
   licenseKey: string,
   currentRole: UserRole | null | undefined,
   classMap?: Map<string, ClassData>,
-  trialMap?: Map<string, TrialData>
+  trialMap?: Map<string, TrialData>,
+  allEntries?: RawEntryData[]
 ): Promise<ClassEntry[]> {
   return Promise.all(
     entries.map(async (entry) => {
       const classData = classMap?.get(String(entry.class_id));
       const trialData = classData && trialMap ? trialMap.get(String(classData.trial_id)) : undefined;
-      return processEntryToClassEntry(entry, licenseKey, currentRole, classData, trialData);
+      return processEntryToClassEntry(entry, licenseKey, currentRole, classData, trialData, allEntries);
     })
   );
 }

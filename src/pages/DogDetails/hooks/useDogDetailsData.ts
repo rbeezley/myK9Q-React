@@ -60,6 +60,8 @@ export interface ClassEntry {
   qualificationTiming?: VisibilityTiming;
   timeTiming?: VisibilityTiming;
   faultsTiming?: VisibilityTiming;
+  // Queue position (dogs ahead in line)
+  queuePosition?: number;
 }
 
 export interface DogInfo {
@@ -127,34 +129,36 @@ async function fetchDogDetails(
       logger.log('[REPLICATION] 📭 No dog found with armband in cache, falling back to Supabase');
       // Fall through to Supabase query below
     } else {
+      logger.log(`[REPLICATION] ✅ Found ${dogEntries.length} entries for armband ${armband}`);
 
-    logger.log(`[REPLICATION] ✅ Found ${dogEntries.length} entries for armband ${armband}`);
+      // Get all classes and trials for joins
+      // CRITICAL: Pass license_key to filter to current show only (multi-tenant isolation)
+      const allClasses = await classesTable.getAll(licenseKey) as Class[];
+      const allTrials = await trialsTable.getAll(licenseKey) as Trial[];
 
-    // Get all classes and trials for joins
-    // CRITICAL: Pass license_key to filter to current show only (multi-tenant isolation)
-    const allClasses = await classesTable.getAll(licenseKey) as Class[];
-    const allTrials = await trialsTable.getAll(licenseKey) as Trial[];
+      // If classes haven't synced yet, fall back to Supabase to avoid "Unknown Class" display
+      if (allClasses.length === 0) {
+        logger.warn('[DogDetails] ⚠️ No classes found in cache - falling back to Supabase for complete data');
+        // Fall through to Supabase query below
+      } else {
+        // Create lookup maps for performance
+        const classMap = new Map<string, ClassData>(allClasses.map(c => [String(c.id), c as ClassData]));
+        const trialMap = new Map<string, TrialData>(allTrials.map(t => [String(t.id), t as TrialData]));
 
-    // Create lookup maps for performance
-    const classMap = new Map<string, ClassData>(allClasses.map(c => [String(c.id), c as ClassData]));
-    const trialMap = new Map<string, TrialData>(allTrials.map(t => [String(t.id), t as TrialData]));
+        // Extract dog info and process entries using helpers
+        // Pass allEntries to calculate queue position for each class
+        const dogInfo = extractDogInfo(dogEntries[0]);
+        const classesWithVisibility = await processEntriesToClassEntries(
+          dogEntries,
+          licenseKey,
+          currentRole,
+          classMap,
+          trialMap,
+          allEntries // Pass all entries for queue position calculation
+        );
 
-    // Debug: Log if no classes found
-    if (allClasses.length === 0) {
-      logger.warn('[DogDetails] ⚠️ No classes found in cache - class info will be missing');
-    }
-
-    // Extract dog info and process entries using helpers
-    const dogInfo = extractDogInfo(dogEntries[0]);
-    const classesWithVisibility = await processEntriesToClassEntries(
-      dogEntries,
-      licenseKey,
-      currentRole,
-      classMap,
-      trialMap
-    );
-
-    return { dogInfo, classes: classesWithVisibility };
+        return { dogInfo, classes: classesWithVisibility };
+      }
     }
 
   } catch (error) {
@@ -184,12 +188,30 @@ async function fetchDogDetails(
 
     logger.log(`[REPLICATION] ✅ Loaded ${entries.length} entries from Supabase for armband ${armband}`);
 
+    // For queue position, we need all entries in the classes this dog is entered in
+    // Get the unique class IDs from the dog's entries
+    const classIds = [...new Set(entries.map(e => e.class_id))];
+
+    // Fetch all entries for those classes to calculate queue position
+    const { data: allClassEntries, error: classEntriesError } = await supabase
+      .from('view_entry_class_join_normalized')
+      .select('id, class_id, armband_number, entry_status, is_scored, exhibitor_order')
+      .in('class_id', classIds)
+      .eq('license_key', licenseKey);
+
+    if (classEntriesError) {
+      logger.warn('[REPLICATION] ⚠️ Could not fetch class entries for queue position:', classEntriesError);
+    }
+
     // Extract dog info and process entries using helpers
     const dogInfo = extractDogInfo(entries[0]);
     const classesWithVisibility = await processEntriesToClassEntries(
       entries,
       licenseKey,
-      currentRole
+      currentRole,
+      undefined, // no classMap for Supabase fallback
+      undefined, // no trialMap for Supabase fallback
+      allClassEntries || undefined // Pass all class entries for queue position
     );
 
     return { dogInfo, classes: classesWithVisibility };

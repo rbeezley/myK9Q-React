@@ -312,59 +312,49 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
 
 ---
 
-## Drag-and-Drop ExhibitorOrder Cross-Tab Sync Issue - 2025-12-04 21:15
+## Drag-and-Drop ExhibitorOrder Cross-Tab Sync Issue - 2025-12-04 ✅ COMPLETE
 
-- **Debug cross-tab exhibitorOrder sync** - When Tab A reorders entries via drag-and-drop, Tab B doesn't reflect the new order despite receiving sync notifications. **Problem:** The entire sync chain appears to work (Realtime events fire, sync runs, cache updates, listeners notified, refresh called) but Tab B's UI continues showing the old exhibitor_order values. Other status changes (like "in-ring") DO sync correctly, suggesting the issue is specific to exhibitorOrder updates. **Files:** `src/services/entry/entryBatchOperations.ts:62-108` (updateExhibitorOrder), `src/pages/EntryList/hooks/useEntryListData.ts:97-132` (refresh with pending queue), `src/pages/EntryList/hooks/useDragAndDropEntries.ts:160-233` (handleDragEnd), `src/services/replication/ConnectionManager.ts:147-215` (broadcast/realtime handling), `src/services/replication/tables/ReplicatedEntriesTable.ts` (sync logic), `src/pages/EntryList/hooks/useEntryListDataHelpers.ts:238-285` (cache read). **Solution:** Debug logging has been added throughout the data flow chain. Next step is to test with two tabs and compare console logs to identify where the exhibitorOrder value stops being correct. Key logs to look for: 🔀 (drag), 📋 (Supabase update), 📡 (broadcast/realtime), 🔔 (subscription callback), 📦 (cache read), 📥 (UI state update).
-
-**Debug Logging Chain (in order):**
-
-| Tab A (User drags) | Tab B (Should update) |
-|--------------------|-----------------------|
-| 🔀 useDragAndDropEntries - entries being reordered | 📡 ConnectionManager - broadcast/realtime received |
-| 📋 updateExhibitorOrder - what's sent to Supabase | 🔍 ReplicatedEntriesTable - sync query filter |
-| ✅ updateExhibitorOrder - Supabase response | 🔄 ReplicatedEntriesTable - entries being cached |
-| 🔄 triggerImmediateEntrySync - sync triggered | 🔔 ReplicatedTableCache - notifyListeners |
-| | 🔔 useEntryListData - subscription callback |
-| | 📦 useEntryListDataHelpers - raw cache entry |
-| | 📥 EntryList/CombinedEntryList - UI state update |
-
-**Hypothesis to test:**
-1. Is Tab B's sync query filter (updated_at > timestamp) missing the updates due to timing?
-2. Is the cache returning old data despite batchSet completing?
-3. Is the transformation in transformReplicatedEntry losing the value?
-4. Is React not re-rendering due to shallow comparison?
-
-**Test procedure:**
-1. Open Tab A to a class list, clear console
-2. Open Tab B to same class, clear console
-3. On Tab A, drag entry to reorder
-4. Compare both console logs - find where exhibitorOrder values diverge
-
-**Priority:** High - Core feature broken, impacts multi-device workflows
+- **FIXED:** Cross-tab sync now works correctly for drag-and-drop reordering.
+- **Root Cause:** Timing issues with sync query filter and cache update propagation.
+- **Resolution:** Debug logging added to trace the issue, fixes applied across sync chain.
+- **Cleanup:** Debug logging removed in commit `d96b08d` after verification.
+- **Files:** Changes across 17 files including `entryBatchOperations.ts`, `ConnectionManager.ts`, `ReplicatedEntriesTable.ts`
 
 ---
 
-## Printable Judge Scoresheets by Class - 2025-12-05 14:06
+## Printable Judge Scoresheets by Class - 2025-12-05 ✅ COMPLETE
 
-- **Create printable scoresheet page for judges** - Generate paper scoresheets per class that judges can print or save as PDF for official record-keeping (1-year retention required). **Problem:** Judges need physical paper scoresheets to record scores during trials and must retain them for regulatory compliance. Currently no way to generate formatted scoresheets for a class. **Files:** `src/pages/Results/` (reference implementation for print/PDF pattern), `src/pages/scoresheets/` (existing digital scoresheet components for data structure reference). **Solution:** Create new page similar to Results that renders a printable scoresheet layout. Key elements from example image:
-  - **Header:** Trial date, Trial #, Judge name, Element, Level, Section
-  - **Requirements box:** Hides count, Distractions count/type, Time Limit
-  - **Used box:** Actual hides used, Time limits per area
-  - **Entry rows (one per dog):**
-    - Armband #, Dog name (call name)
-    - Registration #, Handler name
-    - Breed
-    - Qualified checkbox
-    - Handler Error / Safety Concern / Mild Disruption write-in fields
-    - Fault checkboxes: Incorrect Call, Harsh correction, Significant Disruption, Point to Hide, Max Time
-    - Time entry: MM:SS:TT columns
-  - **Footer:** Class Entries count
-  - Print-optimized CSS (fits on standard letter/A4 paper)
+- **IMPLEMENTED:** Judges can now print paper scoresheets for 1-year regulatory retention.
+- **Features:**
+  - Auto-populated hides/distractions from class_requirements (except Master level)
+  - Multi-area time entry for Interior Excellent (2), Interior Master (3), Handler Discrimination Master (2)
+  - Repeating header on every printed page using CSS `table-header-group`
+  - Q and Absent checkboxes (NQ/Excused implied by checking fault reasons)
+- **Access:** 3-dot menu on ClassList, EntryList, and CombinedEntryList pages
+- **Files:** [ScoresheetReport.tsx](src/components/reports/ScoresheetReport.tsx) (260 lines), `reportService.ts`, hook updates
+- **Commit:** `354efc9` - 707 lines added across 8 files
 
-**Access Points (same pattern as Check-In Sheets and Results):**
-  - Class List page → 3-dot menu per class → "Print Scoresheet"
-  - Entry List page → 3-dot menu → "Print Scoresheet"
-  - Combined Entry List page → 3-dot menu → "Print Scoresheet"
+---
 
-**Priority:** Medium - Judges currently use external templates; this improves workflow efficiency
+## Enhance Show Info Page into Show Dashboard - 2025-12-06 09:41
+
+- **Create comprehensive show dashboard** - Consolidate scattered show information into single dashboard page combining announcement statistics, class list, and class statuses. **Problem:** Currently, key show information (announcements stats, class list, class statuses) is scattered across different pages requiring multiple navigations. Trial Secretary needs a single place to gauge show progress and identify action items. Exhibitors would also benefit from unified view of show status. **Files:** [ShowDetails.tsx](src/pages/ShowDetails/ShowDetails.tsx) (existing show info page to enhance), [Announcements.tsx](src/pages/Announcements/Announcements.tsx) (reference for announcement statistics), [ClassList.tsx](src/pages/ClassList/ClassList.tsx) (reference for class data). **Solution:** Expand existing Show Info page into dashboard view with three main sections: (1) Announcement statistics widget showing total/unread counts, (2) Class list overview showing all classes with their statuses, (3) Quick action links. Consider card-based layout for scannable information hierarchy. May need to create reusable components for announcement stats and compact class status displays.
+
+---
+
+## Add Queue Position to Dog Details Class Cards - 2025-12-06 ✅ COMPLETE
+
+- **IMPLEMENTED:** Each class card on Dog Details now shows queue position for pending entries.
+- **Features:**
+  - Shows "X dogs ahead" badge below judge name for pending entries
+  - "Next up!" badge highlighted in orange when dog is next
+  - Respects run order (exhibitor_order) with in-ring dogs prioritized
+  - Pulled entries excluded from queue calculation
+  - Updates via React Query refetch (1-minute stale time)
+- **Logic:** Queue position calculated using all entries in the class, sorted by exhibitor_order
+- **Files Modified:**
+  - [dogDetailsDataHelpers.ts](src/pages/DogDetails/hooks/dogDetailsDataHelpers.ts) - Added `calculateQueuePosition()` function
+  - [useDogDetailsData.ts](src/pages/DogDetails/hooks/useDogDetailsData.ts) - Pass allEntries for queue calculation
+  - [DogDetailsClassCard.tsx](src/pages/DogDetails/components/DogDetailsClassCard.tsx) - Display queue position badge
+  - [DogDetails.css](src/pages/DogDetails/DogDetails.css) - Queue position badge styling
 

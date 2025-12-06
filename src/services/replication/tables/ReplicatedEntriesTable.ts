@@ -89,9 +89,10 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
       // NOTE: Removed updateSyncMetadata('syncing') at start to reduce transaction count
       const metadata = await this.getSyncMetadata();
 
-      // Check if cache is empty - need to know for lastSync calculation
-      // Use a quick count check instead of fetching all entries
-      const allCachedEntries = await this.getAll();
+      // Check if cache is empty FOR THIS SHOW - need to know for lastSync calculation
+      // CRITICAL: Pass licenseKey to filter by current show (multi-tenant isolation)
+      // Without this, cache from other shows would cause incremental sync to miss data
+      const allCachedEntries = await this.getAll(licenseKey);
       const isCacheEmpty = allCachedEntries.length === 0;
 
       // If cache is empty but we have a lastSync timestamp, it means the cache was cleared

@@ -592,6 +592,45 @@
   opacity: 0.6;
 }
 
+/* ========== QUEUE POSITION BADGE ========== */
+
+.queue-position-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-lg);
+  margin-bottom: var(--token-space-md);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  width: fit-content;
+}
+
+.queue-position-badge svg {
+  opacity: 0.7;
+}
+
+/* "Next up!" gets special treatment */
+.queue-position-badge.next-up {
+  background: var(--status-at-gate);
+  border-color: var(--status-at-gate);
+  color: white;
+  font-weight: 600;
+}
+
+.queue-position-badge.next-up svg {
+  opacity: 1;
+}
+
+/* Dark mode adjustments */
+.theme-dark .queue-position-badge:not(.next-up) {
+  background: var(--muted);
+  border-color: var(--border);
+}
+
 /* ========== CLASS INFORMATION ========== */
 
 .class-info {
