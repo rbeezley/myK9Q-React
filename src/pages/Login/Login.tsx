@@ -7,9 +7,9 @@ import { detectDatabaseWithValidation, isMigrationModeEnabled, V3ShowData } from
 import { useHapticFeedback } from '../../utils/hapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
+import { LoadingSplash } from '../../components/SplashScreen/LoadingSplash';
 import { autoDownloadShow } from '../../services/autoDownloadService';
 import { prepareForOffline, wasRecentlyPrepared, type OfflinePreparationProgress } from '../../utils/chunkPrefetch';
-import { Loader2, Wifi, Database, CheckCircle } from 'lucide-react';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -41,6 +41,12 @@ export const Login: React.FC = () => {
   // Focus first input on mount
   useEffect(() => {
 inputRefs.current[0]?.focus();
+  }, []);
+
+  // Preload splash image for instant display during post-login loading
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/myK9Q-Splash.webp';
   }, []);
 
   // Rotate fun messages every 2.5 seconds while preparing offline
@@ -162,47 +168,63 @@ inputRefs.current[0]?.focus();
 
   /**
    * Prepare app for offline use after successful login.
-   * Shows progress while loading chunks and syncing data.
-   * Skips overlay if already prepared within last 30 minutes.
+   * Shows branded splash screen with progress while loading chunks and syncing data.
+   * Always displays splash for minimum 2 seconds for branded experience.
    */
   const handlePostLoginPreparation = async (licenseKey: string) => {
-    // Skip the overlay if recently prepared (within 30 minutes)
-    // Chunks and data are already cached - just do a quick background refresh
-    if (wasRecentlyPrepared(licenseKey)) {
-      logger.log('[Login] Skipping offline prep overlay - recently prepared');
-      setIsLoading(false);
-      // Still trigger background refresh, but don't show overlay
-      triggerAutoDownload(licenseKey);
-      prepareForOffline(licenseKey, undefined, 10000).catch(() => {
-        // Ignore errors - this is a background refresh
-      });
-      navigate('/home');
-      return;
-    }
-
-    // First time for this show - show the preparation overlay
     setIsLoading(false);
     setPreparingOffline(true);
 
-    try {
-      // Run offline preparation with progress feedback
-      await prepareForOffline(
-        licenseKey,
-        (progress) => setOfflineProgress(progress),
-        20000 // 20 second timeout (then continues in background)
-      );
+    // Track start time to ensure minimum splash display duration
+    const splashStartTime = Date.now();
+    const MIN_SPLASH_DURATION = 2000; // 2 seconds minimum
 
-      // Also trigger auto-download (runs in parallel/background)
-      triggerAutoDownload(licenseKey);
+    // Check if recently prepared (can do quick background refresh)
+    const isRecentlyPrepared = wasRecentlyPrepared(licenseKey);
+
+    try {
+      if (isRecentlyPrepared) {
+        logger.log('[Login] Recently prepared - quick refresh in background');
+        // Still trigger background refresh, but don't wait for it
+        triggerAutoDownload(licenseKey);
+        prepareForOffline(licenseKey, undefined, 10000).catch(() => {
+          // Ignore errors - this is a background refresh
+        });
+      } else {
+        // First time for this show - run full offline preparation
+        await prepareForOffline(
+          licenseKey,
+          (progress) => setOfflineProgress(progress),
+          20000 // 20 second timeout (then continues in background)
+        );
+
+        // Also trigger auto-download (runs in parallel/background)
+        triggerAutoDownload(licenseKey);
+      }
+
+      // Calculate remaining time to meet minimum splash duration
+      const elapsedTime = Date.now() - splashStartTime;
+      const remainingTime = Math.max(0, MIN_SPLASH_DURATION - elapsedTime);
+
+      if (remainingTime > 0) {
+        logger.log(`[Login] Splash minimum duration: waiting ${remainingTime}ms more`);
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
 
       // Small delay to show completion state
       await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.warn('[Login] Offline preparation failed, continuing anyway:', error);
+
+      // Still ensure minimum splash duration even on error
+      const elapsedTime = Date.now() - splashStartTime;
+      const remainingTime = Math.max(0, MIN_SPLASH_DURATION - elapsedTime);
+      if (remainingTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
     }
 
     // Navigate to home regardless of preparation success
-    // (worst case, some things load on-demand)
     setPreparingOffline(false);
     navigate('/home');
   };
@@ -336,51 +358,13 @@ inputRefs.current[0]?.focus();
         <TransitionMessage onComplete={handleTransitionComplete} />
       )}
 
-      {/* Offline Preparation Overlay */}
+      {/* Loading Splash - Post-login preparation */}
       {preparingOffline && (
-        <div className="offline-prep-overlay">
-          <div className="offline-prep-content">
-            <div className="offline-prep-icon">
-              {offlineProgress?.complete ? (
-                <CheckCircle className="h-12 w-12 text-primary animate-in fade-in" />
-              ) : (
-                <Loader2 className="h-12 w-12 text-primary animate-spin" />
-              )}
-            </div>
-            <h2 className="offline-prep-title">
-              {offlineProgress?.complete ? 'Ready!' : funMessages[funMessageIndex]}
-            </h2>
-            <p className="offline-prep-description">
-              {offlineProgress?.complete
-                ? 'You can now use the app without wifi'
-                : 'Preparing for offline use'}
-            </p>
-            <div className="offline-prep-progress">
-              <div className="offline-prep-step">
-                <div className={`prep-step-icon ${offlineProgress && offlineProgress.chunksLoaded > 0 ? 'complete' : ''}`}>
-                  <Wifi className="h-4 w-4" />
-                </div>
-                <span>App Components</span>
-                {offlineProgress && (
-                  <span className="prep-step-count">
-                    {offlineProgress.chunksLoaded}/{offlineProgress.chunksTotal}
-                  </span>
-                )}
-              </div>
-              <div className="offline-prep-step">
-                <div className={`prep-step-icon ${offlineProgress?.phase === 'data' && offlineProgress.dataTablesReady > 0 ? 'complete' : ''}`}>
-                  <Database className="h-4 w-4" />
-                </div>
-                <span>Show Data</span>
-                {offlineProgress && offlineProgress.phase === 'data' && (
-                  <span className="prep-step-count">
-                    {offlineProgress.dataTablesReady}/{offlineProgress.dataTablesTotal}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <LoadingSplash
+          progress={offlineProgress}
+          message={offlineProgress?.complete ? 'Ready!' : funMessages[funMessageIndex]}
+          isComplete={offlineProgress?.complete ?? false}
+        />
       )}
 
       {/* Login page */}
