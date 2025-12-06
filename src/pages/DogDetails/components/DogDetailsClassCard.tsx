@@ -171,11 +171,23 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
           ].filter(Boolean).join(' \u2022 ')}
         </h4>
 
-        {/* Second row: Judge */}
+        {/* Second row: Trial date and number */}
+        <div className="class-meta-details">
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+            <TrialDateBadge date={entry.trial_date} />
+          </span>
+          {entry.trial_number !== undefined && entry.trial_number !== null && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <Target size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+              Trial {entry.trial_number}
+            </span>
+          )}
+        </div>
+
+        {/* Third row: Judge */}
         {entry.judge_name && (
           <p style={{
             margin: 0,
-            marginBottom: 'var(--token-space-md)',
             fontSize: '0.875rem',
             fontWeight: 500,
             color: 'var(--muted-foreground)',
@@ -190,28 +202,23 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
 
         {/* Queue Position Badge - only show for pending (not scored) entries */}
         {!entry.is_scored && formatQueuePosition(entry.queuePosition, entry.check_in_status) && (
-          <div className={`queue-position-badge ${entry.queuePosition === 0 ? 'next-up' : ''}`}>
-            <Users size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-            <span>{formatQueuePosition(entry.queuePosition, entry.check_in_status)}</span>
-          </div>
+          <>
+            <div className="class-card-divider" />
+            <div className={`queue-position-badge ${
+              entry.queuePosition === 0 ? 'next-up' :
+              entry.queuePosition !== undefined && entry.queuePosition <= 3 ? 'approaching' : ''
+            }`}>
+              <Users size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
+              <span>{formatQueuePosition(entry.queuePosition, entry.check_in_status)}</span>
+            </div>
+          </>
         )}
-
-        {/* Additional metadata row */}
-        <div className="class-meta-details">
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-            <TrialDateBadge date={entry.trial_date} />
-          </span>
-          {entry.trial_number && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-              <Target size={14} style={{ width: '14px', height: '14px', flexShrink: 0 }} />
-              Trial {entry.trial_number}
-            </span>
-          )}
-        </div>
 
         {/* Performance Stats - respect visibility settings */}
         {entry.is_scored && (
-          <div className="class-stats">
+          <>
+            <div className="class-card-divider" />
+            <div className="class-stats">
             {/* Placement Badge */}
             {entry.visibleFields?.showPlacement &&
              entry.position !== null &&
@@ -247,7 +254,8 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
                 \u23F3 {getAvailabilityMessage(entry.is_scoring_finalized || false, entry.faultsTiming || 'class_complete')}
               </span>
             )}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -56,6 +56,7 @@ export interface TrialData {
   id: number | string;
   element?: string | null;
   trial_date?: string | null;
+  trial_number?: number | null;
 }
 
 // ============================================================================
@@ -97,6 +98,7 @@ interface DerivedFields {
   level: string;
   section: string | null | undefined;
   trialId: number;
+  trialNumber: number | undefined;
   isCompleted: boolean;
   resultsReleasedAt: string | null;
   judgeName: string | undefined;
@@ -117,6 +119,7 @@ function extractDerivedFields(
     level: entry.level || classData?.level || 'Class',
     section: entry.section || classData?.section,
     trialId: entry.trial_id || classData?.trial_id || 0,
+    trialNumber: entry.trial_number ?? trialData?.trial_number ?? undefined,
     isCompleted: entry.is_scoring_finalized ?? classData?.is_scoring_finalized ?? false,
     resultsReleasedAt: entry.results_released_at ?? null,
     judgeName: entry.judge_name || classData?.judge_name || undefined,
@@ -152,7 +155,7 @@ function buildClassEntry(
     element: fields.element,
     level: fields.level,
     section: fields.section ?? undefined,
-    trial_number: entry.trial_number ?? undefined,
+    trial_number: fields.trialNumber,
     judge_name: fields.judgeName,
     trial_id: fields.trialId,
     is_scoring_finalized: fields.isCompleted,
