@@ -336,10 +336,35 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
 
 ---
 
-## Enhance Show Info Page into Show Dashboard - 2025-12-06 🚧 IN PROGRESS
+## Enhance Show Info Page into Show Dashboard - 2025-12-06 ✅ COMPLETE
 
-- **Implementation plan:** [docs/plans/2025-12-06-show-dashboard.md](docs/plans/2025-12-06-show-dashboard.md)
-- **Status:** Phase 1 - Foundation (Stats Row + Data Hook)
+- **IMPLEMENTED:** Transformed Show Info page into a comprehensive Show Dashboard.
+
+**Features:**
+- ✅ Stats row with 4 tappable metrics (unread messages, favorites, active classes, completion %)
+- ✅ `useDashboardData` hook aggregating data from announcements, classes, favorites, and show info
+- ✅ ClassTable with responsive layouts (phone 2-line cards, tablet 4-col, desktop 6-col)
+- ✅ Tabbed view: Pending / Completed classes
+- ✅ Live / Info page tabs (Live = dashboard, Info = contacts & venue)
+- ✅ Row tap → Navigate to EntryList
+- ✅ Inline editing for class time and status (judge/admin only)
+- ✅ ClassStatusDialog with Setup, Briefing, Break, In Progress status options + time fields
+- ✅ ClassOptionsDialog for Print Scoresheets, Check-In, Results, Max Times, Requirements, Settings
+- ✅ Smart trial badges: Shows "Sat", "Sun", or "Sat T1", "Sun T2" based on trial structure
+- ✅ Immediate UI refresh after status changes (fixed `refetchQueries` vs `invalidateQueries`)
+- ✅ Heart icons for favorites (consistent with dog cards)
+- ✅ Renamed "Show Info" → "Show Details" in menu and header
+
+**Files Created/Modified:**
+- [ShowDetails.tsx](src/pages/ShowDetails/ShowDetails.tsx) - Main dashboard with Live/Info tabs
+- [useDashboardData.ts](src/pages/ShowDetails/hooks/useDashboardData.ts) - Aggregated data hook
+- [StatsRow.tsx](src/pages/ShowDetails/components/StatsRow.tsx) - 4-stat row component
+- [ClassTable.tsx](src/pages/ShowDetails/components/ClassTable.tsx) - Responsive class table with inline editing
+- [FavoritesCard.tsx](src/pages/ShowDetails/components/FavoritesCard.tsx) - Favorites list component
+- [CompactShowInfoCard.tsx](src/pages/ShowDetails/components/CompactShowInfoCard.tsx) - Compact venue/contacts
+- [HamburgerMenu.tsx](src/components/ui/HamburgerMenu.tsx) - Updated menu label
+
+**Implementation plan:** [docs/plans/2025-12-06-show-dashboard.md](docs/plans/2025-12-06-show-dashboard.md)
 
 ---
 
