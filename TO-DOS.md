@@ -384,3 +384,32 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
   - [DogDetailsClassCard.tsx](src/pages/DogDetails/components/DogDetailsClassCard.tsx) - Display queue position badge
   - [DogDetails.css](src/pages/DogDetails/DogDetails.css) - Queue position badge styling
 
+---
+
+## Standardize Status Colors Across App - 2025-12-06 ✅ COMPLETE
+
+- **IMPLEMENTED:** Unified class status colors across all components using design tokens.
+
+**Problem Found:**
+Three different color palettes existed for the same status values:
+| Status | design-tokens.css | ClassTable.css (was) | ClassList.css (was) |
+|--------|-------------------|----------------------|---------------------|
+| Setup | `#b45309` | `#a855f7` | `#f59e0b` |
+| Briefing | `#ff6b00` | `#3b82f6` | `#8b5cf6` |
+| Break | `#c000ff` | `#f97316` | `#ec4899` |
+| In-Progress | `#0066ff` | teal | `#3b82f6` |
+
+**Solution:**
+- Used existing `design-tokens.css` class status tokens as canonical source (already used by ClassStatusDialog)
+- Updated [ClassTable.css](src/pages/ShowDetails/components/ClassTable.css) to reference design tokens
+- Updated [ClassList.css](src/pages/ClassList/ClassList.css) to reference design tokens
+- Used `color-mix()` CSS function for semi-transparent badge backgrounds
+
+**Tokens Used:**
+- `--status-setup`, `--status-briefing`, `--status-break`, `--status-start-time`
+- `--status-in-progress`, `--status-completed`, `--status-offline-scoring`, `--status-none`
+
+**Files Modified:**
+- [ClassTable.css:217-353](src/pages/ShowDetails/components/ClassTable.css#L217-L353) - Status dot and badge colors
+- [ClassList.css:334-360](src/pages/ClassList/ClassList.css#L334-L360) - Class card accent border colors
+

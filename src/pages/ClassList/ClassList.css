@@ -332,15 +332,15 @@
 }
 
 .class-card.status-setup {
-  --status-color: #f59e0b; /* Orange */
+  --status-color: var(--status-setup);
 }
 
 .class-card.status-briefing {
-  --status-color: #8b5cf6; /* Purple */
+  --status-color: var(--status-briefing);
 }
 
 .class-card.status-break {
-  --status-color: #ec4899; /* Pink */
+  --status-color: var(--status-break);
 }
 
 .class-card.status-start-time {
@@ -348,15 +348,15 @@
 }
 
 .class-card.status-in-progress {
-  --status-color: #3b82f6; /* Blue */
+  --status-color: var(--status-in-progress);
 }
 
 .class-card.status-completed {
-  --status-color: #22c55e; /* Green */
+  --status-color: var(--status-completed);
 }
 
 .class-card.pending {
-  --status-color: #f59e0b; /* Orange */
+  --status-color: var(--status-none);
 }
 
 /* Left accent border uses status color variable */

@@ -215,11 +215,11 @@
 }
 
 .class-row__status.status--in-progress {
-  color: var(--primary);
+  color: var(--status-in-progress);
 }
 
 .class-row__status.status--completed {
-  color: #22c55e;
+  color: var(--status-completed);
 }
 
 .class-row__mobile .class-row__scored {
@@ -285,31 +285,31 @@
 }
 
 .class-row__status-dot.status--in-progress {
-  background: var(--primary);
+  background: var(--status-in-progress);
 }
 
 .class-row__status-dot.status--scoring {
-  background: #f59e0b;
+  background: var(--status-offline-scoring);
 }
 
 .class-row__status-dot.status--completed {
-  background: #22c55e;
+  background: var(--status-completed);
 }
 
 .class-row__status-dot.status--not-started {
-  background: var(--muted-foreground);
+  background: var(--status-none);
 }
 
 .class-row__status-dot.status--setup {
-  background: #a855f7;
+  background: var(--status-setup);
 }
 
 .class-row__status-dot.status--briefing {
-  background: #3b82f6;
+  background: var(--status-briefing);
 }
 
 .class-row__status-dot.status--break {
-  background: #f97316;
+  background: var(--status-break);
 }
 
 .class-row__status-badge {
@@ -323,33 +323,33 @@
 }
 
 .class-row__status-badge.status--in-progress {
-  background: rgba(20, 184, 166, 0.15);
-  color: var(--primary);
+  background: color-mix(in srgb, var(--status-in-progress) 15%, transparent);
+  color: var(--status-in-progress);
 }
 
 .class-row__status-badge.status--scoring {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--status-offline-scoring) 15%, transparent);
+  color: var(--status-offline-scoring);
 }
 
 .class-row__status-badge.status--completed {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: color-mix(in srgb, var(--status-completed) 15%, transparent);
+  color: var(--status-completed);
 }
 
 .class-row__status-badge.status--setup {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--status-setup) 15%, transparent);
+  color: var(--status-setup);
 }
 
 .class-row__status-badge.status--briefing {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  background: color-mix(in srgb, var(--status-briefing) 15%, transparent);
+  color: var(--status-briefing);
 }
 
 .class-row__status-badge.status--break {
-  background: rgba(249, 115, 22, 0.15);
-  color: #f97316;
+  background: color-mix(in srgb, var(--status-break) 15%, transparent);
+  color: var(--status-break);
 }
 
 /* ============================================================
