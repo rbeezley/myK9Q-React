@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
@@ -31,9 +31,11 @@ import { usePrintReports, type ReportDependencies } from './hooks/usePrintReport
 import { useFavoriteClasses } from './hooks/useFavoriteClasses';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
 
+// eslint-disable-next-line complexity -- Large page component with many features; refactoring tracked in DEBT_REGISTER.md
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showContext, role: _role, logout: _logout } = useAuth();
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
@@ -59,7 +61,11 @@ export const ClassList: React.FC = () => {
   // Local state for data (synced from React Query)
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
-  const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>('pending');
+  // Initialize filter from navigation state if provided (e.g., from Show Dashboard "Done" stat)
+  const locationState = location.state as { filter?: 'pending' | 'favorites' | 'completed' } | null;
+  const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>(
+    locationState?.filter || 'pending'
+  );
 
   // Dialog state management (extracted hook) - excludes status dialog (managed by useClassStatus)
   const {

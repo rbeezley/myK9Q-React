@@ -141,14 +141,14 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
 
       setSuccessMessage('Settings saved successfully!');
 
-      // Refresh parent data if callback provided
-      if (onSettingsUpdate) {
-        onSettingsUpdate();
-      }
-
-      // Close dialog after brief delay to show success message
+      // Close dialog after brief delay to show success message,
+      // then refresh parent data AFTER dialog is closed to avoid visual glitches
       setTimeout(() => {
         onClose();
+        // Small delay before refresh to ensure dialog is fully unmounted
+        if (onSettingsUpdate) {
+          setTimeout(onSettingsUpdate, 100);
+        }
       }, 1500);
     } catch (error) {
       console.error('Exception saving class settings:', error);

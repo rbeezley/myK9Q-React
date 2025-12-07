@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from '../../utils/logger';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { useOptimisticUpdate } from '../../hooks/useOptimisticUpdate';
@@ -21,6 +21,7 @@ import './Home.css';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showContext, logout: _logout, role } = useAuth();
   const { hasPermission: _hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
@@ -41,7 +42,11 @@ export const Home: React.FC = () => {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
-  const [filterBy, setFilterBy] = useState<'all' | 'favorites'>('all');
+  // Initialize filterBy from navigation state if provided (e.g., from Show Dashboard)
+  const locationState = location.state as { filter?: 'all' | 'favorites' } | null;
+  const [filterBy, setFilterBy] = useState<'all' | 'favorites'>(
+    locationState?.filter || 'all'
+  );
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(() => {

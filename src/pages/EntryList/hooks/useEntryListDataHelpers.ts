@@ -25,6 +25,7 @@ export interface ClassInfo {
   element: string;
   level: string;
   section?: string;
+  trialId?: number;
   trialDate?: string;
   trialNumber?: string;
   judgeName?: string;
@@ -306,6 +307,7 @@ export async function fetchFromSupabase(
     element: classData.element || '',
     level: classData.level || '',
     section: classData.section || '',
+    trialId: classData.trial_id,
     trialDate: classEntries[0]?.trialDate || '',
     trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
     judgeName: classData.judge_name || 'No Judge Assigned',
@@ -449,6 +451,7 @@ export async function fetchCombinedFromSupabase(
     className: `${firstEntry.element} ${firstEntry.level} A & B`,
     element: firstEntry.element || '',
     level: firstEntry.level || '',
+    trialId: classDataA?.trial_id,
     trialDate: firstEntry.trialDate || '',
     trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
     judgeName: classDataA?.judge_name || 'No Judge Assigned',

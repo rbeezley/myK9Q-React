@@ -15,7 +15,8 @@ import {
   ClipboardCheck,
   ClipboardList,
   ListOrdered,
-  Trophy
+  Trophy,
+  Settings
 } from 'lucide-react';
 
 // ============================================================================
@@ -32,9 +33,11 @@ export interface PrintOption {
 export interface ActionsMenuConfig {
   showRunOrder?: boolean;
   showRecalculatePlacements?: boolean;
+  showClassSettings?: boolean;
   isRecalculatingPlacements?: boolean;
   onRunOrderClick?: () => void;
   onRecalculatePlacements?: () => void;
+  onClassSettingsClick?: () => void;
   printOptions: PrintOption[];
 }
 
@@ -72,6 +75,11 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
   const handleRecalculate = () => {
     onClose();
     actionsMenu.onRecalculatePlacements?.();
+  };
+
+  const handleClassSettings = () => {
+    onClose();
+    actionsMenu.onClassSettingsClick?.();
   };
 
   const handlePrintOption = (option: PrintOption) => {
@@ -123,6 +131,15 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
             >
               <Trophy className={`h-4 w-4 ${actionsMenu.isRecalculatingPlacements ? 'rotating' : ''}`} />
               Recalculate Placements
+            </button>
+          )}
+          {actionsMenu.showClassSettings && actionsMenu.onClassSettingsClick && (
+            <button
+              onClick={handleClassSettings}
+              className="action-menu-item"
+            >
+              <Settings className="h-4 w-4" />
+              Class Options
             </button>
           )}
 

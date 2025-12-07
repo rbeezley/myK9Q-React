@@ -336,9 +336,10 @@ Added minimal critical CSS fallbacks in `critical.css` that ensure elements look
 
 ---
 
-## Enhance Show Info Page into Show Dashboard - 2025-12-06 09:41
+## Enhance Show Info Page into Show Dashboard - 2025-12-06 🚧 IN PROGRESS
 
-- **Create comprehensive show dashboard** - Consolidate scattered show information into single dashboard page combining announcement statistics, class list, and class statuses. **Problem:** Currently, key show information (announcements stats, class list, class statuses) is scattered across different pages requiring multiple navigations. Trial Secretary needs a single place to gauge show progress and identify action items. Exhibitors would also benefit from unified view of show status. **Files:** [ShowDetails.tsx](src/pages/ShowDetails/ShowDetails.tsx) (existing show info page to enhance), [Announcements.tsx](src/pages/Announcements/Announcements.tsx) (reference for announcement statistics), [ClassList.tsx](src/pages/ClassList/ClassList.tsx) (reference for class data). **Solution:** Expand existing Show Info page into dashboard view with three main sections: (1) Announcement statistics widget showing total/unread counts, (2) Class list overview showing all classes with their statuses, (3) Quick action links. Consider card-based layout for scannable information hierarchy. May need to create reusable components for announcement stats and compact class status displays.
+- **Implementation plan:** [docs/plans/2025-12-06-show-dashboard.md](docs/plans/2025-12-06-show-dashboard.md)
+- **Status:** Phase 1 - Foundation (Stats Row + Data Hook)
 
 ---
 

@@ -347,7 +347,15 @@
   white-space: pre-wrap;
 }
 
-/* Desktop adjustments */
+/* Info tab grid - single column on mobile, 2-col on desktop */
+.show-details-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-md);
+  width: 100%;
+}
+
+/* Tablet adjustments (768px+) */
 @media (min-width: 768px) {
   .show-details-container {
     padding: 0 var(--token-space-3xl);
@@ -356,6 +364,7 @@
   .show-details-content {
     padding: var(--token-space-lg) 0;
     gap: var(--token-space-md);
+    max-width: 800px; /* Wider on tablet */
   }
 
   .show-details-card {
@@ -371,6 +380,41 @@
   }
 }
 
+/* Desktop adjustments (1024px+) */
+@media (min-width: 1024px) {
+  .show-details-container {
+    padding: 0 var(--token-space-4xl);
+  }
+
+  .show-details-content {
+    max-width: 1000px; /* Much wider on desktop for table */
+    gap: var(--token-space-lg);
+  }
+
+  /* Info tab: 2-column grid on desktop */
+  .show-details-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--token-space-lg);
+  }
+
+  /* Notes card spans full width */
+  .show-details-info-grid .show-details-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Large desktop (1280px+) */
+@media (min-width: 1280px) {
+  .show-details-content {
+    max-width: 1200px; /* Even wider for large monitors */
+  }
+
+  .show-details-info-grid {
+    gap: var(--token-space-xl);
+  }
+}
+
 /* Dark mode adjustments */
 .theme-dark .show-detail-link {
   background: rgba(255, 255, 255, 0.05);
@@ -379,3 +423,5 @@
 .theme-dark .show-detail-link:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+
+/* Page-level tabs use shared TabBar component from components/ui/TabBar.css */

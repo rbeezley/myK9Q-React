@@ -7,6 +7,11 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { ErrorState, PullToRefresh, TabBar, Tab, FilterPanel, SortOption } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
+import { ClassOptionsDialog } from '../../components/dialogs/ClassOptionsDialog';
+import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
+import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
+import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
+import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
@@ -30,6 +35,7 @@ import {
 } from './components';
 // CSS imported in index.css to prevent FOUC
 
+// eslint-disable-next-line complexity -- Large page component with many dialog/action handlers
 export const EntryList: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
@@ -78,6 +84,11 @@ export const EntryList: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false);
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
+  const [classOptionsDialogOpen, setClassOptionsDialogOpen] = useState(false);
+  const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
+  const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [noStatsDialogOpen, setNoStatsDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
@@ -584,9 +595,11 @@ export const EntryList: React.FC = () => {
         actionsMenu={{
           showRunOrder: hasPermission('canChangeRunOrder'),
           showRecalculatePlacements: hasPermission('canManageClasses'),
+          showClassSettings: hasPermission('canManageClasses'),
           isRecalculatingPlacements,
           onRunOrderClick: () => setRunOrderDialogOpen(true),
           onRecalculatePlacements: handleRecalculatePlacements,
+          onClassSettingsClick: () => setClassOptionsDialogOpen(true),
           printOptions: [
             { label: 'Check-In Sheet', onClick: handlePrintCheckIn, icon: 'checkin' },
             { label: 'Results Sheet', onClick: handlePrintResults, icon: 'results', disabled: completedEntries.length === 0 },
@@ -663,6 +676,94 @@ export const EntryList: React.FC = () => {
         entries={localEntries}
         onApplyOrder={handleApplyRunOrder}
         onOpenDragMode={handleOpenDragMode}
+      />
+
+      {/* Class Options Dialog (grid of actions) */}
+      {classInfo && (
+        <ClassOptionsDialog
+          isOpen={classOptionsDialogOpen}
+          onClose={() => setClassOptionsDialogOpen(false)}
+          classData={{
+            id: Number(classId),
+            element: classInfo.element,
+            level: classInfo.level,
+            class_name: classInfo.className,
+            entry_count: localEntries.length,
+            completed_count: completedEntries.length
+          }}
+          onRequirements={() => setRequirementsDialogOpen(true)}
+          onSetMaxTime={() => setMaxTimeDialogOpen(true)}
+          onSettings={() => setSettingsDialogOpen(true)}
+          onStatistics={() => {
+            if (completedEntries.length === 0) {
+              setNoStatsDialogOpen(true);
+              return false; // Don't close dialog
+            }
+            if (classInfo.trialId) {
+              navigate(`/stats/trial/${classInfo.trialId}?classId=${classId}`);
+            }
+          }}
+          onPrintCheckIn={handlePrintCheckIn}
+          onPrintResults={handlePrintResults}
+          onPrintScoresheet={handlePrintScoresheet}
+        />
+      )}
+
+      {/* Class Requirements Dialog */}
+      {classInfo && (
+        <ClassRequirementsDialog
+          isOpen={requirementsDialogOpen}
+          onClose={() => setRequirementsDialogOpen(false)}
+          onSetMaxTime={() => {
+            setRequirementsDialogOpen(false);
+            setMaxTimeDialogOpen(true);
+          }}
+          classData={{
+            id: Number(classId),
+            element: classInfo.element,
+            level: classInfo.level,
+            class_name: classInfo.className,
+            entry_count: localEntries.length
+          }}
+        />
+      )}
+
+      {/* Max Time Dialog */}
+      {classInfo && (
+        <MaxTimeDialog
+          isOpen={maxTimeDialogOpen}
+          onClose={() => setMaxTimeDialogOpen(false)}
+          classData={{
+            id: Number(classId),
+            element: classInfo.element,
+            level: classInfo.level,
+            class_name: classInfo.className
+          }}
+          onTimeUpdate={refresh}
+        />
+      )}
+
+      {/* Class Settings Dialog */}
+      {classInfo && (
+        <ClassSettingsDialog
+          isOpen={settingsDialogOpen}
+          onClose={() => setSettingsDialogOpen(false)}
+          classData={{
+            id: Number(classId),
+            element: classInfo.element,
+            level: classInfo.level,
+            class_name: classInfo.className,
+            self_checkin_enabled: classInfo.selfCheckin
+          }}
+          onSettingsUpdate={refresh}
+        />
+      )}
+
+      {/* No Stats Dialog */}
+      <NoStatsDialog
+        isOpen={noStatsDialogOpen}
+        onClose={() => setNoStatsDialogOpen(false)}
+        className={classInfo?.className || ''}
       />
 
       <ResetMenuPopup
