@@ -68,9 +68,9 @@ export function ShowDetails() {
   // Get first trial ID for navigation (temporary until we handle multi-trial)
   const firstTrialId = trials.length > 0 ? String(trials[0].id) : undefined;
 
-  // Handle refresh
+  // Handle refresh - full refresh when user explicitly taps refresh button
   const handleRefresh = () => {
-    refetch();
+    refetch({ all: true });
   };
 
   // Handle tab change
@@ -128,6 +128,9 @@ export function ShowDetails() {
               pendingClasses={pendingClasses}
               completedClasses={completedClasses}
               trialId={firstTrialId}
+              licenseKey={licenseKey}
+              organization={show.organization}
+              onClassUpdate={refetch}
             />
           </>
         ) : (

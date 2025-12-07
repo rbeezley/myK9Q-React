@@ -10,8 +10,8 @@
  * Uses offline-first approach with replicated cache.
  */
 
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAnnouncementStore, type Announcement } from '@/stores/announcementStore';
 import { useHomeDashboardData, type TrialData } from '@/pages/Home/hooks/useHomeDashboardData';
 import { replicatedShowsTable, type Show } from '@/services/replication';
@@ -38,6 +38,15 @@ export interface ClassSummary {
   trial_number: number;
   trial_date: string;
   planned_start_time?: string;
+  // Status-related time fields for ClassStatusDialog
+  briefing_time?: string;
+  break_until_time?: string;
+  start_time?: string;
+  // Time limit fields for scoresheet printing
+  time_limit_seconds?: number;
+  time_limit_area2_seconds?: number;
+  time_limit_area3_seconds?: number;
+  area_count?: number;
 }
 
 export interface FavoriteEntry {
@@ -77,7 +86,7 @@ export interface DashboardData {
   // State
   isLoading: boolean;
   error: string | null;
-  refetch: () => void;
+  refetch: (options?: { all?: boolean }) => Promise<void>;
 }
 
 // ============================================================
@@ -155,6 +164,15 @@ async function fetchAllClasses(licenseKey: string): Promise<ClassSummary[]> {
         trial_number: trialInfo.trial_number,
         trial_date: trialInfo.trial_date,
         planned_start_time: cls.planned_start_time || cls.start_time || undefined,
+        // Status-related time fields for ClassStatusDialog
+        briefing_time: cls.briefing_time,
+        break_until_time: cls.break_until,
+        start_time: cls.start_time,
+        // Time limit fields for scoresheet printing
+        time_limit_seconds: cls.time_limit_seconds,
+        time_limit_area2_seconds: cls.time_limit_area2_seconds,
+        time_limit_area3_seconds: cls.time_limit_area3_seconds,
+        area_count: cls.area_count,
       };
     });
 
@@ -290,6 +308,9 @@ export function useDashboardData(
   licenseKey: string | undefined,
   showId: string | number | undefined
 ): DashboardData {
+  // Get query client for cache invalidation
+  const queryClient = useQueryClient();
+
   // Get announcement data from store
   const {
     announcements,
@@ -379,13 +400,22 @@ export function useDashboardData(
   // Combine errors
   const error = homeDataError?.message || classesQuery.error?.message || showQuery.error?.message || null;
 
-  // Combined refetch
-  const refetch = () => {
-    refetchHomeData();
-    classesQuery.refetch();
-    showQuery.refetch();
-    favoriteEntriesQuery.refetch();
-  };
+  // Combined refetch - uses refetchQueries for immediate data refresh
+  // NOTE: Only refetches classes query by default to avoid "show not found" race condition
+  const refetch = useCallback(async (options?: { all?: boolean }): Promise<void> => {
+    // Force immediate refetch of classes query (not just invalidate)
+    await queryClient.refetchQueries({
+      queryKey: dashboardKeys.classes(licenseKey || ''),
+      type: 'active',
+    });
+
+    // Only refetch other queries if explicitly requested (e.g., full page refresh)
+    if (options?.all) {
+      refetchHomeData();
+      showQuery.refetch();
+      favoriteEntriesQuery.refetch();
+    }
+  }, [queryClient, licenseKey, refetchHomeData, showQuery, favoriteEntriesQuery]);
 
   return {
     stats,

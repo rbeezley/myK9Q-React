@@ -124,21 +124,26 @@
    CLASS ROW - MOBILE (default)
    ============================================================ */
 
+.class-row-wrapper {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+}
+
+.class-row-wrapper:last-child {
+  border-bottom: none;
+}
+
 .class-row {
   display: block;
-  width: 100%;
-  padding: 12px 16px;
+  flex: 1;
+  padding: 12px 8px 12px 16px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--border);
   text-align: left;
   cursor: pointer;
   transition: background-color 0.2s ease;
   font-family: inherit;
-}
-
-.class-row:last-child {
-  border-bottom: none;
 }
 
 .class-row:hover {
@@ -150,6 +155,35 @@
 }
 
 .class-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* Options button */
+.class-row__options-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.class-row__options-btn:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.class-row__options-btn:active {
+  background: var(--accent);
+}
+
+.class-row__options-btn:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: -2px;
 }
@@ -266,6 +300,18 @@
   background: var(--muted-foreground);
 }
 
+.class-row__status-dot.status--setup {
+  background: #a855f7;
+}
+
+.class-row__status-dot.status--briefing {
+  background: #3b82f6;
+}
+
+.class-row__status-dot.status--break {
+  background: #f97316;
+}
+
 .class-row__status-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -289,6 +335,21 @@
 .class-row__status-badge.status--completed {
   background: rgba(34, 197, 94, 0.15);
   color: #22c55e;
+}
+
+.class-row__status-badge.status--setup {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.class-row__status-badge.status--briefing {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.class-row__status-badge.status--break {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
 }
 
 /* ============================================================
@@ -415,7 +476,7 @@
   /* Hide desktop-only columns */
   .class-table__header-cell--trial,
   .class-table__header-cell--status,
-  .class-table__header-cell--chevron {
+  .class-table__header-cell--options {
     display: none;
   }
 
@@ -482,14 +543,7 @@
     text-align: center;
   }
 
-  .class-row__cell--chevron {
-    flex: 0;
-    width: 24px;
-    color: var(--muted-foreground);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-  }
+  /* Options button is handled separately outside the row */
 
   /* Table header for desktop */
   .class-table__header {
@@ -536,9 +590,9 @@
     text-align: center;
   }
 
-  .class-table__header-cell--chevron {
+  .class-table__header-cell--options {
     display: block;
-    width: 24px;
+    width: 44px;
   }
 
   /* Taller scroll area on desktop */
@@ -613,4 +667,220 @@
 
 .theme-dark .class-row__trial-badge--desktop {
   background: rgba(20, 184, 166, 0.15);
+}
+
+/* ============================================================
+   INLINE EDITOR STYLES
+   ============================================================ */
+
+/* Editable cell button - shows pencil icon on hover */
+.inline-editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.inline-editable:hover {
+  background: var(--muted);
+  border-color: var(--border);
+}
+
+.inline-editable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.inline-editable__icon {
+  opacity: 0;
+  color: var(--muted-foreground);
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.inline-editable:hover .inline-editable__icon {
+  opacity: 1;
+}
+
+/* For touch devices, always show the icon subtly */
+@media (hover: none) {
+  .inline-editable__icon {
+    opacity: 0.5;
+  }
+}
+
+/* Time Editor */
+.inline-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inline-editor__input {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  min-width: 90px;
+}
+
+.inline-editor__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+}
+
+.inline-editor__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inline-editor__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inline-editor__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inline-editor__btn--save {
+  background: var(--primary);
+  color: white;
+}
+
+.inline-editor__btn--save:hover:not(:disabled) {
+  background: var(--primary-hover, #0d9488);
+}
+
+.inline-editor__btn--cancel {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.inline-editor__btn--cancel:hover:not(:disabled) {
+  background: var(--border);
+  color: var(--foreground);
+}
+
+/* Status Editor */
+.inline-status-editor {
+  position: relative;
+  display: inline-block;
+}
+
+.inline-status-editor .inline-editable {
+  padding: 2px 8px;
+}
+
+.inline-status-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 50;
+  min-width: 140px;
+  margin-top: 4px;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.inline-status-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-family: inherit;
+  text-align: left;
+}
+
+.inline-status-option:hover {
+  background: var(--muted);
+}
+
+.inline-status-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inline-status-option--active {
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.inline-status-option--active:hover {
+  background: rgba(20, 184, 166, 0.15);
+}
+
+/* Dark mode adjustments for inline editors */
+.theme-dark .inline-editable:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .inline-editor__input {
+  background: var(--background);
+  border-color: var(--border);
+}
+
+.theme-dark .inline-status-dropdown {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark .inline-status-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .inline-status-option--active {
+  background: rgba(20, 184, 166, 0.15);
+}
+
+/* Mobile adjustments for inline editing */
+@media (max-width: 639px) {
+  .inline-editor {
+    flex-wrap: nowrap;
+  }
+
+  .inline-editor__input {
+    min-width: 80px;
+    font-size: 0.8125rem;
+  }
+
+  .inline-status-dropdown {
+    right: 0;
+    left: auto;
+  }
 }
