@@ -64,7 +64,7 @@ export function ShowDetailsHeader({
       <div className="header-center">
         <h1>
           <Building2 className="title-icon" />
-          Show Info
+          Show Details
         </h1>
         {subtitle && <p className="header-subtitle">{subtitle}</p>}
       </div>

@@ -8,7 +8,7 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { Star, ChevronRight, CircleDot, Clock } from 'lucide-react';
+import { Heart, ChevronRight, CircleDot, Clock } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import type { FavoriteEntry } from '../hooks/useDashboardData';
 import './FavoritesCard.css';
@@ -96,8 +96,8 @@ function FavoriteRow({
 function EmptyState({ onViewAll }: { onViewAll: () => void }) {
   return (
     <div className="favorites-card__empty">
-      <Star size={32} className="favorites-card__empty-icon" />
-      <p>Star your dogs to track them here</p>
+      <Heart size={32} className="favorites-card__empty-icon" />
+      <p>Favorite your dogs to track them here</p>
       <button className="favorites-card__empty-action" onClick={onViewAll}>
         Go to Home
         <ChevronRight size={16} />
@@ -142,7 +142,7 @@ export function FavoritesCard({
     <div className="favorites-card">
       <div className="favorites-card__header">
         <div className="favorites-card__title">
-          <Star size={18} className="favorites-card__icon" />
+          <Heart size={18} className="favorites-card__icon" />
           <span>My Favorites</span>
           {entries.length > 0 && (
             <span className="favorites-card__count">{entries.length}</span>

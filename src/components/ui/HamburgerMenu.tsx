@@ -179,7 +179,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 onClick={() => handleMenuItemClick(() => navigate(`/show/${showContext?.licenseKey}`))}
               >
                 <Building2 className="menu-icon" />
-                <span>Show Info</span>
+                <span>Show Details</span>
               </button>
 
               {/* Show-related */}

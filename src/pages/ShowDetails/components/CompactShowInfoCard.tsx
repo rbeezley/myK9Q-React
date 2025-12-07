@@ -161,7 +161,7 @@ export function CompactShowInfoCard({ show, onViewMore }: CompactShowInfoCardPro
       <div className="compact-show-card__header">
         <div className="compact-show-card__title">
           <MapPin size={18} className="compact-show-card__icon" />
-          <span>Show Info</span>
+          <span>Show Details</span>
         </div>
         {onViewMore && (
           <button

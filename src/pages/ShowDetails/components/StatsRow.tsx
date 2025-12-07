@@ -12,7 +12,7 @@
 
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Star, Clock, BarChart3 } from 'lucide-react';
+import { Bell, Heart, Clock, BarChart3 } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import type { DashboardStats } from '../hooks/useDashboardData';
 import './StatsRow.css';
@@ -108,7 +108,7 @@ export function StatsRow({ stats, licenseKey: _licenseKey, trialId }: StatsRowPr
         aria-label={`${stats.unreadAnnouncements} unread messages`}
       />
       <StatBox
-        icon={<Star size={20} />}
+        icon={<Heart size={20} />}
         value={stats.favoritesPending}
         unit="dogs"
         label="favorites"

@@ -6,7 +6,7 @@
  * - Class overview table with tabs (Pending / Completed)
  * - Show contact information
  *
- * Accessible from hamburger menu as "Show Info".
+ * Accessible from hamburger menu as "Show Details".
  */
 
 import { useEffect, useState } from 'react';
