@@ -312,6 +312,10 @@
   background: var(--status-break);
 }
 
+.class-row__status-dot.status--start-time {
+  background: var(--status-start-time);
+}
+
 .class-row__status-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -350,6 +354,11 @@
 .class-row__status-badge.status--break {
   background: var(--status-break);
   color: var(--status-break-text);
+}
+
+.class-row__status-badge.status--start-time {
+  background: var(--status-start-time);
+  color: var(--status-start-time-text);
 }
 
 /* ============================================================

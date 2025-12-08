@@ -359,9 +359,14 @@ export function useDashboardData(
   });
 
   // Compute derived stats
+  // Note: Database uses underscores (in_progress), but some places use dashes (in-progress)
+  // We check for both to handle any inconsistencies
   const stats = useMemo((): DashboardStats => {
     const classes = classesQuery.data || [];
-    const activeClasses = classes.filter(c => c.class_status === 'in-progress' || c.class_status === 'offline-scoring').length;
+    const activeClasses = classes.filter(c =>
+      c.class_status === 'in_progress' || c.class_status === 'in-progress' ||
+      c.class_status === 'offline-scoring' || c.class_status === 'offline_scoring'
+    ).length;
     const completedClasses = classes.filter(c => c.class_status === 'completed').length;
     const totalClasses = classes.length;
     const completionPercent = totalClasses > 0 ? Math.round((completedClasses / totalClasses) * 100) : 0;

@@ -65,10 +65,20 @@ interface ClassRowProps {
 // ============================================================
 
 /**
+ * Normalize status string to use dashes (CSS convention)
+ * Database uses underscores (in_progress), CSS uses dashes (in-progress)
+ */
+function normalizeStatus(status: string): string {
+  return status.replace(/_/g, '-');
+}
+
+/**
  * Get status badge info based on class_status
+ * Accepts both database format (in_progress) and CSS format (in-progress)
  */
 function getStatusInfo(status: string): { label: string; className: string } {
-  switch (status) {
+  const normalized = normalizeStatus(status);
+  switch (normalized) {
     case 'in-progress':
       return { label: 'In Progress', className: 'status--in-progress' };
     case 'offline-scoring':
@@ -83,9 +93,11 @@ function getStatusInfo(status: string): { label: string; className: string } {
       return { label: 'Briefing', className: 'status--briefing' };
     case 'break':
       return { label: 'Break', className: 'status--break' };
+    case 'start-time':
+      return { label: 'Starts', className: 'status--start-time' };
     case 'no-status':
     default:
-      return { label: 'Pending', className: 'status--pending' };
+      return { label: 'No Status', className: 'status--no-status' };
   }
 }
 
