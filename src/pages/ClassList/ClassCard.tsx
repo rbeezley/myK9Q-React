@@ -380,12 +380,12 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               })()}
               {/* Show remaining count */}
               {classEntry.entry_count - classEntry.completed_count > 0 && (
-                <span style={{ marginLeft: 'auto', color: '#94a3b8' }}>
+                <span className="remaining-count">
                   {classEntry.entry_count - classEntry.completed_count} of {classEntry.entry_count} remaining
                 </span>
               )}
               {classEntry.class_status === 'completed' && (
-                <span style={{ marginLeft: 'auto', color: '#94a3b8' }}>
+                <span className="remaining-count">
                   All complete
                 </span>
               )}

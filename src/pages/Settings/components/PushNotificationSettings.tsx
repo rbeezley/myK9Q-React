@@ -86,9 +86,9 @@ export function PushNotificationSettings({
           alignItems: 'start',
           marginBottom: '12px'
         }}>
-          <AlertCircle size={18} color="#f59e0b" style={{ marginTop: '2px' }} />
+          <AlertCircle size={18} style={{ marginTop: '2px', color: 'var(--token-warning)' }} />
           <div>
-            <div style={{ color: '#f59e0b', fontWeight: 600, fontSize: '14px' }}>
+            <div style={{ color: 'var(--token-warning)', fontWeight: 600, fontSize: '14px' }}>
               Browser Not Supported
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
@@ -109,9 +109,9 @@ export function PushNotificationSettings({
           gap: '12px',
           alignItems: 'start'
         }}>
-          <AlertCircle size={18} color="#ef4444" style={{ marginTop: '2px' }} />
+          <AlertCircle size={18} style={{ marginTop: '2px', color: 'var(--token-error)' }} />
           <div>
-            <div style={{ color: '#ef4444', fontWeight: 600, fontSize: '14px' }}>
+            <div style={{ color: 'var(--token-error)', fontWeight: 600, fontSize: '14px' }}>
               Notifications Blocked
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
@@ -132,8 +132,8 @@ export function PushNotificationSettings({
           gap: '12px',
           alignItems: 'center'
         }}>
-          <CheckCircle size={18} color="#10b981" />
-          <div style={{ color: '#10b981', fontWeight: 600, fontSize: '14px' }}>
+          <CheckCircle size={18} style={{ color: 'var(--token-success)' }} />
+          <div style={{ color: 'var(--token-success)', fontWeight: 600, fontSize: '14px' }}>
             Active & Ready
           </div>
         </div>

@@ -215,7 +215,7 @@ export function Settings() {
               <li>Notification preferences</li>
               <li>All locally cached data</li>
             </ul>
-            <p className="modal-hint" style={{ fontWeight: 600, color: '#ef4444' }}>
+            <p className="modal-hint" style={{ fontWeight: 600, color: 'var(--token-error)' }}>
               You will remain logged in, but all other data will be lost. This cannot be undone.
             </p>
             <p className="modal-hint">

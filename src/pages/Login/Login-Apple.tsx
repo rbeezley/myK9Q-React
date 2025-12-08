@@ -240,10 +240,10 @@ export const Login: React.FC = () => {
               textAlign: 'center'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF3B30">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--token-error)">
                   <path d="M12 2L22 20H2L12 2ZM12 17C11.4 17 11 16.6 11 16S11.4 15 12 15 13 15.4 13 16 12.6 17 12 17ZM11 14V10H13V14H11Z"/>
                 </svg>
-                <span style={{ color: '#FF3B30', fontSize: '0.875rem', fontWeight: '500' }}>
+                <span style={{ color: 'var(--token-error)', fontSize: '0.875rem', fontWeight: '500' }}>
                   {error}
                 </span>
               </div>

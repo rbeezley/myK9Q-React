@@ -164,19 +164,19 @@ export const DogStatistics: React.FC<DogStatisticsProps> = ({ classes, dogName }
     const nqCount = visibleQualifications.filter(c => !isEntryQualified(c)).length;
     const totalScored = visibleQualifications.length;
 
-    // Results distribution data - use same colors as Stats page
+    // Results distribution data - use design tokens for colors
     const resultsData = [
       {
         name: 'Qualified',
         value: qualifiedCount,
         percentage: totalScored > 0 ? (qualifiedCount / totalScored) * 100 : 0,
-        color: '#10b981' // Green - matches Stats page
+        color: 'var(--status-qualified)' // Green from design tokens
       },
       {
         name: 'NQ',
         value: nqCount,
         percentage: totalScored > 0 ? (nqCount / totalScored) * 100 : 0,
-        color: '#ef4444' // Red - matches Stats page
+        color: 'var(--status-not-qualified)' // Red from design tokens
       }
     ].filter(item => item.value > 0);
 
@@ -337,11 +337,11 @@ export const DogStatistics: React.FC<DogStatisticsProps> = ({ classes, dogName }
 
   const getCheckInStatusColor = (status: string) => {
     switch (status) {
-      case 'checked-in': return '#3b82f6'; // Blue
-      case 'at-gate': return '#8b5cf6'; // Purple
-      case 'conflict': return '#f59e0b'; // Orange
-      case 'pulled': return '#ef4444'; // Red
-      default: return '#6b7280'; // Gray
+      case 'checked-in': return 'var(--checkin-checked-in)';
+      case 'at-gate': return 'var(--checkin-at-gate)';
+      case 'conflict': return 'var(--checkin-conflict)';
+      case 'pulled': return 'var(--checkin-pulled)';
+      default: return 'var(--muted-foreground)';
     }
   };
 

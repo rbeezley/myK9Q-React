@@ -214,7 +214,7 @@ setRequirements(requirementsData);
                   role={onSetMaxTime ? "button" : undefined}
                   tabIndex={onSetMaxTime ? 0 : undefined}
                 >
-                  <div className="requirement-icon" style={{ background: '#3b82f6' }}>
+                  <div className="requirement-icon" style={{ background: 'var(--status-in-progress)' }}>
                     <Clock size={20} />
                   </div>
                   <div className="requirement-content">
@@ -225,7 +225,7 @@ setRequirements(requirementsData);
 
                 {/* Hides */}
                 <div className="requirement-item">
-                  <div className="requirement-icon" style={{ background: '#06b6d4' }}>
+                  <div className="requirement-icon" style={{ background: 'var(--status-start-time)' }}>
                     <Target size={20} />
                   </div>
                   <div className="requirement-content">
@@ -236,7 +236,7 @@ setRequirements(requirementsData);
 
                 {/* Distractions */}
                 <div className="requirement-item">
-                  <div className="requirement-icon" style={{ background: '#f59e0b' }}>
+                  <div className="requirement-icon" style={{ background: 'var(--token-warning)' }}>
                     <AlertTriangle size={20} />
                   </div>
                   <div className="requirement-content">
@@ -247,7 +247,7 @@ setRequirements(requirementsData);
 
                 {/* Required Calls (AKC) or Final Response (UKC) */}
                 <div className="requirement-item">
-                  <div className="requirement-icon" style={{ background: '#8b5cf6' }}>
+                  <div className="requirement-icon" style={{ background: 'var(--checkin-at-gate)' }}>
                     <Speech size={20} />
                   </div>
                   <div className="requirement-content">
@@ -265,7 +265,7 @@ setRequirements(requirementsData);
                 {/* Height */}
                 {requirements.height && requirements.height !== '-' && (
                   <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: '#ec4899' }}>
+                    <div className="requirement-icon" style={{ background: 'var(--status-break)' }}>
                       <Ruler size={20} />
                     </div>
                     <div className="requirement-content">
@@ -280,7 +280,7 @@ setRequirements(requirementsData);
                   classData.element === 'Buried' ||
                   (classData.element === 'Handler Discrimination' && classData.level === 'Novice A')) && (
                   <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: '#14b8a6' }}>
+                    <div className="requirement-icon" style={{ background: 'var(--primary)' }}>
                       <Package size={20} />
                     </div>
                     <div className="requirement-content">
@@ -295,7 +295,7 @@ setRequirements(requirementsData);
                 {/* Area Size */}
                 {requirements.area_size && requirements.area_size !== '-' && (
                   <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: '#10b981' }}>
+                    <div className="requirement-icon" style={{ background: 'var(--token-success)' }}>
                       <MapPin size={20} />
                     </div>
                     <div className="requirement-content">
@@ -308,7 +308,7 @@ setRequirements(requirementsData);
                 {/* Area Count */}
                 {requirements.area_count > 1 && (
                   <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: '#10b981' }}>
+                    <div className="requirement-icon" style={{ background: 'var(--token-success)' }}>
                       <MapPin size={20} />
                     </div>
                     <div className="requirement-content">
