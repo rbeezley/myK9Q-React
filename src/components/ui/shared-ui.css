@@ -629,13 +629,7 @@
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) rgba(99, 102, 241, 0.2);
 }
 
-.tab-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.125rem;
-  height: 1.125rem;
-}
+/* .tab-icon styles moved to TabBar.css - single source of truth */
 
 .tab-text {
   font-weight: 600;
@@ -5829,10 +5823,7 @@ select.form-input {
     padding: 0.625rem var(--token-space-xl);
     font-size: 0.875rem;
   }
-  .tab-icon {
-    width: 1rem;
-    height: 1rem;
-  }
+  /* .tab-icon responsive styles in TabBar.css */
 
   /* S T I C K Y H E A D E R COMPONENT */
   .sticky-header.is-sticky {

@@ -277,10 +277,7 @@
   }
 }
 
-.tab-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-}
+/* .tab-icon styles in TabBar.css */
 
 .tab-badge {
   background: var(--primary);

@@ -126,13 +126,27 @@
   color: var(--primary-foreground);
 }
 
-/* Mobile - hide icons to save space on narrow screens */
+/* Mobile - compact tabs to fit narrow screens */
 @media (max-width: 480px) {
-  .tab-icon {
+  .tab-bar .tab-icon {
     display: none;
   }
 
-  /* Additional compacting when filter button present */
+  /* Compact padding and font for all tab bars */
+  .tab-bar-button {
+    padding: 10px 10px;
+    font-size: 0.8125rem;
+    gap: 4px;
+  }
+
+  .tab-count {
+    font-size: 0.625rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  /* Extra compacting when filter button present */
   .tab-bar-wrapper.has-right-element {
     gap: var(--token-space-sm);
   }
@@ -143,16 +157,7 @@
   }
 
   .tab-bar-wrapper.has-right-element .tab-bar-button {
-    padding: 10px 12px;
-    font-size: 0.8125rem;
-    gap: 4px;
-  }
-
-  .tab-bar-wrapper.has-right-element .tab-count {
-    font-size: 0.625rem;
-    min-width: 1rem;
-    height: 1rem;
-    padding: 0 0.25rem;
+    padding: 10px 8px;
   }
 }
 
