@@ -323,33 +323,33 @@
 }
 
 .class-row__status-badge.status--in-progress {
-  background: color-mix(in srgb, var(--status-in-progress) 15%, transparent);
-  color: var(--status-in-progress);
+  background: var(--status-in-progress);
+  color: var(--status-in-progress-text);
 }
 
 .class-row__status-badge.status--scoring {
-  background: color-mix(in srgb, var(--status-offline-scoring) 15%, transparent);
-  color: var(--status-offline-scoring);
+  background: var(--status-offline-scoring);
+  color: var(--status-offline-scoring-text);
 }
 
 .class-row__status-badge.status--completed {
-  background: color-mix(in srgb, var(--status-completed) 15%, transparent);
-  color: var(--status-completed);
+  background: var(--status-completed);
+  color: var(--status-completed-text);
 }
 
 .class-row__status-badge.status--setup {
-  background: color-mix(in srgb, var(--status-setup) 15%, transparent);
-  color: var(--status-setup);
+  background: var(--status-setup);
+  color: var(--status-setup-text);
 }
 
 .class-row__status-badge.status--briefing {
-  background: color-mix(in srgb, var(--status-briefing) 15%, transparent);
-  color: var(--status-briefing);
+  background: var(--status-briefing);
+  color: var(--status-briefing-text);
 }
 
 .class-row__status-badge.status--break {
-  background: color-mix(in srgb, var(--status-break) 15%, transparent);
-  color: var(--status-break);
+  background: var(--status-break);
+  color: var(--status-break-text);
 }
 
 /* ============================================================
