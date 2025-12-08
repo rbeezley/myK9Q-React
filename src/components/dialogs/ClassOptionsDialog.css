@@ -118,6 +118,14 @@
   background: #a78bfa;
 }
 
+.class-option-icon.icon-info {
+  background: #3b82f6;
+  color: white;
+}
+.theme-dark .class-option-icon.icon-info {
+  background: #60a5fa;
+}
+
 /* Label */
 .class-option-label {
   grid-column: 2;

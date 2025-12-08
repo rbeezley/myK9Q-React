@@ -804,7 +804,8 @@ export function ClassTable({ pendingClasses, completedClasses, trialId: _trialId
             level: selectedClass.level,
             class_name: selectedClass.class_name,
             entry_count: selectedClass.entry_count,
-            completed_count: selectedClass.completed_count
+            completed_count: selectedClass.completed_count,
+            class_status: selectedClass.class_status
           }}
           onRequirements={() => setRequirementsOpen(true)}
           onSetMaxTime={() => setMaxTimeOpen(true)}
@@ -815,6 +816,10 @@ export function ClassTable({ pendingClasses, completedClasses, trialId: _trialId
               return false; // Don't close dialog
             }
             navigate(`/stats/trial/${selectedClass.trial_id}?classId=${selectedClass.id}`);
+          }}
+          onStatus={() => {
+            setStatusDialogClass(selectedClass);
+            setStatusDialogOpen(true);
           }}
           onPrintCheckIn={handlePrintCheckIn}
           onPrintResults={handlePrintResults}

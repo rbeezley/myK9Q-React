@@ -15,7 +15,8 @@ import {
   Settings,
   BarChart3,
   FileText,
-  Award
+  Award,
+  Activity
 } from 'lucide-react';
 import './shared-dialog.css';
 import './ClassOptionsDialog.css';
@@ -27,6 +28,10 @@ export interface ClassOptionsData {
   class_name: string;
   entry_count?: number;
   completed_count?: number;
+  class_status?: string;
+  briefing_time?: string;
+  break_until_time?: string;
+  start_time?: string;
 }
 
 export interface ClassOptionsDialogProps {
@@ -41,6 +46,8 @@ export interface ClassOptionsDialogProps {
   onSettings?: () => void;
   /** Called when Statistics is clicked. Returns false to prevent close (e.g., show warning) */
   onStatistics?: () => boolean | void;
+  /** Called when Status is clicked */
+  onStatus?: () => void;
   /** Called when Check-In Sheet is clicked */
   onPrintCheckIn?: () => void;
   /** Called when Results Sheet is clicked */
@@ -52,6 +59,7 @@ export interface ClassOptionsDialogProps {
   hideMaxTime?: boolean;
   hideSettings?: boolean;
   hideStatistics?: boolean;
+  hideStatus?: boolean;
   hidePrintOptions?: boolean;
 }
 
@@ -63,6 +71,7 @@ export const ClassOptionsDialog: React.FC<ClassOptionsDialogProps> = ({
   onSetMaxTime,
   onSettings,
   onStatistics,
+  onStatus,
   onPrintCheckIn,
   onPrintResults,
   onPrintScoresheet,
@@ -70,6 +79,7 @@ export const ClassOptionsDialog: React.FC<ClassOptionsDialogProps> = ({
   hideMaxTime = false,
   hideSettings = false,
   hideStatistics = false,
+  hideStatus = false,
   hidePrintOptions = false,
 }) => {
   if (!isOpen || !classData) return null;
@@ -158,6 +168,20 @@ export const ClassOptionsDialog: React.FC<ClassOptionsDialogProps> = ({
                 </div>
                 <div className="class-option-label">Statistics</div>
                 <div className="class-option-description">View class performance data</div>
+              </button>
+            )}
+
+            {/* Status */}
+            {!hideStatus && onStatus && (
+              <button
+                className="class-option-item"
+                onClick={() => handleOptionClick(onStatus)}
+              >
+                <div className="class-option-icon icon-info">
+                  <Activity size={20} />
+                </div>
+                <div className="class-option-label">Status</div>
+                <div className="class-option-description">Update class status</div>
               </button>
             )}
 

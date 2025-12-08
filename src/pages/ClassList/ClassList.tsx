@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -11,7 +10,7 @@ import { logger } from '@/utils/logger';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { ArrowLeft, RefreshCw, Target, ClipboardList, Clock, Settings, BarChart3, FileText, Award, X, List } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Target, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
@@ -19,6 +18,7 @@ import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { NoEntriesDialog } from '../../components/dialogs/NoEntriesDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
+import { ClassOptionsDialog } from '../../components/dialogs/ClassOptionsDialog';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { ClassCard } from './ClassCard';
@@ -31,7 +31,6 @@ import { usePrintReports, type ReportDependencies } from './hooks/usePrintReport
 import { useFavoriteClasses } from './hooks/useFavoriteClasses';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
 
-// eslint-disable-next-line complexity -- Large page component with many features; refactoring tracked in DEBT_REGISTER.md
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
@@ -719,177 +718,75 @@ export const ClassList: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Menu Popup */}
-      {activePopup !== null && createPortal(
-        <div
-          className="dialog-overlay"
-          onClick={() => setActivePopup(null)}
-        >
-          <div
-            className="dialog-container"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="dialog-header">
-              <div className="dialog-title">
-                <List className="title-icon" />
-                <span>Class Options</span>
-              </div>
-              <button
-                className="close-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActivePopup(null);
-                }}
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="dialog-content">
-              {/* Class Info Header */}
-              <div className="class-info-header">
-                <h3 className="class-title">
-                  {classes.find(c => c.id === activePopup)?.class_name || ''}
-                </h3>
-              </div>
-              <div className="class-options-grid">
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const classData = classes.find(c => c.id === activePopup);
-                    if (classData) {
-                      setSelectedClassForRequirements(classData);
-                      setRequirementsDialogOpen(true);
-                    }
-                    setActivePopup(null);
-                  }}
-                >
-                  <div className="class-option-icon icon-primary">
-                    <ClipboardList size={20} />
-                  </div>
-                  <div className="class-option-label">Requirements</div>
-                  <div className="class-option-description">View class rules and requirements</div>
-                </button>
-
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const classData = classes.find(c => c.id === activePopup);
-                    if (classData) {
-                      setSelectedClassForMaxTime(classData);
-                      setMaxTimeDialogOpen(true);
-                      setShowMaxTimeWarning(false);
-                    }
-                    setActivePopup(null);
-                  }}
-                >
-                  <div className="class-option-icon icon-accent">
-                    <Clock size={20} />
-                  </div>
-                  <div className="class-option-label">Set Max Time</div>
-                  <div className="class-option-description">Configure maximum time limits</div>
-                </button>
-
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const classData = classes.find(c => c.id === activePopup);
-                    if (classData) {
-                      setSelectedClassForSettings(classData);
-                      setSettingsDialogOpen(true);
-                    }
-                    setActivePopup(null);
-                  }}
-                >
-                  <div className="class-option-icon icon-muted">
-                    <Settings size={20} />
-                  </div>
-                  <div className="class-option-label">Settings</div>
-                  <div className="class-option-description">Configure class settings</div>
-                </button>
-
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (trialId && activePopup !== null) {
-                      // Check if class has any scored entries before navigating
-                      const classEntry = classes.find(c => c.id === activePopup);
-                      if (classEntry && classEntry.completed_count === 0) {
-                        // No scored entries - show dialog instead of navigating
-                        setNoStatsClassName(classEntry.class_name);
-                        setNoStatsDialogOpen(true);
-                        setActivePopup(null);
-                        return;
-                      }
-                      navigate(`/stats/trial/${trialId}?classId=${activePopup}`);
-                    }
-                    setActivePopup(null);
-                  }}
-                >
-                  <div className="class-option-icon icon-success">
-                    <BarChart3 size={20} />
-                  </div>
-                  <div className="class-option-label">Statistics</div>
-                  <div className="class-option-description">View class performance data</div>
-                </button>
-
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (activePopup !== null) {
-                      handleGenerateCheckIn(activePopup);
-                    }
-                  }}
-                >
-                  <div className="class-option-icon icon-warning">
-                    <FileText size={20} />
-                  </div>
-                  <div className="class-option-label">Check-In Sheet</div>
-                  <div className="class-option-description">Print check-in roster</div>
-                </button>
-
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (activePopup !== null) {
-                      handleGenerateResults(activePopup);
-                    }
-                  }}
-                >
-                  <div className="class-option-icon icon-secondary">
-                    <Award size={20} />
-                  </div>
-                  <div className="class-option-label">Results Sheet</div>
-                  <div className="class-option-description">Print results report</div>
-                </button>
-
-                <button
-                  className="class-option-item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (activePopup !== null) {
-                      handleGenerateScoresheet(activePopup);
-                    }
-                  }}
-                >
-                  <div className="class-option-icon icon-primary">
-                    <ClipboardList size={20} />
-                  </div>
-                  <div className="class-option-label">Scoresheet</div>
-                  <div className="class-option-description">Print judge scoresheet</div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Class Options Dialog - Shared reusable component */}
+      {(() => {
+        const selectedClass = activePopup !== null ? classes.find(c => c.id === activePopup) : null;
+        return (
+          <ClassOptionsDialog
+            isOpen={activePopup !== null}
+            onClose={() => setActivePopup(null)}
+            classData={selectedClass ? {
+              id: selectedClass.id,
+              element: selectedClass.element,
+              level: selectedClass.level,
+              class_name: selectedClass.class_name,
+              entry_count: selectedClass.entry_count,
+              completed_count: selectedClass.completed_count,
+              class_status: selectedClass.class_status
+            } : null}
+            onRequirements={() => {
+              if (selectedClass) {
+                setSelectedClassForRequirements(selectedClass);
+                setRequirementsDialogOpen(true);
+              }
+            }}
+            onSetMaxTime={() => {
+              if (selectedClass) {
+                setSelectedClassForMaxTime(selectedClass);
+                setMaxTimeDialogOpen(true);
+                setShowMaxTimeWarning(false);
+              }
+            }}
+            onSettings={() => {
+              if (selectedClass) {
+                setSelectedClassForSettings(selectedClass);
+                setSettingsDialogOpen(true);
+              }
+            }}
+            onStatistics={() => {
+              if (trialId && selectedClass) {
+                if (selectedClass.completed_count === 0) {
+                  setNoStatsClassName(selectedClass.class_name);
+                  setNoStatsDialogOpen(true);
+                  return false; // Don't close dialog
+                }
+                navigate(`/stats/trial/${trialId}?classId=${selectedClass.id}`);
+              }
+            }}
+            onStatus={() => {
+              if (selectedClass) {
+                setSelectedClassForStatus(selectedClass);
+                setStatusDialogOpen(true);
+              }
+            }}
+            onPrintCheckIn={() => {
+              if (selectedClass) {
+                handleGenerateCheckIn(selectedClass.id);
+              }
+            }}
+            onPrintResults={() => {
+              if (selectedClass) {
+                handleGenerateResults(selectedClass.id);
+              }
+            }}
+            onPrintScoresheet={() => {
+              if (selectedClass) {
+                handleGenerateScoresheet(selectedClass.id);
+              }
+            }}
+          />
+        );
+      })()}
 
       {/* Class Requirements Dialog */}
       <ClassRequirementsDialog

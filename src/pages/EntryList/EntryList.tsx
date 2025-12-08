@@ -12,6 +12,8 @@ import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequireme
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
+import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
+import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
 import { parseOrganizationData } from '../../utils/organizationUtils';
@@ -89,6 +91,7 @@ export const EntryList: React.FC = () => {
   const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [noStatsDialogOpen, setNoStatsDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
@@ -511,6 +514,39 @@ export const EntryList: React.FC = () => {
     generateScoresheetReport(scoresheetClassInfo, localEntries);
   }, [classInfo, showContext?.org, localEntries]);
 
+  // Handler for status change from ClassStatusDialog
+  const handleStatusDialogChange = useCallback(async (status: string, timeValue?: string) => {
+    if (!classId) return;
+
+    // Build additional fields for time values
+    const additionalFields: Record<string, string> = {};
+    if (timeValue) {
+      switch (status) {
+        case 'briefing':
+          additionalFields.briefing_time = timeValue;
+          break;
+        case 'break':
+          additionalFields.break_until = timeValue;
+          break;
+        case 'start_time':
+          additionalFields.start_time = timeValue;
+          break;
+      }
+    }
+
+    try {
+      // Update local cache first (offline-first) - syncs to Supabase in background
+      await replicatedClassesTable.updateClassStatus(classId, status, additionalFields);
+
+      // Close dialog and refresh UI from cache
+      setStatusDialogOpen(false);
+      await refresh();
+    } catch (error) {
+      console.error('Error updating class status:', error);
+      throw error;
+    }
+  }, [classId, refresh]);
+
   // Tab configuration
   // NOTE: Use entryCounts (from full entries array) instead of pendingEntries.length/completedEntries.length
   // because those are derived from filteredEntries which is already tab-filtered, causing inactive tab to show 0
@@ -689,7 +725,8 @@ export const EntryList: React.FC = () => {
             level: classInfo.level,
             class_name: classInfo.className,
             entry_count: localEntries.length,
-            completed_count: completedEntries.length
+            completed_count: completedEntries.length,
+            class_status: classInfo.classStatus
           }}
           onRequirements={() => setRequirementsDialogOpen(true)}
           onSetMaxTime={() => setMaxTimeDialogOpen(true)}
@@ -703,6 +740,7 @@ export const EntryList: React.FC = () => {
               navigate(`/stats/trial/${classInfo.trialId}?classId=${classId}`);
             }
           }}
+          onStatus={() => setStatusDialogOpen(true)}
           onPrintCheckIn={handlePrintCheckIn}
           onPrintResults={handlePrintResults}
           onPrintScoresheet={handlePrintScoresheet}
@@ -765,6 +803,24 @@ export const EntryList: React.FC = () => {
         onClose={() => setNoStatsDialogOpen(false)}
         className={classInfo?.className || ''}
       />
+
+      {/* Class Status Dialog */}
+      {classInfo && (
+        <ClassStatusDialog
+          isOpen={statusDialogOpen}
+          onClose={() => setStatusDialogOpen(false)}
+          onStatusChange={handleStatusDialogChange}
+          classData={{
+            id: Number(classId),
+            element: classInfo.element,
+            level: classInfo.level,
+            class_name: classInfo.className,
+            class_status: classInfo.classStatus || 'no-status',
+            entry_count: localEntries.length
+          }}
+          currentStatus={classInfo.classStatus || 'no-status'}
+        />
+      )}
 
       <ResetMenuPopup
         activeEntryId={activeResetMenu}
