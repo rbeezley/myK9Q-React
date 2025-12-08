@@ -126,8 +126,13 @@
   color: var(--primary-foreground);
 }
 
-/* Mobile - compact when filter button present */
+/* Mobile - hide icons to save space on narrow screens */
 @media (max-width: 480px) {
+  .tab-icon {
+    display: none;
+  }
+
+  /* Additional compacting when filter button present */
   .tab-bar-wrapper.has-right-element {
     gap: var(--token-space-sm);
   }
@@ -141,11 +146,6 @@
     padding: 10px 12px;
     font-size: 0.8125rem;
     gap: 4px;
-  }
-
-  /* Hide tab icons on very small screens to save space */
-  .tab-bar-wrapper.has-right-element .tab-icon {
-    display: none;
   }
 
   .tab-bar-wrapper.has-right-element .tab-count {
