@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Settings, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { setClassVisibility } from '../../services/resultVisibilityService';
 import { PRESET_CONFIGS } from '../../types/visibility';
 import type { VisibilityPreset } from '../../types/visibility';
+import { DialogContainer } from './DialogContainer';
 import './shared-dialog.css';
 import './ClassSettingsDialog.css';
 
@@ -158,157 +158,138 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
-  const dialogContent = (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="dialog-header">
-          <div className="dialog-title">
-            <Settings className="title-icon" />
-            <span>Class Settings</span>
-          </div>
-          <button
-            className="close-button"
-            onClick={onClose}
-            aria-label="Close dialog"
-          >
-            <X className="h-5 w-5" />
-          </button>
+  return (
+    <DialogContainer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Class Settings"
+      icon={<Settings className="title-icon" />}
+    >
+      {loading ? (
+        <div className="settings-loading">
+          <p>Loading settings...</p>
         </div>
+      ) : (
+        <div className="settings-form">
+          {/* Class Info Header */}
+          <div className="class-info-header">
+            <h3 className="class-title">{classData.class_name}</h3>
+          </div>
 
-        {/* Content */}
-        <div className="dialog-content">
-          {loading ? (
-            <div className="settings-loading">
-              <p>Loading settings...</p>
+          {/* Planned Start Time - Compact */}
+          <div className="settings-section settings-section--compact">
+            <label className="settings-label" htmlFor="planned-start-time">
+              Planned Start Time <span className="settings-optional">(optional)</span>
+            </label>
+            <input
+              id="planned-start-time"
+              type="time"
+              className="settings-time-input"
+              value={plannedStartTime}
+              onChange={(e) => setPlannedStartTime(e.target.value)}
+            />
+          </div>
+
+          {/* Check-in Mode Toggle */}
+          <div className="settings-section">
+            <div className="settings-item">
+              <div className="settings-item-header">
+                <label className="settings-label">Check-in Mode</label>
+                <p className="settings-description">
+                  How exhibitors check in for this class
+                </p>
+              </div>
+              <div className="settings-toggle-container">
+                <button
+                  className={`settings-toggle ${
+                    selfCheckinEnabled ? 'settings-toggle--on' : ''
+                  }`}
+                  onClick={() => setSelfCheckinEnabled(!selfCheckinEnabled)}
+                  aria-label="Toggle check-in mode"
+                >
+                  <span className="settings-toggle-thumb" />
+                </button>
+                <span className="settings-toggle-label">
+                  {selfCheckinEnabled ? 'App (Self)' : 'At Table'}
+                </span>
+              </div>
             </div>
-          ) : (
-            <div className="settings-form">
-              {/* Class Info Header */}
-              <div className="class-info-header">
-                <h3 className="class-title">{classData.class_name}</h3>
-              </div>
+          </div>
 
-              {/* Planned Start Time - Compact */}
-              <div className="settings-section settings-section--compact">
-                <label className="settings-label" htmlFor="planned-start-time">
-                  Planned Start Time <span className="settings-optional">(optional)</span>
-                </label>
-                <input
-                  id="planned-start-time"
-                  type="time"
-                  className="settings-time-input"
-                  value={plannedStartTime}
-                  onChange={(e) => setPlannedStartTime(e.target.value)}
-                />
-              </div>
+          {/* Results Visibility Section */}
+          <div className="settings-section">
+            <div className="settings-visibility-header">
+              <label className="settings-label">Results Visibility</label>
+              <p className="settings-description">
+                Control when and what results are shown to exhibitors
+              </p>
+            </div>
 
-              {/* Check-in Mode Toggle */}
-              <div className="settings-section">
-                <div className="settings-item">
-                  <div className="settings-item-header">
-                    <label className="settings-label">Check-in Mode</label>
-                    <p className="settings-description">
-                      How exhibitors check in for this class
-                    </p>
-                  </div>
-                  <div className="settings-toggle-container">
-                    <button
-                      className={`settings-toggle ${
-                        selfCheckinEnabled ? 'settings-toggle--on' : ''
-                      }`}
-                      onClick={() => setSelfCheckinEnabled(!selfCheckinEnabled)}
-                      aria-label="Toggle check-in mode"
-                    >
-                      <span className="settings-toggle-thumb" />
-                    </button>
-                    <span className="settings-toggle-label">
-                      {selfCheckinEnabled ? 'App (Self)' : 'At Table'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div className="settings-visibility-options">
+              {(['open', 'standard', 'review'] as const).map((preset) => {
+                const config = PRESET_CONFIGS[preset];
+                return (
+                  <label key={preset} className="settings-visibility-option">
+                    <input
+                      type="radio"
+                      name="results-visibility"
+                      value={preset}
+                      checked={resultsVisibility === preset}
+                      onChange={() => setResultsVisibility(preset)}
+                      className="settings-radio-input"
+                    />
+                    <div className="settings-visibility-content">
+                      <div className="settings-visibility-title">
+                        <span className="settings-visibility-icon">{config.icon}</span>
+                        <span>{config.title}</span>
+                      </div>
+                      <p className="settings-visibility-description">
+                        {config.description}
+                      </p>
+                      <p className="settings-visibility-details">
+                        {config.details}
+                      </p>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
 
-              {/* Results Visibility Section */}
-              <div className="settings-section">
-                <div className="settings-visibility-header">
-                  <label className="settings-label">Results Visibility</label>
-                  <p className="settings-description">
-                    Control when and what results are shown to exhibitors
-                  </p>
-                </div>
+          {/* Messages */}
+          {successMessage && (
+            <div className="settings-message settings-message--success">
+              <CheckCircle size={18} />
+              <span>{successMessage}</span>
+            </div>
+          )}
 
-                <div className="settings-visibility-options">
-                  {(['open', 'standard', 'review'] as const).map((preset) => {
-                    const config = PRESET_CONFIGS[preset];
-                    return (
-                      <label key={preset} className="settings-visibility-option">
-                        <input
-                          type="radio"
-                          name="results-visibility"
-                          value={preset}
-                          checked={resultsVisibility === preset}
-                          onChange={() => setResultsVisibility(preset)}
-                          className="settings-radio-input"
-                        />
-                        <div className="settings-visibility-content">
-                          <div className="settings-visibility-title">
-                            <span className="settings-visibility-icon">{config.icon}</span>
-                            <span>{config.title}</span>
-                          </div>
-                          <p className="settings-visibility-description">
-                            {config.description}
-                          </p>
-                          <p className="settings-visibility-details">
-                            {config.details}
-                          </p>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Messages */}
-              {successMessage && (
-                <div className="settings-message settings-message--success">
-                  <CheckCircle size={18} />
-                  <span>{successMessage}</span>
-                </div>
-              )}
-
-              {errorMessage && (
-                <div className="settings-message settings-message--error">
-                  <AlertCircle size={18} />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
+          {errorMessage && (
+            <div className="settings-message settings-message--error">
+              <AlertCircle size={18} />
+              <span>{errorMessage}</span>
             </div>
           )}
         </div>
+      )}
 
-        {/* Footer */}
-        <div className="dialog-footer">
-          <button
-            className="dialog-button dialog-button-secondary"
-            onClick={onClose}
-            disabled={saving}
-          >
-            Cancel
-          </button>
-          <button
-            className="dialog-button dialog-button-primary"
-            onClick={handleSaveSettings}
-            disabled={saving || loading}
-          >
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
-        </div>
+      {/* Footer */}
+      <div className="dialog-footer">
+        <button
+          className="dialog-button dialog-button-secondary"
+          onClick={onClose}
+          disabled={saving}
+        >
+          Cancel
+        </button>
+        <button
+          className="dialog-button dialog-button-primary"
+          onClick={handleSaveSettings}
+          disabled={saving || loading}
+        >
+          {saving ? 'Saving...' : 'Save Settings'}
+        </button>
       </div>
-    </div>
+    </DialogContainer>
   );
-
-  return createPortal(dialogContent, document.body);
 };

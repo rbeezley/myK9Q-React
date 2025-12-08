@@ -6,9 +6,7 @@
  */
 
 import React from 'react';
-import { createPortal } from 'react-dom';
 import {
-  X,
   List,
   ClipboardList,
   Clock,
@@ -18,6 +16,7 @@ import {
   Award,
   Activity
 } from 'lucide-react';
+import { DialogContainer } from './DialogContainer';
 import './shared-dialog.css';
 import './ClassOptionsDialog.css';
 
@@ -82,8 +81,6 @@ export const ClassOptionsDialog: React.FC<ClassOptionsDialogProps> = ({
   hideStatus = false,
   hidePrintOptions = false,
 }) => {
-  if (!isOpen || !classData) return null;
-
   const handleOptionClick = (callback?: () => boolean | void) => {
     if (callback) {
       const result = callback();
@@ -93,148 +90,137 @@ export const ClassOptionsDialog: React.FC<ClassOptionsDialogProps> = ({
     onClose();
   };
 
-  const dialogContent = (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <div className="dialog-title">
-            <List className="title-icon" />
-            <span>Class Options</span>
-          </div>
+  // Don't render if no class data
+  if (!classData) return null;
+
+  return (
+    <DialogContainer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Class Options"
+      icon={<List className="title-icon" />}
+    >
+      {/* Class Info Header */}
+      <div className="class-info-header">
+        <h3 className="class-title">{classData.class_name}</h3>
+      </div>
+      <div className="class-options-grid">
+        {/* Requirements */}
+        {!hideRequirements && onRequirements && (
           <button
-            className="close-button"
-            onClick={onClose}
-            aria-label="Close"
+            className="class-option-item"
+            onClick={() => handleOptionClick(onRequirements)}
           >
-            <X className="h-5 w-5" />
+            <div className="class-option-icon icon-primary">
+              <ClipboardList size={20} />
+            </div>
+            <div className="class-option-label">Requirements</div>
+            <div className="class-option-description">View class rules and requirements</div>
           </button>
-        </div>
-        <div className="dialog-content">
-          {/* Class Info Header */}
-          <div className="class-info-header">
-            <h3 className="class-title">{classData.class_name}</h3>
-          </div>
-          <div className="class-options-grid">
-            {/* Requirements */}
-            {!hideRequirements && onRequirements && (
+        )}
+
+        {/* Set Max Time */}
+        {!hideMaxTime && onSetMaxTime && (
+          <button
+            className="class-option-item"
+            onClick={() => handleOptionClick(onSetMaxTime)}
+          >
+            <div className="class-option-icon icon-accent">
+              <Clock size={20} />
+            </div>
+            <div className="class-option-label">Set Max Time</div>
+            <div className="class-option-description">Configure maximum time limits</div>
+          </button>
+        )}
+
+        {/* Settings */}
+        {!hideSettings && onSettings && (
+          <button
+            className="class-option-item"
+            onClick={() => handleOptionClick(onSettings)}
+          >
+            <div className="class-option-icon icon-muted">
+              <Settings size={20} />
+            </div>
+            <div className="class-option-label">Settings</div>
+            <div className="class-option-description">Configure class settings</div>
+          </button>
+        )}
+
+        {/* Statistics */}
+        {!hideStatistics && onStatistics && (
+          <button
+            className="class-option-item"
+            onClick={() => handleOptionClick(onStatistics)}
+          >
+            <div className="class-option-icon icon-success">
+              <BarChart3 size={20} />
+            </div>
+            <div className="class-option-label">Statistics</div>
+            <div className="class-option-description">View class performance data</div>
+          </button>
+        )}
+
+        {/* Status */}
+        {!hideStatus && onStatus && (
+          <button
+            className="class-option-item"
+            onClick={() => handleOptionClick(onStatus)}
+          >
+            <div className="class-option-icon icon-info">
+              <Activity size={20} />
+            </div>
+            <div className="class-option-label">Status</div>
+            <div className="class-option-description">Update class status</div>
+          </button>
+        )}
+
+        {/* Print Options */}
+        {!hidePrintOptions && (
+          <>
+            {onPrintCheckIn && (
               <button
                 className="class-option-item"
-                onClick={() => handleOptionClick(onRequirements)}
+                onClick={() => handleOptionClick(onPrintCheckIn)}
+              >
+                <div className="class-option-icon icon-warning">
+                  <FileText size={20} />
+                </div>
+                <div className="class-option-label">Check-In Sheet</div>
+                <div className="class-option-description">Print check-in roster</div>
+              </button>
+            )}
+
+            {onPrintResults && (
+              <button
+                className="class-option-item"
+                onClick={() => handleOptionClick(onPrintResults)}
+              >
+                <div className="class-option-icon icon-secondary">
+                  <Award size={20} />
+                </div>
+                <div className="class-option-label">Results Sheet</div>
+                <div className="class-option-description">Print results report</div>
+              </button>
+            )}
+
+            {onPrintScoresheet && (
+              <button
+                className="class-option-item"
+                onClick={() => handleOptionClick(onPrintScoresheet)}
               >
                 <div className="class-option-icon icon-primary">
                   <ClipboardList size={20} />
                 </div>
-                <div className="class-option-label">Requirements</div>
-                <div className="class-option-description">View class rules and requirements</div>
+                <div className="class-option-label">Scoresheet</div>
+                <div className="class-option-description">Print judge scoresheet</div>
               </button>
             )}
-
-            {/* Set Max Time */}
-            {!hideMaxTime && onSetMaxTime && (
-              <button
-                className="class-option-item"
-                onClick={() => handleOptionClick(onSetMaxTime)}
-              >
-                <div className="class-option-icon icon-accent">
-                  <Clock size={20} />
-                </div>
-                <div className="class-option-label">Set Max Time</div>
-                <div className="class-option-description">Configure maximum time limits</div>
-              </button>
-            )}
-
-            {/* Settings */}
-            {!hideSettings && onSettings && (
-              <button
-                className="class-option-item"
-                onClick={() => handleOptionClick(onSettings)}
-              >
-                <div className="class-option-icon icon-muted">
-                  <Settings size={20} />
-                </div>
-                <div className="class-option-label">Settings</div>
-                <div className="class-option-description">Configure class settings</div>
-              </button>
-            )}
-
-            {/* Statistics */}
-            {!hideStatistics && onStatistics && (
-              <button
-                className="class-option-item"
-                onClick={() => handleOptionClick(onStatistics)}
-              >
-                <div className="class-option-icon icon-success">
-                  <BarChart3 size={20} />
-                </div>
-                <div className="class-option-label">Statistics</div>
-                <div className="class-option-description">View class performance data</div>
-              </button>
-            )}
-
-            {/* Status */}
-            {!hideStatus && onStatus && (
-              <button
-                className="class-option-item"
-                onClick={() => handleOptionClick(onStatus)}
-              >
-                <div className="class-option-icon icon-info">
-                  <Activity size={20} />
-                </div>
-                <div className="class-option-label">Status</div>
-                <div className="class-option-description">Update class status</div>
-              </button>
-            )}
-
-            {/* Print Options */}
-            {!hidePrintOptions && (
-              <>
-                {onPrintCheckIn && (
-                  <button
-                    className="class-option-item"
-                    onClick={() => handleOptionClick(onPrintCheckIn)}
-                  >
-                    <div className="class-option-icon icon-warning">
-                      <FileText size={20} />
-                    </div>
-                    <div className="class-option-label">Check-In Sheet</div>
-                    <div className="class-option-description">Print check-in roster</div>
-                  </button>
-                )}
-
-                {onPrintResults && (
-                  <button
-                    className="class-option-item"
-                    onClick={() => handleOptionClick(onPrintResults)}
-                  >
-                    <div className="class-option-icon icon-secondary">
-                      <Award size={20} />
-                    </div>
-                    <div className="class-option-label">Results Sheet</div>
-                    <div className="class-option-description">Print results report</div>
-                  </button>
-                )}
-
-                {onPrintScoresheet && (
-                  <button
-                    className="class-option-item"
-                    onClick={() => handleOptionClick(onPrintScoresheet)}
-                  >
-                    <div className="class-option-icon icon-primary">
-                      <ClipboardList size={20} />
-                    </div>
-                    <div className="class-option-label">Scoresheet</div>
-                    <div className="class-option-description">Print judge scoresheet</div>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
-    </div>
+    </DialogContainer>
   );
-
-  return createPortal(dialogContent, document.body);
 };
 
 export default ClassOptionsDialog;
