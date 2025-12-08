@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Clock, Users, MapPin, AlertTriangle, Target, Ruler, Package, Speech } from 'lucide-react';
+import { Clock, Users, MapPin, AlertTriangle, Target, Ruler, Package, Speech } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { DialogContainer } from './DialogContainer';
 import './shared-dialog.css';
 import './ClassRequirementsDialog.css';
 // Updated to show fixed vs range and Master warning
@@ -170,166 +170,153 @@ setRequirements(requirementsData);
     return 'Not specified';
   };
 
-  if (!isOpen) return null;
-
-  const dialogContent = (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <div className="dialog-title">
-            <Package className="title-icon" />
-            <span>Class Requirements</span>
+  return (
+    <DialogContainer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Class Requirements"
+      icon={<Package className="title-icon" />}
+    >
+      {loading ? (
+        <div className="loading-state">
+          <div className="loading-spinner" />
+          <p>Loading requirements...</p>
+        </div>
+      ) : requirements ? (
+        <>
+          {/* Class Info Header */}
+          <div className="class-info-header">
+            <h3 className="class-title">{classData.element} {classData.level}</h3>
+            <div className="class-meta">
+              <span className="org-badge">{organization}</span>
+              <span className="entry-count">
+                <Users className="h-4 w-4" />
+                {classData.entry_count} {classData.entry_count === 1 ? 'Dog' : 'Dogs'}
+              </span>
+            </div>
           </div>
-          <button className="close-button" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div className="dialog-content">
-          {loading ? (
-            <div className="loading-state">
-              <div className="loading-spinner" />
-              <p>Loading requirements...</p>
+          {/* Requirements Grid */}
+          <div className="requirements-grid">
+            {/* Max Time */}
+            <div
+              className={`requirement-item ${onSetMaxTime ? 'requirement-item-clickable' : ''}`}
+              onClick={onSetMaxTime}
+              role={onSetMaxTime ? "button" : undefined}
+              tabIndex={onSetMaxTime ? 0 : undefined}
+            >
+              <div className="requirement-icon" style={{ background: 'var(--status-in-progress)' }}>
+                <Clock size={20} />
+              </div>
+              <div className="requirement-content">
+                <label>Max Time</label>
+                <div className="requirement-value">{getMaxTimeDisplay()}</div>
+              </div>
             </div>
-          ) : requirements ? (
-            <>
-              {/* Class Info Header */}
-              <div className="class-info-header">
-                <h3 className="class-title">{classData.element} {classData.level}</h3>
-                <div className="class-meta">
-                  <span className="org-badge">{organization}</span>
-                  <span className="entry-count">
-                    <Users className="h-4 w-4" />
-                    {classData.entry_count} {classData.entry_count === 1 ? 'Dog' : 'Dogs'}
-                  </span>
+
+            {/* Hides */}
+            <div className="requirement-item">
+              <div className="requirement-icon" style={{ background: 'var(--status-start-time)' }}>
+                <Target size={20} />
+              </div>
+              <div className="requirement-content">
+                <label>Hides</label>
+                <div className="requirement-value">{requirements.hides}</div>
+              </div>
+            </div>
+
+            {/* Distractions */}
+            <div className="requirement-item">
+              <div className="requirement-icon" style={{ background: 'var(--token-warning)' }}>
+                <AlertTriangle size={20} />
+              </div>
+              <div className="requirement-content">
+                <label>Distractions</label>
+                <div className="requirement-value">{requirements.distractions}</div>
+              </div>
+            </div>
+
+            {/* Required Calls (AKC) or Final Response (UKC) */}
+            <div className="requirement-item">
+              <div className="requirement-icon" style={{ background: 'var(--checkin-at-gate)' }}>
+                <Speech size={20} />
+              </div>
+              <div className="requirement-content">
+                <label>
+                  {requirements.organization === 'AKC' ? 'Required Calls' : 'Final Response'}
+                </label>
+                <div className="requirement-value">
+                  {requirements.organization === 'AKC'
+                    ? requirements.required_calls || '-'
+                    : requirements.final_response || '-'}
                 </div>
               </div>
-
-              {/* Requirements Grid */}
-              <div className="requirements-grid">
-                {/* Max Time */}
-                <div
-                  className={`requirement-item ${onSetMaxTime ? 'requirement-item-clickable' : ''}`}
-                  onClick={onSetMaxTime}
-                  role={onSetMaxTime ? "button" : undefined}
-                  tabIndex={onSetMaxTime ? 0 : undefined}
-                >
-                  <div className="requirement-icon" style={{ background: 'var(--status-in-progress)' }}>
-                    <Clock size={20} />
-                  </div>
-                  <div className="requirement-content">
-                    <label>Max Time</label>
-                    <div className="requirement-value">{getMaxTimeDisplay()}</div>
-                  </div>
-                </div>
-
-                {/* Hides */}
-                <div className="requirement-item">
-                  <div className="requirement-icon" style={{ background: 'var(--status-start-time)' }}>
-                    <Target size={20} />
-                  </div>
-                  <div className="requirement-content">
-                    <label>Hides</label>
-                    <div className="requirement-value">{requirements.hides}</div>
-                  </div>
-                </div>
-
-                {/* Distractions */}
-                <div className="requirement-item">
-                  <div className="requirement-icon" style={{ background: 'var(--token-warning)' }}>
-                    <AlertTriangle size={20} />
-                  </div>
-                  <div className="requirement-content">
-                    <label>Distractions</label>
-                    <div className="requirement-value">{requirements.distractions}</div>
-                  </div>
-                </div>
-
-                {/* Required Calls (AKC) or Final Response (UKC) */}
-                <div className="requirement-item">
-                  <div className="requirement-icon" style={{ background: 'var(--checkin-at-gate)' }}>
-                    <Speech size={20} />
-                  </div>
-                  <div className="requirement-content">
-                    <label>
-                      {requirements.organization === 'AKC' ? 'Required Calls' : 'Final Response'}
-                    </label>
-                    <div className="requirement-value">
-                      {requirements.organization === 'AKC'
-                        ? requirements.required_calls || '-'
-                        : requirements.final_response || '-'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Height */}
-                {requirements.height && requirements.height !== '-' && (
-                  <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: 'var(--status-break)' }}>
-                      <Ruler size={20} />
-                    </div>
-                    <div className="requirement-content">
-                      <label>Max Height</label>
-                      <div className="requirement-value">{requirements.height}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Arrangement - Only for Container, Buried, and Handler Discrimination Novice */}
-                {(classData.element === 'Container' ||
-                  classData.element === 'Buried' ||
-                  (classData.element === 'Handler Discrimination' && classData.level === 'Novice A')) && (
-                  <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: 'var(--primary)' }}>
-                      <Package size={20} />
-                    </div>
-                    <div className="requirement-content">
-                      <label>Arrangement</label>
-                      <div className="requirement-value">
-                        {requirements.containers_items || '-'}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Area Size */}
-                {requirements.area_size && requirements.area_size !== '-' && (
-                  <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: 'var(--token-success)' }}>
-                      <MapPin size={20} />
-                    </div>
-                    <div className="requirement-content">
-                      <label>Area Size</label>
-                      <div className="requirement-value">{requirements.area_size}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Area Count */}
-                {requirements.area_count > 1 && (
-                  <div className="requirement-item">
-                    <div className="requirement-icon" style={{ background: 'var(--token-success)' }}>
-                      <MapPin size={20} />
-                    </div>
-                    <div className="requirement-content">
-                      <label>Areas</label>
-                      <div className="requirement-value">{requirements.area_count}</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="no-data-state">
-              <Package className="no-data-icon" />
-              <h3>No Requirements Found</h3>
-              <p>Requirements data is not available for this class combination.</p>
             </div>
-          )}
+
+            {/* Height */}
+            {requirements.height && requirements.height !== '-' && (
+              <div className="requirement-item">
+                <div className="requirement-icon" style={{ background: 'var(--status-break)' }}>
+                  <Ruler size={20} />
+                </div>
+                <div className="requirement-content">
+                  <label>Max Height</label>
+                  <div className="requirement-value">{requirements.height}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Arrangement - Only for Container, Buried, and Handler Discrimination Novice */}
+            {(classData.element === 'Container' ||
+              classData.element === 'Buried' ||
+              (classData.element === 'Handler Discrimination' && classData.level === 'Novice A')) && (
+              <div className="requirement-item">
+                <div className="requirement-icon" style={{ background: 'var(--primary)' }}>
+                  <Package size={20} />
+                </div>
+                <div className="requirement-content">
+                  <label>Arrangement</label>
+                  <div className="requirement-value">
+                    {requirements.containers_items || '-'}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Area Size */}
+            {requirements.area_size && requirements.area_size !== '-' && (
+              <div className="requirement-item">
+                <div className="requirement-icon" style={{ background: 'var(--token-success)' }}>
+                  <MapPin size={20} />
+                </div>
+                <div className="requirement-content">
+                  <label>Area Size</label>
+                  <div className="requirement-value">{requirements.area_size}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Area Count */}
+            {requirements.area_count > 1 && (
+              <div className="requirement-item">
+                <div className="requirement-icon" style={{ background: 'var(--token-success)' }}>
+                  <MapPin size={20} />
+                </div>
+                <div className="requirement-content">
+                  <label>Areas</label>
+                  <div className="requirement-value">{requirements.area_count}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="no-data-state">
+          <Package className="no-data-icon" />
+          <h3>No Requirements Found</h3>
+          <p>Requirements data is not available for this class combination.</p>
         </div>
-      </div>
-    </div>
+      )}
+    </DialogContainer>
   );
-
-  return createPortal(dialogContent, document.body);
 };
