@@ -82,11 +82,11 @@
 }
 
 .class-option-icon.icon-accent {
-  background: #0891b2;
+  background: var(--status-start-time);
   color: white;
 }
 .theme-dark .class-option-icon.icon-accent {
-  background: #06b6d4;
+  background: var(--status-start-time);
 }
 
 .class-option-icon.icon-muted {
@@ -103,11 +103,11 @@
 }
 
 .class-option-icon.icon-warning {
-  background: #f97316;
+  background: var(--token-warning);
   color: white;
 }
 .theme-dark .class-option-icon.icon-warning {
-  background: #fb923c;
+  background: var(--token-warning);
 }
 
 .class-option-icon.icon-secondary {
@@ -115,15 +115,15 @@
   color: white;
 }
 .theme-dark .class-option-icon.icon-secondary {
-  background: #a78bfa;
+  background: var(--status-at-gate);
 }
 
 .class-option-icon.icon-info {
-  background: #3b82f6;
+  background: var(--status-in-progress);
   color: white;
 }
 .theme-dark .class-option-icon.icon-info {
-  background: #60a5fa;
+  background: var(--status-in-progress);
 }
 
 /* Label */

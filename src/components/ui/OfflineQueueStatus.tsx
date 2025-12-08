@@ -6,63 +6,64 @@
  */
 
 import React from 'react';
-import { useOfflineQueueStore } from '../../stores/offlineQueueStore';
 import { Cloud, CloudOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { useOfflineStatus } from '@/hooks/useOfflineStatus';
+import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 
 export const OfflineQueueStatus: React.FC = () => {
-  const { queue, isOnline, isSyncing, failedItems } = useOfflineQueueStore();
-
-  const pendingCount = queue.filter(item => item.status === 'pending').length;
-  const syncingCount = queue.filter(item => item.status === 'syncing').length;
-  const failedCount = failedItems.length;
+  const { mode, isOnline, isSyncing, counts } = useOfflineStatus();
+  const { queue } = useOfflineQueueStore();
 
   // Don't show if nothing in queue
-  if (queue.length === 0 && failedItems.length === 0) {
+  if (queue.length === 0 && counts.failed === 0) {
     return null;
   }
 
-  // Don't show if all synced and online
-  if (isOnline && !isSyncing && pendingCount === 0 && failedCount === 0) {
+  // Don't show if online, not syncing, and nothing pending/failed
+  if (isOnline && !isSyncing && counts.pending === 0 && counts.failed === 0) {
     return null;
   }
+
+  const pluralize = (count: number, word: string) =>
+    `${count} ${word}${count !== 1 ? 's' : ''}`;
 
   return (
     <div className="offline-queue-status">
       {/* Offline with pending items */}
-      {!isOnline && pendingCount > 0 && (
+      {mode === 'offline' && counts.pending > 0 && (
         <div className="queue-toast queue-toast-offline">
           <CloudOff size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="queue-message">
             <strong>Offline Mode</strong>
-            <span>{pendingCount} score{pendingCount !== 1 ? 's' : ''} queued for sync</span>
+            <span>{pluralize(counts.pending, 'score')} queued for sync</span>
           </div>
         </div>
       )}
 
       {/* Syncing when back online */}
-      {isOnline && (isSyncing || syncingCount > 0) && (
+      {mode === 'syncing' && (
         <div className="queue-toast queue-toast-syncing">
           <Cloud size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} className="rotating" />
           <div className="queue-message">
             <strong>Syncing Scores</strong>
-            <span>Uploading {pendingCount + syncingCount} queued score{pendingCount + syncingCount !== 1 ? 's' : ''}...</span>
+            <span>Uploading {pluralize(counts.pending + counts.syncing, 'queued score')}...</span>
           </div>
         </div>
       )}
 
       {/* Failed items (need manual retry) */}
-      {failedCount > 0 && (
+      {mode === 'failed' && (
         <div className="queue-toast queue-toast-error">
           <AlertCircle size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="queue-message">
             <strong>Sync Failed</strong>
-            <span>{failedCount} score{failedCount !== 1 ? 's' : ''} failed to sync</span>
+            <span>{pluralize(counts.failed, 'score')} failed to sync</span>
           </div>
         </div>
       )}
 
       {/* Success (briefly show then auto-hide) */}
-      {isOnline && !isSyncing && pendingCount === 0 && failedCount === 0 && queue.length > 0 && (
+      {isOnline && !isSyncing && counts.pending === 0 && counts.failed === 0 && queue.length > 0 && (
         <div className="queue-toast queue-toast-success">
           <CheckCircle size={20} style={{ width: '20px', height: '20px', flexShrink: 0 }} />
           <div className="queue-message">

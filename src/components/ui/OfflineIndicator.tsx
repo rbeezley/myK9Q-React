@@ -11,58 +11,10 @@
  * - Connection quality hints
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
-import { networkDetectionService, type NetworkInfo } from '@/services/networkDetectionService';
+import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import './shared-ui.css';
-
-// ========================================
-// TYPES
-// ========================================
-
-type ConnectionQuality = 'slow' | 'medium' | 'fast' | null;
-
-// ========================================
-// HELPER FUNCTIONS
-// ========================================
-
-/**
- * Determine connection quality from network info
- */
-function determineConnectionQuality(networkInfo: NetworkInfo): ConnectionQuality {
-  const isSlowConnection =
-    networkInfo.effectiveType === 'slow-2g' ||
-    networkInfo.effectiveType === '2g' ||
-    (networkInfo.downlink !== undefined && networkInfo.downlink < 1);
-
-  if (isSlowConnection) return 'slow';
-  if (networkInfo.effectiveType === '3g') return 'medium';
-  if (
-    networkInfo.effectiveType === '4g' ||
-    networkInfo.connectionType === 'wifi' ||
-    networkInfo.connectionType === 'ethernet'
-  ) {
-    return 'fast';
-  }
-  return null;
-}
-
-/**
- * Determine connection type display string from network info
- */
-function determineConnectionType(networkInfo: NetworkInfo): string {
-  switch (networkInfo.connectionType) {
-    case 'wifi':
-      return 'WiFi';
-    case 'cellular':
-      return `Cellular ${networkInfo.effectiveType?.toUpperCase() || ''}`;
-    case 'ethernet':
-      return 'Ethernet';
-    default:
-      return '';
-  }
-}
 
 /**
  * Format count text (singular/plural)
@@ -71,10 +23,6 @@ function formatScoreCount(count: number): string {
   return `${count} ${count === 1 ? 'score' : 'scores'}`;
 }
 
-// ========================================
-// MAIN COMPONENT
-// ========================================
-
 /**
  * OfflineIndicator - Shows banner ONLY for failed sync states
  *
@@ -82,42 +30,23 @@ function formatScoreCount(count: number): string {
  * by the CompactOfflineIndicator component in page headers.
  */
 export function OfflineIndicator() {
-  const [connectionQuality, setConnectionQuality] = useState<ConnectionQuality>(null);
-  const [connectionType, setConnectionType] = useState('');
   const [isRetrying, setIsRetrying] = useState(false);
-
-  const { failedItems, retryFailed } = useOfflineQueueStore();
-  const failedCount = failedItems.length;
-
-  // Network status effect
-  useEffect(() => {
-    // Subscribe to network changes for connection quality hints
-    const unsubscribe = networkDetectionService.subscribe((networkInfo) => {
-      setConnectionQuality(determineConnectionQuality(networkInfo));
-      setConnectionType(determineConnectionType(networkInfo));
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+  const { mode, counts, connection, retryFailed } = useOfflineStatus();
 
   // Handle retry button click
-  const handleRetry = async () => {
+  const handleRetry = () => {
     setIsRetrying(true);
-    try {
-      await retryFailed();
-    } finally {
-      setIsRetrying(false);
-    }
+    retryFailed();
+    // Reset after a short delay since retryFailed is synchronous
+    setTimeout(() => setIsRetrying(false), 1000);
   };
 
   // Only render for failed states - other states handled by CompactOfflineIndicator
-  if (failedCount === 0) {
+  if (mode !== 'failed' || counts.failed === 0) {
     return null;
   }
 
-  const showConnectionHint = connectionQuality === 'slow' && connectionType;
+  const showConnectionHint = connection.quality === 'slow' && connection.type;
 
   return (
     <div className="offline-indicator failed-mode">
@@ -130,8 +59,8 @@ export function OfflineIndicator() {
         <div className="offline-text">
           <strong>Sync Failed</strong>
           <span className="offline-count">
-            {formatScoreCount(failedCount)} failed to sync
-            {showConnectionHint && ` • ${connectionType} may be too slow`}
+            {formatScoreCount(counts.failed)} failed to sync
+            {showConnectionHint && ` - ${connection.type} may be too slow`}
           </span>
         </div>
         <button
