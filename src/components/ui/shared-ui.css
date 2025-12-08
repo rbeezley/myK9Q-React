@@ -1233,37 +1233,40 @@
   opacity: 0.9;
 }
 
-/* Status color variants - hardcoded for consistency */
-
-/* Class status colors - semantic and intuitive */
+/* Class status colors - using canonical design tokens from design-tokens.css */
 .status-badge.setup {
   background: var(--status-setup);
-  color: var(--token-warning-contrast);
+  color: var(--status-setup-text);
 }
 
 .status-badge.briefing {
   background: var(--status-briefing);
-  color: #ffffff;
+  color: var(--status-briefing-text);
 }
 
 .status-badge.break {
-  background: #14b8a6;
-  color: #ffffff;
+  background: var(--status-break);
+  color: var(--status-break-text);
 }
 
 .status-badge.start-time {
-  background: var(--status-at-gate);
-  color: #ffffff;
+  background: var(--status-start-time);
+  color: var(--status-start-time-text);
 }
 
 .status-badge.in-progress {
-  background: var(--primary);
-  color: #ffffff;
+  background: var(--status-in-progress);
+  color: var(--status-in-progress-text);
+}
+
+.status-badge.offline-scoring {
+  background: var(--status-offline-scoring);
+  color: var(--status-offline-scoring-text);
 }
 
 .status-badge.completed {
-  background: var(--status-qualified);
-  color: #ffffff;
+  background: var(--status-completed);
+  color: var(--status-completed-text);
 }
 
 /* Check-in status colors - hardcoded for consistency */
@@ -1307,17 +1310,6 @@
 .status-badge.in-ring {
   background: var(--checkin-in-ring);
   color: var(--checkin-in-ring-text);
-}
-
-.status-badge.completed {
-  background: var(--token-success-contrast);
-  color: #ffffff;
-}
-
-/* Class status: none (no status set) - very subtle */
-.status-badge.no-status {
-  background: var(--border);
-  color: var(--muted-foreground);
 }
 
 /* Result status colors */
