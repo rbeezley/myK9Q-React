@@ -6,14 +6,15 @@
  */
 
 import React from 'react';
+import {
+  calculateNationalsPoints,
+  formatNationalsPoints,
+  NATIONALS_POINTS,
+  type NationalsScoreInput
+} from './nationalsPoints';
 import './shared-scoring.css';
 
-interface NationalsPointCounterProps {
-  alertsCorrect: number;
-  alertsIncorrect: number;
-  faults: number;
-  finishCallErrors: number;
-  excused: boolean;
+interface NationalsPointCounterProps extends NationalsScoreInput {
   className?: string;
 }
 
@@ -25,19 +26,13 @@ export const NationalsPointCounter: React.FC<NationalsPointCounterProps> = ({
   excused,
   className = ''
 }) => {
-  // Calculate points according to AKC Nationals rules
-  const calculatePoints = () => {
-    if (excused) return 0;
-
-    const correctPoints = alertsCorrect * 10;
-    const incorrectPenalty = alertsIncorrect * 5;
-    const faultPenalty = faults * 2;
-    const finishErrorPenalty = finishCallErrors * 5;
-
-    return correctPoints - incorrectPenalty - faultPenalty - finishErrorPenalty;
-  };
-
-  const totalPoints = calculatePoints();
+  const totalPoints = calculateNationalsPoints({
+    alertsCorrect,
+    alertsIncorrect,
+    faults,
+    finishCallErrors,
+    excused
+  });
   const isNegative = totalPoints < 0;
 
   return (
@@ -52,8 +47,8 @@ export const NationalsPointCounter: React.FC<NationalsPointCounterProps> = ({
         <div className="point-row positive">
           <span className="point-label">Correct Alerts</span>
           <span className="point-count">{alertsCorrect}</span>
-          <span className="point-calculation">× 10</span>
-          <span className="point-value">+{alertsCorrect * 10}</span>
+          <span className="point-calculation">× {NATIONALS_POINTS.CORRECT_ALERT}</span>
+          <span className="point-value">+{alertsCorrect * NATIONALS_POINTS.CORRECT_ALERT}</span>
         </div>
 
         {/* Incorrect Alerts */}
@@ -61,8 +56,8 @@ export const NationalsPointCounter: React.FC<NationalsPointCounterProps> = ({
           <div className="point-row negative">
             <span className="point-label">Incorrect Alerts</span>
             <span className="point-count">{alertsIncorrect}</span>
-            <span className="point-calculation">× 5</span>
-            <span className="point-value">-{alertsIncorrect * 5}</span>
+            <span className="point-calculation">× {NATIONALS_POINTS.INCORRECT_ALERT_PENALTY}</span>
+            <span className="point-value">-{alertsIncorrect * NATIONALS_POINTS.INCORRECT_ALERT_PENALTY}</span>
           </div>
         )}
 
@@ -71,8 +66,8 @@ export const NationalsPointCounter: React.FC<NationalsPointCounterProps> = ({
           <div className="point-row negative">
             <span className="point-label">Faults</span>
             <span className="point-count">{faults}</span>
-            <span className="point-calculation">× 2</span>
-            <span className="point-value">-{faults * 2}</span>
+            <span className="point-calculation">× {NATIONALS_POINTS.FAULT_PENALTY}</span>
+            <span className="point-value">-{faults * NATIONALS_POINTS.FAULT_PENALTY}</span>
           </div>
         )}
 
@@ -81,8 +76,8 @@ export const NationalsPointCounter: React.FC<NationalsPointCounterProps> = ({
           <div className="point-row negative">
             <span className="point-label">Finish Errors</span>
             <span className="point-count">{finishCallErrors}</span>
-            <span className="point-calculation">× 5</span>
-            <span className="point-value">-{finishCallErrors * 5}</span>
+            <span className="point-calculation">× {NATIONALS_POINTS.FINISH_ERROR_PENALTY}</span>
+            <span className="point-value">-{finishCallErrors * NATIONALS_POINTS.FINISH_ERROR_PENALTY}</span>
           </div>
         )}
       </div>
@@ -91,16 +86,16 @@ export const NationalsPointCounter: React.FC<NationalsPointCounterProps> = ({
       <div className={`total-points ${isNegative ? 'negative' : 'positive'} ${excused ? 'excused' : ''}`}>
         <span className="total-label">TOTAL POINTS</span>
         <span className="total-value">
-          {excused ? '0' : (totalPoints >= 0 ? `+${totalPoints}` : totalPoints)}
+          {formatNationalsPoints(totalPoints, excused)}
         </span>
       </div>
 
       {/* Point Rules Reference */}
       <div className="point-rules">
-        <div className="rule">Correct Alert: +10</div>
-        <div className="rule">Incorrect Alert: -5</div>
-        <div className="rule">Fault: -2</div>
-        <div className="rule">Finish Error: -5</div>
+        <div className="rule">Correct Alert: +{NATIONALS_POINTS.CORRECT_ALERT}</div>
+        <div className="rule">Incorrect Alert: -{NATIONALS_POINTS.INCORRECT_ALERT_PENALTY}</div>
+        <div className="rule">Fault: -{NATIONALS_POINTS.FAULT_PENALTY}</div>
+        <div className="rule">Finish Error: -{NATIONALS_POINTS.FINISH_ERROR_PENALTY}</div>
       </div>
     </div>
   );
@@ -117,18 +112,13 @@ export const CompactPointCounter: React.FC<NationalsPointCounterProps> = ({
   excused,
   className = ''
 }) => {
-  const calculatePoints = () => {
-    if (excused) return 0;
-
-    const correctPoints = alertsCorrect * 10;
-    const incorrectPenalty = alertsIncorrect * 5;
-    const faultPenalty = faults * 2;
-    const finishErrorPenalty = finishCallErrors * 5;
-
-    return correctPoints - incorrectPenalty - faultPenalty - finishErrorPenalty;
-  };
-
-  const totalPoints = calculatePoints();
+  const totalPoints = calculateNationalsPoints({
+    alertsCorrect,
+    alertsIncorrect,
+    faults,
+    finishCallErrors,
+    excused
+  });
   const isNegative = totalPoints < 0;
 
   return (
@@ -139,7 +129,7 @@ export const CompactPointCounter: React.FC<NationalsPointCounterProps> = ({
       </div>
 
       <div className={`compact-total ${isNegative ? 'negative' : 'positive'} ${excused ? 'excused' : ''}`}>
-        {excused ? '0' : (totalPoints >= 0 ? `+${totalPoints}` : totalPoints)}
+        {formatNationalsPoints(totalPoints, excused)}
       </div>
 
       <div className="compact-breakdown">
