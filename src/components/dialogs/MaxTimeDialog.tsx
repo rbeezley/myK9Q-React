@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { X, Clock, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { DialogContainer } from './DialogContainer';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import './shared-dialog.css';
@@ -536,22 +536,14 @@ const { error } = await supabase
     }
   };
 
-  if (!isOpen) return null;
-
-  const dialogContent = (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-container max-time-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <div className="dialog-title">
-            <Clock className="title-icon" />
-            <span>Set Max Time</span>
-          </div>
-          <button className="close-button" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="dialog-content">
+  return (
+    <DialogContainer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Set Max Time"
+      icon={<Clock className="title-icon" />}
+      className="max-time-dialog"
+    >
           {loading ? (
             <div className="loading-state">
               <div className="loading-spinner" />
@@ -748,37 +740,33 @@ const { error } = await supabase
               <p>Time requirements are not available for this class.</p>
             </div>
           )}
-        </div>
 
-        {timeRange && (
-          <div className="dialog-footer">
-            <button className="cancel-button" onClick={onClose}>
-              {isDictatedTime ? 'Close' : 'Cancel'}
+      {timeRange && (
+        <div className="dialog-footer">
+          <button className="cancel-button" onClick={onClose}>
+            {isDictatedTime ? 'Close' : 'Cancel'}
+          </button>
+          {!isDictatedTime && (
+            <button
+              className="save-button"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <div className="button-spinner" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Times
+                </>
+              )}
             </button>
-            {!isDictatedTime && (
-              <button
-                className="save-button"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <div className="button-spinner" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Save Times
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      )}
+    </DialogContainer>
   );
-
-  return createPortal(dialogContent, document.body);
 };

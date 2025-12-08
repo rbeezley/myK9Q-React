@@ -6,7 +6,7 @@ import { updateEntryCheckinStatus } from '../../services/entryService';
 import { generateDogResultsSheet } from '../../services/reportService';
 import { Button, HamburgerMenu, CompactOfflineIndicator, ArmbandBadge } from '../../components/ui';
 import { CheckinStatusDialog, CheckinStatus } from '../../components/dialogs/CheckinStatusDialog';
-import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
 import { DogStatistics } from './components/DogStatistics';
 import { DogDetailsClassCard } from './components/DogDetailsClassCard';
@@ -104,7 +104,7 @@ export const DogDetails: React.FC = () => {
 
   const handleStatusChange = async (classId: number, status: CheckinStatus) => {
     try {
-      hapticFeedback.impact('medium');
+      hapticFeedback.medium();
 
       // Exhibitors should only be able to use standard check-in statuses
       // 'in-ring' and 'completed' are filtered out by showRingManagement={false}
@@ -129,7 +129,7 @@ export const DogDetails: React.FC = () => {
   };
 
   const handleClassCardClick = (entry: ClassEntry) => {
-    hapticFeedback.impact('medium');
+    hapticFeedback.medium();
 
     // Navigate to the entry list for this class using class_id
     // Note: We don't need to check for combined Novice A/B classes here
@@ -188,7 +188,7 @@ export const DogDetails: React.FC = () => {
 
     setIsCheckingInAll(true);
     setCheckInAllSuccess(null);
-    hapticFeedback.impact('medium');
+    hapticFeedback.medium();
 
     let successCount = 0;
     let failCount = 0;

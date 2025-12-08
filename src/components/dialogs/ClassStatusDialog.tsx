@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Clock, Play, Coffee, CheckCircle, Settings, Calendar, Circle, WifiOff } from 'lucide-react';
+import { Clock, Play, Coffee, CheckCircle, Settings, Calendar, Circle, WifiOff } from 'lucide-react';
+import { DialogContainer } from './DialogContainer';
 import './shared-dialog.css';
 import './ClassStatusDialog.css';
 
@@ -296,159 +296,146 @@ onStatusChange(statusId);
     }
   };
 
-  if (!isOpen) return null;
-
-  const dialogContent = (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog-container" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <div className="dialog-title">
-            <Clock className="title-icon" />
-            <span>Class Status</span>
-          </div>
-          <button className="close-button" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="dialog-content">
-          {/* Class Info Header */}
-          <div className="class-info-header">
-            <h3 className="class-title">{classData.element} {classData.level}</h3>
-            <div className="class-meta">
-              <span className="entry-count">
-                {classData.entry_count} {classData.entry_count === 1 ? 'Dog' : 'Dogs'}
-              </span>
-            </div>
-          </div>
-
-          {selectedStatus ? (
-            /* Time Input Interface */
-            <div className="time-input-container">
-              {(() => {
-                const status = statusOptions.find(s => s.id === selectedStatus);
-                const IconComponent = status?.icon || Clock;
-                return (
-                  <>
-                    <div className="time-status-header">
-                      <div className="time-status-icon">
-                        <IconComponent className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h4 className="time-status-title">{status?.label}</h4>
-                        <p className="time-status-description">{status?.description}</p>
-                      </div>
-                    </div>
-
-                    <div className="time-input-group">
-                      <label className="time-input-label">{status?.timeLabel}</label>
-                      <input
-                        type="text"
-                        className="time-input"
-                        value={timeValue}
-                        onChange={(e) => handleTimeChange(e.target.value)}
-                        onBlur={handleTimeBlur}
-                        onFocus={(e) => {
-                          // Select all text on focus so user can type to replace
-                          e.target.select();
-                        }}
-                        placeholder={status?.timePlaceholder}
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleTimeBlur();
-                            handleTimeSubmit();
-                          } else if (e.key === 'Escape') {
-                            handleCancel();
-                          }
-                        }}
-                      />
-
-                      {/* Quick time adjustment buttons */}
-                      <div className="time-quick-buttons">
-                        <button
-                          type="button"
-                          className="time-quick-button"
-                          onClick={() => addMinutes(5)}
-                          title="Add 5 minutes"
-                        >
-                          +5
-                        </button>
-                        <button
-                          type="button"
-                          className="time-quick-button"
-                          onClick={() => addMinutes(15)}
-                          title="Add 15 minutes"
-                        >
-                          +15
-                        </button>
-                        <button
-                          type="button"
-                          className="time-quick-button"
-                          onClick={() => addMinutes(30)}
-                          title="Add 30 minutes"
-                        >
-                          +30
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="time-actions">
-                      <button
-                        className="time-action-button time-action-cancel"
-                        onClick={handleCancel}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="time-action-button time-action-submit"
-                        onClick={handleTimeSubmit}
-                        disabled={!timeValue.trim()}
-                      >
-                        Set {status?.label}
-                      </button>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          ) : (
-            /* Status Options Grid */
-            <div className="status-grid">
-              {statusOptions.map((status) => {
-                const IconComponent = status.icon;
-                const isSelected = currentStatus === status.id;
-
-                return (
-                  <div
-                    key={status.id}
-                    className={`status-item ${isSelected ? 'status-item-selected' : ''}`}
-                    onClick={() => handleStatusSelect(status.id)}
-                    role="button"
-                    tabIndex={0}
-                    style={{ '--status-color': `var(${status.colorVar})` } as React.CSSProperties}
-                  >
-                    <div className="status-icon">
-                      <IconComponent />
-                    </div>
-                    <div className="status-content">
-                      <label className="status-label">{status.label}</label>
-                      <div className="status-description">{status.description}</div>
-                    </div>
-                    {isSelected && (
-                      <div className="status-selected-indicator">
-                        <CheckCircle className="h-4 w-4" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+  return (
+    <DialogContainer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Class Status"
+      icon={<Clock className="title-icon" />}
+    >
+      {/* Class Info Header */}
+      <div className="class-info-header">
+        <h3 className="class-title">{classData.element} {classData.level}</h3>
+        <div className="class-meta">
+          <span className="entry-count">
+            {classData.entry_count} {classData.entry_count === 1 ? 'Dog' : 'Dogs'}
+          </span>
         </div>
       </div>
-    </div>
-  );
 
-  return createPortal(dialogContent, document.body);
+      {selectedStatus ? (
+        /* Time Input Interface */
+        <div className="time-input-container">
+          {(() => {
+            const status = statusOptions.find(s => s.id === selectedStatus);
+            const IconComponent = status?.icon || Clock;
+            return (
+              <>
+                <div className="time-status-header">
+                  <div className="time-status-icon">
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="time-status-title">{status?.label}</h4>
+                    <p className="time-status-description">{status?.description}</p>
+                  </div>
+                </div>
+
+                <div className="time-input-group">
+                  <label className="time-input-label">{status?.timeLabel}</label>
+                  <input
+                    type="text"
+                    className="time-input"
+                    value={timeValue}
+                    onChange={(e) => handleTimeChange(e.target.value)}
+                    onBlur={handleTimeBlur}
+                    onFocus={(e) => {
+                      // Select all text on focus so user can type to replace
+                      e.target.select();
+                    }}
+                    placeholder={status?.timePlaceholder}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleTimeBlur();
+                        handleTimeSubmit();
+                      } else if (e.key === 'Escape') {
+                        handleCancel();
+                      }
+                    }}
+                  />
+
+                  {/* Quick time adjustment buttons */}
+                  <div className="time-quick-buttons">
+                    <button
+                      type="button"
+                      className="time-quick-button"
+                      onClick={() => addMinutes(5)}
+                      title="Add 5 minutes"
+                    >
+                      +5
+                    </button>
+                    <button
+                      type="button"
+                      className="time-quick-button"
+                      onClick={() => addMinutes(15)}
+                      title="Add 15 minutes"
+                    >
+                      +15
+                    </button>
+                    <button
+                      type="button"
+                      className="time-quick-button"
+                      onClick={() => addMinutes(30)}
+                      title="Add 30 minutes"
+                    >
+                      +30
+                    </button>
+                  </div>
+                </div>
+
+                <div className="time-actions">
+                  <button
+                    className="time-action-button time-action-cancel"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="time-action-button time-action-submit"
+                    onClick={handleTimeSubmit}
+                    disabled={!timeValue.trim()}
+                  >
+                    Set {status?.label}
+                  </button>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      ) : (
+        /* Status Options Grid */
+        <div className="status-grid">
+          {statusOptions.map((status) => {
+            const IconComponent = status.icon;
+            const isSelected = currentStatus === status.id;
+
+            return (
+              <div
+                key={status.id}
+                className={`status-item ${isSelected ? 'status-item-selected' : ''}`}
+                onClick={() => handleStatusSelect(status.id)}
+                role="button"
+                tabIndex={0}
+                style={{ '--status-color': `var(${status.colorVar})` } as React.CSSProperties}
+              >
+                <div className="status-icon">
+                  <IconComponent />
+                </div>
+                <div className="status-content">
+                  <label className="status-label">{status.label}</label>
+                  <div className="status-description">{status.description}</div>
+                </div>
+                {isSelected && (
+                  <div className="status-selected-indicator">
+                    <CheckCircle className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </DialogContainer>
+  );
 };

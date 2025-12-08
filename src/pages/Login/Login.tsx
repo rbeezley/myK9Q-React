@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { logger } from '@/utils/logger';
 import { authenticatePasscode } from '../../services/authService';
 import { detectDatabaseWithValidation, isMigrationModeEnabled, V3ShowData } from '../../services/databaseDetectionService';
-import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { checkRateLimit, recordFailedAttempt, clearRateLimit } from '../../utils/rateLimiter';
 import { TransitionMessage } from '../../components/TransitionMessage/TransitionMessage';
 import { LoadingSplash } from '../../components/SplashScreen/LoadingSplash';
@@ -71,7 +71,7 @@ inputRefs.current[0]?.focus();
 
     // Light haptic feedback for typing
     if (value) {
-      hapticFeedback.impact('light');
+      hapticFeedback.light();
     }
 
     const newPasscode = [...passcode];
@@ -138,7 +138,7 @@ inputRefs.current[0]?.focus();
   };
 
   const handleReset = () => {
-    hapticFeedback.impact('light');
+    hapticFeedback.light();
     setPasscode(['', '', '', '', '']);
     setError('');
     inputRefs.current[0]?.focus();
@@ -233,7 +233,7 @@ inputRefs.current[0]?.focus();
     const fullPasscode = passcodeArray.join('');
 
     if (fullPasscode.length !== 5) {
-      hapticFeedback.impact('heavy');
+      hapticFeedback.heavy();
       setError('Please enter all 5 characters');
       return;
     }
@@ -242,7 +242,7 @@ inputRefs.current[0]?.focus();
     const rateLimitResult = checkRateLimit('login');
 
     if (!rateLimitResult.allowed) {
-      hapticFeedback.impact('heavy');
+      hapticFeedback.heavy();
       setError(rateLimitResult.message);
       setPasscode(['', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -251,7 +251,7 @@ inputRefs.current[0]?.focus();
 
     setIsLoading(true);
     setError('');
-    hapticFeedback.impact('medium');
+    hapticFeedback.medium();
 
     try {
       // Check if migration mode is enabled (dual-database detection)
@@ -323,7 +323,7 @@ inputRefs.current[0]?.focus();
       // Check if now rate limited after this failure
       const newRateLimitResult = checkRateLimit('login');
 
-      hapticFeedback.impact('heavy');
+      hapticFeedback.heavy();
 
       if (!newRateLimitResult.allowed) {
         // Show rate limit message instead of generic error
