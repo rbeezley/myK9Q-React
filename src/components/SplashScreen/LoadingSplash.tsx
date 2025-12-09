@@ -1,4 +1,4 @@
-import { Loader2, CheckCircle, Wifi, Database } from 'lucide-react';
+import { Loader2, CheckCircle } from 'lucide-react';
 import './LoadingSplash.css';
 
 interface OfflinePreparationProgress {
@@ -28,18 +28,26 @@ interface LoadingSplashProps {
  *
  * This replaces the generic offline-prep-overlay with a branded experience.
  */
-export function LoadingSplash({ progress, message, isComplete }: LoadingSplashProps) {
+export function LoadingSplash({ progress: _progress, message, isComplete }: LoadingSplashProps) {
   return (
     <div className="loading-splash-overlay">
-      {/* Splash image as background */}
-      <img
-        src="/myK9Q-Splash.webp"
-        alt="myK9Q"
-        className="loading-splash-background"
-        draggable={false}
-        loading="eager"
-        fetchPriority="high"
-      />
+      {/* Splash image as background - art direction for portrait/landscape */}
+      <picture>
+        {/* Portrait image for mobile portrait orientation */}
+        <source
+          srcSet="/myK9Q-Splash-Portrait.webp"
+          media="(max-width: 768px) and (orientation: portrait)"
+        />
+        {/* Landscape image for desktop and landscape orientations */}
+        <img
+          src="/myK9Q-Splash.webp"
+          alt="myK9Q"
+          className="loading-splash-background"
+          draggable={false}
+          loading="eager"
+          fetchPriority="high"
+        />
+      </picture>
 
       {/* Semi-transparent progress panel at bottom */}
       <div className="loading-splash-progress-panel">
@@ -61,35 +69,6 @@ export function LoadingSplash({ progress, message, isComplete }: LoadingSplashPr
             ? 'You can now use the app without wifi'
             : 'Preparing for offline use'}
         </p>
-
-        {/* Progress indicators */}
-        <div className="loading-splash-progress-items">
-          {/* App Components */}
-          <div className="loading-splash-progress-item">
-            <div className={`loading-splash-step-icon ${progress && progress.chunksLoaded > 0 ? 'complete' : ''}`}>
-              <Wifi className="h-4 w-4" />
-            </div>
-            <span>App Components</span>
-            {progress && (
-              <span className="loading-splash-step-count">
-                {progress.chunksLoaded}/{progress.chunksTotal}
-              </span>
-            )}
-          </div>
-
-          {/* Show Data */}
-          <div className="loading-splash-progress-item">
-            <div className={`loading-splash-step-icon ${progress?.phase === 'data' && progress.dataTablesReady > 0 ? 'complete' : ''}`}>
-              <Database className="h-4 w-4" />
-            </div>
-            <span>Show Data</span>
-            {progress && progress.phase === 'data' && (
-              <span className="loading-splash-step-count">
-                {progress.dataTablesReady}/{progress.dataTablesTotal}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
