@@ -413,3 +413,63 @@ Three different color palettes existed for the same status values:
 - [ClassTable.css:217-353](src/pages/ShowDetails/components/ClassTable.css#L217-L353) - Status dot and badge colors
 - [ClassList.css:334-360](src/pages/ClassList/ClassList.css#L334-L360) - Class card accent border colors
 
+---
+
+## Production Readiness Audit - 2025-12-09 08:55
+
+### 🔴 CRITICAL (Must Fix Before Production)
+
+- ✅ ~~**Rotate ALL Supabase Keys**~~ - NOT NEEDED (2025-12-09). Investigation found: (1) `.env.local` is gitignored and current project keys were never committed to git history, (2) Service role key uses `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix) so it's already excluded from client bundle, (3) Only Edge Functions and local scripts access sensitive keys. Architecture is already secure.
+
+- ✅ ~~**Enable RLS on rules_query_log Table**~~ - COMPLETE (2025-12-09). Applied migration `enable_rls_rules_query_log` with INSERT/SELECT/UPDATE/DELETE policies.
+
+- ✅ ~~**Fix SECURITY DEFINER Views**~~ - COMPLETE (2025-12-09). Applied migration `convert_views_to_security_invoker` to set all 13 views to SECURITY INVOKER mode.
+
+- ✅ ~~**Remove Passcode from localStorage**~~ - COMPLETE (2025-12-09). Removed `passcode` field from AuthState interface and all state objects. localStorage now only stores `isAuthenticated`, `role`, `permissions`, `showContext`.
+
+- ✅ ~~**Remove/Gate Debug Routes**~~ - COMPLETE (2025-12-09). Wrapped `/debug`, `/test-connections`, `/migration-test`, and `/demo/status-popup` routes in `import.meta.env.DEV` conditionals. Components are lazy-loaded only in dev mode and completely excluded from production bundle.
+
+### 🟡 HIGH PRIORITY (Fix Before Launch)
+
+- **Implement Server-Side Rate Limiting** - Client-side rate limiting can be bypassed. **Problem:** Clearing localStorage or making direct API calls bypasses the 5-attempt limit. **Files:** Create Edge Function for login rate limiting. **Solution:** Use Supabase Edge Functions or Cloudflare rate limiting; return 429 after 5 attempts per IP.
+
+- **Add Server-Side Permission Validation** - All permission checks are client-side only. **Problem:** Direct API calls can bypass role restrictions. **Files:** Supabase RLS policies on all tables. **Solution:** Add RLS policies that validate permissions at database level based on authenticated user context.
+
+- **Bundle Workbox Locally** - Service worker depends on external CDN. **Problem:** If Google CDN unavailable, service worker fails entirely. **Files:** [sw-custom.js:5](public/sw-custom.js#L5). **Solution:** Configure vite-plugin-pwa to bundle Workbox locally instead of importing from `storage.googleapis.com`.
+
+- **Add Global Unhandled Rejection Handler** - Missing safety net for async errors. **Problem:** Some promise rejections may silently fail without logging. **Files:** [main.tsx](src/main.tsx). **Solution:** Add `window.addEventListener('unhandledrejection', (event) => { logger.error('Unhandled:', event.reason); });`
+
+- **Set search_path on Database Functions** - 6 functions vulnerable to search path injection. **Problem:** Functions `update_class_last_result_at`, `set_entry_license_key`, `notify_up_soon`, `update_rules_search_vector`, `update_rules_updated_at`, `notify_come_to_gate` have mutable search_path. **Files:** Supabase functions (see [lint docs](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable)). **Solution:** Add `SET search_path = public` to each function definition.
+
+- **Upgrade Postgres Version** - Security patches available. **Problem:** Current version `supabase-postgres-17.4.1.069` has outstanding security patches. **Files:** Supabase dashboard. **Solution:** Upgrade via [Supabase upgrading guide](https://supabase.com/docs/guides/platform/upgrading).
+
+### 🟢 MEDIUM PRIORITY (Fix Before Public Release)
+
+- **Standardize Logging to Logger Utility** - 802 direct console.log calls bypass settings. **Problem:** Users who disable logging still see 70% of log output. **Files:** Multiple files across `src/components/`, `src/services/`, `src/pages/`. **Solution:** Replace `console.log/error/warn` with `logger.log/error/warn` from [logger.ts](src/utils/logger.ts).
+
+- **Fix PWA Icon Size Mismatch** - Manifest built with wrong sizes. **Problem:** vite.config.ts specifies 192px file as 512px. **Files:** [vite.config.ts](vite.config.ts) PWA icon configuration. **Solution:** Correct icon size mappings to match actual file dimensions.
+
+- **Align Theme Colors** - Manifest and config disagree. **Problem:** Manifest uses `#14b8a6`, Vite config uses `#10b981`. **Files:** [public/manifest.json](public/manifest.json), [vite.config.ts](vite.config.ts). **Solution:** Pick one brand color and use consistently.
+
+- **Move pg_net Extension from Public Schema** - Extension in wrong schema. **Problem:** Supabase flagged `pg_net` extension in public schema as security concern. **Files:** Supabase migration. **Solution:** Move extension to `extensions` schema.
+
+- **Implement Background Sync API** - Service worker skeleton not implemented. **Problem:** Offline scores don't sync when app is closed. **Files:** [sw-custom.js:515-520](public/sw-custom.js#L515-L520). **Solution:** Implement actual mutation upload in background sync event handler.
+
+- **Drop Unused Database Indexes** - 50+ indexes never used. **Problem:** Indexes on `nationals_*`, `performance_metrics`, `rules_*` tables add write overhead. **Files:** Supabase migration. **Solution:** Review Supabase performance advisor and drop confirmed unused indexes.
+
+### 📋 Estimated Remediation Time
+
+| Priority | Tasks | Time |
+|----------|-------|------|
+| 🔴 Critical | Key rotation, RLS, auth fixes, route removal | 4-6 hours |
+| 🟡 High | Rate limiting, server permissions, Workbox, functions | 8-12 hours |
+| 🟢 Medium | Logging, PWA fixes, background sync, index cleanup | 4-8 hours |
+
+**Total:** ~16-26 hours of focused development
+
+---
+
+## PWA Update Notification Toast - 2025-12-09 09:02
+
+- **Add "New version available" toast for service worker updates** - Show user-friendly notification when app update is ready. **Problem:** Users may not see new features/fixes after deployment due to browser caching; they need to know when to refresh. **Files:** [vite.config.ts](vite.config.ts) (PWA `registerType: 'prompt'` config), [src/main.tsx](src/main.tsx) or new `src/components/ui/UpdateToast.tsx`. **Solution:** Listen for service worker `updatefound` event, display toast with "Update available - Tap to refresh" message, call `registration.waiting.postMessage({ type: 'SKIP_WAITING' })` on user action.
+

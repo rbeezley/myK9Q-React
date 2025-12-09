@@ -22,7 +22,8 @@ interface AuthState {
   role: UserRole | null;
   permissions: UserPermissions | null;
   showContext: ShowContext | null;
-  passcode: string | null;
+  // NOTE: passcode intentionally NOT stored - security risk (XSS could steal credentials)
+  // We only need role/permissions after login, not the original passcode
 }
 
 export interface LogoutResult {
@@ -69,7 +70,6 @@ const loadAuthFromStorage = (): AuthState => {
     role: null,
     permissions: null,
     showContext: null,
-    passcode: null,
   };
 };
 
@@ -168,7 +168,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       role,
       permissions,
       showContext: showData,
-      passcode,
     };
 
     setAuthState(newAuthState);
@@ -222,7 +221,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       role: null,
       permissions: null,
       showContext: null,
-      passcode: null,
     };
 
     setAuthState(newAuthState);

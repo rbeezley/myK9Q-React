@@ -31,9 +31,18 @@ import './styles/containers.css';
 // Eager load critical components
 import { Login } from './pages/Login/Login';
 import { Landing } from './pages/Landing/Landing';
-import { DatabaseTest } from './components/DatabaseTest';
-import { TestConnections } from './pages/TestConnections'; // Temporary for Phase 1.3
-import { MigrationTest } from './pages/MigrationTest/MigrationTest'; // Migration testing
+
+// Debug components - only imported in development mode
+// These expose internal tools that should never be accessible in production
+const DatabaseTest = import.meta.env.DEV
+  ? React.lazy(() => import('./components/DatabaseTest').then(m => ({ default: m.DatabaseTest })))
+  : () => null;
+const TestConnections = import.meta.env.DEV
+  ? React.lazy(() => import('./pages/TestConnections').then(m => ({ default: m.TestConnections })))
+  : () => null;
+const MigrationTest = import.meta.env.DEV
+  ? React.lazy(() => import('./pages/MigrationTest/MigrationTest').then(m => ({ default: m.MigrationTest })))
+  : () => null;
 
 // Lazy load pages for code splitting
 const Home = React.lazy(() => import('./pages/Home/Home').then(module => ({ default: module.Home })));
@@ -442,17 +451,22 @@ function AppWithAuth() {
             </ProtectedRoute>
           }
         />
-        <Route path="/debug" element={<DatabaseTest />} />
-        <Route path="/test-connections" element={<TestConnections />} />
-        <Route path="/migration-test" element={<MigrationTest />} />
-        <Route
-          path="/demo/status-popup"
-          element={
-            <Suspense fallback={<PageLoader message="Loading demo..." />}>
-              <StatusPopupDemo />
-            </Suspense>
-          }
-        />
+        {/* Debug routes - only available in development mode */}
+        {import.meta.env.DEV && (
+          <>
+            <Route path="/debug" element={<Suspense fallback={<PageLoader message="Loading..." />}><DatabaseTest /></Suspense>} />
+            <Route path="/test-connections" element={<Suspense fallback={<PageLoader message="Loading..." />}><TestConnections /></Suspense>} />
+            <Route path="/migration-test" element={<Suspense fallback={<PageLoader message="Loading..." />}><MigrationTest /></Suspense>} />
+            <Route
+              path="/demo/status-popup"
+              element={
+                <Suspense fallback={<PageLoader message="Loading demo..." />}>
+                  <StatusPopupDemo />
+                </Suspense>
+              }
+            />
+          </>
+        )}
         <Route
           path="/tv/:licenseKey"
           element={
