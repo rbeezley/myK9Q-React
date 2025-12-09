@@ -285,9 +285,9 @@ return;
             unreadCount: state.unreadCount + 1
           }));
 
-          // Push notification is handled by database trigger (Migration 019) in production
-          // For development AND testing, also trigger service worker directly
-          // TODO: Remove this once Edge Function is deployed and working
+          // Push notification is handled by database trigger (Migration 019) + Edge Function in production
+          // This client-side fallback provides graceful degradation if Edge Function fails
+          // Note: Edge Function send-push-notification is deployed and active (v16)
           if ('serviceWorker' in navigator) {
 // Add timeout to service worker ready promise
             const swReadyTimeout = new Promise((_, reject) =>

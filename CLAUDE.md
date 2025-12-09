@@ -123,3 +123,7 @@ License key: `myK9Q1-a260f472-e0d76a33-4b6c264c`
 - [DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md) - Full schema
 - [CSS_ARCHITECTURE.md](docs/CSS_ARCHITECTURE.md) - CSS patterns
 - [CLAUDE-EXTENDED.md](docs/CLAUDE-EXTENDED.md) - Extended reference (archived)
+
+### Quality
+- Lint-clean code
+- Unit tests for critical logic

@@ -113,8 +113,9 @@ async function collectUserData(licenseKey?: string): Promise<ExportedData> {
     }
   }
 
-  // TODO: Add IndexedDB data collection if needed
-  // (Currently app uses mostly localStorage)
+  // Note: IndexedDB is intentionally not exported - it contains cached server data
+  // (replicated trial/class/entry data), not user-generated content.
+  // User's personal data (settings, favorites, preferences) is stored in localStorage above.
 
   return data;
 }

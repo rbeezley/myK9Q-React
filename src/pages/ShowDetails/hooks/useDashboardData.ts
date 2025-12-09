@@ -221,6 +221,52 @@ async function fetchShow(licenseKey: string): Promise<Show | null> {
 }
 
 /**
+ * Calculate queue position for an entry within its class.
+ * Returns the number of dogs ahead in the queue (0 = next up).
+ */
+function calculateQueuePosition(
+  entry: Entry,
+  allShowEntries: Entry[]
+): number | null {
+  // Skip if entry is already scored - no queue position needed
+  if (entry.is_scored) {
+    return null;
+  }
+
+  // Get all entries for this class
+  const classId = String(entry.class_id);
+  const classEntries = allShowEntries.filter(e => String(e.class_id) === classId);
+
+  // Filter to only pending entries (not scored, not pulled)
+  const pendingEntries = classEntries.filter(e =>
+    !e.is_scored &&
+    e.entry_status !== 'pulled' &&
+    e.entry_status !== 'completed'
+  );
+
+  // Sort by exhibitor_order (ascending), with in-ring entries first
+  const sortedEntries = [...pendingEntries].sort((a, b) => {
+    // In-ring entries always first
+    const aIsInRing = a.entry_status === 'in-ring' || a.is_in_ring;
+    const bIsInRing = b.entry_status === 'in-ring' || b.is_in_ring;
+    if (aIsInRing && !bIsInRing) return -1;
+    if (!aIsInRing && bIsInRing) return 1;
+
+    // Then by exhibitor_order (treat 0 as "not set" and fall back to armband)
+    const aOrder = (a.exhibitor_order && a.exhibitor_order > 0) ? a.exhibitor_order : (a.armband_number ?? 9999);
+    const bOrder = (b.exhibitor_order && b.exhibitor_order > 0) ? b.exhibitor_order : (b.armband_number ?? 9999);
+    return aOrder - bOrder;
+  });
+
+  // Find this entry's position in the sorted list
+  const entryId = String(entry.id);
+  const position = sortedEntries.findIndex(e => String(e.id) === entryId);
+
+  // Return the number of dogs ahead (position is 0-indexed)
+  return position >= 0 ? position : null;
+}
+
+/**
  * Calculate favorite entries with queue positions
  */
 async function calculateFavoriteEntries(
@@ -283,7 +329,7 @@ async function calculateFavoriteEntries(
           dogName: firstEntry.dog_call_name,
           nextClass: nextClassName,
           nextClassId: nextEntry ? (typeof nextEntry.class_id === 'string' ? parseInt(nextEntry.class_id, 10) : Number(nextEntry.class_id)) : null,
-          queuePosition: null, // TODO: Calculate based on exhibitor_order
+          queuePosition: nextEntry ? calculateQueuePosition(nextEntry, showEntries) : null,
           isInRing: !!inRingEntry,
           isPending: pendingEntries.length > 0,
         });

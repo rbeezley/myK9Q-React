@@ -35,14 +35,10 @@ interface RealtimePreferencePayload {
 
 /**
  * Get user/device identifier for preferences
- * Uses auth user ID if available, otherwise uses device-specific ID
+ * Uses device-specific ID for anonymous exhibitor access
+ * (App uses passcode-based auth for staff roles, not user accounts)
  */
 function getUserDeviceId(): { userId: string; deviceId: string | null } {
-  // For now, use localStorage-based device ID
-  // TODO: In production, integrate with actual auth system
-  // const user = await supabase.auth.getUser();
-  // const userId = user?.data?.user?.id || 'anonymous';
-
   let deviceId = localStorage.getItem('myK9Q_device_id');
 
   if (!deviceId) {
@@ -50,8 +46,8 @@ function getUserDeviceId(): { userId: string; deviceId: string | null } {
     localStorage.setItem('myK9Q_device_id', deviceId);
   }
 
-  // If no authenticated user, use device ID as user ID
-  const userId = 'anonymous'; // Replace with actual user.id when auth is implemented
+  // Exhibitors access anonymously - use device ID for settings sync
+  const userId = 'anonymous';
 
   return { userId, deviceId };
 }

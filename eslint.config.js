@@ -12,6 +12,7 @@ export default [
       'dev-dist',
       'node_modules',
       'scripts',
+      'coverage',             // Test coverage reports (generated files)
       '*.config.js',
       '*.config.ts',
       '**/*.backup',
