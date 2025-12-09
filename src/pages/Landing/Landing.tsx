@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Users, Award, Shield,
-  Cloud, ChevronRight, Timer, Bell, Settings, Wifi, Zap, UserCheck,
-  BookOpen, Video, ExternalLink, ArrowRight, Check, DollarSign, Menu, X
+  ChevronRight, Timer, Bell, Settings, Zap, UserCheck,
+  BookOpen, Video, ExternalLink, ArrowRight, Check, DollarSign, Menu, X,
+  RefreshCw, WifiOff, Smartphone, BarChart3, Volume2, ClipboardList, Download
 } from 'lucide-react';
 import './Landing.css';
 
@@ -112,23 +113,25 @@ export function Landing() {
 
               <p className="hero-tagline">
                 Precision scoring at ring side.<br />
-                Real-time sync. Offline reliability.
+                Rebuilt from the ground up with state-of-the-art technology.
               </p>
 
-              <div className="hero-stats">
-                <div className="stat-item">
-                  <div className="stat-number">100+</div>
-                  <div className="stat-label">Clubs</div>
+              <div className="hero-features">
+                <div className="hero-feature">
+                  <RefreshCw className="hero-feature-icon" />
+                  <span>Real-time Sync</span>
                 </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                  <div className="stat-number">1000+</div>
-                  <div className="stat-label">Events</div>
+                <div className="hero-feature">
+                  <WifiOff className="hero-feature-icon" />
+                  <span>Offline-first</span>
                 </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                  <div className="stat-number">99.9%</div>
-                  <div className="stat-label">Uptime</div>
+                <div className="hero-feature">
+                  <Smartphone className="hero-feature-icon" />
+                  <span>Multi-platform</span>
+                </div>
+                <div className="hero-feature">
+                  <Bell className="hero-feature-icon" />
+                  <span>Push Notifications</span>
                 </div>
               </div>
 
@@ -146,11 +149,11 @@ export function Landing() {
                 </div>
                 <div className="feature-compact">
                   <Zap className="feature-icon-compact" />
-                  <span>Auto-Calculate</span>
+                  <span>Auto Calculate Placements</span>
                 </div>
                 <div className="feature-compact">
-                  <Cloud className="feature-icon-compact" />
-                  <span>Real-time</span>
+                  <BarChart3 className="feature-icon-compact" />
+                  <span>Stats Dashboard</span>
                 </div>
               </div>
             </div>
@@ -237,35 +240,33 @@ export function Landing() {
 
           <div className="capabilities-grid">
             <div className="capability-card">
-              <div className="capability-icon-bg">
-                <Wifi className="capability-icon" />
-              </div>
-              <h3 className="capability-title">Offline First</h3>
-              <p className="capability-desc">Works perfectly without internet. Syncs when connected.</p>
-            </div>
-
-            <div className="capability-card">
-              <Cloud className="capability-icon" />
-              <h3 className="capability-title">Cloud Sync</h3>
-              <p className="capability-desc">Real-time synchronization across all devices.</p>
-            </div>
-
-            <div className="capability-card">
               <Timer className="capability-icon" />
               <h3 className="capability-title">Multi-Timer</h3>
               <p className="capability-desc">Precision timing with concurrent timers.</p>
             </div>
 
             <div className="capability-card">
-              <Bell className="capability-icon" />
-              <h3 className="capability-title">Notifications</h3>
-              <p className="capability-desc">Instant alerts for class changes and results.</p>
-            </div>
-
-            <div className="capability-card">
               <Trophy className="capability-icon" />
               <h3 className="capability-title">AKC & UKC</h3>
               <p className="capability-desc">All major organization formats supported.</p>
+            </div>
+
+            <div className="capability-card">
+              <Volume2 className="capability-icon" />
+              <h3 className="capability-title">Voice Announcements</h3>
+              <p className="capability-desc">Automated 30-second time limit warnings.</p>
+            </div>
+
+            <div className="capability-card">
+              <ClipboardList className="capability-icon" />
+              <h3 className="capability-title">Digital Scoresheets</h3>
+              <p className="capability-desc">Complete scoring on any device.</p>
+            </div>
+
+            <div className="capability-card">
+              <Download className="capability-icon" />
+              <h3 className="capability-title">Direct Export</h3>
+              <p className="capability-desc">Download results directly to secretary software.</p>
             </div>
 
             <div className="capability-card">
@@ -423,7 +424,7 @@ export function Landing() {
           <div className="cta-content">
             <h2 className="cta-title">Ready to transform your scoring?</h2>
             <p className="cta-subtitle">
-              Join hundreds of clubs using myK9Q for faster, more accurate events.
+              Experience faster, more accurate event scoring with the next-generation platform.
             </p>
             <button onClick={handleGetStarted} className="btn-cta">
               <span>Get Started Now</span>
