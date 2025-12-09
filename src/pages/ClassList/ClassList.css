@@ -3,8 +3,8 @@
    Mobile-first responsive design using design tokens
    ======================================================================== */
 
-/* ========== FONT IMPORTS ========== */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+/* ========== FONT NOTES ========== */
+/* Uses Montserrat (self-hosted in /fonts/) and system monospace fonts */
 
 /* ========== CONTAINER & LAYOUT ========== */
 
@@ -433,7 +433,7 @@
   margin: 0;
   margin-top: 0.5rem; /* Align with status badge */
   margin-bottom: 0.75rem; /* Breathing room before metadata */
-  font-family: 'Sora', -apple-system, sans-serif;
+  font-family: 'Montserrat', -apple-system, sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--foreground);
@@ -477,7 +477,7 @@
 }
 
 .meta-row.time {
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   font-weight: 500;
 }
 
@@ -534,7 +534,7 @@
   gap: 3px;
   padding: 0.1875rem 0.4375rem;
   border-radius: 0.375rem;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -809,7 +809,7 @@
 .contextual-preview-condensed {
   padding-top: 0.25rem;
   margin-top: 0.25rem;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   font-size: 0.8125rem;
   font-weight: 500;
   color: #cbd5e1;
@@ -1328,7 +1328,7 @@
 
 .class-card .no-entries span {
   /* Match "X of Y remaining" text style */
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   font-size: 0.8125rem;
   font-weight: 500;
   color: #94a3b8;
