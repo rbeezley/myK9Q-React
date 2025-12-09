@@ -509,7 +509,7 @@ section {
 .kinetic-qualify {
   font-size: clamp(2.5rem, 8vw, 5rem);
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.15; /* Allow room for Q descender */
   letter-spacing: -0.04em;
   text-transform: uppercase;
 }
