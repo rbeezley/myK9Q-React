@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { UserRole, UserPermissions, getPermissionsForRole } from '../utils/auth';
 import { initializeReplication, clearReplicationCaches, resetReplicationState } from '@/services/replication/initReplication';
 import { destroyReplicationManager } from '@/services/replication';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { prefetchCriticalChunks, resetPrefetchState } from '@/utils/chunkPrefetch';
 import { logger } from '@/utils/logger';
+import { setSupabaseLicenseKey } from '@/lib/supabase';
 
 interface ShowContext {
   showId: string;
@@ -83,6 +84,14 @@ const saveAuthToStorage = (authState: AuthState) => {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>(loadAuthFromStorage);
+
+  // Set license key for RLS on initial load (restored session)
+  useEffect(() => {
+    if (authState.showContext?.licenseKey) {
+      setSupabaseLicenseKey(authState.showContext.licenseKey);
+      logger.log('[Auth] 🔐 Restored license key for RLS filtering');
+    }
+  }, []); // Only run once on mount
 
   const login = useCallback(async (passcode: string, showData: ShowContext) => {
     // CRITICAL: Clear caches on EVERY login to ensure fresh data
@@ -173,6 +182,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(newAuthState);
     saveAuthToStorage(newAuthState);
 
+    // Set license key for server-side RLS filtering
+    setSupabaseLicenseKey(showData.licenseKey);
+
     // Initialize replication after login
     // Previously skipped at app startup due to missing license key
     // Now that license key is available, trigger initialization and sync
@@ -226,6 +238,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(newAuthState);
     localStorage.removeItem('myK9Q_auth');
     sessionStorage.removeItem('auth');
+
+    // Clear license key for RLS (no longer authenticated)
+    setSupabaseLicenseKey(null);
 
     // Clear all caches
     try {

@@ -138,13 +138,13 @@ export default defineConfig({
     }) : null,
     VitePWA({
       strategies: 'injectManifest', // Use our custom service worker
-      srcDir: 'public',
+      srcDir: 'src',
       filename: 'sw-custom.js',
       registerType: 'prompt', // Changed from 'autoUpdate' to 'prompt' to prevent auto-reload in dev
       devOptions: {
         enabled: false, // Disabled to prevent stale chunk caching during development
         // Set to true temporarily when testing offline functionality
-        type: 'classic' // Use classic service worker (not ES module) because we use importScripts
+        type: 'module' // Use ES module service worker (bundled locally, no CDN)
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']

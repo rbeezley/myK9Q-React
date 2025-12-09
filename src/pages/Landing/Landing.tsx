@@ -240,37 +240,37 @@ export function Landing() {
               <div className="capability-icon-bg">
                 <Wifi className="capability-icon" />
               </div>
-              <h4 className="capability-title">Offline First</h4>
+              <h3 className="capability-title">Offline First</h3>
               <p className="capability-desc">Works perfectly without internet. Syncs when connected.</p>
             </div>
 
             <div className="capability-card">
               <Cloud className="capability-icon" />
-              <h4 className="capability-title">Cloud Sync</h4>
+              <h3 className="capability-title">Cloud Sync</h3>
               <p className="capability-desc">Real-time synchronization across all devices.</p>
             </div>
 
             <div className="capability-card">
               <Timer className="capability-icon" />
-              <h4 className="capability-title">Multi-Timer</h4>
+              <h3 className="capability-title">Multi-Timer</h3>
               <p className="capability-desc">Precision timing with concurrent timers.</p>
             </div>
 
             <div className="capability-card">
               <Bell className="capability-icon" />
-              <h4 className="capability-title">Notifications</h4>
+              <h3 className="capability-title">Notifications</h3>
               <p className="capability-desc">Instant alerts for class changes and results.</p>
             </div>
 
             <div className="capability-card">
               <Trophy className="capability-icon" />
-              <h4 className="capability-title">AKC & UKC</h4>
+              <h3 className="capability-title">AKC & UKC</h3>
               <p className="capability-desc">All major organization formats supported.</p>
             </div>
 
             <div className="capability-card">
               <Shield className="capability-icon" />
-              <h4 className="capability-title">Secure</h4>
+              <h3 className="capability-title">Secure</h3>
               <p className="capability-desc">Role-based permissions and authentication.</p>
             </div>
           </div>

@@ -1,8 +1,12 @@
 // Custom Service Worker for Push Notifications
 // This uses injectManifest strategy to combine custom logic with Workbox precaching
+// Workbox is bundled locally via npm packages (no external CDN dependency)
 
-// Import Workbox
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.6.0/workbox-sw.js');
+import { precacheAndRoute, matchPrecache } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 // Detect development mode (localhost or 127.0.0.1 with Vite's default port)
 const isDevelopment = self.location.hostname === 'localhost' ||
@@ -13,7 +17,7 @@ const isDevelopment = self.location.hostname === 'localhost' ||
 // Skip in development to avoid caching stale dev server files
 const precacheManifest = self.__WB_MANIFEST || [];
 if (precacheManifest.length > 0 && !isDevelopment) {
-  workbox.precaching.precacheAndRoute(precacheManifest);
+  precacheAndRoute(precacheManifest);
 }
 
 // ========================================
@@ -23,7 +27,7 @@ if (precacheManifest.length > 0 && !isDevelopment) {
 // JS caching strategy:
 // - Development: NetworkFirst to always get fresh code from Vite dev server
 // - Production: CacheFirst for offline support
-workbox.routing.registerRoute(
+registerRoute(
   ({ request, url }) => {
     // Match JS files from our origin
     return (
@@ -32,23 +36,23 @@ workbox.routing.registerRoute(
     );
   },
   isDevelopment
-    ? new workbox.strategies.NetworkFirst({
+    ? new NetworkFirst({
         cacheName: 'js-cache-dev',
         plugins: [
-          new workbox.cacheableResponse.CacheableResponsePlugin({
+          new CacheableResponsePlugin({
             statuses: [0, 200],
           }),
         ],
         networkTimeoutSeconds: 5, // Fall back to cache only if network is slow
       })
-    : new workbox.strategies.CacheFirst({
+    : new CacheFirst({
         cacheName: 'js-cache',
         plugins: [
-          new workbox.expiration.ExpirationPlugin({
+          new ExpirationPlugin({
             maxEntries: 100,
             maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
           }),
-          new workbox.cacheableResponse.CacheableResponsePlugin({
+          new CacheableResponsePlugin({
             statuses: [0, 200],
           }),
         ],
@@ -56,7 +60,7 @@ workbox.routing.registerRoute(
 );
 
 // Network-first strategy for CSS to prevent stale styles during rehydration
-workbox.routing.registerRoute(
+registerRoute(
   ({ request, url }) => {
     // Match CSS files from our origin
     return (
@@ -64,14 +68,14 @@ workbox.routing.registerRoute(
       request.destination === 'style'
     );
   },
-  new workbox.strategies.NetworkFirst({
+  new NetworkFirst({
     cacheName: 'css-cache',
     plugins: [
-      new workbox.expiration.ExpirationPlugin({
+      new ExpirationPlugin({
         maxEntries: 50,
         maxAgeSeconds: 24 * 60 * 60, // 1 day (shorter TTL for CSS)
       }),
-      new workbox.cacheableResponse.CacheableResponsePlugin({
+      new CacheableResponsePlugin({
         statuses: [0, 200],
       }),
     ],
@@ -80,7 +84,7 @@ workbox.routing.registerRoute(
 );
 
 // Navigation requests: Try cache first, fall back to index.html for SPA routing
-workbox.routing.registerRoute(
+registerRoute(
   ({ request }) => request.mode === 'navigate',
   async ({ event }) => {
     try {
@@ -96,7 +100,7 @@ workbox.routing.registerRoute(
         return cachedResponse;
       }
       // Last resort: try precache
-      return workbox.precaching.matchPrecache('/index.html');
+      return matchPrecache('/index.html');
     }
   }
 );

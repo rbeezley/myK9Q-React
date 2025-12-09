@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -13,8 +13,43 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Please check console for setup instructions.');
 }
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Track current license key for header injection
+let currentLicenseKey: string | null = null;
+
+// Custom fetch that adds x-license-key header to all requests
+// This enables RLS policies to filter by license_key at the database level
+const customFetch = (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
+  const headers = new Headers(options.headers);
+
+  if (currentLicenseKey) {
+    headers.set('x-license-key', currentLicenseKey);
+  }
+
+  return fetch(url, { ...options, headers });
+};
+
+// Create Supabase client with custom fetch for RLS header injection
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: customFetch,
+  },
+});
+
+/**
+ * Set the license key for RLS filtering
+ * Call this after login to enable server-side tenant isolation
+ *
+ * @param licenseKey - The license key for the current show, or null to clear
+ */
+export const setSupabaseLicenseKey = (licenseKey: string | null): void => {
+  currentLicenseKey = licenseKey;
+  // Logging is handled by AuthContext to avoid console.log lint warnings
+};
+
+/**
+ * Get the current license key (for debugging/logging)
+ */
+export const getSupabaseLicenseKey = (): string | null => currentLicenseKey;
 
 // Database types based on Flutter analysis
 export interface ShowQueue {
