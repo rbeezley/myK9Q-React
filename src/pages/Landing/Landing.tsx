@@ -83,11 +83,6 @@ export function Landing() {
           <div className="hero-layout">
             {/* Left Side - Content with Kinetic Typography */}
             <div className={`hero-content ${isVisible ? 'visible' : ''}`}>
-              <div className="hero-badge">
-                <Trophy className="badge-icon" />
-                <span>2025 AKC Nationals</span>
-              </div>
-
               <div className="hero-logo-section">
                 <div className="logo-frame">
                   <img
