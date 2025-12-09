@@ -811,11 +811,6 @@ section {
   text-align: center;
   margin-bottom: var(--space-3xl);
   position: relative;
-  background: transparent;
-}
-
-.section-header:hover {
-  background: transparent;
 }
 
 .section-title {
@@ -824,11 +819,10 @@ section {
   letter-spacing: -0.03em;
   color: var(--color-white) !important;
   margin-bottom: var(--space-md);
-  background: transparent;
-}
-
-.section-title:hover {
-  background: transparent;
+  /* Ensure no unexpected backgrounds or transitions */
+  background: none !important;
+  -webkit-text-fill-color: var(--color-white);
+  text-decoration: none;
 }
 
 .title-accent {
