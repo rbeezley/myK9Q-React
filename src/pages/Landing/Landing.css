@@ -496,6 +496,7 @@ section {
 .hero-kinetic {
   margin-bottom: var(--space-2xl);
   position: relative;
+  padding-right: var(--space-sm); /* Prevent Y clipping from parent overflow:hidden */
 }
 
 .kinetic-line {
