@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, MessageSquare, Building2, Trophy } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -47,7 +47,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [_isAnimating, setIsAnimating] = useState(false);
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
   const [isAskMyK9QOpen, setIsAskMyK9QOpen] = useState(false);
-  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -256,52 +255,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
               <div className="menu-divider"></div>
 
-              {/* Collapsible Help Section */}
-              <button
-                className="menu-collapsible-header"
-                onClick={() => setIsHelpExpanded(!isHelpExpanded)}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--token-space-lg)' }}>
-                  <HelpCircle className="menu-icon" />
-                  <span>Help & Support</span>
-                </div>
-                <ChevronDown className={`menu-collapsible-icon ${isHelpExpanded ? 'open' : ''}`} />
-              </button>
-
-              <div className={`menu-collapsible-content ${isHelpExpanded ? 'open' : ''}`}>
-                <a
-                  href="https://myk9t.com/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="menu-item"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <BookOpen className="menu-icon" />
-                  <span>User Guide</span>
-                </a>
-
-                <a
-                  href="https://www.youtube.com/watch?v=WRaKZnFPtmI&list=PL6PN3duVGm8-WDKvOobppaZC7Mc_13Xdj"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="menu-item"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Video className="menu-icon" />
-                  <span>Video Tutorials</span>
-                </a>
-
-                <button
-                  className="menu-item"
-                  onClick={() => handleMenuItemClick(() => setIsAboutDialogOpen(true))}
-                >
-                  <Info className="menu-icon" />
-                  <span>About</span>
-                </button>
-              </div>
-
-              <div className="menu-divider"></div>
-
               {/* Configuration */}
               <button
                 className={`menu-item ${currentPage === 'settings' ? 'active' : ''}`}
@@ -317,6 +270,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               >
                 {darkMode ? <Sun className="menu-icon" /> : <Moon className="menu-icon" />}
                 <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+
+              <button
+                className="menu-item"
+                onClick={() => handleMenuItemClick(() => setIsAboutDialogOpen(true))}
+              >
+                <Info className="menu-icon" />
+                <span>About</span>
               </button>
 
               <div className="menu-divider"></div>

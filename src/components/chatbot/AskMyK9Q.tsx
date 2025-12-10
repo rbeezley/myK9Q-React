@@ -5,7 +5,6 @@ import {
   Search,
   Loader2,
   AlertCircle,
-  Info,
   Flag,
   Check,
   BookOpen,
@@ -15,6 +14,7 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  HelpCircle,
 } from 'lucide-react';
 import {
   ChatbotService,
@@ -32,6 +32,8 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { logger } from '@/utils/logger';
+import { FAQSection } from './FAQSection';
+import { getFAQCount } from '../../data/faqContent';
 import './AskMyK9Q.css';
 
 interface AskMyK9QProps {
@@ -217,17 +219,83 @@ const SourcesSection: React.FC<SourcesSectionProps> = ({
   </div>
 );
 
+// Static fallback queries (used when offline or no popular data)
+const FALLBACK_QUERIES = {
+  rules: [
+    'Time limit Master Interior',
+    'Handler touches dog penalty',
+    'What qualifies as a false alert?',
+  ],
+  showData: [
+    'Who got 1st place Saturday',
+    'How many dogs qualified today',
+    'Show me Exterior results',
+  ],
+};
+
+// Keywords that indicate a rules question vs show data question
+const RULES_KEYWORDS = [
+  'time limit', 'penalty', 'false alert', 'handler', 'regulation', 'rule',
+  'leash', 'fault', 'nq', 'disqualif', 'allowed', 'prohibited', 'requirements',
+  'maximum', 'minimum', 'seconds', 'minutes', 'area', 'hide', 'alert',
+];
+
+const SHOW_DATA_KEYWORDS = [
+  'who', 'how many', 'results', 'place', '1st', '2nd', '3rd', 'first', 'second',
+  'third', 'qualified', 'score', 'today', 'saturday', 'sunday', 'friday',
+  'yesterday', 'class', 'entries', 'dogs', 'running', 'completed',
+];
+
+/**
+ * Categorize a question as 'rules' or 'showData' based on keywords
+ */
+function categorizeQuestion(query: string): 'rules' | 'showData' {
+  const lowerQuery = query.toLowerCase();
+
+  const rulesScore = RULES_KEYWORDS.filter(kw => lowerQuery.includes(kw)).length;
+  const showDataScore = SHOW_DATA_KEYWORDS.filter(kw => lowerQuery.includes(kw)).length;
+
+  // If show data keywords dominate, it's a show data question
+  // Default to rules if unclear (more likely to be asking about regulations)
+  return showDataScore > rulesScore ? 'showData' : 'rules';
+}
+
+/**
+ * Split popular questions into categorized buckets
+ */
+function categorizePopularQuestions(questions: PopularQuestion[]): {
+  rules: string[];
+  showData: string[];
+} {
+  const rules: string[] = [];
+  const showData: string[] = [];
+
+  for (const q of questions) {
+    const category = categorizeQuestion(q.query);
+    if (category === 'rules' && rules.length < 3) {
+      rules.push(q.query);
+    } else if (category === 'showData' && showData.length < 3) {
+      showData.push(q.query);
+    }
+
+    // Stop if we have enough in both categories
+    if (rules.length >= 3 && showData.length >= 3) break;
+  }
+
+  return { rules, showData };
+}
+
 export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
   const { showContext } = useAuth();
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState<ChatResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchPerformed, setSearchPerformed] = useState(false);
   const [expandedSource, setExpandedSource] = useState<SourceType | null>(null);
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
   const [_isOnline, setIsOnline] = useState(navigator.onLine);
   const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [isFAQExpanded, setIsFAQExpanded] = useState(false);
   const [popularQuestions, setPopularQuestions] = useState<PopularQuestion[]>([]);
 
   const { organizationCode, sportCode } = showContext?.org
@@ -238,31 +306,26 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     setFeedbackStatus('idle');
 
     if (!searchQuery.trim()) {
-      setResponse(null);
-      setError(null);
-      setSearchPerformed(false);
       return;
     }
 
     if (!navigator.onLine) {
-      setError('AskQ requires an internet connection. Your show data is still available offline in the app.');
-      setSearchPerformed(true);
+      setError('AskQ requires an internet connection. Browse FAQs below for offline help.');
       setResponse(null);
       return;
     }
 
     if (!showContext?.licenseKey) {
       setError('Please log in to use AskQ.');
-      setSearchPerformed(true);
       setResponse(null);
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setSearchPerformed(true);
     setExpandedSource(null);
     setExpandedRuleId(null);
+    setIsFAQExpanded(false); // Collapse FAQ when searching
 
     const startTime = Date.now();
 
@@ -313,9 +376,20 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleFAQAskAI = (question: string) => {
+    setQuery(question);
+    handleSearch(question);
+  };
+
   const handleExampleClick = (example: string) => {
     setQuery(example);
     handleSearch(example);
+  };
+
+  const handleClearResult = () => {
+    setQuery('');
+    setResponse(null);
+    setError(null);
   };
 
   const toggleSourceExpansion = (sourceType: SourceType) => {
@@ -398,31 +472,52 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     };
   }, [query]);
 
+  // Fetch popular questions when panel opens
+  useEffect(() => {
+    if (isOpen && navigator.onLine) {
+      // Fetch more questions (12) to have enough for categorization into rules/show data
+      getPopularQuestions(12)
+        .then(setPopularQuestions)
+        .catch((err) => {
+          logger.error('[AskMyK9Q] Failed to fetch popular questions:', err);
+        });
+    }
+  }, [isOpen]);
+
   // Clear state when panel closes
   useEffect(() => {
     if (!isOpen) {
       setQuery('');
       setResponse(null);
       setError(null);
-      setSearchPerformed(false);
+      setIsFAQExpanded(false);
       setExpandedSource(null);
       setExpandedRuleId(null);
       setFeedbackStatus('idle');
     }
   }, [isOpen]);
 
-  // Load popular questions when panel opens
-  useEffect(() => {
-    if (isOpen && popularQuestions.length === 0) {
-      getPopularQuestions(6).then(setPopularQuestions).catch(() => {
-        // Silently fail - will show empty state or defaults
-      });
-    }
-  }, [isOpen, popularQuestions.length]);
-
   if (!isOpen) {
     return null;
   }
+
+  const faqCount = getFAQCount();
+  const hasResult = response?.answer || error;
+
+  // Compute example queries for the input footer
+  const categorized = popularQuestions.length > 0
+    ? categorizePopularQuestions(popularQuestions)
+    : { rules: [], showData: [] };
+
+  const rulesQueries = categorized.rules.length > 0
+    ? categorized.rules
+    : FALLBACK_QUERIES.rules;
+  const showDataQueries = categorized.showData.length > 0
+    ? categorized.showData
+    : FALLBACK_QUERIES.showData;
+
+  const rulesLabel = categorized.rules.length > 0 ? '🔥 Rules' : '📖 Rules';
+  const showDataLabel = categorized.showData.length > 0 ? '🔥 Your Show' : '📊 Your Show';
 
   return (
     <>
@@ -433,17 +528,20 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
         aria-hidden="true"
       />
 
-      {/* Slide-out Panel */}
+      {/* Slide-out Panel - Traditional Chat Layout */}
       <aside
-        className="chat-panel"
+        className="chat-panel chat-panel-traditional"
         role="complementary"
         aria-label="AskQ"
       >
         {/* Header */}
         <div className="chat-panel-header">
-          <div className="chat-panel-title">
-            <MessageSquare size={24} />
-            <h2>AskQ</h2>
+          <div className="chat-panel-title-section">
+            <div className="chat-panel-title">
+              <MessageSquare size={24} />
+              <h2>AskQ</h2>
+            </div>
+            <p className="chat-header-disclaimer">Always verify crucial information with official sources.</p>
           </div>
           <button
             onClick={onClose}
@@ -454,115 +552,162 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Beta Disclaimer */}
-        <div className="chat-beta-disclaimer">
-          <AlertCircle size={16} />
-          <span>
-            <strong>Beta Feature:</strong> Ask about rules or your show data. Verify critical information.
-          </span>
+        {/* Main Content Area - Scrollable */}
+        <div className="chat-content-area">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="chat-loading-state">
+              <Loader2 className="animate-spin" size={32} />
+              <p>Searching...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <div className="chat-error-state">
+              <AlertCircle size={24} />
+              <p>{error}</p>
+              <button
+                className="chat-try-again-btn"
+                onClick={handleClearResult}
+              >
+                Try another question
+              </button>
+            </div>
+          )}
+
+          {/* Answer Section */}
+          {!isLoading && response?.answer && (
+            <>
+              <AnswerSection
+                response={response}
+                feedbackStatus={feedbackStatus}
+                onReportIssue={handleReportIssue}
+              />
+
+              {/* Sources Section */}
+              {response.sources && Object.keys(response.sources).length > 0 && (
+                <SourcesSection
+                  sources={response.sources}
+                  expandedSource={expandedSource}
+                  expandedRuleId={expandedRuleId}
+                  onToggleSource={toggleSourceExpansion}
+                  onToggleRule={toggleRuleExpansion}
+                />
+              )}
+
+              {/* Ask Another Button */}
+              <div className="chat-ask-another">
+                <button
+                  className="chat-ask-another-btn"
+                  onClick={handleClearResult}
+                >
+                  Ask another question
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Welcome State - No Result Yet */}
+          {!isLoading && !hasResult && (
+            <div className="chat-welcome-state">
+              <MessageSquare size={48} opacity={0.3} />
+              <p>Ask me anything about:</p>
+              <ul className="chat-capabilities-list">
+                <li><BookOpen size={16} /> <strong>Rules & Regulations</strong> – time limits, penalties, requirements</li>
+                <li><LayoutGrid size={16} /> <strong>Show Information</strong> – results, placements, who qualified, fastest times</li>
+                <li><HelpCircle size={16} /> <strong>App Help</strong> – how to check in, score, use features</li>
+              </ul>
+            </div>
+          )}
         </div>
 
-        {/* Search Input */}
-        <div className="chat-search-container">
-          <div className="chat-search-input-wrapper">
-            <Search className="chat-search-icon" size={20} />
-            <input
-              type="text"
-              className="chat-search-input"
-              placeholder="Ask about rules or your show..."
-              value={query}
-              onChange={handleQueryChange}
-              onKeyPress={handleKeyPress}
-              autoFocus
-            />
-            {isLoading && (
-              <Loader2 className="chat-loading-icon" size={20} />
+        {/* Footer - FAQ + Examples + Input (Traditional Chat Layout) */}
+        <div className="chat-input-footer">
+          {/* Collapsible FAQ Section */}
+          <div className="chat-faq-collapsible">
+            <button
+              className={`chat-faq-toggle ${isFAQExpanded ? 'expanded' : ''}`}
+              onClick={() => setIsFAQExpanded(!isFAQExpanded)}
+              aria-expanded={isFAQExpanded}
+            >
+              <div className="chat-faq-toggle-title">
+                <BookOpen size={18} />
+                <span>Browse FAQs</span>
+                <span className="chat-faq-count">({faqCount} offline answers)</span>
+              </div>
+              {isFAQExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+
+            {isFAQExpanded && (
+              <div className="chat-faq-content">
+                <FAQSection onAskAI={handleFAQAskAI} />
+              </div>
             )}
           </div>
-          <button
-            onClick={handleSearchClick}
-            className="chat-search-btn"
-            disabled={!query.trim() || isLoading}
-          >
-            Ask
-          </button>
-        </div>
 
-        {/* Search Instruction */}
-        {query.trim() && !searchPerformed && !isLoading && (
-          <div className="chat-search-instruction">
-            <Info size={14} />
-            <span>Press Enter or click Ask</span>
-          </div>
-        )}
-
-        {/* Help Text with Popular Questions */}
-        {!searchPerformed && !query.trim() && (
-          <div className="chat-help-section">
-            <div className="chat-help-text">
-              <Info size={16} />
-              <span>Ask about rules, class schedules, entries, or results</span>
-            </div>
-            <div className="chat-dictation-tip">
-              Tip: Use your keyboard's 🎤 button to speak your question
-            </div>
-            {popularQuestions.length > 0 && (
-              <div className="chat-examples">
-                <span className="chat-examples-label">
-                  {popularQuestions.some(q => q.ask_count > 0) ? 'Popular questions:' : 'Try asking:'}
-                </span>
+          {/* Example Queries - show when no result */}
+          {!hasResult && !isLoading && (
+            <div className="chat-examples">
+              <div className="chat-examples-group">
+                <span className="chat-examples-label">{rulesLabel}</span>
                 <div className="chat-example-chips">
-                  {popularQuestions.map((pq, idx) => (
+                  {rulesQueries.map((example) => (
                     <button
-                      key={idx}
+                      key={example}
                       className="chat-example-chip"
-                      onClick={() => handleExampleClick(pq.query)}
+                      onClick={() => handleExampleClick(example)}
                     >
-                      {pq.query}
+                      {example}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
+              <div className="chat-examples-group">
+                <span className="chat-examples-label">{showDataLabel}</span>
+                <div className="chat-example-chips">
+                  {showDataQueries.map((example) => (
+                    <button
+                      key={example}
+                      className="chat-example-chip"
+                      onClick={() => handleExampleClick(example)}
+                    >
+                      {example}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Search Input - At Bottom */}
+          <div className="chat-search-section">
+            <div className="chat-search-container">
+              <div className="chat-search-input-wrapper">
+                <Search className="chat-search-icon" size={18} />
+                <input
+                  type="text"
+                  className="chat-search-input"
+                  placeholder="Ask about rules or your show data..."
+                  value={query}
+                  onChange={handleQueryChange}
+                  onKeyPress={handleKeyPress}
+                  autoFocus
+                />
+                {isLoading && (
+                  <Loader2 className="chat-loading-icon animate-spin" size={18} />
+                )}
+              </div>
+              <button
+                onClick={handleSearchClick}
+                className="chat-search-btn"
+                disabled={!query.trim() || isLoading}
+              >
+                Ask
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="chat-error-state">
-            <AlertCircle size={24} />
-            <p>{error}</p>
-          </div>
-        )}
-
-        {/* Answer Section */}
-        {!isLoading && response?.answer && (
-          <AnswerSection
-            response={response}
-            feedbackStatus={feedbackStatus}
-            onReportIssue={handleReportIssue}
-          />
-        )}
-
-        {/* Sources Section */}
-        {!isLoading && response?.sources && Object.keys(response.sources).length > 0 && (
-          <SourcesSection
-            sources={response.sources}
-            expandedSource={expandedSource}
-            expandedRuleId={expandedRuleId}
-            onToggleSource={toggleSourceExpansion}
-            onToggleRule={toggleRuleExpansion}
-          />
-        )}
-
-        {/* Empty State */}
-        {!isLoading && searchPerformed && !response?.answer && !error && (
-          <div className="chat-empty-state">
-            <MessageSquare size={48} opacity={0.3} />
-            <p>No answer found for "{query}"</p>
-            <p className="chat-empty-hint">Try rephrasing your question or using different keywords.</p>
-          </div>
-        )}
+        </div>
       </aside>
     </>
   );
