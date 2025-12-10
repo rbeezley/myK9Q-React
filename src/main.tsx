@@ -5,6 +5,7 @@ import './index.css'
 import { registerSW } from 'virtual:pwa-register'
 import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 import { initializeReplication } from './services/replication/initReplication'
+import { initSyncStatusListeners } from './stores/syncStatusStore'
 import { logger } from './utils/logger'
 import { UpdateToast } from './components/ui/UpdateToast'
 
@@ -103,7 +104,11 @@ const updateSW = registerSW({
   }
 })
 
-// Also initialize replication immediately for faster startup
+// Initialize sync status listeners BEFORE replication starts
+// This ensures we capture the initial sync success event
+initSyncStatusListeners()
+
+// Initialize replication immediately for faster startup
 initializeReplication().catch(console.error)
 
 // Debug window interface for development tools

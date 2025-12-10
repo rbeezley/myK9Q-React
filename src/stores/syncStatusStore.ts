@@ -105,11 +105,21 @@ export const useSyncStatusStore = create<SyncStatusStore>((set, get) => ({
   },
 }));
 
+// Track if listeners have been initialized (prevents duplicate event handlers)
+let listenersInitialized = false;
+
 /**
  * Initialize sync status listeners
  * Call this once at app startup to connect to replication events
+ * Safe to call multiple times - will only register listeners once
  */
 export function initSyncStatusListeners(): void {
+  // Prevent duplicate event listener registration
+  if (listenersInitialized) {
+    return;
+  }
+  listenersInitialized = true;
+
   // Listen for sync success
   window.addEventListener('replication:sync-success', ((event: CustomEvent) => {
     const { timestamp } = event.detail;
