@@ -5,9 +5,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, FileText, Building2, Trophy } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Video, Sun, Moon, Info, BarChart3, ChevronDown, HelpCircle, MessageSquare, Building2, Trophy } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
-import { RulesAssistant } from '../rules/RulesAssistant';
+import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
 import './shared-ui.css';
 import { version } from '../../../package.json';
@@ -46,7 +46,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [_isAnimating, setIsAnimating] = useState(false);
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
-  const [isRulesAssistantOpen, setIsRulesAssistantOpen] = useState(false);
+  const [isAskMyK9QOpen, setIsAskMyK9QOpen] = useState(false);
   const [isHelpExpanded, setIsHelpExpanded] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -226,10 +226,10 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               {/* Tools */}
               <button
                 className="menu-item"
-                onClick={() => handleMenuItemClick(() => setIsRulesAssistantOpen(true))}
+                onClick={() => handleMenuItemClick(() => setIsAskMyK9QOpen(true))}
               >
-                <FileText className="menu-icon" />
-                <span>Rules Assistant</span>
+                <MessageSquare className="menu-icon" />
+                <span>Ask myK9Q</span>
               </button>
 
               {/* Admin Section - Only show for admin users */}
@@ -346,10 +346,10 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         licenseKey={showContext?.licenseKey}
       />
 
-      {/* Rules Assistant */}
-      <RulesAssistant
-        isOpen={isRulesAssistantOpen}
-        onClose={() => setIsRulesAssistantOpen(false)}
+      {/* Ask myK9Q Chatbot */}
+      <AskMyK9Q
+        isOpen={isAskMyK9QOpen}
+        onClose={() => setIsAskMyK9QOpen(false)}
       />
 
       {/* Pending Scores Warning Dialog (also handles offline warning) */}
