@@ -56,3 +56,5 @@ export type { FloatingActionButtonProps } from './FloatingActionButton';
 export { InstallPrompt, IOSInstallInstructions } from './InstallPrompt';
 export type { InstallPromptProps } from './InstallPrompt';
 export { AutoLogoutWarning } from './AutoLogoutWarning';
+export { UpdateToast } from './UpdateToast';
+export type { default as UpdateToastProps } from './UpdateToast';

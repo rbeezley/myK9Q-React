@@ -6,6 +6,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 import { initializeReplication } from './services/replication/initReplication'
 import { logger } from './utils/logger'
+import { UpdateToast } from './components/ui/UpdateToast'
 
 // Global error handlers - catch unhandled async errors and uncaught exceptions
 // These provide a safety net for errors that escape try/catch blocks
@@ -28,6 +29,42 @@ const APP_VERSION = '2024-11-25-v4';
 const getLastPromptedVersion = () => localStorage.getItem('sw_prompted_version');
 const setLastPromptedVersion = () => localStorage.setItem('sw_prompted_version', APP_VERSION);
 
+/**
+ * Check if user is currently on a scoresheet page.
+ * We defer update prompts during active scoring to avoid interruptions.
+ */
+const isOnScoresheet = () => {
+  const path = window.location.pathname;
+  return path.includes('/score') || path.includes('/entry/');
+};
+
+/**
+ * Show the PWA update toast.
+ * Renders into a separate DOM root to keep it isolated from the main React app.
+ */
+const showUpdateToast = () => {
+  const container = document.getElementById('update-toast-root');
+  if (!container) {
+    logger.error('[PWA] Update toast container not found');
+    return;
+  }
+
+  const toastRoot = ReactDOM.createRoot(container);
+
+  const handleUpdate = () => {
+    toastRoot.unmount();
+    updateSW(true);
+  };
+
+  const handleLater = () => {
+    toastRoot.unmount();
+  };
+
+  toastRoot.render(
+    <UpdateToast onUpdate={handleUpdate} onLater={handleLater} />
+  );
+};
+
 const updateSW = registerSW({
   onNeedRefresh() {
     // In development, don't auto-prompt for refresh to avoid interrupting work
@@ -44,9 +81,16 @@ const updateSW = registerSW({
 
     setLastPromptedVersion();
 
-    // In production, prompt user for update
-    if (confirm('New content available. Reload?')) {
-      updateSW(true)
+    // Defer showing toast if user is on a scoresheet (don't interrupt scoring)
+    if (isOnScoresheet()) {
+      const checkInterval = setInterval(() => {
+        if (!isOnScoresheet()) {
+          clearInterval(checkInterval);
+          showUpdateToast();
+        }
+      }, 2000);
+    } else {
+      showUpdateToast();
     }
   },
   onOfflineReady() {

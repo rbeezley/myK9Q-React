@@ -478,7 +478,10 @@ Three different color palettes existed for the same status values:
 
 ---
 
-## PWA Update Notification Toast - 2025-12-09 09:02
+## PWA Update Notification Toast - 2025-12-09 09:02 ✅ COMPLETE
 
-- **Add "New version available" toast for service worker updates** - Show user-friendly notification when app update is ready. **Problem:** Users may not see new features/fixes after deployment due to browser caching; they need to know when to refresh. **Files:** [vite.config.ts](vite.config.ts) (PWA `registerType: 'prompt'` config), [src/main.tsx](src/main.tsx) or new `src/components/ui/UpdateToast.tsx`. **Solution:** Listen for service worker `updatefound` event, display toast with "Update available - Tap to refresh" message, call `registration.waiting.postMessage({ type: 'SKIP_WAITING' })` on user action.
+- **IMPLEMENTED:** Replaced browser `confirm()` dialog with styled UpdateToast component.
+- **Features:** Bottom-positioned toast, teal accent, "Update Now" / "Later" buttons, defers during scoresheet scoring
+- **Files:** [UpdateToast.tsx](src/components/ui/UpdateToast.tsx), [UpdateToast.css](src/components/ui/UpdateToast.css), [main.tsx](src/main.tsx), [index.html](index.html)
+- **Design:** [docs/plans/2025-12-10-pwa-update-toast-design.md](docs/plans/2025-12-10-pwa-update-toast-design.md)
 
