@@ -186,16 +186,16 @@ Tap the dog's status and select "Pulled". This removes them from the active run 
 
 ## For Admins
 
-### How do I access the admin panel?
-Tap the hamburger menu (☰) → **Admin Panel**
+### How do I access admin settings?
+Tap the hamburger menu (☰) → **Results Control** (only visible to admin users)
 
-### What can I configure in the admin panel?
+### What can I configure in Results Control?
 - **Result visibility** - Control when results are shown (immediately, after class, after review)
 - **Self check-in** - Allow/disallow exhibitor self check-in per class
 - **Live results** - Enable/disable real-time result updates
 
 ### How do I view the audit log?
-Go to **Admin Panel** → **Audit Log** to see all actions taken, who took them, and when.
+In **Results Control**, tap the menu icon (⋮) → **Audit Log** to see all scoring actions, who made them, and when.
 
 ---
 

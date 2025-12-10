@@ -969,9 +969,11 @@ async function callClaude(
 
 ## Admin Tasks
 
-**Where is admin panel?** Menu → Admin Panel.
+**Where are admin settings?** Menu → Results Control (admin only).
 
 **What can I configure?** Result visibility (when scores show), self check-in (on/off per class), live results toggle.
+
+**Where is the audit log?** Results Control → menu (⋮) → Audit Log.
 
 ## Troubleshooting
 
