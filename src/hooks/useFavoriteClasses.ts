@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 import {
   loadFavoritesAsSet,
   saveFavoritesToLocalStorage,
@@ -121,7 +122,7 @@ return new Set();
 setFavoriteClasses(loaded);
         setFavoritesLoaded(true);
       } catch (error) {
-        console.error('Error loading favorites from localStorage:', error);
+        logger.error('Error loading favorites from localStorage:', error);
         setFavoritesLoaded(true); // Mark as loaded even on error
       }
     };
@@ -142,7 +143,7 @@ setFavoriteClasses(loaded);
           onFavoritesChange(favoriteClasses);
         }
       } catch (error) {
-        console.error('Error saving favorites to localStorage:', error);
+        logger.error('Error saving favorites to localStorage:', error);
       }
     }
   }, [favoriteClasses, licenseKey, trialId, favoritesLoaded, onFavoritesChange]);

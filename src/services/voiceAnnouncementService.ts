@@ -16,6 +16,8 @@
  * - Mobile: iOS 7+, Android 4.4+ ✅
  */
 
+import { logger } from '@/utils/logger';
+
 export interface VoiceConfig {
   /** Voice to use (defaults to system default) */
   voice: SpeechSynthesisVoice | null;
@@ -265,8 +267,8 @@ this.currentUtterance = null;
     };
 
     utterance.onerror = (event) => {
-      console.error('[VoiceService] Speech synthesis error:', event);
-      console.error('[VoiceService] Error details:', {
+      logger.error('[VoiceService] Speech synthesis error:', event);
+      logger.error('[VoiceService] Error details:', {
         error: event.error,
         charIndex: event.charIndex,
         elapsedTime: event.elapsedTime,
@@ -396,7 +398,7 @@ this.currentUtterance = null;
    */
   public testVoice(text: string = 'This is a test of the voice announcement system'): void {
     if (!this.synthesis) {
-      console.warn('Speech synthesis not supported in this browser');
+      logger.warn('Speech synthesis not supported in this browser');
       return;
     }
 

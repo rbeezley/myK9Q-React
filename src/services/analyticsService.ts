@@ -10,6 +10,8 @@
  * - Device and network characteristics
  */
 
+import { logger } from '@/utils/logger';
+
 /** Extended Navigator interface for non-standard browser APIs */
 interface NavigatorWithExtensions extends Navigator {
   deviceMemory?: number;
@@ -411,7 +413,7 @@ export class AnalyticsService {
       // This would send to your analytics backend
       // Currently a no-op until analytics backend is set up
     } catch (error) {
-      console.error('Failed to send analytics events:', error);
+      logger.error('Failed to send analytics events:', error);
     }
   }
 

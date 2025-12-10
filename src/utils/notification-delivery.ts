@@ -11,6 +11,8 @@
  * - Browser API compatibility checks
  */
 
+import { logger } from '@/utils/logger';
+
 /** Navigator with Badging API (experimental, Chrome 81+) */
 interface NavigatorWithBadge extends Navigator {
   setAppBadge(contents?: number): Promise<void>;
@@ -56,10 +58,10 @@ export function playNotificationSound(
     const audio = new Audio(soundFile);
     audio.volume = Math.max(0, Math.min(1, volume)); // Clamp 0-1
     audio.play().catch(err => {
-      console.warn('Could not play notification sound:', err);
+      logger.warn('Could not play notification sound:', err);
     });
   } catch (error) {
-    console.warn('Error playing notification sound:', error);
+    logger.warn('Error playing notification sound:', error);
   }
 }
 
@@ -115,7 +117,7 @@ export function getVibrationPattern(priority: string = 'normal'): number[] {
  */
 export async function updateBadgeCount(increment: number): Promise<void> {
   if (!('setAppBadge' in navigator)) {
-    console.warn('Badge API not supported');
+    logger.warn('Badge API not supported');
     return;
   }
 
@@ -132,7 +134,7 @@ export async function updateBadgeCount(increment: number): Promise<void> {
       localStorage.setItem('notification_badge_count', '0');
     }
   } catch (error) {
-    console.warn('Could not update badge count:', error);
+    logger.warn('Could not update badge count:', error);
   }
 }
 
@@ -146,7 +148,7 @@ export async function updateBadgeCount(increment: number): Promise<void> {
  * @example
  * ```ts
  * const count = await getBadgeCount();
- * console.log(`Current badge: ${count}`);
+ * logger.log(`Current badge: ${count}`);
  * ```
  */
 export async function getBadgeCount(): Promise<number> {
@@ -167,7 +169,7 @@ export async function getBadgeCount(): Promise<number> {
  */
 export async function clearBadge(): Promise<void> {
   if (!('clearAppBadge' in navigator)) {
-    console.warn('Badge API not supported');
+    logger.warn('Badge API not supported');
     return;
   }
 
@@ -175,7 +177,7 @@ export async function clearBadge(): Promise<void> {
     await (navigator as NavigatorWithBadge).clearAppBadge();
     localStorage.setItem('notification_badge_count', '0');
   } catch (error) {
-    console.warn('Could not clear badge:', error);
+    logger.warn('Could not clear badge:', error);
   }
 }
 

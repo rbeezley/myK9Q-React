@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, X, Check, GitMerge } from 'lucide-react';
+import { logger } from '@/utils/logger';
 import {
   getPendingConflicts,
   resolveConflict,
@@ -53,7 +54,7 @@ export function ConflictResolver() {
       setConflicts(remaining);
       setSelectedConflict(remaining.length > 0 ? remaining[0] : null);
     } catch (error) {
-      console.error('Failed to resolve conflict:', error);
+      logger.error('Failed to resolve conflict:', error);
       alert('Failed to resolve conflict. Please try again.');
     } finally {
       setIsResolving(false);

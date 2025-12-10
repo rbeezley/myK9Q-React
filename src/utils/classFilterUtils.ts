@@ -280,9 +280,9 @@ export function filterAndSortClasses(
  * @example
  * ```typescript
  * const counts = getClassCounts(classes);
- * console.log(`${counts.pending} pending classes`);
- * console.log(`${counts.favorites} favorite classes`);
- * console.log(`${counts.completed} completed classes`);
+ * logger.log(`${counts.pending} pending classes`);
+ * logger.log(`${counts.favorites} favorite classes`);
+ * logger.log(`${counts.completed} completed classes`);
  * ```
  */
 export function getClassCounts(classes: ClassEntry[]): ClassCounts {

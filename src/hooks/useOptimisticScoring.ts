@@ -5,6 +5,7 @@ import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore, type QualifyingResult } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
 import { getSupabaseLicenseKey } from '../lib/supabase';
+import { logger } from '@/utils/logger';
 
 /**
  * Specialized hook for optimistic score submissions
@@ -147,7 +148,7 @@ export function useOptimisticScoring() {
         onSuccess?.();
       },
       onError: (err) => {
-        console.error('❌ Score submission failed:', err);
+        logger.error('❌ Score submission failed:', err);
 
         // If offline, we already queued it, so don't show error
         if (!isOnline) {

@@ -13,6 +13,7 @@ import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { Volume2, MessageSquare } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 /**
  * VoiceSettingsSection Component
@@ -68,7 +69,7 @@ export function VoiceSettingsSection(): React.ReactElement {
   // Test voice with sample announcement
   const handleTestVoice = () => {
     if (!window.speechSynthesis) {
-      console.warn('Speech synthesis not supported');
+      logger.warn('Speech synthesis not supported');
       return;
     }
 

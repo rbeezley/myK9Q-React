@@ -15,6 +15,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
+import { logger } from '@/utils/logger';
 
 // Extracted helpers for reduced complexity
 import {
@@ -97,7 +98,7 @@ export async function estimateShowSize(licenseKey: string): Promise<{
       entryCount,
     };
   } catch (error) {
-    console.error('❌ Failed to estimate show size:', error);
+    logger.error('❌ Failed to estimate show size:', error);
     throw error;
   }
 }
@@ -170,7 +171,7 @@ export async function preloadShow(options: PreloadOptions): Promise<PreloadedSho
     return preloadedShow;
 
   } catch (error) {
-    console.error('❌ Failed to preload show:', error);
+    logger.error('❌ Failed to preload show:', error);
     updateProgress(
       'error',
       currentItem,
@@ -200,7 +201,7 @@ export async function isShowPreloaded(licenseKey: string): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error('❌ Failed to check if show is preloaded:', error);
+    logger.error('❌ Failed to check if show is preloaded:', error);
     return false;
   }
 }
@@ -223,7 +224,7 @@ export async function getPreloadedShow(licenseKey: string): Promise<PreloadedSho
 
     return show;
   } catch (error) {
-    console.error('❌ Failed to get preloaded show:', error);
+    logger.error('❌ Failed to get preloaded show:', error);
     return null;
   }
 }
@@ -254,7 +255,7 @@ export async function getAllPreloadedShows(): Promise<PreloadedShow[]> {
 
     return validShows;
   } catch (error) {
-    console.error('❌ Failed to get all preloaded shows:', error);
+    logger.error('❌ Failed to get all preloaded shows:', error);
     return [];
   }
 }
@@ -272,7 +273,7 @@ export async function deletePreloadedShow(licenseKey: string): Promise<void> {
       prefetchCache.delete(`metadata:preloaded-show:${licenseKey}`),
     ]);
   } catch (error) {
-    console.error('❌ Failed to delete preloaded show:', error);
+    logger.error('❌ Failed to delete preloaded show:', error);
     throw error;
   }
 }
@@ -295,7 +296,7 @@ export async function getTotalStorageUsage(): Promise<{
       shows,
     };
   } catch (error) {
-    console.error('❌ Failed to get storage usage:', error);
+    logger.error('❌ Failed to get storage usage:', error);
     return {
       totalBytes: 0,
       showCount: 0,
@@ -324,7 +325,7 @@ export async function cleanupExpiredShows(): Promise<number> {
 
     return deletedCount;
   } catch (error) {
-    console.error('❌ Failed to cleanup expired shows:', error);
+    logger.error('❌ Failed to cleanup expired shows:', error);
     return 0;
   }
 }
@@ -345,7 +346,7 @@ export async function extendShowExpiration(
 
     return show;
   } catch (error) {
-    console.error('❌ Failed to extend show expiration:', error);
+    logger.error('❌ Failed to extend show expiration:', error);
     return null;
   }
 }

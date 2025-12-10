@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { OfflineFallback } from '@/components/ui';
+import { logger } from '@/utils/logger';
 
 interface DiagnosticResult {
   armbandNumber: string;
@@ -71,7 +72,7 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
         });
 
         if (error) {
-          console.error('Diagnostic query failed, using view_stats_summary:', error);
+          logger.error('Diagnostic query failed, using view_stats_summary:', error);
 
           // Fallback: aggregate in JavaScript
           const { data: statsData } = await supabase
@@ -139,7 +140,7 @@ export function CleanSweepDiagnostic({ licenseKey, showId }: Props) {
           setResults(data || []);
         }
       } catch (err) {
-        console.error('Failed to fetch diagnostics:', err);
+        logger.error('Failed to fetch diagnostics:', err);
       } finally {
         setLoading(false);
       }

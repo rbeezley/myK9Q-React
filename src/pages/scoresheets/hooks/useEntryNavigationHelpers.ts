@@ -14,6 +14,7 @@ import type { AreaScore } from '../../../services/scoresheets/areaInitialization
 import { markInRing } from '../../../services/entryService';
 import { initializeAreas } from '../../../services/scoresheets/areaInitialization';
 import { ensureReplicationManager } from '../../../utils/replicationHelper';
+import { logger } from '@/utils/logger';
 
 // ============================================================================
 // Types
@@ -61,8 +62,8 @@ export function loadFromRouteState(
   routeState: RouteState,
   isNationals: boolean
 ): FastPathResult {
-  // eslint-disable-next-line no-console
-  console.log('⚡ [useEntryNavigation] Using route state for instant load');
+   
+  logger.log('⚡ [useEntryNavigation] Using route state for instant load');
 
   const passedEntry = routeState.entry!;
   const passedClassInfo = routeState.classInfo!;

@@ -28,6 +28,7 @@ import { useScoresheetCore, useEntryNavigation } from '../hooks';
 // Extracted sub-components (complexity refactoring)
 import { NationalsTimerSection } from './components/NationalsTimerSection';
 import { NationalsConfirmationDialog } from './components/NationalsConfirmationDialog';
+import { logger } from '@/utils/logger';
 
 // Extracted helpers (complexity refactoring)
 import {
@@ -242,7 +243,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
         });
 
       } catch (nationalsError) {
-        console.error('❌ Failed to submit Nationals score:', nationalsError);
+        logger.error('❌ Failed to submit Nationals score:', nationalsError);
         // Don't fail the whole submission - regular score still saved
       }
     }

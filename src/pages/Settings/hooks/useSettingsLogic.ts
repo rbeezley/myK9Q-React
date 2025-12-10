@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getStorageUsage } from '@/services/dataExportService';
 import PushNotificationService from '@/services/pushNotificationService';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
+import { logger } from '@/utils/logger';
 import {
     exportPersonalDataHelper,
     clearAllDataHelper,
@@ -124,7 +125,7 @@ export function useSettingsLogic() {
                     updateSettings({ enableNotifications: false });
                 }
             } catch (error) {
-                console.error('Subscribe error:', error);
+                logger.error('Subscribe error:', error);
                 showToastMessage('Failed to enable push notifications', 'error');
                 updateSettings({ enableNotifications: false });
             } finally {

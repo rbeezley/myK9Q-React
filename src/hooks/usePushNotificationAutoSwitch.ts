@@ -10,6 +10,7 @@
 
 import { useEffect, useRef } from 'react';
 import PushNotificationService from '@/services/pushNotificationService';
+import { logger } from '@/utils/logger';
 
 export function usePushNotificationAutoSwitch(licenseKey: string | undefined) {
   const previousLicenseKey = useRef<string | undefined>(undefined);
@@ -58,7 +59,7 @@ return;
               favoriteArmbands = parsed;
             }
           } catch (error) {
-            console.error('[Push Auto-Switch] Error parsing favorites:', error);
+            logger.error('[Push Auto-Switch] Error parsing favorites:', error);
           }
         }
 
@@ -66,7 +67,7 @@ return;
 const success = await PushNotificationService.switchToShow(licenseKey, favoriteArmbands);
 
         if (!success) {
-          console.error('[Push Auto-Switch] Failed to switch to show:', licenseKey);
+          logger.error('[Push Auto-Switch] Failed to switch to show:', licenseKey);
         }
       } finally {
         // Always release the lock
@@ -118,7 +119,7 @@ const success = await PushNotificationService.switchToShow(licenseKey, favoriteA
             favoriteArmbands = parsed;
           }
         } catch (error) {
-          console.error('[Push Auto-Switch] Error parsing favorites:', error);
+          logger.error('[Push Auto-Switch] Error parsing favorites:', error);
         }
       }
 

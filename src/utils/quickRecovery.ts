@@ -5,6 +5,8 @@
  * to automatically fix database corruption issues.
  */
 
+import { logger } from '@/utils/logger';
+
 /** Window with quick recovery functions for console access */
 interface WindowWithRecovery extends Window {
   disableReplication?: () => void;
@@ -48,7 +50,7 @@ export function setupQuickRecovery() {
         script.src = '/recovery.js';
         document.head.appendChild(script);
       } catch (error) {
-        console.error('Failed to load recovery script:', error);
+        logger.error('Failed to load recovery script:', error);
       }
     };
 
@@ -85,7 +87,7 @@ try {
         }
 
 } catch (error) {
-        console.error('Failed to clear data:', error);
+        logger.error('Failed to clear data:', error);
       }
     };
 

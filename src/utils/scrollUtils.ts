@@ -5,6 +5,8 @@
  * Handles rubber-band prevention, scroll restoration, and smooth scrolling.
  */
 
+import { logger } from '@/utils/logger';
+
 interface ScrollPosition {
   x: number;
   y: number;
@@ -26,7 +28,7 @@ try {
     Object.assign(scrollMemory, JSON.parse(saved));
   }
 } catch (error) {
-  console.warn('[Scroll] Failed to load scroll positions:', error);
+  logger.warn('[Scroll] Failed to load scroll positions:', error);
 }
 
 /**
@@ -104,7 +106,7 @@ export function saveScrollPosition(key: string, element?: HTMLElement): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(scrollMemory));
   } catch (error) {
-    console.warn('[Scroll] Failed to save scroll position:', error);
+    logger.warn('[Scroll] Failed to save scroll position:', error);
   }
 }
 
@@ -160,7 +162,7 @@ export function clearScrollPosition(key: string): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(scrollMemory));
   } catch (error) {
-    console.warn('[Scroll] Failed to clear scroll position:', error);
+    logger.warn('[Scroll] Failed to clear scroll position:', error);
   }
 }
 
@@ -173,7 +175,7 @@ export function clearAllScrollPositions(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.warn('[Scroll] Failed to clear all scroll positions:', error);
+    logger.warn('[Scroll] Failed to clear all scroll positions:', error);
   }
 }
 

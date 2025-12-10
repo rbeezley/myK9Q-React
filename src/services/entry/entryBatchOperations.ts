@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Entry } from '@/stores/entryStore';
 import { triggerImmediateEntrySync } from '../entryReplication';
+import { logger } from '@/utils/logger';
 
 /**
  * Entry Batch Operations Service
@@ -77,7 +78,7 @@ export async function updateExhibitorOrder(
         .select('id, exhibitor_order');
 
       if (error) {
-        console.error(`Failed to update entry ${entry.id}:`, error);
+        logger.error(`Failed to update entry ${entry.id}:`, error);
         throw error;
       }
 
@@ -92,7 +93,7 @@ export async function updateExhibitorOrder(
 
     return true;
   } catch (error) {
-    console.error('Error in updateExhibitorOrder:', error);
+    logger.error('Error in updateExhibitorOrder:', error);
     throw error;
   }
 }
@@ -110,7 +111,7 @@ export async function updateExhibitorOrder(
  *
  * @example
  * const preview = calculateNewOrders(reorderedEntries);
- * console.log('New orders:', preview);
+ * logger.log('New orders:', preview);
  * // [{ entryId: 123, newOrder: 1 }, { entryId: 456, newOrder: 2 }, ...]
  */
 export function calculateNewOrders(

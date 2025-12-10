@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Download, X, Check, AlertCircle, Trash2, RefreshCw, HardDrive } from 'lucide-react';
+import { logger } from '@/utils/logger';
 import {
   preloadShow,
   estimateShowSize,
@@ -70,7 +71,7 @@ export function PreloadShowDialog({
       const est = await estimateShowSize(licenseKey);
       setEstimate(est);
     } catch (err) {
-      console.error('Failed to estimate show size:', err);
+      logger.error('Failed to estimate show size:', err);
     }
   };
 

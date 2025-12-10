@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Entry } from '../../../stores/entryStore';
+import { logger } from '@/utils/logger';
 
 interface UseResetScoreOptions {
   /** Setter for local entries state */
@@ -102,7 +103,7 @@ export const useResetScore = ({
       await handleResetScoreHook(entryId);
       // Real-time subscription will trigger automatic refresh
     } catch (error) {
-      console.error('Failed to reset score in background:', error);
+      logger.error('Failed to reset score in background:', error);
       // Don't show error to user - offline-first means this is transparent
       // The optimistic update already happened, sync will retry when online
     }

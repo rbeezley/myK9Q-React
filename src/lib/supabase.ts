@@ -1,15 +1,16 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 // Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables!');
-  console.error('📝 Please create a .env.local file with:');
-  console.error('   VITE_SUPABASE_URL=your_supabase_project_url');
-  console.error('   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key');
-  console.error('💡 See .env.example for template');
+  logger.error('❌ Missing Supabase environment variables!');
+  logger.error('📝 Please create a .env.local file with:');
+  logger.error('   VITE_SUPABASE_URL=your_supabase_project_url');
+  logger.error('   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key');
+  logger.error('💡 See .env.example for template');
   throw new Error('Missing Supabase environment variables. Please check console for setup instructions.');
 }
 

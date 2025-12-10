@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { importSettingsWithMigration } from '@/utils/settingsMigration';
+import { logger } from '@/utils/logger';
 
 export const SETTINGS_VERSION = '1.0.0';
 
@@ -198,7 +199,7 @@ export const useSettingsStore = create<SettingsState>()(
             const result = importSettingsWithMigration(imported, defaultSettings);
 
             if (!result.success) {
-              console.error('Failed to import settings');
+              logger.error('Failed to import settings');
               return false;
             }
 
@@ -216,7 +217,7 @@ export const useSettingsStore = create<SettingsState>()(
 
             return true;
           } catch (error) {
-            console.error('Failed to import settings:', error);
+            logger.error('Failed to import settings:', error);
             return false;
           }
         },

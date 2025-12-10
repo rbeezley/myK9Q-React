@@ -22,6 +22,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { markInRing } from '../../../services/entryService';
 import type { AreaScore } from '../../../services/scoresheets/areaInitialization';
 import type { Entry } from '../../../stores/entryStore';
+import { logger } from '@/utils/logger';
 import {
   type RouteState,
   loadFromRouteState,
@@ -169,7 +170,7 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
       const entry = currentEntryRef.current;
       if (entry?.id) {
         markInRing(entry.id, false).then(() => {}).catch((error) => {
-          console.error('❌ Cleanup: Failed to remove dog from ring:', error);
+          logger.error('❌ Cleanup: Failed to remove dog from ring:', error);
         });
       }
     };
@@ -244,7 +245,7 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
       }
 
     } catch (error) {
-      console.error('[EntryNavigation] Error loading entries:', error);
+      logger.error('[EntryNavigation] Error loading entries:', error);
     } finally {
       setIsLoading(false);
       onLoadingChangeRef.current?.(false);

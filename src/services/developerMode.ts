@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 /**
  * Developer Mode Service
  *
@@ -8,6 +8,7 @@
  */
 
 import { useSettingsStore } from '@/stores/settingsStore';
+import { logger } from '@/utils/logger';
 
 export interface DevToolsConfig {
   enabled: boolean;
@@ -101,7 +102,7 @@ class DeveloperModeService {
       return;
     }
 
-console.log('📊 Available Tools:', this.getConfig());
+logger.log('📊 Available Tools:', this.getConfig());
 
     this.initialized = true;
 
@@ -144,7 +145,7 @@ console.log('📊 Available Tools:', this.getConfig());
     const end = endMark ? this.performanceMarks.get(endMark) : performance.now();
 
     if (start === undefined || end === undefined) {
-      console.warn(`⚠️ Performance: Missing mark(s) - ${startMark} or ${endMark}`);
+      logger.warn(`⚠️ Performance: Missing mark(s) - ${startMark} or ${endMark}`);
       return null;
     }
 

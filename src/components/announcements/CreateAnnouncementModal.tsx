@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAnnouncementStore, type Announcement } from '../../stores/announcementStore';
 import { AnnouncementService } from '../../services/announcementService';
+import { logger } from '@/utils/logger';
 import {
   validateAnnouncementForm,
   validateOnlineStatus,
@@ -108,7 +109,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
 
       onSuccess();
     } catch (err) {
-      console.error('Error saving announcement:', err);
+      logger.error('Error saving announcement:', err);
       setError(err instanceof Error ? err.message : 'Failed to save announcement');
     } finally {
       setIsSubmitting(false);

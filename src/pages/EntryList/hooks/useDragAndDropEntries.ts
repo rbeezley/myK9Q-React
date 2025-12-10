@@ -27,6 +27,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Entry } from '../../../stores/entryStore';
 import { updateExhibitorOrder } from '../../../services/entryService';
+import { logger } from '@/utils/logger';
 
 interface UseDragAndDropEntriesOptions {
   /** All local entries (for merging after drag) */
@@ -217,7 +218,7 @@ export function useDragAndDropEntries({
     try {
       await updateExhibitorOrder(entriesWithNewOrder);
     } catch (error) {
-      console.error('Failed to update run order in database:', error);
+      logger.error('Failed to update run order in database:', error);
       // The optimistic update already happened, so UI shows new order
       // If offline, the sync will happen later
     } finally {

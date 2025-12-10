@@ -17,6 +17,7 @@ type RealtimePayload = RealtimePostgresChangesPayload<Record<string, unknown>>;
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 import { submitScore } from './entryService';
 import { subscriptionCleanup } from './subscriptionCleanup';
+import { logger } from '@/utils/logger';
 
 export type SyncStatus = 'synced' | 'syncing' | 'paused' | 'error' | 'offline';
 
@@ -96,7 +97,7 @@ class SyncManager {
   ): () => void {
     // Check if already subscribed
     if (this.subscriptions.has(key)) {
-      console.warn(`Already subscribed to ${key}, unsubscribing old subscription`);
+      logger.warn(`Already subscribed to ${key}, unsubscribing old subscription`);
       this.unsubscribe(key);
     }
 
@@ -120,7 +121,7 @@ callback(payload);
       )
       .subscribe((status, err) => {
         if (err) {
-          console.error(`❌ Subscription error for ${key}:`, err);
+          logger.error(`❌ Subscription error for ${key}:`, err);
           this.updateState({ status: 'error', error: err.message });
         } else if (status === 'SUBSCRIBED') {
           // Successfully subscribed - no action needed
@@ -233,7 +234,7 @@ for (const operation of operations) {
       try {
         await operation();
       } catch (error) {
-        console.error('❌ Sync operation failed:', error);
+        logger.error('❌ Sync operation failed:', error);
         this.updateState({
           status: 'error',
           error: error instanceof Error ? error.message : 'Sync failed'
@@ -281,7 +282,7 @@ offlineQueue.startSync();
         successIds.push(item.id);
         await offlineQueue.markAsCompleted(item.id);
       } catch (error) {
-        console.error(`❌ Failed to sync item ${item.id}:`, error);
+        logger.error(`❌ Failed to sync item ${item.id}:`, error);
         failedIds.push(item.id);
         offlineQueue.markAsFailed(
           item.id,

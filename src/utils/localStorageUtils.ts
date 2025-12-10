@@ -7,6 +7,8 @@
  * Used across 90+ locations in Settings, ClassList, CompetitionAdmin, and notificationService.
  */
 
+import { logger } from '@/utils/logger';
+
 /**
  * Safely get and parse JSON data from localStorage
  *
@@ -64,13 +66,13 @@ export function safeLocalStorageGet<T = unknown>(
 
     // Validate if validator provided
     if (validator && !validator(parsed)) {
-      console.warn(`[localStorage] Invalid data for key "${key}", using default value`);
+      logger.warn(`[localStorage] Invalid data for key "${key}", using default value`);
       return defaultValue;
     }
 
     return parsed as T;
   } catch (error) {
-    console.error(`[localStorage] Error reading key "${key}":`, error);
+    logger.error(`[localStorage] Error reading key "${key}":`, error);
     return defaultValue;
   }
 }
@@ -119,15 +121,15 @@ export function safeLocalStorageSet(key: string, value: unknown): boolean {
   } catch (error) {
     // Handle quota exceeded error
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.error(`[localStorage] Storage quota exceeded for key "${key}". Consider clearing old data.`);
+      logger.error(`[localStorage] Storage quota exceeded for key "${key}". Consider clearing old data.`);
     }
     // Handle serialization errors
     else if (error instanceof TypeError) {
-      console.error(`[localStorage] Cannot serialize value for key "${key}":`, error);
+      logger.error(`[localStorage] Cannot serialize value for key "${key}":`, error);
     }
     // Generic error
     else {
-      console.error(`[localStorage] Error saving key "${key}":`, error);
+      logger.error(`[localStorage] Error saving key "${key}":`, error);
     }
     return false;
   }
@@ -154,7 +156,7 @@ export function safeLocalStorageRemove(key: string): boolean {
     localStorage.removeItem(key);
     return true;
   } catch (error) {
-    console.error(`[localStorage] Error removing key "${key}":`, error);
+    logger.error(`[localStorage] Error removing key "${key}":`, error);
     return false;
   }
 }
@@ -183,7 +185,7 @@ export function localStorageHas(key: string): boolean {
     const item = localStorage.getItem(key);
     return item !== null && item !== undefined;
   } catch (error) {
-    console.error(`[localStorage] Error checking key "${key}":`, error);
+    logger.error(`[localStorage] Error checking key "${key}":`, error);
     return false;
   }
 }
@@ -221,7 +223,7 @@ export function getLocalStorageKeys(prefix: string): string[] {
     }
     return keys;
   } catch (error) {
-    console.error(`[localStorage] Error getting keys with prefix "${prefix}":`, error);
+    logger.error(`[localStorage] Error getting keys with prefix "${prefix}":`, error);
     return [];
   }
 }

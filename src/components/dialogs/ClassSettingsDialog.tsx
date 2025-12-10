@@ -5,6 +5,7 @@ import { setClassVisibility } from '../../services/resultVisibilityService';
 import { PRESET_CONFIGS } from '../../types/visibility';
 import type { VisibilityPreset } from '../../types/visibility';
 import { DialogContainer } from './DialogContainer';
+import { logger } from '@/utils/logger';
 import './shared-dialog.css';
 import './ClassSettingsDialog.css';
 
@@ -56,7 +57,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         .single();
 
       if (error) {
-        console.error('Error loading class settings:', error);
+        logger.error('Error loading class settings:', error);
         setErrorMessage('Failed to load class settings');
         return;
       }
@@ -88,7 +89,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         setResultsVisibility(visibilityData.preset_name);
       }
     } catch (error) {
-      console.error('Exception loading class settings:', error);
+      logger.error('Exception loading class settings:', error);
       setErrorMessage('Failed to load class settings');
     } finally {
       setLoading(false);
@@ -125,7 +126,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         .eq('id', classData.id);
 
       if (checkinError) {
-        console.error('Error saving check-in settings:', checkinError);
+        logger.error('Error saving check-in settings:', checkinError);
         setErrorMessage('Failed to save settings. Please try again.');
         return;
       }
@@ -134,7 +135,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       try {
         await setClassVisibility(classData.id, resultsVisibility, 'ClassSettingsDialog');
       } catch (visibilityError) {
-        console.error('Error saving visibility settings:', visibilityError);
+        logger.error('Error saving visibility settings:', visibilityError);
         setErrorMessage('Failed to save results visibility. Please try again.');
         return;
       }
@@ -151,7 +152,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         }
       }, 1500);
     } catch (error) {
-      console.error('Exception saving class settings:', error);
+      logger.error('Exception saving class settings:', error);
       setErrorMessage('Failed to save settings. Please try again.');
     } finally {
       setSaving(false);

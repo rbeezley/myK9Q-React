@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authenticatePasscode } from '../../services/authService';
+import { logger } from '@/utils/logger';
 import '../../styles/apple-design-system.css';
 
 export const Login: React.FC = () => {
@@ -117,7 +118,7 @@ export const Login: React.FC = () => {
       login(fullPasscode, showData);
       navigate('/home');
     } catch (err) {
-      console.error('Login error:', err);
+      logger.error('Login error:', err);
       setError('Invalid passcode. Please check and try again.');
       
       // Clear passcode and focus first input

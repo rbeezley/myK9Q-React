@@ -11,6 +11,7 @@ import {  X,
 import { RulesService, type Rule, type RulesServiceError } from '../../services/rulesService';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { logger } from '@/utils/logger';
 import './RulesAssistant.css';
 
 interface RulesAssistantProps {
@@ -107,7 +108,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
         setError('No rules found matching your search. Try different keywords or be more specific.');
       }
     } catch (err) {
-      console.error('📚 [RulesAssistant] Search error:', err);
+      logger.error('📚 [RulesAssistant] Search error:', err);
       const error = err as RulesServiceError;
       setError(error.message || 'Failed to search rules. Please try again.');
       setAnswer(null);
@@ -154,7 +155,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
         });
 
       if (insertError) {
-        console.error('Failed to submit feedback:', insertError);
+        logger.error('Failed to submit feedback:', insertError);
         setFeedbackStatus('error');
         // Reset after 3 seconds so user can retry
         setTimeout(() => setFeedbackStatus('idle'), 3000);
@@ -163,7 +164,7 @@ export const RulesAssistant: React.FC<RulesAssistantProps> = ({ isOpen, onClose 
         // Keep success state visible
       }
     } catch (err) {
-      console.error('Failed to submit feedback:', err);
+      logger.error('Failed to submit feedback:', err);
       setFeedbackStatus('error');
       setTimeout(() => setFeedbackStatus('idle'), 3000);
     }

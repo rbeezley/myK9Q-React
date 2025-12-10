@@ -3,6 +3,7 @@ import { Heart, CheckCircle, Bell, Clock, ChevronRight, Sparkles } from 'lucide-
 import { useSettingsStore } from '@/stores/settingsStore';
 import PushNotificationService from '@/services/pushNotificationService';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/utils/logger';
 import './Onboarding.css';
 
 interface OnboardingProps {
@@ -106,7 +107,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   const handleEnableNotifications = async () => {
     if (!showContext?.licenseKey || !role) {
-      console.error('[Onboarding] Missing license key or role');
+      logger.error('[Onboarding] Missing license key or role');
       return;
     }
 
@@ -128,7 +129,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             favoriteArmbands = parsed;
           }
         } catch (error) {
-          console.error('[Onboarding] Error parsing favorites:', error);
+          logger.error('[Onboarding] Error parsing favorites:', error);
         }
       }
 
@@ -142,7 +143,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         updateSettings({ enableNotifications: false });
       }
     } catch (error) {
-      console.error('[Onboarding] Error enabling notifications:', error);
+      logger.error('[Onboarding] Error enabling notifications:', error);
       setNotificationStatus('denied');
       updateSettings({ enableNotifications: false });
     } finally {

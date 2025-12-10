@@ -7,6 +7,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { logger } from '@/utils/logger';
 
 /** Nested show data from joined query */
 interface NestedShow {
@@ -48,12 +49,12 @@ export async function recalculatePlacementsForClass(
     });
 
     if (error) {
-      console.error('Error recalculating placements:', error);
+      logger.error('Error recalculating placements:', error);
       throw error;
     }
 
 } catch (error) {
-    console.error('Error recalculating placements:', error);
+    logger.error('Error recalculating placements:', error);
     throw error;
   }
 }
@@ -77,7 +78,7 @@ export async function getEntryPlacement(
 
     return data.final_placement;
   } catch (error) {
-    console.error('Error getting entry placement:', error);
+    logger.error('Error getting entry placement:', error);
     return null;
   }
 }
@@ -118,7 +119,7 @@ export async function manuallyRecalculatePlacements(
 
     await recalculatePlacementsForClass(classId, licenseKey, isNationals);
 } catch (error) {
-    console.error('Error in manual placement recalculation:', error);
+    logger.error('Error in manual placement recalculation:', error);
     throw error;
   }
 }

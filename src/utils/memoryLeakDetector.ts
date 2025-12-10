@@ -6,6 +6,7 @@
  */
 
 import { subscriptionCleanup } from '../services/subscriptionCleanup';
+import { logger } from '@/utils/logger';
 
 /** Performance with Chrome memory API */
 interface PerformanceWithMemory extends Performance {
@@ -61,7 +62,7 @@ class MemoryLeakDetector {
    */
   startMonitoring(intervalMs: number = 30000): () => void {
     if (this.monitoringInterval !== null) {
-      console.warn('Memory monitoring already running');
+      logger.warn('Memory monitoring already running');
       return () => {};
     }
 
@@ -225,7 +226,7 @@ class MemoryLeakDetector {
 
     // Log to console
     const emoji = warning.severity === 'high' ? '🚨' : warning.severity === 'medium' ? '⚠️' : 'ℹ️';
-    console.warn(`${emoji} Memory Leak Warning: ${warning.message}`, warning.details);
+    logger.warn(`${emoji} Memory Leak Warning: ${warning.message}`, warning.details);
 
     // Notify listeners
     this.notifyListeners();

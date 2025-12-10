@@ -12,6 +12,8 @@
  * - Navigation timings
  */
 
+import { logger } from '@/utils/logger';
+
 export interface PerformanceMetric {
   name: string;
   value: number;
@@ -124,7 +126,7 @@ export class PerformanceMonitor {
       observer.observe({ type: 'paint', buffered: true });
       this.observers.set('paint', observer);
     } catch (error) {
-      console.warn('Paint Timing observer not supported:', error);
+      logger.warn('Paint Timing observer not supported:', error);
     }
   }
 
@@ -161,7 +163,7 @@ export class PerformanceMonitor {
       // Also report on unload
       window.addEventListener('beforeunload', reportLcp);
     } catch (error) {
-      console.warn('Largest Contentful Paint observer not supported:', error);
+      logger.warn('Largest Contentful Paint observer not supported:', error);
     }
   }
 
@@ -197,7 +199,7 @@ export class PerformanceMonitor {
         }
       });
     } catch (error) {
-      console.warn('Layout Shift observer not supported:', error);
+      logger.warn('Layout Shift observer not supported:', error);
     }
   }
 
@@ -237,7 +239,7 @@ export class PerformanceMonitor {
 
       this.observers.set('interaction', observer);
     } catch (error) {
-      console.warn('Interaction Timing observer not supported:', error);
+      logger.warn('Interaction Timing observer not supported:', error);
     }
   }
 
@@ -268,7 +270,7 @@ export class PerformanceMonitor {
       observer.observe({ type: 'resource', buffered: true });
       this.observers.set('resource', observer);
     } catch (error) {
-      console.warn('Resource Timing observer not supported:', error);
+      logger.warn('Resource Timing observer not supported:', error);
     }
   }
 
@@ -296,16 +298,16 @@ export class PerformanceMonitor {
     // Log warnings for poor metrics
     if (unit === 'ms') {
       if (name.includes('fcp') && value > 2500) {
-        console.warn(`⚠️ Poor FCP: ${value.toFixed(0)}ms (target: <2.5s)`);
+        logger.warn(`⚠️ Poor FCP: ${value.toFixed(0)}ms (target: <2.5s)`);
       }
       if (name.includes('lcp') && value > 4000) {
-        console.warn(`⚠️ Poor LCP: ${value.toFixed(0)}ms (target: <4s)`);
+        logger.warn(`⚠️ Poor LCP: ${value.toFixed(0)}ms (target: <4s)`);
       }
       if (name.includes('fid') && value > 100) {
-        console.warn(`⚠️ Poor FID: ${value.toFixed(0)}ms (target: <100ms)`);
+        logger.warn(`⚠️ Poor FID: ${value.toFixed(0)}ms (target: <100ms)`);
       }
       if (name.includes('inp') && value > 200) {
-        console.warn(`⚠️ Poor INP: ${value.toFixed(0)}ms (target: <200ms)`);
+        logger.warn(`⚠️ Poor INP: ${value.toFixed(0)}ms (target: <200ms)`);
       }
     }
   }
@@ -323,7 +325,7 @@ export class PerformanceMonitor {
   measure(markName: string, metricName?: string): number {
     const startTime = this.marks.get(markName);
     if (!startTime) {
-      console.warn(`Mark not found: ${markName}`);
+      logger.warn(`Mark not found: ${markName}`);
       return 0;
     }
 
@@ -451,10 +453,10 @@ export class PerformanceMonitor {
       });
 
       if (!response.ok) {
-        console.warn(`Failed to send performance report: ${response.statusText}`);
+        logger.warn(`Failed to send performance report: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Failed to send performance report:', error);
+      logger.error('Failed to send performance report:', error);
     }
   }
 
@@ -497,7 +499,7 @@ export class PerformanceMonitor {
       try {
         observer.disconnect();
       } catch (error) {
-        console.warn('Failed to disconnect observer:', error);
+        logger.warn('Failed to disconnect observer:', error);
       }
     });
     this.observers.clear();

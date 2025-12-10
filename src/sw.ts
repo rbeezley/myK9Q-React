@@ -4,6 +4,7 @@ import { clientsClaim } from 'workbox-core';
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
+import { logger } from '@/utils/logger';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -107,7 +108,7 @@ return true;
  */
 self.addEventListener('push', (event: PushEvent) => {
 if (!event.data) {
-    console.warn('[Service Worker] Push event has no data');
+    logger.warn('[Service Worker] Push event has no data');
     return;
   }
 
@@ -167,12 +168,12 @@ return;
     const promiseChain = self.registration.showNotification(payload.title, options)
       .then(() => {})
       .catch((error) => {
-        console.error('[Service Worker] ❌ showNotification failed:', error);
+        logger.error('[Service Worker] ❌ showNotification failed:', error);
       });
 
     event.waitUntil(promiseChain);
   } catch (error) {
-    console.error('[Service Worker] Error handling push event:', error);
+    logger.error('[Service Worker] Error handling push event:', error);
   }
 });
 
@@ -311,7 +312,7 @@ return;
     self.registration.showNotification(title, options)
       .then(() => {})
       .catch((error) => {
-        console.error('[Service Worker] ❌ Failed to show simulated notification:', error);
+        logger.error('[Service Worker] ❌ Failed to show simulated notification:', error);
       });
   }
 });
@@ -382,7 +383,7 @@ function openReplicationDB(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-      console.error('[SW] Failed to open IndexedDB:', request.error);
+      logger.error('[SW] Failed to open IndexedDB:', request.error);
       reject(request.error);
     };
 
@@ -392,7 +393,7 @@ function openReplicationDB(): Promise<IDBDatabase> {
 
     // If upgrade is needed, we're in trouble - shouldn't happen in SW
     request.onupgradeneeded = () => {
-      console.warn('[SW] IndexedDB upgrade needed - this should not happen');
+      logger.warn('[SW] IndexedDB upgrade needed - this should not happen');
     };
   });
 }
@@ -442,10 +443,10 @@ function buildScoreUpdate(score: QueuedScoreData): Record<string, unknown> {
  * Called by browser when network is available and sync tag is registered
  */
 async function syncOfflineQueue(): Promise<void> {
-  console.warn('[SW] 🔄 Background sync triggered');
+  logger.warn('[SW] 🔄 Background sync triggered');
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('[SW] Missing Supabase config - cannot sync');
+    logger.error('[SW] Missing Supabase config - cannot sync');
     return;
   }
 
@@ -453,7 +454,7 @@ async function syncOfflineQueue(): Promise<void> {
   try {
     db = await openReplicationDB();
   } catch {
-    console.error('[SW] Failed to open database');
+    logger.error('[SW] Failed to open database');
     return;
   }
 
@@ -473,12 +474,12 @@ async function syncOfflineQueue(): Promise<void> {
   );
 
   if (pendingScores.length === 0) {
-    console.warn('[SW] No pending scores to sync');
+    logger.warn('[SW] No pending scores to sync');
     db.close();
     return;
   }
 
-  console.warn(`[SW] Syncing ${pendingScores.length} offline score(s)...`);
+  logger.warn(`[SW] Syncing ${pendingScores.length} offline score(s)...`);
 
   let successCount = 0;
 
@@ -514,14 +515,14 @@ async function syncOfflineQueue(): Promise<void> {
         });
 
         successCount++;
-        console.warn(`[SW] ✅ Synced score for entry ${score.entryId}`);
+        logger.warn(`[SW] ✅ Synced score for entry ${score.entryId}`);
       } else {
         const errorText = await response.text();
-        console.error(`[SW] ❌ Failed to sync entry ${score.entryId}:`, errorText);
+        logger.error(`[SW] ❌ Failed to sync entry ${score.entryId}:`, errorText);
         // Don't delete - browser will retry
       }
     } catch (error) {
-      console.error(`[SW] ❌ Network error syncing entry ${score.entryId}:`, error);
+      logger.error(`[SW] ❌ Network error syncing entry ${score.entryId}:`, error);
       // Network error - browser will retry automatically
     }
   }
@@ -538,7 +539,7 @@ async function syncOfflineQueue(): Promise<void> {
     });
   });
 
-  console.warn(`[SW] 🎉 Background sync complete: ${successCount}/${pendingScores.length}`);
+  logger.warn(`[SW] 🎉 Background sync complete: ${successCount}/${pendingScores.length}`);
 }
 
 /**

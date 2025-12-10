@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/utils/logger';
 
 export interface AuditLogEntry {
   change_type: 'show_visibility' | 'trial_visibility' | 'class_visibility';
@@ -72,13 +73,13 @@ export async function fetchAuditLog(
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching audit log:', error);
+      logger.error('Error fetching audit log:', error);
       throw error;
     }
 
     return data || [];
   } catch (error) {
-    console.error('Error in fetchAuditLog:', error);
+    logger.error('Error in fetchAuditLog:', error);
     throw error;
   }
 }
@@ -95,7 +96,7 @@ export async function getUniqueAdministrators(licenseKey: string): Promise<strin
       .not('updated_by', 'is', null);
 
     if (error) {
-      console.error('Error fetching administrators:', error);
+      logger.error('Error fetching administrators:', error);
       throw error;
     }
 
@@ -103,7 +104,7 @@ export async function getUniqueAdministrators(licenseKey: string): Promise<strin
     const uniqueAdmins = [...new Set(data?.map(entry => entry.updated_by) || [])];
     return uniqueAdmins.sort();
   } catch (error) {
-    console.error('Error in getUniqueAdministrators:', error);
+    logger.error('Error in getUniqueAdministrators:', error);
     throw error;
   }
 }

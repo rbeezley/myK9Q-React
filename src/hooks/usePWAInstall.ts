@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 /**
  * Extended navigator interface for iOS Safari's standalone property
@@ -101,7 +102,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
         }
       }
     } catch (error) {
-      console.error('Error checking dismiss state:', error);
+      logger.error('Error checking dismiss state:', error);
     }
   }, []);
 
@@ -154,7 +155,7 @@ setIsInstalled(true);
       setIsDismissed(true);
 
 } catch (error) {
-      console.error('Error saving dismiss state:', error);
+      logger.error('Error saving dismiss state:', error);
     }
   }, []);
 
@@ -163,7 +164,7 @@ setIsInstalled(true);
    */
   const promptInstall = useCallback(async (): Promise<boolean> => {
     if (!installPrompt) {
-      console.warn('📱 Install prompt not available');
+      logger.warn('📱 Install prompt not available');
       return false;
     }
 
@@ -183,7 +184,7 @@ if (result.outcome === 'accepted') {
         return false;
       }
     } catch (error) {
-      console.error('Error prompting install:', error);
+      logger.error('Error prompting install:', error);
       return false;
     }
   }, [installPrompt, dismissInstallPrompt]);
@@ -196,7 +197,7 @@ if (result.outcome === 'accepted') {
       localStorage.removeItem(DISMISS_KEY);
       setIsDismissed(false);
 } catch (error) {
-      console.error('Error clearing dismiss state:', error);
+      logger.error('Error clearing dismiss state:', error);
     }
   }, []);
 

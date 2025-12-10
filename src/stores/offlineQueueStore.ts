@@ -11,6 +11,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { mutationQueue } from '@/services/replication/MutationQueueManager';
 import { haptic } from '@/hooks/useHapticFeedback';
+import { logger } from '@/utils/logger';
 
 export interface QueuedScore {
   id: string; // UUID for queue item
@@ -117,11 +118,11 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
               await registration.sync.register('offline-queue-sync');
             } catch (syncError) {
               // Background sync not available - fall back to existing timer-based sync
-              console.warn('[OfflineQueue] Background sync registration failed:', syncError);
+              logger.warn('[OfflineQueue] Background sync registration failed:', syncError);
             }
           }
         } catch (error) {
-          console.error('❌ Failed to persist score to IndexedDB:', error);
+          logger.error('❌ Failed to persist score to IndexedDB:', error);
         }
 
         // Haptic feedback
@@ -143,7 +144,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
         try {
           await mutationQueue.delete(id);
         } catch (error) {
-          console.error('❌ Failed to remove score from IndexedDB:', error);
+          logger.error('❌ Failed to remove score from IndexedDB:', error);
         }
       },
 
@@ -287,7 +288,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
           await mutationQueue.delete(id);
           haptic.success();
         } catch (error) {
-          console.error('❌ Failed to remove completed score from IndexedDB:', error);
+          logger.error('❌ Failed to remove completed score from IndexedDB:', error);
         }
       },
 
@@ -307,7 +308,7 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
             }
           }
         } catch (error) {
-          console.error('❌ Failed to hydrate offline queue:', error);
+          logger.error('❌ Failed to hydrate offline queue:', error);
         }
       }
     }),

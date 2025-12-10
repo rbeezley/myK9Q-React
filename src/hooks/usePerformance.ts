@@ -15,6 +15,7 @@ import {
   type PerformanceSettings,
 } from '@/utils/deviceDetection';
 import { scheduleIdleWork, runWhenIdle } from '@/utils/idleWork';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook to get device capabilities
@@ -215,7 +216,7 @@ export function useRenderTime(componentName: string): void {
 
     if (duration > 16) {
       // Slower than 60fps
-      console.warn(
+      logger.warn(
         `[Performance] ${componentName} took ${duration.toFixed(2)}ms to render (>16ms)`
       );
     }

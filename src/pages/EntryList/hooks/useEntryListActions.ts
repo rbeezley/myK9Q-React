@@ -3,6 +3,7 @@ import { useOptimisticUpdate } from '../../../hooks/useOptimisticUpdate';
 import { updateEntryCheckinStatus, resetEntryScore, markInRing, markEntryCompleted } from '../../../services/entryService';
 import { Entry as _Entry } from '../../../stores/entryStore';
 import type { ReplicatedEntriesTable } from '../../../services/replication/tables/ReplicatedEntriesTable';
+import { logger } from '@/utils/logger';
 
 /**
  * Shared hook for entry list actions with optimistic updates.
@@ -30,7 +31,7 @@ const { getReplicationManager } = await import('../../../services/replication');
           }
         }
       } catch (error) {
-        console.error('❌ Could not update replication cache optimistically:', error);
+        logger.error('❌ Could not update replication cache optimistically:', error);
       }
 
       // Use the optimistic update hook for retry logic and error handling
@@ -41,7 +42,7 @@ const { getReplicationManager } = await import('../../../services/replication');
           return { entryId, status: newStatus };
         },
         onSuccess: () => {}, // Real-time subscriptions will clear the pending change
-        onError: (error) => console.error('Status update failed:', error)
+        onError: (error) => logger.error('Status update failed:', error)
       });
     },
     [update]
@@ -57,7 +58,7 @@ const { getReplicationManager } = await import('../../../services/replication');
         await resetEntryScore(entryId);
         // Real-time subscription will update the cache when database confirms
       } catch (error) {
-        console.error('Error resetting score in background:', error);
+        logger.error('Error resetting score in background:', error);
         // Don't throw - offline-first means this is transparent
       }
     },
@@ -76,7 +77,7 @@ const { getReplicationManager } = await import('../../../services/replication');
         await markInRing(entryId, newInRing);
         // Real-time subscription will update the cache when database confirms
       } catch (error) {
-        console.error('Error toggling in-ring status in background:', error);
+        logger.error('Error toggling in-ring status in background:', error);
         // Don't throw - offline-first means this is transparent
       }
     },
@@ -93,7 +94,7 @@ const { getReplicationManager } = await import('../../../services/replication');
         await markInRing(entryId, true);
         // Real-time subscription will update the cache when database confirms
       } catch (error) {
-        console.error('Error marking entry in-ring in background:', error);
+        logger.error('Error marking entry in-ring in background:', error);
         // Don't throw - offline-first means this is transparent
       }
     },
@@ -110,7 +111,7 @@ const { getReplicationManager } = await import('../../../services/replication');
         await markEntryCompleted(entryId);
         // Real-time subscription will update the cache when database confirms
       } catch (error) {
-        console.error('Error marking entry completed in background:', error);
+        logger.error('Error marking entry completed in background:', error);
         // Don't throw - offline-first means this is transparent
       }
     },
@@ -129,7 +130,7 @@ const { getReplicationManager } = await import('../../../services/replication');
         );
         // Real-time subscriptions will update the cache when database confirms
       } catch (error) {
-        console.error('Error in batch update in background:', error);
+        logger.error('Error in batch update in background:', error);
         // Don't throw - offline-first means this is transparent
       }
     },

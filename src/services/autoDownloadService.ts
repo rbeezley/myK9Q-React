@@ -16,6 +16,7 @@
 import { getClassEntries } from './entryService';
 import { supabase } from '../lib/supabase';
 import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
+import { logger } from '@/utils/logger';
 
 interface DownloadProgress {
   current: number;
@@ -81,7 +82,7 @@ export async function autoDownloadShow(
       .single();
 
     if (showError || !showData) {
-      console.error('❌ [AUTO-DOWNLOAD] Failed to fetch show:', showError);
+      logger.error('❌ [AUTO-DOWNLOAD] Failed to fetch show:', showError);
       return { success: false, downloaded: 0, total: 0, errors: [] };
     }
 
@@ -109,7 +110,7 @@ export async function autoDownloadShow(
       .order('level', { ascending: true });
 
     if (error) {
-      console.error('❌ [AUTO-DOWNLOAD] Failed to fetch classes:', error);
+      logger.error('❌ [AUTO-DOWNLOAD] Failed to fetch classes:', error);
       return { success: false, downloaded: 0, total: 0, errors: [] };
     }
 
@@ -153,7 +154,7 @@ return { success: false, downloaded: 0, total: 0, errors: [] };
         });
 
 } catch (error) {
-        console.error(`❌ [AUTO-DOWNLOAD] Failed to download class ${classData.id}:`, error);
+        logger.error(`❌ [AUTO-DOWNLOAD] Failed to download class ${classData.id}:`, error);
         errors.push(classData.id);
         // Continue with other classes (partial success is OK)
       }
@@ -200,7 +201,7 @@ for (const trialId of trialIds) {
         }
 
 } catch (error) {
-        console.error(`⚠️ [AUTO-DOWNLOAD] Failed to cache trial ${trialId}:`, error);
+        logger.error(`⚠️ [AUTO-DOWNLOAD] Failed to cache trial ${trialId}:`, error);
         // Continue with other trials
       }
     }
@@ -216,7 +217,7 @@ for (const trialId of trialIds) {
 
     const success = errors.length === 0;
     if (errors.length > 0) {
-      console.warn(`⚠️ [AUTO-DOWNLOAD] Failed to download ${errors.length} classes:`, errors);
+      logger.warn(`⚠️ [AUTO-DOWNLOAD] Failed to download ${errors.length} classes:`, errors);
     }
 
     return {
@@ -227,7 +228,7 @@ for (const trialId of trialIds) {
     };
 
   } catch (error) {
-    console.error('❌ [AUTO-DOWNLOAD] Unexpected error:', error);
+    logger.error('❌ [AUTO-DOWNLOAD] Unexpected error:', error);
     return { success: false, downloaded: 0, total: 0, errors: [] };
   }
 }
@@ -252,7 +253,7 @@ export async function isShowCached(licenseKey: string): Promise<boolean> {
     return isFresh;
 
   } catch (error) {
-    console.error('❌ [AUTO-DOWNLOAD] Error checking cache status:', error);
+    logger.error('❌ [AUTO-DOWNLOAD] Error checking cache status:', error);
     return false;
   }
 }
@@ -289,7 +290,7 @@ export async function getCacheStatus(licenseKey: string) {
     };
 
   } catch (error) {
-    console.error('❌ [AUTO-DOWNLOAD] Error getting cache status:', error);
+    logger.error('❌ [AUTO-DOWNLOAD] Error getting cache status:', error);
     return {
       isCached: false,
       age: null,
@@ -310,6 +311,6 @@ export async function clearAutoDownloadCache(licenseKey: string): Promise<void> 
     const cacheKey = `auto-download-${licenseKey}`;
     await prefetchCache.delete(cacheKey);
   } catch (error) {
-    console.error('❌ [AUTO-DOWNLOAD] Error clearing cache:', error);
+    logger.error('❌ [AUTO-DOWNLOAD] Error clearing cache:', error);
   }
 }

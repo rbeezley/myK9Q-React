@@ -14,6 +14,7 @@ import { parseOrganizationData } from '@/utils/organizationUtils';
 import { supabase } from '@/lib/supabase';
 import type { ClassEntry, TrialInfo } from './useClassListData';
 import type { Entry } from '@/stores/entryStore';
+import { logger } from '@/utils/logger';
 
 /**
  * Result type for report operations
@@ -153,7 +154,7 @@ export function usePrintReports(): UsePrintReportsReturn {
 
       return { success: true };
     } catch (error) {
-      console.error('Error generating check-in sheet:', error);
+      logger.error('Error generating check-in sheet:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate check-in sheet'
@@ -225,7 +226,7 @@ export function usePrintReports(): UsePrintReportsReturn {
 
       return { success: true };
     } catch (error) {
-      console.error('Error generating results sheet:', error);
+      logger.error('Error generating results sheet:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate results sheet'
@@ -295,7 +296,7 @@ export function usePrintReports(): UsePrintReportsReturn {
           }
         } catch (reqError) {
           // Requirements fetch failed - continue with empty values (judge fills in)
-          console.warn('Could not fetch class requirements:', reqError);
+          logger.warn('Could not fetch class requirements:', reqError);
         }
       }
 
@@ -328,7 +329,7 @@ export function usePrintReports(): UsePrintReportsReturn {
 
       return { success: true };
     } catch (error) {
-      console.error('Error generating scoresheet:', error);
+      logger.error('Error generating scoresheet:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate scoresheet'

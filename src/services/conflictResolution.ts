@@ -15,6 +15,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/utils/logger';
 
 /** Base entry data that may be involved in conflicts */
 export interface ConflictEntryData {
@@ -97,7 +98,7 @@ export function detectConflict(
   };
 
   conflicts.set(conflict.id, conflict);
-  console.warn('⚠️ Conflict detected:', conflict);
+  logger.warn('⚠️ Conflict detected:', conflict);
 
   return conflict;
 }
@@ -218,7 +219,7 @@ export async function resolveConflict(
     await supabase.from('entries').update(dataToSave).eq('id', conflict.entryId);
 
 } catch (error) {
-    console.error('❌ Failed to apply conflict resolution:', error);
+    logger.error('❌ Failed to apply conflict resolution:', error);
     conflict.status = 'pending';
     throw error;
   }

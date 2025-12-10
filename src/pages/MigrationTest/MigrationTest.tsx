@@ -14,6 +14,7 @@ import {
 } from '../../services/databaseDetectionService';
 import { authenticatePasscode } from '../../services/authService';
 import { PasscodeInput } from '../../components/PasscodeInput/PasscodeInput';
+import { logger } from '@/utils/logger';
 import './MigrationTest.css';
 
 interface TestResult {
@@ -69,7 +70,7 @@ const detectionResult = await detectDatabaseWithValidation(fullPasscode);
 
       // Show result
 } catch (error) {
-      console.error('Test error:', error);
+      logger.error('Test error:', error);
 
       const result: TestResult = {
         passcode: fullPasscode,
@@ -106,7 +107,7 @@ const detectionResult = await detectDatabaseWithValidation(fullPasscode);
       setTestResults(prev => [result, ...prev]);
 
     } catch (error) {
-      console.error('V3 test error:', error);
+      logger.error('V3 test error:', error);
 
       const result: TestResult = {
         passcode: testPasscodeV3,

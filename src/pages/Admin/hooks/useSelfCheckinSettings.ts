@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 import {
   setShowSelfCheckin,
   setTrialSelfCheckin,
@@ -68,7 +69,7 @@ export interface UseSelfCheckinSettingsReturn {
  *   const handleShowChange = async (enabled: boolean) => {
  *     const result = await handleSetShowSelfCheckin(enabled, 'license-123');
  *     if (!result.success) {
- *       console.error(result.error);
+ *       logger.error(result.error);
  *     }
  *   };
  *
@@ -103,7 +104,7 @@ export function useSelfCheckinSettings(): UseSelfCheckinSettingsReturn {
 
       return { success: true };
     } catch (err) {
-      console.error('Error setting show self check-in:', err);
+      logger.error('Error setting show self check-in:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to update show self check-in'
@@ -127,7 +128,7 @@ export function useSelfCheckinSettings(): UseSelfCheckinSettingsReturn {
 
       return { success: true };
     } catch (err) {
-      console.error('Error setting trial self check-in:', err);
+      logger.error('Error setting trial self check-in:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to update trial self check-in'
@@ -154,7 +155,7 @@ export function useSelfCheckinSettings(): UseSelfCheckinSettingsReturn {
 
       return { success: true };
     } catch (err) {
-      console.error('Error removing trial self check-in override:', err);
+      logger.error('Error removing trial self check-in override:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to remove trial self check-in override'

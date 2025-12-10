@@ -3,6 +3,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import type { Announcement } from '../stores/announcementStore';
+import { logger } from '@/utils/logger';
 
 export interface InAppNotification {
   id: string;
@@ -63,7 +64,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 return recent;
       }
     } catch (error) {
-      console.error('Error loading notifications from storage:', error);
+      logger.error('Error loading notifications from storage:', error);
     }
     return [];
   });
@@ -77,7 +78,7 @@ return recent;
     try {
       localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifications));
     } catch (error) {
-      console.error('Error saving notifications to storage:', error);
+      logger.error('Error saving notifications to storage:', error);
     }
   }, [notifications]);
 

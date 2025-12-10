@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 export interface NotificationPermissionStatus {
   /**
@@ -163,7 +164,7 @@ export function useNotificationPermissions(
   // Request notification permission
   const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
     if (!isSupported) {
-      console.warn('Notifications not supported in this browser');
+      logger.warn('Notifications not supported in this browser');
       return 'denied';
     }
 
@@ -175,7 +176,7 @@ export function useNotificationPermissions(
     }
 
     if (currentPermission === 'denied') {
-      console.warn('Notification permission already denied');
+      logger.warn('Notification permission already denied');
       return 'denied';
     }
 
@@ -195,7 +196,7 @@ export function useNotificationPermissions(
 
       return permission;
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      logger.error('Error requesting notification permission:', error);
       return 'denied';
     }
   }, [isSupported, onPermissionChange]);

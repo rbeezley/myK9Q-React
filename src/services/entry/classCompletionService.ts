@@ -3,6 +3,7 @@ import { shouldCheckCompletion } from '@/utils/validationUtils';
 import { recalculatePlacementsForClass } from '../placementService';
 import { getReplicationManager } from '../replication/ReplicationManager';
 import type { Class } from '../replication/tables/ReplicatedClassesTable';
+import { logger } from '@/utils/logger';
 
 /** Nested show data from joined query */
 interface NestedShow {
@@ -67,8 +68,7 @@ export async function checkAndUpdateClassCompletion(
   justScoredEntryId?: number,
   justResetEntryId?: number
 ): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log(`🔍 [classCompletion] checkAndUpdateClassCompletion called:`, {
+  logger.log(`🔍 [classCompletion] checkAndUpdateClassCompletion called:`, {
     classId,
     pairedClassId,
     justScoredEntryId,
@@ -112,8 +112,7 @@ async function updateSingleClassCompletion(
     .eq('class_id', classId);
 
   if (entriesError || !entries || entries.length === 0) {
-    // eslint-disable-next-line no-console
-    console.log(`🔍 [classCompletion] No entries found for class ${classId}:`, { entriesError });
+    logger.log(`🔍 [classCompletion] No entries found for class ${classId}:`, { entriesError });
 return;
   }
 
@@ -127,7 +126,7 @@ return;
     .eq('is_scored', true);
 
   if (resultsError) {
-    console.error('❌ Error fetching scored entries:', resultsError);
+    logger.error('❌ Error fetching scored entries:', resultsError);
     return;
   }
 
@@ -137,22 +136,19 @@ return;
 
   // Case 1: Just scored an entry - add to count if read replica missed it
   if (justScoredEntryId && !scoredIdsFromQuery.includes(justScoredEntryId)) {
-    // eslint-disable-next-line no-console
-    console.log(`⚠️ [classCompletion] Read replica lag (score): entry ${justScoredEntryId} not in scored list, adding to count`);
+    logger.log(`⚠️ [classCompletion] Read replica lag (score): entry ${justScoredEntryId} not in scored list, adding to count`);
     scoredCount += 1;
   }
 
   // Case 2: Just reset an entry - remove from count if read replica still shows it as scored
   if (justResetEntryId && scoredIdsFromQuery.includes(justResetEntryId)) {
-    // eslint-disable-next-line no-console
-    console.log(`⚠️ [classCompletion] Read replica lag (reset): entry ${justResetEntryId} still in scored list, removing from count`);
+    logger.log(`⚠️ [classCompletion] Read replica lag (reset): entry ${justResetEntryId} still in scored list, removing from count`);
     scoredCount -= 1;
   }
 
   const totalCount = entries.length;
 
-  // eslint-disable-next-line no-console
-  console.log(`🔍 [classCompletion] Class ${classId} status:`, {
+  logger.log(`🔍 [classCompletion] Class ${classId} status:`, {
     scoredCount,
     totalCount,
     scoredIdsFromQuery,
@@ -168,26 +164,22 @@ return;
 // Check if we should skip this update (optimization: only check first and last dog)
   // BUT: Always run update after a reset to ensure class moves to correct tab
   if (!isResetOperation && !shouldCheckCompletion(scoredCount, totalCount)) {
-    // eslint-disable-next-line no-console
-    console.log(`⏭️ [classCompletion] Skipping update for class ${classId} (not first or last dog)`);
+    logger.log(`⏭️ [classCompletion] Skipping update for class ${classId} (not first or last dog)`);
 return;
   }
 
   // Handle different completion states
   if (scoredCount === totalCount && totalCount > 0) {
     // All entries scored - mark as completed
-    // eslint-disable-next-line no-console
-    console.log(`✅ [classCompletion] All entries scored for class ${classId}, marking completed`);
+    logger.log(`✅ [classCompletion] All entries scored for class ${classId}, marking completed`);
     await markClassCompleted(classId);
   } else if (scoredCount > 0 && scoredCount < totalCount) {
     // Some entries scored - mark as in_progress
-    // eslint-disable-next-line no-console
-    console.log(`🏃 [classCompletion] Class ${classId} in progress: ${scoredCount}/${totalCount}`);
+    logger.log(`🏃 [classCompletion] Class ${classId} in progress: ${scoredCount}/${totalCount}`);
     await markClassInProgress(classId, scoredCount, totalCount);
   } else {
     // No entries scored - mark as no-status
-    // eslint-disable-next-line no-console
-    console.log(`⏸️ [classCompletion] Class ${classId} has no scored entries, marking no-status`);
+    logger.log(`⏸️ [classCompletion] Class ${classId} has no scored entries, marking no-status`);
     await markClassNotStarted(classId);
 }
 }
@@ -207,11 +199,11 @@ async function markClassCompleted(classId: number): Promise<void> {
     .eq('id', classId);
 
   if (updateError) {
-    console.error('❌ Error updating class completion:', updateError);
-    console.error('❌ Error message:', updateError.message);
-    console.error('❌ Error details:', updateError.details);
-    console.error('❌ Error hint:', updateError.hint);
-    console.error('❌ Error code:', updateError.code);
+    logger.error('❌ Error updating class completion:', updateError);
+    logger.error('❌ Error message:', updateError.message);
+    logger.error('❌ Error details:', updateError.details);
+    logger.error('❌ Error hint:', updateError.hint);
+    logger.error('❌ Error code:', updateError.code);
     return;
   }
 
@@ -243,11 +235,11 @@ const { error: updateError } = await supabase
     .eq('id', classId);
 
   if (updateError) {
-    console.error('❌ Error updating class status to in_progress:', updateError);
-    console.error('❌ Error message:', updateError.message);
-    console.error('❌ Error details:', updateError.details);
-    console.error('❌ Error hint:', updateError.hint);
-    console.error('❌ Error code:', updateError.code);
+    logger.error('❌ Error updating class status to in_progress:', updateError);
+    logger.error('❌ Error message:', updateError.message);
+    logger.error('❌ Error details:', updateError.details);
+    logger.error('❌ Error hint:', updateError.hint);
+    logger.error('❌ Error code:', updateError.code);
     return;
   }
 
@@ -274,19 +266,18 @@ async function markClassNotStarted(classId: number): Promise<void> {
     .eq('id', classId);
 
   if (updateError) {
-    console.error('❌ Error updating class status to no-status:', updateError);
-    console.error('❌ Error message:', updateError.message);
-    console.error('❌ Error details:', updateError.details);
-    console.error('❌ Error hint:', updateError.hint);
-    console.error('❌ Error code:', updateError.code);
+    logger.error('❌ Error updating class status to no-status:', updateError);
+    logger.error('❌ Error message:', updateError.message);
+    logger.error('❌ Error details:', updateError.details);
+    logger.error('❌ Error hint:', updateError.hint);
+    logger.error('❌ Error code:', updateError.code);
     return;
   }
 
   // CRITICAL: Update local cache to reflect the change immediately
   await updateLocalClassCache(classId, { class_status: 'no-status', is_scoring_finalized: false });
 
-  // eslint-disable-next-line no-console
-  console.log(`✅ [classCompletion] Class ${classId} marked as no-status`);
+  logger.log(`✅ [classCompletion] Class ${classId} marked as no-status`);
 }
 
 /**
@@ -317,7 +308,7 @@ async function recalculateFinalPlacements(classId: number): Promise<void> {
       .single();
 
     if (classError) {
-      console.error('❌ Error fetching class data:', classError);
+      logger.error('❌ Error fetching class data:', classError);
       return;
     }
 
@@ -329,10 +320,10 @@ async function recalculateFinalPlacements(classId: number): Promise<void> {
 
 await recalculatePlacementsForClass(classId, licenseKey, isNationals);
 } else {
-      console.error('⚠️ Could not find class or show data for class', classId);
+      logger.error('⚠️ Could not find class or show data for class', classId);
     }
   } catch (placementError) {
-    console.error('⚠️ Failed to calculate final placements:', placementError);
+    logger.error('⚠️ Failed to calculate final placements:', placementError);
     // Non-critical error - class completion was already recorded
   }
 }
@@ -370,20 +361,20 @@ async function updateLocalClassCache(
   try {
     const manager = getReplicationManager();
     if (!manager) {
-      console.warn('⚠️ [updateLocalClassCache] No replication manager - skipping cache update');
+      logger.warn('⚠️ [updateLocalClassCache] No replication manager - skipping cache update');
       return;
     }
 
     const classesTable = manager.getTable('classes');
     if (!classesTable) {
-      console.warn('⚠️ [updateLocalClassCache] Classes table not registered - skipping cache update');
+      logger.warn('⚠️ [updateLocalClassCache] Classes table not registered - skipping cache update');
       return;
     }
 
     // Get the current class from cache
     const currentClass = await classesTable.get(String(classId)) as Class | undefined;
     if (!currentClass) {
-      console.warn(`⚠️ [updateLocalClassCache] Class ${classId} not found in cache - skipping cache update`);
+      logger.warn(`⚠️ [updateLocalClassCache] Class ${classId} not found in cache - skipping cache update`);
       return;
     }
 
@@ -398,13 +389,12 @@ async function updateLocalClassCache(
     // Write back to cache (not dirty - already synced to server)
     await classesTable.set(String(classId), updatedClass, false);
 
-    // eslint-disable-next-line no-console
-    console.log(`✅ [updateLocalClassCache] Updated class ${classId} in cache:`, {
+    logger.log(`✅ [updateLocalClassCache] Updated class ${classId} in cache:`, {
       class_status: updatedClass.class_status,
       is_scoring_finalized: updatedClass.is_scoring_finalized
     });
   } catch (error) {
-    console.error('❌ [updateLocalClassCache] Failed to update cache:', error);
+    logger.error('❌ [updateLocalClassCache] Failed to update cache:', error);
     // Non-fatal - the DB write succeeded, cache will catch up on next sync
   }
 }

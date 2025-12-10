@@ -4,6 +4,7 @@ import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
 import { mapDatabaseRowToEntry } from '@/utils/entryMappers';
+import { logger } from '@/utils/logger';
 
 /**
  * Entry Data Fetching Module
@@ -36,7 +37,7 @@ export async function fetchClassEntriesFromDatabase(
     .single();
 
   if (classError || !classData) {
-    console.error('Error fetching class data:', classError);
+    logger.error('Error fetching class data:', classError);
     throw new Error('Could not find class');
   }
 
@@ -63,7 +64,7 @@ export async function fetchClassEntriesFromDatabase(
     .order('armband_number', { ascending: true });
 
   if (viewError) {
-    console.error('Error fetching class entries from view:', viewError);
+    logger.error('Error fetching class entries from view:', viewError);
     throw viewError;
   }
 
@@ -158,7 +159,7 @@ export async function fetchTrialEntriesFromDatabase(
     .order('armband', { ascending: true });
 
   if (error) {
-    console.error('Error fetching trial entries:', error);
+    logger.error('Error fetching trial entries:', error);
     throw error;
   }
 
@@ -212,7 +213,7 @@ export async function fetchEntriesByArmbandFromDatabase(
     .order('classes.element', { ascending: true });
 
   if (error) {
-    console.error('Error fetching entries by armband:', error);
+    logger.error('Error fetching entries by armband:', error);
     throw error;
   }
 

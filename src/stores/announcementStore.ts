@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { serviceWorkerManager } from '../utils/serviceWorkerUtils';
 import { AnnouncementService } from '../services/announcementService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 export interface Announcement {
   id: number;
@@ -202,7 +203,7 @@ return;
 
         // Auto-update push subscription if notifications are enabled
         updatePushSubscriptionForShow(licenseKey).catch(error => {
-          console.error('[Push Auto-Switch] Failed to update subscription:', error);
+          logger.error('[Push Auto-Switch] Failed to update subscription:', error);
         });
 
         // Auto-fetch announcements for new license
@@ -250,7 +251,7 @@ return;
           });
 
         } catch (error) {
-          console.error('Error fetching announcements:', error);
+          logger.error('Error fetching announcements:', error);
           set({
             error: error instanceof Error ? error.message : 'Failed to fetch announcements',
             isLoading: false
@@ -299,7 +300,7 @@ return;
                 const swRegistration = registration as ServiceWorkerRegistration;
 
                 if (!swRegistration.active) {
-                  console.error('❌ Service worker is not active');
+                  logger.error('❌ Service worker is not active');
                   // Fallback: Show browser notification directly
                   if ('Notification' in window && Notification.permission === 'granted') {
 new Notification(data.title, {
@@ -325,7 +326,7 @@ new Notification(data.title, {
                 });
 })
               .catch(error => {
-                console.error('❌ Service worker not ready:', error.message);
+                logger.error('❌ Service worker not ready:', error.message);
                 // Fallback: Show browser notification directly
                 if ('Notification' in window && Notification.permission === 'granted') {
 const isUrgent = data.priority === 'urgent';
@@ -337,13 +338,13 @@ const isUrgent = data.priority === 'urgent';
                     requireInteraction: isUrgent,
                   });
                 } else {
-                  console.error('❌ Cannot show notification - permission not granted');
+                  logger.error('❌ Cannot show notification - permission not granted');
                 }
               });
           }
 
         } catch (error) {
-          console.error('Error creating announcement:', error);
+          logger.error('Error creating announcement:', error);
           throw error;
         }
       },
@@ -378,7 +379,7 @@ const isUrgent = data.priority === 'urgent';
           }));
 
         } catch (error) {
-          console.error('Error updating announcement:', error);
+          logger.error('Error updating announcement:', error);
           throw error;
         }
       },
@@ -409,7 +410,7 @@ const isUrgent = data.priority === 'urgent';
           }));
 
         } catch (error) {
-          console.error('Error deleting announcement:', error);
+          logger.error('Error deleting announcement:', error);
           throw error;
         }
       },
@@ -439,7 +440,7 @@ const isUrgent = data.priority === 'urgent';
           });
 
         } catch (error) {
-          console.error('Error marking announcement as read:', error);
+          logger.error('Error marking announcement as read:', error);
         }
       },
 
@@ -465,7 +466,7 @@ const isUrgent = data.priority === 'urgent';
           }));
 
         } catch (error) {
-          console.error('Error marking all announcements as read:', error);
+          logger.error('Error marking all announcements as read:', error);
         }
       },
 
@@ -551,7 +552,7 @@ set(state => ({
           });
 
 } catch (error) {
-          console.error('Failed to enable real-time updates:', error);
+          logger.error('Failed to enable real-time updates:', error);
           set({ isConnected: false });
         }
       },

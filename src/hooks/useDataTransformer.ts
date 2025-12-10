@@ -1,4 +1,5 @@
 import { useRef, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 /**
  * Message sent to the Web Worker
@@ -41,7 +42,7 @@ export function useDataTransformer() {
           { type: 'module' }
         );
       } catch (error) {
-        console.error('Failed to initialize Web Worker:', error);
+        logger.error('Failed to initialize Web Worker:', error);
         return null;
       }
     }

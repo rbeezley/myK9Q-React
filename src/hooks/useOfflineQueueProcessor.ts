@@ -13,6 +13,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
 import { submitScore } from '../services/entryService';
+import { logger } from '@/utils/logger';
 
 export function useOfflineQueueProcessor() {
   const {
@@ -57,7 +58,7 @@ try {
         // This matches the online flow where we don't manually clear pending changes
 
       } catch (error) {
-        console.error(`❌ Failed to sync score for entry ${item.entryId}:`, error);
+        logger.error(`❌ Failed to sync score for entry ${item.entryId}:`, error);
 
         // Check if we should retry
         if (item.retryCount < item.maxRetries) {
@@ -70,7 +71,7 @@ try {
           // Max retries reached - keep in failed state
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           markAsFailed(item.id, errorMessage);
-          console.error(`❌ Max retries reached for entry ${item.entryId}, keeping in failed queue`);
+          logger.error(`❌ Max retries reached for entry ${item.entryId}, keeping in failed queue`);
 
           // Move to next item instead of blocking entire queue
           continue;

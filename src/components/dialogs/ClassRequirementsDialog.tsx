@@ -3,6 +3,7 @@ import { Clock, Users, MapPin, AlertTriangle, Target, Ruler, Package, Speech } f
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { DialogContainer } from './DialogContainer';
+import { logger } from '@/utils/logger';
 import './shared-dialog.css';
 import './ClassRequirementsDialog.css';
 // Updated to show fixed vs range and Master warning
@@ -77,7 +78,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
         .single();
 
       if (showError || !showData) {
-        console.error('❌ Error fetching show data:', showError);
+        logger.error('❌ Error fetching show data:', showError);
         return;
       }
 
@@ -106,7 +107,7 @@ if (!error && data) {
 
 setRequirements(requirementsData);
     } catch (error) {
-      console.error('💥 Error loading requirements:', error);
+      logger.error('💥 Error loading requirements:', error);
     } finally {
       setLoading(false);
     }

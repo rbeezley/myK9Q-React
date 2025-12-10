@@ -15,6 +15,7 @@ import {
 } from '@/services/resultVisibilityService';
 import type { VisibilityPreset } from '@/types/visibility';
 import type { ClassInfo } from './useCompetitionAdminData';
+import { logger } from '@/utils/logger';
 
 /**
  * Result type for async operations
@@ -83,7 +84,7 @@ export interface UseBulkOperationsReturn {
  *   const handleApplyVisibility = async (preset: VisibilityPreset) => {
  *     const result = await handleBulkSetClassVisibility(preset, classes, 'John Doe');
  *     if (result.success) {
- *       console.log(`Updated ${result.affectedClasses?.length} classes`);
+ *       logger.log(`Updated ${result.affectedClasses?.length} classes`);
  *     }
  *   };
  *
@@ -170,7 +171,7 @@ export function useBulkOperations(): UseBulkOperationsReturn {
         affectedClasses: selectedClassDetails
       };
     } catch (err) {
-      console.error('Error bulk setting class visibility:', err);
+      logger.error('Error bulk setting class visibility:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to update class visibility'
@@ -210,7 +211,7 @@ export function useBulkOperations(): UseBulkOperationsReturn {
         affectedClasses: selectedClassDetails
       };
     } catch (err) {
-      console.error('Error bulk setting class self check-in:', err);
+      logger.error('Error bulk setting class self check-in:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to update class self check-in'
@@ -256,7 +257,7 @@ export function useBulkOperations(): UseBulkOperationsReturn {
         affectedClasses: selectedClassDetails
       };
     } catch (err) {
-      console.error('Error releasing results:', err);
+      logger.error('Error releasing results:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to release results'

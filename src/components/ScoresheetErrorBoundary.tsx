@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from './ErrorBoundary';
 import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface ScoresheetErrorBoundaryProps {
   children: React.ReactNode;
@@ -90,7 +91,7 @@ export const ScoresheetErrorBoundary: React.FC<ScoresheetErrorBoundaryProps> = (
 
   const handleError = (error: Error, _errorInfo: React.ErrorInfo) => {
     // Log scoresheet-specific error details
-    console.error('Scoresheet Error:', {
+    logger.error('Scoresheet Error:', {
       error: error.message,
       stack: error.stack,
       componentStack: _errorInfo.componentStack,

@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { getDeviceTier } from '@/utils/deviceDetection';
+import { logger } from '@/utils/logger';
 
 export type ImageQuality = 'low' | 'medium' | 'high' | 'original';
 export type ImageFormat = 'webp' | 'jpeg' | 'png' | 'avif';
@@ -305,7 +306,7 @@ export class LazyImageLoader {
   private setupObserver(): void {
     if (!('IntersectionObserver' in window)) {
       // Fallback: load all images immediately
-      console.warn('IntersectionObserver not supported, loading all images immediately');
+      logger.warn('IntersectionObserver not supported, loading all images immediately');
       return;
     }
 

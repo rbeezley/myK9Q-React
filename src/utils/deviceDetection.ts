@@ -5,6 +5,8 @@
  * Helps the app run smoothly on low-end devices while leveraging high-end features.
  */
 
+import { logger } from '@/utils/logger';
+
 // Type definitions for non-standard browser APIs
 
 /** Navigator with deviceMemory property (Chrome only) */
@@ -510,7 +512,7 @@ export function startPerformanceMonitoring(): () => void {
       // If FPS drops below 20, switch to low-performance mode
       // Only show warning once per session
       if (fps < 20 && performanceSettings && performanceSettings.animations && !lowFpsOptimized) {
-        console.warn('Low FPS detected, reducing performance settings');
+        logger.warn('Low FPS detected, reducing performance settings');
         setPerformanceOverrides({
           animations: false,
           blurEffects: false,

@@ -15,6 +15,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { logger } from '@/utils/logger';
 import {
   NationalsScoring,
   LeaderboardEntry,
@@ -137,7 +138,7 @@ export const useNationalsStore = create<NationalsState>()(
               // Enable real-time updates
               await get().enableRealtime();
             } catch (error) {
-              console.error('Failed to initialize nationals store:', error);
+              logger.error('Failed to initialize nationals store:', error);
               set({
                 isLoading: false,
                 isConnected: false,
@@ -154,7 +155,7 @@ export const useNationalsStore = create<NationalsState>()(
               const { data, error } = await scoringService.getLeaderboard();
 
               if (error) {
-                console.error('Error refreshing leaderboard:', error);
+                logger.error('Error refreshing leaderboard:', error);
                 set({ error: 'Failed to load leaderboard' });
                 return;
               }
@@ -165,7 +166,7 @@ export const useNationalsStore = create<NationalsState>()(
                 error: null
               });
             } catch (error) {
-              console.error('Exception refreshing leaderboard:', error);
+              logger.error('Exception refreshing leaderboard:', error);
               set({ error: 'Failed to load leaderboard' });
             }
           },
@@ -178,7 +179,7 @@ export const useNationalsStore = create<NationalsState>()(
               const { data, error } = await scoringService.getQualifiers();
 
               if (error) {
-                console.error('Error refreshing qualifiers:', error);
+                logger.error('Error refreshing qualifiers:', error);
                 return;
               }
 
@@ -187,7 +188,7 @@ export const useNationalsStore = create<NationalsState>()(
                 lastUpdated: new Date()
               });
             } catch (error) {
-              console.error('Exception refreshing qualifiers:', error);
+              logger.error('Exception refreshing qualifiers:', error);
             }
           },
 
@@ -199,7 +200,7 @@ export const useNationalsStore = create<NationalsState>()(
               const { data, error } = await scoringService.getElementProgress();
 
               if (error) {
-                console.error('Error refreshing element progress:', error);
+                logger.error('Error refreshing element progress:', error);
                 return;
               }
 
@@ -208,7 +209,7 @@ export const useNationalsStore = create<NationalsState>()(
                 lastUpdated: new Date()
               });
             } catch (error) {
-              console.error('Exception refreshing element progress:', error);
+              logger.error('Exception refreshing element progress:', error);
             }
           },
 
@@ -220,7 +221,7 @@ export const useNationalsStore = create<NationalsState>()(
               const result = await scoringService.getAdvancementStatus();
 
               if (result.error) {
-                console.error('Error refreshing advancement status:', result.error);
+                logger.error('Error refreshing advancement status:', result.error);
                 return;
               }
 
@@ -234,7 +235,7 @@ export const useNationalsStore = create<NationalsState>()(
                 lastUpdated: new Date()
               });
             } catch (error) {
-              console.error('Exception refreshing advancement status:', error);
+              logger.error('Exception refreshing advancement status:', error);
             }
           },
 
@@ -257,7 +258,7 @@ export const useNationalsStore = create<NationalsState>()(
               const { data: _data, error } = await scoringService.submitScore(input);
 
               if (error) {
-                console.error('Error submitting score:', error);
+                logger.error('Error submitting score:', error);
                 set({ isLoading: false, error: 'Failed to submit score' });
                 return { success: false, error };
               }
@@ -278,7 +279,7 @@ export const useNationalsStore = create<NationalsState>()(
 
               return { success: true };
             } catch (error) {
-              console.error('Exception submitting score:', error);
+              logger.error('Exception submitting score:', error);
               set({ isLoading: false, error: 'Failed to submit score' });
               return { success: false, error };
             }
@@ -296,7 +297,7 @@ export const useNationalsStore = create<NationalsState>()(
               const { data: _data, error } = await scoringService.updateScore(scoreId, input);
 
               if (error) {
-                console.error('Error updating score:', error);
+                logger.error('Error updating score:', error);
                 set({ isLoading: false, error: 'Failed to update score' });
                 return { success: false, error };
               }
@@ -317,7 +318,7 @@ export const useNationalsStore = create<NationalsState>()(
 
               return { success: true };
             } catch (error) {
-              console.error('Exception updating score:', error);
+              logger.error('Exception updating score:', error);
               set({ isLoading: false, error: 'Failed to update score' });
               return { success: false, error };
             }
@@ -331,13 +332,13 @@ export const useNationalsStore = create<NationalsState>()(
               const { data, error } = await scoringService.getDogScores(entryId);
 
               if (error) {
-                console.error('Error fetching dog scores:', error);
+                logger.error('Error fetching dog scores:', error);
                 return [];
               }
 
               return data;
             } catch (error) {
-              console.error('Exception fetching dog scores:', error);
+              logger.error('Exception fetching dog scores:', error);
               return [];
             }
           },
@@ -407,7 +408,7 @@ get().refreshLeaderboard();
               });
 
 } catch (error) {
-              console.error('Failed to enable real-time updates:', error);
+              logger.error('Failed to enable real-time updates:', error);
               set({ isConnected: false });
             }
           },

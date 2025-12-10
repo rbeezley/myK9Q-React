@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 /**
  * IndexedDB Diagnostics Utility
  *
@@ -8,6 +8,7 @@
  */
 
 import { deleteDB } from 'idb';
+import { logger } from '@/utils/logger';
 
 const DB_NAME = 'myK9Q_Replication';
 
@@ -236,19 +237,19 @@ resolve(true);
         };
 
         deleteReq.onerror = () => {
-          console.warn(`[IndexedDB Diagnostics] Failed to delete ${dbName}:`, deleteReq.error);
+          logger.warn(`[IndexedDB Diagnostics] Failed to delete ${dbName}:`, deleteReq.error);
           resolve(false);
         };
 
         deleteReq.onblocked = () => {
-          console.warn(`[IndexedDB Diagnostics] Delete blocked for ${dbName} - database still in use`);
+          logger.warn(`[IndexedDB Diagnostics] Delete blocked for ${dbName} - database still in use`);
           resolve(false);
         };
       });
 
       const timeoutPromise = new Promise<boolean>((resolve) => {
         setTimeout(() => {
-          console.warn(`[IndexedDB Diagnostics] Delete timeout for ${dbName} after ${timeout}ms`);
+          logger.warn(`[IndexedDB Diagnostics] Delete timeout for ${dbName} after ${timeout}ms`);
           resolve(false);
         }, timeout);
       });
@@ -278,7 +279,7 @@ resolve(true);
       };
     }
   } catch (error) {
-    console.error('[IndexedDB Diagnostics] Auto-cleanup error:', error);
+    logger.error('[IndexedDB Diagnostics] Auto-cleanup error:', error);
     return {
       success: false,
       message: `Auto-cleanup failed: ${error instanceof Error ? error.message : String(error)}. Manual cleanup required.`,
@@ -290,27 +291,27 @@ resolve(true);
  * Log diagnostic report to console
  */
 export async function logDiagnosticReport(): Promise<void> {
-console.log('%c🔍 INDEXEDDB DIAGNOSTIC REPORT', 'color: #3b82f6; font-weight: bold; font-size: 16px');
-console.log('');
+logger.log('%c🔍 INDEXEDDB DIAGNOSTIC REPORT', 'color: #3b82f6; font-weight: bold; font-size: 16px');
+logger.log('');
 
   const result = await runIndexedDBDiagnostics();
 
-  console.log(`%cStatus: ${result.status.toUpperCase()}`, `color: ${
+  logger.log(`%cStatus: ${result.status.toUpperCase()}`, `color: ${
     result.status === 'healthy' ? '#10b981' :
     result.status === 'locked' ? '#f59e0b' : '#ef4444'
   }; font-weight: bold`);
-console.log('%cDetails:', 'color: #3b82f6; font-weight: bold');
-  result.details.forEach(detail => console.log(`  ${detail}`));
+logger.log('%cDetails:', 'color: #3b82f6; font-weight: bold');
+  result.details.forEach(detail => logger.log(`  ${detail}`));
 if (result.recommendations.length > 0) {
-result.recommendations.forEach(rec => console.log(`  ${rec}`));
+result.recommendations.forEach(rec => logger.log(`  ${rec}`));
 }
 
   if (!result.canAutoFix && result.status !== 'healthy') {
-console.log('');
+logger.log('');
     getManualCleanupInstructions().forEach(_instruction => { /* instructions logged above */ });
   }
 
-console.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
+logger.log('%c═══════════════════════════════════════════════════════', 'color: #3b82f6; font-weight: bold');
 }
 
 /**

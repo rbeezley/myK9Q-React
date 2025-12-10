@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, RefreshCw, CheckCircle, Loader, WifiOff } from 'lucide-react';
 import { runIndexedDBDiagnostics, attemptAutoCleanup } from '@/utils/indexedDBDiagnostics';
 import { stopReplicationManager } from '@/services/replication/ReplicationManager';
+import { logger } from '@/utils/logger';
 import './DatabaseRecovery.css';
 
 interface DatabaseRecoveryProps {
@@ -135,7 +136,7 @@ handleAutoRecovery();
         onRecovered?.();
       }
     } catch (error) {
-      console.error('[DatabaseRecovery] Detection error:', error);
+      logger.error('[DatabaseRecovery] Detection error:', error);
       setIsCorrupted(true);
     } finally {
       setIsDetecting(false);
@@ -150,7 +151,7 @@ handleAutoRecovery();
         localStorage.setItem('myK9Q_mutation_backup', offlineQueueData);
 }
     } catch (error) {
-      console.warn('[DatabaseRecovery] Could not backup mutations:', error);
+      logger.warn('[DatabaseRecovery] Could not backup mutations:', error);
     }
   };
 
@@ -162,7 +163,7 @@ handleAutoRecovery();
         localStorage.removeItem('myK9Q_mutation_backup');
 }
     } catch (error) {
-      console.warn('[DatabaseRecovery] Could not restore mutations:', error);
+      logger.warn('[DatabaseRecovery] Could not restore mutations:', error);
     }
   };
 
@@ -195,7 +196,7 @@ handleAutoRecovery();
         try {
           await stopReplicationManager();
         } catch (error) {
-          console.warn('[DatabaseRecovery] Could not stop replication:', error);
+          logger.warn('[DatabaseRecovery] Could not stop replication:', error);
         }
 
         // Attempt cleanup
@@ -222,7 +223,7 @@ handleAutoRecovery();
           const { enableReplication } = await import('@/services/replication/replicationConfig');
           enableReplication();
 } catch (error) {
-          console.warn('[DatabaseRecovery] Could not re-enable replication:', error);
+          logger.warn('[DatabaseRecovery] Could not re-enable replication:', error);
         }
 
         // Wait a moment for cleanup to complete
@@ -235,7 +236,7 @@ handleAutoRecovery();
         setShowManualInstructions(true);
       }
     } catch (error) {
-      console.error('[DatabaseRecovery] Optimization error or timeout:', error);
+      logger.error('[DatabaseRecovery] Optimization error or timeout:', error);
 
       // If it's a timeout, provide a more direct solution
       if (error instanceof Error && error.message === 'Recovery timeout') {
@@ -488,7 +489,7 @@ handleAutoRecovery();
 
 window.location.reload();
                     } catch (error) {
-                      console.error('Error clearing cache:', error);
+                      logger.error('Error clearing cache:', error);
                       // Reload anyway
                       window.location.reload();
                     }

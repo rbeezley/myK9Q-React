@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import PushNotificationService from '@/services/pushNotificationService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { logger } from '@/utils/logger';
 
 /**
  * Browser compatibility information
@@ -72,7 +73,7 @@ export interface UsePushNotificationsReturn {
  *     if (enabled) {
  *       const result = await subscribe();
  *       if (!result.success) {
- *         console.error(result.error);
+ *         logger.error(result.error);
  *       }
  *     } else {
  *       await unsubscribe();
@@ -119,7 +120,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         const compat = PushNotificationService.getBrowserCompatibility();
         setBrowserCompatibility(compat);
       } catch (error) {
-        console.error('Failed to initialize push notification status:', error);
+        logger.error('Failed to initialize push notification status:', error);
       }
     };
 
@@ -137,7 +138,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       const permission = await PushNotificationService.getPermissionState();
       setPermissionState(permission);
     } catch (error) {
-      console.error('Failed to refresh push notification status:', error);
+      logger.error('Failed to refresh push notification status:', error);
     }
   }, []);
 
@@ -165,7 +166,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         try {
           favoriteArmbands = JSON.parse(savedFavorites);
         } catch (e) {
-          console.warn('Failed to parse favorite armbands:', e);
+          logger.warn('Failed to parse favorite armbands:', e);
         }
       }
 
@@ -194,7 +195,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         };
       }
     } catch (error) {
-      console.error('Subscribe error:', error);
+      logger.error('Subscribe error:', error);
       updateSettings({ enableNotifications: false });
 
       return {
@@ -219,7 +220,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
       return { success: true };
     } catch (error) {
-      console.error('Unsubscribe error:', error);
+      logger.error('Unsubscribe error:', error);
       updateSettings({ enableNotifications: true });
 
       return {

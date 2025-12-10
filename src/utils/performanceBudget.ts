@@ -5,6 +5,8 @@
  * Alerts when performance regresses beyond acceptable thresholds.
  */
 
+import { logger } from '@/utils/logger';
+
 /**
  * Largest Contentful Paint entry type
  * @see https://developer.mozilla.org/en-US/docs/Web/API/LargestContentfulPaint
@@ -233,7 +235,7 @@ export function collectMetrics(): PerformanceMetrics {
       });
       clsObserver.observe({ type: 'layout-shift', buffered: true });
     } catch (error) {
-      console.warn('Performance Observer not fully supported:', error);
+      logger.warn('Performance Observer not fully supported:', error);
     }
   }
 

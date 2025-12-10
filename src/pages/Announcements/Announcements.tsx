@@ -10,6 +10,7 @@ import { AnnouncementCard } from '../../components/announcements/AnnouncementCar
 import { CreateAnnouncementModal } from '../../components/announcements/CreateAnnouncementModal';
 import { DeleteConfirmationModal } from '../../components/announcements/DeleteConfirmationModal';
 import { FilterPanel } from '../../components/ui/FilterPanel';
+import { logger } from '@/utils/logger';
 import {
   Plus,
   Bell,
@@ -112,7 +113,7 @@ export const Announcements: React.FC = () => {
     try {
       await fetchAnnouncements(currentLicenseKey);
     } catch (error) {
-      console.error('Failed to refresh announcements:', error);
+      logger.error('Failed to refresh announcements:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -122,7 +123,7 @@ export const Announcements: React.FC = () => {
     try {
       await markAllAsRead();
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      logger.error('Failed to mark all as read:', error);
     }
   };
 
@@ -395,7 +396,7 @@ export const Announcements: React.FC = () => {
             await deleteAnnouncement(deleteConfirmation.announcement.id);
             setDeleteConfirmation({ isOpen: false, announcement: null });
           } catch (error) {
-            console.error('Failed to delete announcement:', error);
+            logger.error('Failed to delete announcement:', error);
             alert('Failed to delete announcement. Please try again.');
           } finally {
             setIsDeleting(false);

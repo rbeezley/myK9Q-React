@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect, ReactNode } from 'react';
+import { logger } from '@/utils/logger';
 import './shared-ui.css';
 
 export interface PullToRefreshProps {
@@ -168,7 +169,7 @@ export function PullToRefresh({
           setIsRefreshing(false);
         }, 500);
       } catch (error) {
-        console.error('[PullToRefresh] Refresh failed:', error);
+        logger.error('[PullToRefresh] Refresh failed:', error);
         setPullState('idle');
         setPullDistance(0);
         setIsRefreshing(false);
@@ -243,7 +244,7 @@ export function PullToRefresh({
           setIsRefreshing(false);
         }, 500);
       } catch (error) {
-        console.error('[PullToRefresh] Refresh failed:', error);
+        logger.error('[PullToRefresh] Refresh failed:', error);
         setPullState('idle');
         setPullDistance(0);
         setIsRefreshing(false);

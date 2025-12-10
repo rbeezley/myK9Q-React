@@ -4,6 +4,7 @@ import { triggerImmediateEntrySync } from '../entryReplication';
 import { checkAndUpdateClassCompletion } from './classCompletionService';
 import { getReplicationManager } from '../replication/ReplicationManager';
 import type { Entry } from '../replication/tables/ReplicatedEntriesTable';
+import { logger } from '@/utils/logger';
 
 /**
  * Entry Status Management Module
@@ -47,8 +48,8 @@ async function shouldSkipInRingUpdate(entryId: number, inRing: boolean): Promise
   const currentlyInRing = cachedEntry.entry_status === 'in-ring';
   if (currentlyInRing !== inRing) return false;
 
-  // eslint-disable-next-line no-console
-  console.log(`⏭️ [markInRing] Entry ${entryId} already ${inRing ? 'in-ring' : 'not in-ring'} - skipping DB call`);
+   
+  logger.log(`⏭️ [markInRing] Entry ${entryId} already ${inRing ? 'in-ring' : 'not in-ring'} - skipping DB call`);
   return true;
 }
 
@@ -82,8 +83,8 @@ export async function markInRing(
   entryId: number,
   inRing: boolean = true
 ): Promise<boolean> {
-  // eslint-disable-next-line no-console
-  console.log(`🏟️ [markInRing] Called with entryId=${entryId}, inRing=${inRing}`);
+   
+  logger.log(`🏟️ [markInRing] Called with entryId=${entryId}, inRing=${inRing}`);
 
   try {
     // OPTIMIZATION: Check local cache first to avoid redundant DB calls
@@ -115,12 +116,12 @@ export async function markInRing(
           .select();
 
         if (error) {
-          console.error('❌ markInRing database error:', error);
+          logger.error('❌ markInRing database error:', error);
           throw error;
         }
 
-        // eslint-disable-next-line no-console
-        console.log(`✅ [markInRing] Entry ${entryId} (scored) -> entry_status='completed', is_in_ring=false`);
+         
+        logger.log(`✅ [markInRing] Entry ${entryId} (scored) -> entry_status='completed', is_in_ring=false`);
 
         // CRITICAL FIX: Update local cache directly instead of syncing from server.
         // Syncing was causing race conditions where stale data from read replicas
@@ -146,12 +147,12 @@ export async function markInRing(
       .select();
 
     if (error) {
-      console.error('❌ markInRing database error:', error);
+      logger.error('❌ markInRing database error:', error);
       throw error;
     }
 
-// eslint-disable-next-line no-console
-    console.log(`✅ [markInRing] Entry ${entryId} -> entry_status='${newStatus}', is_in_ring=${inRing}`);
+ 
+    logger.log(`✅ [markInRing] Entry ${entryId} -> entry_status='${newStatus}', is_in_ring=${inRing}`);
 
     // CRITICAL FIX: Update local cache directly instead of syncing from server.
     // Syncing was causing race conditions where stale data from read replicas
@@ -160,7 +161,7 @@ export async function markInRing(
 
     return true;
   } catch (error) {
-    console.error('❌ markInRing error:', error);
+    logger.error('❌ markInRing error:', error);
     throw error;
   }
 }
@@ -177,20 +178,20 @@ async function updateLocalCacheEntry(
   try {
     const manager = getReplicationManager();
     if (!manager) {
-      console.warn('⚠️ [updateLocalCacheEntry] No replication manager - skipping cache update');
+      logger.warn('⚠️ [updateLocalCacheEntry] No replication manager - skipping cache update');
       return;
     }
 
     const entriesTable = manager.getTable('entries');
     if (!entriesTable) {
-      console.warn('⚠️ [updateLocalCacheEntry] Entries table not registered - skipping cache update');
+      logger.warn('⚠️ [updateLocalCacheEntry] Entries table not registered - skipping cache update');
       return;
     }
 
     // Get the current entry from cache
     const currentEntry = await entriesTable.get(String(entryId)) as Entry | undefined;
     if (!currentEntry) {
-      console.warn(`⚠️ [updateLocalCacheEntry] Entry ${entryId} not found in cache - skipping cache update`);
+      logger.warn(`⚠️ [updateLocalCacheEntry] Entry ${entryId} not found in cache - skipping cache update`);
       return;
     }
 
@@ -205,13 +206,13 @@ async function updateLocalCacheEntry(
     // Write back to cache (not dirty - already synced to server)
     await entriesTable.set(String(entryId), updatedEntry, false);
 
-    // eslint-disable-next-line no-console
-    console.log(`✅ [updateLocalCacheEntry] Updated entry ${entryId} in cache:`, {
+     
+    logger.log(`✅ [updateLocalCacheEntry] Updated entry ${entryId} in cache:`, {
       entry_status: updatedEntry.entry_status,
       is_in_ring: updatedEntry.is_in_ring
     });
   } catch (error) {
-    console.error('❌ [updateLocalCacheEntry] Failed to update cache:', error);
+    logger.error('❌ [updateLocalCacheEntry] Failed to update cache:', error);
     // Non-fatal - the DB write succeeded, cache will catch up on next sync
   }
 }
@@ -250,12 +251,12 @@ try {
 
     if (checkError && checkError.code !== 'PGRST116') {
       // PGRST116 = no rows returned
-      console.error('❌ Error checking existing entry:', checkError);
+      logger.error('❌ Error checking existing entry:', checkError);
       throw checkError;
     }
 
     if (existingEntry && existingEntry.is_scored) {
-      console.warn('⚠️ Entry is already scored - skipping manual completion');
+      logger.warn('⚠️ Entry is already scored - skipping manual completion');
       return true; // Don't overwrite existing score
     }
 
@@ -273,13 +274,13 @@ try {
       .select();
 
     if (statusError) {
-      console.error('❌ markEntryCompleted database error:', statusError);
+      logger.error('❌ markEntryCompleted database error:', statusError);
       throw statusError;
     }
 
 return true;
   } catch (error) {
-    console.error('Error in markEntryCompleted:', error);
+    logger.error('Error in markEntryCompleted:', error);
     throw error;
   }
 }
@@ -332,9 +333,9 @@ const { error } = await supabase
       .select();
 
     if (error) {
-      console.error('❌ Database error updating entry status:', error);
-      console.error('❌ Error details:', JSON.stringify(error, null, 2));
-      console.error('❌ Update data that failed:', updateData);
+      logger.error('❌ Database error updating entry status:', error);
+      logger.error('❌ Error details:', JSON.stringify(error, null, 2));
+      logger.error('❌ Update data that failed:', updateData);
       throw new Error(
         `Database update failed: ${error.message || error.code || 'Unknown database error'}`
       );
@@ -348,7 +349,7 @@ const { error } = await supabase
     await new Promise((resolve) => setTimeout(resolve, 100));
 return true;
   } catch (error) {
-    console.error('Error in updateEntryCheckinStatus:', error);
+    logger.error('Error in updateEntryCheckinStatus:', error);
     throw error;
   }
 }
@@ -411,7 +412,7 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
       .eq('id', entryId);
 
     if (error) {
-      console.error('❌ Database error resetting score:', {
+      logger.error('❌ Database error resetting score:', {
         error,
         errorMessage: error.message,
         errorCode: error.code,
@@ -427,14 +428,14 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
 // CRITICAL FIX: Update local cache directly instead of relying on sync.
     // The sync fetches from read replicas which may have stale 'completed' status
     // due to replication lag, overwriting our correct local changes.
-    // eslint-disable-next-line no-console
-    console.log(`🔄 [resetEntryScore] Updating local cache for entry ${entryId} -> entry_status='no-status'`);
+     
+    logger.log(`🔄 [resetEntryScore] Updating local cache for entry ${entryId} -> entry_status='no-status'`);
     await updateLocalCacheEntry(entryId, { entry_status: 'no-status', is_in_ring: false });
 
     // Fire-and-forget sync for eventual consistency (other clients, background refresh)
     // Don't await - local cache already updated, sync runs in background
     triggerImmediateEntrySync('resetEntryScore').catch(err =>
-      console.warn('⚠️ [resetEntryScore] Background sync failed:', err)
+      logger.warn('⚠️ [resetEntryScore] Background sync failed:', err)
     );
 
     // Fire-and-forget class completion check (non-blocking)
@@ -442,16 +443,16 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
     // Without this, the read replica might still show the entry as scored,
     // causing the class to incorrectly stay on Completed tab
     if (entryData?.class_id) {
-      // eslint-disable-next-line no-console
-      console.log(`🔄 [resetEntryScore] Triggering class completion check with justResetEntryId=${entryId}`);
+       
+      logger.log(`🔄 [resetEntryScore] Triggering class completion check with justResetEntryId=${entryId}`);
       checkAndUpdateClassCompletion(entryData.class_id, undefined, undefined, entryId).catch(completionError =>
-        console.error('⚠️ Failed to check class completion:', completionError)
+        logger.error('⚠️ Failed to check class completion:', completionError)
       );
     }
 
     return true;
   } catch (error) {
-    console.error('Error in resetEntryScore:', error);
+    logger.error('Error in resetEntryScore:', error);
     throw error;
   }
 }

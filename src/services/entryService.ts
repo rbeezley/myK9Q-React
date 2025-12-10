@@ -17,6 +17,7 @@ import {
   type RealtimePayload,
 } from './entry';
 import { buildClassName } from '@/utils/stringUtils';
+import { logger } from '@/utils/logger';
 
 /**
  * Service for managing entries and scores
@@ -179,7 +180,7 @@ export async function getClassInfo(
       .single();
 
     if (classError || !classData) {
-      console.error('Error fetching class info:', classError);
+      logger.error('Error fetching class info:', classError);
       return null;
     }
 
@@ -191,7 +192,7 @@ export async function getClassInfo(
       .eq('license_key', licenseKey);
 
     if (entriesError) {
-      console.error('Error fetching entry counts:', entriesError);
+      logger.error('Error fetching entry counts:', entriesError);
     }
 
     const totalEntries = entries?.length || 0;
@@ -208,7 +209,7 @@ export async function getClassInfo(
       isCompleted: totalEntries > 0 && totalEntries === scoredEntries
     };
   } catch (error) {
-    console.error('Error in getClassInfo:', error);
+    logger.error('Error in getClassInfo:', error);
     return null;
   }
 }

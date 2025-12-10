@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { haptic } from './useHapticFeedback';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook for optimistic UI updates with automatic rollback on failure
@@ -17,7 +18,7 @@ import { haptic } from './useHapticFeedback';
  *   await update({
  *     optimisticData: { status: newStatus },
  *     serverUpdate: () => updateEntryStatus(entryId, newStatus),
- *     onSuccess: (data) => console.log('Synced:', data),
+ *     onSuccess: (data) => logger.log('Synced:', data),
  *     onError: (error) => toast.error('Failed to sync'),
  *   });
  * };
@@ -185,7 +186,7 @@ export function useSimpleOptimistic<T>(
     } catch (error) {
       // Rollback on error
       setData(previousDataRef.current);
-      console.error('Optimistic update failed:', error);
+      logger.error('Optimistic update failed:', error);
       throw error;
     } finally {
       setIsSyncing(false);

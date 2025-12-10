@@ -7,6 +7,7 @@
 
 import { supabase } from '@/lib/supabase';
 import type { PerformanceReport, PerformanceMetric } from './performanceMonitor';
+import { logger } from '@/utils/logger';
 
 /** Metric metadata structure */
 interface MetricMetadata {
@@ -109,7 +110,7 @@ export class MetricsApiService {
           .insert(metricRecords);
 
         if (metricsError) {
-          console.error('Failed to insert metrics:', metricsError);
+          logger.error('Failed to insert metrics:', metricsError);
           return false;
         }
       }
@@ -120,13 +121,13 @@ export class MetricsApiService {
         .insert([sessionSummary]);
 
       if (summaryError) {
-        console.error('Failed to insert session summary:', summaryError);
+        logger.error('Failed to insert session summary:', summaryError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error sending performance report:', error);
+      logger.error('Error sending performance report:', error);
       return false;
     }
   }
@@ -244,13 +245,13 @@ export class MetricsApiService {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Failed to fetch metrics:', error);
+        logger.error('Failed to fetch metrics:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching show metrics:', error);
+      logger.error('Error fetching show metrics:', error);
       return [];
     }
   }
@@ -267,13 +268,13 @@ export class MetricsApiService {
         .order('event_timestamp', { ascending: false });
 
       if (error) {
-        console.error('Failed to fetch session metrics:', error);
+        logger.error('Failed to fetch session metrics:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching session metrics:', error);
+      logger.error('Error fetching session metrics:', error);
       return [];
     }
   }
@@ -295,13 +296,13 @@ export class MetricsApiService {
         .order('count', { ascending: false });
 
       if (error) {
-        console.error('Failed to fetch error stats:', error);
+        logger.error('Failed to fetch error stats:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching error stats:', error);
+      logger.error('Error fetching error stats:', error);
       return [];
     }
   }
@@ -322,7 +323,7 @@ export class MetricsApiService {
         .in('metric_type', ['web_vital', 'action']);
 
       if (error) {
-        console.error('Failed to fetch device stats:', error);
+        logger.error('Failed to fetch device stats:', error);
         return [];
       }
 
@@ -330,7 +331,7 @@ export class MetricsApiService {
       const aggregated = this.aggregateByDeviceType((data || []) as RawMetricRow[]);
       return aggregated;
     } catch (error) {
-      console.error('Error fetching device stats:', error);
+      logger.error('Error fetching device stats:', error);
       return [];
     }
   }
@@ -379,7 +380,7 @@ export class MetricsApiService {
         .gte('created_at', startDate.toISOString());
 
       if (error) {
-        console.error('Failed to fetch venue stats:', error);
+        logger.error('Failed to fetch venue stats:', error);
         return {};
       }
 
@@ -399,7 +400,7 @@ export class MetricsApiService {
           : 0,
       };
     } catch (error) {
-      console.error('Error fetching venue stats:', error);
+      logger.error('Error fetching venue stats:', error);
       return {};
     }
   }
@@ -447,7 +448,7 @@ export class MetricsApiService {
 
       return csv;
     } catch (error) {
-      console.error('Error exporting metrics:', error);
+      logger.error('Error exporting metrics:', error);
       return '';
     }
   }

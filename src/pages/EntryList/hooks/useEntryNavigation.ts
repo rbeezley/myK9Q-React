@@ -6,6 +6,7 @@ import { preloadScoresheetByType } from '../../../utils/scoresheetPreloader';
 import { markInRing } from '../../../services/entryService';
 import { Entry } from '../../../stores/entryStore';
 import { UserPermissions } from '../../../utils/auth';
+import { logger } from '@/utils/logger';
 
 interface UseEntryNavigationOptions {
   /** Show context with organization info */
@@ -105,7 +106,7 @@ export const useEntryNavigation = ({
       }
       return true;
     } catch (error) {
-      console.error('Error setting dog ring status:', error);
+      logger.error('Error setting dog ring status:', error);
       return false;
     }
   }, [localEntries]);
@@ -137,7 +138,7 @@ export const useEntryNavigation = ({
 
       // Background DB update (scoresheet will also call markInRing, but this updates other users' views)
       setDogInRingStatus(entry.id, true).catch(error => {
-        console.error('Failed to update in-ring status:', error);
+        logger.error('Failed to update in-ring status:', error);
       });
     }
 
@@ -158,7 +159,7 @@ export const useEntryNavigation = ({
     }
 
     if (!classIdA || !classIdB) {
-      console.error('Combined view missing class IDs');
+      logger.error('Combined view missing class IDs');
       return;
     }
 

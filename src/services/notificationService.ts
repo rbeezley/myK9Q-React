@@ -7,6 +7,7 @@
 
 import { useSettingsStore } from '@/stores/settingsStore';
 import voiceAnnouncementService from './voiceAnnouncementService';
+import { logger } from '@/utils/logger';
 import {
   getVibrationPattern,
   generateAnnouncementText,
@@ -129,7 +130,7 @@ class NotificationService {
       try {
         this.registration = await navigator.serviceWorker.ready;
 } catch (error) {
-        console.error('Failed to initialize service worker:', error);
+        logger.error('Failed to initialize service worker:', error);
       }
     }
   }
@@ -152,7 +153,7 @@ class NotificationService {
    */
   async requestPermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) {
-      console.warn('Notifications not supported');
+      logger.warn('Notifications not supported');
       return 'denied';
     }
 
@@ -173,7 +174,7 @@ class NotificationService {
 
       return permission;
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      logger.error('Error requesting notification permission:', error);
       return 'denied';
     }
   }
@@ -407,7 +408,7 @@ return null;
 return notificationId;
 
     } catch (error) {
-      console.error('Failed to send notification:', error);
+      logger.error('Failed to send notification:', error);
 
       // Record failed delivery
       this.recordDelivery({
@@ -463,7 +464,7 @@ return id;
           item.retryCount++;
 
           if (item.retryCount >= item.maxRetries) {
-            console.error('Max retries reached for notification:', item.id);
+            logger.error('Max retries reached for notification:', item.id);
             this.queue = this.queue.filter(q => q.id !== item.id);
           } else {
             // Exponential backoff: 1min, 2min, 4min
@@ -471,7 +472,7 @@ return id;
           }
         }
       } catch (error) {
-        console.error('Error processing queued notification:', error);
+        logger.error('Error processing queued notification:', error);
       }
     }
   }
@@ -527,7 +528,7 @@ return id;
         });
       }
     } catch (error) {
-      console.error('Failed to announce notification:', error);
+      logger.error('Failed to announce notification:', error);
       // Don't throw - voice announcement failure shouldn't break notifications
     }
   }
@@ -547,7 +548,7 @@ return id;
           await navigator.clearAppBadge();
         }
       } catch (error) {
-        console.warn('Could not update badge count:', error);
+        logger.warn('Could not update badge count:', error);
       }
     }
   }
@@ -570,7 +571,7 @@ return id;
         await navigator.clearAppBadge();
         localStorage.setItem('notification_badge_count', '0');
       } catch (error) {
-        console.warn('Could not clear badge:', error);
+        logger.warn('Could not clear badge:', error);
       }
     }
   }

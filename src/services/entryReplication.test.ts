@@ -13,6 +13,7 @@ import type { Class } from '@/services/replication/tables/ReplicatedClassesTable
 import { buildClassName } from '@/utils/stringUtils';
 import { formatTimeLimitSeconds } from '@/utils/timeUtils';
 import { determineEntryStatus } from '@/utils/statusUtils';
+import * as loggerModule from '@/utils/logger';
 
 // Mock dependencies
 vi.mock('@/services/replication', () => ({
@@ -368,7 +369,7 @@ describe('entryReplication', () => {
     });
 
     it('should include operation name in log messages', async () => {
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const loggerLogSpy = vi.spyOn(loggerModule.logger, 'log').mockImplementation(() => {});
 
       const mockSyncManager = {
         syncTable: vi.fn().mockResolvedValue(undefined)
@@ -380,11 +381,11 @@ describe('entryReplication', () => {
 
       await triggerImmediateEntrySync('resetEntryScore');
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(loggerLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('[resetEntryScore]')
       );
 
-      consoleLogSpy.mockRestore();
+      loggerLogSpy.mockRestore();
     });
   });
 

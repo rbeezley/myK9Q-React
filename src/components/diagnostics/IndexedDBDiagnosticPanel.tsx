@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertCircle, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { logger } from '@/utils/logger';
 import {
   runIndexedDBDiagnostics,
   getManualCleanupInstructions,
@@ -36,7 +37,7 @@ export function IndexedDBDiagnosticPanel({ onClose }: IndexedDBDiagnosticPanelPr
       const result = await runIndexedDBDiagnostics();
       setDiagnostics(result);
     } catch (error) {
-      console.error('Failed to run diagnostics:', error);
+      logger.error('Failed to run diagnostics:', error);
     } finally {
       setIsRunning(false);
     }

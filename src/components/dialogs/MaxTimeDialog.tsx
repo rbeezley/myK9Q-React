@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { DialogContainer } from './DialogContainer';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
+import { logger } from '@/utils/logger';
 import './shared-dialog.css';
 import './MaxTimeDialog.css';
 
@@ -102,7 +103,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         .single();
 
       if (showError || !showData) {
-        console.error('❌ Error fetching show data:', showError);
+        logger.error('❌ Error fetching show data:', showError);
         return;
       }
 
@@ -155,7 +156,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         setTimeRange({ ...range, areas });
 }
     } catch (error) {
-      console.error('💥 Error loading time range:', error);
+      logger.error('💥 Error loading time range:', error);
     } finally {
       setLoading(false);
     }
@@ -484,7 +485,7 @@ const { error } = await supabase
         .in('id', idsToUpdate);
 
       if (error) {
-        console.error('❌ Error updating max times:', error);
+        logger.error('❌ Error updating max times:', error);
         setErrorMessage('Failed to save max times. Please try again.');
         return;
       }
@@ -511,7 +512,7 @@ const { error } = await supabase
         }
       } catch (cacheError) {
         // Non-fatal - cache will be updated on next sync
-        console.warn('⚠️ [MaxTimeDialog] Failed to update IndexedDB cache:', cacheError);
+        logger.warn('⚠️ [MaxTimeDialog] Failed to update IndexedDB cache:', cacheError);
       }
 
 // Show appropriate success message
@@ -529,7 +530,7 @@ const { error } = await supabase
         onClose();
       }, 2000);
     } catch (error) {
-      console.error('💥 Error saving max times:', error);
+      logger.error('💥 Error saving max times:', error);
       setErrorMessage('Failed to save max times. Please try again.');
     } finally {
       setSaving(false);

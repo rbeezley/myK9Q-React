@@ -4,6 +4,7 @@
  */
 
 import { getVapidPublicKey } from '../config/pushNotifications';
+import { logger } from '@/utils/logger';
 
 export interface ServiceWorkerMessage {
   type: string;
@@ -27,7 +28,7 @@ export class ServiceWorkerManager {
    */
   async initialize(): Promise<void> {
     if (!('serviceWorker' in navigator)) {
-      console.warn('Service Worker not supported');
+      logger.warn('Service Worker not supported');
       return;
     }
 
@@ -41,7 +42,7 @@ export class ServiceWorkerManager {
       this.setupNotificationClickHandler();
 
     } catch (error) {
-      console.error('Failed to initialize Service Worker Manager:', error);
+      logger.error('Failed to initialize Service Worker Manager:', error);
     }
   }
 
@@ -75,7 +76,7 @@ export class ServiceWorkerManager {
     try {
       return await this.registration.pushManager.getSubscription();
     } catch (error) {
-      console.error('Failed to get push subscription:', error);
+      logger.error('Failed to get push subscription:', error);
       return null;
     }
   }
@@ -106,7 +107,7 @@ export class ServiceWorkerManager {
 
 return subscription;
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      logger.error('Failed to subscribe to push notifications:', error);
       throw error;
     }
   }
@@ -125,7 +126,7 @@ return subscription;
       const result = await subscription.unsubscribe();
 return result;
     } catch (error) {
-      console.error('Failed to unsubscribe from push notifications:', error);
+      logger.error('Failed to unsubscribe from push notifications:', error);
       return false;
     }
   }
@@ -211,14 +212,14 @@ const notification = new Notification('🧪 Test Notification', {
       notification.onshow = () => {};
 
       notification.onerror = (error) => {
-        console.error('❌ Test notification error:', error);
+        logger.error('❌ Test notification error:', error);
       };
 
       notification.onclick = () => {
 notification.close();
       };
     } else {
-      console.warn('❌ Notification permission not granted:', Notification.permission);
+      logger.warn('❌ Notification permission not granted:', Notification.permission);
     }
   }
 }

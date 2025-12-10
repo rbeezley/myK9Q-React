@@ -12,6 +12,8 @@
  * - Item removal and clearing
  */
 
+import { logger } from '@/utils/logger';
+
 /**
  * Notification payload structure
  */
@@ -87,7 +89,7 @@ export interface QueueProcessResult {
  *
  * // Get queue status
  * const status = queue.getStatus();
- * console.log(`${status.count} notifications queued`);
+ * logger.log(`${status.count} notifications queued`);
  * ```
  */
 export class NotificationQueue {
@@ -156,7 +158,7 @@ export class NotificationQueue {
    * ```ts
    * const removed = queue.remove('notif_123');
    * if (removed) {
-   *   console.log('Item removed from queue');
+   *   logger.log('Item removed from queue');
    * }
    * ```
    */
@@ -176,7 +178,7 @@ export class NotificationQueue {
    * @example
    * ```ts
    * const readyItems = queue.getReadyItems();
-   * console.log(`${readyItems.length} items ready`);
+   * logger.log(`${readyItems.length} items ready`);
    * ```
    */
   getReadyItems(): NotificationQueueItem[] {
@@ -192,7 +194,7 @@ export class NotificationQueue {
    * @example
    * ```ts
    * const allItems = queue.getAllItems();
-   * console.log(`Queue contains ${allItems.length} items`);
+   * logger.log(`Queue contains ${allItems.length} items`);
    * ```
    */
   getAllItems(): NotificationQueueItem[] {
@@ -209,7 +211,7 @@ export class NotificationQueue {
    * ```ts
    * const item = queue.getItem('notif_123');
    * if (item) {
-   *   console.log(`Scheduled for: ${new Date(item.scheduledFor)}`);
+   *   logger.log(`Scheduled for: ${new Date(item.scheduledFor)}`);
    * }
    * ```
    */
@@ -225,8 +227,8 @@ export class NotificationQueue {
    * @example
    * ```ts
    * const status = queue.getStatus();
-   * console.log(`${status.count} notifications in queue`);
-   * console.log(`Next scheduled: ${new Date(status.items[0]?.scheduledFor)}`);
+   * logger.log(`${status.count} notifications in queue`);
+   * logger.log(`Next scheduled: ${new Date(status.items[0]?.scheduledFor)}`);
    * ```
    */
   getStatus(): { count: number; items: NotificationQueueItem[] } {
@@ -242,7 +244,7 @@ export class NotificationQueue {
    * @example
    * ```ts
    * queue.clear();
-   * console.log('Queue cleared');
+   * logger.log('Queue cleared');
    * ```
    */
   clear(): void {
@@ -259,10 +261,10 @@ export class NotificationQueue {
    * @example
    * ```ts
    * const result = await queue.process();
-   * console.log(`Processed: ${result.processed}`);
-   * console.log(`Successful: ${result.successful}`);
-   * console.log(`Failed: ${result.failed}`);
-   * console.log(`Retrying: ${result.retrying}`);
+   * logger.log(`Processed: ${result.processed}`);
+   * logger.log(`Successful: ${result.successful}`);
+   * logger.log(`Failed: ${result.failed}`);
+   * logger.log(`Retrying: ${result.retrying}`);
    * ```
    */
   async process(): Promise<QueueProcessResult> {
@@ -304,7 +306,7 @@ export class NotificationQueue {
           }
         }
       } catch (error) {
-        console.error('Error processing queue item:', error);
+        logger.error('Error processing queue item:', error);
         item.retryCount++;
 
         if (item.retryCount >= item.maxRetries) {
@@ -333,7 +335,7 @@ export class NotificationQueue {
    *     await sendNotification(item.payload);
    *     return true;
    *   } catch (error) {
-   *     console.error('Send failed:', error);
+   *     logger.error('Send failed:', error);
    *     return false;
    *   }
    * });
@@ -343,7 +345,7 @@ export class NotificationQueue {
     handler: (item: NotificationQueueItem) => Promise<boolean>
   ): void {
     if (this.processingInterval) {
-      console.warn('Queue processing already started');
+      logger.warn('Queue processing already started');
       return;
     }
 
@@ -351,7 +353,7 @@ export class NotificationQueue {
 
     this.processingInterval = window.setInterval(() => {
       this.process().catch((error) => {
-        console.error('Queue processing error:', error);
+        logger.error('Queue processing error:', error);
       });
     }, this.intervalMs);
   }
@@ -362,7 +364,7 @@ export class NotificationQueue {
    * @example
    * ```ts
    * queue.stopProcessing();
-   * console.log('Queue processing stopped');
+   * logger.log('Queue processing stopped');
    * ```
    */
   stopProcessing(): void {
@@ -381,7 +383,7 @@ export class NotificationQueue {
    * @example
    * ```ts
    * if (queue.isProcessing()) {
-   *   console.log('Queue is being processed automatically');
+   *   logger.log('Queue is being processed automatically');
    * }
    * ```
    */

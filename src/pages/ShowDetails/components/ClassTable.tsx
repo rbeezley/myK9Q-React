@@ -31,6 +31,7 @@ import { ClassStatusDialog } from '@/components/dialogs/ClassStatusDialog';
 import { usePrintReports, type ReportDependencies } from '@/pages/ClassList/hooks/usePrintReports';
 import type { ClassEntry, TrialInfo } from '@/pages/ClassList/hooks/useClassListData';
 import type { ClassSummary } from '../hooks/useDashboardData';
+import { logger } from '@/utils/logger';
 import './ClassTable.css';
 
 // ============================================================
@@ -233,7 +234,7 @@ function InlineTimeEditor({
       hapticFeedback.success();
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to save time:', error);
+      logger.error('Failed to save time:', error);
       hapticFeedback.error();
     } finally {
       setIsSaving(false);
@@ -614,7 +615,7 @@ export function ClassTable({ pendingClasses, completedClasses, trialId: _trialId
       // Trigger UI refresh from cache
       onClassUpdate?.();
     } catch (error) {
-      console.error('❌ Error updating planned start time:', error);
+      logger.error('❌ Error updating planned start time:', error);
       throw error;
     }
   }, [pendingClasses, completedClasses, onClassUpdate]);
@@ -656,7 +657,7 @@ export function ClassTable({ pendingClasses, completedClasses, trialId: _trialId
       setStatusDialogClass(null);
       await onClassUpdate?.();
     } catch (error) {
-      console.error('Error updating class status:', error);
+      logger.error('Error updating class status:', error);
       throw error;
     }
   }, [statusDialogClass, onClassUpdate]);

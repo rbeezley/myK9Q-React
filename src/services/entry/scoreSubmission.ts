@@ -7,6 +7,7 @@ import { checkAndUpdateClassCompletion } from './classCompletionService';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
 import { calculateTotalAreaTime } from '@/utils/calculationUtils';
+import { logger } from '@/utils/logger';
 
 /**
  * Score Submission Service
@@ -112,8 +113,8 @@ function prepareScoreUpdateData(
   const isActuallyScored = resultStatus !== 'pending';
 
   // 🔍 DIAGNOSTIC: Log scoring conversion for debugging
-  // eslint-disable-next-line no-console
-  console.log('🎯 [scoreSubmission] prepareScoreUpdateData:', {
+   
+  logger.log('🎯 [scoreSubmission] prepareScoreUpdateData:', {
     entryId,
     inputResultText: scoreData.resultText,
     convertedResultStatus: resultStatus,
@@ -307,8 +308,8 @@ try {
     };
 
     // 🔍 DIAGNOSTIC: Log what we're about to send to database
-    // eslint-disable-next-line no-console
-    console.log('🔍 [scoreSubmission] Database update payload:', {
+     
+    logger.log('🔍 [scoreSubmission] Database update payload:', {
       entryId,
       updateData,
       is_scored: updateData.is_scored,
@@ -322,8 +323,8 @@ try {
       .select();
 
     // 🔍 DIAGNOSTIC: Log database response
-    // eslint-disable-next-line no-console
-    console.log('✅ [scoreSubmission] Database update result:', {
+     
+    logger.log('✅ [scoreSubmission] Database update result:', {
       entryId,
       success: !updateError,
       result: updateResult,
@@ -331,7 +332,7 @@ try {
     });
 
     if (updateError) {
-      console.error('❌ Entries table update error:', {
+      logger.error('❌ Entries table update error:', {
         error: updateError,
         errorMessage: updateError.message,
         errorCode: updateError.code,
@@ -345,11 +346,11 @@ try {
 
     // CRITICAL: Trigger immediate sync to update UI without refresh
     // This ensures the scored dog moves to completed tab immediately
-    // eslint-disable-next-line no-console
-    console.log('🔄 [scoreSubmission] About to trigger immediate sync...');
+     
+    logger.log('🔄 [scoreSubmission] About to trigger immediate sync...');
     await triggerImmediateEntrySync('submitScore');
-    // eslint-disable-next-line no-console
-    console.log('🔄 [scoreSubmission] Immediate sync call completed');
+     
+    logger.log('🔄 [scoreSubmission] Immediate sync call completed');
 
     // OPTIMIZATION: Run class completion check in background
     // This allows the save to complete quickly (~100ms) while background tasks run
@@ -358,7 +359,7 @@ try {
 
 return true;
   } catch (error) {
-    console.error('Error in submitScore:', error);
+    logger.error('Error in submitScore:', error);
     throw error;
   }
 }
@@ -390,8 +391,8 @@ async function triggerBackgroundClassCompletion(
   classId?: number,
   pairedClassId?: number
 ): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log(`🔄 [scoreSubmission] triggerBackgroundClassCompletion:`, { entryId, classId, pairedClassId });
+   
+  logger.log(`🔄 [scoreSubmission] triggerBackgroundClassCompletion:`, { entryId, classId, pairedClassId });
 
   if (classId) {
 // Fire and forget - check class completion in background
@@ -400,7 +401,7 @@ async function triggerBackgroundClassCompletion(
       try {
         await checkAndUpdateClassCompletion(classId, pairedClassId, entryId);
 } catch (error) {
-        console.error('⚠️ [Background] Failed to check class completion:', error);
+        logger.error('⚠️ [Background] Failed to check class completion:', error);
       }
     })();
 } else {
@@ -418,12 +419,12 @@ const { data: entryData } = await supabase
         try {
           await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId, entryId);
 } catch (error) {
-          console.error('⚠️ [Background] Failed to check class completion:', error);
+          logger.error('⚠️ [Background] Failed to check class completion:', error);
         }
       })();
 
 } else {
-      console.warn('⚠️ Could not fetch entry data for background processing');
+      logger.warn('⚠️ Could not fetch entry data for background processing');
     }
   }
 }
@@ -449,8 +450,8 @@ const { data: entryData } = await supabase
  *
  * @example
  * const result = await submitBatchScores(queuedScores);
- * console.log(`${result.successful.length} scores saved`);
- * console.log(`${result.failed.length} scores failed`);
+ * logger.log(`${result.successful.length} scores saved`);
+ * logger.log(`${result.failed.length} scores failed`);
  * // Retry failed scores if needed
  */
 export async function submitBatchScores(
@@ -465,7 +466,7 @@ export async function submitBatchScores(
       await submitScore(score.entryId, score.scoreData);
       successful.push(score.id);
     } catch (error) {
-      console.error(`Failed to submit score ${score.id}:`, error);
+      logger.error(`Failed to submit score ${score.id}:`, error);
       failed.push(score.id);
     }
   }

@@ -10,6 +10,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getStorageUsage } from '@/services/dataExportService';
+import { logger } from '@/utils/logger';
 import {
   exportPersonalDataHelper,
   clearAllDataHelper,
@@ -75,7 +76,7 @@ export interface ClearDataOptions {
  * ```tsx
  * function Settings() {
  *   const showToast = (msg: string, type: 'success' | 'error') => {
- *     console.log(`[${type}] ${msg}`);
+ *     logger.log(`[${type}] ${msg}`);
  *   };
  *
  *   const {
@@ -131,7 +132,7 @@ export function useDataManagement(
       const usage = await getStorageUsage();
       setStorageUsage(usage);
     } catch (err) {
-      console.error('Error getting storage usage:', err);
+      logger.error('Error getting storage usage:', err);
     }
   }, []);
 
@@ -142,7 +143,7 @@ export function useDataManagement(
     try {
       await exportPersonalDataHelper(showToastMessage);
     } catch (err) {
-      console.error('Error exporting data:', err);
+      logger.error('Error exporting data:', err);
       showToastMessage('Failed to export data', 'error');
     }
   }, [showToastMessage]);
@@ -154,7 +155,7 @@ export function useDataManagement(
     try {
       await exportSettingsToFile(exportSettings, showToastMessage);
     } catch (err) {
-      console.error('Error exporting settings:', err);
+      logger.error('Error exporting settings:', err);
       showToastMessage('Failed to export settings', 'error');
     }
   }, [exportSettings, showToastMessage]);
@@ -176,7 +177,7 @@ export function useDataManagement(
     try {
       await importSettingsFromFile(file, importSettings, showToastMessage, fileInputRef);
     } catch (err) {
-      console.error('Error importing settings:', err);
+      logger.error('Error importing settings:', err);
       showToastMessage('Failed to import settings', 'error');
     }
   }, [importSettings, showToastMessage]);
@@ -194,7 +195,7 @@ export function useDataManagement(
       });
       setStorageUsage(usage);
     } catch (err) {
-      console.error('Error clearing data:', err);
+      logger.error('Error clearing data:', err);
       showToastMessage('Failed to clear data', 'error');
     } finally {
       setIsClearing(false);

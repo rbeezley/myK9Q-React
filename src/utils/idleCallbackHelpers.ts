@@ -40,7 +40,7 @@ export interface IdleCallbackOptions {
  * @example
  * ```typescript
  * const id = scheduleIdleTask(() => {
- *   console.log('Running during idle time');
+ *   logger.log('Running during idle time');
  * });
  * ```
  */
@@ -66,7 +66,7 @@ export function scheduleIdleTask(
  *
  * @example
  * ```typescript
- * const id = scheduleIdleTask(() => console.log('Task'));
+ * const id = scheduleIdleTask(() => logger.log('Task'));
  * cancelIdleTask(id); // Task will not run
  * ```
  */
@@ -92,8 +92,8 @@ export function cancelIdleTask(id: number): void {
  * @example
  * ```typescript
  * const ids = scheduleIdleTasks([
- *   { callback: () => console.log('Low priority'), priority: 1 },
- *   { callback: () => console.log('High priority'), priority: 10 }
+ *   { callback: () => logger.log('Low priority'), priority: 1 },
+ *   { callback: () => logger.log('High priority'), priority: 10 }
  * ]);
  * // High priority task runs first
  * ```
@@ -116,9 +116,9 @@ export function scheduleIdleTasks(
  * @example
  * ```typescript
  * if (hasIdleCallbackSupport()) {
- *   console.log('Browser supports idle callbacks natively');
+ *   logger.log('Browser supports idle callbacks natively');
  * } else {
- *   console.log('Using setTimeout fallback');
+ *   logger.log('Using setTimeout fallback');
  * }
  * ```
  */
@@ -139,7 +139,7 @@ export function hasIdleCallbackSupport(): boolean {
  * @example
  * ```typescript
  * scheduleIdleTaskWithTimeout(
- *   () => console.log('Task'),
+ *   () => logger.log('Task'),
  *   2000
  * );
  * // Task runs during idle time OR after 2 seconds, whichever comes first
@@ -189,9 +189,9 @@ export function scheduleIdleTaskWithTimeout(
  * ```typescript
  * await processInIdle(
  *   largeArray,
- *   (item) => console.log(item),
+ *   (item) => logger.log(item),
  *   50,
- *   (progress) => console.log(`${progress}% complete`)
+ *   (progress) => logger.log(`${progress}% complete`)
  * );
  * ```
  */

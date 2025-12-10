@@ -14,6 +14,7 @@ import { ReplicatedTable } from '../ReplicatedTable';
 import { supabase } from '../../../lib/supabase';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { SyncResult } from '../types';
+import { logger } from '@/utils/logger';
 
 /**
  * Database schema (snake_case) - matches `view_stats_summary`
@@ -231,7 +232,7 @@ return {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[ReplicatedStatsViewTable] ❌ Sync failed:', errorMessage);
+      logger.error('[ReplicatedStatsViewTable] ❌ Sync failed:', errorMessage);
 
       return {
         tableName: this.tableName,

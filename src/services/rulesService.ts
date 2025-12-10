@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '@/utils/logger';
 
 /**
  * Rules Assistant Service
@@ -104,7 +105,7 @@ try {
       );
 
       if (error) {
-        console.error('📚 [RulesService] Edge Function error:', error);
+        logger.error('📚 [RulesService] Edge Function error:', error);
         throw {
           message: error.message || 'Failed to search rules',
           code: 'EDGE_FUNCTION_ERROR',
@@ -144,7 +145,7 @@ return data;
       }
 
       // Otherwise, wrap it
-      console.error('📚 [RulesService] Unexpected error:', error);
+      logger.error('📚 [RulesService] Unexpected error:', error);
       throw {
         message: err.message || 'An unexpected error occurred',
         code: 'UNEXPECTED_ERROR',
@@ -168,13 +169,13 @@ const { data, error } = await supabase
         .single();
 
       if (error) {
-        console.error('📚 [RulesService] Error fetching rule:', error);
+        logger.error('📚 [RulesService] Error fetching rule:', error);
         return null;
       }
 
       return data as Rule;
     } catch (error) {
-      console.error('📚 [RulesService] Unexpected error fetching rule:', error);
+      logger.error('📚 [RulesService] Unexpected error fetching rule:', error);
       return null;
     }
   }
@@ -198,13 +199,13 @@ const { data, error } = await supabase
         .eq('categories->>element', element);
 
       if (error) {
-        console.error('📚 [RulesService] Error fetching rules:', error);
+        logger.error('📚 [RulesService] Error fetching rules:', error);
         return [];
       }
 
       return (data || []) as Rule[];
     } catch (error) {
-      console.error('📚 [RulesService] Unexpected error fetching rules:', error);
+      logger.error('📚 [RulesService] Unexpected error fetching rules:', error);
       return [];
     }
   }

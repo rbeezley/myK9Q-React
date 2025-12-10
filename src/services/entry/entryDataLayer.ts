@@ -1,5 +1,6 @@
 import { Entry } from '../../stores/entryStore';
 import { getEntriesFromReplicationCache, triggerImmediateEntrySync } from '../entryReplication';
+import { logger } from '@/utils/logger';
 import {
   fetchClassEntriesFromDatabase,
   fetchTrialEntriesFromDatabase,
@@ -98,7 +99,7 @@ export async function getClassEntries(
     const entries = await fetchClassEntriesFromDatabase(classIdArray, primaryClassId, licenseKey);
     return entries;
   } catch (error) {
-    console.error('[DATA_LAYER] Error fetching class entries:', error);
+    logger.error('[DATA_LAYER] Error fetching class entries:', error);
     throw error;
   }
 }
@@ -129,7 +130,7 @@ export async function getTrialEntries(
     const entries = await fetchTrialEntriesFromDatabase(trialId, licenseKey);
     return entries;
   } catch (error) {
-    console.error('[DATA_LAYER] Error fetching trial entries:', error);
+    logger.error('[DATA_LAYER] Error fetching trial entries:', error);
     throw error;
   }
 }
@@ -151,7 +152,7 @@ export async function getTrialEntries(
  * @example
  * const entries = await getEntriesByArmband(101, 'license-key');
  * if (entries.length > 0) {
- *   console.log('Found entry:', entries[0]);
+ *   logger.log('Found entry:', entries[0]);
  * }
  */
 export async function getEntriesByArmband(
@@ -165,7 +166,7 @@ export async function getEntriesByArmband(
     const entries = await fetchEntriesByArmbandFromDatabase(armband, licenseKey);
     return entries;
   } catch (error) {
-    console.error('[DATA_LAYER] Error fetching entries by armband:', error);
+    logger.error('[DATA_LAYER] Error fetching entries by armband:', error);
     throw error;
   }
 }
@@ -188,7 +189,7 @@ export async function triggerSync(tableName: 'entries' | 'results'): Promise<voi
   try {
 await triggerImmediateEntrySync(tableName);
 } catch (error) {
-    console.error(`[DATA_LAYER] Error triggering sync for ${tableName}:`, error);
+    logger.error(`[DATA_LAYER] Error triggering sync for ${tableName}:`, error);
     throw error;
   }
 }

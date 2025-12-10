@@ -15,6 +15,8 @@
  * - Reduce confirmation fatigue for experienced users
  */
 
+import { logger } from '@/utils/logger';
+
 export type ConfirmationAction =
   | 'delete_result'        // Delete a scored result
   | 'clear_scoresheet'     // Clear all data on active scoresheet
@@ -161,7 +163,7 @@ class SmartConfirmationService {
         this.bypassedActions = new Set(state.bypassed || []);
       }
     } catch (error) {
-      console.error('[SmartConfirmation] Failed to load state:', error);
+      logger.error('[SmartConfirmation] Failed to load state:', error);
     }
   }
 
@@ -176,7 +178,7 @@ class SmartConfirmationService {
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
     } catch (error) {
-      console.error('[SmartConfirmation] Failed to save state:', error);
+      logger.error('[SmartConfirmation] Failed to save state:', error);
     }
   }
 

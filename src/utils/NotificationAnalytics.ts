@@ -75,8 +75,8 @@ export interface DeliveryAnalytics {
  *
  * // Get metrics
  * const stats = analytics.getAnalytics();
- * console.log(`Delivery Rate: ${stats.deliveryRate}%`);
- * console.log(`Click Rate: ${stats.clickRate}%`);
+ * logger.log(`Delivery Rate: ${stats.deliveryRate}%`);
+ * logger.log(`Click Rate: ${stats.clickRate}%`);
  * ```
  */
 export class NotificationAnalytics {
@@ -131,7 +131,7 @@ export class NotificationAnalytics {
    * ```ts
    * const updated = analytics.markAsClicked('notif_123');
    * if (updated) {
-   *   console.log('Click recorded');
+   *   logger.log('Click recorded');
    * }
    * ```
    */
@@ -154,7 +154,7 @@ export class NotificationAnalytics {
    * ```ts
    * const updated = analytics.markAsDismissed('notif_123');
    * if (updated) {
-   *   console.log('Dismiss recorded');
+   *   logger.log('Dismiss recorded');
    * }
    * ```
    */
@@ -176,11 +176,11 @@ export class NotificationAnalytics {
    * ```ts
    * const analytics = notificationAnalytics.getAnalytics();
    *
-   * console.log(`Total: ${analytics.total}`);
-   * console.log(`Delivered: ${analytics.delivered} (${analytics.deliveryRate}%)`);
-   * console.log(`Clicked: ${analytics.clicked} (${analytics.clickRate}%)`);
-   * console.log(`Dismissed: ${analytics.dismissed}`);
-   * console.log(`Failed: ${analytics.failed}`);
+   * logger.log(`Total: ${analytics.total}`);
+   * logger.log(`Delivered: ${analytics.delivered} (${analytics.deliveryRate}%)`);
+   * logger.log(`Clicked: ${analytics.clicked} (${analytics.clickRate}%)`);
+   * logger.log(`Dismissed: ${analytics.dismissed}`);
+   * logger.log(`Failed: ${analytics.failed}`);
    * ```
    */
   getAnalytics(): DeliveryAnalytics {
@@ -209,7 +209,7 @@ export class NotificationAnalytics {
    * @example
    * ```ts
    * const records = analytics.getAllRecords();
-   * console.log(`${records.length} notifications tracked`);
+   * logger.log(`${records.length} notifications tracked`);
    * ```
    */
   getAllRecords(): NotificationDeliveryRecord[] {
@@ -225,7 +225,7 @@ export class NotificationAnalytics {
    * @example
    * ```ts
    * const yourTurnRecords = analytics.getRecordsByType('your_turn');
-   * console.log(`${yourTurnRecords.length} "your turn" notifications`);
+   * logger.log(`${yourTurnRecords.length} "your turn" notifications`);
    * ```
    */
   getRecordsByType(type: string): NotificationDeliveryRecord[] {
@@ -241,7 +241,7 @@ export class NotificationAnalytics {
    * @example
    * ```ts
    * const userRecords = analytics.getRecordsByLicense('license_abc');
-   * console.log(`${userRecords.length} notifications for this license`);
+   * logger.log(`${userRecords.length} notifications for this license`);
    * ```
    */
   getRecordsByLicense(licenseKey: string): NotificationDeliveryRecord[] {
@@ -258,7 +258,7 @@ export class NotificationAnalytics {
    * ```ts
    * const record = analytics.getRecord('notif_123');
    * if (record) {
-   *   console.log(`Delivered: ${record.delivered}`);
+   *   logger.log(`Delivered: ${record.delivered}`);
    * }
    * ```
    */
@@ -272,7 +272,7 @@ export class NotificationAnalytics {
    * @example
    * ```ts
    * analytics.clearRecords();
-   * console.log('All analytics cleared');
+   * logger.log('All analytics cleared');
    * ```
    */
   clearRecords(): void {
@@ -287,7 +287,7 @@ export class NotificationAnalytics {
    * @example
    * ```ts
    * const count = analytics.getRecordCount();
-   * console.log(`Tracking ${count} notifications`);
+   * logger.log(`Tracking ${count} notifications`);
    * ```
    */
   getRecordCount(): number {

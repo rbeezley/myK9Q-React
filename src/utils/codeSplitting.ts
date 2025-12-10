@@ -5,6 +5,7 @@
  */
 
 import { lazy, ComponentType } from 'react';
+import { logger } from '@/utils/logger';
 
 /**
  * A preloadable lazy component with optional preload method
@@ -53,11 +54,11 @@ export function lazyWithRetry<T extends ComponentType<Record<string, unknown>>>(
       return module;
     } catch (error) {
       if (attemptsLeft <= 0) {
-        console.error(`[Code Split] Failed to load chunk after ${retries} attempts${chunkName ? `: ${chunkName}` : ''}`, error);
+        logger.error(`[Code Split] Failed to load chunk after ${retries} attempts${chunkName ? `: ${chunkName}` : ''}`, error);
         throw error;
       }
 
-      console.warn(`[Code Split] Retry loading chunk (${attemptsLeft} attempts left)${chunkName ? `: ${chunkName}` : ''}`);
+      logger.warn(`[Code Split] Retry loading chunk (${attemptsLeft} attempts left)${chunkName ? `: ${chunkName}` : ''}`);
 
       // Wait before retry
       await new Promise(resolve => setTimeout(resolve, retryDelay));

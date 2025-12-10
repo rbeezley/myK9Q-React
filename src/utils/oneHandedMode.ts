@@ -10,6 +10,8 @@
  * This is especially useful for judges juggling a dog at a show!
  */
 
+import { logger } from '@/utils/logger';
+
 export type HandPreference = 'left' | 'right' | 'auto';
 
 export interface OneHandedModeSettings {
@@ -52,7 +54,7 @@ export function getOneHandedModeSettings(): OneHandedModeSettings {
       return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
     }
   } catch (error) {
-    console.error('Failed to load one-handed mode settings:', error);
+    logger.error('Failed to load one-handed mode settings:', error);
   }
   return DEFAULT_SETTINGS;
 }
@@ -65,7 +67,7 @@ export function saveOneHandedModeSettings(settings: OneHandedModeSettings): void
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     applyOneHandedModeClasses(settings);
   } catch (error) {
-    console.error('Failed to save one-handed mode settings:', error);
+    logger.error('Failed to save one-handed mode settings:', error);
   }
 }
 

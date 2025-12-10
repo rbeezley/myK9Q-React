@@ -23,6 +23,7 @@ import { markInRing } from '../../../services/entryService';
 import type { AreaScore } from '../../../services/scoresheets/areaInitialization';
 import type { QualifyingResult } from '../../../stores/scoringStore';
 import type { Entry } from '../../../stores/entryStore';
+import { logger } from '@/utils/logger';
 
 // Extended result types for Nationals
 export type NationalsResult = '1st' | '2nd' | '3rd' | '4th';
@@ -262,8 +263,8 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
    * Uses fire-and-forget pattern for instant navigation
    */
   const navigateBackWithRingCleanup = useCallback((currentEntry: Entry | null) => {
-    // eslint-disable-next-line no-console
-    console.log('🚪 [useScoresheetCore] navigateBackWithRingCleanup called:', {
+     
+    logger.log('🚪 [useScoresheetCore] navigateBackWithRingCleanup called:', {
       hasEntry: !!currentEntry,
       entryId: currentEntry?.id,
       armband: currentEntry?.armband
@@ -271,18 +272,18 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
 
     // Fire-and-forget: update status in background, navigate immediately
     if (currentEntry?.id) {
-      // eslint-disable-next-line no-console
-      console.log('🚪 [useScoresheetCore] Firing markInRing(', currentEntry.id, ', false) in background');
+       
+      logger.log('🚪 [useScoresheetCore] Firing markInRing(', currentEntry.id, ', false) in background');
       markInRing(currentEntry.id, false)
         .then(() => {
-          // eslint-disable-next-line no-console
-          console.log('✅ [useScoresheetCore] markInRing completed successfully');
+           
+          logger.log('✅ [useScoresheetCore] markInRing completed successfully');
         })
         .catch((error) => {
-          console.error('❌ Failed to remove dog from ring:', error);
+          logger.error('❌ Failed to remove dog from ring:', error);
         });
     } else {
-      console.warn('⚠️ [useScoresheetCore] No currentEntry - skipping markInRing');
+      logger.warn('⚠️ [useScoresheetCore] No currentEntry - skipping markInRing');
     }
 
     // Navigate immediately - don't wait for DB
@@ -300,8 +301,8 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
     currentEntry: Entry,
     extraData: Partial<ScoreSubmitData['scoreData']> = {}
   ) => {
-    // eslint-disable-next-line no-console
-    console.log('📝 [useScoresheetCore] submitScore called:', {
+     
+    logger.log('📝 [useScoresheetCore] submitScore called:', {
       entryId: currentEntry?.id,
       armband: currentEntry?.armband,
       qualifying,
@@ -309,7 +310,7 @@ export function useScoresheetCore(config: ScoresheetCoreConfig = {}): Scoresheet
     });
 
 if (!currentEntry) {
-      console.warn('⚠️ [useScoresheetCore] No currentEntry - aborting');
+      logger.warn('⚠️ [useScoresheetCore] No currentEntry - aborting');
       return;
     }
 
@@ -363,7 +364,7 @@ if (!currentEntry) {
             try {
               await markInRing(currentEntry.id, false);
 } catch (error) {
-              console.error('❌ Failed to remove dog from ring:', error);
+              logger.error('❌ Failed to remove dog from ring:', error);
             }
           }
 
@@ -371,13 +372,13 @@ if (!currentEntry) {
           navigate(-1);
         },
         onError: (error) => {
-          console.error('❌ Score submission failed:', error);
+          logger.error('❌ Score submission failed:', error);
           alert(`Failed to submit score: ${error.message}`);
           setIsSubmitting(false);
         }
       });
     } catch (error) {
-      console.error('❌ Unexpected error during submission:', error);
+      logger.error('❌ Unexpected error during submission:', error);
       setIsSubmitting(false);
     }
   }, [

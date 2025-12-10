@@ -13,6 +13,7 @@ import { ensureReplicationManager } from '../../../utils/replicationHelper';
 import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '../../../stores/entryStore';
+import { logger } from '@/utils/logger';
 import './ASCAScentDetectionScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'E';
@@ -121,7 +122,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
         // Mark dog as in-ring when scoresheet opens
         if (pending[0].id) {
           markInRing(pending[0].id, true).catch(error => {
-            console.error('Failed to mark dog in-ring on scoresheet open:', error);
+            logger.error('Failed to mark dog in-ring on scoresheet open:', error);
           });
         }
 
@@ -137,7 +138,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error loading entries:', error);
+      logger.error('Error loading entries:', error);
     }
   };
 
@@ -153,7 +154,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
     return () => {
       if (currentEntry?.id) {
         markInRing(currentEntry.id, false).catch(error => {
-          console.error('Failed to clear in-ring status on unmount:', error);
+          logger.error('Failed to clear in-ring status on unmount:', error);
         });
       }
     };
@@ -232,7 +233,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
           try {
             await markInRing(currentEntry.id, false);
 } catch (error) {
-            console.error('❌ Failed to remove dog from ring:', error);
+            logger.error('❌ Failed to remove dog from ring:', error);
           }
         }
 
@@ -256,7 +257,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
         }
       },
       onError: (error) => {
-        console.error('❌ ASCA Scent Detection score submission failed:', error);
+        logger.error('❌ ASCA Scent Detection score submission failed:', error);
         alert(`Failed to submit score: ${error.message}`);
         setIsSubmitting(false);
       }

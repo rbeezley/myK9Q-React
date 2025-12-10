@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log the error to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('🚨 Error Boundary Caught Error:', error, errorInfo);
+      logger.error('🚨 Error Boundary Caught Error:', error, errorInfo);
     }
 
     // Update state with error info

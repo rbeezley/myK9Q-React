@@ -5,6 +5,8 @@
  * Works with React.lazy() components by triggering the import before navigation.
  */
 
+import { logger } from '@/utils/logger';
+
 // Map of scoresheet routes to their dynamic imports
 const SCORESHEET_IMPORTS: Record<string, () => Promise<any>> = {
   'akc-scent-work': () => import('../pages/scoresheets/AKC/AKCScentWorkScoresheet'),
@@ -71,7 +73,7 @@ return;
 
   const importFn = SCORESHEET_IMPORTS[key];
   if (!importFn) {
-    console.warn(`⚠️ Unknown scoresheet key: ${key}`);
+    logger.warn(`⚠️ Unknown scoresheet key: ${key}`);
     return;
   }
 
@@ -82,7 +84,7 @@ return;
   try {
     await importPromise;
 } catch (error) {
-    console.error(`❌ Failed to preload scoresheet bundle: ${key}`, error);
+    logger.error(`❌ Failed to preload scoresheet bundle: ${key}`, error);
     // Remove from cache on failure so it can be retried
     preloadCache.delete(key);
   }

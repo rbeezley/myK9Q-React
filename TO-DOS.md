@@ -450,7 +450,7 @@ Three different color palettes existed for the same status values:
 
 ### 🟢 MEDIUM PRIORITY (Fix Before Public Release)
 
-- **Standardize Logging to Logger Utility** - 802 direct console.log calls bypass settings. **Problem:** Users who disable logging still see 70% of log output. **Files:** Multiple files across `src/components/`, `src/services/`, `src/pages/`. **Solution:** Replace `console.log/error/warn` with `logger.log/error/warn` from [logger.ts](src/utils/logger.ts).
+- ✅ ~~**Standardize Logging to Logger Utility**~~ - COMPLETE (2025-12-10). Migrated 808 direct console.log/warn/error calls across 141 files to use the logger utility. Users can now control logging via Settings → Console Logging preference.
 
 - ✅ ~~**Fix PWA Icon Size Mismatch**~~ - COMPLETE (2025-12-09). Fixed vite.config.ts to use `myK9Q-teal-512.png` for the 512x512 icon entry instead of incorrectly referencing the 192px file.
 

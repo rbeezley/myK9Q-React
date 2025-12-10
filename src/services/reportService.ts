@@ -5,6 +5,7 @@ import { CheckInSheet, CheckInSheetProps } from '../components/reports/CheckInSh
 import { ResultsSheet, ResultsSheetProps } from '../components/reports/ResultsSheet';
 import { DogResultsSheet, DogResultsSheetProps } from '../components/reports/DogResultsSheet';
 import { ScoresheetReport, ScoresheetReportProps } from '../components/reports/ScoresheetReport';
+import { logger } from '@/utils/logger';
 
 /**
  * Report generation service
@@ -184,11 +185,11 @@ export const generateCheckInSheet = (classInfo: ReportClassInfo, entries: Entry[
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
     } else {
-      console.error('Failed to open print window. Please check popup blocker settings.');
+      logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
     }
   } catch (error) {
-    console.error('Error generating check-in sheet:', error);
+    logger.error('Error generating check-in sheet:', error);
     alert('Error generating check-in sheet. Please try again.');
   }
 };
@@ -229,11 +230,11 @@ export const generateResultsSheet = (classInfo: ReportClassInfo, entries: Entry[
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
     } else {
-      console.error('Failed to open print window. Please check popup blocker settings.');
+      logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
     }
   } catch (error) {
-    console.error('Error generating results sheet:', error);
+    logger.error('Error generating results sheet:', error);
     alert('Error generating results sheet. Please try again.');
   }
 };
@@ -273,11 +274,11 @@ export const generateDogResultsSheet = (dogInfo: DogResultsSheetProps['dogInfo']
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
     } else {
-      console.error('Failed to open print window. Please check popup blocker settings.');
+      logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
     }
   } catch (error) {
-    console.error('Error generating dog results sheet:', error);
+    logger.error('Error generating dog results sheet:', error);
     alert('Error generating dog results sheet. Please try again.');
   }
 };
@@ -329,11 +330,11 @@ export const generateScoresheetReport = (classInfo: ScoresheetClassInfo, entries
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
     } else {
-      console.error('Failed to open print window. Please check popup blocker settings.');
+      logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
     }
   } catch (error) {
-    console.error('Error generating scoresheet:', error);
+    logger.error('Error generating scoresheet:', error);
     alert('Error generating scoresheet. Please try again.');
   }
 };

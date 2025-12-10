@@ -14,6 +14,7 @@ import {
   removeTrialVisibilityOverride,
 } from '@/services/resultVisibilityService';
 import type { VisibilityPreset } from '@/types/visibility';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook return type
@@ -61,7 +62,7 @@ export interface UseVisibilitySettingsReturn {
  *   const handleShowChange = async (preset: VisibilityPreset) => {
  *     const result = await handleSetShowVisibility(preset, 'John Doe', 'license-123');
  *     if (!result.success) {
- *       console.error(result.error);
+ *       logger.error(result.error);
  *     }
  *   };
  *
@@ -97,7 +98,7 @@ export function useVisibilitySettings(): UseVisibilitySettingsReturn {
 
       return { success: true };
     } catch (err) {
-      console.error('Error setting show visibility:', err);
+      logger.error('Error setting show visibility:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to update show visibility'
@@ -122,7 +123,7 @@ export function useVisibilitySettings(): UseVisibilitySettingsReturn {
 
       return { success: true };
     } catch (err) {
-      console.error('Error setting trial visibility:', err);
+      logger.error('Error setting trial visibility:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to update trial visibility'
@@ -149,7 +150,7 @@ export function useVisibilitySettings(): UseVisibilitySettingsReturn {
 
       return { success: true };
     } catch (err) {
-      console.error('Error removing trial visibility override:', err);
+      logger.error('Error removing trial visibility override:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to remove trial visibility override'

@@ -11,8 +11,8 @@
  * Usage:
  * ```tsx
  * const swipeHandlers = useSwipeGesture({
- *   onSwipeLeft: () => console.log('Swiped left'),
- *   onSwipeRight: () => console.log('Swiped right'),
+ *   onSwipeLeft: () => logger.log('Swiped left'),
+ *   onSwipeRight: () => logger.log('Swiped right'),
  *   threshold: 50, // minimum swipe distance
  * });
  *

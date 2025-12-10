@@ -13,6 +13,7 @@ import { ensureReplicationManager } from '../../../utils/replicationHelper';
 import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '../../../stores/entryStore';
+import { logger } from '@/utils/logger';
 import '../BaseScoresheet.css';
 import './UKCRallyScoresheet.css';
 
@@ -127,7 +128,7 @@ export const UKCRallyScoresheet: React.FC = () => {
         // Mark dog as in-ring when scoresheet opens
         if (pending[0].id) {
           markInRing(pending[0].id, true).catch(error => {
-            console.error('Failed to mark dog in-ring on scoresheet open:', error);
+            logger.error('Failed to mark dog in-ring on scoresheet open:', error);
           });
         }
 
@@ -143,7 +144,7 @@ export const UKCRallyScoresheet: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error loading entries:', error);
+      logger.error('Error loading entries:', error);
     }
   };
 
@@ -159,7 +160,7 @@ export const UKCRallyScoresheet: React.FC = () => {
     return () => {
       if (currentEntry?.id) {
         markInRing(currentEntry.id, false).catch(error => {
-          console.error('Failed to clear in-ring status on unmount:', error);
+          logger.error('Failed to clear in-ring status on unmount:', error);
         });
       }
     };
@@ -208,7 +209,7 @@ export const UKCRallyScoresheet: React.FC = () => {
           try {
             await markInRing(currentEntry.id, false);
 } catch (error) {
-            console.error('❌ Failed to remove dog from ring:', error);
+            logger.error('❌ Failed to remove dog from ring:', error);
           }
         }
 
@@ -231,7 +232,7 @@ export const UKCRallyScoresheet: React.FC = () => {
         }
       },
       onError: (error) => {
-        console.error('❌ UKC Rally score submission failed:', error);
+        logger.error('❌ UKC Rally score submission failed:', error);
         alert(`Failed to submit score: ${error.message}`);
         setIsSubmitting(false);
       }

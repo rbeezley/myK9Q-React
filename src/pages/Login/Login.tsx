@@ -154,15 +154,15 @@ inputRefs.current[0]?.focus();
       // Download complete - only log failures
       if (!result.success) {
         if (result.downloaded > 0) {
-          console.warn(
+          logger.warn(
             `⚠️ [AUTO-DOWNLOAD] Partial success: ${result.downloaded}/${result.total} classes cached`
           );
         } else {
-          console.error('❌ [AUTO-DOWNLOAD] Failed to cache any classes');
+          logger.error('❌ [AUTO-DOWNLOAD] Failed to cache any classes');
         }
       }
     }).catch(error => {
-      console.error('[AUTO-DOWNLOAD] Unexpected error:', error);
+      logger.error('[AUTO-DOWNLOAD] Unexpected error:', error);
     });
   };
 
@@ -214,7 +214,7 @@ inputRefs.current[0]?.focus();
       // Small delay to show completion state
       await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
-      console.warn('[Login] Offline preparation failed, continuing anyway:', error);
+      logger.warn('[Login] Offline preparation failed, continuing anyway:', error);
 
       // Still ensure minimum splash duration even on error
       const elapsedTime = Date.now() - splashStartTime;
@@ -315,7 +315,7 @@ inputRefs.current[0]?.focus();
       // Critical for judges who log in then walk to exterior areas (no wifi)
       await handlePostLoginPreparation(showDataWithType.licenseKey);
     } catch (err) {
-      console.error('Login error:', err);
+      logger.error('Login error:', err);
 
       // ❌ Failed attempt - record for rate limiting
       recordFailedAttempt('login');

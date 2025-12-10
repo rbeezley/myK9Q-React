@@ -4,6 +4,7 @@
  */
 
 import type { Announcement } from '../stores/announcementStore';
+import { logger } from '@/utils/logger';
 
 export interface PushSubscriptionData {
   endpoint: string;
@@ -111,7 +112,7 @@ return;
         });
 
 } catch (error) {
-        console.error('Failed to simulate push notification:', error);
+        logger.error('Failed to simulate push notification:', error);
       }
     }
   }

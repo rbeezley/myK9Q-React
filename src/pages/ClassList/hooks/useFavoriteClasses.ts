@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook return type
@@ -102,7 +103,7 @@ setFavoriteClasses(new Set());
         }
         setFavoritesLoaded(true);
       } catch (error) {
-        console.error('Error loading favorites from localStorage:', error);
+        logger.error('Error loading favorites from localStorage:', error);
       }
     };
 
@@ -119,7 +120,7 @@ setFavoriteClasses(new Set());
         const favoriteIds = Array.from(favoriteClasses);
 localStorage.setItem(favoritesKey, JSON.stringify(favoriteIds));
 } catch (error) {
-        console.error('Error saving favorites to localStorage:', error);
+        logger.error('Error saving favorites to localStorage:', error);
       }
     }
   }, [favoriteClasses, licenseKey, trialId, favoritesLoaded]);

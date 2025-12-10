@@ -120,6 +120,7 @@ export interface ScoringInput {
 
 // Import ElementProgressStats from nationalsStore
 import type { ElementProgressStats } from '@/stores/nationalsStore';
+import { logger } from '@/utils/logger';
 // Re-export for consumers
 export type { ElementProgressStats };
 
@@ -226,13 +227,13 @@ export class NationalsScoring {
         .single();
 
       if (error) {
-        console.error('Error submitting nationals score:', error);
+        logger.error('Error submitting nationals score:', error);
         return { data: null, error };
       }
 
 return { data, error: null };
     } catch (error) {
-      console.error('Exception submitting nationals score:', error);
+      logger.error('Exception submitting nationals score:', error);
       return { data: null, error };
     }
   }
@@ -282,13 +283,13 @@ return { data, error: null };
         .single();
 
       if (error) {
-        console.error('Error updating nationals score:', error);
+        logger.error('Error updating nationals score:', error);
         return { data: null, error };
       }
 
 return { data, error: null };
     } catch (error) {
-      console.error('Exception updating nationals score:', error);
+      logger.error('Exception updating nationals score:', error);
       return { data: null, error };
     }
   }
@@ -311,13 +312,13 @@ return { data, error: null };
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching leaderboard:', error);
+        logger.error('Error fetching leaderboard:', error);
         return { data: [], error };
       }
 
       return { data: data || [], error: null };
     } catch (error) {
-      console.error('Exception fetching leaderboard:', error);
+      logger.error('Exception fetching leaderboard:', error);
       return { data: [], error };
     }
   }
@@ -334,13 +335,13 @@ return { data, error: null };
         .order('final_rank', { ascending: true });
 
       if (error) {
-        console.error('Error fetching qualifiers:', error);
+        logger.error('Error fetching qualifiers:', error);
         return { data: [], error };
       }
 
       return { data: data || [], error: null };
     } catch (error) {
-      console.error('Exception fetching qualifiers:', error);
+      logger.error('Exception fetching qualifiers:', error);
       return { data: [], error };
     }
   }
@@ -359,13 +360,13 @@ return { data, error: null };
         .order('element_type', { ascending: true });
 
       if (error) {
-        console.error('Error fetching dog scores:', error);
+        logger.error('Error fetching dog scores:', error);
         return { data: [], error };
       }
 
       return { data: data || [], error: null };
     } catch (error) {
-      console.error('Exception fetching dog scores:', error);
+      logger.error('Exception fetching dog scores:', error);
       return { data: [], error };
     }
   }
@@ -382,13 +383,13 @@ return { data, error: null };
         .order('element', { ascending: true });
 
       if (error) {
-        console.error('Error fetching element progress:', error);
+        logger.error('Error fetching element progress:', error);
         return { data: [], error };
       }
 
       return { data: data || [], error: null };
     } catch (error) {
-      console.error('Exception fetching element progress:', error);
+      logger.error('Exception fetching element progress:', error);
       return { data: [], error };
     }
   }
@@ -401,13 +402,13 @@ return { data, error: null };
       const { error } = await supabase.rpc('calculate_nationals_rankings');
 
       if (error) {
-        console.error('Error recalculating rankings:', error);
+        logger.error('Error recalculating rankings:', error);
         return { success: false, error };
       }
 
 return { success: true, error: null };
     } catch (error) {
-      console.error('Exception recalculating rankings:', error);
+      logger.error('Exception recalculating rankings:', error);
       return { success: false, error };
     }
   }
@@ -432,7 +433,7 @@ return { success: true, error: null };
         .limit(NATIONALS_SCORING.TOP_QUALIFIERS_COUNT);
 
       if (error) {
-        console.error('Error fetching advancement status:', error);
+        logger.error('Error fetching advancement status:', error);
         return { cutLinePoints: 0, cutLineTime: 0, qualifiedCount: 0, error };
       }
 
@@ -448,7 +449,7 @@ return { success: true, error: null };
 
       return { cutLinePoints: 0, cutLineTime: 0, qualifiedCount, error: null };
     } catch (error) {
-      console.error('Exception fetching advancement status:', error);
+      logger.error('Exception fetching advancement status:', error);
       return { cutLinePoints: 0, cutLineTime: 0, qualifiedCount: 0, error };
     }
   }

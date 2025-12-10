@@ -3,6 +3,7 @@ import { Bell, BellOff, Volume2, VolumeX, Clock, Shield, Smartphone } from 'luci
 import { serviceWorkerManager } from '../../utils/serviceWorkerUtils';
 import { pushNotificationService } from '../../utils/pushNotificationService';
 import { useAnnouncementStore } from '../../stores/announcementStore';
+import { logger } from '@/utils/logger';
 import './NotificationSettings.css';
 
 interface NotificationPreferences {
@@ -46,7 +47,7 @@ async function handleGrantedPermission(
     }
     setPreferences(prev => ({ ...prev, enabled: true }));
   } catch (subscriptionError) {
-    console.warn('Push subscription failed, but basic notifications will still work:', subscriptionError);
+    logger.warn('Push subscription failed, but basic notifications will still work:', subscriptionError);
     // Even if push subscription fails, basic notifications can still work
     setPreferences(prev => ({ ...prev, enabled: true }));
   }
@@ -66,7 +67,7 @@ export const NotificationSettings: React.FC = () => {
       try {
         setPreferences({ ...defaultPreferences, ...JSON.parse(savedPreferences) });
       } catch (error) {
-        console.error('Error loading notification preferences:', error);
+        logger.error('Error loading notification preferences:', error);
       }
     }
 
@@ -98,7 +99,7 @@ export const NotificationSettings: React.FC = () => {
           await handleGrantedPermission(currentLicenseKey, setPreferences);
         }
       } catch (error) {
-        console.error('Error requesting notification permission:', error);
+        logger.error('Error requesting notification permission:', error);
       } finally {
         setIsLoading(false);
       }
@@ -132,7 +133,7 @@ const newPermission = await Notification.requestPermission();
       setTestStatus('sent');
       setTimeout(() => setTestStatus('idle'), 3000);
     } catch (error) {
-      console.error('Error sending test notification:', error);
+      logger.error('Error sending test notification:', error);
       setTestStatus('error');
       setTimeout(() => setTestStatus('idle'), 3000);
     }

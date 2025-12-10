@@ -11,6 +11,7 @@
  */
 
 import { safeLocalStorageGet, safeLocalStorageSet, safeLocalStorageRemove } from './localStorageUtils';
+import { logger } from '@/utils/logger';
 
 /**
  * Favorites type - 'dog' for competitor favorites, 'class' for trial class favorites
@@ -63,7 +64,7 @@ export function buildFavoritesKey(
   const effectiveKey = licenseKey || (useDefault ? 'default' : '');
 
   if (!effectiveKey) {
-    console.warn('[favoritesUtils] Building favorites key without licenseKey');
+    logger.warn('[favoritesUtils] Building favorites key without licenseKey');
   }
 
   // Build key based on type
@@ -72,7 +73,7 @@ export function buildFavoritesKey(
   } else {
     // Class favorites require trial ID
     if (!trialId) {
-      console.warn('[favoritesUtils] Class favorites key built without trialId');
+      logger.warn('[favoritesUtils] Class favorites key built without trialId');
     }
     return `favorites_${effectiveKey}_${trialId || ''}`;
   }
@@ -136,7 +137,7 @@ export function parseFavoritesFromLocalStorage(
     const rawData = localStorage.getItem(key);
     if (rawData && rawData !== 'null' && rawData !== '[]') {
       // Data exists but is invalid - clear it
-      console.warn(`[favoritesUtils] Clearing corrupted ${type} favorites data for key: ${key}`);
+      logger.warn(`[favoritesUtils] Clearing corrupted ${type} favorites data for key: ${key}`);
       safeLocalStorageRemove(key);
     }
   }
@@ -178,7 +179,7 @@ export function parseFavoritesFromLocalStorage(
  * // Check if save succeeded
  * const success = saveFavoritesToLocalStorage('dog', 'ABC123', favorites);
  * if (!success) {
- *   console.error('Failed to save favorites');
+ *   logger.error('Failed to save favorites');
  * }
  * ```
  */
@@ -195,7 +196,7 @@ export function saveFavoritesToLocalStorage(
 
   // Validate that all IDs are numbers
   if (!favoriteIds.every((id) => typeof id === 'number')) {
-    console.error(
+    logger.error(
       `[favoritesUtils] Cannot save ${type} favorites - array contains non-number values:`,
       favoriteIds
     );

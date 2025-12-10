@@ -19,6 +19,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
+import { logger } from '@/utils/logger';
 
 /** Type of warning being shown */
 export type LogoutWarningType = 'pending_scores' | 'offline' | null;
@@ -92,14 +93,14 @@ export function useSafeLogout(): UseSafeLogoutResult {
 
     if (currentPendingCount > 0) {
       // BLOCK: Pending scores would be lost
-      console.warn(
+      logger.warn(
         `[SAFE_LOGOUT] Blocking logout - ${currentPendingCount} pending score(s) would be lost`
       );
       setWarningType('pending_scores');
       setShowWarningDialog(true);
     } else if (!currentIsOnline) {
       // WARN: User is offline, can't re-login without WiFi
-      console.warn(
+      logger.warn(
         '[SAFE_LOGOUT] Warning: User is offline - logout will prevent re-login until connectivity restored'
       );
       setWarningType('offline');
@@ -118,7 +119,7 @@ export function useSafeLogout(): UseSafeLogoutResult {
   const forceLogout = useCallback(() => {
     const currentPendingCount = useOfflineQueueStore.getState().getPendingCount();
     if (currentPendingCount > 0) {
-      console.error(
+      logger.error(
         `[SAFE_LOGOUT] ⚠️ FORCE LOGOUT - ${currentPendingCount} pending score(s) WILL BE LOST!`
       );
     }

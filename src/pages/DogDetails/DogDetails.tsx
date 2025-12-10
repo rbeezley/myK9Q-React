@@ -11,6 +11,7 @@ import { useDogDetailsData, ClassEntry } from './hooks/useDogDetailsData';
 import { DogStatistics } from './components/DogStatistics';
 import { DogDetailsClassCard } from './components/DogDetailsClassCard';
 import type { DogResultEntry } from '../../components/reports/DogResultsSheet';
+import { logger } from '@/utils/logger';
 import {
   ArrowLeft,
   RefreshCw,
@@ -109,7 +110,7 @@ export const DogDetails: React.FC = () => {
       // Exhibitors should only be able to use standard check-in statuses
       // 'in-ring' and 'completed' are filtered out by showRingManagement={false}
       if (status === 'in-ring' || status === 'completed') {
-        console.warn('Ring management statuses not available for exhibitors');
+        logger.warn('Ring management statuses not available for exhibitors');
         return;
       }
 
@@ -122,7 +123,7 @@ export const DogDetails: React.FC = () => {
       // Refetch data to get updated state
       await refetch();
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error:', error);
       // Reload to get correct state
       await refetch();
     }
@@ -199,7 +200,7 @@ export const DogDetails: React.FC = () => {
         await updateEntryCheckinStatus(entry.id, 'checked-in');
         successCount++;
       } catch (error) {
-        console.error(`Failed to check in entry ${entry.id}:`, error);
+        logger.error(`Failed to check in entry ${entry.id}:`, error);
         failCount++;
       }
     }

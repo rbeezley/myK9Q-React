@@ -21,6 +21,7 @@ import { ClassCompletionCelebration } from '@/components/ClassCompletionCelebrat
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Entry } from '@/services/replication/tables/ReplicatedEntriesTable';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
+import { logger } from '@/utils/logger';
 
 interface UseClassCompletionReturn {
   CelebrationModal: React.ReactElement | null;
@@ -113,7 +114,7 @@ export function useClassCompletion(classId: string | undefined): UseClassComplet
       setShowCelebration(true);
       hasShownCelebrationRef.current = true;
     } catch (error) {
-      console.error('[useClassCompletion] Error checking class completion:', error);
+      logger.error('[useClassCompletion] Error checking class completion:', error);
     }
   }, [classId]);
 

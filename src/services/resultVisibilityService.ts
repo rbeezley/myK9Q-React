@@ -13,6 +13,7 @@
 
 import { supabase } from '../lib/supabase';
 import type { UserRole } from '../utils/auth';
+import { logger } from '@/utils/logger';
 import type {
   VisibilityPreset,
   VisibilityTiming,
@@ -59,7 +60,7 @@ export async function getClassVisibilitySettings(
       .maybeSingle();
 
     if (classError) {
-      console.error('Error fetching class visibility override:', classError);
+      logger.error('Error fetching class visibility override:', classError);
     }
 
     if (classOverride) {
@@ -74,7 +75,7 @@ export async function getClassVisibilitySettings(
       .maybeSingle();
 
     if (trialError) {
-      console.error('Error fetching trial visibility override:', trialError);
+      logger.error('Error fetching trial visibility override:', trialError);
     }
 
     if (trialOverride) {
@@ -89,7 +90,7 @@ export async function getClassVisibilitySettings(
       .maybeSingle();
 
     if (showError) {
-      console.error('Error fetching show visibility default:', showError);
+      logger.error('Error fetching show visibility default:', showError);
     }
 
     if (showDefault) {
@@ -97,10 +98,10 @@ export async function getClassVisibilitySettings(
     }
 
     // Ultimate fallback: standard preset if nothing configured
-    console.warn(`No visibility settings found for class ${classId}, using standard preset`);
+    logger.warn(`No visibility settings found for class ${classId}, using standard preset`);
     return resolvePreset('standard', 'show');
   } catch (error) {
-    console.error('Error in getClassVisibilitySettings:', error);
+    logger.error('Error in getClassVisibilitySettings:', error);
     // Safe fallback: standard preset
     return resolvePreset('standard', 'show');
   }
@@ -275,7 +276,7 @@ export async function setShowVisibility(
     });
 
   if (error) {
-    console.error('Error setting show visibility:', error);
+    logger.error('Error setting show visibility:', error);
     throw error;
   }
 }
@@ -308,7 +309,7 @@ export async function setTrialVisibility(
     });
 
   if (error) {
-    console.error('Error setting trial visibility:', error);
+    logger.error('Error setting trial visibility:', error);
     throw error;
   }
 }
@@ -341,7 +342,7 @@ export async function setClassVisibility(
     });
 
   if (error) {
-    console.error('Error setting class visibility:', error);
+    logger.error('Error setting class visibility:', error);
     throw error;
   }
 }
@@ -358,7 +359,7 @@ export async function removeTrialVisibilityOverride(trialId: number): Promise<vo
     .eq('trial_id', trialId);
 
   if (error) {
-    console.error('Error removing trial visibility override:', error);
+    logger.error('Error removing trial visibility override:', error);
     throw error;
   }
 }
@@ -375,7 +376,7 @@ export async function removeClassVisibilityOverride(classId: number): Promise<vo
     .eq('class_id', classId);
 
   if (error) {
-    console.error('Error removing class visibility override:', error);
+    logger.error('Error removing class visibility override:', error);
     throw error;
   }
 }
@@ -410,7 +411,7 @@ export async function bulkSetClassVisibility(
     .upsert(updates);
 
   if (error) {
-    console.error('Error bulk setting class visibility:', error);
+    logger.error('Error bulk setting class visibility:', error);
     throw error;
   }
 }
@@ -469,7 +470,7 @@ export async function getEffectiveSelfCheckin(
       .single();
 
     if (classError) {
-      console.error('Error fetching class self check-in setting:', classError);
+      logger.error('Error fetching class self check-in setting:', classError);
     }
 
     if (classData?.self_checkin_enabled !== null && classData?.self_checkin_enabled !== undefined) {
@@ -484,7 +485,7 @@ export async function getEffectiveSelfCheckin(
       .single();
 
     if (trialError) {
-      console.error('Error fetching trial self check-in setting:', trialError);
+      logger.error('Error fetching trial self check-in setting:', trialError);
     }
 
     if (trialData?.self_checkin_enabled !== null && trialData?.self_checkin_enabled !== undefined) {
@@ -499,13 +500,13 @@ export async function getEffectiveSelfCheckin(
       .single();
 
     if (showError) {
-      console.error('Error fetching show self check-in setting:', showError);
+      logger.error('Error fetching show self check-in setting:', showError);
     }
 
     // Default to TRUE if show setting is null/undefined
     return showData?.self_checkin_enabled ?? true;
   } catch (error) {
-    console.error('Error in getEffectiveSelfCheckin:', error);
+    logger.error('Error in getEffectiveSelfCheckin:', error);
     return true; // Safe default
   }
 }
@@ -526,7 +527,7 @@ export async function setShowSelfCheckin(
     .eq('license_key', licenseKey);
 
   if (error) {
-    console.error('Error setting show self check-in:', error);
+    logger.error('Error setting show self check-in:', error);
     throw error;
   }
 }
@@ -547,7 +548,7 @@ export async function setTrialSelfCheckin(
     .eq('id', trialId);
 
   if (error) {
-    console.error('Error setting trial self check-in:', error);
+    logger.error('Error setting trial self check-in:', error);
     throw error;
   }
 }
@@ -579,7 +580,7 @@ export async function setClassSelfCheckin(
     .eq('id', classId);
 
   if (error) {
-    console.error('Error setting class self check-in:', error);
+    logger.error('Error setting class self check-in:', error);
     throw error;
   }
 }
@@ -600,7 +601,7 @@ export async function bulkSetClassSelfCheckin(
     .in('id', classIds);
 
   if (error) {
-    console.error('Error bulk setting class self check-in:', error);
+    logger.error('Error bulk setting class self check-in:', error);
     throw error;
   }
 }

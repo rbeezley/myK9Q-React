@@ -12,6 +12,7 @@
 import { ReplicatedTable } from '../ReplicatedTable';
 import { supabase } from '../../../lib/supabase';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 /**
  * Database schema (snake_case) - matches `event_statistics` table
@@ -214,8 +215,8 @@ export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatist
     // Return success with 0 rows to prevent error spam during sync
     // TODO: Remove this check when event_statistics migration is created
     if (!ReplicatedEventStatisticsTable.dormantLoggedOnce) {
-      // eslint-disable-next-line no-console
-      console.log('[ReplicatedEventStatisticsTable] ⏸️ Skipping sync - table is dormant (not yet in database)');
+       
+      logger.log('[ReplicatedEventStatisticsTable] ⏸️ Skipping sync - table is dormant (not yet in database)');
       ReplicatedEventStatisticsTable.dormantLoggedOnce = true;
     }
     return {
@@ -253,7 +254,7 @@ export class ReplicatedEventStatisticsTable extends ReplicatedTable<EventStatist
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[ReplicatedEventStatisticsTable] ❌ Sync failed:', errorMessage);
+      logger.error('[ReplicatedEventStatisticsTable] ❌ Sync failed:', errorMessage);
 
       return {
         tableName: this.tableName,

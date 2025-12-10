@@ -10,6 +10,7 @@
 import { useState, useCallback } from 'react';
 import type { ClassEntry } from './useClassListData';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 /**
  * Result type for status operations
@@ -87,7 +88,7 @@ export interface UseClassStatusReturn {
  *   const handleComplete = async (classId: number) => {
  *     const result = await handleStatusChange(classId, 'completed', statusDeps);
  *     if (!result.success) {
- *       console.error(result.error);
+ *       logger.error(result.error);
  *     }
  *   };
  *
@@ -148,7 +149,7 @@ export function useClassStatus(): UseClassStatusReturn {
         .in('id', idsToUpdate);
 
       if (error) {
-        console.error('❌ Error updating class status:', error);
+        logger.error('❌ Error updating class status:', error);
         // Revert on error
         await refetch();
         return {
@@ -159,7 +160,7 @@ export function useClassStatus(): UseClassStatusReturn {
 
       return { success: true };
     } catch (error) {
-      console.error('💥 Exception updating class status:', error);
+      logger.error('💥 Exception updating class status:', error);
       await refetch();
       return {
         success: false,
@@ -244,7 +245,7 @@ export function useClassStatus(): UseClassStatusReturn {
         .in('id', idsToUpdate);
 
       if (error) {
-        console.error('❌ Error updating class status with time:', error);
+        logger.error('❌ Error updating class status with time:', error);
         // Revert on error
         await refetch();
         return {
@@ -255,7 +256,7 @@ export function useClassStatus(): UseClassStatusReturn {
 
       return { success: true };
     } catch (error) {
-      console.error('💥 Exception updating class status:', error);
+      logger.error('💥 Exception updating class status:', error);
       await refetch();
       return {
         success: false,

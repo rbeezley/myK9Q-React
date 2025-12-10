@@ -8,6 +8,7 @@
 import { Entry } from '../stores/entryStore';
 import { updateExhibitorOrder } from './entryService';
 import { RunOrderPreset } from '../components/dialogs/RunOrderDialog';
+import { logger } from '@/utils/logger';
 
 /**
  * Calculate new exhibitor_order values based on preset
@@ -132,7 +133,7 @@ export async function applyRunOrderPreset(
 
 return reorderedEntries;
   } catch (error) {
-    console.error('❌ Error applying run order preset:', error);
+    logger.error('❌ Error applying run order preset:', error);
     throw error;
   }
 }

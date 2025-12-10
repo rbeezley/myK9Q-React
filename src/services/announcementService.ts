@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Announcement } from '../stores/announcementStore';
+import { logger } from '@/utils/logger';
 import {
   replicatedAnnouncementsTable,
   replicatedAnnouncementReadsTable,
@@ -107,7 +108,7 @@ export class AnnouncementService {
       }
 
     } catch (error) {
-      console.error('Error fetching announcements from cache, falling back to Supabase:', error);
+      logger.error('Error fetching announcements from cache, falling back to Supabase:', error);
     }
 
     // Fall back to original Supabase implementation
@@ -156,7 +157,7 @@ return {
       };
 
     } catch (error) {
-      console.error('Error fetching announcements from Supabase:', error);
+      logger.error('Error fetching announcements from Supabase:', error);
       throw error;
     }
   }
@@ -175,7 +176,7 @@ return {
 
       // Verify license key for multi-tenant security
       if (announcement.license_key !== licenseKey) {
-        console.warn('License key mismatch for announcement', id);
+        logger.warn('License key mismatch for announcement', id);
         return null;
       }
 
@@ -193,7 +194,7 @@ return {
       };
 
     } catch (error) {
-      console.error('Error fetching announcement:', error);
+      logger.error('Error fetching announcement:', error);
       throw error;
     }
   }
@@ -219,16 +220,16 @@ return {
         if (manager) {
 await manager.syncTable('announcements', { forceFullSync: false });
 } else {
-          console.warn('[createAnnouncement] Replication manager not available, UI may not update until next sync');
+          logger.warn('[createAnnouncement] Replication manager not available, UI may not update until next sync');
         }
       } catch (syncError) {
-        console.warn('[createAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
+        logger.warn('[createAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
       }
 
       return data;
 
     } catch (error) {
-      console.error('Error creating announcement:', error);
+      logger.error('Error creating announcement:', error);
       throw error;
     }
   }
@@ -272,13 +273,13 @@ await manager.syncTable('announcements', { forceFullSync: false });
 await manager.syncTable('announcements', { forceFullSync: false });
 }
       } catch (syncError) {
-        console.warn('[updateAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
+        logger.warn('[updateAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
       }
 
       return data;
 
     } catch (error) {
-      console.error('Error updating announcement:', error);
+      logger.error('Error updating announcement:', error);
       throw error;
     }
   }
@@ -319,11 +320,11 @@ await manager.syncTable('announcements', { forceFullSync: false });
 await manager.syncTable('announcements', { forceFullSync: false });
 }
       } catch (syncError) {
-        console.warn('[deleteAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
+        logger.warn('[deleteAnnouncement] Failed to trigger immediate sync (non-critical):', syncError);
       }
 
     } catch (error) {
-      console.error('Error deleting announcement:', error);
+      logger.error('Error deleting announcement:', error);
       throw error;
     }
   }
@@ -350,7 +351,7 @@ await manager.syncTable('announcements', { forceFullSync: false });
       }
 
 } catch (error) {
-      console.error('Error marking announcement as read:', error);
+      logger.error('Error marking announcement as read:', error);
       throw error;
     }
   }
@@ -377,7 +378,7 @@ await manager.syncTable('announcements', { forceFullSync: false });
       if (error) throw error;
 
 } catch (error) {
-      console.error('Error marking multiple announcements as read:', error);
+      logger.error('Error marking multiple announcements as read:', error);
       throw error;
     }
   }
@@ -409,7 +410,7 @@ await manager.syncTable('announcements', { forceFullSync: false });
       return new Set(readAnnouncementIds);
 
     } catch (error) {
-      console.error('Error fetching read status:', error);
+      logger.error('Error fetching read status:', error);
       throw error;
     }
   }
@@ -436,7 +437,7 @@ await manager.syncTable('announcements', { forceFullSync: false });
       return announcementIds.length - readIds.size;
 
     } catch (error) {
-      console.error('Error getting unread count:', error);
+      logger.error('Error getting unread count:', error);
       throw error;
     }
   }
@@ -476,7 +477,7 @@ await manager.syncTable('announcements', { forceFullSync: false });
       };
 
     } catch (error) {
-      console.error('Error fetching announcements with read status:', error);
+      logger.error('Error fetching announcements with read status:', error);
       throw error;
     }
   }
@@ -520,7 +521,7 @@ await manager.syncTable('announcements', { forceFullSync: false });
       }));
 
     } catch (error) {
-      console.error('Error fetching recent urgent announcements:', error);
+      logger.error('Error fetching recent urgent announcements:', error);
       throw error;
     }
   }

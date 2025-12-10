@@ -16,6 +16,7 @@ import {
   type SmartDefaultsContext,
 } from '@/services/smartDefaults';
 import type { AppSettings } from '@/stores/settingsStore';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook to get smart defaults context
@@ -35,7 +36,7 @@ export function useDefaultsContext(userRole?: string) {
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Failed to detect defaults context:', error);
+        logger.error('Failed to detect defaults context:', error);
         if (mounted) {
           setIsLoading(false);
         }
@@ -103,7 +104,7 @@ export function useSettingsValidation() {
       const result = await validateSettings(settings);
       setValidation(result);
     } catch (error) {
-      console.error('Failed to validate settings:', error);
+      logger.error('Failed to validate settings:', error);
     } finally {
       setIsValidating(false);
     }
@@ -142,7 +143,7 @@ export function useOptimizationSuggestions() {
       const sug = await getOptimizationSuggestions(settings);
       setSuggestions(sug);
     } catch (error) {
-      console.error('Failed to get optimization suggestions:', error);
+      logger.error('Failed to get optimization suggestions:', error);
     } finally {
       setIsLoading(false);
     }
@@ -174,7 +175,7 @@ export function useScenarioPresets() {
         const recommended = await getRecommendedSettings(scenario);
         updateSettings(recommended as AppSettings);
       } catch (error) {
-        console.error('Failed to apply scenario:', error);
+        logger.error('Failed to apply scenario:', error);
       } finally {
         setIsApplying(false);
       }
@@ -203,7 +204,7 @@ export function useAutoOptimize() {
         const optimized = await autoOptimizeSettings(settings, scenario);
         updateSettings(optimized);
       } catch (error) {
-        console.error('Failed to auto-optimize:', error);
+        logger.error('Failed to auto-optimize:', error);
       } finally {
         setIsOptimizing(false);
       }

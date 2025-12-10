@@ -78,7 +78,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     const auth = JSON.parse(localStorage.getItem('myK9Q_auth') || '{}') as { showContext?: { licenseKey?: string } }
     const licenseKey = auth.showContext?.licenseKey
     if (!licenseKey) {
-      console.error('❌ No license key found')
+      logger.error('❌ No license key found')
       return
     }
     await triggerFullSync(licenseKey)
@@ -89,12 +89,12 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     const { getReplicationManager } = await import('./services/replication/initReplication')
     const manager = getReplicationManager()
     if (!manager) {
-      console.error('❌ ReplicationManager not initialized')
+      logger.error('❌ ReplicationManager not initialized')
       return
     }
     const table = manager.getTable(tableName)
     if (!table) {
-      console.error(`❌ Table "${tableName}" not found`)
+      logger.error(`❌ Table "${tableName}" not found`)
       return
     }
     const allRecords = await table.getAll()

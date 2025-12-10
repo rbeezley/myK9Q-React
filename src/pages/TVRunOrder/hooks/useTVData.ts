@@ -373,7 +373,7 @@ export const useTVData = ({
         setIsConnected(true);
         setError(null);
       } catch (err) {
-        console.error('Error fetching TV data:', err);
+        logger.error('Error fetching TV data:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
         setIsConnected(false);
       }

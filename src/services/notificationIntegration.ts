@@ -18,6 +18,7 @@ import {
   notifySyncError,
 } from './notificationHandlers';
 import type { Entry } from '@/stores/entryStore';
+import { logger } from '@/utils/logger';
 
 interface ClassSchedule {
   classId: number;
@@ -99,7 +100,7 @@ this.loadFavoriteDogs();
         }
       }
     } catch (error) {
-      console.error('Error loading license key from auth:', error);
+      logger.error('Error loading license key from auth:', error);
     }
   }
 
@@ -117,14 +118,14 @@ this.loadFavoriteDogs();
         if (Array.isArray(favoriteIds) && favoriteIds.every(id => typeof id === 'number')) {
           this.favoriteDogs = new Set(favoriteIds);
 } else {
-          console.warn('Invalid dog favorites data format');
+          logger.warn('Invalid dog favorites data format');
           this.favoriteDogs = new Set();
         }
       } else {
         this.favoriteDogs = new Set();
       }
     } catch (error) {
-      console.error('Error loading dog favorites:', error);
+      logger.error('Error loading dog favorites:', error);
       this.favoriteDogs = new Set();
     }
   }
@@ -377,7 +378,7 @@ return;
     const entry = entries.find(e => e.id === entryId);
 
     if (!entry) {
-      console.warn(`Entry ${entryId} not found`);
+      logger.warn(`Entry ${entryId} not found`);
       return;
     }
 
@@ -392,7 +393,7 @@ return;
     const entry = entries.find(e => e.id === entryId);
 
     if (!entry) {
-      console.warn(`Entry ${entryId} not found`);
+      logger.warn(`Entry ${entryId} not found`);
       return;
     }
 

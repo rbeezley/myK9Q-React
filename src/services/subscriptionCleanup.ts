@@ -14,6 +14,7 @@
 import { syncManager } from './syncManager';
 import { useAnnouncementStore } from '../stores/announcementStore';
 import { useNationalsStore } from '../stores/nationalsStore';
+import { logger } from '@/utils/logger';
 
 export interface SubscriptionInfo {
   key: string;
@@ -41,7 +42,7 @@ class SubscriptionCleanupService {
     };
 
     if (this.subscriptions.has(key)) {
-      console.warn(`⚠️ Subscription ${key} already registered - possible duplicate!`);
+      logger.warn(`⚠️ Subscription ${key} already registered - possible duplicate!`);
     }
 
     this.subscriptions.set(key, info);
@@ -146,7 +147,7 @@ return 0;
     this.subscriptions.forEach((info, key) => {
       const age = now.getTime() - info.createdAt.getTime();
       if (age > maxAge && info.active) {
-        console.warn(`⏰ Stale subscription detected: ${key} (${Math.round(age / 60000)} minutes old)`);
+        logger.warn(`⏰ Stale subscription detected: ${key} (${Math.round(age / 60000)} minutes old)`);
         this.unregister(key);
         count++;
       }
@@ -224,10 +225,10 @@ return 0;
       : 0;
 
     if (hasLeaks) {
-      console.warn(`🚨 Potential subscription leaks detected!`);
-      console.warn(`   Active subscriptions: ${activeSubscriptions.length}`);
-      console.warn(`   Old subscriptions: ${oldSubscriptions.length}`);
-      console.warn(`   Oldest age: ${Math.round(oldestAge / 60000)} minutes`);
+      logger.warn(`🚨 Potential subscription leaks detected!`);
+      logger.warn(`   Active subscriptions: ${activeSubscriptions.length}`);
+      logger.warn(`   Old subscriptions: ${oldSubscriptions.length}`);
+      logger.warn(`   Oldest age: ${Math.round(oldestAge / 60000)} minutes`);
     }
 
     return {
@@ -295,8 +296,8 @@ const interval = setInterval(() => {
       // Check for leaks
       const leakCheck = this.checkForLeaks();
       if (leakCheck.hasLeaks) {
-        console.error('🚨 Memory leak warning: Too many active subscriptions');
-        console.error('Consider cleaning up subscriptions manually');
+        logger.error('🚨 Memory leak warning: Too many active subscriptions');
+        logger.error('Consider cleaning up subscriptions manually');
       }
     }, intervalMinutes * 60 * 1000);
 

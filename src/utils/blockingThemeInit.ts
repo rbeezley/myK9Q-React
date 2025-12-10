@@ -8,6 +8,8 @@
  * CRITICAL: This must be imported in index.html as a blocking script, NOT in React.
  */
 
+import { logger } from '@/utils/logger';
+
 interface ThemeSettings {
   theme?: 'light' | 'dark' | 'system';
   accentColor?: 'blue' | 'green' | 'orange' | 'purple';
@@ -61,7 +63,7 @@ export function initializeThemeBlocking(): void {
 
   } catch (error) {
     // Fail silently - use default light theme
-    console.warn('Failed to initialize theme from localStorage:', error);
+    logger.warn('Failed to initialize theme from localStorage:', error);
     applyThemeClass('light');
   }
 }

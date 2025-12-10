@@ -19,6 +19,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { logger } from '@/utils/logger';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const PUSH_USER_ID_KEY = 'push_user_id'; // Browser-unique ID
@@ -215,7 +216,7 @@ export class PushNotificationService {
    */
   static async requestPermission(): Promise<boolean> {
     if (!this.isSupported()) {
-      console.warn('[Push] Push notifications not supported');
+      logger.warn('[Push] Push notifications not supported');
       return false;
     }
 
@@ -223,7 +224,7 @@ export class PushNotificationService {
       const permission = await Notification.requestPermission();
 return permission === 'granted';
     } catch (error) {
-      console.error('[Push] Permission request failed:', error);
+      logger.error('[Push] Permission request failed:', error);
       return false;
     }
   }
@@ -304,14 +305,14 @@ return permission === 'granted';
         });
 
       if (error) {
-        console.error('[Push] Database save error:', error);
+        logger.error('[Push] Database save error:', error);
         throw error;
       }
 
 return true;
 
     } catch (error) {
-      console.error('[Push] Subscribe error:', error);
+      logger.error('[Push] Subscribe error:', error);
       return false;
     }
   }
@@ -343,14 +344,14 @@ return true;
         .eq('endpoint', endpoint);
 
       if (error) {
-        console.error('[Push] Database delete error:', error);
+        logger.error('[Push] Database delete error:', error);
         throw error;
       }
 
 return true;
 
     } catch (error) {
-      console.error('[Push] Unsubscribe error:', error);
+      logger.error('[Push] Unsubscribe error:', error);
       return false;
     }
   }
@@ -369,7 +370,7 @@ return true;
       const subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        console.warn('[Push] No active subscription - cannot update favorites');
+        logger.warn('[Push] No active subscription - cannot update favorites');
         return false;
       }
 
@@ -388,14 +389,14 @@ return true;
         .eq('endpoint', subscription.endpoint);
 
       if (error) {
-        console.error('[Push] Update favorites error:', error);
+        logger.error('[Push] Update favorites error:', error);
         throw error;
       }
 
 return true;
 
     } catch (error) {
-      console.error('[Push] Update favorites error:', error);
+      logger.error('[Push] Update favorites error:', error);
       return false;
     }
   }
@@ -440,14 +441,14 @@ return false;
         .eq('endpoint', subscription.endpoint);
 
       if (error) {
-        console.error('[Push] Switch show error:', error);
+        logger.error('[Push] Switch show error:', error);
         throw error;
       }
 
 return true;
 
     } catch (error) {
-      console.error('[Push] Switch show error:', error);
+      logger.error('[Push] Switch show error:', error);
       return false;
     }
   }
@@ -466,7 +467,7 @@ return true;
 
       return subscription !== null;
     } catch (error) {
-      console.error('[Push] Check subscription error:', error);
+      logger.error('[Push] Check subscription error:', error);
       return false;
     }
   }
@@ -483,7 +484,7 @@ return true;
       const registration = await navigator.serviceWorker.ready;
       return await registration.pushManager.getSubscription();
     } catch (error) {
-      console.error('[Push] Get subscription error:', error);
+      logger.error('[Push] Get subscription error:', error);
       return null;
     }
   }

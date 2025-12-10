@@ -14,6 +14,7 @@
  */
 
 import { prefetchCache } from '@/services/replication/PrefetchCacheManager';
+import { logger } from '@/utils/logger';
 
 export interface CachedRoute {
   path: string;
@@ -48,7 +49,7 @@ async function loadVisitedRoutes() {
       cached.data.forEach((route) => visitedRoutes.add(route));
     }
   } catch (error) {
-    console.error('Failed to load visited routes:', error);
+    logger.error('Failed to load visited routes:', error);
   }
 }
 
@@ -59,7 +60,7 @@ async function saveVisitedRoutes() {
   try {
     await prefetchCache.set('visited-routes', Array.from(visitedRoutes), ROUTE_CACHE_TTL);
   } catch (error) {
-    console.error('Failed to save visited routes:', error);
+    logger.error('Failed to save visited routes:', error);
   }
 }
 
@@ -80,7 +81,7 @@ export async function markRouteVisited(path: string, data?: unknown) {
   try {
     await prefetchCache.set(`route:${path}`, cached, ROUTE_CACHE_TTL);
   } catch (error) {
-    console.error(`Failed to cache route ${path}:`, error);
+    logger.error(`Failed to cache route ${path}:`, error);
   }
 }
 
@@ -108,7 +109,7 @@ export async function getCachedRoute(path: string): Promise<CachedRoute | null> 
 
     return cached.data;
   } catch (error) {
-    console.error(`Failed to get cached route ${path}:`, error);
+    logger.error(`Failed to get cached route ${path}:`, error);
     return null;
   }
 }
@@ -126,7 +127,7 @@ return;
 const data = await fetchData();
     await markRouteVisited(path, data);
   } catch (error) {
-    console.error(`Failed to prefetch route ${path}:`, error);
+    logger.error(`Failed to prefetch route ${path}:`, error);
   }
 }
 
@@ -143,7 +144,7 @@ export async function prefetchLikelyRoutes(
     if (dataFetchers[path]) {
       // Prefetch in background (don't await)
       prefetchRoute(path, dataFetchers[path]).catch((err) => {
-        console.error(`Background prefetch failed for ${path}:`, err);
+        logger.error(`Background prefetch failed for ${path}:`, err);
       });
     }
   }
@@ -186,7 +187,7 @@ function handleNavigation() {
   const path = window.location.pathname;
 // Mark as visited (no data, just the path)
   markRouteVisited(path).catch((err) => {
-    console.error('Failed to mark route as visited:', err);
+    logger.error('Failed to mark route as visited:', err);
   });
 }
 
@@ -202,7 +203,7 @@ export async function clearRoutingCache() {
     visitedRoutes.clear();
     await prefetchCache.delete('visited-routes');
   } catch (error) {
-    console.error('Failed to clear routing cache:', error);
+    logger.error('Failed to clear routing cache:', error);
   }
 }
 

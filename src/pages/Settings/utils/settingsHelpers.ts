@@ -7,6 +7,7 @@
  */
 
 import { exportPersonalData, clearAllData, getStorageUsage } from '@/services/dataExportService';
+import { logger } from '@/utils/logger';
 
 /**
  * Toast callback type for UI notifications
@@ -32,7 +33,7 @@ export async function exportPersonalDataHelper(showToast: ToastCallback): Promis
     showToast('Your data has been exported successfully!');
   } catch (error) {
     showToast('Failed to export your data', 'error');
-    console.error('Export data error:', error);
+    logger.error('Export data error:', error);
   }
 }
 
@@ -70,7 +71,7 @@ export async function clearAllDataHelper(
     return usage;
   } catch (error) {
     showToast('Failed to clear data', 'error');
-    console.error('Clear data error:', error);
+    logger.error('Clear data error:', error);
     throw error;
   }
 }
@@ -104,7 +105,7 @@ export function exportSettingsToFile(
     showToast('Settings exported successfully!');
   } catch (error) {
     showToast('Failed to export settings', 'error');
-    console.error('Export error:', error);
+    logger.error('Export error:', error);
   }
 }
 
@@ -150,7 +151,7 @@ export async function importSettingsFromFile(
     }
   } catch (error) {
     showToast('Failed to read settings file', 'error');
-    console.error('Import error:', error);
+    logger.error('Import error:', error);
     return false;
   }
 }

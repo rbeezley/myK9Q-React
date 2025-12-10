@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ArrowUpDown, Shuffle, GripVertical } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
+import { logger } from '@/utils/logger';
 import './shared-dialog.css';
 import './RunOrderDialog.css';
 
@@ -65,7 +66,7 @@ export const RunOrderDialog: React.FC<RunOrderDialogProps> = ({
       await onApplyOrder(selectedOrder);
       // Dialog will close via parent component after showing success message
     } catch (error) {
-      console.error('Error applying run order:', error);
+      logger.error('Error applying run order:', error);
       setIsApplying(false);
     }
   };

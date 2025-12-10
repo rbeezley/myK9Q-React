@@ -69,7 +69,7 @@ export interface RealtimePayload {
  *     classId,
  *     licenseKey,
  *     (payload) => {
- *       console.log('Entry updated:', payload);
+ *       logger.log('Entry updated:', payload);
  *       refetchEntries(); // Refresh local data
  *     }
  *   );
@@ -82,7 +82,7 @@ export interface RealtimePayload {
  * subscribeToEntryUpdates(classId, licenseKey, (payload) => {
  *   if (payload.old && payload.new) {
  *     if (payload.old.in_ring !== payload.new.in_ring) {
- *       console.log('In-ring status changed!');
+ *       logger.log('In-ring status changed!');
  *     }
  *   }
  * });

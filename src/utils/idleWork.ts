@@ -5,6 +5,8 @@
  * Improves responsiveness by prioritizing user interactions.
  */
 
+import { logger } from '@/utils/logger';
+
 export interface IdleWorkOptions {
   /** Timeout in ms (work will run even if not idle) */
   timeout?: number;
@@ -113,7 +115,7 @@ function processIdleQueue(): void {
           pendingTasks.unshift(task);
         }
       } catch (error) {
-        console.error('[Idle Work] Task failed:', error);
+        logger.error('[Idle Work] Task failed:', error);
       } finally {
         runningTasks.delete(task.id);
         // Process next task

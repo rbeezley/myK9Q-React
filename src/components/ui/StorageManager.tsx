@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { HardDrive, Trash2, RefreshCw, AlertCircle, Check, Download } from 'lucide-react';
+import { logger } from '@/utils/logger';
 import {
   deletePreloadedShow,
   getTotalStorageUsage,
@@ -37,7 +38,7 @@ export function StorageManager() {
       setShows(storage.shows);
       setTotalBytes(storage.totalBytes);
     } catch (error) {
-      console.error('Failed to load storage data:', error);
+      logger.error('Failed to load storage data:', error);
       setErrorMessage('Failed to load storage data');
     } finally {
       setIsLoading(false);
@@ -52,7 +53,7 @@ export function StorageManager() {
       await loadStorageData();
       showSuccess(`Deleted "${showName}"`);
     } catch (error) {
-      console.error('Failed to delete show:', error);
+      logger.error('Failed to delete show:', error);
       setErrorMessage('Failed to delete show');
     }
   };
@@ -63,7 +64,7 @@ export function StorageManager() {
       await loadStorageData();
       showSuccess(`Extended "${showName}" for 7 more days`);
     } catch (error) {
-      console.error('Failed to extend show:', error);
+      logger.error('Failed to extend show:', error);
       setErrorMessage('Failed to extend show');
     }
   };
@@ -79,7 +80,7 @@ export function StorageManager() {
         showSuccess('No expired shows to clean up');
       }
     } catch (error) {
-      console.error('Failed to cleanup:', error);
+      logger.error('Failed to cleanup:', error);
       setErrorMessage('Failed to cleanup expired shows');
     }
   };

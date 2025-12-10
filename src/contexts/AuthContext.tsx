@@ -63,7 +63,7 @@ const loadAuthFromStorage = (): AuthState => {
       return JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Error loading auth from storage:', error);
+    logger.error('Error loading auth from storage:', error);
   }
   
   return {
@@ -78,7 +78,7 @@ const saveAuthToStorage = (authState: AuthState) => {
   try {
     localStorage.setItem('myK9Q_auth', JSON.stringify(authState));
   } catch (error) {
-    console.error('Error saving auth to storage:', error);
+    logger.error('Error saving auth to storage:', error);
   }
 };
 

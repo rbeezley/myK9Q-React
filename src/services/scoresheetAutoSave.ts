@@ -15,6 +15,8 @@
  * - Supabase for cloud backup (optional)
  */
 
+import { logger } from '@/utils/logger';
+
 export interface ScoresheetDraft {
   /** Unique ID for the draft */
   id: string;
@@ -148,7 +150,7 @@ class ScoresheetAutoSaveService {
 // Clean up old drafts
       this.cleanupOldDrafts(draft.entryId);
     } catch (error) {
-      console.error('[AutoSave] Failed to save draft:', error);
+      logger.error('[AutoSave] Failed to save draft:', error);
     }
   }
 
@@ -166,12 +168,12 @@ class ScoresheetAutoSaveService {
 
       // Check for conflicts (different device)
       if (draft.deviceId !== this.deviceId) {
-        console.warn(`[AutoSave] Draft from different device: ${draft.deviceId}`);
+        logger.warn(`[AutoSave] Draft from different device: ${draft.deviceId}`);
       }
 
       return draft;
     } catch (error) {
-      console.error('[AutoSave] Failed to load draft:', error);
+      logger.error('[AutoSave] Failed to load draft:', error);
       return null;
     }
   }
@@ -196,7 +198,7 @@ class ScoresheetAutoSaveService {
         }
       }
     } catch (error) {
-      console.error('[AutoSave] Failed to get drafts:', error);
+      logger.error('[AutoSave] Failed to get drafts:', error);
     }
 
     // Sort by last saved (newest first)
@@ -287,7 +289,7 @@ class ScoresheetAutoSaveService {
 
       return recovery;
     } catch (error) {
-      console.error('[AutoSave] Failed to load recovery data:', error);
+      logger.error('[AutoSave] Failed to load recovery data:', error);
       return null;
     }
   }

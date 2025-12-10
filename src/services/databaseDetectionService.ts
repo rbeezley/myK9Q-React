@@ -7,6 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 import { supabase as supabaseV3 } from '@/lib/supabase'; // Reuse main client
 
 // Legacy Database Configuration
@@ -64,13 +65,13 @@ return false;
       if (error.code === 'PGRST116') {
         return false;
       }
-      console.error('Legacy database check error:', error);
+      logger.error('Legacy database check error:', error);
       return false;
     }
 
     return data !== null;
   } catch (error) {
-    console.error('Legacy database connection error:', error);
+    logger.error('Legacy database connection error:', error);
     return false;
   }
 }
@@ -87,13 +88,13 @@ async function checkV3Database(licenseKey: string): Promise<boolean> {
       if (error.code === 'PGRST116') {
         return false;
       }
-      console.error('V3 database check error:', error);
+      logger.error('V3 database check error:', error);
       return false;
     }
 
     return data !== null;
   } catch (error) {
-    console.error('V3 database connection error:', error);
+    logger.error('V3 database connection error:', error);
     return false;
   }
 }
@@ -165,7 +166,7 @@ return {
     };
 
   } catch (error) {
-    console.error('Database detection error:', error);
+    logger.error('Database detection error:', error);
     // Default to V3 on error
     return {
       database: 'v3',
@@ -266,7 +267,7 @@ return {
     };
 
   } catch (error) {
-    console.error('Database validation error:', error);
+    logger.error('Database validation error:', error);
     return {
       database: 'v3',
       message: 'Validation error - please try again'

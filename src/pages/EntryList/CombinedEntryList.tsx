@@ -294,7 +294,7 @@ export const CombinedEntryList: React.FC = () => {
       try {
         await handleMarkInRing(entryId);
       } catch (error) {
-        console.error('Mark in-ring failed:', error);
+        logger.error('Mark in-ring failed:', error);
         refresh();
       }
       return;
@@ -307,7 +307,7 @@ export const CombinedEntryList: React.FC = () => {
       try {
         await handleMarkCompleted(entryId);
       } catch (error) {
-        console.error('Mark completed failed:', error);
+        logger.error('Mark completed failed:', error);
         refresh();
       }
       return;
@@ -323,7 +323,7 @@ export const CombinedEntryList: React.FC = () => {
       await handleStatusChangeHook(entryId, newStatus);
       await refresh();
     } catch (error) {
-      console.error('Status change failed:', error);
+      logger.error('Status change failed:', error);
       setLocalEntries(prev => prev.map(entry =>
         entry.id === entryId
           ? { ...entry, status: entries.find(e => e.id === entryId)?.status || 'no-status' }
@@ -359,7 +359,7 @@ export const CombinedEntryList: React.FC = () => {
       await refresh();
       setActiveTab('pending');
     } catch (error) {
-      console.error('Failed to reset score:', error);
+      logger.error('Failed to reset score:', error);
       alert(`Failed to reset score: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
@@ -386,7 +386,7 @@ export const CombinedEntryList: React.FC = () => {
       setTimeout(() => setShowSuccessMessage(false), 2000);
       await refresh();
     } catch (error) {
-      console.error('❌ Error applying run order:', error);
+      logger.error('❌ Error applying run order:', error);
       setRunOrderDialogOpen(false);
     }
   }, [localEntries, refresh]);
@@ -487,7 +487,7 @@ export const CombinedEntryList: React.FC = () => {
         return { hidesText: requirements.hides, distractionsText: requirements.distractions };
       }
     } catch (reqError) {
-      console.warn('Could not fetch class requirements:', reqError);
+      logger.warn('Could not fetch class requirements:', reqError);
     }
     return { hidesText: undefined, distractionsText: undefined };
   };

@@ -26,6 +26,7 @@ import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
 import { Entry } from '../../stores/entryStore';
 import { useEntryListData, useEntryListActions, useEntryListFilters, useDragAndDropEntries } from './hooks';
 import type { TabType } from './hooks';
+import { logger } from '@/utils/logger';
 import {
   EntryListHeader,
   EntryListContent,
@@ -195,7 +196,7 @@ export const EntryList: React.FC = () => {
       }
       return true;
     } catch (error) {
-      console.error('Error setting dog ring status:', error);
+      logger.error('Error setting dog ring status:', error);
       return false;
     }
   }, [localEntries]);
@@ -223,7 +224,7 @@ export const EntryList: React.FC = () => {
 
       // Background DB update (scoresheet will also call markInRing, but this updates other users' views)
       setDogInRingStatus(entry.id, true).catch(error => {
-        console.error('Failed to update in-ring status:', error);
+        logger.error('Failed to update in-ring status:', error);
       });
     }
 
@@ -279,7 +280,7 @@ export const EntryList: React.FC = () => {
       try {
         await handleMarkInRing(entryId);
       } catch (error) {
-        console.error('Failed to mark in-ring:', error);
+        logger.error('Failed to mark in-ring:', error);
       }
       return;
     }
@@ -291,7 +292,7 @@ export const EntryList: React.FC = () => {
       try {
         await handleMarkCompleted(entryId);
       } catch (error) {
-        console.error('Failed to mark completed:', error);
+        logger.error('Failed to mark completed:', error);
       }
       return;
     }
@@ -305,7 +306,7 @@ export const EntryList: React.FC = () => {
     try {
       await handleStatusChangeHook(entryId, status);
     } catch (error) {
-      console.error('Failed to update status:', error);
+      logger.error('Failed to update status:', error);
     }
   }, [handleMarkInRing, handleMarkCompleted, handleStatusChangeHook]);
 
@@ -365,7 +366,7 @@ export const EntryList: React.FC = () => {
     try {
       await handleResetScoreHook(resetConfirmDialog.entry.id);
     } catch (error) {
-      console.error('Failed to reset score:', error);
+      logger.error('Failed to reset score:', error);
     }
   }, [resetConfirmDialog.entry, handleResetScoreHook, setActiveTab]);
 
@@ -389,7 +390,7 @@ export const EntryList: React.FC = () => {
       setTimeout(() => setShowSuccessMessage(false), 2000);
       await refresh();
     } catch (error) {
-      console.error('❌ Error applying run order:', error);
+      logger.error('❌ Error applying run order:', error);
       setRunOrderDialogOpen(false);
     }
   }, [localEntries, refresh, setSortOrder]);
@@ -409,7 +410,7 @@ export const EntryList: React.FC = () => {
       await manuallyRecalculatePlacements(Number(classId));
       await refresh();
     } catch (error) {
-      console.error('❌ Failed to recalculate placements:', error);
+      logger.error('❌ Failed to recalculate placements:', error);
       alert('Failed to recalculate placements. Please try again.');
     } finally {
       setIsRecalculatingPlacements(false);
@@ -489,7 +490,7 @@ export const EntryList: React.FC = () => {
           distractionsText = requirements.distractions;
         }
       } catch (reqError) {
-        console.warn('Could not fetch class requirements:', reqError);
+        logger.warn('Could not fetch class requirements:', reqError);
       }
     }
 
@@ -542,7 +543,7 @@ export const EntryList: React.FC = () => {
       setStatusDialogOpen(false);
       await refresh();
     } catch (error) {
-      console.error('Error updating class status:', error);
+      logger.error('Error updating class status:', error);
       throw error;
     }
   }, [classId, refresh]);

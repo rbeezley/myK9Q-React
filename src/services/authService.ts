@@ -355,7 +355,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       .single();
 
     if (showError || !show) {
-      console.error('Error fetching show:', showError);
+      logger.error('Error fetching show:', showError);
       return null;
     }
 
@@ -367,7 +367,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       .order('trial_date', { ascending: true });
 
     if (trialsError) {
-      console.error('Error fetching trials:', trialsError);
+      logger.error('Error fetching trials:', trialsError);
     }
 
     // Get classes for all trials in this show
@@ -386,7 +386,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       classesError = classesResult.error;
 
       if (classesError) {
-        console.error('Error fetching classes:', classesError);
+        logger.error('Error fetching classes:', classesError);
       }
     }
 
@@ -398,7 +398,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       .single();
 
     if (licenseError) {
-      console.error('Error fetching license data:', licenseError);
+      logger.error('Error fetching license data:', licenseError);
     }
 
     return {
@@ -414,7 +414,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
     };
 
   } catch (error) {
-    console.error('Error getting show by license key:', error);
+    logger.error('Error getting show by license key:', error);
     return null;
   }
 }
@@ -431,13 +431,13 @@ export async function testDatabaseConnection(): Promise<boolean> {
       .limit(1);
 
     if (error) {
-      console.error('Database connection error:', error);
+      logger.error('Database connection error:', error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error);
+    logger.error('Database connection failed:', error);
     return false;
   }
 }

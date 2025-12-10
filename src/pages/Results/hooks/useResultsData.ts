@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import type { UserRole } from '../../../utils/auth';
+import { logger } from '@/utils/logger';
 
 export interface ResultsFilters {
   trial: number | null;
@@ -87,7 +88,7 @@ export function useResultsData({
 
       setTrials(trialOptions);
     } catch (err) {
-      console.error('Error fetching trials:', err);
+      logger.error('Error fetching trials:', err);
     }
   }, [showId]);
 

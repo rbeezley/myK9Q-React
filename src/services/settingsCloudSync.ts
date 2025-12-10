@@ -8,6 +8,7 @@
 import { supabase } from '@/lib/supabase';
 import { AppSettings, SETTINGS_VERSION } from '@/stores/settingsStore';
 import { importSettingsWithMigration } from '@/utils/settingsMigration';
+import { logger } from '@/utils/logger';
 
 interface CloudPreference {
   id: string;
@@ -69,7 +70,7 @@ export async function uploadSettings(settings: AppSettings): Promise<SyncResult>
 
     if (fetchError && fetchError.code !== 'PGRST116') {
       // PGRST116 = no rows returned
-      console.error('Failed to fetch existing preferences:', fetchError);
+      logger.error('Failed to fetch existing preferences:', fetchError);
       return { success: false, synced: false, conflictDetected: false, error: fetchError.message };
     }
 
@@ -88,7 +89,7 @@ export async function uploadSettings(settings: AppSettings): Promise<SyncResult>
         .eq('id', existing.id);
 
       if (updateError) {
-        console.error('Failed to update preferences:', updateError);
+        logger.error('Failed to update preferences:', updateError);
         return { success: false, synced: false, conflictDetected: false, error: updateError.message };
       }
     } else {
@@ -106,14 +107,14 @@ export async function uploadSettings(settings: AppSettings): Promise<SyncResult>
         });
 
       if (insertError) {
-        console.error('Failed to insert preferences:', insertError);
+        logger.error('Failed to insert preferences:', insertError);
         return { success: false, synced: false, conflictDetected: false, error: insertError.message };
       }
     }
 
 return { success: true, synced: true, conflictDetected: false };
   } catch (error) {
-    console.error('Settings upload error:', error);
+    logger.error('Settings upload error:', error);
     return {
       success: false,
       synced: false,
@@ -149,7 +150,7 @@ export async function downloadSettings(
         };
       }
 
-      console.error('Failed to download settings:', error);
+      logger.error('Failed to download settings:', error);
       return {
         settings: null,
         result: { success: false, synced: false, conflictDetected: false, error: error.message },
@@ -164,7 +165,7 @@ export async function downloadSettings(
     const conflictDetected = timeDiff > 5000; // 5 second threshold
 
     if (conflictDetected) {
-      console.warn('⚠️ Settings conflict detected:', {
+      logger.warn('⚠️ Settings conflict detected:', {
         local: localUpdatedAt,
         cloud: cloudUpdatedAt,
       });
@@ -209,7 +210,7 @@ return {
       result: { success: true, synced: false, conflictDetected: false },
     };
   } catch (error) {
-    console.error('Settings download error:', error);
+    logger.error('Settings download error:', error);
     return {
       settings: null,
       result: {
@@ -328,13 +329,13 @@ export async function deleteCloudSettings(): Promise<boolean> {
       .eq('device_id', deviceId);
 
     if (error) {
-      console.error('Failed to delete cloud settings:', error);
+      logger.error('Failed to delete cloud settings:', error);
       return false;
     }
 
 return true;
   } catch (error) {
-    console.error('Delete settings error:', error);
+    logger.error('Delete settings error:', error);
     return false;
   }
 }

@@ -9,6 +9,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { logger } from '@/utils/logger';
 
 const WARNING_TIME_MS = 5 * 60 * 1000; // 5 minutes before logout
 
@@ -69,7 +70,7 @@ setShowWarning(true);
 
       if (result.blocked) {
         // Logout was blocked due to pending scores
-        console.warn(
+        logger.warn(
           `[AUTO_LOGOUT] Blocked - ${result.pendingCount} pending + ${result.failedCount} failed score(s) would be lost. Extending session.`
         );
         setPendingScoresBlocking(true);
@@ -100,7 +101,7 @@ resetTimer();
 
     if (result.blocked) {
       // Block logout - show pending scores warning instead
-      console.warn(
+      logger.warn(
         `[AUTO_LOGOUT] logoutNow blocked - ${result.pendingCount} pending + ${result.failedCount} failed score(s) would be lost`
       );
       setPendingScoresBlocking(true);
