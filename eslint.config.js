@@ -64,6 +64,7 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'off',
       'react-hooks/exhaustive-deps': 'off',
       'no-undef': 'off', // TypeScript handles this better
+      'no-redeclare': 'off', // Use @typescript-eslint/no-redeclare for function overloads
       'no-console': ['warn', { allow: ['warn', 'error'] }], // Prevent debug console.log
       // DEBT-008: Complexity rules - prevent new high-complexity code
       // Previous worst offenders have been refactored:

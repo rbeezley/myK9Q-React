@@ -15,13 +15,23 @@ vi.mock('../utils/auth', () => ({
   validatePasscodeAgainstLicenseKey: vi.fn()
 }));
 
+// Mock fetch to simulate Edge Function unavailable (triggers client-side fallback)
+const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'));
+vi.stubGlobal('fetch', mockFetch);
+
 describe('authService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset fetch mock to trigger client-side fallback
+    mockFetch.mockRejectedValue(new Error('Network error'));
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('authenticatePasscode', () => {
