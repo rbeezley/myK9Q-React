@@ -4,6 +4,7 @@ import { submitScore } from '../services/entryService';
 import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore, type QualifyingResult } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
+import { getSupabaseLicenseKey } from '../lib/supabase';
 
 /**
  * Specialized hook for optimistic score submissions
@@ -118,12 +119,14 @@ export function useOptimisticScoring() {
         // Check if online
         if (!isOnline) {
 // Add to offline queue if we have the required data
-          if (classId && armband && className) {
+          const licenseKey = getSupabaseLicenseKey();
+          if (classId && armband && className && licenseKey) {
             addToQueue({
               entryId,
               armband,
               classId,
               className,
+              licenseKey, // Required for background sync RLS
               scoreData,
             });
           }

@@ -18,6 +18,7 @@ export interface QueuedScore {
   armband: number;
   classId: number;
   className: string;
+  licenseKey: string; // Required for RLS header in background sync
   scoreData: {
     resultText: string;
     searchTime?: string;
@@ -108,6 +109,17 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
             retries: 0,
             status: 'pending',
           });
+
+          // Register background sync (if supported) - enables sync even when app is closed
+          if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            try {
+              const registration = await navigator.serviceWorker.ready;
+              await registration.sync.register('offline-queue-sync');
+            } catch (syncError) {
+              // Background sync not available - fall back to existing timer-based sync
+              console.warn('[OfflineQueue] Background sync registration failed:', syncError);
+            }
+          }
         } catch (error) {
           console.error('❌ Failed to persist score to IndexedDB:', error);
         }

@@ -17,6 +17,9 @@ import { useOfflineQueueStore } from '@/stores/offlineQueueStore';
 // Mock dependencies
 vi.mock('@/services/entryService');
 vi.mock('@/stores/offlineQueueStore');
+vi.mock('@/lib/supabase', () => ({
+  getSupabaseLicenseKey: vi.fn(() => 'test-license-key-12345'),
+}));
 
 // Create mock functions we can track
 const mockMarkAsScored = vi.fn();
@@ -295,7 +298,8 @@ describe('useOptimisticScoring - Offline-First Compliance', () => {
         expect.objectContaining({
           entryId: mockEntry.id,
           classId: mockEntry.classId,
-          armband: mockEntry.armband
+          armband: mockEntry.armband,
+          licenseKey: 'test-license-key-12345', // Required for background sync RLS
         })
       );
     });

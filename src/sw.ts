@@ -316,3 +316,237 @@ return;
   }
 });
 
+// =============================================
+// BACKGROUND SYNC HANDLING
+// =============================================
+// Enables offline scores to sync even when app is closed
+// Supported in Chrome/Edge, graceful degradation elsewhere
+// Types defined in vite-env.d.ts
+
+// Supabase config - injected at build time by Vite
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+// IndexedDB constants (must match DatabaseManager.ts)
+const DB_NAME = 'myK9Q_Replication';
+const DB_VERSION = 5;
+const OFFLINE_QUEUE_STORE = 'offline_queue';
+
+// QueuedScore interface (must match offlineQueueStore.ts)
+interface QueuedScoreData {
+  id: string;
+  entryId: number;
+  armband: number;
+  classId: number;
+  className: string;
+  licenseKey: string;
+  scoreData: {
+    resultText: string;
+    searchTime?: string;
+    faultCount?: number;
+    points?: number;
+    nonQualifyingReason?: string;
+    areas?: { [key: string]: string };
+    healthCheckPassed?: boolean;
+    mph?: number;
+    score?: number;
+    deductions?: number;
+    correctCount?: number;
+    incorrectCount?: number;
+    finishCallErrors?: number;
+    areaTimes?: string[];
+    element?: string;
+    level?: string;
+  };
+  timestamp: string;
+  retryCount: number;
+  maxRetries: number;
+  status: 'pending' | 'syncing' | 'failed' | 'completed';
+}
+
+interface MutationEntry {
+  id: string;
+  type: string;
+  data: QueuedScoreData;
+  timestamp: number;
+  retries: number;
+  status: string;
+}
+
+/**
+ * Open the replication database
+ * Simplified version that only needs read/write access to offline_queue
+ */
+function openReplicationDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => {
+      console.error('[SW] Failed to open IndexedDB:', request.error);
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    // If upgrade is needed, we're in trouble - shouldn't happen in SW
+    request.onupgradeneeded = () => {
+      console.warn('[SW] IndexedDB upgrade needed - this should not happen');
+    };
+  });
+}
+
+/**
+ * Build the score update payload for Supabase REST API
+ */
+function buildScoreUpdate(score: QueuedScoreData): Record<string, unknown> {
+  const { scoreData } = score;
+
+  // Map scoreData to database columns (matches scoreSubmission.ts logic)
+  const update: Record<string, unknown> = {
+    result_status: scoreData.resultText,
+    is_scored: true,
+    entry_status: 'completed',
+    updated_at: new Date().toISOString(),
+  };
+
+  // Optional fields
+  if (scoreData.searchTime) {
+    // Convert MM:SS.mm to seconds
+    const [minutes, rest] = scoreData.searchTime.split(':');
+    const [seconds, ms] = (rest || '0').split('.');
+    update.search_time_seconds =
+      parseInt(minutes || '0') * 60 +
+      parseInt(seconds || '0') +
+      parseInt(ms || '0') / 100;
+  }
+
+  if (scoreData.faultCount !== undefined) {
+    update.total_faults = scoreData.faultCount;
+  }
+
+  if (scoreData.points !== undefined) {
+    update.points_earned = scoreData.points;
+  }
+
+  if (scoreData.nonQualifyingReason) {
+    update.disqualification_reason = scoreData.nonQualifyingReason;
+  }
+
+  return update;
+}
+
+/**
+ * Sync offline queue to Supabase
+ * Called by browser when network is available and sync tag is registered
+ */
+async function syncOfflineQueue(): Promise<void> {
+  console.warn('[SW] 🔄 Background sync triggered');
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('[SW] Missing Supabase config - cannot sync');
+    return;
+  }
+
+  let db: IDBDatabase;
+  try {
+    db = await openReplicationDB();
+  } catch {
+    console.error('[SW] Failed to open database');
+    return;
+  }
+
+  // Get all mutations from offline_queue store
+  const mutations = await new Promise<MutationEntry[]>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_QUEUE_STORE, 'readonly');
+    const store = tx.objectStore(OFFLINE_QUEUE_STORE);
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result as MutationEntry[]);
+    request.onerror = () => reject(request.error);
+  });
+
+  // Filter for pending score submissions
+  const pendingScores = mutations.filter(
+    (m) => m.type === 'SUBMIT_SCORE' && m.status === 'pending'
+  );
+
+  if (pendingScores.length === 0) {
+    console.warn('[SW] No pending scores to sync');
+    db.close();
+    return;
+  }
+
+  console.warn(`[SW] Syncing ${pendingScores.length} offline score(s)...`);
+
+  let successCount = 0;
+
+  for (const mutation of pendingScores) {
+    const score = mutation.data;
+
+    try {
+      // Submit to Supabase REST API
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/entries?id=eq.${score.entryId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+            'x-license-key': score.licenseKey,
+          },
+          body: JSON.stringify(buildScoreUpdate(score)),
+        }
+      );
+
+      if (response.ok) {
+        // Delete from queue
+        await new Promise<void>((resolve, reject) => {
+          const tx = db.transaction(OFFLINE_QUEUE_STORE, 'readwrite');
+          const store = tx.objectStore(OFFLINE_QUEUE_STORE);
+          const request = store.delete(mutation.id);
+
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+
+        successCount++;
+        console.warn(`[SW] ✅ Synced score for entry ${score.entryId}`);
+      } else {
+        const errorText = await response.text();
+        console.error(`[SW] ❌ Failed to sync entry ${score.entryId}:`, errorText);
+        // Don't delete - browser will retry
+      }
+    } catch (error) {
+      console.error(`[SW] ❌ Network error syncing entry ${score.entryId}:`, error);
+      // Network error - browser will retry automatically
+    }
+  }
+
+  db.close();
+
+  // Notify all open clients that sync completed
+  const clients = await self.clients.matchAll({ type: 'window' });
+  clients.forEach((client) => {
+    client.postMessage({
+      type: 'BACKGROUND_SYNC_COMPLETE',
+      syncedCount: successCount,
+      totalCount: pendingScores.length,
+    });
+  });
+
+  console.warn(`[SW] 🎉 Background sync complete: ${successCount}/${pendingScores.length}`);
+}
+
+/**
+ * Handle background sync events
+ */
+self.addEventListener('sync', (event: SyncEvent) => {
+  if (event.tag === 'offline-queue-sync') {
+    event.waitUntil(syncOfflineQueue());
+  }
+});
+
