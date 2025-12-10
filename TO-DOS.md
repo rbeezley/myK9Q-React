@@ -446,7 +446,7 @@ Three different color palettes existed for the same status values:
 
 - ✅ ~~**Set search_path on Database Functions**~~ - ALREADY COMPLETE (verified 2025-12-09). All 6 flagged functions already have `SET search_path TO 'public'` via migration [20251117000004_fix_function_search_path_v2.sql](supabase/migrations/20251117000004_fix_function_search_path_v2.sql) applied 2025-11-17. Query confirmed all functions are fixed.
 
-- **Upgrade Postgres Version** - Security patches available. **Problem:** Current version `supabase-postgres-17.4.1.069` has outstanding security patches. **Files:** Supabase dashboard. **Solution:** Upgrade via [Supabase upgrading guide](https://supabase.com/docs/guides/platform/upgrading).
+- ✅ ~~**Upgrade Postgres Version**~~ - NOT NEEDED (2025-12-10). Already on PostgreSQL 17.4, the latest major version. Supabase handles minor security patches automatically on Pro plan. Major version upgrades (15→17) are manual, but we're already current.
 
 ### 🟢 MEDIUM PRIORITY (Fix Before Public Release)
 
@@ -464,7 +464,7 @@ Three different color palettes existed for the same status values:
   - Service worker registers `offline-queue-sync` tag and processes pending mutations on network restore
   - Works in Chrome/Edge; Safari/Firefox fall back to existing timer-based sync
 
-- **Drop Unused Database Indexes** - 50+ indexes never used. **Problem:** Indexes on `nationals_*`, `performance_metrics`, `rules_*` tables add write overhead. **Files:** Supabase migration. **Solution:** Review Supabase performance advisor and drop confirmed unused indexes.
+- ⏸️ **Drop Unused Database Indexes** - DEFERRED until post-launch (2025-12-10). **Reason:** Index usage stats from Performance Advisor are based on actual query patterns. Pre-production data is unreliable - we don't know which indexes will be needed until real traffic hits. **Action:** Revisit 2-4 weeks after production launch, check Performance Advisor again, then drop indexes that still show zero usage.
 
 ### 📋 Estimated Remediation Time
 

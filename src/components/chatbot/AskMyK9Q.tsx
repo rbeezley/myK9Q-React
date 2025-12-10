@@ -20,12 +20,14 @@ import {
   ChatbotService,
   ChatServiceError,
   formatToolName,
+  getPopularQuestions,
   type ChatResponse,
   type ChatSources,
   type Rule,
   type ClassSummary,
   type EntryResult,
   type TrialSummary,
+  type PopularQuestion,
 } from '../../services/chatbotService';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -38,15 +40,6 @@ interface AskMyK9QProps {
 }
 
 type SourceType = 'rules' | 'classes' | 'entries' | 'trials';
-
-const EXAMPLE_QUERIES = [
-  'What is the time limit for Exterior Advanced?',
-  'How many dogs are in Container Novice?',
-  'Who placed first in Interior Master?',
-  'What classes are running right now?',
-  'How did Buddy do today?',
-  'What\'s the judge for Novice?',
-];
 
 // =============================================================================
 // HELPER FUNCTIONS (extracted to reduce component complexity)
@@ -235,6 +228,7 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
   const [_isOnline, setIsOnline] = useState(navigator.onLine);
   const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [popularQuestions, setPopularQuestions] = useState<PopularQuestion[]>([]);
 
   const { organizationCode, sportCode } = showContext?.org
     ? parseOrgAndSport(showContext.org)
@@ -417,6 +411,15 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
+  // Load popular questions when panel opens
+  useEffect(() => {
+    if (isOpen && popularQuestions.length === 0) {
+      getPopularQuestions(6).then(setPopularQuestions).catch(() => {
+        // Silently fail - will show empty state or defaults
+      });
+    }
+  }, [isOpen, popularQuestions.length]);
+
   if (!isOpen) {
     return null;
   }
@@ -493,27 +496,31 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        {/* Help Text with Examples */}
+        {/* Help Text with Popular Questions */}
         {!searchPerformed && !query.trim() && (
           <div className="chat-help-section">
             <div className="chat-help-text">
               <Info size={16} />
               <span>Ask about rules, class schedules, entries, or results</span>
             </div>
-            <div className="chat-examples">
-              <span className="chat-examples-label">Try asking:</span>
-              <div className="chat-example-chips">
-                {EXAMPLE_QUERIES.map((example, idx) => (
-                  <button
-                    key={idx}
-                    className="chat-example-chip"
-                    onClick={() => handleExampleClick(example)}
-                  >
-                    {example}
-                  </button>
-                ))}
+            {popularQuestions.length > 0 && (
+              <div className="chat-examples">
+                <span className="chat-examples-label">
+                  {popularQuestions.some(q => q.ask_count > 0) ? 'Popular questions:' : 'Try asking:'}
+                </span>
+                <div className="chat-example-chips">
+                  {popularQuestions.map((pq, idx) => (
+                    <button
+                      key={idx}
+                      className="chat-example-chip"
+                      onClick={() => handleExampleClick(pq.query)}
+                    >
+                      {pq.query}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 

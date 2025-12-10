@@ -309,3 +309,69 @@ export function getToolIcon(toolName: string): string {
   };
   return icons[toolName] || 'MessageSquare';
 }
+
+// =============================================================================
+// POPULAR QUESTIONS
+// =============================================================================
+
+export interface PopularQuestion {
+  query: string;
+  ask_count: number;
+}
+
+// Cache for popular questions (refreshed every 5 minutes)
+let popularQuestionsCache: PopularQuestion[] | null = null;
+let popularQuestionsCacheTime = 0;
+const POPULAR_QUESTIONS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Get popular questions asked by users
+ * Falls back to default examples if no data or offline
+ */
+export async function getPopularQuestions(limit = 6): Promise<PopularQuestion[]> {
+  const now = Date.now();
+
+  // Return cached if valid
+  if (popularQuestionsCache && now - popularQuestionsCacheTime < POPULAR_QUESTIONS_CACHE_TTL) {
+    return popularQuestionsCache;
+  }
+
+  // Default fallback questions
+  const defaultQuestions: PopularQuestion[] = [
+    { query: 'What is the time limit for Exterior Advanced?', ask_count: 0 },
+    { query: 'How many dogs are in Container Novice?', ask_count: 0 },
+    { query: 'Who placed first in Interior Master?', ask_count: 0 },
+    { query: 'What classes are running right now?', ask_count: 0 },
+    { query: 'How did Buddy do today?', ask_count: 0 },
+    { query: "What's the judge for Novice?", ask_count: 0 },
+  ];
+
+  // Don't try to fetch if offline
+  if (!navigator.onLine) {
+    return defaultQuestions.slice(0, limit);
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('get_popular_chatbot_questions', {
+      p_limit: limit,
+    });
+
+    if (error) {
+      logger.error('🤖 [ChatbotService] Failed to fetch popular questions:', error);
+      return defaultQuestions.slice(0, limit);
+    }
+
+    // If we got results, cache and return them
+    if (data && data.length > 0) {
+      popularQuestionsCache = data;
+      popularQuestionsCacheTime = now;
+      return data;
+    }
+
+    // Not enough data yet, return defaults
+    return defaultQuestions.slice(0, limit);
+  } catch (err) {
+    logger.error('🤖 [ChatbotService] Error fetching popular questions:', err);
+    return defaultQuestions.slice(0, limit);
+  }
+}
