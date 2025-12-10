@@ -21,7 +21,7 @@
 
 ## Finding Dogs & Classes
 
-**How do I find my dog?** Use the search bar on the Home screen. Search by dog name, breed, or handler name.
+**How do I find my dog?** Tap the filter icon on Home, then search by dog name, breed, or handler name.
 
 **How do I see my dog's classes?** Tap your dog's armband number from Home to see all their entries.
 
@@ -58,7 +58,7 @@
 
 **Can I score offline?** Yes. Scores save locally and sync when you reconnect. Don't log out until synced.
 
-**How do I change run order?** Entry List → Run Order button → drag entries or use presets (Randomize, Reverse, By Armband).
+**How do I change run order?** Entry List → actions menu (⋮) → Set Run Order → choose preset (Armband Low to High, Armband High to Low, Random Shuffle, or Manual Drag and Drop).
 
 **How do I mark in ring?** Tap status → select "In Ring". This moves the dog to top of list.
 
@@ -102,7 +102,7 @@
 
 **Scores not showing?** Check if online (Wi-Fi icon). Pull to refresh after reconnecting.
 
-**Can't find my dog?** Check you're in correct show. Use search. Check "All Dogs" not just Favorites.
+**Can't find my dog?** Check you're in correct show. Tap filter icon to search. Check "All Dogs" not just Favorites.
 
 **Notifications not working?** Check Settings → Notifications. Make sure you installed app to home screen (iPhone).
 

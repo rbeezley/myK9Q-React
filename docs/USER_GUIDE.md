@@ -36,7 +36,7 @@ myK9Q is a Progressive Web App (PWA). On your phone:
 
 ### How do I find my dog?
 From the **Home** screen:
-1. Use the search bar to type your dog's name, breed, or handler name
+1. Tap the filter icon (funnel) to open search, then type your dog's name, breed, or handler name
 2. Tap on your dog's card to see their details
 3. Tap the heart icon to add them to your favorites
 
@@ -46,7 +46,7 @@ Tap on your dog's armband number from the Home screen. The Dog Details page show
 ### How do I find a specific class?
 1. Tap the hamburger menu (☰) → **Classes**
 2. Or from Home, tap a trial card to see its classes
-3. Use the search bar to find classes by name or element
+3. Tap the filter icon to search by class name or element
 
 ### What do the class status badges mean?
 - **Setup** - Class is being prepared
@@ -148,10 +148,13 @@ Tap the heart icon on any dog card. Favorited dogs appear at the top when you se
 5. Confirm the score in the dialog
 
 ### How do I change the run order?
-1. On the Entry List, tap the **Run Order** button
-2. Drag entries up or down to reorder
-3. Or use preset options: Randomize, Reverse, By Armband
-4. Tap **Apply**
+1. On the Entry List, open the actions menu (⋮) → **Set Run Order**
+2. Choose from preset options:
+   - **Armband Low to High** - Sort by armband number ascending
+   - **Armband High to Low** - Sort by armband number descending
+   - **Random Shuffle** - Completely randomize the order
+   - **Manual Drag and Drop** - Reorder entries by dragging
+3. Tap **Apply**
 
 ### How do I mark a dog "In Ring"?
 Tap the dog's status button and select "In Ring". This moves them to the top of the list and helps exhibitors know who's competing.
@@ -218,14 +221,14 @@ If you have pending scores that haven't synced, you'll need to wait for them to 
 ### How do I force a sync?
 1. Pull down on any list to refresh
 2. Or tap the refresh icon in the header
-3. Or go to **Settings** → **Sync Now**
+3. Or tap the sync status icon in the header → **Sync Now**
 
 ---
 
 ## Settings
 
 ### How do I change to dark mode?
-Go to **Settings** → **Appearance** → Toggle **Dark Mode**
+Go to **Settings** → **Appearance** → **Theme** and choose Dark (or Auto to follow your device's system setting)
 
 ### How do I export my data?
 Go to **Settings** → **Advanced** → **Export My Data** (Admin only)
@@ -249,7 +252,7 @@ Go to **Settings** → **Advanced** → **Clear All Data** (Admin only). Note: T
 
 ### I can't find my dog
 1. Make sure you're logged in with the correct passcode
-2. Use the search bar on the Home screen
+2. Tap the filter icon on the Home screen and search by name, breed, or handler
 3. Check the "All Dogs" tab (not just Favorites)
 
 ### Push notifications aren't working
