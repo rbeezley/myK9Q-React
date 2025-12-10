@@ -456,9 +456,13 @@ Three different color palettes existed for the same status values:
 
 - ✅ ~~**Align Theme Colors**~~ - COMPLETE (2025-12-09). Updated vite.config.ts to use `#14b8a6` (teal-400) as theme_color, matching index.html and the app's primary brand color.
 
-- **Move pg_net Extension from Public Schema** - Extension in wrong schema. **Problem:** Supabase flagged `pg_net` extension in public schema as security concern. **Files:** Supabase migration. **Solution:** Move extension to `extensions` schema.
+- ✅ ~~**Move pg_net Extension from Public Schema**~~ - COMPLETE (2025-12-09). Applied migration `move_pg_net_to_extensions_schema` to relocate pg_net from public to extensions schema. Verified extension now in correct schema via Supabase MCP query.
 
-- **Implement Background Sync API** - Service worker skeleton not implemented. **Problem:** Offline scores don't sync when app is closed. **Files:** [sw-custom.js:515-520](public/sw-custom.js#L515-L520). **Solution:** Implement actual mutation upload in background sync event handler.
+- ✅ ~~**Implement Background Sync API**~~ - COMPLETE (2025-12-09). Added Background Sync handler in [sw.ts](src/sw.ts) that syncs offline scores when network available, even with app closed. **Implementation:**
+  - Added `SyncManager` TypeScript types in [vite-env.d.ts](src/vite-env.d.ts)
+  - Added `licenseKey` to `QueuedScore` interface in [offlineQueueStore.ts](src/stores/offlineQueueStore.ts)
+  - Service worker registers `offline-queue-sync` tag and processes pending mutations on network restore
+  - Works in Chrome/Edge; Safari/Firefox fall back to existing timer-based sync
 
 - **Drop Unused Database Indexes** - 50+ indexes never used. **Problem:** Indexes on `nationals_*`, `performance_metrics`, `rules_*` tables add write overhead. **Files:** Supabase migration. **Solution:** Review Supabase performance advisor and drop confirmed unused indexes.
 
