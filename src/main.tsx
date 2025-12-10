@@ -5,6 +5,22 @@ import './index.css'
 import { registerSW } from 'virtual:pwa-register'
 import { serviceWorkerManager } from './utils/serviceWorkerUtils'
 import { initializeReplication } from './services/replication/initReplication'
+import { logger } from './utils/logger'
+
+// Global error handlers - catch unhandled async errors and uncaught exceptions
+// These provide a safety net for errors that escape try/catch blocks
+window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+  logger.error('[Unhandled Promise Rejection]', event.reason)
+  // Prevent default browser logging (we handle it ourselves)
+  event.preventDefault()
+})
+
+window.addEventListener('error', (event: ErrorEvent) => {
+  // Only log if it's not already handled by React's error boundary
+  if (!event.defaultPrevented) {
+    logger.error('[Uncaught Error]', event.error || event.message)
+  }
+})
 
 // App version for debugging cache issues
 const APP_VERSION = '2024-11-25-v4';

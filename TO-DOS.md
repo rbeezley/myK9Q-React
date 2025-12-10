@@ -431,15 +431,20 @@ Three different color palettes existed for the same status values:
 
 ### 🟡 HIGH PRIORITY (Fix Before Launch)
 
-- **Implement Server-Side Rate Limiting** - Client-side rate limiting can be bypassed. **Problem:** Clearing localStorage or making direct API calls bypasses the 5-attempt limit. **Files:** Create Edge Function for login rate limiting. **Solution:** Use Supabase Edge Functions or Cloudflare rate limiting; return 429 after 5 attempts per IP.
+- ✅ ~~**Implement Server-Side Rate Limiting**~~ - COMPLETE (2025-12-09). Created `validate-passcode` Edge Function with IP-based rate limiting. **Implementation:**
+  - Database: `login_attempts` table with `check_login_rate_limit()` and `record_login_attempt()` functions
+  - Edge Function: [validate-passcode](supabase/functions/validate-passcode/index.ts) - validates passcode server-side, tracks attempts by IP
+  - Client: [authService.ts](src/services/authService.ts) - calls Edge Function first, falls back to client-side if unavailable
+  - Config: 5 attempts per 15 min window, 30 min block after limit reached
+  - Migration: [20251209_create_login_attempts_rate_limiting.sql](supabase/migrations/20251209_create_login_attempts_rate_limiting.sql)
 
-- **Add Server-Side Permission Validation** - All permission checks are client-side only. **Problem:** Direct API calls can bypass role restrictions. **Files:** Supabase RLS policies on all tables. **Solution:** Add RLS policies that validate permissions at database level based on authenticated user context.
+- ⏸️ **Server-Side Permission Validation** - DEFERRED (2025-12-09). **Reason:** Low ROI given passcode authentication architecture. RLS policies require `auth.uid()` or session context, but myK9Q uses anonymous Supabase key with passcode-based roles. Would require: (1) Custom session table + Edge Functions wrapping all writes, OR (2) Migration to Supabase Auth. Rate limiting already protects the auth endpoint. The risk (malicious API calls with exposed anon key) is mitigated by: (a) license_key filtering already in queries, (b) event-based app with limited attack window, (c) rate limiting on auth. **Revisit if:** Moving to Supabase Auth or if security audit requires it.
 
-- **Bundle Workbox Locally** - Service worker depends on external CDN. **Problem:** If Google CDN unavailable, service worker fails entirely. **Files:** [sw-custom.js:5](public/sw-custom.js#L5). **Solution:** Configure vite-plugin-pwa to bundle Workbox locally instead of importing from `storage.googleapis.com`.
+- ✅ ~~**Bundle Workbox Locally**~~ - COMPLETE (2025-12-09). Investigation confirmed Workbox is already bundled from npm packages (`workbox-precaching`, `workbox-routing`, etc.) via vite-plugin-pwa's `injectManifest` strategy. No CDN dependency exists - imports in sw-custom.js are from npm modules that get bundled at build time.
 
-- **Add Global Unhandled Rejection Handler** - Missing safety net for async errors. **Problem:** Some promise rejections may silently fail without logging. **Files:** [main.tsx](src/main.tsx). **Solution:** Add `window.addEventListener('unhandledrejection', (event) => { logger.error('Unhandled:', event.reason); });`
+- ✅ ~~**Add Global Unhandled Rejection Handler**~~ - COMPLETE (2025-12-09). Added both `unhandledrejection` and `error` event listeners in [main.tsx:10-23](src/main.tsx#L10-L23). All unhandled async errors and uncaught exceptions now route through the logger utility.
 
-- **Set search_path on Database Functions** - 6 functions vulnerable to search path injection. **Problem:** Functions `update_class_last_result_at`, `set_entry_license_key`, `notify_up_soon`, `update_rules_search_vector`, `update_rules_updated_at`, `notify_come_to_gate` have mutable search_path. **Files:** Supabase functions (see [lint docs](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable)). **Solution:** Add `SET search_path = public` to each function definition.
+- ✅ ~~**Set search_path on Database Functions**~~ - ALREADY COMPLETE (verified 2025-12-09). All 6 flagged functions already have `SET search_path TO 'public'` via migration [20251117000004_fix_function_search_path_v2.sql](supabase/migrations/20251117000004_fix_function_search_path_v2.sql) applied 2025-11-17. Query confirmed all functions are fixed.
 
 - **Upgrade Postgres Version** - Security patches available. **Problem:** Current version `supabase-postgres-17.4.1.069` has outstanding security patches. **Files:** Supabase dashboard. **Solution:** Upgrade via [Supabase upgrading guide](https://supabase.com/docs/guides/platform/upgrading).
 
@@ -447,9 +452,9 @@ Three different color palettes existed for the same status values:
 
 - **Standardize Logging to Logger Utility** - 802 direct console.log calls bypass settings. **Problem:** Users who disable logging still see 70% of log output. **Files:** Multiple files across `src/components/`, `src/services/`, `src/pages/`. **Solution:** Replace `console.log/error/warn` with `logger.log/error/warn` from [logger.ts](src/utils/logger.ts).
 
-- **Fix PWA Icon Size Mismatch** - Manifest built with wrong sizes. **Problem:** vite.config.ts specifies 192px file as 512px. **Files:** [vite.config.ts](vite.config.ts) PWA icon configuration. **Solution:** Correct icon size mappings to match actual file dimensions.
+- ✅ ~~**Fix PWA Icon Size Mismatch**~~ - COMPLETE (2025-12-09). Fixed vite.config.ts to use `myK9Q-teal-512.png` for the 512x512 icon entry instead of incorrectly referencing the 192px file.
 
-- **Align Theme Colors** - Manifest and config disagree. **Problem:** Manifest uses `#14b8a6`, Vite config uses `#10b981`. **Files:** [public/manifest.json](public/manifest.json), [vite.config.ts](vite.config.ts). **Solution:** Pick one brand color and use consistently.
+- ✅ ~~**Align Theme Colors**~~ - COMPLETE (2025-12-09). Updated vite.config.ts to use `#14b8a6` (teal-400) as theme_color, matching index.html and the app's primary brand color.
 
 - **Move pg_net Extension from Public Schema** - Extension in wrong schema. **Problem:** Supabase flagged `pg_net` extension in public schema as security concern. **Files:** Supabase migration. **Solution:** Move extension to `extensions` schema.
 
