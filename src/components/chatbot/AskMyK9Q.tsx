@@ -245,14 +245,14 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     }
 
     if (!navigator.onLine) {
-      setError('Ask myK9Q requires an internet connection. Your show data is still available offline in the app.');
+      setError('AskQ requires an internet connection. Your show data is still available offline in the app.');
       setSearchPerformed(true);
       setResponse(null);
       return;
     }
 
     if (!showContext?.licenseKey) {
-      setError('Please log in to use Ask myK9Q.');
+      setError('Please log in to use AskQ.');
       setSearchPerformed(true);
       setResponse(null);
       return;
@@ -385,7 +385,7 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     const handleOffline = () => {
       setIsOnline(false);
       if (query.trim()) {
-        setError('Ask myK9Q requires an internet connection. Your show data is still available offline in the app.');
+        setError('AskQ requires an internet connection. Your show data is still available offline in the app.');
       }
     };
 
@@ -437,13 +437,13 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
       <aside
         className="chat-panel"
         role="complementary"
-        aria-label="Ask myK9Q"
+        aria-label="AskQ"
       >
         {/* Header */}
         <div className="chat-panel-header">
           <div className="chat-panel-title">
             <MessageSquare size={24} />
-            <h2>Ask myK9Q</h2>
+            <h2>AskQ</h2>
           </div>
           <button
             onClick={onClose}
@@ -502,6 +502,9 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
             <div className="chat-help-text">
               <Info size={16} />
               <span>Ask about rules, class schedules, entries, or results</span>
+            </div>
+            <div className="chat-dictation-tip">
+              Tip: Use your keyboard's 🎤 button to speak your question
             </div>
             {popularQuestions.length > 0 && (
               <div className="chat-examples">
@@ -711,6 +714,12 @@ const EntriesSourceList: React.FC<EntriesSourceListProps> = ({ entries }) => {
     return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
   };
 
+  const getOrdinal = (n: number): string => {
+    const suffixes = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+  };
+
   return (
     <div className="chat-data-table entries">
       <div className="chat-data-header">
@@ -721,11 +730,7 @@ const EntriesSourceList: React.FC<EntriesSourceListProps> = ({ entries }) => {
       {entries.map((entry, idx) => (
         <div key={idx} className="chat-data-row">
           <div className="chat-data-cell armband">
-            {entry.placement ? (
-              <span className="chat-placement">{entry.placement}</span>
-            ) : (
-              <span className="chat-armband">{entry.armband_number}</span>
-            )}
+            <span className="chat-armband">{entry.armband_number}</span>
           </div>
           <div className="chat-data-cell primary">
             <span className="chat-dog-name">{entry.call_name}</span>
@@ -739,6 +744,9 @@ const EntriesSourceList: React.FC<EntriesSourceListProps> = ({ entries }) => {
                 </span>
                 {entry.time !== null && (
                   <span className="chat-time">{formatTime(entry.time)}</span>
+                )}
+                {entry.placement && entry.placement > 0 && entry.placement <= 4 && (
+                  <span className="chat-placement-badge">{getOrdinal(entry.placement)}</span>
                 )}
               </>
             ) : (

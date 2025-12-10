@@ -6119,3 +6119,464 @@ select.form-input {
     max-width: none;
   }
 }
+
+/* ========== SYNC STATUS BANNER COMPONENT ========== */
+/**
+ * Sync Status Banner - Shows sync failures and data staleness warnings
+ * Used to notify users when data sync has issues
+ */
+
+.sync-status-banner-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: var(--token-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm) var(--token-space-md);
+}
+
+.sync-status-banner-container.top {
+  top: 0;
+}
+
+.sync-status-banner-container.bottom {
+  bottom: 0;
+}
+
+/* Base banner styling */
+.sync-status-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Error banner - Red */
+.sync-status-banner--error {
+  background: linear-gradient(135deg, #dc2626 0%, var(--status-pulled) 100%);
+  color: white;
+}
+
+/* Warning banner - Orange/Yellow */
+.sync-status-banner--warning {
+  background: linear-gradient(135deg, var(--status-conflict) 0%, #fb923c 100%);
+  color: white;
+}
+
+.sync-status-banner__icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.sync-status-banner__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-xs);
+  min-width: 0;
+}
+
+.sync-status-banner__message {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.sync-status-banner__details {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.sync-status-banner__action {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-xs);
+  padding: var(--token-space-sm) var(--token-space-md);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sync-status-banner__action:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.sync-status-banner__action:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.sync-status-banner__dismiss {
+  padding: var(--token-space-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.sync-status-banner__dismiss:hover {
+  opacity: 1;
+}
+
+/* Spinning animation for refresh icon */
+.sync-status-banner__action .spinning {
+  animation: sync-rotate 1s linear infinite;
+}
+
+/* Last synced indicator - subtle, non-intrusive */
+.sync-status-last-synced {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-xs);
+  padding: var(--token-space-xs) var(--token-space-md);
+  background: var(--muted);
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  width: fit-content;
+  margin: 0 auto;
+}
+
+/* Compact sync status for headers */
+.compact-sync-status {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-xs);
+  padding: var(--token-space-xs) var(--token-space-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.compact-sync-status--ok {
+  color: var(--muted-foreground);
+}
+
+.compact-sync-status--warning {
+  color: var(--warning);
+  background: rgba(255, 149, 0, 0.1);
+}
+
+.compact-sync-status--error {
+  color: var(--error);
+  background: rgba(255, 59, 48, 0.1);
+}
+
+/* Mobile adjustments for sync status banner */
+@media (max-width: 639px) {
+  .sync-status-banner-container {
+    padding: var(--token-space-xs) var(--token-space-sm);
+  }
+
+  .sync-status-banner {
+    padding: var(--token-space-sm) var(--token-space-md);
+    gap: var(--token-space-sm);
+  }
+
+  .sync-status-banner__message {
+    font-size: 0.8125rem;
+  }
+
+  .sync-status-banner__details {
+    font-size: 0.6875rem;
+  }
+
+  .sync-status-banner__action {
+    padding: var(--token-space-xs) var(--token-space-sm);
+    font-size: 0.75rem;
+  }
+}
+
+/* ========== SYNC STATUS POPOVER COMPONENT ========== */
+/**
+ * Click-to-expand sync status popover
+ * Shows detailed sync/offline status on demand
+ */
+
+.sync-popover-container {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Compact Indicator (trigger button) */
+.sync-popover-indicator {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sync-popover-indicator:hover {
+  background: var(--muted);
+}
+
+.sync-popover-indicator:active {
+  transform: scale(0.95);
+}
+
+/* Indicator color states - using design tokens from design-tokens.css */
+.sync-popover-indicator--ok {
+  color: var(--success-green);
+}
+
+.sync-popover-indicator--offline {
+  color: var(--warning-amber);
+}
+
+.sync-popover-indicator--warning {
+  color: var(--warning-amber);
+}
+
+.sync-popover-indicator--error {
+  color: var(--error-red);
+}
+
+.sync-popover-indicator--pending {
+  color: var(--brand-blue);
+}
+
+.sync-popover-indicator--syncing {
+  color: var(--brand-blue);
+}
+
+/* Badge */
+.sync-popover-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--error);
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spinning animation */
+.sync-popover-spinning {
+  animation: sync-rotate 1s linear infinite;
+}
+
+/* Popover Panel */
+.sync-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 280px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: var(--token-z-popover);
+  animation: fadeInDown 0.15s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.sync-popover__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--token-space-md) var(--token-space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.sync-popover__title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.sync-popover__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sync-popover__close:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+/* Content */
+.sync-popover__content {
+  padding: var(--token-space-sm) 0;
+}
+
+/* Row */
+.sync-popover__row {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-sm) var(--token-space-lg);
+}
+
+.sync-popover__row--error {
+  background: rgba(255, 59, 48, 0.05);
+}
+
+.sync-popover__row--success {
+  background: rgba(52, 199, 89, 0.05);
+}
+
+.sync-popover__row-icon {
+  flex-shrink: 0;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+}
+
+.sync-popover__row-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-popover__row-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sync-popover__row-detail {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+/* Icon colors - using design tokens from design-tokens.css */
+.sync-popover__icon--ok {
+  color: var(--success-green);
+}
+
+.sync-popover__icon--warning {
+  color: var(--warning-amber);
+}
+
+.sync-popover__icon--error {
+  color: var(--error-red);
+}
+
+.sync-popover__icon--pending {
+  color: var(--brand-blue);
+}
+
+/* Small action button (inline) */
+.sync-popover__action-small {
+  padding: var(--token-space-xs) var(--token-space-sm);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sync-popover__action-small:hover {
+  opacity: 0.9;
+}
+
+/* Dismiss button (inline) */
+.sync-popover__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.sync-popover__dismiss:hover {
+  background: var(--muted);
+}
+
+/* Footer */
+.sync-popover__footer {
+  padding: var(--token-space-md) var(--token-space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.sync-popover__sync-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-sm);
+  width: 100%;
+  padding: var(--token-space-sm) var(--token-space-md);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sync-popover__sync-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.sync-popover__sync-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile adjustments */
+@media (max-width: 639px) {
+  .sync-popover {
+    width: calc(100vw - 32px);
+    left: -8px;
+  }
+}

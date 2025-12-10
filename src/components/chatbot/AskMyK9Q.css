@@ -256,6 +256,14 @@
   background-color: rgba(20, 184, 166, 0.15);
 }
 
+/* Dictation Tip */
+.chat-dictation-tip {
+  font-size: var(--token-font-xs);
+  color: var(--token-text-tertiary);
+  text-align: center;
+  padding: var(--token-space-sm) 0;
+}
+
 .chat-examples {
   margin-top: var(--token-space-lg);
 }
@@ -757,6 +765,15 @@
 .chat-time {
   font-size: var(--token-font-xs);
   color: var(--token-text-secondary);
+}
+
+.chat-placement-badge {
+  padding: 2px var(--token-space-sm);
+  border-radius: var(--token-space-xs);
+  font-size: 10px;
+  font-weight: var(--token-font-weight-bold);
+  background-color: rgba(251, 191, 36, 0.15);
+  color: #b45309;
 }
 
 .chat-not-scored {

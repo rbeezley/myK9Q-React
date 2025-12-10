@@ -105,9 +105,14 @@ export class SyncOrchestrator {
   private isSyncing: boolean = false;
   private syncHistory: SyncResult[] = [];
 
-  /** Track last full sync per table to detect server deletions */
+  /**
+   * Track last full sync per table to detect server deletions
+   * NOTE: This is now primarily a cache - the authoritative timestamps are in IndexedDB
+   * via SyncMetadata.lastFullSyncAt. We load from there on startup.
+   */
   private lastFullSyncTimes: Map<string, number> = new Map();
   private readonly DEFAULT_FULL_SYNC_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+  private fullSyncTimesLoaded: boolean = false;
 
   /** Sync queue for manual sync requests */
   private syncQueue: Array<() => Promise<void>> = [];
@@ -126,6 +131,45 @@ export class SyncOrchestrator {
     this.getCacheStats = callbacks.getCacheStats;
 
     logger.log('✅ [SyncOrchestrator] Initialized');
+  }
+
+  /**
+   * Load full sync timestamps from persisted metadata
+   * Called before first sync to ensure we don't unnecessarily force full syncs
+   */
+  private async loadFullSyncTimesFromMetadata(): Promise<void> {
+    if (this.fullSyncTimesLoaded) return;
+
+    try {
+      const tableNames = this.getTableNames();
+      for (const tableName of tableNames) {
+        const table = this.getTable(tableName);
+        if (table) {
+          const metadata = await table.getSyncMetadata();
+          if (metadata?.lastFullSyncAt) {
+            this.lastFullSyncTimes.set(tableName, metadata.lastFullSyncAt);
+          }
+        }
+      }
+      this.fullSyncTimesLoaded = true;
+      logger.log('[SyncOrchestrator] Loaded full sync timestamps from metadata');
+    } catch (error) {
+      logger.error('[SyncOrchestrator] Failed to load full sync timestamps:', error);
+    }
+  }
+
+  /**
+   * Persist full sync timestamp to IndexedDB metadata
+   */
+  private async persistFullSyncTime(tableName: string, timestamp: number): Promise<void> {
+    try {
+      const table = this.getTable(tableName);
+      if (table) {
+        await table.updateSyncMetadata({ lastFullSyncAt: timestamp });
+      }
+    } catch (error) {
+      logger.error(`[SyncOrchestrator] Failed to persist full sync time for ${tableName}:`, error);
+    }
   }
 
   // ========================================
@@ -155,11 +199,15 @@ export class SyncOrchestrator {
    * Sync a single table
    *
    * Day 25-26: Periodically force full sync to detect server deletions
+   * RELIABILITY FIX: Full sync timestamps now persisted to IndexedDB
    */
   async syncTable(
     tableName: string,
     options?: Partial<SyncOptions>
   ): Promise<SyncResult> {
+    // Load persisted full sync timestamps on first sync
+    await this.loadFullSyncTimesFromMetadata();
+
     const table = this.getTable(tableName);
 
     if (!table) {
@@ -201,9 +249,12 @@ export class SyncOrchestrator {
     // Each table implements its own sync logic with proper joins
     const result = await table.sync(syncOptions.licenseKey, syncOptions);
 
-    // Track full sync time
+    // Track full sync time - both in memory and persisted to IndexedDB
     if (forceFullSync && result.success) {
-      this.lastFullSyncTimes.set(tableName, Date.now());
+      const now = Date.now();
+      this.lastFullSyncTimes.set(tableName, now);
+      // Persist to IndexedDB so it survives page reloads
+      await this.persistFullSyncTime(tableName, now);
     }
 
     // Store in history
@@ -298,6 +349,27 @@ export class SyncOrchestrator {
               error instanceof Error ? error.message : 'Unknown sync error',
           });
         }
+      }
+
+      // RELIABILITY FIX: Dispatch event if any sync failed so UI can notify user
+      const failedSyncs = results.filter((r) => !r.success);
+      if (failedSyncs.length > 0) {
+        window.dispatchEvent(new CustomEvent('replication:sync-failed', {
+          detail: {
+            failedTables: failedSyncs.map(r => r.tableName),
+            errors: failedSyncs.map(r => r.error).filter(Boolean),
+            message: `Sync failed for ${failedSyncs.length} table(s). Data may be stale.`,
+          }
+        }));
+        logger.warn(`[SyncOrchestrator] ${failedSyncs.length} tables failed to sync`);
+      } else {
+        // Dispatch success event
+        window.dispatchEvent(new CustomEvent('replication:sync-success', {
+          detail: {
+            tablesCount: results.length,
+            timestamp: Date.now(),
+          }
+        }));
       }
 
       const duration = Date.now() - startTime;

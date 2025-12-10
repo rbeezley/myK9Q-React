@@ -229,7 +229,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 onClick={() => handleMenuItemClick(() => setIsAskMyK9QOpen(true))}
               >
                 <MessageSquare className="menu-icon" />
-                <span>Ask myK9Q</span>
+                <span>AskQ</span>
               </button>
 
               {/* Admin Section - Only show for admin users */}
@@ -346,7 +346,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         licenseKey={showContext?.licenseKey}
       />
 
-      {/* Ask myK9Q Chatbot */}
+      {/* AskQ Chatbot */}
       <AskMyK9Q
         isOpen={isAskMyK9QOpen}
         onClose={() => setIsAskMyK9QOpen(false)}

@@ -51,6 +51,17 @@ export class ReplicatedTableCacheManager<T extends { id: string }> {
   // TTL / EXPIRATION
   // ========================================
 
+  /** Track last successful sync time (updated by refreshTimestamps) */
+  private lastSuccessfulSyncAt: number = 0;
+
+  /**
+   * Update the last successful sync timestamp
+   * Called after a sync completes successfully
+   */
+  setLastSuccessfulSync(timestamp: number): void {
+    this.lastSuccessfulSyncAt = timestamp;
+  }
+
   /**
    * Check if row is expired based on TTL
    *
@@ -58,6 +69,9 @@ export class ReplicatedTableCacheManager<T extends { id: string }> {
    * This ensures offline scores are never lost, even if TTL expires
    *
    * Day 25-26 MEDIUM Fix: Don't expire if offline (offline mode exception)
+   *
+   * RELIABILITY FIX: Don't expire if we haven't synced successfully recently
+   * This prevents data loss when sync fails silently
    */
   isExpired(row: ReplicatedRow<T>): boolean {
     // Never expire dirty rows (have pending mutations)
@@ -70,12 +84,24 @@ export class ReplicatedTableCacheManager<T extends { id: string }> {
       return false;
     }
 
-    return Date.now() - row.lastSyncedAt > this.getTtl();
+    // RELIABILITY FIX: Don't expire if we haven't synced successfully in a while
+    // This prevents silent data loss when sync fails
+    const ttl = this.getTtl();
+    const timeSinceLastSync = Date.now() - this.lastSuccessfulSyncAt;
+
+    // If we haven't synced successfully within 2x TTL, don't expire anything
+    // This gives the sync system time to recover from failures
+    if (timeSinceLastSync > ttl * 2) {
+      return false;
+    }
+
+    return Date.now() - row.lastSyncedAt > ttl;
   }
 
   /**
    * Refresh timestamps on all cached rows
    * Called after incremental sync with 0 changes to prevent expiration
+   * Also marks this as a successful sync for TTL protection
    */
   async refreshTimestamps(): Promise<void> {
     const db = await this.getDb();
@@ -92,6 +118,10 @@ export class ReplicatedTableCacheManager<T extends { id: string }> {
     }
 
     await tx.done;
+
+    // Mark this as a successful sync for TTL protection
+    this.setLastSuccessfulSync(now);
+
     this.logger.log(`[${this.tableName}] Refreshed timestamps for ${rows.length} cached rows`);
   }
 

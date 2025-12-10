@@ -112,8 +112,9 @@ function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
 
   return {
     "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
+      "authorization, x-client-info, apikey, content-type, x-license-key",
   };
 }
 
@@ -184,11 +185,15 @@ const TOOLS: ToolDefinition[] = [
       properties: {
         element: {
           type: "string",
-          description: "Filter by element (e.g., Interior, Exterior)",
+          description: "Filter by element (e.g., Interior, Exterior, Handler Discrimination)",
         },
         level: {
           type: "string",
           description: "Filter by level (e.g., Novice, Master)",
+        },
+        trial_date: {
+          type: "string",
+          description: "Filter by trial date. Accepts: day of week ('Saturday', 'Sunday'), US format ('9/16/2023', '09/16/2023'), or ISO format ('2023-09-16')",
         },
         armband_number: {
           type: "string",
@@ -391,12 +396,81 @@ async function executeGetClassSummary(
 }
 
 /**
+ * Parse various date formats and convert to ISO format (YYYY-MM-DD)
+ * Supports:
+ * - Day of week: "Saturday", "Sunday", "Sat", "Sun"
+ * - US format: "9/16/2023", "09/16/2023", "9-16-2023"
+ * - ISO format: "2023-09-16" (passed through)
+ */
+async function parseAndResolveDate(
+  dateInput: string,
+  supabase: ReturnType<typeof createClient>,
+  licenseKey: string
+): Promise<string | null> {
+  const input = dateInput.trim();
+
+  // Already ISO format (YYYY-MM-DD)
+  if (input.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return input;
+  }
+
+  // US format: M/D/YYYY or MM/DD/YYYY (with / or - separator)
+  const usDateMatch = input.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (usDateMatch) {
+    const month = usDateMatch[1].padStart(2, "0");
+    const day = usDateMatch[2].padStart(2, "0");
+    const year = usDateMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  // Try day of week
+  const dayLower = input.toLowerCase();
+  const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const shortDayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+  // Check if it's a day name
+  const isDayName = dayNames.some(d => d.startsWith(dayLower)) ||
+                    shortDayNames.some(d => dayLower.startsWith(d));
+
+  if (isDayName) {
+    // Get all trial dates for this show
+    const { data: trials } = await supabase
+      .from("trials")
+      .select("trial_date, shows!inner(license_key)")
+      .eq("shows.license_key", licenseKey);
+
+    if (!trials || trials.length === 0) return null;
+
+    // Find the trial date that matches the day of week
+    for (const trial of trials) {
+      const date = new Date(trial.trial_date + "T12:00:00Z"); // Use noon to avoid timezone issues
+      const trialDayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+      const trialShortDay = date.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase();
+
+      if (trialDayName.startsWith(dayLower) || trialShortDay.startsWith(dayLower) || dayLower.startsWith(trialShortDay)) {
+        return trial.trial_date;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Get entry results
+ *
+ * Uses a two-step approach for element/level/date filtering:
+ * 1. Query classes table to get matching class IDs
+ * 2. Filter entries by those class IDs
+ *
+ * This is necessary because Supabase PostgREST join filtering doesn't
+ * actually filter the base table - it only filters the joined data.
  */
 async function executeGetEntryResults(
   params: {
     element?: string;
     level?: string;
+    trial_date?: string;
     armband_number?: string;
     handler_name?: string;
     dog_name?: string;
@@ -407,49 +481,105 @@ async function executeGetEntryResults(
   licenseKey: string
 ): Promise<{ data: EntryResult[]; error?: string }> {
   try {
+    // Parse and resolve date (handles US format, day of week, and ISO format)
+    let resolvedDate: string | undefined = undefined;
+    if (params.trial_date) {
+      const parsed = await parseAndResolveDate(params.trial_date, supabase, licenseKey);
+      if (parsed) {
+        console.log(`Resolved "${params.trial_date}" to ISO date: ${parsed}`);
+        resolvedDate = parsed;
+      } else {
+        console.log(`Could not resolve date: ${params.trial_date}`);
+      }
+    }
+
+    // Step 1: If element, level, or date filter provided, first find matching class IDs
+    let classIds: number[] | null = null;
+
+    if (params.element || params.level || resolvedDate) {
+      // Get the show_id first to filter classes
+      const { data: showData } = await supabase
+        .from("shows")
+        .select("id")
+        .eq("license_key", licenseKey)
+        .single();
+
+      if (showData) {
+        let classQuery = supabase
+          .from("classes")
+          .select("id, element, level, trials!inner(show_id, trial_date)")
+          .eq("trials.show_id", showData.id);
+
+        if (params.element) {
+          classQuery = classQuery.ilike("element", `%${params.element}%`);
+        }
+        if (params.level) {
+          classQuery = classQuery.ilike("level", `%${params.level}%`);
+        }
+        if (resolvedDate) {
+          classQuery = classQuery.eq("trials.trial_date", resolvedDate);
+        }
+
+        const { data: classData, error: classError } = await classQuery;
+
+        if (classError) {
+          console.error("Class lookup error:", classError);
+          return { data: [], error: classError.message };
+        }
+
+        if (!classData || classData.length === 0) {
+          // No matching classes found
+          console.log(`No classes found for element=${params.element}, level=${params.level}, date=${resolvedDate}`);
+          return { data: [] };
+        }
+
+        classIds = classData.map((c: { id: number }) => c.id);
+        console.log(`Found ${classIds.length} matching classes for element=${params.element}, level=${params.level}, date=${resolvedDate}: [${classIds.join(", ")}]`);
+      }
+    }
+
+    // Step 2: Query entries with class_id filter if we have matching classes
     let query = supabase
       .from("view_entry_with_results")
       .select(`
         armband_number,
-        call_name,
-        handler,
+        dog_call_name,
+        handler_name,
         entry_status,
         result_status,
-        time,
-        faults,
-        placement,
+        search_time_seconds,
+        total_faults,
+        final_placement,
         is_scored,
-        element,
-        level
+        class_id
       `)
       .eq("license_key", licenseKey);
 
-    if (params.element) {
-      query = query.ilike("element", `%${params.element}%`);
+    // Apply class_id filter if we found matching classes
+    if (classIds !== null) {
+      query = query.in("class_id", classIds);
     }
-    if (params.level) {
-      query = query.ilike("level", `%${params.level}%`);
-    }
+
     if (params.armband_number) {
       query = query.eq("armband_number", params.armband_number);
     }
     if (params.handler_name) {
-      query = query.ilike("handler", `%${params.handler_name}%`);
+      query = query.ilike("handler_name", `%${params.handler_name}%`);
     }
     if (params.dog_name) {
-      query = query.ilike("call_name", `%${params.dog_name}%`);
+      query = query.ilike("dog_call_name", `%${params.dog_name}%`);
     }
     if (params.result_status) {
       query = query.eq("result_status", params.result_status);
     }
     if (params.top_n) {
-      query = query.not("placement", "is", null).lte("placement", params.top_n);
+      query = query.not("final_placement", "is", null).lte("final_placement", params.top_n);
     }
 
     // Order by placement (nulls last), then by time
     query = query
-      .order("placement", { ascending: true, nullsFirst: false })
-      .order("time", { ascending: true, nullsFirst: false })
+      .order("final_placement", { ascending: true, nullsFirst: false })
+      .order("search_time_seconds", { ascending: true, nullsFirst: false })
       .limit(30);
 
     const { data, error } = await query;
@@ -459,7 +589,42 @@ async function executeGetEntryResults(
       return { data: [], error: error.message };
     }
 
-    return { data: data || [] };
+    // Step 3: Get class details for the returned entries
+    const entryClassIds = [...new Set((data || []).map((e: { class_id: number }) => e.class_id))];
+    let classMap: Map<number, { element: string; level: string }> = new Map();
+
+    if (entryClassIds.length > 0) {
+      const { data: classDetails } = await supabase
+        .from("classes")
+        .select("id, element, level")
+        .in("id", entryClassIds);
+
+      if (classDetails) {
+        classDetails.forEach((c: { id: number; element: string; level: string }) => {
+          classMap.set(c.id, { element: c.element, level: c.level });
+        });
+      }
+    }
+
+    // Transform data to match expected interface
+    const transformed = (data || []).map((row: Record<string, unknown>) => {
+      const classInfo = classMap.get(row.class_id as number);
+      return {
+        armband_number: row.armband_number,
+        call_name: row.dog_call_name,
+        handler: row.handler_name,
+        entry_status: row.entry_status,
+        result_status: row.result_status,
+        time: row.search_time_seconds ? Number(row.search_time_seconds) : null,
+        faults: row.total_faults,
+        placement: row.final_placement,
+        is_scored: row.is_scored,
+        element: classInfo?.element || null,
+        level: classInfo?.level || null,
+      };
+    });
+
+    return { data: transformed };
   } catch (err) {
     console.error("Entry results exception:", err);
     return { data: [], error: String(err) };
@@ -509,6 +674,8 @@ async function executeGetTrialOverview(
 
 /**
  * Search entries by dog or handler name across all classes
+ *
+ * Fetches entries matching the search criteria and enriches with class details.
  */
 async function executeSearchEntries(
   params: { dog_name?: string; handler_name?: string },
@@ -520,31 +687,34 @@ async function executeSearchEntries(
       return { data: [], error: "Must provide dog_name or handler_name" };
     }
 
+    // Query entries
     let query = supabase
       .from("view_entry_with_results")
       .select(`
         armband_number,
-        call_name,
-        handler,
+        dog_call_name,
+        handler_name,
         entry_status,
         result_status,
-        time,
-        faults,
-        placement,
+        search_time_seconds,
+        total_faults,
+        final_placement,
         is_scored,
-        element,
-        level
+        class_id
       `)
       .eq("license_key", licenseKey);
 
     if (params.dog_name) {
-      query = query.ilike("call_name", `%${params.dog_name}%`);
+      query = query.ilike("dog_call_name", `%${params.dog_name}%`);
     }
     if (params.handler_name) {
-      query = query.ilike("handler", `%${params.handler_name}%`);
+      query = query.ilike("handler_name", `%${params.handler_name}%`);
     }
 
-    query = query.order("element").order("level").limit(30);
+    query = query
+      .order("final_placement", { ascending: true, nullsFirst: false })
+      .order("search_time_seconds", { ascending: true, nullsFirst: false })
+      .limit(30);
 
     const { data, error } = await query;
 
@@ -553,7 +723,42 @@ async function executeSearchEntries(
       return { data: [], error: error.message };
     }
 
-    return { data: data || [] };
+    // Get class details for the returned entries
+    const entryClassIds = [...new Set((data || []).map((e: { class_id: number }) => e.class_id))];
+    let classMap: Map<number, { element: string; level: string }> = new Map();
+
+    if (entryClassIds.length > 0) {
+      const { data: classDetails } = await supabase
+        .from("classes")
+        .select("id, element, level")
+        .in("id", entryClassIds);
+
+      if (classDetails) {
+        classDetails.forEach((c: { id: number; element: string; level: string }) => {
+          classMap.set(c.id, { element: c.element, level: c.level });
+        });
+      }
+    }
+
+    // Transform data to match expected interface
+    const transformed = (data || []).map((row: Record<string, unknown>) => {
+      const classInfo = classMap.get(row.class_id as number);
+      return {
+        armband_number: row.armband_number,
+        call_name: row.dog_call_name,
+        handler: row.handler_name,
+        entry_status: row.entry_status,
+        result_status: row.result_status,
+        time: row.search_time_seconds ? Number(row.search_time_seconds) : null,
+        faults: row.total_faults,
+        placement: row.final_placement,
+        is_scored: row.is_scored,
+        element: classInfo?.element || null,
+        level: classInfo?.level || null,
+      };
+    });
+
+    return { data: transformed };
   } catch (err) {
     console.error("Search entries exception:", err);
     return { data: [], error: String(err) };
@@ -600,6 +805,7 @@ async function executeTool(
         toolInput as {
           element?: string;
           level?: string;
+          trial_date?: string;
           armband_number?: string;
           handler_name?: string;
           dog_name?: string;
@@ -668,7 +874,7 @@ async function callClaude(
       max_tokens: MAX_TOKENS,
       tools,
       messages,
-      system: `You are myK9Q Assistant, a helpful AI that answers questions about dog show events and competition rules.
+      system: `You are AskQ, a helpful AI assistant that answers questions about dog show events and competition rules.
 
 IMPORTANT GUIDELINES:
 1. Use the available tools to find accurate information before answering.

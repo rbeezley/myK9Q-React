@@ -581,9 +581,73 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     return this.cacheManager.getSyncMetadata();
   }
 
-  /** Update sync metadata */
-  protected async updateSyncMetadata(updates: Partial<SyncMetadata>): Promise<void> {
+  /** Update sync metadata (public for SyncOrchestrator to persist full sync timestamps) */
+  async updateSyncMetadata(updates: Partial<SyncMetadata>): Promise<void> {
     return this.cacheManager.updateSyncMetadata(updates);
+  }
+
+  // ========================================
+  // STALE ENTRY DETECTION (Deleted Row Cleanup)
+  // ========================================
+
+  /**
+   * Get all local IDs for this table (used for stale entry detection)
+   * Returns IDs of non-expired, non-dirty rows only
+   */
+  async getAllLocalIds(): Promise<Set<string>> {
+    const db = await this.init();
+    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readonly');
+    const index = tx.store.index('tableName');
+    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
+
+    const ids = new Set<string>();
+    for (const row of rows) {
+      // Skip expired rows (they'll be cleaned up anyway)
+      if (this.cacheManager.isExpired(row)) continue;
+      ids.add(row.id);
+    }
+
+    return ids;
+  }
+
+  /**
+   * Remove stale entries that no longer exist on the server
+   * Only removes non-dirty rows (rows with pending local changes are preserved)
+   *
+   * @param serverIds - Set of IDs that exist on the server
+   * @returns Number of stale entries removed
+   */
+  async removeStaleEntries(serverIds: Set<string>): Promise<number> {
+    const db = await this.init();
+    const tx = db.transaction(REPLICATION_STORES.REPLICATED_TABLES, 'readwrite');
+    const index = tx.store.index('tableName');
+    const rows = await index.getAll(this.tableName) as ReplicatedRow<T>[];
+
+    let removedCount = 0;
+
+    for (const row of rows) {
+      // CRITICAL: Never remove dirty rows (have pending mutations)
+      if (row.isDirty) {
+        this.logger.log(`[${this.tableName}] Preserving dirty row ${row.id} (has pending changes)`);
+        continue;
+      }
+
+      // If ID doesn't exist on server, remove from local cache
+      if (!serverIds.has(row.id)) {
+        await tx.store.delete([row.tableName, row.id]);
+        removedCount++;
+        this.logger.log(`[${this.tableName}] Removed stale entry: ${row.id} (deleted from server)`);
+      }
+    }
+
+    await tx.done;
+
+    if (removedCount > 0) {
+      this.logger.log(`[${this.tableName}] Removed ${removedCount} stale entries`);
+      this.notifyListeners();
+    }
+
+    return removedCount;
   }
 
   // ========================================

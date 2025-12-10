@@ -189,6 +189,9 @@ export class SyncExecutor {
     let processedRows = 0;
     let currentPage = 0;
 
+    // Collect server IDs for stale entry detection
+    const serverIds = new Set<string>();
+
     while (processedRows < totalCount) {
       // Fetch one page
       const { data: pageData, error: pageError } = await supabase
@@ -204,6 +207,11 @@ export class SyncExecutor {
 
       if (!pageData || pageData.length === 0) {
         break; // No more data
+      }
+
+      // Collect IDs for stale entry detection
+      for (const row of pageData) {
+        serverIds.add(row.id);
       }
 
       // Process page in chunks
@@ -237,6 +245,12 @@ export class SyncExecutor {
           await new Promise(resolve => setTimeout(resolve, 100)); // Allow GC
         }
       }
+    }
+
+    // Stale entry detection: Remove local entries that no longer exist on server
+    const staleCount = await table.removeStaleEntries(serverIds);
+    if (staleCount > 0) {
+      logger.log(`🗑️ [SyncExecutor] Removed ${staleCount} stale entries from ${tableName}`);
     }
 
     logger.log(`✅ [SyncExecutor] Streaming fetch complete: ${processedRows} rows synced`);
@@ -301,6 +315,9 @@ export class SyncExecutor {
     // Day 23-24: Use chunked batch set for large datasets (500+ rows)
     const batchSize = options.batchSize || 100;
 
+    // Collect server IDs for stale entry detection
+    const serverIds = new Set<string>(data.map((row: { id: string }) => row.id));
+
     if (data.length >= 500) {
       // Large dataset: use optimized chunking (single transaction per chunk)
       logger.log(`📦 [SyncExecutor] Using chunked batch set for ${data.length} rows`);
@@ -336,6 +353,13 @@ export class SyncExecutor {
           });
         }
       }
+    }
+
+    // Stale entry detection: Remove local entries that no longer exist on server
+    // This handles the case where rows are deleted from the database
+    const staleCount = await table.removeStaleEntries(serverIds);
+    if (staleCount > 0) {
+      logger.log(`🗑️ [SyncExecutor] Removed ${staleCount} stale entries from ${tableName}`);
     }
 
     return data.length;

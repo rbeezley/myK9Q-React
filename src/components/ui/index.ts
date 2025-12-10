@@ -58,3 +58,6 @@ export type { InstallPromptProps } from './InstallPrompt';
 export { AutoLogoutWarning } from './AutoLogoutWarning';
 export { UpdateToast } from './UpdateToast';
 export type { default as UpdateToastProps } from './UpdateToast';
+export { SyncStatusBanner, CompactSyncStatus } from './SyncStatusBanner';
+export type { SyncStatusBannerProps } from './SyncStatusBanner';
+export { SyncStatusPopover } from './SyncStatusPopover';
