@@ -140,7 +140,8 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+SET search_path = public;
 
 COMMENT ON FUNCTION audit_entry_score_changes() IS
 'Trigger function that logs changes to score-related fields in entry_audit table.
