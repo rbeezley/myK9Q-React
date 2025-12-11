@@ -50,6 +50,10 @@ export interface SyncStatusActions {
 
 export type SyncStatusStore = SyncStatusState & SyncStatusActions;
 
+// Debounce timer for failure display (prevents flashing during initial sync)
+let failureDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const FAILURE_DEBOUNCE_MS = 3000; // Wait 3 seconds before showing failure
+
 export const useSyncStatusStore = create<SyncStatusStore>((set, get) => ({
   // Initial state
   lastSyncAt: null,
@@ -60,6 +64,11 @@ export const useSyncStatusStore = create<SyncStatusStore>((set, get) => ({
 
   // Actions
   recordSyncSuccess: (timestamp: number) => {
+    // Cancel any pending failure display - sync succeeded!
+    if (failureDebounceTimer) {
+      clearTimeout(failureDebounceTimer);
+      failureDebounceTimer = null;
+    }
     set({
       lastSyncAt: timestamp,
       lastFailure: null,
@@ -68,14 +77,29 @@ export const useSyncStatusStore = create<SyncStatusStore>((set, get) => ({
   },
 
   recordSyncFailure: (message: string, failedTables: string[]) => {
-    set({
-      lastFailure: {
-        timestamp: Date.now(),
-        message,
-        failedTables,
-      },
-      failureDismissed: false,
-    });
+    // Debounce failure display to avoid flashing during initial sync
+    // If sync succeeds within 3 seconds, user never sees the error
+    if (failureDebounceTimer) {
+      clearTimeout(failureDebounceTimer);
+    }
+
+    failureDebounceTimer = setTimeout(() => {
+      failureDebounceTimer = null;
+      // Only show failure if we still don't have a recent successful sync
+      const { lastSyncAt } = get();
+      const hasRecentSuccess = lastSyncAt && (Date.now() - lastSyncAt) < 5000;
+
+      if (!hasRecentSuccess) {
+        set({
+          lastFailure: {
+            timestamp: Date.now(),
+            message,
+            failedTables,
+          },
+          failureDismissed: false,
+        });
+      }
+    }, FAILURE_DEBOUNCE_MS);
   },
 
   dismissFailure: () => {
