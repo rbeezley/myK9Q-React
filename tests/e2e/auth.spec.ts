@@ -173,6 +173,8 @@ test.describe('Authentication Flow', () => {
 
     // Test 2: Verify user can retry after error (single retry only)
     // This confirms the error state doesn't permanently block the UI
+    // Wait for progressive delay to expire (1 second per previous failed attempt)
+    await page.waitForTimeout(1500);
     await enterPasscode(page, invalidPasscode);
     await page.waitForTimeout(1500);
 

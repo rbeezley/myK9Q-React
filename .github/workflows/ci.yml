@@ -83,11 +83,20 @@ jobs:
 
       - name: Clear rate limiting for E2E tests
         run: |
-          curl -X DELETE \
-            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/login_attempts?attempted_at=not.is.null" \
-            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Prefer: return=minimal"
+          echo "Clearing rate limits via Edge Function..."
+          RESPONSE=$(curl -s -X POST \
+            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/clear-rate-limits" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "X-E2E-Test: myK9Q-e2e-test-2024")
+          echo "Response: $RESPONSE"
+          # Verify success (but don't fail pipeline if Edge Function is down)
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "Rate limits cleared successfully"
+          else
+            echo "Warning: Could not clear rate limits - tests may be affected"
+          fi
         continue-on-error: true
 
       - name: Run E2E tests

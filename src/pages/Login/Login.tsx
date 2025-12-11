@@ -320,13 +320,16 @@ inputRefs.current[0]?.focus();
       // ❌ Failed attempt - record for rate limiting
       recordFailedAttempt('login');
 
-      // Check if now rate limited after this failure
+      // Check rate limit state for remaining attempts warning
+      // Note: We DON'T use the "allowed" flag here because progressive delay
+      // is for SUBSEQUENT attempts, not to replace the current error message
       const newRateLimitResult = checkRateLimit('login');
 
       hapticFeedback.heavy();
 
-      if (!newRateLimitResult.allowed) {
-        // Show rate limit message instead of generic error
+      // Only show block message if actually blocked (not just progressive delay)
+      if (newRateLimitResult.blockTimeRemaining > 0) {
+        // Actually blocked for 30 minutes - show block message
         setError(newRateLimitResult.message);
       } else if (newRateLimitResult.remainingAttempts <= 2) {
         // Show warning when getting close to limit
