@@ -186,7 +186,9 @@ CREATE POLICY "System can insert audit records" ON entry_audit
 -- STEP 5: Utility View for Easy Querying
 -- ============================================
 
-CREATE OR REPLACE VIEW view_entry_audit_summary AS
+CREATE OR REPLACE VIEW view_entry_audit_summary
+WITH (security_invoker = true)
+AS
 SELECT
   ea.entry_id,
   ea.field_name,
@@ -206,7 +208,7 @@ LEFT JOIN classes c ON ea.class_id = c.id
 ORDER BY ea.changed_at DESC;
 
 COMMENT ON VIEW view_entry_audit_summary IS
-'Human-readable audit log with handler/dog/class context.';
+'Human-readable audit log with handler/dog/class context. Uses SECURITY INVOKER to enforce RLS.';
 
 -- ============================================
 -- SUCCESS MESSAGE
