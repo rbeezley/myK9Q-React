@@ -16,7 +16,7 @@
   --accent-secondary: rgba(0, 122, 255, 0.1);
 
   /* Layout - Dark mode default */
-  background: #0f172a; /* Dark slate background */
+  background: var(--bg-app); /* Use app-wide background */
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   transition: background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -25,10 +25,7 @@
   overflow: hidden; /* Match Home page */
 }
 
-/* Light mode override - gray background for better contrast with white cards */
-.theme-light .scoresheet-container {
-  background: var(--secondary); /* Light gray background */
-}
+/* Light/dark mode handled by var(--bg-app) above */
 
 /* Scoresheet Header - Additional styles for scoresheets (used with page-header) */
 .scoresheet-header {

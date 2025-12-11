@@ -1,6 +1,6 @@
 /* Extends the base scoresheet styles */
 .akc-fastcat {
-  background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+  /* Uses var(--bg-app) from BaseScoresheet.css */
 }
 
 /* Timer Section */

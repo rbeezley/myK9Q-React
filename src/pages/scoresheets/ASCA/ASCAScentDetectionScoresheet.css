@@ -1,6 +1,6 @@
 /* Extends the base scoresheet styles */
 .asca-scent-detection {
-  background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);
+  /* Uses var(--bg-app) from BaseScoresheet.css */
 }
 
 /* Timer Section */

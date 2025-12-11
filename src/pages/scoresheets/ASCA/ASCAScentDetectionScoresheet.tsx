@@ -14,6 +14,7 @@ import type { Entry as ReplicatedEntry } from '../../../services/replication/tab
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '../../../stores/entryStore';
 import { logger } from '@/utils/logger';
+import '../BaseScoresheet.css';
 import './ASCAScentDetectionScoresheet.css';
 
 type QualifyingResult = 'Q' | 'NQ' | 'E';

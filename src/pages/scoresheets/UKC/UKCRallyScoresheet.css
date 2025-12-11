@@ -1,8 +1,7 @@
 /* UKC Rally Scoresheet - Apple-inspired Design System Override */
 
-/* Scoresheet-specific background gradient */
+/* Background inherited from BaseScoresheet.css */
 .ukc-rally {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
   min-height: 100vh;
   position: relative;
 }
