@@ -327,10 +327,10 @@ async function authenticatePasscodeClientSide(
     showId: matchedShow.id.toString(),
     showName: matchedShow.show_name,
     clubName: matchedShow.club_name,
-    showDate: matchedShow.show_date,
+    showDate: matchedShow.start_date,
     licenseKey: matchedShow.license_key,
-    org: licenseData?.organization || '',
-    competition_type: licenseData?.show_type || 'Regular',
+    org: matchedShow.organization || licenseData?.organization || '',
+    competition_type: matchedShow.show_type || licenseData?.show_type || 'Regular',
     trials: trials || [],
     classes: classes || [],
   };
@@ -405,7 +405,7 @@ export async function getShowByLicenseKey(licenseKey: string): Promise<ShowData 
       showId: show.id.toString(),
       showName: show.show_name,
       clubName: show.club_name,
-      showDate: show.show_date,
+      showDate: show.start_date,
       licenseKey: show.license_key,
       org: show.organization || licenseData?.organization || '', // Try show table first, then fallback
       competition_type: show.show_type || licenseData?.show_type || 'Regular',

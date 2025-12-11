@@ -231,7 +231,7 @@ export async function detectDatabaseWithValidation(passcode: string): Promise<De
             showId: String(show.id),
             showName: show.show_name,
             clubName: show.club_name,
-            showDate: show.show_date,
+            showDate: show.start_date,
             licenseKey: show.license_key,
             org: show.org || show.organization || '',
             competition_type: show.competition_type || 'Regular',

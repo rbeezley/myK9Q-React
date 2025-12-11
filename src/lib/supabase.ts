@@ -52,14 +52,16 @@ export const setSupabaseLicenseKey = (licenseKey: string | null): void => {
  */
 export const getSupabaseLicenseKey = (): string | null => currentLicenseKey;
 
-// Database types based on Flutter analysis
+// Database types based on actual schema
 export interface ShowQueue {
   id: number;
   license_key: string;
   show_name: string;
   club_name: string;
-  show_date: string;
-  trial_date: string;
+  start_date: string;
+  end_date: string;
+  organization?: string;
+  show_type?: string;
   created_at: string;
   updated_at: string;
 }

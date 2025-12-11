@@ -8,7 +8,7 @@ interface ShowTestData {
   id: number;
   show_name: string;
   club_name: string;
-  show_date: string;
+  start_date: string;
   license_key: string;
 }
 
@@ -117,7 +117,7 @@ export const DatabaseTest: React.FC = () => {
                 }}>
                   <div><strong>Show:</strong> {show.show_name}</div>
                   <div><strong>Club:</strong> {show.club_name}</div>
-                  <div><strong>Date:</strong> {show.show_date}</div>
+                  <div><strong>Date:</strong> {show.start_date}</div>
                   <div><strong>License:</strong> {show.license_key}</div>
                 </div>
               ))}
