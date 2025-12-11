@@ -16,6 +16,12 @@ import type { PendingMutation, SyncResult } from './types';
 import { logger } from '@/utils/logger';
 import { REPLICATION_STORES } from './DatabaseManager';
 import type { IDBPDatabase } from 'idb';
+import {
+  withTimeout,
+  backoffDelay,
+  isRetryableError,
+  TIMEOUT_PRESETS,
+} from '@/utils/networkUtils';
 
 /**
  * Configuration for MutationManager
@@ -48,7 +54,6 @@ export class MutationManager {
     this.getDb = getDb;
     this.maxRetries = config.maxRetries || 3;
     this.retryBackoffBase = config.retryBackoffBase || 1000;
-    void this.retryBackoffBase; // Reserved for future exponential backoff implementation
   }
 
   // ========================================
@@ -133,28 +138,34 @@ export class MutationManager {
           );
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
+          const canRetry = isRetryableError(error);
 
           // Increment retry count
           mutation.retries = (mutation.retries || 0) + 1;
 
-          // Mark as failed if max retries exceeded
-          if (mutation.retries >= this.maxRetries) {
+          // Mark as failed if max retries exceeded OR error is not retryable
+          if (mutation.retries >= this.maxRetries || !canRetry) {
             mutation.status = 'failed';
-            mutation.error = `Max retries exceeded: ${message}`;
+            mutation.error = canRetry
+              ? `Max retries exceeded: ${message}`
+              : `Non-retryable error: ${message}`;
             failedMutations.push(mutation);
 
             logger.error(
-              `❌ [MutationManager] Mutation ${mutation.id} failed permanently:`,
+              `❌ [MutationManager] Mutation ${mutation.id} failed permanently${canRetry ? ' (max retries)' : ' (non-retryable)'}:`,
               error
             );
           } else {
             mutation.status = 'pending';
             mutation.error = message;
 
-            logger.error(
+            logger.warn(
               `⚠️ [MutationManager] Mutation ${mutation.id} failed (retry ${mutation.retries}/${this.maxRetries}):`,
               error
             );
+
+            // Apply exponential backoff delay before next attempt
+            await backoffDelay(mutation.retries - 1, this.retryBackoffBase);
           }
 
           // Update mutation in queue
@@ -189,7 +200,7 @@ export class MutationManager {
   }
 
   /**
-   * Execute a single mutation on the server
+   * Execute a single mutation on the server with timeout protection
    */
   private async executeMutation(mutation: PendingMutation): Promise<void> {
     const { tableName, operation, data } = mutation;
@@ -197,16 +208,24 @@ export class MutationManager {
     switch (operation) {
       case 'INSERT':
       case 'UPDATE': {
-        const { error } = await supabase.from(tableName).upsert(data);
+        const { error } = await withTimeout(
+          supabase.from(tableName).upsert(data),
+          TIMEOUT_PRESETS.standard,
+          `${tableName} upsert`
+        );
         if (error) throw error;
         break;
       }
 
       case 'DELETE': {
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('id', data.id);
+        const { error } = await withTimeout(
+          supabase
+            .from(tableName)
+            .delete()
+            .eq('id', data.id),
+          TIMEOUT_PRESETS.standard,
+          `${tableName} delete`
+        );
         if (error) throw error;
         break;
       }

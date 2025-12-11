@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import type { ReplicatedTable } from './ReplicatedTable';
 import type { SyncMetadata, SyncResult, SyncProgress } from './types';
 import { logger } from '@/utils/logger';
+import { withTimeout, TIMEOUT_PRESETS } from '@/utils/networkUtils';
 
 /**
  * Chrome-specific memory info interface
@@ -93,11 +94,15 @@ export class SyncExecutor {
       const STREAM_THRESHOLD = 1000; // Switch to streaming if >1000 rows expected
       const STREAM_PAGE_SIZE = 500;  // Fetch 500 rows per page
 
-      // First, check row count (HEAD-only query)
-      const { count: totalCount, error: countError } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true })
-        .eq('license_key', options.licenseKey);
+      // First, check row count (HEAD-only query) with timeout
+      const { count: totalCount, error: countError } = await withTimeout(
+        supabase
+          .from(tableName)
+          .select('*', { count: 'exact', head: true })
+          .eq('license_key', options.licenseKey),
+        TIMEOUT_PRESETS.quick,
+        `${tableName} row count`
+      );
 
       if (countError) {
         throw new Error(`Row count query failed: ${countError.message}`);
@@ -193,13 +198,17 @@ export class SyncExecutor {
     const serverIds = new Set<string>();
 
     while (processedRows < totalCount) {
-      // Fetch one page
-      const { data: pageData, error: pageError } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('license_key', options.licenseKey)
-        .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
-        .order('id', { ascending: true });
+      // Fetch one page with timeout
+      const { data: pageData, error: pageError } = await withTimeout(
+        supabase
+          .from(tableName)
+          .select('*')
+          .eq('license_key', options.licenseKey)
+          .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
+          .order('id', { ascending: true }),
+        TIMEOUT_PRESETS.standard,
+        `${tableName} page ${currentPage}`
+      );
 
       if (pageError) {
         throw new Error(`Page ${currentPage} fetch failed: ${pageError.message}`);
@@ -265,10 +274,15 @@ export class SyncExecutor {
     tableName: string,
     options: SyncExecutorOptions
   ): Promise<number> {
-    const { data, error } = await supabase
-      .from(tableName)
-      .select('*')
-      .eq('license_key', options.licenseKey);
+    // Fetch all data with timeout
+    const { data, error } = await withTimeout(
+      supabase
+        .from(tableName)
+        .select('*')
+        .eq('license_key', options.licenseKey),
+      TIMEOUT_PRESETS.standard,
+      `${tableName} full fetch`
+    );
 
     if (error) {
       throw new Error(`Supabase query failed: ${error.message}`);
@@ -399,11 +413,15 @@ export class SyncExecutor {
       // Day 25-26: Check row count before fetching to prevent unbounded sync
       const MAX_INCREMENTAL_ROWS = 5000;
 
-      const { count: rowCount, error: countError } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true })
-        .eq('license_key', options.licenseKey)
-        .gt('updated_at', new Date(lastSync).toISOString());
+      const { count: rowCount, error: countError } = await withTimeout(
+        supabase
+          .from(tableName)
+          .select('*', { count: 'exact', head: true })
+          .eq('license_key', options.licenseKey)
+          .gt('updated_at', new Date(lastSync).toISOString()),
+        TIMEOUT_PRESETS.quick,
+        `${tableName} incremental count`
+      );
 
       if (countError) {
         throw new Error(`Row count query failed: ${countError.message}`);
@@ -417,13 +435,17 @@ export class SyncExecutor {
         return this.fullSync(table, options);
       }
 
-      // Fetch rows updated since last sync
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('license_key', options.licenseKey)
-        .gt('updated_at', new Date(lastSync).toISOString())
-        .order('updated_at', { ascending: true });
+      // Fetch rows updated since last sync with timeout
+      const { data, error } = await withTimeout(
+        supabase
+          .from(tableName)
+          .select('*')
+          .eq('license_key', options.licenseKey)
+          .gt('updated_at', new Date(lastSync).toISOString())
+          .order('updated_at', { ascending: true }),
+        TIMEOUT_PRESETS.standard,
+        `${tableName} incremental fetch`
+      );
 
       if (error) {
         throw new Error(`Supabase query failed: ${error.message}`);
