@@ -240,20 +240,20 @@ export default defineConfig({
               }
             }
           },
-          // Use NetworkFirst for CSS to prevent stale styles during rehydration
+          // CacheFirst for CSS - matches JS strategy to prevent FOUC (Flash of Unstyled Content)
+          // Vite generates content-hashed filenames, so no risk of serving stale CSS
           {
             urlPattern: /\/assets\/.*\.css$/,
-            handler: 'NetworkFirst',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'css-assets-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day (shorter TTL for CSS)
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days (same as JS)
               },
               cacheableResponse: {
                 statuses: [0, 200]
-              },
-              networkTimeoutSeconds: 3 // Fall back to cache if network is slow
+              }
             }
           }
         ]

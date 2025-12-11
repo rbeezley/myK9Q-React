@@ -59,7 +59,11 @@ registerRoute(
       })
 );
 
-// Network-first strategy for CSS to prevent stale styles during rehydration
+// CacheFirst strategy for CSS - matches JS strategy to prevent FOUC (Flash of Unstyled Content)
+// Vite generates content-hashed filenames (e.g., index-abc123.css), so different versions
+// have different URLs - no risk of serving stale CSS with new JS.
+// CRITICAL: Using NetworkFirst caused a race condition where JS rendered before CSS loaded,
+// resulting in gray text, wrong alignment, and incorrect backgrounds on initial page load.
 registerRoute(
   ({ request, url }) => {
     // Match CSS files from our origin
@@ -68,19 +72,28 @@ registerRoute(
       request.destination === 'style'
     );
   },
-  new NetworkFirst({
-    cacheName: 'css-cache',
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 24 * 60 * 60, // 1 day (shorter TTL for CSS)
-      }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-    networkTimeoutSeconds: 3, // Fall back to cache if network is slow
-  })
+  isDevelopment
+    ? new NetworkFirst({
+        cacheName: 'css-cache-dev',
+        plugins: [
+          new CacheableResponsePlugin({
+            statuses: [0, 200],
+          }),
+        ],
+        networkTimeoutSeconds: 5,
+      })
+    : new CacheFirst({
+        cacheName: 'css-cache',
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 50,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days (same as JS)
+          }),
+          new CacheableResponsePlugin({
+            statuses: [0, 200],
+          }),
+        ],
+      })
 );
 
 // Navigation requests: Try cache first, fall back to index.html for SPA routing
