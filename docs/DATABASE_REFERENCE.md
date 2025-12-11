@@ -82,6 +82,43 @@ Organization-specific class requirements with configurable rules.
 - **created_at** (timestamp): Creation timestamp
 - **updated_at** (timestamp): Auto-updated via trigger when rules change
 
+### entry_audit
+Audit trail for score changes. Automatically populated by trigger on entries table.
+
+- **id** (bigserial, PK): Auto-incrementing unique identifier
+- **entry_id** (bigint, FK → entries): The entry that was changed
+- **field_name** (text): Name of the field that changed
+- **old_value** (text): Previous value (as text)
+- **new_value** (text): New value (as text)
+- **changed_at** (timestamptz): When the change occurred
+- **changed_by** (text): User ID or identifier (set via `myk9q.changed_by` session variable)
+- **change_source** (text): Source of change ('app', 'sync', 'direct_sql', 'migration', 'unknown')
+- **license_key** (text): Multi-tenant isolation key
+- **class_id** (bigint): Associated class (for filtering)
+- **created_at** (timestamptz): Record creation timestamp
+
+**Tracked Fields** (26 total):
+- Time fields: `search_time_seconds`, `area1_time_seconds`, `area2_time_seconds`, `area3_time_seconds`, `area4_time_seconds`
+- Fault fields: `total_faults`, `area1_faults`, `area2_faults`, `area3_faults`
+- Find fields: `total_correct_finds`, `total_incorrect_finds`, `area1_correct`, `area1_incorrect`, `area2_correct`, `area2_incorrect`, `area3_correct`, `area3_incorrect`
+- Score fields: `total_score`, `points_earned`, `points_possible`, `bonus_points`, `penalty_points`
+- Status fields: `result_status`, `final_placement`, `is_scored`, `disqualification_reason`
+
+**Usage**:
+```sql
+-- Set context before updates (optional, for attribution)
+SET LOCAL myk9q.change_source = 'app';
+SET LOCAL myk9q.changed_by = 'user_id_here';
+
+-- Query audit trail
+SELECT * FROM view_entry_audit_summary WHERE entry_id = 123;
+```
+
+**Important Notes**:
+- RLS enabled: Users can only view audit records for their license_key
+- Only INSERT via triggers allowed (no direct inserts from applications)
+- Added: Migration 20251210_add_score_audit_trail.sql
+
 ### entries
 Dog entries for classes. Migration 039 merged results table into entries.
 
@@ -382,6 +419,35 @@ SELECT * FROM view_trial_summary_normalized
 WHERE license_key = 'myK9Q1-a260f472-e0d76a33-4b6c264c';
 ```
 
+### view_entry_audit_summary ⭐ **USE THIS FOR AUDIT QUERIES**
+Human-readable audit log with handler/dog/class context.
+
+**Use in**: Dispute resolution, score change history, admin review
+
+**Columns**:
+- **entry_id**: Entry that was changed
+- **field_name**: Which field changed
+- **old_value**, **new_value**: Before/after values
+- **changed_at**: When change occurred
+- **changed_by**: Who made the change
+- **change_source**: Where change originated (app, sync, etc.)
+- **handler_name**, **dog_call_name**: Handler and dog info
+- **element**, **level**, **section**: Class context
+
+**Example Query**:
+```sql
+-- Get all score changes for a specific entry
+SELECT * FROM view_entry_audit_summary
+WHERE entry_id = 123
+ORDER BY changed_at DESC;
+
+-- Get recent changes for a handler
+SELECT * FROM view_entry_audit_summary
+WHERE handler_name = 'Jane Smith'
+ORDER BY changed_at DESC
+LIMIT 50;
+```
+
 ---
 
 ## Database Functions
@@ -491,6 +557,17 @@ These triggers automatically update the `updated_at` column:
   Only notifies users who have favorited that specific armband number.
   Prevents duplicate notifications by checking old status.
   **Added**: Migration 20251117000006
+
+### Score Audit Triggers
+- **entries** (AFTER UPDATE): `trg_audit_entry_scores`
+  Automatically logs all changes to score-related fields (26 fields tracked).
+  Captures old value, new value, timestamp, and optional attribution context.
+  Applications can set context variables before updates:
+  ```sql
+  SET LOCAL myk9q.change_source = 'app';
+  SET LOCAL myk9q.changed_by = 'user_id_here';
+  ```
+  **Added**: Migration 20251210_add_score_audit_trail.sql
 
 ### Statistics & Rankings Triggers
 - **event_statistics** (AFTER INSERT): `trigger_update_nationals_rankings`
@@ -602,6 +679,38 @@ Most tables have RLS policies that automatically filter by:
 - Updated `view_class_summary` to include timing fields
 - Supports persistent time values for class status display
 
+### Migration 20251210: Score Validation Constraints
+Added CHECK constraints to prevent invalid score values at database level:
+
+**Entries Table Constraints**:
+- `entries_search_time_non_negative`: `search_time_seconds >= 0` (or NULL)
+- `entries_area1_time_non_negative`: `area1_time_seconds >= 0` (or NULL)
+- `entries_area2_time_non_negative`: `area2_time_seconds >= 0` (or NULL)
+- `entries_area3_time_non_negative`: `area3_time_seconds >= 0` (or NULL)
+- `entries_area4_time_non_negative`: `area4_time_seconds >= 0` (or NULL)
+- `entries_total_faults_non_negative`: `total_faults >= 0` (or NULL)
+- `entries_area1_faults_non_negative`: `area1_faults >= 0` (or NULL)
+- `entries_area2_faults_non_negative`: `area2_faults >= 0` (or NULL)
+- `entries_area3_faults_non_negative`: `area3_faults >= 0` (or NULL)
+- `entries_total_score_non_negative`: `total_score >= 0` (or NULL)
+- `entries_points_possible_non_negative`: `points_possible >= 0` (or NULL)
+- `entries_total_correct_finds_non_negative`: `total_correct_finds >= 0` (or NULL)
+- `entries_total_incorrect_finds_non_negative`: `total_incorrect_finds >= 0` (or NULL)
+
+**Classes Table Constraints**:
+- `classes_time_limit_positive`: `time_limit_seconds > 0` (or NULL)
+- `classes_time_limit_area2_positive`: `time_limit_area2_seconds > 0` (or NULL)
+- `classes_time_limit_area3_positive`: `time_limit_area3_seconds > 0` (or NULL)
+- `classes_area_count_positive`: `area_count > 0` (or NULL)
+
+**Note**: `points_earned` CAN be negative (nationals penalty point systems).
+
+### Migration 20251210: Score Audit Trail
+- Created `entry_audit` table for tracking score changes
+- Created `trg_audit_entry_scores` trigger on entries table
+- Created `view_entry_audit_summary` view for human-readable queries
+- Supports dispute resolution ("who changed what, when?")
+
 ---
 
 ## Performance Best Practices
@@ -641,8 +750,9 @@ Most tables have RLS policies that automatically filter by:
 | Check auth role | `get_user_role()` function |
 | Calculate placements | `calculate_placements()` function |
 | Get trial summary | `view_trial_summary_normalized` |
+| View score change history | `view_entry_audit_summary` |
 
 ---
 
-**Last Updated**: 2025-11-07
-**Schema Version**: Post-migration 042 (Results merged into entries)
+**Last Updated**: 2025-12-10
+**Schema Version**: Post-migration 20251210 (Score audit trail + validation constraints)
