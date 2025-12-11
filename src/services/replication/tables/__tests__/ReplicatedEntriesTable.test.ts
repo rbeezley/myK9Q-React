@@ -456,14 +456,14 @@ describe('ReplicatedEntriesTable', () => {
   });
 
   describe('Conflict Resolution', () => {
-    it('should preserve client check-in status over server', async () => {
+    it('should always use server entry_status (server wins)', async () => {
       const local: Entry = {
         id: '1',
         armband_number: 101,
         handler_name: 'John Doe',
         dog_call_name: 'Buddy',
         class_id: 'class-1',
-        entry_status: 'checked-in', // Client set this
+        entry_status: 'checked-in', // Client has newer status
         is_scored: false,
         is_in_ring: false,
         license_key: TEST_LICENSE_KEY,
@@ -475,7 +475,7 @@ describe('ReplicatedEntriesTable', () => {
         handler_name: 'John Doe',
         dog_call_name: 'Buddy',
         class_id: 'class-1',
-        entry_status: 'no-status', // Server has old status
+        entry_status: 'no-status', // Server value
         is_scored: false,
         is_in_ring: false,
         license_key: TEST_LICENSE_KEY,
@@ -484,10 +484,12 @@ describe('ReplicatedEntriesTable', () => {
       // Access protected method for testing
       const resolved = (table as any).resolveConflict(local, remote);
 
-      expect(resolved.entry_status).toBe('checked-in'); // Client wins
+      // Server always wins - local changes are uploaded first via MutationManager,
+      // so by the time we merge, server has the most recent committed state
+      expect(resolved.entry_status).toBe('no-status');
     });
 
-    it('should preserve server scoring results over client', async () => {
+    it('should use all server values including scoring results', async () => {
       const local: Entry = {
         id: '1',
         armband_number: 101,
@@ -510,7 +512,7 @@ describe('ReplicatedEntriesTable', () => {
         handler_name: 'John Doe',
         dog_call_name: 'Buddy',
         class_id: 'class-1',
-        entry_status: 'no-status', // Will be overwritten by local
+        entry_status: 'no-status', // Server value wins
         is_scored: true,
         is_in_ring: false,
         result_status: 'nq', // Server's authoritative score
@@ -522,10 +524,8 @@ describe('ReplicatedEntriesTable', () => {
 
       const resolved = (table as any).resolveConflict(local, remote);
 
-      // Client wins check-in status
-      expect(resolved.entry_status).toBe('completed');
-
-      // Server wins scoring results
+      // Server wins for everything
+      expect(resolved.entry_status).toBe('no-status');
       expect(resolved.result_status).toBe('nq');
       expect(resolved.search_time_seconds).toBe(125);
       expect(resolved.total_faults).toBe(5);

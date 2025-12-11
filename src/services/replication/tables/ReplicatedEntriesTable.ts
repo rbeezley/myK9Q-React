@@ -248,47 +248,24 @@ export class ReplicatedEntriesTable extends ReplicatedTable<Entry> {
   /**
    * Resolve conflicts between local and remote data
    *
-   * Strategy for entries:
-   * - State progression: More advanced workflow states always win (prevents regression)
-   * - Scoring data: Server always wins (judge is authoritative)
-   * - Other fields: Remote wins (server is source of truth)
-   *
-   * Workflow progression: no-status → checked-in → at-gate → in-ring → completed
-   * A state cannot regress - if local is further along, it wins.
+   * Strategy: Server always wins.
+   * - Local changes are uploaded first via MutationManager
+   * - By the time we merge, server has the most recent committed state
+   * - No status progression enforcement - any status can be set at any time
+   *   (users need flexibility to correct mistakes or handle unexpected situations)
    */
   protected resolveConflict(local: Entry, remote: Entry): Entry {
-    // Start with remote data as base (server is source of truth for scoring/metadata)
+    // Server is source of truth - just use remote data
+    // Local changes were already uploaded, so remote represents latest state
     const resolved: Entry = { ...remote };
 
-    // State progression order (higher index = more advanced in workflow)
-    // 'no-status' is the lowest - it represents uninitialized/stale data
-    const stateProgression = ['no-status', 'checked-in', 'at-gate', 'in-ring', 'completed'];
+    // Ensure is_in_ring stays in sync with entry_status
+    resolved.is_in_ring = remote.entry_status === 'in-ring';
 
-    const localStateIndex = stateProgression.indexOf(local.entry_status);
-    const remoteStateIndex = stateProgression.indexOf(remote.entry_status);
-
-    // Keep the more progressed state (prevents regression from stale server data)
-    // This handles:
-    // - Client checked-in (1) beats server no-status (0)
-    // - Client completed (4) beats server no-status (0)
-    // - Server in-ring (3) beats client checked-in (1)
-    if (localStateIndex > remoteStateIndex) {
-      resolved.entry_status = local.entry_status;
-      resolved.is_in_ring = local.is_in_ring;
-    } else {
-      resolved.entry_status = remote.entry_status;
-      resolved.is_in_ring = remote.entry_status === 'in-ring';
-    }
-
-    // Server always wins for scoring results (judge is authoritative)
-    // These fields are already in `remote`, so no override needed:
-    // - result_status, search_time_seconds, total_faults, final_placement
-
-    // Log conflict resolution for debugging
+    // Log when entry_status differs (for debugging sync issues)
     if (local.entry_status !== remote.entry_status) {
       logger.log(
-        `[${this.tableName}] Conflict resolved for entry ${local.id}:`,
-        `local="${local.entry_status}" (${localStateIndex}), remote="${remote.entry_status}" (${remoteStateIndex}), resolved="${resolved.entry_status}"`
+        `[${this.tableName}] Entry ${local.id} status: local="${local.entry_status}" → remote="${remote.entry_status}"`
       );
     }
 
