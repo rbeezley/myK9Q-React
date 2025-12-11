@@ -140,10 +140,11 @@ ALTER TABLE login_attempts ENABLE ROW LEVEL SECURITY;
 
 -- Only service role can access login_attempts (Edge Functions use service role)
 -- No policies for anon - this table is not directly accessible from client
+-- Note: (select ...) wrapper optimizes RLS to evaluate once per query, not per row
 CREATE POLICY "Service role full access" ON login_attempts
     FOR ALL
-    USING (auth.role() = 'service_role')
-    WITH CHECK (auth.role() = 'service_role');
+    USING ((select auth.role()) = 'service_role')
+    WITH CHECK ((select auth.role()) = 'service_role');
 
 -- Grant execute on functions to anon (Edge Functions call these via service role anyway)
 -- But the functions are SECURITY DEFINER so they run as owner

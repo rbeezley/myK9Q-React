@@ -173,9 +173,10 @@ COMMENT ON TRIGGER trg_audit_entry_scores ON entries IS
 ALTER TABLE entry_audit ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can only see audit records for their license_key
+-- Note: (select ...) wrapper optimizes RLS to evaluate once per query, not per row
 CREATE POLICY "Users can view own audit records" ON entry_audit
   FOR SELECT
-  USING (license_key = current_setting('app.current_license_key', true));
+  USING (license_key = (select current_setting('app.current_license_key', true)));
 
 -- Policy: Only the system (triggers) can insert audit records
 -- No direct inserts from applications
