@@ -5,11 +5,16 @@
  * - Last successful sync timestamp
  * - Sync failures and error messages
  * - Data staleness warnings
+ * - Pending mutation count (non-score changes)
  *
  * Listens to replication events and updates state accordingly.
  */
 
 import { create } from 'zustand';
+import { openDB } from 'idb';
+import { DB_NAME, DB_VERSION } from '@/services/replication/replicationConstants';
+import { REPLICATION_STORES } from '@/services/replication/DatabaseManager';
+import { logger } from '@/utils/logger';
 
 export interface SyncStatusState {
   /** Last successful sync timestamp */
@@ -136,4 +141,43 @@ export function initSyncStatusListeners(): void {
   window.addEventListener('replication:sync-queued', (() => {
     useSyncStatusStore.getState().setSyncing(true);
   }) as EventListener);
+}
+
+/**
+ * Get count of pending mutations from IndexedDB
+ * These are non-score changes (class status updates, etc.) that haven't synced yet.
+ *
+ * @returns Promise<number> Count of pending mutations, or 0 if database unavailable
+ */
+export async function getPendingMutationCount(): Promise<number> {
+  try {
+    const db = await openDB(DB_NAME, DB_VERSION);
+    const count = await db.count(REPLICATION_STORES.PENDING_MUTATIONS);
+    db.close();
+    return count;
+  } catch (error) {
+    // Database may not exist yet or could be in use
+    logger.warn('[SyncStatus] Could not read pending mutations:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get total count of all pending changes (scores + mutations)
+ * Use this for logout blocking to ensure no data is lost.
+ *
+ * @param offlineScoreCount - Count from offlineQueueStore.getPendingCount()
+ * @returns Promise<{ total: number, scores: number, mutations: number }>
+ */
+export async function getTotalPendingChanges(offlineScoreCount: number): Promise<{
+  total: number;
+  scores: number;
+  mutations: number;
+}> {
+  const mutations = await getPendingMutationCount();
+  return {
+    total: offlineScoreCount + mutations,
+    scores: offlineScoreCount,
+    mutations,
+  };
 }

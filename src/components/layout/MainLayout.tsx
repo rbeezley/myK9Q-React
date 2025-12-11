@@ -4,7 +4,7 @@ import { DatabaseRecovery } from '../diagnostics/DatabaseRecovery';
 import { AutoLogoutWarning } from '../ui/AutoLogoutWarning';
 import { ToastContainer } from '../notifications/ToastContainer';
 import { NotificationCenter } from '../notifications/NotificationCenter';
-import { OfflineIndicator, OfflineQueueStatus } from '../ui';
+import { OfflineIndicator, OfflineQueueStatus, SyncFailureToast } from '../ui';
 import { MonitoringDashboard } from '../monitoring/MonitoringDashboard';
 import { PerformanceMonitor } from '../monitoring/PerformanceMonitor';
 import { NetworkInspector } from '../monitoring/NetworkInspector';
@@ -59,6 +59,7 @@ export function MainLayout({ children, autoLogout }: MainLayoutProps) {
       <NotificationCenter />
       <OfflineIndicator />
       <OfflineQueueStatus />
+      <SyncFailureToast />
       <MonitoringDashboard />
 
       {/* Developer Tools */}

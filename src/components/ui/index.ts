@@ -61,3 +61,4 @@ export type { default as UpdateToastProps } from './UpdateToast';
 export { SyncStatusBanner, CompactSyncStatus } from './SyncStatusBanner';
 export type { SyncStatusBannerProps } from './SyncStatusBanner';
 export { SyncStatusPopover } from './SyncStatusPopover';
+export { SyncFailureToast } from './SyncFailureToast';

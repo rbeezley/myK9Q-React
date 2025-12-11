@@ -57,14 +57,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const { unreadCount: _announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
   const { unreadCount, togglePanel } = useNotifications();
 
-  // Safe logout - prevents data loss from pending scores and warns about offline logout
+  // Safe logout - prevents data loss from pending scores/mutations and warns about offline logout
   const {
     safeLogout,
     forceLogout,
     showWarningDialog,
     warningType,
     closeWarningDialog,
-    pendingCount,
+    pendingScoreCount,
+    pendingMutationCount,
     isOnline,
     isSyncing,
   } = useSafeLogout();
@@ -313,12 +314,13 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         onClose={() => setIsAskMyK9QOpen(false)}
       />
 
-      {/* Pending Scores Warning Dialog (also handles offline warning) */}
+      {/* Pending Scores Warning Dialog (also handles offline and pending changes warnings) */}
       <PendingScoresWarningDialog
         isOpen={showWarningDialog}
         onClose={closeWarningDialog}
         warningType={warningType}
-        pendingCount={pendingCount}
+        pendingCount={pendingScoreCount}
+        pendingMutationCount={pendingMutationCount}
         isOnline={isOnline}
         isSyncing={isSyncing}
         onForceLogout={forceLogout}
