@@ -84,14 +84,14 @@ jobs:
       - name: Clear rate limiting for E2E tests
         run: |
           echo "Clearing rate limits via Edge Function..."
-          RESPONSE=$(curl -s -X POST \
-            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/clear-rate-limits" \
-            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
-            -H "Content-Type: application/json" \
-            -H "X-E2E-Test: myK9Q-e2e-test-2024")
+          SUPABASE_URL="${{ secrets.VITE_SUPABASE_URL }}"
+          ANON_KEY="${{ secrets.VITE_SUPABASE_ANON_KEY }}"
+          # Remove any trailing whitespace/newlines from secrets
+          SUPABASE_URL=$(echo "$SUPABASE_URL" | tr -d '[:space:]')
+          ANON_KEY=$(echo "$ANON_KEY" | tr -d '\n\r')
+          echo "Calling: ${SUPABASE_URL}/functions/v1/clear-rate-limits"
+          RESPONSE=$(curl -s -X POST "${SUPABASE_URL}/functions/v1/clear-rate-limits" -H "apikey: ${ANON_KEY}" -H "Authorization: Bearer ${ANON_KEY}" -H "Content-Type: application/json" -H "X-E2E-Test: myK9Q-e2e-test-2024" || echo '{"error":"curl failed"}')
           echo "Response: $RESPONSE"
-          # Verify success (but don't fail pipeline if Edge Function is down)
           if echo "$RESPONSE" | grep -q '"success":true'; then
             echo "Rate limits cleared successfully"
           else
