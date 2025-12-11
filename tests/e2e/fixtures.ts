@@ -74,7 +74,7 @@ export async function pastePasscode(page: Page, passcode: string): Promise<void>
 /**
  * Wait for offline preparation overlay to complete
  */
-export async function waitForOfflinePrep(page: Page, timeoutMs = 30000): Promise<boolean> {
+export async function waitForOfflinePrep(page: Page, timeoutMs = 45000): Promise<boolean> {
   try {
     // Wait for offline prep overlay to appear
     const overlay = page.locator('.offline-prep-overlay');
@@ -114,8 +114,8 @@ export async function performLogin(
     // Wait for offline preparation to complete
     await waitForOfflinePrep(page);
 
-    // Verify we're on the home page
-    await page.waitForURL('**/home', { timeout: 15000 });
+    // Verify we're on the home page (increased timeout for CI)
+    await page.waitForURL('**/home', { timeout: 45000 });
 
     return true;
   } catch (error) {

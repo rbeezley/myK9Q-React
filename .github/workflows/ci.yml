@@ -84,7 +84,7 @@ jobs:
       - name: Clear rate limiting for E2E tests
         run: |
           curl -X DELETE \
-            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/login_attempts?created_at=not.is.null" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/login_attempts?attempted_at=not.is.null" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Prefer: return=minimal"
