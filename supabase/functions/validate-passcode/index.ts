@@ -200,7 +200,7 @@ serve(async (req) => {
     // Fetch all shows to check passcode
     const { data: shows, error: showsError } = await supabaseClient
       .from('shows')
-      .select('id, show_name, club_name, show_date, license_key, organization, show_type')
+      .select('id, show_name, club_name, start_date, license_key, organization, show_type')
       .order('created_at', { ascending: false })
 
     if (showsError) {
@@ -259,7 +259,7 @@ serve(async (req) => {
       showId: matchedShow.id.toString(),
       showName: matchedShow.show_name,
       clubName: matchedShow.club_name,
-      showDate: matchedShow.show_date,
+      showDate: matchedShow.start_date,
       licenseKey: matchedShow.license_key,
       org: matchedShow.organization || '',
       competition_type: matchedShow.show_type || 'Regular'
