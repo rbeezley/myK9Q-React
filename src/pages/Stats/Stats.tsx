@@ -1,10 +1,11 @@
-import React, { Suspense, lazy, useMemo, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useMemo, useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { BarChart3, TrendingUp, Award, Clock, RefreshCw } from 'lucide-react';
 import { PageLoader } from '../../components/LoadingSpinner';
 import { HamburgerMenu } from '../../components/ui/HamburgerMenu';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStatsData } from './hooks/useStatsData';
+import { useLongPress } from '@/hooks/useLongPress';
 import { supabase } from '../../lib/supabase';
 import { getLevelSortOrder } from '../../lib/utils';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
@@ -62,6 +63,32 @@ export const Stats: React.FC = () => {
     level,
     showId: showContext?.showId,
     filters
+  });
+
+  // Manual refresh state for visible feedback
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Manual refresh with minimum feedback duration
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      await Promise.all([refetch(), minFeedbackDelay]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
+
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[Stats] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: !isLoading && !isRefreshing,
   });
 
   // Fetch filter options - try cache first (offline-first)
@@ -383,11 +410,13 @@ export const Stats: React.FC = () => {
         </div>
         <button
           className="icon-button"
-          onClick={() => refetch()}
-          aria-label="Refresh"
-          title="Refresh"
+          onClick={handleRefresh}
+          disabled={isLoading || isRefreshing}
+          aria-label="Refresh (long press for full reload)"
+          title="Refresh (long press for full reload)"
+          {...refreshLongPressHandlers}
         >
-          <RefreshCw size={20} />
+          <RefreshCw size={20} className={isRefreshing ? 'rotating' : ''} />
         </button>
       </header>
 

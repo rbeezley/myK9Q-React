@@ -11,6 +11,7 @@ import type { Class } from '@/services/replication';
 import { HamburgerMenu, CompactOfflineIndicator, ArmbandBadge, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, InstallPrompt, TabBar, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import type { Tab, SortOption } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useLongPress } from '@/hooks/useLongPress';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, Heart, Calendar, Users2, Home as HomeIcon } from 'lucide-react';
@@ -61,6 +62,9 @@ export const Home: React.FC = () => {
 
   // Animation state for favorite burst effect
   const [justToggledArmband, setJustToggledArmband] = useState<number | null>(null);
+
+  // Manual refresh state for minimum feedback duration
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Virtual scrolling ref
   const parentRef = useRef<HTMLDivElement>(null);
@@ -161,11 +165,32 @@ export const Home: React.FC = () => {
     }
   }, [favoriteDogs, showContext?.licenseKey, dogFavoritesLoaded]);
 
-  // ✨ React Query: Simplified refresh handler
+  // ✨ React Query: Refresh handler with minimum feedback duration
   const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
-    await refetch();
+    setIsManualRefreshing(true);
+
+    // Ensure minimum 500ms feedback so users see something happened
+    const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      await Promise.all([refetch(), minFeedbackDelay]);
+    } finally {
+      setIsManualRefreshing(false);
+    }
   }, [refetch, hapticFeedback]);
+
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[Home] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: !isRefreshing && !isManualRefreshing,
+  });
 
   const toggleFavorite = useCallback(async (armband: number) => {
     logger.log('🐕 toggleFavorite called for armband:', armband);
@@ -340,7 +365,7 @@ export const Home: React.FC = () => {
 
         <div className="header-buttons">
           {/* Background refresh indicator */}
-          {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
+          {(isRefreshing || isManualRefreshing) && <RefreshIndicator isRefreshing={isRefreshing || isManualRefreshing} />}
 
           {/* Filter button */}
           <FilterTriggerButton
@@ -351,11 +376,12 @@ export const Home: React.FC = () => {
           <button
             className="icon-button"
             onClick={handleRefresh}
-            disabled={isRefreshing}
-            aria-label="Refresh"
-            title="Refresh"
+            disabled={isRefreshing || isManualRefreshing}
+            aria-label="Refresh (long press for full reload)"
+            title="Refresh (long press for full reload)"
+            {...refreshLongPressHandlers}
           >
-            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'rotating' : ''}`} />
+            <RefreshCw className={`h-5 w-5 ${(isRefreshing || isManualRefreshing) ? 'rotating' : ''}`} />
           </button>
         </div>
       </header>
@@ -458,7 +484,7 @@ export const Home: React.FC = () => {
           <ErrorState
             message={`Failed to load dashboard: ${(fetchError as Error).message || 'Please check your connection and try again.'}`}
             onRetry={handleRefresh}
-            isRetrying={isRefreshing}
+            isRetrying={isRefreshing || isManualRefreshing}
           />
         ) : isLoading ? (
           <div className="loading-skeleton">

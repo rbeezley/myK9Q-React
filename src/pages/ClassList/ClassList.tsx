@@ -10,6 +10,7 @@ import { logger } from '@/utils/logger';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useLongPress } from '@/hooks/useLongPress';
 import { ArrowLeft, RefreshCw, Target, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
@@ -31,6 +32,7 @@ import { usePrintReports, type ReportDependencies } from './hooks/usePrintReport
 import { useFavoriteClasses } from './hooks/useFavoriteClasses';
 import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
 
+// eslint-disable-next-line complexity -- Large page component with many dialog/action handlers
 export const ClassList: React.FC = () => {
   const { trialId } = useParams<{ trialId: string }>();
   const navigate = useNavigate();
@@ -147,7 +149,6 @@ export const ClassList: React.FC = () => {
   // Sync React Query data with local state
   useEffect(() => {
     if (trialInfoData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing immutable cache data to mutable local state for real-time updates
       setTrialInfo(trialInfoData);
     }
     if (classesData) {
@@ -158,7 +159,6 @@ export const ClassList: React.FC = () => {
   // Update classes' is_favorite property when favoriteClasses changes (hook handles localStorage)
   useEffect(() => {
     if (classes.length > 0) {
-// eslint-disable-next-line react-hooks/set-state-in-effect -- Valid use: syncing favorite state from localStorage to class data
       setClasses(prevClasses =>
         prevClasses.map(classEntry => ({
           ...classEntry,
@@ -188,10 +188,35 @@ export const ClassList: React.FC = () => {
     }
   }, [activePopup]);
 
+  // Local state for manual refresh feedback (ensures minimum visible duration)
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
   const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
-    await refetch();
+    setIsManualRefreshing(true);
+
+    // Ensure minimum 500ms feedback so users see something happened
+    const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      await Promise.all([refetch(), minFeedbackDelay]);
+    } finally {
+      setIsManualRefreshing(false);
+    }
   }, [refetch, hapticFeedback]);
+
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  // This is the escape hatch for PWA users who can't access browser refresh
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[ClassList] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: !isRefreshing && !isManualRefreshing,
+  });
 
   // Report dependencies - grouped for cleaner function signatures
   const reportDeps: ReportDependencies = useMemo(() => ({
@@ -657,7 +682,7 @@ export const ClassList: React.FC = () => {
 
         <div className="header-buttons">
           {/* Background refresh indicator */}
-          {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}
+          {(isRefreshing || isManualRefreshing) && <RefreshIndicator isRefreshing={isRefreshing || isManualRefreshing} />}
 
           {/* Filter button */}
           <FilterTriggerButton
@@ -668,11 +693,12 @@ export const ClassList: React.FC = () => {
           <button
             className="icon-button"
             onClick={handleRefresh}
-            disabled={isRefreshing}
-            aria-label="Refresh"
-            title="Refresh"
+            disabled={isRefreshing || isManualRefreshing}
+            aria-label="Refresh (long press for full reload)"
+            title="Refresh (long press for full reload)"
+            {...refreshLongPressHandlers}
           >
-            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'rotating' : ''}`} />
+            <RefreshCw className={`h-5 w-5 ${(isRefreshing || isManualRefreshing) ? 'rotating' : ''}`} />
           </button>
         </div>
       </header>

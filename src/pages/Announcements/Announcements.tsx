@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
@@ -6,6 +6,7 @@ import { useAnnouncementStore } from '../../stores/announcementStore';
 import type { Announcement } from '../../stores/announcementStore';
 import { HamburgerMenu, CompactOfflineIndicator, PullToRefresh } from '../../components/ui';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useLongPress } from '@/hooks/useLongPress';
 import { AnnouncementCard } from '../../components/announcements/AnnouncementCard';
 import { CreateAnnouncementModal } from '../../components/announcements/CreateAnnouncementModal';
 import { DeleteConfirmationModal } from '../../components/announcements/DeleteConfirmationModal';
@@ -106,18 +107,32 @@ export const Announcements: React.FC = () => {
     setFilters({ searchTerm });
   }, [searchTerm, setFilters]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     if (!currentLicenseKey) return;
 
     setIsRefreshing(true);
+    // Minimum feedback duration so users see something happened
+    const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
     try {
-      await fetchAnnouncements(currentLicenseKey);
+      await Promise.all([fetchAnnouncements(currentLicenseKey), minFeedbackDelay]);
     } catch (error) {
       logger.error('Failed to refresh announcements:', error);
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [currentLicenseKey, fetchAnnouncements]);
+
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[Announcements] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: !isRefreshing,
+  });
 
   const handleMarkAllAsRead = async () => {
     try {
@@ -188,7 +203,7 @@ export const Announcements: React.FC = () => {
             {/* Dropdown Menu */}
             {showMenuDropdown && (
               <div className="dropdown-menu announcements-menu">
-                {/* Refresh - Primary action, always first */}
+                {/* Refresh - Primary action, always first (long press for full reload) */}
                 <button
                   onClick={() => {
                     handleRefresh();
@@ -196,6 +211,8 @@ export const Announcements: React.FC = () => {
                   }}
                   disabled={isRefreshing}
                   className="dropdown-item"
+                  title="Refresh (long press for full reload)"
+                  {...refreshLongPressHandlers}
                 >
                   <RefreshCw size={18} className={isRefreshing ? 'spinning' : ''} />
                   <span>Refresh</span>

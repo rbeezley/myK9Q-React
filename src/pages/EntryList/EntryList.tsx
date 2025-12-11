@@ -27,6 +27,7 @@ import { Entry } from '../../stores/entryStore';
 import { useEntryListData, useEntryListActions, useEntryListFilters, useDragAndDropEntries } from './hooks';
 import type { TabType } from './hooks';
 import { logger } from '@/utils/logger';
+import { useLongPress } from '@/hooks/useLongPress';
 import {
   EntryListHeader,
   EntryListContent,
@@ -82,6 +83,7 @@ export const EntryList: React.FC = () => {
   const [localEntries, setLocalEntries] = useState<Entry[]>([]);
   const [manualOrder, setManualOrder] = useState<Entry[]>([]);
   const [activeStatusPopup, setActiveStatusPopup] = useState<number | null>(null);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -401,6 +403,29 @@ export const EntryList: React.FC = () => {
     setIsDragMode(true);
   }, [currentEntries, setSortOrder]);
 
+  // Manual refresh with minimum feedback duration
+  const handleManualRefresh = useCallback(async () => {
+    setIsManualRefreshing(true);
+    const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      await Promise.all([refresh(), minFeedbackDelay]);
+    } finally {
+      setIsManualRefreshing(false);
+    }
+  }, [refresh]);
+
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[EntryList] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: !isRefreshing && !isManualRefreshing,
+  });
+
   // Placement recalculation
   const handleRecalculatePlacements = useCallback(async () => {
     if (!classId) return;
@@ -623,12 +648,13 @@ export const EntryList: React.FC = () => {
     <div className={`entry-list-container${isLoaded ? ' loaded' : ''}`} data-loaded={isLoaded}>
       <EntryListHeader
         classInfo={classInfo}
-        isRefreshing={isRefreshing}
+        isRefreshing={isRefreshing || isManualRefreshing}
         isSyncing={isSyncing}
         hasError={hasError}
         hasActiveFilters={hasActiveFilters}
         onFilterClick={() => setIsFilterPanelOpen(true)}
-        onRefresh={refresh}
+        onRefresh={handleManualRefresh}
+        refreshLongPressHandlers={refreshLongPressHandlers}
         actionsMenu={{
           showRunOrder: hasPermission('canChangeRunOrder'),
           showRecalculatePlacements: hasPermission('canManageClasses'),

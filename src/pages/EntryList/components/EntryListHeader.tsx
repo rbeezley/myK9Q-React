@@ -23,6 +23,14 @@ export interface EntryListHeaderProps {
   actionsMenu: ActionsMenuConfig;
   /** For combined view - show section badge */
   showSectionsBadge?: boolean;
+  /** Long press handlers for hard refresh */
+  refreshLongPressHandlers?: {
+    onMouseDown: (e: React.MouseEvent) => void;
+    onMouseUp: (e: React.MouseEvent) => void;
+    onMouseLeave: (e: React.MouseEvent) => void;
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchEnd: (e: React.TouchEvent) => void;
+  };
 }
 
 /**
@@ -39,6 +47,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
   onRefresh,
   actionsMenu,
   showSectionsBadge = false,
+  refreshLongPressHandlers,
 }) => {
   const navigate = useNavigate();
   const [showActionsMenu, setShowActionsMenu] = React.useState(false);
@@ -121,6 +130,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
           isRefreshing={isRefreshing}
           onRefresh={onRefresh}
           actionsMenu={actionsMenu}
+          refreshLongPressHandlers={refreshLongPressHandlers}
         />
       </div>
     </header>

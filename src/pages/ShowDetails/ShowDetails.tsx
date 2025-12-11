@@ -9,10 +9,12 @@
  * Accessible from hamburger menu as "Show Details".
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Activity, Info } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useLongPress } from '@/hooks/useLongPress';
+import { logger } from '@/utils/logger';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnnouncementStore } from '@/stores/announcementStore';
 import { TabBar, Tab } from '@/components/ui';
@@ -39,6 +41,7 @@ export function ShowDetails() {
   const { showContext } = useAuth();
   const hapticFeedback = useHapticFeedback();
   const [activeTab, setActiveTab] = useState<PageTab>('live');
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Use URL param or auth context
   const licenseKey = urlLicenseKey || showContext?.licenseKey;
@@ -69,9 +72,31 @@ export function ShowDetails() {
   const firstTrialId = trials.length > 0 ? String(trials[0].id) : undefined;
 
   // Handle refresh - full refresh when user explicitly taps refresh button
-  const handleRefresh = () => {
-    refetch({ all: true });
-  };
+  const handleRefresh = useCallback(async () => {
+    hapticFeedback.medium();
+    setIsManualRefreshing(true);
+
+    // Ensure minimum 500ms feedback so users see something happened
+    const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      await Promise.all([refetch({ all: true }), minFeedbackDelay]);
+    } finally {
+      setIsManualRefreshing(false);
+    }
+  }, [refetch, hapticFeedback]);
+
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[ShowDetails] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: !isManualRefreshing,
+  });
 
   // Handle tab change
   const handleTabChange = (tabId: string) => {
@@ -103,9 +128,10 @@ export function ShowDetails() {
     <div className="show-details-container">
       <ShowDetailsHeader
         subtitle={showContext?.showName || show.show_name}
-        isRefreshing={false}
+        isRefreshing={isManualRefreshing}
         onRefresh={handleRefresh}
         showRefreshButton
+        refreshLongPressHandlers={refreshLongPressHandlers}
       />
 
       {/* Page-level tabs */}

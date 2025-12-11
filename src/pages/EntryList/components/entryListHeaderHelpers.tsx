@@ -52,6 +52,14 @@ interface ActionsDropdownMenuProps {
   isRefreshing: boolean;
   onRefresh: () => void;
   actionsMenu: ActionsMenuConfig;
+  /** Long press handlers for hard refresh */
+  refreshLongPressHandlers?: {
+    onMouseDown: (e: React.MouseEvent) => void;
+    onMouseUp: (e: React.MouseEvent) => void;
+    onMouseLeave: (e: React.MouseEvent) => void;
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchEnd: (e: React.TouchEvent) => void;
+  };
 }
 
 export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
@@ -60,7 +68,8 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
   onClose,
   isRefreshing,
   onRefresh,
-  actionsMenu
+  actionsMenu,
+  refreshLongPressHandlers
 }) => {
   const handleRefresh = () => {
     onClose();
@@ -100,11 +109,13 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
 
       {isOpen && (
         <div className="actions-dropdown-menu">
-          {/* Refresh - Primary action */}
+          {/* Refresh - Primary action (long press for full page reload) */}
           <button
             onClick={handleRefresh}
             className="action-menu-item"
             disabled={isRefreshing}
+            title="Refresh (long press for full reload)"
+            {...refreshLongPressHandlers}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'rotating' : ''}`} />
             Refresh

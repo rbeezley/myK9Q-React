@@ -5,10 +5,12 @@
  * Users can control display, performance, mobile, sync, notifications, etc.
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { HamburgerMenu, CompactOfflineIndicator, SettingsSearch, useSearchableSettings } from '@/components/ui';
 import { Settings as SettingsIcon, MoreVertical, RefreshCw, AlertCircle } from 'lucide-react';
 import { useSettingsLogic } from './hooks/useSettingsLogic';
+import { useLongPress } from '@/hooks/useLongPress';
+import { logger } from '@/utils/logger';
 
 // Sections
 import { GeneralSettings } from './sections/GeneralSettings';
@@ -56,6 +58,19 @@ export function Settings() {
   const [showHeaderMenu, setShowHeaderMenu] = React.useState(false);
   const [selectedCategory, setSelectedCategory] = React.useState('all'); // Added state
 
+  // Hard refresh (full page reload) - triggered by long press on refresh button
+  // Note: Settings' handleRefresh already does a page reload, but we add long press for UI consistency
+  const handleHardRefresh = useCallback(() => {
+    logger.log('[Settings] Hard refresh triggered via long press');
+    window.location.reload();
+  }, []);
+
+  // Long press handler for refresh button
+  const refreshLongPressHandlers = useLongPress(handleHardRefresh, {
+    delay: 800,
+    enabled: true,
+  });
+
   // Close menu when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -97,13 +112,15 @@ export function Settings() {
           </button>
           {showHeaderMenu && (
             <div className="dropdown-menu">
-              {/* Refresh - Primary action */}
+              {/* Refresh - Primary action (long press for full reload) */}
               <button
                 className="dropdown-item"
                 onClick={() => {
                   handleRefresh();
                   setShowHeaderMenu(false);
                 }}
+                title="Refresh (long press for full reload)"
+                {...refreshLongPressHandlers}
               >
                 <RefreshCw size={18} />
                 <span>Refresh</span>

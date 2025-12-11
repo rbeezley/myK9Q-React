@@ -39,6 +39,14 @@ export interface ShowDetailsHeaderProps {
   isRefreshing?: boolean;
   onRefresh?: () => void;
   showRefreshButton?: boolean;
+  /** Long press handlers for hard refresh */
+  refreshLongPressHandlers?: {
+    onMouseDown: (e: React.MouseEvent) => void;
+    onMouseUp: (e: React.MouseEvent) => void;
+    onMouseLeave: (e: React.MouseEvent) => void;
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchEnd: (e: React.TouchEvent) => void;
+  };
 }
 
 // ============================================================================
@@ -52,7 +60,8 @@ export function ShowDetailsHeader({
   subtitle,
   isRefreshing,
   onRefresh,
-  showRefreshButton = false
+  showRefreshButton = false,
+  refreshLongPressHandlers
 }: ShowDetailsHeaderProps) {
   return (
     <header className="page-header show-details-header">
@@ -75,7 +84,9 @@ export function ShowDetailsHeader({
             className="header-action-button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            title="Refresh"
+            title="Refresh (long press for full reload)"
+            aria-label="Refresh (long press for full reload)"
+            {...refreshLongPressHandlers}
           >
             <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
           </button>
