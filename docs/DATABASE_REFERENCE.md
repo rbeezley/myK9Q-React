@@ -83,12 +83,32 @@ Organization-specific class requirements with configurable rules.
 - **updated_at** (timestamp): Auto-updated via trigger when rules change
 
 ### entries
-Dog entries for classes.
+Dog entries for classes. Migration 039 merged results table into entries.
+
+**Core Fields:**
 - **id** (bigserial, PK): Auto-incrementing unique identifier
 - **class_id** (bigint, FK → classes): Associated class
+- **license_key** (text): Multi-tenant isolation key
 - **armband_number** (text): Unique armband identifier
-- **call_name** (text): Dog's call name
-- **handler** (text): Handler name
+- **handler_name** (text): Handler name
+- **dog_call_name** (text): Dog's call name
+- **dog_breed** (text): Dog breed
+- **section** (text): Class section (A, B, etc.)
+- **exhibitor_order** (int): Order in class
+- **entry_type** (text): Entry type
+
+**Handler Location:**
+- **handler_state** (text): Handler's state
+- **handler_location** (text): Handler's location
+- **home_state** (text): Handler's home state
+
+**Payment:**
+- **is_paid** (boolean): Payment status
+- **payment_method** (text): Payment method
+- **entry_fee** (numeric): Entry fee amount
+- **online_order_number** (text): Online order reference
+
+**Status Fields:**
 - **entry_status** (text): Entry status - Valid values:
   - `'no-status'` - Default, not checked in
   - `'checked-in'` - Exhibitor has checked in
@@ -98,13 +118,74 @@ Dog entries for classes.
   - `'conflict'` - Dog entered in multiple classes
   - `'pulled'` - Dog withdrawn from class
   - `'completed'` - Dog finished competing (no score)
-- **result_status** (text): Scoring result ('qualified', 'nq', etc.)
+- **result_status** (text): Scoring result ('pending', 'qualified', 'nq', 'absent', 'excused', 'withdrawn')
 - **is_scored** (boolean): Whether entry has been scored
-- **time** (numeric): Run time in seconds
-- **faults** (int): Number of faults
-- **placement** (int): Final placement (1st, 2nd, etc.)
-- **score** (numeric): Numeric score
-- **license_key** (text): Multi-tenant isolation key
+- **is_in_ring** (boolean): Currently in ring
+- **withdrawal_reason** (text): Reason if withdrawn
+- **excuse_reason** (text): Reason if excused
+- **disqualification_reason** (text): Reason if DQ'd
+
+**Health:**
+- **has_health_issues** (boolean): Health flag
+- **health_timestamp** (timestamp): When health issue noted
+- **health_comment** (text): Health notes
+
+**Ring Timing:**
+- **ring_entry_time** (timestamp): When dog entered ring
+- **ring_exit_time** (timestamp): When dog exited ring
+- **scoring_started_at** (timestamp): When scoring began
+- **scoring_completed_at** (timestamp): When scoring finished
+
+**Time Scores:**
+- **search_time_seconds** (numeric): Total search time
+- **area1_time_seconds** (numeric): Area 1 time
+- **area2_time_seconds** (numeric): Area 2 time
+- **area3_time_seconds** (numeric): Area 3 time
+- **area4_time_seconds** (numeric): Area 4 time
+- **time_over_limit** (boolean): Exceeded time limit
+- **time_limit_exceeded_seconds** (numeric): Seconds over limit
+
+**Find Scores:**
+- **total_correct_finds** (int): Total correct finds
+- **total_incorrect_finds** (int): Total incorrect finds (false alerts)
+- **area1_correct** (int): Area 1 correct finds
+- **area1_incorrect** (int): Area 1 incorrect finds
+- **area2_correct** (int): Area 2 correct finds
+- **area2_incorrect** (int): Area 2 incorrect finds
+- **area3_correct** (int): Area 3 correct finds
+- **area3_incorrect** (int): Area 3 incorrect finds
+
+**Fault Scores:**
+- **total_faults** (int): Total faults
+- **area1_faults** (int): Area 1 faults
+- **area2_faults** (int): Area 2 faults
+- **area3_faults** (int): Area 3 faults
+- **no_finish_count** (int): Number of no-finishes
+
+**Point Scores:**
+- **total_score** (numeric): Total score
+- **points_earned** (int): Points earned (can be negative for nationals)
+- **points_possible** (int): Maximum possible points
+- **bonus_points** (int): Bonus points
+- **penalty_points** (int): Penalty points
+- **final_placement** (int): Final placement (1st, 2nd, etc.)
+
+**Judge Fields:**
+- **judge_notes** (text): Judge's notes
+- **judge_signature** (text): Judge's signature
+- **judge_signature_timestamp** (timestamp): When signed
+- **has_video_review** (boolean): Video review requested
+- **video_review_notes** (text): Video review notes
+
+**Access Integration (legacy IDs):**
+- **access_entry_id** (text): Microsoft Access entry ID
+- **access_class_id** (text): Microsoft Access class ID
+- **access_trial_id** (text): Microsoft Access trial ID
+- **access_show_id** (text): Microsoft Access show ID
+- **access_exhibitor_id** (text): Microsoft Access exhibitor ID
+- **myk9q_entry_data** (jsonb): Additional entry metadata
+
+**Timestamps:**
 - **created_at** (timestamp): Creation timestamp
 - **updated_at** (timestamp): Last update timestamp
 
