@@ -16,7 +16,8 @@ import {
   Star,
   User,
   Target,
-  Users
+  Users,
+  UserX
 } from 'lucide-react';
 import { TrialDateBadge } from '../../../components/ui';
 import { PlacementBadge } from '../../EntryList/SortableEntryCardComponents';
@@ -75,12 +76,38 @@ function formatQueuePosition(position: number | undefined, status: string | unde
 const ICON_STYLE_18 = { width: '18px', height: '18px', flexShrink: 0 } as const;
 
 /**
- * Render the scored status badge content (Q/NQ/other)
+ * Render the status badge button content
+ * Extracted to reduce component complexity
+ */
+function renderStatusBadgeContent(
+  entry: ClassEntry,
+  statusColor: string
+): React.ReactNode {
+  const isScored = entry.is_scored;
+  const isQualified = statusColor === 'qualified';
+  const isNQ = statusColor === 'not-qualified';
+  const isAbsent = statusColor === 'absent' || statusColor === 'withdrawn';
+
+  if (isScored) {
+    return renderScoredStatusContent(entry, isQualified, isNQ, isAbsent);
+  }
+
+  return (
+    <>
+      {renderCheckInStatusIcon(entry.check_in_status)}
+      <span className="status-text">{getEntryStatusLabel(entry)}</span>
+    </>
+  );
+}
+
+/**
+ * Render the scored status badge content (Q/NQ/Absent/other)
  */
 function renderScoredStatusContent(
   entry: ClassEntry,
   isQualified: boolean,
-  isNQ: boolean
+  isNQ: boolean,
+  isAbsent: boolean
 ): React.ReactNode {
   if (!entry.visibleFields?.showQualification) {
     return (
@@ -109,6 +136,15 @@ function renderScoredStatusContent(
     );
   }
 
+  if (isAbsent) {
+    return (
+      <>
+        <UserX size={18} className="status-icon" style={ICON_STYLE_18} />
+        <span className="status-text">{getEntryStatusLabel(entry)}</span>
+      </>
+    );
+  }
+
   return (
     <>
       <Check size={18} className="status-icon" style={ICON_STYLE_18} />
@@ -125,7 +161,6 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
   const statusColor = getEntryStatusColor(entry);
   const isScored = entry.is_scored;
   const isQualified = statusColor === 'qualified';
-  const isNQ = statusColor === 'not-qualified';
 
   return (
     <div
@@ -145,14 +180,7 @@ export const DogDetailsClassCard: React.FC<DogDetailsClassCardProps> = ({
           disabled={isScored}
           className={`status-badge ${statusColor}`}
         >
-          {isScored ? (
-            renderScoredStatusContent(entry, isQualified, isNQ)
-          ) : (
-            <>
-              {renderCheckInStatusIcon(entry.check_in_status)}
-              <span className="status-text">{getEntryStatusLabel(entry)}</span>
-            </>
-          )}
+          {renderStatusBadgeContent(entry, statusColor)}
         </button>
       </div>
 

@@ -1874,7 +1874,10 @@ button.choice-chip.secondary.selected {
   }
 }
 
-.status-text {
+/* Timer status text - scoped to .timer context to prevent global color override
+   This was previously a global rule that caused status badge text in ClassList/DogDetails
+   to appear gray instead of white after navigating to any scoresheet page */
+.timer .status-text {
   font-size: var(--token-space-lg);
   color: #666;
   text-transform: uppercase;

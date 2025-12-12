@@ -81,13 +81,13 @@ export const DogResultsSheet: React.FC<DogResultsSheetProps> = ({ dogInfo, resul
   };
 
   const getCheckInStatusLabel = (status?: string): string => {
-    if (!status || status === 'no-status') return 'Not Checked In';
+    if (!status || status === 'no-status') return 'No Status';
     switch (status) {
       case 'checked-in': return 'Checked In';
       case 'at-gate': return 'At Gate';
       case 'conflict': return 'Conflict';
       case 'pulled': return 'Pulled';
-      default: return 'Not Checked In';
+      default: return 'No Status';
     }
   };
 

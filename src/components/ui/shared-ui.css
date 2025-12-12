@@ -1227,113 +1227,33 @@
   opacity: 0.9;
 }
 
-/* Class status colors - using canonical design tokens from design-tokens.css */
-.status-badge.setup {
-  background: var(--status-setup);
-  color: var(--status-setup-text);
-}
+/* Class status colors (white text inherited from base .status-badge in utilities.css) */
+.status-badge.setup { background: var(--status-setup); }
+.status-badge.briefing { background: var(--status-briefing); }
+.status-badge.break { background: var(--status-break); }
+.status-badge.start-time { background: var(--status-start-time); }
+.status-badge.in-progress { background: var(--status-in-progress); }
+.status-badge.offline-scoring { background: var(--status-offline-scoring); }
+.status-badge.completed { background: var(--status-completed); }
 
-.status-badge.briefing {
-  background: var(--status-briefing);
-  color: var(--status-briefing-text);
-}
+/* Check-in status colors (white text inherited from base) */
+.status-badge.checked-in { background: var(--status-qualified); }
+.status-badge.conflict { background: var(--status-conflict); }
+.status-badge.pulled { background: var(--status-not-qualified); }
+.status-badge.at-gate { background: var(--status-at-gate); }
+.status-badge.come-to-gate { background: var(--status-briefing); }
+.status-badge.no-status { background: var(--status-none); }
 
-.status-badge.break {
-  background: var(--status-break);
-  color: var(--status-break-text);
-}
-
-.status-badge.start-time {
-  background: var(--status-start-time);
-  color: var(--status-start-time-text);
-}
-
-.status-badge.in-progress {
-  background: var(--status-in-progress);
-  color: var(--status-in-progress-text);
-}
-
-.status-badge.offline-scoring {
-  background: var(--status-offline-scoring);
-  color: var(--status-offline-scoring-text);
-}
-
-.status-badge.completed {
-  background: var(--status-completed);
-  color: var(--status-completed-text);
-}
-
-/* Check-in status colors - hardcoded for consistency */
-.status-badge.checked-in {
-  background: var(--status-qualified);
-  color: #ffffff;
-}
-
-.status-badge.conflict {
-  background: var(--status-conflict);
-  color: #ffffff;
-}
-
-.status-badge.pulled {
-  background: var(--status-not-qualified);
-  color: #ffffff;
-}
-
-.status-badge.at-gate {
-  background: var(--status-at-gate);
-  color: #ffffff;
-}
-
-.status-badge.come-to-gate {
-  background: var(--status-briefing);
-  color: #ffffff;
-}
-
-/* Check-in status: no-status (not checked in) */
-.status-badge.no-status {
-  background: var(--status-none);
-  color: #ffffff;
-}
-
-.theme-dark .status-badge.no-status {
-  background: var(--status-none);
-  color: #ffffff;
-}
-
-/* Ring management statuses */
+/* Ring management statuses (white text inherited from base) */
 .status-badge.in-ring {
   background: var(--checkin-in-ring);
-  color: var(--checkin-in-ring-text);
 }
 
-/* Result status colors */
-.status-badge.qualified {
-  background: var(--status-qualified-bg);
-  color: var(--status-qualified-text);
-}
-
-.status-badge.not-qualified {
-  background: var(--status-not-qualified-bg);
-  color: var(--status-not-qualified-text);
-}
-
-.status-badge.excused {
-  background: var(--status-excused-bg);
-  color: var(--status-excused-text);
-}
-
-.status-badge.pending {
-  background: var(--status-pending-bg);
-  color: var(--status-pending-text);
-}
-
-/* Mobile responsive */
-
-/* Dark mode support */
-.theme-dark .status-badge.pending {
-  background: rgba(100, 116, 139, 0.3);
-  color: var(--status-setup);
-}
+/* Result status colors - Solid backgrounds (white text inherited from base) */
+.status-badge.qualified { background: var(--token-result-qualified, #14b8a6); }
+.status-badge.not-qualified { background: var(--token-result-nq, #dc2626); }
+.status-badge.excused { background: var(--token-result-excused, #dc2626); }
+.status-badge.pending { background: var(--status-pending-bg, #9ca3af); }
 
 /* ========== O F F L I N E F A L L B A C K COMPONENT ==========
 /* OfflineFallback.css */

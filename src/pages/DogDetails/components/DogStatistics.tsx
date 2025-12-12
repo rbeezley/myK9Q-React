@@ -331,7 +331,7 @@ export const DogStatistics: React.FC<DogStatisticsProps> = ({ classes, dogName }
       case 'at-gate': return 'At Gate';
       case 'conflict': return 'Conflict';
       case 'pulled': return 'Pulled';
-      default: return 'Not Checked In';
+      default: return 'No Status';
     }
   };
 
@@ -341,7 +341,7 @@ export const DogStatistics: React.FC<DogStatisticsProps> = ({ classes, dogName }
       case 'at-gate': return 'var(--checkin-at-gate)';
       case 'conflict': return 'var(--checkin-conflict)';
       case 'pulled': return 'var(--checkin-pulled)';
-      default: return 'var(--muted-foreground)';
+      default: return 'var(--status-no-status)';
     }
   };
 

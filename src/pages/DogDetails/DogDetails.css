@@ -404,6 +404,11 @@
   border-left-color: var(--status-not-qualified);
 }
 
+.class-card.class-card.absent,
+.class-card.class-card.withdrawn {
+  border-left-color: var(--token-result-absent);
+}
+
 .class-card.clickable {
   cursor: pointer;
   user-select: none;
@@ -874,6 +879,12 @@
 
 .class-card-action .status-badge.excused {
   background: var(--status-not-qualified);
+  color: white;
+}
+
+.class-card-action .status-badge.absent,
+.class-card-action .status-badge.withdrawn {
+  background: var(--token-result-absent);
   color: white;
 }
 

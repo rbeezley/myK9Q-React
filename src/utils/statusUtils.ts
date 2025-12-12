@@ -200,10 +200,15 @@ export function getEntryStatusColor(entry: DogEntry): string {
       return 'not-qualified';
     } else if (resultLower === 'ex' || resultLower === 'excused') {
       return 'excused';
+    } else if (resultLower === 'abs' || resultLower === 'absent' || resultLower === 'e') {
+      return 'absent';
+    } else if (resultLower === 'wd' || resultLower === 'withdrawn') {
+      return 'withdrawn';
     }
   }
 
-  return 'pending';
+  // Return 'no-status' for consistency with CSS classes
+  return 'no-status';
 }
 
 /**

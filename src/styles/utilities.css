@@ -284,6 +284,7 @@
 }
 
 /* Status Badge - Squared corners for status indicators */
+/* Text is ALWAYS white on status badges (light mode & dark mode) */
 .status-badge {
   padding: var(--token-space-lg) var(--token-space-xl);
   border-radius: var(--token-space-md);
@@ -295,6 +296,7 @@
   display: inline-block;
   transition: all 0.3s ease;
   min-height: var(--comfortable-touch-target); /* 36px - comfortable tap target */
+  color: #ffffff; /* Always white text on colored status backgrounds */
 }
 
 .status-badge.clickable {
@@ -308,101 +310,80 @@
   box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--shadow-subtle);
 }
 
-/* Class Status Colors - Solid backgrounds with white text */
-/* Default for all class status badges - fallback gray for any undefined status */
+/* Class Status Colors - Solid backgrounds (white text inherited from .status-badge) */
 .class-status-badge {
   background: var(--status-none, #9ca3af);
-  color: var(--status-none-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.no-status {
   background: var(--status-none, #9ca3af);
-  color: var(--status-none-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.setup {
   background: var(--status-setup, #b45309);
-  color: var(--status-setup-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.briefing {
   background: var(--status-briefing, #ff6b00);
-  color: var(--status-briefing-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.break {
   background: var(--status-break, #c000ff);
-  color: var(--status-break-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.start-time {
   background: var(--status-start-time, #14b8a6);
-  color: var(--status-start-time-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.in-progress {
   background: var(--status-in-progress, #0066ff);
-  color: var(--status-in-progress-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.offline-scoring {
   background: var(--status-offline-scoring, #f59e0b);
-  color: var(--status-offline-scoring-text, #ffffff); /* Explicit fallback to white text */
 }
 
 .status-badge.completed {
   background: var(--status-completed, #00cc66);
-  color: var(--status-completed-text, #ffffff); /* Explicit fallback to white text */
 }
 
-/* Entry Check-in Status Colors */
+/* Entry Check-in Status Colors (white text inherited from .status-badge) */
 .status-badge.checked-in,
 .checkin-status.checked-in {
-  background: var(--status-checked-in, var(--status-checked-in));
-  color: white;
+  background: var(--status-checked-in);
 }
 
 .status-badge.at-gate,
 .checkin-status.at-gate {
-  background: var(--status-at-gate, var(--status-at-gate));
-  color: white;
+  background: var(--status-at-gate);
 }
 
 .status-badge.conflict,
 .checkin-status.conflict {
-  background: var(--status-conflict, var(--status-conflict));
-  color: white;
+  background: var(--status-conflict);
 }
 
 .status-badge.pulled,
 .checkin-status.pulled {
-  background: var(--status-pulled, var(--status-pulled));
-  color: white;
+  background: var(--status-pulled);
 }
 
 .status-badge.pending,
 .checkin-status.none {
   background: var(--status-not-checked-in, var(--text-gray));
-  color: white;
 }
 
-/* Entry Result Status Colors */
+/* Entry Result Status Colors - Solid backgrounds (white text inherited from .status-badge) */
 .status-badge.qualified {
-  background: var(--overlay-success);
-  color: var(--token-success);
-  border-color: rgba(16, 185, 129, 0.2);
+  background: var(--token-result-qualified, #14b8a6);
 }
 
 .status-badge.not-qualified {
-  background: var(--overlay-error);
-  color: var(--token-error);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: var(--token-result-nq, #dc2626);
 }
 
 .status-badge.excused {
-  background: rgba(156, 163, 175, 0.1);
-  color: var(--token-text-tertiary);
-  border-color: rgba(156, 163, 175, 0.2);
+  background: var(--token-result-excused, #dc2626);
 }
 
 /* =================================================================

@@ -255,8 +255,7 @@ body:has(.login-container) #root {
    Prevents visual glitches during CSS loading race condition
    ============================================ */
 
-/* Status Badge Fallbacks - White text on solid backgrounds */
-/* Use !important to override shared-scoring.css which has gray text for some states */
+/* Status Badge Fallbacks - White text is the default (always, light or dark mode) */
 .status-badge,
 .class-status-badge {
   display: inline-flex;
@@ -267,27 +266,33 @@ body:has(.login-container) #root {
   font-size: 0.75rem;
   font-weight: 600;
   background: #9ca3af; /* Gray default */
-  color: #ffffff !important; /* White text - MUST override gray from shared-scoring.css */
+  color: #ffffff; /* Always white text on status badges */
   border: none;
 }
 
-/* Status-specific background colors - all with white text */
+/* Status-specific background colors (text color inherited from base) */
 .status-badge.no-status,
-.class-status-badge.no-status { background: #9ca3af; color: #ffffff !important; }
+.class-status-badge.no-status { background: #9ca3af; }
 .status-badge.setup,
-.class-status-badge.setup { background: #b45309; color: #ffffff !important; }
+.class-status-badge.setup { background: #b45309; }
 .status-badge.briefing,
-.class-status-badge.briefing { background: #ff6b00; color: #ffffff !important; }
+.class-status-badge.briefing { background: #ff6b00; }
 .status-badge.break,
-.class-status-badge.break { background: #c000ff; color: #ffffff !important; }
+.class-status-badge.break { background: #c000ff; }
 .status-badge.start-time,
-.class-status-badge.start-time { background: #14b8a6; color: #ffffff !important; }
+.class-status-badge.start-time { background: #14b8a6; }
 .status-badge.in-progress,
-.class-status-badge.in-progress { background: #0066ff; color: #ffffff !important; }
+.class-status-badge.in-progress { background: #0066ff; }
 .status-badge.completed,
-.class-status-badge.completed { background: #00cc66; color: #ffffff !important; }
+.class-status-badge.completed { background: #00cc66; }
 .status-badge.pending,
-.class-status-badge.pending { background: #9ca3af; color: #ffffff !important; }
+.class-status-badge.pending { background: #9ca3af; }
+
+/* Status text inherits white from parent badge */
+.status-badge .status-text,
+.class-status-badge .status-text {
+  color: inherit;
+}
 
 /* Armband Number Fallbacks for Class Cards - Override shared-scoring.css circle style */
 /* Must be more specific than shared-scoring.css `.armband-number` which has circle + blue */
