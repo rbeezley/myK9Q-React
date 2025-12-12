@@ -68,13 +68,21 @@ async function authenticateViaEdgeFunction(passcode: string): Promise<ServerVali
     }
 
     if (response.status === 401) {
-      // Invalid passcode
-      return {
-        success: false,
-        error: 'invalid_passcode',
-        message: data.message || 'Invalid passcode.',
-        remaining_attempts: data.remaining_attempts,
-      };
+      // Check if this is from our Edge Function (has 'error' field) vs Supabase gateway
+      // Gateway returns: { code: 401, message: "Missing authorization header" }
+      // Our function returns: { error: 'invalid_passcode', message: '...', remaining_attempts: N }
+      if (data.error === 'invalid_passcode') {
+        // Genuine invalid passcode from our Edge Function
+        return {
+          success: false,
+          error: 'invalid_passcode',
+          message: data.message || 'Invalid passcode.',
+          remaining_attempts: data.remaining_attempts,
+        };
+      }
+      // Unexpected 401 (gateway issue, auth misconfiguration, etc.) - fall back to client-side
+      logger.warn('[Auth] Unexpected 401 from Edge Function, falling back:', data);
+      throw new Error('Unexpected 401 - gateway or auth issue');
     }
 
     if (!response.ok) {
