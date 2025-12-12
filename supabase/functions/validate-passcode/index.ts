@@ -211,6 +211,13 @@ serve(async (req) => {
       )
     }
 
+    // Debug: Log shows count and license keys for troubleshooting
+    console.log(`[Auth] Found ${shows?.length || 0} shows in database`)
+    if (shows && shows.length > 0) {
+      const licenseKeys = shows.map(s => s.license_key?.substring(0, 15) + '...')
+      console.log(`[Auth] License key prefixes: ${licenseKeys.join(', ')}`)
+    }
+
     // Validate passcode against each show
     let matchedShow: any = null
     let validationResult: PasscodeResult | null = null
