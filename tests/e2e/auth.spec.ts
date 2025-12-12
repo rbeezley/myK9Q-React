@@ -72,10 +72,24 @@ test.describe('Authentication Flow', () => {
       page.waitForURL('**/home', { timeout: 10000 }).then(() => 'home'),
     ]).catch(() => 'neither');
 
+    // Debug: Check what state we're in
+    console.log(`[TC001] Race result: ${overlayOrHome}, URL: ${page.url()}`);
+
+    // Debug: Check if error message appeared (would indicate login failed)
+    const errorMessage = page.locator('div.error-message');
+    const hasError = await errorMessage.isVisible({ timeout: 2000 }).catch(() => false);
+    if (hasError) {
+      const errorText = await errorMessage.textContent();
+      console.log(`[TC001] ERROR MESSAGE VISIBLE: "${errorText}"`);
+    }
+
     // Note: 'neither' is acceptable in race condition - we'll verify final state below
     if (overlayOrHome === 'overlay') {
       await waitForOfflinePrep(page);
     }
+
+    // Debug: Check URL before final assertion
+    console.log(`[TC001] Before final check - URL: ${page.url()}`);
 
     // Step 5: Final verification - must end up at /home regardless of intermediate states
     await expect(page).toHaveURL(/\/home/, { timeout: 45000 });
