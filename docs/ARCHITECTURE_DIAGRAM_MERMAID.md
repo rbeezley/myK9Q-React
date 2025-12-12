@@ -562,7 +562,7 @@ Visit [Mermaid Live Editor](https://mermaid.live/) to edit and export diagrams.
 
 ## 🔗 Related Documentation
 
-- [DATABASE_ERD.md](./DATABASE_ERD.md) - Detailed ASCII ERD
+- [DATABASE_REFERENCE.md](./DATABASE_REFERENCE.md) - Views, functions, query patterns
 - [TYPE_MAPPING.md](./TYPE_MAPPING.md) - TypeScript ↔ PostgreSQL mappings
 - [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md) - ASCII version (fallback)
 - [README.md](./README.md) - Documentation index

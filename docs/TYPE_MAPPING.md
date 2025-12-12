@@ -703,7 +703,7 @@ await supabase.from('results').upsert(
 
 ## 📚 Related Documentation
 
-- [Database ERD](./DATABASE_ERD.md) - Visual schema diagram
+- [Database Reference](./DATABASE_REFERENCE.md) - Views, functions, query patterns
 - [Three-Tier Architecture](./ARCHITECTURE_DIAGRAM.md) - Data flow through layers
 - [CLAUDE.md](../CLAUDE.md) - Development guide
 

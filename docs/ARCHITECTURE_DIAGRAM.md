@@ -647,7 +647,7 @@ myK9Q follows a strict three-tier separation of concerns:
 
 ## 📚 Related Documentation
 
-- [Database ERD](./DATABASE_ERD.md) - Entity relationship diagram
+- [Database Reference](./DATABASE_REFERENCE.md) - Views, functions, query patterns
 - [Type Mapping](./TYPE_MAPPING.md) - TypeScript ↔ PostgreSQL mappings
 - [CLAUDE.md](../CLAUDE.md) - Development guide
 

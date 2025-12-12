@@ -396,10 +396,10 @@ We've created comprehensive Mermaid diagrams for:
 - ✅ Service architecture (graph)
 - ✅ Multi-device sync (sequence)
 
-### [DATABASE_ERD.md](./DATABASE_ERD.md)
-- ✅ Complete database ERD (Mermaid + ASCII)
-- ✅ All 14 tables with relationships
-- ✅ Field types and constraints
+### [DATABASE_REFERENCE.md](./DATABASE_REFERENCE.md)
+- ✅ Database views and functions
+- ✅ Query patterns and multi-tenant isolation
+- ✅ Triggers and audit logging
 
 ---
 

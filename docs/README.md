@@ -4,7 +4,7 @@ Complete documentation for the myK9Q React application.
 
 ## 📁 Documentation Structure
 
-### [push-notifications/](push-notifications/) ⭐ NEW
+### [push-notifications/](push-notifications/)
 Complete push notification system implementation and production readiness.
 - **Start here**: [PUSH_NOTIFICATION_COMPLETE.md](push-notifications/PUSH_NOTIFICATION_COMPLETE.md)
 - Production status, testing, security fixes
@@ -31,13 +31,6 @@ Database migration plans and guides.
 - Notification triggers
 - Feedback changes
 
-### [architecture/](architecture/)
-System architecture and design decisions.
-- Prefetching implementation
-- Sequential prefetch
-- Refactoring plans
-- Design patterns
-
 ### [features/](features/)
 Feature-specific implementation guides.
 - Haptic feedback
@@ -59,52 +52,60 @@ Testing documentation and status.
 - Theme testing
 - Component testing
 
-### [mockups/](mockups/)
-HTML mockups and prototypes.
-- Placement ribbon mockup
-- UI component prototypes
+### [plans/](plans/)
+Implementation plans and design documents.
+- Feature design specs
+- Implementation roadmaps
+
+### [analysis/](analysis/)
+Code analysis and technical debt tracking.
+- Dependency analysis
+- Tech debt register
+
+### [style-guides/](style-guides/)
+Design system and styling documentation.
+- Design system patterns
+- Outdoor visibility patterns
+- Page templates
 
 ## 🚀 Quick Start for New Developers
 
-1. **Project Overview**: Read [../README.md](../README.md) in project root
-2. **Claude Instructions**: [CLAUDE.md](CLAUDE.md) - AI coding guidelines
-3. **Database Reference**: [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) - Complete schema
-4. **CSS Architecture**: [CSS-IMPROVEMENT-ROADMAP.md](CSS-IMPROVEMENT-ROADMAP.md) - Design system
-5. **Security Audit**: [SECURITY_AUDIT_2025-11-17.md](SECURITY_AUDIT_2025-11-17.md) - Latest security fixes
+1. **Project Overview**: Read [../CLAUDE.md](../CLAUDE.md) in project root
+2. **Database Reference**: [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) - Views, functions, query patterns
+3. **CSS Architecture**: [CSS_ARCHITECTURE.md](CSS_ARCHITECTURE.md) - CSS patterns and design tokens
+4. **Security Audit**: [SECURITY_AUDIT_2025-11-17.md](SECURITY_AUDIT_2025-11-17.md) - Latest security fixes
 
 ## 📋 Core Documentation
 
 **Essential References:**
-- [CLAUDE.md](CLAUDE.md) - Claude Code AI instructions & project guidelines
-- [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) - Complete database schema (23 tables, 4 views, 43 functions)
+- [../CLAUDE.md](../CLAUDE.md) - Claude Code AI instructions & project guidelines
+- [DATABASE_REFERENCE.md](DATABASE_REFERENCE.md) - Database views, functions, triggers, query patterns
+- [CSS_ARCHITECTURE.md](CSS_ARCHITECTURE.md) - CSS patterns and design tokens
 - [CSS-IMPROVEMENT-ROADMAP.md](CSS-IMPROVEMENT-ROADMAP.md) - Design system consolidation roadmap
-- [DESIGN_SYSTEM_REMEDIATION.md](DESIGN_SYSTEM_REMEDIATION.md) - Recent design system fixes
-- [CUSTOMER_PITCH.md](CUSTOMER_PITCH.md) - Marketing & product positioning
 
-**Recent Work:**
-- [SECURITY_AUDIT_2025-11-17.md](SECURITY_AUDIT_2025-11-17.md) - RLS policies, function security, performance optimization
-- [SECURITY_DEFINER_VIEWS.md](SECURITY_DEFINER_VIEWS.md) - Database view security documentation
+**Architecture:**
+- [SCORING_ARCHITECTURE.md](SCORING_ARCHITECTURE.md) - Scoring system architecture
+- [OFFLINE_FIRST_PATTERNS.md](OFFLINE_FIRST_PATTERNS.md) - Offline-first implementation
+- [NOTIFICATION_SYSTEM.md](NOTIFICATION_SYSTEM.md) - Push notification architecture
+- [UNIFIED_ARCHITECTURE.md](UNIFIED_ARCHITECTURE.md) - Overall system architecture
 
-## 🗂️ Root Directory Files
-
-Only ONE file remains in project root:
-- `README.md` - Main project documentation
-
-All other documentation is organized in this `docs/` folder for cleaner navigation.
-
-## 📊 Database Documentation
-
-- [database-schema.md](database-schema.md) - Complete schema reference
-- [database-relationships-diagram.md](database-relationships-diagram.md) - Visual relationships
-- [DATABASE_ERD.md](DATABASE_ERD.md) - Entity relationship diagram
-- [database-setup.md](database-setup.md) - Setup instructions
-- [DATABASE_CLEANUP_COMPLETE.md](DATABASE_CLEANUP_COMPLETE.md) - Cleanup history
+**Security:**
+- [SECURITY_AUDIT_2025-11-17.md](SECURITY_AUDIT_2025-11-17.md) - RLS policies, function security
+- [SECURITY_DEFINER_VIEWS.md](SECURITY_DEFINER_VIEWS.md) - Database view security
 
 ## 🎨 Design System
 
 - [design-system-components.md](design-system-components.md) - Component library
 - [CSS_ARCHITECTURE.md](CSS_ARCHITECTURE.md) - CSS patterns
-- [COMPONENT_TESTING.md](COMPONENT_TESTING.md) - Testing matrix
+- [style-guides/design-system.md](style-guides/design-system.md) - Design tokens
+
+## 🗂️ Root Directory Files
+
+Key files in project root:
+- `CLAUDE.md` - AI coding guidelines and project context
+- `README.md` - Main project documentation
+
+All other documentation is organized in this `docs/` folder.
 
 ## 🔗 External Resources
 
@@ -122,3 +123,6 @@ When adding new documentation:
 3. Add a summary to this README
 4. Update relevant index files
 5. Keep active work docs in project root only when necessary
+
+---
+*Last updated: 2025-12-12*

@@ -74,8 +74,9 @@ Reusable dialogs in `src/components/dialogs/`:
 
 ### Database
 - Always filter by `license_key` for multi-tenant isolation
-- Use normalized tables: `shows`, `trials`, `classes`, `entries`, `results`
+- Core tables: `shows` → `trials` → `classes` → `entries` (scoring data included)
 - Views: `view_class_summary`, `view_entry_with_results`
+- Use Supabase MCP for live schema queries
 
 ### CSS
 - Semantic class names (not utility-first)
@@ -119,8 +120,34 @@ await replicatedClassesTable.updateClassStatus(classId, 'in_progress', {
 License key: `myK9Q1-a260f472-e0d76a33-4b6c264c`
 - Admin: `aa260` | Judge: `jf472` | Steward: `se0d7` | Exhibitor: `e4b6c`
 
+## Supabase
+
+**Project ID**: `yyzgjyiqgmjzyhzkqdfx` | **Region**: us-east-2
+
+### MCP Server (Preferred)
+Use Supabase MCP tools for database operations:
+- `mcp__supabase__execute_sql` - Run queries
+- `mcp__supabase__apply_migration` - Apply DDL changes
+- `mcp__supabase__list_tables` - View current schema
+- `mcp__supabase__get_logs` - View logs (api, postgres, auth, edge-function)
+- `mcp__supabase__get_advisors` - Security/performance checks
+
+### Edge Functions
+- `ask-myk9q` - AI chatbot for rules and show data
+- `search-rules-v2` - Full-text search on competition rules
+- `send-push-notification` - PWA push notifications
+- `validate-passcode` - Authentication passcode validation
+
+### CLI (when MCP doesn't support)
+```bash
+npx supabase db diff                    # Schema drift detection
+npx supabase db pull                    # Pull remote schema
+npx supabase secrets list               # List secrets
+npx supabase secrets set KEY=value      # Set secret
+```
+
 ## Reference Docs
-- [DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md) - Full schema
+- [DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md) - Views, functions, triggers, query patterns
 - [CSS_ARCHITECTURE.md](docs/CSS_ARCHITECTURE.md) - CSS patterns
 
 ### Quality
