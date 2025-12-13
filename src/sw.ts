@@ -125,11 +125,20 @@ return;
     const isUrgentAnnouncement = payload.type === 'announcement' && payload.priority === 'urgent';
     const isClassStarted = payload.type === 'class_started';
 
-    const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
+    // Extended options type for Chrome Android non-standard properties
+    const options: NotificationOptions & {
+      actions?: NotificationAction[];
+      vibrate?: VibratePattern;
+      color?: string;  // Chrome Android: accent color for notification
+      image?: string;  // Chrome Android: large image in notification body
+    } = {
       body: payload.body,
       icon: '/myK9Q-teal-192.png',
-      badge: '/myK9Q-teal-192.png',
-      vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100], // More prominent vibration for urgent/class started
+      badge: '/myK9Q-teal-96.png',  // Smaller badge for status bar
+      vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100],
+      // Chrome Android: Set accent color to our brand teal
+      // This helps Android determine appropriate text colors
+      color: '#14b8a6',
       data: {
         url: payload.url || '/',
         type: payload.type,
@@ -140,7 +149,7 @@ return;
         class_id: payload.class_id,
         class_name: payload.class_name,
       },
-      requireInteraction: payload.type === 'up_soon' || isUrgentAnnouncement || isClassStarted, // Up-soon, urgent announcements, and class started require interaction
+      requireInteraction: payload.type === 'up_soon' || isUrgentAnnouncement || isClassStarted,
       tag: payload.type === 'announcement' ? `announcement-${Date.now()}` :
            payload.type === 'class_started' ? `class-started-${payload.class_id}` :
            `up-soon-${payload.armband_number}`,
@@ -266,9 +275,11 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
       license_key: data.licenseKey,
       priority: data.priority || 'normal',
       url: '/announcements',
+      // Add timestamp to make each test notification unique (bypass duplicate detection)
+      message_id: `test-${Date.now()}`,
     };
 
-    // Check for duplicates
+    // Check for duplicates (test notifications have unique message_id, so won't be duplicates)
     const messageId = generateMessageId(pushPayload);
     if (isDuplicateMessage(messageId)) {
 return;
@@ -278,11 +289,16 @@ return;
     const isUrgent = pushPayload.priority === 'urgent';
     const isHigh = pushPayload.priority === 'high';
 
-    const options: NotificationOptions & { actions?: NotificationAction[]; vibrate?: VibratePattern } = {
+    const options: NotificationOptions & {
+      actions?: NotificationAction[];
+      vibrate?: VibratePattern;
+      color?: string;
+    } = {
       body: pushPayload.body,
       icon: '/myK9Q-teal-192.png',
-      badge: '/myK9Q-teal-192.png',
+      badge: '/myK9Q-teal-96.png',
       vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
+      color: '#14b8a6',  // Brand teal - helps Android with text color
       data: {
         url: pushPayload.url,
         type: pushPayload.type,
@@ -310,7 +326,6 @@ return;
 
     // Show the notification
     self.registration.showNotification(title, options)
-      .then(() => {})
       .catch((error) => {
         logger.error('[Service Worker] ❌ Failed to show simulated notification:', error);
       });

@@ -37,6 +37,7 @@ export const SyncStatusBanner: React.FC<SyncStatusBannerProps> = ({
     failureDismissed,
     dismissFailure,
     isDataStale,
+    hasNeverSynced,
     getLastSyncedText,
     isSyncing,
     setSyncing,
@@ -132,7 +133,7 @@ export const SyncStatusBanner: React.FC<SyncStatusBannerProps> = ({
       {showLastSynced && !showFailureBanner && !showStaleWarning && (
         <div className="sync-status-last-synced">
           <Clock size={12} />
-          <span>Last synced: {getLastSyncedText()}</span>
+          <span>{hasNeverSynced() ? 'Syncing...' : `Last synced: ${getLastSyncedText()}`}</span>
         </div>
       )}
     </div>
@@ -143,7 +144,7 @@ export const SyncStatusBanner: React.FC<SyncStatusBannerProps> = ({
  * Compact version for headers - just shows icon + last synced time
  */
 export const CompactSyncStatus: React.FC = () => {
-  const { isDataStale, getLastSyncedText, lastFailure, failureDismissed } = useSyncStatusStore();
+  const { isDataStale, hasNeverSynced, getLastSyncedText, lastFailure, failureDismissed } = useSyncStatusStore();
 
   // Initialize event listeners
   useEffect(() => {
@@ -162,8 +163,11 @@ export const CompactSyncStatus: React.FC = () => {
     return 'compact-sync-status--ok';
   };
 
+  const neverSynced = hasNeverSynced();
+  const titleText = neverSynced ? 'Initial sync in progress...' : `Last synced: ${getLastSyncedText()}`;
+
   return (
-    <div className={`compact-sync-status ${getStatusClass()}`} title={`Last synced: ${getLastSyncedText()}`}>
+    <div className={`compact-sync-status ${getStatusClass()}`} title={titleText}>
       {hasError ? (
         <AlertTriangle size={14} />
       ) : stale ? (

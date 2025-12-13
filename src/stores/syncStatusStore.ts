@@ -40,8 +40,10 @@ export interface SyncStatusActions {
   recordSyncFailure: (message: string, failedTables: string[]) => void;
   /** Dismiss the failure banner */
   dismissFailure: () => void;
-  /** Check if data is stale (older than threshold) */
+  /** Check if data is stale (older than threshold) - returns false if never synced */
   isDataStale: () => boolean;
+  /** Check if we've never synced (initial load state) */
+  hasNeverSynced: () => boolean;
   /** Get formatted "last synced" string */
   getLastSyncedText: () => string;
   /** Set syncing state */
@@ -112,14 +114,23 @@ export const useSyncStatusStore = create<SyncStatusStore>((set, get) => ({
 
   isDataStale: () => {
     const { lastSyncAt, stalenessThresholdHours } = get();
-    if (!lastSyncAt) return true; // Never synced = stale
+    // IMPORTANT: Never synced is NOT the same as stale
+    // "Never synced" = initial load, data is being downloaded
+    // "Stale" = we HAD data but it's old now
+    // Only show stale warning when we've synced before and it's been too long
+    if (!lastSyncAt) return false; // Never synced - not stale, just loading
     const thresholdMs = stalenessThresholdHours * 60 * 60 * 1000;
     return Date.now() - lastSyncAt > thresholdMs;
   },
 
+  hasNeverSynced: () => {
+    const { lastSyncAt } = get();
+    return lastSyncAt === null;
+  },
+
   getLastSyncedText: () => {
     const { lastSyncAt } = get();
-    if (!lastSyncAt) return 'Never synced';
+    if (!lastSyncAt) return 'Syncing...';
 
     const now = Date.now();
     const diffMs = now - lastSyncAt;

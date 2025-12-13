@@ -12,6 +12,7 @@
  * This provides at-a-glance status via the icon, with details on demand.
  */
 
+import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import {
   Wifi,
@@ -37,6 +38,57 @@ interface SyncStatusPopoverProps {
   className?: string;
 }
 
+/**
+ * Determine the indicator class based on sync state
+ */
+function getIndicatorClass(
+  hasSyncFailure: boolean | null,
+  isOnline: boolean,
+  hasStaleWarning: boolean,
+  isInitialSync: boolean,
+  mode: string
+): string {
+  if (hasSyncFailure) return 'sync-popover-indicator--error';
+  if (!isOnline) return 'sync-popover-indicator--offline';
+  if (hasStaleWarning) return 'sync-popover-indicator--warning';
+  if (isInitialSync || mode === 'syncing') return 'sync-popover-indicator--syncing';
+  if (mode === 'pending') return 'sync-popover-indicator--pending';
+  return 'sync-popover-indicator--ok';
+}
+
+/**
+ * Render the appropriate status icon based on sync state
+ */
+function renderStatusIcon(
+  hasSyncFailure: boolean | null,
+  isOnline: boolean,
+  hasStaleWarning: boolean,
+  isInitialSync: boolean,
+  mode: string,
+  pendingCount: number
+): React.ReactNode {
+  const size = 18;
+  const strokeWidth = 2;
+
+  if (hasSyncFailure) {
+    return <AlertTriangle size={size} strokeWidth={strokeWidth} />;
+  }
+  if (!isOnline) {
+    return <WifiOff size={size} strokeWidth={strokeWidth} />;
+  }
+  if (hasStaleWarning) {
+    return <Clock size={size} strokeWidth={strokeWidth} />;
+  }
+  if (isInitialSync || mode === 'syncing') {
+    return <CloudUpload size={size} strokeWidth={strokeWidth} className="sync-popover-spinning" />;
+  }
+  if (mode === 'pending' || pendingCount > 0) {
+    return <Cloud size={size} strokeWidth={strokeWidth} />;
+  }
+  return <Wifi size={size} strokeWidth={strokeWidth} />;
+}
+
+// eslint-disable-next-line complexity -- UI component with many conditional states for sync/offline/error display
 export function SyncStatusPopover({ className = '' }: SyncStatusPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -51,6 +103,7 @@ export function SyncStatusPopover({ className = '' }: SyncStatusPopoverProps) {
     failureDismissed,
     dismissFailure,
     isDataStale,
+    hasNeverSynced,
     getLastSyncedText,
     isSyncing,
     setSyncing,
@@ -107,42 +160,15 @@ export function SyncStatusPopover({ className = '' }: SyncStatusPopoverProps) {
   };
 
   // Determine indicator state (combines offline status + sync status)
+  const neverSynced = hasNeverSynced();
   const dataIsStale = isDataStale();
   const hasSyncFailure = isOnline && lastFailure && !failureDismissed;
   const hasStaleWarning = isOnline && dataIsStale;
+  const isInitialSync = isOnline && neverSynced;
 
-  // Determine icon color class
-  const getIndicatorClass = () => {
-    if (hasSyncFailure) return 'sync-popover-indicator--error';
-    if (!isOnline) return 'sync-popover-indicator--offline';
-    if (hasStaleWarning) return 'sync-popover-indicator--warning';
-    if (mode === 'syncing') return 'sync-popover-indicator--syncing';
-    if (mode === 'pending') return 'sync-popover-indicator--pending';
-    return 'sync-popover-indicator--ok';
-  };
-
-  // Render the appropriate icon
-  const renderIcon = () => {
-    const size = 18;
-    const strokeWidth = 2;
-
-    if (hasSyncFailure) {
-      return <AlertTriangle size={size} strokeWidth={strokeWidth} />;
-    }
-    if (!isOnline) {
-      return <WifiOff size={size} strokeWidth={strokeWidth} />;
-    }
-    if (hasStaleWarning) {
-      return <Clock size={size} strokeWidth={strokeWidth} />;
-    }
-    if (mode === 'syncing') {
-      return <CloudUpload size={size} strokeWidth={strokeWidth} className="sync-popover-spinning" />;
-    }
-    if (mode === 'pending' || counts.pending > 0) {
-      return <Cloud size={size} strokeWidth={strokeWidth} />;
-    }
-    return <Wifi size={size} strokeWidth={strokeWidth} />;
-  };
+  // Compute indicator class and icon (using extracted helpers)
+  const indicatorClass = getIndicatorClass(hasSyncFailure, isOnline, hasStaleWarning, isInitialSync, mode);
+  const statusIcon = renderStatusIcon(hasSyncFailure, isOnline, hasStaleWarning, isInitialSync, mode, counts.pending);
 
   // Show badge for pending/failed counts
   const badgeCount = counts.failed > 0 ? counts.failed : counts.pending;
@@ -153,13 +179,13 @@ export function SyncStatusPopover({ className = '' }: SyncStatusPopoverProps) {
       {/* Compact Indicator (trigger) */}
       <button
         ref={triggerRef}
-        className={`sync-popover-indicator ${getIndicatorClass()}`}
+        className={`sync-popover-indicator ${indicatorClass}`}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Sync status"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {renderIcon()}
+        {statusIcon}
         {showBadge && (
           <span className="sync-popover-badge">
             {badgeCount > 99 ? '99+' : badgeCount}
@@ -211,14 +237,22 @@ export function SyncStatusPopover({ className = '' }: SyncStatusPopoverProps) {
               )}
             </div>
 
-            {/* Last Synced */}
+            {/* Last Synced / Initial Sync Status */}
             <div className="sync-popover__row">
               <div className="sync-popover__row-icon">
-                <Clock size={16} className={hasStaleWarning ? 'sync-popover__icon--warning' : ''} />
+                {isInitialSync ? (
+                  <CloudUpload size={16} className="sync-popover-spinning sync-popover__icon--syncing" />
+                ) : (
+                  <Clock size={16} className={hasStaleWarning ? 'sync-popover__icon--warning' : ''} />
+                )}
               </div>
               <div className="sync-popover__row-content">
-                <span className="sync-popover__row-label">Last synced</span>
-                <span className="sync-popover__row-detail">{getLastSyncedText()}</span>
+                <span className="sync-popover__row-label">
+                  {isInitialSync ? 'Initial sync' : 'Last synced'}
+                </span>
+                <span className="sync-popover__row-detail">
+                  {isInitialSync ? 'Downloading data...' : getLastSyncedText()}
+                </span>
               </div>
               {hasStaleWarning && (
                 <AlertTriangle size={16} className="sync-popover__icon--warning" />
@@ -281,8 +315,8 @@ export function SyncStatusPopover({ className = '' }: SyncStatusPopoverProps) {
               </div>
             )}
 
-            {/* All Good State */}
-            {isOnline && !hasStaleWarning && !hasSyncFailure && counts.total === 0 && (
+            {/* All Good State - only show after initial sync completes */}
+            {isOnline && !isInitialSync && !hasStaleWarning && !hasSyncFailure && counts.total === 0 && (
               <div className="sync-popover__row sync-popover__row--success">
                 <div className="sync-popover__row-icon">
                   <Check size={16} className="sync-popover__icon--ok" />
