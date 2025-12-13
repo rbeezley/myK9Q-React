@@ -387,6 +387,21 @@
 }
 
 /* =================================================================
+   Armband Number - Simple Default
+   The number in theme color. Scoresheets override this in their own context.
+   ================================================================= */
+
+.armband-number {
+  color: var(--primary, #14b8a6);
+  font-weight: 600;
+}
+
+/* In-ring indicator - amber to contrast with teal */
+.armband-number.in-ring {
+  color: var(--checkin-in-ring, #f59e0b);
+}
+
+/* =================================================================
    Text Utilities
    ================================================================= */
 

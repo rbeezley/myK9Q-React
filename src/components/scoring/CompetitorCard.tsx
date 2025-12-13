@@ -2,6 +2,7 @@ import React from 'react';
 import { Entry } from '../../stores/entryStore';
 import { formatTimeForDisplay } from '../../utils/timeUtils';
 import { isNonQualifyingResult } from '../../pages/EntryList/sortableEntryCardUtils';
+import { ArmbandBadge } from '../ui';
 import './shared-scoring.css';
 
 interface CompetitorCardProps {
@@ -51,7 +52,7 @@ export const CompetitorCard: React.FC<CompetitorCardProps> = ({
     <div className={`competitor-card ${getStatusColor()} ${className}`}>
       <div className="competitor-header">
         <div className="armband-section">
-          <div className="armband-number">{entry.armband}</div>
+          <ArmbandBadge number={entry.armband} />
           <div className="position-indicator">
             {currentPosition} of {totalEntries}
           </div>

@@ -56,20 +56,6 @@
   gap: var(--token-space-2xl);
 }
 
-.armband-number {
-  font-size: 36px;
-  font-weight: bold;
-  background: white;
-  color: #14b8a6;
-  width: 70px;
-  height: 70px;
-  border-radius: var(--token-radius-lg, 0.75rem);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.1);
-}
-
 .position-indicator {
   font-size: 14px;
   opacity: 0.9;
@@ -207,12 +193,6 @@
 }
 
 /* Responsive Design - Competitor Card */
-.armband-number {
-  font-size: 28px;  /* Mobile: smaller font */
-  width: 60px;  /* Mobile: smaller circle */
-  height: 60px;
-}
-
 .dog-name {
   font-size: var(--token-space-2xl);  /* Mobile: smaller font */
 }
@@ -229,13 +209,6 @@
 
 /* Desktop enhancements (640px+) - Consolidated */
 @media (min-width: 640px) {
-  /* Competitor Card */
-  .armband-number {
-    font-size: 36px;  /* Desktop: larger font */
-    width: 70px;  /* Desktop: larger circle */
-    height: 70px;
-  }
-
   .dog-name {
     font-size: var(--token-space-3xl);  /* Desktop: larger font */
   }

@@ -819,18 +819,11 @@
   gap: 0.625rem;
 }
 
-/* Armband numbers use theme accent color */
+/* Armband layout for class card preview - color/weight inherited from utilities.css */
 .contextual-preview-condensed .armband-number {
-  color: var(--accent-color, var(--primary)); /* Use theme accent */
-  font-size: 0.8125rem; /* Explicit font-size to prevent size issues during hydration */
-  font-weight: 600;
+  font-size: 0.8125rem;
   display: inline-flex;
   align-items: center;
-}
-
-/* In-ring dog indicator - amber color with filled circle icon */
-.contextual-preview-condensed .armband-number.in-ring {
-  color: var(--checkin-in-ring); /* Amber color for in-ring - contrasts with teal theme */
 }
 
 /* Remaining count text - muted style aligned right */
