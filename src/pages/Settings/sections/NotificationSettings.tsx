@@ -127,33 +127,17 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                             </div>
                         </div>
                     )}
-
-                    {/* Test Notification Button - always show when notifications enabled */}
-                    <button
-                        onClick={handleTestNotification}
-                        disabled={testSent || permissionState !== 'granted'}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            width: '100%',
-                            padding: '10px 16px',
-                            marginTop: '12px',
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            color: testSent ? 'var(--token-success)' : permissionState !== 'granted' ? 'var(--text-muted)' : 'var(--text-primary)',
-                            background: testSent ? 'rgba(16, 185, 129, 0.15)' : 'var(--card-bg)',
-                            border: '1px solid var(--card-border)',
-                            borderRadius: '8px',
-                            cursor: testSent || permissionState !== 'granted' ? 'default' : 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <Send size={16} />
-                        {testSent ? 'Test Notification Sent!' : permissionState !== 'granted' ? 'Grant Permission First' : 'Send Test Notification'}
-                    </button>
                 </div>
+            )}
+
+            {/* Test Notification - shown when notifications enabled and permission granted */}
+            {settings.enableNotifications && permissionState === 'granted' && (
+                <SettingsRow
+                    icon={<Send size={20} />}
+                    label={testSent ? 'Test Notification Sent!' : 'Test Notification'}
+                    description="Tap to send a sample notification"
+                    onClick={testSent ? undefined : handleTestNotification}
+                />
             )}
 
             {/* Sub-settings */}
