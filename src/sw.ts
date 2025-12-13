@@ -113,11 +113,11 @@ if (!event.data) {
 return;
     }
 
-    // Build notification options - MINIMAL for maximum Android compatibility
-    // Let the OS handle all styling - we only provide the essentials
+    // Build notification options
+    // Adding icon back - Android may need it for proper text contrast
     const options: NotificationOptions = {
       body: payload.body,
-      // data: For click navigation only
+      icon: '/myK9Q-teal-192.png',
       data: {
         url: payload.url || '/',
         type: payload.type,
@@ -126,7 +126,6 @@ return;
         armband_number: payload.armband_number,
         class_id: payload.class_id,
       },
-      // tag: Prevents duplicate notifications from stacking
       tag: payload.type === 'announcement' ? `announcement-${Date.now()}` :
            payload.type === 'class_started' ? `class-started-${payload.class_id}` :
            `up-soon-${payload.armband_number}`,
@@ -244,10 +243,11 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 return;
     }
 
-    // Build notification options - MINIMAL for maximum Android compatibility
-    // Let the OS handle all styling - we only provide the essentials
+    // Build notification options
+    // Adding icon back - Android may need it for proper text contrast
     const options: NotificationOptions = {
       body: pushPayload.body,
+      icon: '/myK9Q-teal-192.png',
       data: {
         url: pushPayload.url,
         type: pushPayload.type,
