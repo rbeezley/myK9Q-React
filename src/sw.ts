@@ -8,13 +8,6 @@ import { logger } from '@/utils/logger';
 
 declare const self: ServiceWorkerGlobalScope;
 
-// Define NotificationAction type (from Notifications API)
-interface NotificationAction {
-  action: string;
-  title: string;
-  icon?: string;
-}
-
 // Take control of all pages immediately
 clientsClaim();
 
@@ -120,54 +113,24 @@ if (!event.data) {
 return;
     }
 
-    // Build notification options
-    // For announcements, use priority to determine requireInteraction
-    const isUrgentAnnouncement = payload.type === 'announcement' && payload.priority === 'urgent';
-    const isClassStarted = payload.type === 'class_started';
-
-    // Extended options type for Chrome Android non-standard properties
-    // Note: We omit custom icon to let Android use default styling (better text contrast)
-    const options: NotificationOptions & {
-      actions?: NotificationAction[];
-      vibrate?: VibratePattern;
-    } = {
+    // Build notification options - MINIMAL for maximum Android compatibility
+    // Let the OS handle all styling - we only provide the essentials
+    const options: NotificationOptions = {
       body: payload.body,
-      // Let Android use default icon for better text color handling
-      // badge: '/myK9Q-teal-96.png',  // Disabled - interferes with Android theming
-      vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100],
+      // data: For click navigation only
       data: {
         url: payload.url || '/',
         type: payload.type,
         license_key: payload.license_key,
         entry_id: payload.entry_id,
         armband_number: payload.armband_number,
-        priority: payload.priority,
         class_id: payload.class_id,
-        class_name: payload.class_name,
       },
-      requireInteraction: payload.type === 'up_soon' || isUrgentAnnouncement || isClassStarted,
+      // tag: Prevents duplicate notifications from stacking
       tag: payload.type === 'announcement' ? `announcement-${Date.now()}` :
            payload.type === 'class_started' ? `class-started-${payload.class_id}` :
            `up-soon-${payload.armband_number}`,
     };
-
-    // Add action buttons based on notification type (no icons - they're too small)
-    if (payload.type === 'up_soon') {
-      options.actions = [
-        { action: 'view', title: 'View Entry' },
-        { action: 'dismiss', title: 'Dismiss' },
-      ];
-    } else if (payload.type === 'announcement') {
-      options.actions = [
-        { action: 'view', title: 'View' },
-        { action: 'dismiss', title: 'Dismiss' },
-      ];
-    } else if (payload.type === 'class_started') {
-      options.actions = [
-        { action: 'view', title: 'View Class' },
-        { action: 'dismiss', title: 'Dismiss' },
-      ];
-    }
 
     // Show notification with error handling
     const promiseChain = self.registration.showNotification(payload.title, options)
@@ -281,29 +244,16 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 return;
     }
 
-    // Build notification options
-    // Note: We omit custom icon to let Android use default styling (better text contrast)
-    const isUrgent = pushPayload.priority === 'urgent';
-
-    const options: NotificationOptions & {
-      actions?: NotificationAction[];
-      vibrate?: VibratePattern;
-    } = {
+    // Build notification options - MINIMAL for maximum Android compatibility
+    // Let the OS handle all styling - we only provide the essentials
+    const options: NotificationOptions = {
       body: pushPayload.body,
-      // Let Android use default icon for better text color handling
-      vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
       data: {
         url: pushPayload.url,
         type: pushPayload.type,
         license_key: pushPayload.license_key,
-        priority: pushPayload.priority,
       },
-      requireInteraction: isUrgent,
       tag: `announcement-${Date.now()}`,
-      actions: [
-        { action: 'view', title: 'View' },
-        { action: 'dismiss', title: 'Dismiss' },
-      ],
     };
 
     // Build title with show name prefix
