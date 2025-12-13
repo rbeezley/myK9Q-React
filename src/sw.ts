@@ -126,19 +126,15 @@ return;
     const isClassStarted = payload.type === 'class_started';
 
     // Extended options type for Chrome Android non-standard properties
+    // Note: We omit custom icon to let Android use default styling (better text contrast)
     const options: NotificationOptions & {
       actions?: NotificationAction[];
       vibrate?: VibratePattern;
-      color?: string;  // Chrome Android: accent color for notification
-      image?: string;  // Chrome Android: large image in notification body
     } = {
       body: payload.body,
-      icon: '/myK9Q-teal-192.png',
-      badge: '/myK9Q-teal-96.png',  // Smaller badge for status bar
+      // Let Android use default icon for better text color handling
+      // badge: '/myK9Q-teal-96.png',  // Disabled - interferes with Android theming
       vibrate: isUrgentAnnouncement || isClassStarted ? [200, 100, 200] : [100],
-      // Chrome Android: Set accent color to our brand teal
-      // This helps Android determine appropriate text colors
-      color: '#14b8a6',
       data: {
         url: payload.url || '/',
         type: payload.type,
@@ -286,19 +282,16 @@ return;
     }
 
     // Build notification options
+    // Note: We omit custom icon to let Android use default styling (better text contrast)
     const isUrgent = pushPayload.priority === 'urgent';
-    const isHigh = pushPayload.priority === 'high';
 
     const options: NotificationOptions & {
       actions?: NotificationAction[];
       vibrate?: VibratePattern;
-      color?: string;
     } = {
       body: pushPayload.body,
-      icon: '/myK9Q-teal-192.png',
-      badge: '/myK9Q-teal-96.png',
+      // Let Android use default icon for better text color handling
       vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
-      color: '#14b8a6',  // Brand teal - helps Android with text color
       data: {
         url: pushPayload.url,
         type: pushPayload.type,
@@ -313,15 +306,10 @@ return;
       ],
     };
 
-    // Add priority indicators to title
+    // Build title with show name prefix
     let title = pushPayload.title;
     if (data.showName && !title.includes(data.showName)) {
       title = `${data.showName}: ${title}`;
-    }
-    if (isUrgent) {
-      title = `🚨 ${title}`;
-    } else if (isHigh) {
-      title = `⚠️ ${title}`;
     }
 
     // Show the notification
