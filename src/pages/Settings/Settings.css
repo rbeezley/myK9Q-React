@@ -55,26 +55,42 @@
 }
 
 /* Header - inherits from global .page-header in page-container.css */
+/* Uses header-left/header-center/header-right pattern like Show Details for proper centering */
 .settings-header {
   justify-content: space-between;
-  margin-bottom: 0;
+  position: relative;
 }
 
-.settings-header .header-content {
-  flex: 1;
+.settings-header .header-left,
+.settings-header .header-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 var(--token-space-lg);
+  gap: var(--token-space-sm);
+  flex-shrink: 0;
+  min-width: 60px;
 }
 
-.settings-header h1 {
+.settings-header .header-right {
+  justify-content: flex-end;
+}
+
+.settings-header .header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--token-space-sm);
+}
+
+.settings-header .header-center h1 {
+  margin: 0;
   font-size: 1.125rem;
   font-weight: 590;
   color: var(--foreground);
   letter-spacing: -0.02em;
-  /* display, align-items, gap, margin inherited from global .page-header h1 */
-  /* title-icon size inherited from global .title-icon */
 }
 
 /* Header Menu Button */
@@ -92,15 +108,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  position: absolute;
-  right: var(--token-space-lg);
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .settings-header .header-menu-button:hover {
   background: var(--muted);
-  transform: translateY(calc(-50% - 1px));
+  transform: translateY(-1px);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
 }
 

@@ -93,55 +93,61 @@ export function Settings() {
 
   return (
     <div className="settings-container" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
-      <header className="page-header settings-header" style={{ background: 'transparent', backdropFilter: 'none' }}>
-        <HamburgerMenu currentPage="settings" />
-        <CompactOfflineIndicator />
-        <div className="header-content" onClick={handleDevModeTap}>
+      <header className="page-header settings-header">
+        <div className="header-left">
+          <HamburgerMenu currentPage="settings" />
+          <CompactOfflineIndicator />
+        </div>
+
+        <div className="header-center" onClick={handleDevModeTap}>
           <h1>
             <SettingsIcon className="title-icon" />
             Settings
           </h1>
         </div>
-        <div className="dropdown-container">
-          <button
-            className="header-menu-button"
-            onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-            aria-label="Page options"
-          >
-            <MoreVertical size={20} />
-          </button>
-          {showHeaderMenu && (
-            <div className="dropdown-menu">
-              {/* Refresh - Primary action (long press for full reload) */}
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  handleRefresh();
-                  setShowHeaderMenu(false);
-                }}
-                title="Refresh (long press for full reload)"
-                {...refreshLongPressHandlers}
-              >
-                <RefreshCw size={18} />
-                <span>Refresh</span>
-              </button>
 
-              {/* Divider */}
-              <div className="dropdown-divider" />
+        <div className="header-right">
+          <div className="dropdown-container">
+            <button
+              className="header-menu-button"
+              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+              aria-label="Page options"
+            >
+              <MoreVertical size={20} />
+            </button>
+            {showHeaderMenu && (
+              <div className="dropdown-menu">
+                {/* Refresh - Primary action (long press for full reload) */}
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    handleRefresh();
+                    setShowHeaderMenu(false);
+                  }}
+                  title="Refresh (long press for full reload)"
+                  {...refreshLongPressHandlers}
+                >
+                  <RefreshCw size={18} />
+                  <span>Refresh</span>
+                </button>
 
-              {/* Secondary actions */}
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  setShowResetConfirm(true);
-                  setShowHeaderMenu(false);
-                }}
-              >
-                <AlertCircle size={18} />
-                <span>Reset All</span>
-              </button>
-            </div>
-          )}
+                {/* Divider */}
+                <div className="dropdown-divider" />
+
+                {/* Secondary actions */}
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setShowResetConfirm(true);
+                    setShowHeaderMenu(false);
+                  }}
+                >
+                  <AlertCircle size={18} />
+                  <span>Reset All</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
