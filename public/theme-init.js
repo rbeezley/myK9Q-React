@@ -3,7 +3,7 @@
  * This runs BEFORE React to prevent FOUC
  *
  * CRITICAL: Must be loaded as blocking script in index.html
- * VERSION: 2.0 - Updated for accent color system
+ * VERSION: 2.1 - Also updates meta theme-color for notification styling
  */
 
 (function() {
@@ -77,6 +77,18 @@
       // Set html background immediately to prevent flash
       html.style.backgroundColor = '#F8F7F4';
     }
+
+    // Also update meta theme-color to help Chrome with notification text color
+    // We always use teal (#14b8a6) regardless of theme to signal "light" to Chrome
+    updateMetaThemeColor('#14b8a6');
+  }
+
+  function updateMetaThemeColor(color) {
+    // Find and update all meta theme-color tags
+    const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
+    themeColorMetas.forEach(function(meta) {
+      meta.setAttribute('content', color);
+    });
   }
 
   function applyAccentColorClass(color) {

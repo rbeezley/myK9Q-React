@@ -40,7 +40,9 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <meta name="description" content="Professional dog show ring scoring application" />
-  <meta name="theme-color" content="#14b8a6" />
+  <!-- Theme color for browser chrome - use teal in both modes to help notification text color -->
+  <meta name="theme-color" content="#14b8a6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#14b8a6" media="(prefers-color-scheme: dark)" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -59,7 +61,7 @@
       CRITICAL: Must run BEFORE React to prevent FOUC
       Reads theme from localStorage and applies classes to <html>
     -->
-  <script src="/theme-init.js?v=5"></script>
+  <script src="/theme-init.js?v=6"></script>
 </head>
 
 <body>

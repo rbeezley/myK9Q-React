@@ -114,10 +114,11 @@ return;
     }
 
     // Build notification options
-    // Adding icon back - Android may need it for proper text contrast
+    // Using badge for Android status bar - may help with text color contrast
     const options: NotificationOptions = {
       body: payload.body,
       icon: '/myK9Q-teal-192.png',
+      badge: '/myK9Q-teal-96.png', // Badge for Android status bar
       data: {
         url: payload.url || '/',
         type: payload.type,
@@ -244,10 +245,11 @@ return;
     }
 
     // Build notification options
-    // Adding icon back - Android may need it for proper text contrast
+    // Using badge for Android status bar - may help with text color contrast
     const options: NotificationOptions = {
       body: pushPayload.body,
       icon: '/myK9Q-teal-192.png',
+      badge: '/myK9Q-teal-96.png', // Badge for Android status bar
       data: {
         url: pushPayload.url,
         type: pushPayload.type,
