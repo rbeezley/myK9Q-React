@@ -499,10 +499,11 @@
   margin-right: 0;  /* No trailing margin */
 }
 
-/* Area label "(1)" - white/muted to distinguish from accent-colored time */
+/* Area label "(1)" - subtle gray to distinguish from accent-colored time */
 .area-label {
-  color: var(--muted-foreground);  /* Muted white/gray for area number */
-  font-weight: 500;
+  color: #6b7280;  /* Gray-500 - subtle but readable */
+  font-weight: 400;  /* Normal weight */
+  font-size: 0.85em;  /* Slightly smaller than time */
 }
 
 /* Tablet+: restore time row font size */
