@@ -209,9 +209,9 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                   {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
                     classEntry.area_count && classEntry.area_count > 1 ? (
                       <>
-                        {classEntry.time_limit_seconds && `1: ${formatSecondsToMMSS(classEntry.time_limit_seconds)}`}
-                        {classEntry.time_limit_area2_seconds && ` 2: ${formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}`}
-                        {classEntry.time_limit_area3_seconds && ` 3: ${formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}`}
+                        {classEntry.time_limit_seconds && <span className="area-time">{`1:${formatSecondsToMMSS(classEntry.time_limit_seconds)}`}</span>}
+                        {classEntry.time_limit_area2_seconds && <span className="area-time">{`2:${formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}`}</span>}
+                        {classEntry.time_limit_area3_seconds && <span className="area-time">{`3:${formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}`}</span>}
                       </>
                     ) : (
                       classEntry.time_limit_seconds ? formatSecondsToMMSS(classEntry.time_limit_seconds) : 'TBD'

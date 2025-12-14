@@ -479,11 +479,31 @@
 .meta-row.time {
   font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
   font-weight: 500;
+  font-size: 0.6875rem;  /* Mobile: 11px - smaller to prevent wrapping */
+  flex-wrap: wrap;  /* Mobile: allow wrapping if needed */
 }
 
 .time-value {
   font-weight: 600;
   color: var(--accent-color, var(--primary)); /* Use theme accent */
+}
+
+/* Area time units - keep each "1: 03:00" together as a unit */
+.area-time {
+  white-space: nowrap;  /* Prevent breaking within area:time */
+  margin-right: 0.375rem;  /* Space between area times */
+  display: inline-block;  /* Ensure spacing works */
+}
+
+.area-time:last-child {
+  margin-right: 0;  /* No trailing margin */
+}
+
+/* Tablet+: restore time row font size */
+@media (min-width: 640px) {
+  .meta-row.time {
+    font-size: 0.8125rem;  /* Tablet: 13px - restore normal size */
+  }
 }
 
 /* Release control badges row */
