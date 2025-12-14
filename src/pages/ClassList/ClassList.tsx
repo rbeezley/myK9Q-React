@@ -11,7 +11,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLongPress } from '@/hooks/useLongPress';
-import { ArrowLeft, RefreshCw, Target, List } from 'lucide-react';
+import { ArrowLeft, RefreshCw, List } from 'lucide-react';
 // CSS imported in index.css to prevent FOUC
 import { ClassRequirementsDialog } from '../../components/dialogs/ClassRequirementsDialog';
 import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
@@ -673,7 +673,7 @@ export const ClassList: React.FC = () => {
                   dateOnly={true}
                 />
                 <span className="trial-detail">
-                  <Target size={14}  style={{ width: '14px', height: '14px', flexShrink: 0 }} /> Trial {trialInfo.trial_number}
+                  Trial {trialInfo.trial_number}
                 </span>
               </div>
             </div>
