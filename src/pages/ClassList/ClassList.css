@@ -488,15 +488,21 @@
   color: var(--accent-color, var(--primary)); /* Use theme accent */
 }
 
-/* Area time units - keep each "1: 03:00" together as a unit */
+/* Area time units - keep each "(1) 03:00" together as a unit */
 .area-time {
   white-space: nowrap;  /* Prevent breaking within area:time */
-  margin-right: 0.375rem;  /* Space between area times */
+  margin-right: 0.5rem;  /* Space between area times */
   display: inline-block;  /* Ensure spacing works */
 }
 
 .area-time:last-child {
   margin-right: 0;  /* No trailing margin */
+}
+
+/* Area label "(1)" - white/muted to distinguish from accent-colored time */
+.area-label {
+  color: var(--muted-foreground);  /* Muted white/gray for area number */
+  font-weight: 500;
 }
 
 /* Tablet+: restore time row font size */
