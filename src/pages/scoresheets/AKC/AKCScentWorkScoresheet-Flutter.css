@@ -63,6 +63,15 @@
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
+  padding: 0 var(--token-space-md); /* Mobile: horizontal padding to prevent edge overflow */
+  box-sizing: border-box;
+}
+
+/* Desktop: larger padding for scoresheet wrapper */
+@media (min-width: 640px) {
+  .scoresheet-content-wrapper {
+    padding: 0 var(--token-space-xl);
+  }
 }
 
 /* Header - Matching Flutter - Full width, not constrained */
@@ -223,15 +232,24 @@
 }
 
 .scoresheet-dog-info-card {
-  margin: var(--token-space-xl) var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
-  padding: var(--token-space-xl);
+  margin: var(--token-space-lg) 0;  /* Mobile: vertical margin only, wrapper handles horizontal */
+  padding: var(--token-space-lg);  /* Mobile: compact padding */
   display: flex;
   align-items: flex-start;
-  gap: var(--token-space-xl);
+  gap: var(--token-space-lg);  /* Mobile: tighter gap */
   background: var(--scoresheet-card-bg);
   border: 1px solid var(--scoresheet-card-border);
   border-radius: var(--token-space-lg);
   box-shadow: 0 var(--token-space-xs) var(--token-space-md) rgba(0, 0, 0, 0.2);
+}
+
+/* Tablet+: restore card spacing */
+@media (min-width: 640px) {
+  .scoresheet-dog-info-card {
+    margin: var(--token-space-xl) 0;  /* Tablet: larger vertical margin */
+    padding: var(--token-space-xl);  /* Tablet: more padding */
+    gap: var(--token-space-xl);  /* Tablet: larger gap */
+  }
 }
 
 .theme-dark .scoresheet-dog-info-card {
@@ -334,12 +352,20 @@
 /* Timer Card - Compact version */
 .scoresheet-timer-card {
   background: var(--scoresheet-card-bg);
-  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
-  padding: var(--token-space-xl) var(--token-space-lg);
+  margin: 0 0 var(--token-space-md) 0;  /* Mobile: vertical margin only */
+  padding: var(--token-space-lg) var(--token-space-md);  /* Mobile: compact padding */
   border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
   position: relative; /* For absolute positioning of reset button */
+}
+
+/* Tablet+: restore timer card spacing */
+@media (min-width: 640px) {
+  .scoresheet-timer-card {
+    margin: 0 0 var(--token-space-lg) 0;  /* Tablet: larger bottom margin */
+    padding: var(--token-space-xl) var(--token-space-lg);  /* Tablet: more padding */
+  }
 }
 
 .theme-dark .scoresheet-timer-card {
@@ -531,13 +557,22 @@
 
 /* Timer Warning Styles */
 .timer-warning {
-  margin: 0 var(--token-space-xl) var(--token-space-xl) var(--token-space-xl);
-  padding: var(--token-space-lg) var(--token-space-xl);
+  margin: 0 0 var(--token-space-md) 0;  /* Mobile: vertical margin only */
+  padding: var(--token-space-md) var(--token-space-lg);  /* Mobile: compact padding */
   border-radius: var(--token-space-md);
   text-align: center;
   font-weight: 600;
-  font-size: var(--token-space-xl);
+  font-size: var(--token-space-lg);  /* Mobile: slightly smaller */
   animation: pulse 1s infinite;
+}
+
+/* Tablet+: restore timer warning spacing */
+@media (min-width: 640px) {
+  .timer-warning {
+    margin: 0 0 var(--token-space-xl) 0;
+    padding: var(--token-space-lg) var(--token-space-xl);
+    font-size: var(--token-space-xl);
+  }
 }
 
 .timer-warning.warning {
@@ -566,11 +601,19 @@
 /* Time Input - Compact version */
 .scoresheet-time-card {
   background: var(--scoresheet-card-bg);
-  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
-  padding: var(--token-space-lg);
+  margin: 0 0 var(--token-space-md) 0;  /* Mobile: vertical margin only */
+  padding: var(--token-space-md);  /* Mobile: compact padding */
   border-radius: var(--token-space-lg);
   border: 1px solid var(--scoresheet-card-border);
   text-align: center;
+}
+
+/* Tablet+: restore time card spacing */
+@media (min-width: 640px) {
+  .scoresheet-time-card {
+    margin: 0 0 var(--token-space-lg) 0;  /* Tablet: larger bottom margin */
+    padding: var(--token-space-lg);  /* Tablet: more padding */
+  }
 }
 
 .theme-dark .scoresheet-time-card {
@@ -582,6 +625,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--token-space-md);
+  flex-wrap: wrap; /* Mobile: allow wrapping on narrow screens */
 }
 
 .scoresheet-time-input-wrapper {
@@ -694,14 +738,19 @@
 .area-badge.recorded {
   background: var(--status-checked-in);
   color: white;
-  padding: var(--token-space-md) var(--token-space-xl);
+  padding: var(--token-space-md) var(--token-space-md);  /* Mobile: match button padding */
   border-radius: var(--token-space-md);
-  font-size: 13px;
+  font-size: 12px;  /* Mobile: match button font size */
   font-weight: 600;
-  min-width: 140px;
-  max-width: none;
+  min-width: 100px;  /* Mobile: match button min-width */
+  max-width: 140px;  /* Mobile: match button max-width */
+  width: 100px;  /* Mobile: fixed width to prevent layout shift */
   text-align: center;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 /* Area Record Button - Replaces badge when no time recorded */
@@ -771,7 +820,14 @@
 
 /* Result Choice Chips positioned properly - Compact */
 .results-section {
-  margin: 0 var(--token-space-xl) var(--token-space-lg) var(--token-space-xl);
+  margin: 0 0 var(--token-space-md) 0;  /* Mobile: vertical margin only */
+}
+
+/* Tablet+: restore results section spacing */
+@media (min-width: 640px) {
+  .results-section {
+    margin: 0 0 var(--token-space-lg) 0;
+  }
 }
 
 /* Nationals Counter positioned properly - Compact */
@@ -781,16 +837,22 @@
 
 /* Action Buttons - Matching Flutter */
 .scoresheet-actions {
-  margin: var(--token-space-xl);
-  margin-top: auto;
+  margin: var(--token-space-md) 0 0 0;  /* Mobile: top margin only, wrapper handles horizontal */
   display: flex;
-  gap: var(--token-space-lg);
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--token-space-3xl));
-  padding-top: var(--token-space-xl);
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-  width: calc(100% - var(--token-space-4xl));
+  gap: var(--token-space-md);  /* Mobile: tighter gap */
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--token-space-2xl));
+  padding-top: var(--token-space-md);
+  width: 100%;  /* Mobile: full width within wrapper */
+}
+
+/* Tablet+: restore action button spacing */
+@media (min-width: 640px) {
+  .scoresheet-actions {
+    margin: var(--token-space-xl) 0 0 0;
+    gap: var(--token-space-lg);
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--token-space-3xl));
+    padding-top: var(--token-space-xl);
+  }
 }
 
 .scoresheet-btn-cancel, .scoresheet-btn-save {
@@ -883,13 +945,20 @@
 }
 
 .area-record-btn {
-  min-width: 120px;  /* Mobile: smaller width */
-  font-size: var(--token-space-lg);  /* Mobile: font size */
-  padding: var(--token-space-md) var(--token-space-lg);  /* Mobile: padding */
+  min-width: 100px;  /* Mobile: reduced for narrow screens */
+  max-width: 140px;  /* Mobile: constrain button width */
+  width: 100px;  /* Mobile: fixed width to prevent layout shift */
+  font-size: 12px;  /* Mobile: slightly smaller font */
+  padding: var(--token-space-md) var(--token-space-md);  /* Mobile: compact padding */
+  flex-shrink: 0;  /* Don't shrink button */
+  box-sizing: border-box;
 }
 
 .scoresheet-time-input {
-  width: 200px;  /* Mobile: width - increased to fit placeholder */
+  width: auto;  /* Mobile: flexible width */
+  min-width: 140px;  /* Mobile: minimum readable width */
+  max-width: 180px;  /* Mobile: constrain to prevent overflow */
+  flex: 1 1 140px;  /* Mobile: flexible with minimum basis */
   padding: var(--token-space-lg) 36px var(--token-space-lg) var(--token-space-lg);  /* Mobile: touch target */
   font-size: 15px;  /* Mobile: font size */
   min-height: 44px;  /* Mobile: touch target standard */
@@ -957,20 +1026,33 @@
   }
 
   .area-record-btn {
-    min-width: 160px;  /* Tablet: larger width */
+    min-width: 140px;  /* Tablet: larger width */
+    max-width: none;  /* Tablet: remove max constraint */
+    width: 140px;  /* Tablet: fixed width to prevent layout shift */
     font-size: 14px;  /* Tablet: larger font */
+    padding: var(--token-space-md) var(--token-space-xl);  /* Tablet: restore padding */
   }
 
   .area-badge.recorded {
-    min-width: 160px;  /* Tablet: match button width */
+    min-width: 140px;  /* Tablet: match button width */
+    max-width: none;  /* Tablet: remove max constraint */
+    width: 140px;  /* Tablet: fixed width to prevent layout shift */
     font-size: 14px;  /* Tablet: larger font */
+    padding: var(--token-space-md) var(--token-space-xl);  /* Tablet: match button padding */
   }
 
   .scoresheet-time-input {
-    width: 220px;  /* Desktop: larger width - increased to fit placeholder */
-    padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl);  /* Desktop: larger touch target */
-    font-size: 16px;  /* Desktop: larger font */
-    min-height: 48px;  /* Desktop: touch target */
+    width: 200px;  /* Tablet: fixed width for consistency */
+    min-width: 200px;  /* Tablet: set fixed minimum */
+    max-width: none;  /* Tablet: remove max constraint */
+    flex: 0 0 200px;  /* Tablet: don't flex, fixed width */
+    padding: var(--token-space-xl) 40px var(--token-space-xl) var(--token-space-xl);  /* Tablet: larger touch target */
+    font-size: 16px;  /* Tablet: larger font */
+    min-height: 48px;  /* Tablet: touch target */
+  }
+
+  .time-input-flutter {
+    flex-wrap: nowrap;  /* Tablet+: prevent wrapping */
   }
 
   .scoresheet-time-input.single-area {
@@ -1008,8 +1090,12 @@
     padding: var(--token-space-lg) var(--token-space-2xl);  /* Desktop: more padding */
   }
 
+  .area-record-btn {
+    width: 160px;  /* Desktop: larger fixed width */
+  }
+
   .area-badge.recorded {
-    min-width: 180px;  /* Desktop: match button width */
+    width: 160px;  /* Desktop: match button width */
   }
 }
 
