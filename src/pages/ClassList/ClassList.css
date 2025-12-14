@@ -87,15 +87,16 @@
 .trial-info-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
-  gap: var(--token-space-xl);
+  gap: var(--token-space-lg);  /* Reduced from xl for less cramped feel */
 }
 
 .trial-details-group {
   display: flex;
-  gap: var(--token-space-lg);
+  gap: var(--token-space-md);  /* Reduced from lg - items are visually related */
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
