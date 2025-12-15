@@ -291,6 +291,30 @@ export class DatabaseManager {
           this.logger.warn(`[${tableName}] Database health check failed, reinitializing...`, healthCheckError);
         }
 
+        // Close the stale connection
+        if (sharedDB) {
+          try {
+            sharedDB.close();
+          } catch {
+            // Ignore close errors - connection may already be closed
+          }
+        }
+
+        // CRITICAL: If object stores are missing, the database is corrupted
+        // We must DELETE the entire database and recreate it fresh
+        // This happens after "Clear Site Data" in DevTools which can leave
+        // the database in a partial state
+        if (errorMsg.includes('Object stores missing') || errorMsg.includes('object stores was not found')) {
+          this.logger.warn(`[${tableName}] Corrupted database detected - deleting and recreating...`);
+          try {
+            await deleteDB(DB_NAME);
+            this.logger.log(`[${tableName}] Corrupted database deleted successfully`);
+          } catch (deleteError) {
+            this.logger.error(`[${tableName}] Failed to delete corrupted database:`, deleteError);
+            // Continue anyway - openDB might still work
+          }
+        }
+
         sharedDB = null;
         dbInitPromise = null;
         dbInitInProgress = false;

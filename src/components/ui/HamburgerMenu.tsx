@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -250,6 +250,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   >
                     <Shield className="menu-icon" />
                     <span>Results Control</span>
+                  </button>
+
+                  <button
+                    className="menu-item"
+                    onClick={() => handleMenuItemClick(() => navigate('/secretary'))}
+                  >
+                    <ClipboardList className="menu-icon" />
+                    <span>Secretary Tools</span>
                   </button>
                 </>
               )}

@@ -37,6 +37,9 @@ export function SyncFailureToast() {
       // Only show toast if online (offline state is handled elsewhere)
       if (!navigator.onLine) return;
 
+      // Don't show sync failures during onboarding - confuses new users
+      if (!localStorage.getItem('onboarding_completed')) return;
+
       const { message, count } = event.detail;
       const failureMessage = count > 0
         ? `${count} change(s) failed to sync. Please check your connection.`

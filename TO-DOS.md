@@ -485,3 +485,13 @@ Three different color palettes existed for the same status values:
 - **Files:** [UpdateToast.tsx](src/components/ui/UpdateToast.tsx), [UpdateToast.css](src/components/ui/UpdateToast.css), [main.tsx](src/main.tsx), [index.html](index.html)
 - **Design:** [docs/plans/2025-12-10-pwa-update-toast-design.md](docs/plans/2025-12-10-pwa-update-toast-design.md)
 
+---
+
+## Trial Secretary Tools Page - 2025-12-15 12:41
+
+- **Create Trial Secretary Dashboard** - New page with admin tools for trial management. **Problem:** Trial secretaries need specialized tools beyond what exhibitors and judges see. Currently no dedicated workspace for their administrative tasks. **Files:** `src/pages/TrialSecretary/` (new directory). **Solution:** Create role-gated page accessible from hamburger menu for admin/secretary roles.
+
+- **Add Kanban To-Do Board** - Drag-and-drop task management with status columns. **Problem:** Trial secretaries juggle many tasks (equipment setup, paperwork, coordination) with no way to track them in-app. Paper lists get lost. **Files:** `src/pages/TrialSecretary/components/KanbanBoard.tsx` (new). **Solution:** Use @dnd-kit (already installed) for drag-drop. Columns: To Do, In Progress, Done. Tasks stored in localStorage per show/trial. Consider Supabase table for cross-device sync.
+
+- **Add Steward Scheduling Assistant** - Visual scheduler for assigning volunteers to roles and time slots. **Problem:** Each judge/ring needs gate steward, timer, and ring steward. Volunteers are often exhibitors showing their own dogs, so availability is fragmented. Currently tracked on paper or spreadsheets. **Files:** `src/pages/TrialSecretary/components/StewardScheduler.tsx` (new). **Solution:** Grid view with time slots (rows) and roles (columns). Drag-drop people onto slots. Show conflicts when person is scheduled during their own class. Configurable roles (gate steward, timer, ring steward, hospitality, equipment, ring setup). Store in Supabase `steward_assignments` table linked to trial_id.
+

@@ -15,6 +15,42 @@ import { supabase } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
 
 /**
+ * Tables that have a direct `license_key` column and can use real-time filters.
+ * Tables NOT in this list need join-based filtering (e.g., classes → trials → shows)
+ * or are organization-level config (class_requirements) that don't filter by license_key.
+ *
+ * Tables without direct license_key:
+ * - classes: license_key via trials → shows
+ * - trials: license_key via shows
+ * - class_requirements: org-level config (AKC, UKC, etc.), no license_key
+ * - trial_result_visibility_overrides: via trials → shows
+ * - class_result_visibility_overrides: via classes → trials → shows
+ * - view_stats_summary: database view, not a table
+ * - view_audit_log: database view, not a table
+ * - event_statistics: dormant table
+ * - nationals_rankings: dormant table
+ */
+const TABLES_WITH_LICENSE_KEY = new Set([
+  'entries',
+  'shows',
+  'announcements',
+  'announcement_reads',
+  'push_subscriptions',
+  'show_result_visibility_defaults',
+]);
+
+/**
+ * Tables/views to SKIP real-time subscriptions entirely.
+ * These either don't exist yet (dormant) or are views (can't use postgres_changes).
+ */
+const SKIP_REALTIME_SUBSCRIPTION = new Set([
+  'view_stats_summary',      // Database view - can't subscribe to postgres_changes
+  'view_audit_log',          // Database view - can't subscribe to postgres_changes
+  'event_statistics',        // Dormant table - doesn't exist in database yet
+  'nationals_rankings',      // Dormant table - doesn't exist in database yet
+]);
+
+/**
  * Issue #8 Fix: Unique tab identifier to prevent cross-tab message echo
  * Each browser tab gets a unique ID to identify its own messages
  */
@@ -92,6 +128,16 @@ export class ConnectionManager {
    */
   subscribeToTable(tableName: string): void {
     if (this.config.enableRealtimeSync === false) {
+      return;
+    }
+
+    // Skip views and dormant tables - they can't have postgres_changes subscriptions
+    if (SKIP_REALTIME_SUBSCRIPTION.has(tableName)) {
+      logger.log(
+        `[ConnectionManager] Skipping real-time subscription for ${tableName} (view or dormant table)`
+      );
+      // Create resolved promise so waitForSubscriptionsReady doesn't hang
+      this.subscriptionReadyPromises.set(tableName, Promise.resolve());
       return;
     }
 
@@ -178,21 +224,45 @@ export class ConnectionManager {
   /**
    * Create real-time subscription for a table
    * Returns promise that resolves when subscription is ready
+   *
+   * Note: Only tables with direct `license_key` column can use the filter.
+   * Tables without it (classes, trials, visibility overrides, views) skip the filter
+   * and rely on sync methods for proper join-based filtering.
    */
   private createRealtimeSubscription(tableName: string): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
+        // Check if this table supports license_key filtering
+        const hasLicenseKey = TABLES_WITH_LICENSE_KEY.has(tableName);
+
+        // Build subscription options - only filter if table has license_key column
+        const subscriptionOptions: {
+          event: '*';
+          schema: 'public';
+          table: string;
+          filter?: string;
+        } = {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: tableName,
+        };
+
+        if (hasLicenseKey) {
+          subscriptionOptions.filter = `license_key=eq.${this.config.licenseKey}`;
+        } else {
+          // Tables without license_key (classes, trials, visibility overrides, views)
+          // will receive all changes, but sync methods filter correctly via joins.
+          // This is acceptable for low-frequency config changes.
+          logger.log(
+            `[ConnectionManager] Table ${tableName} has no license_key column - subscribing without filter`
+          );
+        }
+
         const channel = supabase
           .channel(`replication:${tableName}:${this.config.licenseKey}`)
           .on(
             'postgres_changes',
-            {
-              event: '*', // INSERT, UPDATE, DELETE
-              schema: 'public',
-              table: tableName,
-              // All replicated tables now have license_key column for efficient filtering
-              filter: `license_key=eq.${this.config.licenseKey}`,
-            },
+            subscriptionOptions,
             async (_payload) => {
               // Trigger incremental sync for this table and WAIT for it to complete
               // This ensures cache is updated before UI refreshes
