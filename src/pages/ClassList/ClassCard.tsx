@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar, WifiOff, AlertTriangle, Info, Eye, Smartphone } from 'lucide-react';
 import { getStaleDataStatus, formatStaleTime } from '../../utils/staleDataUtils';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
@@ -54,6 +54,7 @@ interface ClassCardProps {
   getFormattedStatus: (classEntry: ClassEntry) => { label: string; time: string | null };
   onMenuClick?: (classId: number) => void;
   onPrefetch?: () => void;
+  justToggledClassId?: number | null;
 }
 
 export const ClassCard: React.FC<ClassCardProps> = ({
@@ -69,6 +70,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   getFormattedStatus,
   onMenuClick,
   onPrefetch,
+  justToggledClassId,
 }) => {
   // Memoize computed values to prevent redundant function calls
   const statusColor = useMemo(
@@ -90,6 +92,23 @@ export const ClassCard: React.FC<ClassCardProps> = ({
     }),
     [classEntry.class_status, classEntry.last_result_at]
   );
+
+  // Track status pulse animation - triggers when class_status changes
+  const [isStatusAnimating, setIsStatusAnimating] = useState(false);
+  const prevStatusRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    // Only animate if status changed (not on initial mount)
+    if (prevStatusRef.current !== undefined && classEntry.class_status !== prevStatusRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: triggers animation on prop change, same pattern as SortableEntryCard
+      setIsStatusAnimating(true);
+      const timer = setTimeout(() => setIsStatusAnimating(false), 500);
+      return () => clearTimeout(timer);
+    }
+    prevStatusRef.current = classEntry.class_status;
+  }, [classEntry.class_status]);
+
+  const statusPulseClass = isStatusAnimating ? 'status-just-changed' : '';
 
   // State for class details popup
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
@@ -156,7 +175,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           <div className="class-actions">
             <button
               type="button"
-              className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''}`}
+              className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''} ${justToggledClassId === classEntry.id ? 'favorite-just-toggled' : ''}`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -302,7 +321,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           <div className="class-card-status-action">
             {hasPermission('canManageClasses') ? (
               <button
-                className={`status-badge class-status-badge ${statusColor}`}
+                className={`status-badge class-status-badge ${statusColor} ${statusPulseClass}`}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -328,7 +347,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 </span>
               </button>
             ) : (
-              <div className={`status-badge class-status-badge ${statusColor}`}>
+              <div className={`status-badge class-status-badge ${statusColor} ${statusPulseClass}`}>
                 {getStatusIcon(classEntry.class_status)}
                 <span className="status-text">
                   {formattedStatus.label}

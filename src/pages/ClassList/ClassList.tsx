@@ -62,6 +62,9 @@ export const ClassList: React.FC = () => {
   // Local state for data (synced from React Query)
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [classes, setClasses] = useState<ClassEntry[]>([]);
+
+  // Animation state for favorite burst effect
+  const [justToggledClassId, setJustToggledClassId] = useState<number | null>(null);
   // Initialize filter from navigation state if provided (e.g., from Show Dashboard "Done" stat)
   const locationState = location.state as { filter?: 'pending' | 'favorites' | 'completed' } | null;
   const [combinedFilter, setCombinedFilter] = useState<'pending' | 'favorites' | 'completed'>(
@@ -398,6 +401,10 @@ export const ClassList: React.FC = () => {
       hapticFeedback.medium(); // Adding favorite - stronger feedback for confirmation
     }
 
+    // Trigger heart burst animation
+    setJustToggledClassId(classId);
+    setTimeout(() => setJustToggledClassId(null), 400);
+
     // Delegate to hook (handles localStorage, paired classes via useEffect syncs to classes)
     toggleFavoriteHook(classId, classEntry?.pairedClassId);
 
@@ -721,7 +728,7 @@ export const ClassList: React.FC = () => {
       {/* Scrollable Content Area - only the grid scrolls */}
       <div className="class-list-scrollable">
         {/* Enhanced Classes List Section */}
-        <div className="grid-responsive">
+        <div className={`grid-responsive ${isLoaded ? 'stagger-children' : ''}`}>
           {filteredClasses.map((classEntry) => (
             <ClassCard
               key={classEntry.id}
@@ -739,6 +746,7 @@ export const ClassList: React.FC = () => {
                 setActivePopup(classId);
               }}
               onPrefetch={() => handleClassPrefetch(classEntry.id)}
+              justToggledClassId={justToggledClassId}
             />
           ))}
         </div>

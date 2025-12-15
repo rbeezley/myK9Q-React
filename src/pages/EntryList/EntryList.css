@@ -95,22 +95,18 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Class/Trial info - Simplified for better mobile UX */
-.trial-info,
-.class-info {
-  flex: 1;
-  /* Take available space */
-  min-width: 0;
+/* Class/Trial info - Absolute centered like Home page header */
+.entry-list-header .class-info {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 0;
-  padding: 0 var(--token-space-md);
-  max-width: 100%;
-  /* Prevent overflow */
-  position: relative; /* For popup positioning */
+  gap: 2px; /* Tight spacing - title close to subtitle */
+  max-width: 55%; /* Prevent overlap with buttons */
 }
 
 /* Clickable class info - tap to show details */
@@ -144,16 +140,17 @@
   gap: 4px;
 }
 
-/* Class name - prominent and clean */
-.class-info h1,
-.class-info .class-name {
-  font-size: 1rem;
-  font-weight: 600;
+/* Class name - match Home page header styling */
+.entry-list-header .class-info h1,
+.entry-list-header .class-info .class-name {
+  font-size: 1.125rem; /* Match Home header */
+  font-weight: 590;
   color: var(--foreground);
   margin: 0;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  line-height: 1;
+  letter-spacing: -0.02em;
   text-align: center;
+  white-space: nowrap; /* Prevent wrapping */
 }
 
 /* Small circled info indicator */
@@ -189,13 +186,14 @@
   display: flex;
   justify-content: center;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 0; /* Gap handled by parent flex container */
 }
 
 .trial-meta-text {
-  font-size: 0.8125rem;
+  font-size: 0.75rem; /* Match Home header-subtitle */
   color: var(--token-text-secondary);
   font-weight: 500;
+  line-height: 1.2;
 }
 
 /* Legacy class-title-row for backwards compatibility */
