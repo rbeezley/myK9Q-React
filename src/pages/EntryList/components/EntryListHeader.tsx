@@ -1,15 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { HamburgerMenu, CompactOfflineIndicator, SyncIndicator, RefreshIndicator, FilterTriggerButton } from '../../../components/ui';
 import type { ClassInfo } from '../hooks';
 import {
   ActionsDropdownMenu,
-  TrialInfo,
-  ClassStatusBadge,
-  SectionsBadge,
+  ClassInfoPopup,
+  getStatusBadge,
   type ActionsMenuConfig
 } from './entryListHeaderHelpers';
+import { formatTrialDate } from '../../../utils/dateUtils';
 
 export interface EntryListHeaderProps {
   classInfo: ClassInfo | null;
@@ -51,21 +51,39 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const [showActionsMenu, setShowActionsMenu] = React.useState(false);
+  const [showInfoPopup, setShowInfoPopup] = React.useState(false);
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.actions-menu-container')) {
         setShowActionsMenu(false);
       }
+      if (!target.closest('.class-info-clickable')) {
+        setShowInfoPopup(false);
+      }
     };
 
-    if (showActionsMenu) {
+    if (showActionsMenu || showInfoPopup) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showActionsMenu]);
+  }, [showActionsMenu, showInfoPopup]);
+
+  // Build trial info string
+  const trialInfoParts: string[] = [];
+  if (classInfo?.trialDate) {
+    trialInfoParts.push(formatTrialDate(classInfo.trialDate));
+  }
+  if (classInfo?.trialNumber && classInfo.trialNumber !== '0') {
+    trialInfoParts.push(`Trial ${classInfo.trialNumber}`);
+  }
+  const trialInfoText = trialInfoParts.join(' • ');
+
+  // Check if there's extra info to show in popup
+  const statusBadge = getStatusBadge(classInfo?.classStatus);
+  const hasExtraInfo = classInfo?.judgeName || statusBadge || (showSectionsBadge && classInfo?.judgeNameB);
 
   return (
     <header className="page-header entry-list-header">
@@ -77,26 +95,42 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
         currentPage="entries"
       />
       <CompactOfflineIndicator />
-      <div className="class-info">
-        <div className="class-title-row">
-          <h1>
-            <Users className="title-icon" />
-            {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+      {/* Class info - hover/tap to show details popup */}
+      <div
+        className={`class-info ${hasExtraInfo ? 'class-info-clickable' : ''}`}
+        onClick={hasExtraInfo ? () => setShowInfoPopup(!showInfoPopup) : undefined}
+        onMouseEnter={hasExtraInfo ? () => setShowInfoPopup(true) : undefined}
+        onMouseLeave={hasExtraInfo ? () => setShowInfoPopup(false) : undefined}
+        role={hasExtraInfo ? 'button' : undefined}
+        tabIndex={hasExtraInfo ? 0 : undefined}
+        onKeyDown={hasExtraInfo ? (e) => e.key === 'Enter' && setShowInfoPopup(!showInfoPopup) : undefined}
+      >
+        {/* Class name with small info indicator */}
+        <div className="class-name-wrapper">
+          <h1 className="class-name">
+            {classInfo?.className?.toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || 'Loading...'}
           </h1>
-          <ClassStatusBadge classStatus={classInfo?.classStatus} />
-          <SectionsBadge
-            show={showSectionsBadge}
-            judgeName={classInfo?.judgeName}
-            judgeNameB={classInfo?.judgeNameB}
-          />
+          {hasExtraInfo && (
+            <span className="info-indicator" aria-hidden="true">
+              <Info size={12} />
+            </span>
+          )}
         </div>
-        <div className="class-subtitle">
-          <TrialInfo
-            trialDate={classInfo?.trialDate}
-            trialNumber={classInfo?.trialNumber}
-            judgeName={classInfo?.judgeName}
+        {/* Trial date and number */}
+        {trialInfoText && (
+          <div className="class-meta-row">
+            <span className="trial-meta-text">{trialInfoText}</span>
+          </div>
+        )}
+        {/* Popup positioned relative to class-info */}
+        {hasExtraInfo && (
+          <ClassInfoPopup
+            isOpen={showInfoPopup}
+            classInfo={classInfo}
+            showSectionsBadge={showSectionsBadge}
+            onClose={() => setShowInfoPopup(false)}
           />
-        </div>
+        )}
       </div>
 
       <div className="header-buttons">

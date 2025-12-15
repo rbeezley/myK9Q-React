@@ -11,6 +11,7 @@ import { supabase } from '../../../lib/supabase';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Class } from '@/services/replication/tables/ReplicatedClassesTable';
 import type { Entry as ReplicatedEntry } from '@/services/replication/tables/ReplicatedEntriesTable';
+import type { Trial } from '@/services/replication/tables/ReplicatedTrialsTable';
 import { logger } from '@/utils/logger';
 import { getVisibleResultFields } from '@/services/resultVisibilityService';
 import type { VisibleResultFields } from '@/types/visibility';
@@ -137,7 +138,8 @@ export function buildSingleClassInfo(
   classData: Class,
   classId: string,
   entries: Entry[],
-  judgeName: string
+  judgeName: string,
+  trialData?: Trial | null
 ): ClassInfo {
   const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
   const completedEntries = entries.filter(e => e.isScored).length;
@@ -147,8 +149,9 @@ export function buildSingleClassInfo(
     element: classData.element || '',
     level: classData.level || '',
     section: classData.section || '',
-    trialDate: entries[0]?.trialDate || '',
-    trialNumber: entries[0]?.trialNumber ? String(entries[0].trialNumber) : '',
+    trialId: classData.trial_id,
+    trialDate: trialData?.trial_date || entries[0]?.trialDate || '',
+    trialNumber: trialData?.trial_number ? String(trialData.trial_number) : (entries[0]?.trialNumber ? String(entries[0].trialNumber) : ''),
     judgeName,
     actualClassId: parseInt(classId),
     selfCheckin: classData.self_checkin_enabled ?? true,
@@ -170,14 +173,16 @@ export function buildCombinedClassInfo(
   classDataB: Class,
   classIdA: string,
   classIdB: string,
-  entries: Entry[]
+  entries: Entry[],
+  trialData?: Trial | null
 ): ClassInfo {
   return {
     className: `${classDataA.element} ${classDataA.level} A & B`,
     element: classDataA.element || '',
     level: classDataA.level || '',
-    trialDate: entries[0]?.trialDate || '',
-    trialNumber: entries[0]?.trialNumber ? String(entries[0].trialNumber) : '',
+    trialId: classDataA.trial_id,
+    trialDate: trialData?.trial_date || entries[0]?.trialDate || '',
+    trialNumber: trialData?.trial_number ? String(trialData.trial_number) : (entries[0]?.trialNumber ? String(entries[0].trialNumber) : ''),
     judgeName: classDataA.judge_name || 'No Judge Assigned',
     judgeNameB: classDataB.judge_name || 'No Judge Assigned',
     actualClassIdA: parseInt(classIdA),
@@ -245,11 +250,18 @@ export async function fetchFromReplicationCache(
     const manager = await ensureReplicationManager();
     const classesTable = manager.getTable<Class>('classes');
     const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+    const trialsTable = manager.getTable<Trial>('trials');
 
     if (!classesTable || !entriesTable) return null;
 
     const classData = await classesTable.get(classId);
     if (!classData) return null;
+
+    // Fetch trial data for date/number display
+    let trialData: Trial | null = null;
+    if (trialsTable && classData.trial_id) {
+      trialData = await trialsTable.get(String(classData.trial_id)) || null;
+    }
 
     const cachedEntries = await entriesTable.getAll();
     const relevantEntries = cachedEntries.filter((entry) => String(entry.class_id) === classId);
@@ -261,7 +273,8 @@ export async function fetchFromReplicationCache(
       classData,
       classId,
       classEntries,
-      classData.judge_name || 'No Judge Assigned'
+      classData.judge_name || 'No Judge Assigned',
+      trialData
     );
 
     if (classEntries.length === 0) {
@@ -299,6 +312,23 @@ export async function fetchFromSupabase(
     return { entries: [], classInfo: null };
   }
 
+  // Fetch trial data for date/number display
+  let trialDate = classEntries[0]?.trialDate || '';
+  let trialNumber = classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '';
+
+  if (classData.trial_id && (!trialDate || !trialNumber)) {
+    const { data: trialData } = await supabase
+      .from('trials')
+      .select('trial_date, trial_number')
+      .eq('id', classData.trial_id)
+      .single();
+
+    if (trialData) {
+      trialDate = trialData.trial_date || trialDate;
+      trialNumber = trialData.trial_number ? String(trialData.trial_number) : trialNumber;
+    }
+  }
+
   const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
   const completedEntries = classEntries.filter(e => e.isScored).length;
 
@@ -308,8 +338,8 @@ export async function fetchFromSupabase(
     level: classData.level || '',
     section: classData.section || '',
     trialId: classData.trial_id,
-    trialDate: classEntries[0]?.trialDate || '',
-    trialNumber: classEntries[0]?.trialNumber ? String(classEntries[0].trialNumber) : '',
+    trialDate,
+    trialNumber,
     judgeName: classData.judge_name || 'No Judge Assigned',
     actualClassId: parseInt(classId),
     selfCheckin: classData.self_checkin_enabled ?? true,
@@ -356,6 +386,7 @@ export async function fetchCombinedFromReplicationCache(
     const manager = await ensureReplicationManager();
     const classesTable = manager.getTable<Class>('classes');
     const entriesTable = manager.getTable<ReplicatedEntry>('entries');
+    const trialsTable = manager.getTable<Trial>('trials');
 
     if (!classesTable || !entriesTable) return null;
 
@@ -363,6 +394,12 @@ export async function fetchCombinedFromReplicationCache(
     const classDataB = await classesTable.get(classIdB);
 
     if (!classDataA || !classDataB) return null;
+
+    // Fetch trial data for date/number display (use class A's trial)
+    let trialData: Trial | null = null;
+    if (trialsTable && classDataA.trial_id) {
+      trialData = await trialsTable.get(String(classDataA.trial_id)) || null;
+    }
 
     const cachedEntries = await entriesTable.getAll();
 
@@ -381,7 +418,7 @@ export async function fetchCombinedFromReplicationCache(
     entriesB = await applyVisibilityToEntries(entriesB, classDataB, licenseKey, userRole);
 
     const combinedEntries = [...entriesA, ...entriesB];
-    const classInfo = buildCombinedClassInfo(classDataA, classDataB, classIdA, classIdB, combinedEntries);
+    const classInfo = buildCombinedClassInfo(classDataA, classDataB, classIdA, classIdB, combinedEntries, trialData);
 
     return { entries: combinedEntries, classInfo };
   } catch (error) {
@@ -419,6 +456,23 @@ export async function fetchCombinedFromSupabase(
       .single()
   ]);
 
+  // Fetch trial data for date/number display
+  let trialDate = firstEntry.trialDate || '';
+  let trialNumber = firstEntry.trialNumber ? String(firstEntry.trialNumber) : '';
+
+  if (classDataA?.trial_id && (!trialDate || !trialNumber)) {
+    const { data: trialData } = await supabase
+      .from('trials')
+      .select('trial_date, trial_number')
+      .eq('id', classDataA.trial_id)
+      .single();
+
+    if (trialData) {
+      trialDate = trialData.trial_date || trialDate;
+      trialNumber = trialData.trial_number ? String(trialData.trial_number) : trialNumber;
+    }
+  }
+
   if (classDataA && classDataB) {
     const entriesA = combinedEntries.filter(e => e.classId === parseInt(classIdA));
     const entriesB = combinedEntries.filter(e => e.classId === parseInt(classIdB));
@@ -452,8 +506,8 @@ export async function fetchCombinedFromSupabase(
     element: firstEntry.element || '',
     level: firstEntry.level || '',
     trialId: classDataA?.trial_id,
-    trialDate: firstEntry.trialDate || '',
-    trialNumber: firstEntry.trialNumber ? String(firstEntry.trialNumber) : '',
+    trialDate,
+    trialNumber,
     judgeName: classDataA?.judge_name || 'No Judge Assigned',
     judgeNameB: classDataB?.judge_name || 'No Judge Assigned',
     actualClassIdA: parseInt(classIdA),
