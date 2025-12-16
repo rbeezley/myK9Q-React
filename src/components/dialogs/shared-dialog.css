@@ -9,11 +9,19 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px); /* Safari support */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--token-z-modal);
   padding: var(--token-space-xl);
+}
+
+/* About Dialog - Enhanced blur overlay for focus effect */
+.about-dialog-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); /* Safari support */
 }
 
 .dialog-container {
