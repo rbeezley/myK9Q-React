@@ -25,7 +25,8 @@ window.addEventListener('error', (event: ErrorEvent) => {
 })
 
 // App version for debugging cache issues
-const APP_VERSION = '2024-11-25-v4';
+// IMPORTANT: Update this with each deployment to trigger update prompts!
+const APP_VERSION = '2024-12-16-v1';
 // Track if user has been prompted about this update (persist across sessions)
 const getLastPromptedVersion = () => localStorage.getItem('sw_prompted_version');
 const setLastPromptedVersion = () => localStorage.setItem('sw_prompted_version', APP_VERSION);
