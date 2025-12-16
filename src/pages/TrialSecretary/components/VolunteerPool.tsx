@@ -11,13 +11,16 @@ import type { Volunteer } from '../types';
 
 interface VolunteerPoolProps {
   volunteers: Volunteer[];
-  onAddVolunteer: () => void;
-  onEditVolunteer: (volunteer: Volunteer) => void;
-  onDeleteVolunteer: (volunteerId: string) => void;
+  /** When true, disables all editing features (add, edit, delete, drag) */
+  isReadOnly?: boolean;
+  onAddVolunteer?: () => void;
+  onEditVolunteer?: (volunteer: Volunteer) => void;
+  onDeleteVolunteer?: (volunteerId: string) => void;
 }
 
 export function VolunteerPool({
   volunteers,
+  isReadOnly = false,
   onAddVolunteer,
   onEditVolunteer,
   onDeleteVolunteer,
@@ -34,15 +37,18 @@ export function VolunteerPool({
           <DraggableVolunteerCard
             key={volunteer.id}
             volunteer={volunteer}
-            onEdit={() => onEditVolunteer(volunteer)}
-            onDelete={() => onDeleteVolunteer(volunteer.id)}
+            isReadOnly={isReadOnly}
+            onEdit={onEditVolunteer ? () => onEditVolunteer(volunteer) : undefined}
+            onDelete={onDeleteVolunteer ? () => onDeleteVolunteer(volunteer.id) : undefined}
           />
         ))}
 
-        <button className="volunteer-add-button" onClick={onAddVolunteer}>
-          <Plus size={16} />
-          <span>Add Volunteer</span>
-        </button>
+        {!isReadOnly && onAddVolunteer && (
+          <button className="volunteer-add-button" onClick={onAddVolunteer}>
+            <Plus size={16} />
+            <span>Add Volunteer</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -50,17 +56,20 @@ export function VolunteerPool({
 
 interface DraggableVolunteerCardProps {
   volunteer: Volunteer;
-  onEdit: () => void;
-  onDelete: () => void;
+  isReadOnly?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 function DraggableVolunteerCard({
   volunteer,
+  isReadOnly = false,
   onEdit,
   onDelete,
 }: DraggableVolunteerCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: volunteer.id,
+    disabled: isReadOnly,
   });
 
   const [showActions, setShowActions] = React.useState(false);
@@ -80,30 +89,34 @@ function DraggableVolunteerCard({
         <span className="volunteer-card-badge">Exhibitor</span>
       )}
 
-      {showActions && (
+      {!isReadOnly && showActions && (
         <div className="volunteer-card-actions">
-          <button
-            className="volunteer-action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            title="Edit"
-          >
-            <Pencil size={12} />
-          </button>
-          <button
-            className="volunteer-action-btn delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            title="Delete"
-          >
-            <Trash2 size={12} />
-          </button>
+          {onEdit && (
+            <button
+              className="volunteer-action-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Edit"
+            >
+              <Pencil size={12} />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              className="volunteer-action-btn delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Delete"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
         </div>
       )}
     </div>

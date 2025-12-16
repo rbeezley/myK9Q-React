@@ -31,6 +31,8 @@ import { RoleConfigDialog } from './RoleConfigDialog';
 import type { Volunteer, ClassInfo } from '../types';
 
 interface ScheduleBoardProps {
+  /** When true, disables all editing features (add, edit, delete, drag) */
+  isReadOnly?: boolean;
   /** External trigger for actions (from header menu) */
   externalTrigger?: 'add-volunteer' | 'manage-roles' | null;
   /** Callback when trigger has been consumed */
@@ -67,7 +69,7 @@ function formatTrialId(cls: ClassInfo): string {
   return `${weekday}, ${month} ${ordinal(day)}, ${year}${trialNum}`;
 }
 
-export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBoardProps) {
+export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerConsumed }: ScheduleBoardProps) {
   const {
     classes,
     roles,
@@ -128,6 +130,9 @@ export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBo
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    // Disable drag in read-only mode
+    if (isReadOnly) return;
+
     const { active } = event;
     const volunteer = volunteers.find(v => v.id === active.id);
     if (volunteer) {
@@ -136,6 +141,12 @@ export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBo
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    // Disable drop in read-only mode
+    if (isReadOnly) {
+      setActiveVolunteer(null);
+      return;
+    }
+
     const { active, over } = event;
     setActiveVolunteer(null);
 
@@ -208,9 +219,9 @@ export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBo
   }
 
   return (
-    <div className="schedule-container">
+    <div className={`schedule-container ${isReadOnly ? 'schedule-readonly' : ''}`}>
       <DndContext
-        sensors={sensors}
+        sensors={isReadOnly ? [] : sensors}
         collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -219,15 +230,16 @@ export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBo
         <div className="volunteer-pool-sticky">
           <VolunteerPool
             volunteers={volunteers}
-            onAddVolunteer={() => {
+            isReadOnly={isReadOnly}
+            onAddVolunteer={isReadOnly ? undefined : () => {
               setEditingVolunteer(null);
               setVolunteerDialogOpen(true);
             }}
-            onEditVolunteer={(volunteer) => {
+            onEditVolunteer={isReadOnly ? undefined : (volunteer) => {
               setEditingVolunteer(volunteer);
               setVolunteerDialogOpen(true);
             }}
-            onDeleteVolunteer={deleteVolunteer}
+            onDeleteVolunteer={isReadOnly ? undefined : deleteVolunteer}
           />
         </div>
 
@@ -274,7 +286,7 @@ export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBo
                               <VolunteerChip
                                 key={volunteer.id}
                                 volunteer={volunteer}
-                                onRemove={() => removeFromGeneralDuty(volunteer.id, role.id)}
+                                onRemove={isReadOnly ? undefined : () => removeFromGeneralDuty(volunteer.id, role.id)}
                               />
                             ))}
                           </DroppableCell>
@@ -338,7 +350,7 @@ export function ScheduleBoard({ externalTrigger, onTriggerConsumed }: ScheduleBo
                                   key={volunteer.id}
                                   volunteer={volunteer}
                                   hasConflict={hasConflict(volunteer, cls.id)}
-                                  onRemove={() => removeFromClass(volunteer.id, cls.id, role.id)}
+                                  onRemove={isReadOnly ? undefined : () => removeFromClass(volunteer.id, cls.id, role.id)}
                                 />
                               ))}
                             </DroppableCell>

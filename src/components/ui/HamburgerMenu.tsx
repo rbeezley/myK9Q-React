@@ -33,7 +33,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show' | 'results';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show' | 'results' | 'secretary';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -232,6 +232,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span>AskQ</span>
               </button>
 
+              {/* Secretary Tools - Available to all roles (read-only for non-admin) */}
+              <button
+                className={`menu-item ${currentPage === 'secretary' ? 'active' : ''}`}
+                onClick={() => handleMenuItemClick(() => navigate('/secretary'))}
+              >
+                <ClipboardList className="menu-icon" />
+                <span>Secretary Tools</span>
+              </button>
+
               {/* Admin Section - Only show for admin users */}
               {role === 'admin' && (
                 <>
@@ -250,14 +259,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   >
                     <Shield className="menu-icon" />
                     <span>Results Control</span>
-                  </button>
-
-                  <button
-                    className="menu-item"
-                    onClick={() => handleMenuItemClick(() => navigate('/secretary'))}
-                  >
-                    <ClipboardList className="menu-icon" />
-                    <span>Secretary Tools</span>
                   </button>
                 </>
               )}

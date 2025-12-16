@@ -1,17 +1,20 @@
 /**
  * Trial Secretary Tools Page
  *
- * Admin-only page with two main tools:
+ * Shows two main tools:
  * 1. Kanban To-Do Board - Task management with drag-and-drop
  * 2. Steward Scheduler - Class-based volunteer assignment
+ *
+ * Access: All roles can view (read-only for non-admins)
+ * - Admin: Full edit access (add, edit, delete, drag-and-drop)
+ * - Judge/Steward/Exhibitor: View-only mode (see schedule assignments)
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { HamburgerMenu, CompactOfflineIndicator, TabBar } from '../../components/ui';
 import type { Tab } from '../../components/ui';
-import { ClipboardList, Users, AlertTriangle, MoreVertical, Plus, Settings } from 'lucide-react';
+import { ClipboardList, Users, MoreVertical, Plus, Settings, Eye } from 'lucide-react';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ScheduleBoard } from './components/ScheduleBoard';
 import './TrialSecretary.css';
@@ -19,10 +22,12 @@ import './TrialSecretary.css';
 type TabType = 'kanban' | 'schedule';
 
 export function TrialSecretary() {
-  const navigate = useNavigate();
   const { role, showContext } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('kanban');
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+
+  // Read-only mode for non-admin users
+  const isReadOnly = role !== 'admin';
 
   // External triggers for ScheduleBoard actions
   const [scheduleTrigger, setScheduleTrigger] = useState<'add-volunteer' | 'manage-roles' | null>(null);
@@ -53,38 +58,27 @@ export function TrialSecretary() {
     }
   }, [showActionsMenu]);
 
-  // Admin-only access check
-  if (role !== 'admin') {
-    return (
-      <div className="secretary-access-denied">
-        <AlertTriangle size={48} className="warning-icon" />
-        <h2>Access Denied</h2>
-        <p>Trial Secretary Tools are only available to administrators.</p>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate('/home')}
-        >
-          Return Home
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="secretary-page">
       {/* Header - Standard pattern */}
       <header className="page-header secretary-header">
-        <HamburgerMenu currentPage="admin" />
+        <HamburgerMenu currentPage="secretary" />
         <CompactOfflineIndicator />
 
         {/* Centered title */}
         <div className="secretary-title">
           <h1>Secretary Tools</h1>
           <span className="secretary-subtitle">{showContext?.showName}</span>
+          {isReadOnly && (
+            <span className="secretary-readonly-badge">
+              <Eye size={12} />
+              View Only
+            </span>
+          )}
         </div>
 
-        {/* Actions menu (three-dot) - only show on schedule tab */}
-        {activeTab === 'schedule' && (
+        {/* Actions menu (three-dot) - only show on schedule tab for admin users */}
+        {activeTab === 'schedule' && !isReadOnly && (
           <div className="header-buttons">
             <div className="actions-menu-container">
               <button
@@ -134,10 +128,11 @@ export function TrialSecretary() {
 
       {/* Tab Content */}
       <div className="secretary-content">
-        {activeTab === 'kanban' && <KanbanBoard />}
+        {activeTab === 'kanban' && <KanbanBoard isReadOnly={isReadOnly} />}
         {activeTab === 'schedule' && (
           <ScheduleBoard
-            externalTrigger={scheduleTrigger}
+            isReadOnly={isReadOnly}
+            externalTrigger={isReadOnly ? null : scheduleTrigger}
             onTriggerConsumed={clearScheduleTrigger}
           />
         )}

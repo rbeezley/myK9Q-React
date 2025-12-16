@@ -15,6 +15,8 @@ interface KanbanCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   isDragOverlay?: boolean;
+  /** Hide edit/delete menu in read-only mode */
+  isReadOnly?: boolean;
 }
 
 export function KanbanCard({
@@ -22,6 +24,7 @@ export function KanbanCard({
   onEdit,
   onDelete,
   isDragOverlay = false,
+  isReadOnly = false,
 }: KanbanCardProps) {
   const {
     attributes,
@@ -32,7 +35,7 @@ export function KanbanCard({
     isDragging,
   } = useSortable({
     id: task.id,
-    disabled: isDragOverlay,
+    disabled: isDragOverlay || isReadOnly,
   });
 
   const style = {
@@ -64,7 +67,7 @@ export function KanbanCard({
     >
       <div className="kanban-card-header">
         <h4 className="kanban-card-title">{task.title}</h4>
-        {!isDragOverlay && (
+        {!isDragOverlay && !isReadOnly && (
           <div className="kanban-card-actions">
             <button
               className="kanban-card-menu-btn"

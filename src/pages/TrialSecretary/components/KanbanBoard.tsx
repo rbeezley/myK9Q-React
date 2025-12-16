@@ -38,7 +38,12 @@ const COLUMNS: { id: KanbanStatus; title: string; icon: React.ReactNode }[] = [
   { id: 'done', title: 'Done', icon: <CheckCircle size={16} /> },
 ];
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  /** When true, disables all editing features (add, edit, delete, drag) */
+  isReadOnly?: boolean;
+}
+
+export function KanbanBoard({ isReadOnly = false }: KanbanBoardProps) {
   const { tasks, addTask, updateTask, deleteTask, moveTask } = useKanbanBoard();
   const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -64,6 +69,9 @@ export function KanbanBoard() {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    // Disable drag in read-only mode
+    if (isReadOnly) return;
+
     const { active } = event;
     const task = tasks.find(t => t.id === active.id);
     if (task) {
@@ -72,6 +80,12 @@ export function KanbanBoard() {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    // Disable drop in read-only mode
+    if (isReadOnly) {
+      setActiveTask(null);
+      return;
+    }
+
     const { active, over } = event;
     setActiveTask(null);
 
@@ -118,9 +132,9 @@ export function KanbanBoard() {
     tasks.filter(task => task.status === status);
 
   return (
-    <div className="kanban-container">
+    <div className={`kanban-container ${isReadOnly ? 'kanban-readonly' : ''}`}>
       <DndContext
-        sensors={sensors}
+        sensors={isReadOnly ? [] : sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -134,7 +148,7 @@ export function KanbanBoard() {
               title={column.title}
               icon={column.icon}
               count={columnTasks.length}
-              onAddTask={column.id === 'todo' ? handleAddTask : undefined}
+              onAddTask={!isReadOnly && column.id === 'todo' ? handleAddTask : undefined}
             >
               <SortableContext
                 items={columnTasks.map(t => t.id)}
@@ -144,8 +158,9 @@ export function KanbanBoard() {
                   <KanbanCard
                     key={task.id}
                     task={task}
-                    onEdit={() => handleEditTask(task)}
-                    onDelete={() => deleteTask(task.id)}
+                    onEdit={isReadOnly ? undefined : () => handleEditTask(task)}
+                    onDelete={isReadOnly ? undefined : () => deleteTask(task.id)}
+                    isReadOnly={isReadOnly}
                   />
                 ))}
               </SortableContext>
@@ -160,15 +175,18 @@ export function KanbanBoard() {
         </DragOverlay>
       </DndContext>
 
-      <TaskDialog
-        isOpen={dialogOpen}
-        onClose={() => {
-          setDialogOpen(false);
-          setEditingTask(null);
-        }}
-        onSave={handleSaveTask}
-        task={editingTask}
-      />
+      {/* Only show dialog for admin users */}
+      {!isReadOnly && (
+        <TaskDialog
+          isOpen={dialogOpen}
+          onClose={() => {
+            setDialogOpen(false);
+            setEditingTask(null);
+          }}
+          onSave={handleSaveTask}
+          task={editingTask}
+        />
+      )}
     </div>
   );
 }
