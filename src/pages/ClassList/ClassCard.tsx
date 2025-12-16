@@ -283,7 +283,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
             <BottomSheet
               isOpen={showBottomSheet}
               onClose={() => setShowBottomSheet(false)}
-              title={classEntry.class_name}
+              title="Class Details"
             >
               <ClassDetailsContent data={classDetailsData} />
             </BottomSheet>

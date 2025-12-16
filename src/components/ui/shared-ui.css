@@ -2459,7 +2459,7 @@
 .bottom-sheet-handle {
   display: flex;
   justify-content: center;
-  padding: var(--token-space-lg) 0 var(--token-space-md) 0;
+  padding: var(--token-space-md) 0 var(--token-space-xs) 0;
   cursor: grab;
 }
 
@@ -2479,7 +2479,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--token-space-xl) var(--token-space-2xl);
+  padding: var(--token-space-md) var(--token-space-xl);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
