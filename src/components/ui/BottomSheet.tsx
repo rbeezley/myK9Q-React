@@ -14,8 +14,20 @@
  */
 
 import { useEffect, useState, useRef, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import './shared-ui.css';
+
+// Create or get the portal root element for bottom sheets
+function getBottomSheetPortalRoot(): HTMLElement {
+  let portalRoot = document.getElementById('bottom-sheet-portal-root');
+  if (!portalRoot) {
+    portalRoot = document.createElement('div');
+    portalRoot.id = 'bottom-sheet-portal-root';
+    document.body.appendChild(portalRoot);
+  }
+  return portalRoot;
+}
 
 export interface BottomSheetProps {
   /**
@@ -157,7 +169,7 @@ export function BottomSheet({
 
   if (!isOpen) return null;
 
-  return (
+  const bottomSheetContent = (
     <div className="bottom-sheet-overlay" onClick={handleBackdropClick}>
       <div
         ref={sheetRef}
@@ -202,4 +214,7 @@ export function BottomSheet({
       </div>
     </div>
   );
+
+  // Render via portal to escape parent overflow/transform constraints
+  return createPortal(bottomSheetContent, getBottomSheetPortalRoot());
 }
