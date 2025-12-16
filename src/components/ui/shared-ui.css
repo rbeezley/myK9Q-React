@@ -2555,16 +2555,16 @@
   }
 
   .bottom-sheet-title {
-    color: var(--muted);
+    color: var(--foreground);
   }
 
   .bottom-sheet-close {
-    color: var(--token-text-muted);
+    color: var(--muted-foreground);
   }
 
   .bottom-sheet-close:hover {
     background: var(--card);
-    color: var(--muted);
+    color: var(--foreground);
   }
 
   .bottom-sheet-handle-bar {
