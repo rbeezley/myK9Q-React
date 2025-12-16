@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Bell, AlertTriangle, AlertCircle, Dog } from 'lucide-react';
+import { X, Bell, AlertTriangle, AlertCircle, Dog, Megaphone, Eye } from 'lucide-react';
 import type { InAppNotification } from '../../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import './ToastNotification.css';
@@ -60,17 +60,12 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
     }
   };
 
-  // Get priority emoji
-  const getPriorityEmoji = () => {
-    if (notification.type === 'dog-alert') return '🐕';
-    switch (notification.priority) {
-      case 'urgent':
-        return '🚨';
-      case 'high':
-        return '⚠️';
-      default:
-        return '📢';
+  // Get type indicator icon (replaces emojis)
+  const getTypeIcon = () => {
+    if (notification.type === 'dog-alert') {
+      return <Dog size={16} className="toast-type-icon dog-type" />;
     }
+    return <Megaphone size={16} className="toast-type-icon announcement-type" />;
   };
 
   return (
@@ -87,7 +82,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
       {/* Content */}
       <div className="toast-content">
         <div className="toast-header">
-          <span className="toast-emoji">{getPriorityEmoji()}</span>
+          {getTypeIcon()}
           <h4 className="toast-title">{notification.title}</h4>
           {notification.priority === 'urgent' && (
             <span className="toast-priority-badge">URGENT</span>
@@ -107,7 +102,8 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
             className="toast-action-btn toast-view-btn"
             title="View"
           >
-            👁️ View
+            <Eye size={14} />
+            <span>View</span>
           </button>
         )}
         <button
