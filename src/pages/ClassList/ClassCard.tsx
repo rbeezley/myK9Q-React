@@ -284,6 +284,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               isOpen={showBottomSheet}
               onClose={() => setShowBottomSheet(false)}
               title="Class Details"
+              closeOnBackdrop={false}
             >
               <ClassDetailsContent data={classDetailsData} />
             </BottomSheet>
