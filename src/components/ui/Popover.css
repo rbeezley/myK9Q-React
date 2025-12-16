@@ -6,15 +6,18 @@
 .popover {
   min-width: 200px;
   max-width: 320px;
+  max-height: none;  /* No height constraint */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--token-radius-lg);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(0, 0, 0, 0.05);
-  z-index: var(--token-z-popover, 1000);
-  overflow: hidden;
+  z-index: 1;  /* Within portal root's stacking context */
+  overflow: visible;  /* Allow content to be fully visible */
   animation: popover-enter 0.15s ease-out;
+  /* Re-enable pointer events (portal root has pointer-events: none) */
+  pointer-events: auto;
 }
 
 /* Entry animation */
@@ -54,6 +57,7 @@
   padding: var(--token-space-sm) var(--token-space-md);
   background: var(--muted);
   border-bottom: 1px solid var(--border);
+  border-radius: var(--token-radius-lg) var(--token-radius-lg) 0 0;  /* Match parent's top corners */
   gap: var(--token-space-sm);
 }
 
@@ -93,6 +97,7 @@
 /* Content section */
 .popover-content {
   padding: var(--token-space-md);
+  overflow: visible;
 }
 
 /* ==========================================================================

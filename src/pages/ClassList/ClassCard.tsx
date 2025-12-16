@@ -239,6 +239,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               anchorRef={infoIndicatorRef}
               title="Class Settings"
               className="class-settings-popover"
+              position="top"
             >
               {/* Max Time */}
               <div className="popover-row">

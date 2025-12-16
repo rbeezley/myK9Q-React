@@ -3,6 +3,26 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import './Popover.css';
 
+// Create or get the portal root element
+function getPortalRoot(): HTMLElement {
+  let portalRoot = document.getElementById('popover-portal-root');
+  if (!portalRoot) {
+    portalRoot = document.createElement('div');
+    portalRoot.id = 'popover-portal-root';
+    // Ensure portal root is at the end of body with highest stacking context
+    portalRoot.style.position = 'fixed';
+    portalRoot.style.top = '0';
+    portalRoot.style.left = '0';
+    portalRoot.style.width = '0';
+    portalRoot.style.height = '0';
+    portalRoot.style.overflow = 'visible';
+    portalRoot.style.zIndex = '99999';
+    portalRoot.style.pointerEvents = 'none';
+    document.body.appendChild(portalRoot);
+  }
+  return portalRoot;
+}
+
 export type PopoverPosition = 'top' | 'bottom' | 'left' | 'right';
 export type PopoverAlignment = 'start' | 'center' | 'end';
 
@@ -270,8 +290,8 @@ export function Popover({
     </div>
   );
 
-  // Render in portal at document body level
-  return createPortal(popoverContent, document.body);
+  // Render in portal at dedicated portal root
+  return createPortal(popoverContent, getPortalRoot());
 }
 
 export default Popover;
