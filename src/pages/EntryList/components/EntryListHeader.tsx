@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Info } from 'lucide-react';
 import { HamburgerMenu, CompactOfflineIndicator, SyncIndicator, RefreshIndicator, FilterTriggerButton } from '../../../components/ui';
 import type { ClassInfo } from '../hooks';
 import {
   ActionsDropdownMenu,
-  ClassInfoPopup,
   getStatusBadge,
   type ActionsMenuConfig
 } from './entryListHeaderHelpers';
+import { ClassDetailsPopover } from '@/components/dialogs/ClassDetailsPopover';
 import { formatTrialDate } from '../../../utils/dateUtils';
 
 export interface EntryListHeaderProps {
@@ -52,6 +52,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
   const navigate = useNavigate();
   const [showActionsMenu, setShowActionsMenu] = React.useState(false);
   const [showInfoPopup, setShowInfoPopup] = React.useState(false);
+  const classInfoRef = useRef<HTMLDivElement>(null);
 
   // Close menus when clicking outside
   React.useEffect(() => {
@@ -85,6 +86,24 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
   const statusBadge = getStatusBadge(classInfo?.classStatus);
   const hasExtraInfo = classInfo?.judgeName || statusBadge || (showSectionsBadge && classInfo?.judgeNameB);
 
+  // Memoize popover data to reduce inline complexity
+  const popoverData = React.useMemo(() => {
+    if (!classInfo) return null;
+    return {
+      status: classInfo.classStatus,
+      totalEntries: classInfo.totalEntries,
+      completedEntries: classInfo.completedEntries,
+      judgeName: classInfo.judgeName,
+      judgeNameB: classInfo.judgeNameB,
+      timeLimitSeconds: classInfo.timeLimit ? parseInt(classInfo.timeLimit) : undefined,
+      timeLimitArea2Seconds: classInfo.timeLimit2 ? parseInt(classInfo.timeLimit2) : undefined,
+      timeLimitArea3Seconds: classInfo.timeLimit3 ? parseInt(classInfo.timeLimit3) : undefined,
+      areaCount: classInfo.areas,
+      visibilityPreset: classInfo.visibilityPreset,
+      selfCheckinEnabled: classInfo.selfCheckin
+    };
+  }, [classInfo]);
+
   return (
     <header className="page-header entry-list-header">
       <HamburgerMenu
@@ -97,6 +116,7 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
       <CompactOfflineIndicator />
       {/* Class info - hover/tap to show details popup */}
       <div
+        ref={classInfoRef}
         className={`class-info ${hasExtraInfo ? 'class-info-clickable' : ''}`}
         onClick={hasExtraInfo ? () => setShowInfoPopup(!showInfoPopup) : undefined}
         onMouseEnter={hasExtraInfo ? () => setShowInfoPopup(true) : undefined}
@@ -122,16 +142,18 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
             <span className="trial-meta-text">{trialInfoText}</span>
           </div>
         )}
-        {/* Popup positioned relative to class-info */}
-        {hasExtraInfo && (
-          <ClassInfoPopup
-            isOpen={showInfoPopup}
-            classInfo={classInfo}
-            showSectionsBadge={showSectionsBadge}
-            onClose={() => setShowInfoPopup(false)}
-          />
-        )}
       </div>
+      {/* Class Details Popover - renders via portal */}
+      {hasExtraInfo && popoverData && (
+        <ClassDetailsPopover
+          isOpen={showInfoPopup}
+          onClose={() => setShowInfoPopup(false)}
+          anchorRef={classInfoRef}
+          position="bottom"
+          showJudgeB={showSectionsBadge}
+          data={popoverData}
+        />
+      )}
 
       <div className="header-buttons">
         {isRefreshing && <RefreshIndicator isRefreshing={isRefreshing} />}

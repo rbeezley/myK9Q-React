@@ -42,6 +42,7 @@ export interface ClassInfo {
   timeLimit2?: string;
   timeLimit3?: string;
   areas?: number;
+  visibilityPreset?: 'open' | 'standard' | 'review';
 }
 
 export interface EntryListData {
@@ -127,6 +128,28 @@ export async function applyVisibilityToEntries(
   return entries.map(entry => applyVisibilityFlags(entry, visibilityFlags));
 }
 
+/**
+ * Fetch visibility preset for a class from class_result_visibility_overrides table
+ */
+export async function fetchVisibilityPreset(
+  classId: number | string
+): Promise<'open' | 'standard' | 'review'> {
+  try {
+    const { data } = await supabase
+      .from('class_result_visibility_overrides')
+      .select('preset_name')
+      .eq('class_id', parseInt(String(classId)))
+      .single();
+
+    if (data?.preset_name && ['open', 'standard', 'review'].includes(data.preset_name)) {
+      return data.preset_name as 'open' | 'standard' | 'review';
+    }
+  } catch {
+    // Table might not have a row for this class - default to 'standard'
+  }
+  return 'standard';
+}
+
 // =============================================================================
 // CLASS INFO BUILDERS
 // =============================================================================
@@ -139,7 +162,8 @@ export function buildSingleClassInfo(
   classId: string,
   entries: Entry[],
   judgeName: string,
-  trialData?: Trial | null
+  trialData?: Trial | null,
+  visibilityPreset?: 'open' | 'standard' | 'review'
 ): ClassInfo {
   const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
   const completedEntries = entries.filter(e => e.isScored).length;
@@ -161,7 +185,8 @@ export function buildSingleClassInfo(
     timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
     timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-    areas: classData.area_count
+    areas: classData.area_count,
+    visibilityPreset: visibilityPreset || 'standard'
   };
 }
 
@@ -174,7 +199,8 @@ export function buildCombinedClassInfo(
   classIdA: string,
   classIdB: string,
   entries: Entry[],
-  trialData?: Trial | null
+  trialData?: Trial | null,
+  visibilityPreset?: 'open' | 'standard' | 'review'
 ): ClassInfo {
   return {
     className: `${classDataA.element} ${classDataA.level} A & B`,
@@ -192,7 +218,8 @@ export function buildCombinedClassInfo(
     timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
     timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
-    areas: classDataA.area_count
+    areas: classDataA.area_count,
+    visibilityPreset: visibilityPreset || 'standard'
   };
 }
 
@@ -268,13 +295,17 @@ export async function fetchFromReplicationCache(
 
     let classEntries = relevantEntries.map((entry) => transformReplicatedEntry(entry, classData));
 
+    // Fetch visibility preset for class settings display
+    const visibilityPreset = await fetchVisibilityPreset(classId);
+
     // Build classInfo even if entries are empty
     const classInfo = buildSingleClassInfo(
       classData,
       classId,
       classEntries,
       classData.judge_name || 'No Judge Assigned',
-      trialData
+      trialData,
+      visibilityPreset
     );
 
     if (classEntries.length === 0) {
@@ -332,6 +363,9 @@ export async function fetchFromSupabase(
   const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
   const completedEntries = classEntries.filter(e => e.isScored).length;
 
+  // Fetch visibility preset for class settings display
+  const visibilityPreset = await fetchVisibilityPreset(classId);
+
   const classInfo: ClassInfo = {
     className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
     element: classData.element || '',
@@ -349,7 +383,8 @@ export async function fetchFromSupabase(
     timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
     timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-    areas: classData.area_count
+    areas: classData.area_count,
+    visibilityPreset
   };
 
   if (classEntries.length === 0) {
@@ -417,8 +452,11 @@ export async function fetchCombinedFromReplicationCache(
     entriesA = await applyVisibilityToEntries(entriesA, classDataA, licenseKey, userRole);
     entriesB = await applyVisibilityToEntries(entriesB, classDataB, licenseKey, userRole);
 
+    // Fetch visibility preset (use class A's setting for combined view)
+    const visibilityPreset = await fetchVisibilityPreset(classIdA);
+
     const combinedEntries = [...entriesA, ...entriesB];
-    const classInfo = buildCombinedClassInfo(classDataA, classDataB, classIdA, classIdB, combinedEntries, trialData);
+    const classInfo = buildCombinedClassInfo(classDataA, classDataB, classIdA, classIdB, combinedEntries, trialData, visibilityPreset);
 
     return { entries: combinedEntries, classInfo };
   } catch (error) {
@@ -501,6 +539,9 @@ export async function fetchCombinedFromSupabase(
     combinedEntries = [...processedA, ...processedB];
   }
 
+  // Fetch visibility preset (use class A's setting for combined view)
+  const visibilityPreset = await fetchVisibilityPreset(classIdA);
+
   const classInfo: ClassInfo = {
     className: `${firstEntry.element} ${firstEntry.level} A & B`,
     element: firstEntry.element || '',
@@ -517,7 +558,8 @@ export async function fetchCombinedFromSupabase(
     timeLimit: firstEntry.timeLimit,
     timeLimit2: firstEntry.timeLimit2,
     timeLimit3: firstEntry.timeLimit3,
-    areas: firstEntry.areas
+    areas: firstEntry.areas,
+    visibilityPreset
   };
 
   return { entries: combinedEntries, classInfo };

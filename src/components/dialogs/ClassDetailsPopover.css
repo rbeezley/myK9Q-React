@@ -1,0 +1,35 @@
+/* ==========================================================================
+   ClassDetailsPopover
+   Unified class details popover used on ClassList and EntryList pages
+   ========================================================================== */
+
+/* Status badge variants (extends base popover-badge styles) */
+.class-details-popover .popover-badge.status-in-progress {
+  background: rgba(var(--success-rgb, 34, 197, 94), 0.15);
+  color: var(--success);
+}
+
+.class-details-popover .popover-badge.status-briefing {
+  background: rgba(var(--warning-rgb, 234, 179, 8), 0.15);
+  color: var(--warning);
+}
+
+.class-details-popover .popover-badge.status-break {
+  background: rgba(var(--info-rgb, 59, 130, 246), 0.15);
+  color: var(--info);
+}
+
+.class-details-popover .popover-badge.status-upcoming {
+  background: rgba(var(--info-rgb, 59, 130, 246), 0.15);
+  color: var(--info);
+}
+
+.class-details-popover .popover-badge.status-completed {
+  background: rgba(var(--muted-foreground-rgb, 148, 163, 184), 0.15);
+  color: var(--muted-foreground);
+}
+
+.class-details-popover .popover-badge.status-offline {
+  background: rgba(var(--destructive-rgb, 239, 68, 68), 0.15);
+  color: var(--destructive);
+}

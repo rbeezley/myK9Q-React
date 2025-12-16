@@ -1,9 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar, WifiOff, AlertTriangle, Info, Eye, Smartphone } from 'lucide-react';
+import { Heart, MoreHorizontal, Users, UserCheck, Circle, Wrench, MessageSquare, Coffee, CalendarClock, PlayCircle, CheckCircle, Calendar, WifiOff, AlertTriangle, Info } from 'lucide-react';
 import { getStaleDataStatus, formatStaleTime } from '../../utils/staleDataUtils';
-import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
-import { Popover } from '@/components/ui';
+import { ClassDetailsPopover } from '@/components/dialogs/ClassDetailsPopover';
 
 interface ClassEntry {
   id: number;
@@ -233,61 +232,24 @@ export const ClassCard: React.FC<ClassCardProps> = ({
             </div>
 
             {/* Class Details Popover - renders via portal to escape overflow */}
-            <Popover
+            <ClassDetailsPopover
               isOpen={showDetailsPopup}
               onClose={() => setShowDetailsPopup(false)}
               anchorRef={infoIndicatorRef}
-              title="Class Settings"
-              className="class-settings-popover"
               position="top"
-            >
-              {/* Max Time */}
-              <div className="popover-row">
-                <Clock className="popover-icon" size={14} />
-                <span className="popover-label">Max Time:</span>
-                <span className="popover-value time-value">
-                  {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
-                    classEntry.area_count && classEntry.area_count > 1 ? (
-                      <>
-                        {classEntry.time_limit_seconds && <span className="area-time"><span className="area-label">(1)</span> {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>}
-                        {classEntry.time_limit_area2_seconds && <span className="area-time"><span className="area-label">(2)</span> {formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}</span>}
-                        {classEntry.time_limit_area3_seconds && <span className="area-time"><span className="area-label">(3)</span> {formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}</span>}
-                      </>
-                    ) : (
-                      classEntry.time_limit_seconds ? formatSecondsToMMSS(classEntry.time_limit_seconds) : 'TBD'
-                    )
-                  ) : (
-                    'TBD'
-                  )}
-                </span>
-              </div>
-
-              {/* Results Visibility */}
-              <div className="popover-row">
-                <Eye className="popover-icon" size={14} />
-                <span className="popover-label">Results:</span>
-                <span
-                  className={`popover-badge visibility-${classEntry.visibility_preset || 'standard'}`}
-                >
-                  {classEntry.visibility_preset === 'open'
-                    ? 'Immediately'
-                    : classEntry.visibility_preset === 'review'
-                    ? 'After Review'
-                    : 'After Class'}
-                </span>
-              </div>
-
-              {/* Check-in Mode */}
-              <div className="popover-row">
-                <Smartphone className="popover-icon" size={14} />
-                <span className="popover-label">Check-in:</span>
-                <span
-                  className={`popover-badge ${classEntry.self_checkin_enabled ? 'checkin-self' : 'checkin-table'}`}
-                >
-                  {classEntry.self_checkin_enabled ? 'App (Self)' : 'At Table'}
-                </span>
-              </div>
-            </Popover>
+              data={{
+                status: classEntry.class_status,
+                totalEntries: classEntry.entry_count,
+                completedEntries: classEntry.completed_count,
+                judgeName: classEntry.judge_name,
+                timeLimitSeconds: classEntry.time_limit_seconds,
+                timeLimitArea2Seconds: classEntry.time_limit_area2_seconds,
+                timeLimitArea3Seconds: classEntry.time_limit_area3_seconds,
+                areaCount: classEntry.area_count,
+                visibilityPreset: classEntry.visibility_preset,
+                selfCheckinEnabled: classEntry.self_checkin_enabled
+              }}
+            />
 
             {/* Metadata Section - Judge only (other details in popup) */}
             <div className="metadata-section">
