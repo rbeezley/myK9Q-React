@@ -9,6 +9,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Dog,
+  Megaphone,
   ExternalLink
 } from 'lucide-react';
 import './NotificationCenter.css';
@@ -26,18 +27,20 @@ export const NotificationCenter: React.FC = () => {
     clearAll
   } = useNotifications();
 
-  const [filter, setFilter] = useState<'all' | 'unread' | 'announcements' | 'dogs'>('all');
+  // Two-dimensional filtering: type + read status
+  const [typeFilter, setTypeFilter] = useState<'all' | 'announcements' | 'dogs'>('all');
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
   // Debug: Log notifications whenever they change
   React.useEffect(() => {}, [notifications, isPanelOpen]);
 
   const filteredNotifications = notifications.filter(n => {
     // Filter by read status
-    if (filter === 'unread' && n.isRead) return false;
+    if (showUnreadOnly && n.isRead) return false;
 
     // Filter by type
-    if (filter === 'announcements' && n.type !== 'announcement') return false;
-    if (filter === 'dogs' && n.type !== 'dog-alert') return false;
+    if (typeFilter === 'announcements' && n.type !== 'announcement') return false;
+    if (typeFilter === 'dogs' && n.type !== 'dog-alert') return false;
 
     return true;
   });
@@ -65,16 +68,12 @@ export const NotificationCenter: React.FC = () => {
     }
   };
 
-  const getPriorityEmoji = (notification: typeof notifications[0]) => {
-    if (notification.type === 'dog-alert') return '🐕';
-    switch (notification.priority) {
-      case 'urgent':
-        return '🚨';
-      case 'high':
-        return '⚠️';
-      default:
-        return '📢';
+  // Get the type icon for notification header (replaces emojis)
+  const getTypeIcon = (notification: typeof notifications[0]) => {
+    if (notification.type === 'dog-alert') {
+      return <Dog size={16} className="notif-type-icon dog-type" />;
     }
+    return <Megaphone size={16} className="notif-type-icon announcement-type" />;
   };
 
   const formatTimeAgo = (timestamp: string) => {
@@ -131,32 +130,45 @@ export const NotificationCenter: React.FC = () => {
           </button>
         </div>
 
-        {/* Filter Tabs */}
+        {/* Type Filter Tabs - Primary dimension */}
         <div className="notif-filter-tabs">
           <button
-            onClick={() => setFilter('all')}
-            className={`notif-filter-tab ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setTypeFilter('all')}
+            className={`notif-filter-tab ${typeFilter === 'all' ? 'active' : ''}`}
           >
+            <Inbox size={14} />
             All ({notifications.length})
           </button>
           <button
-            onClick={() => setFilter('unread')}
-            className={`notif-filter-tab ${filter === 'unread' ? 'active' : ''}`}
+            onClick={() => setTypeFilter('announcements')}
+            className={`notif-filter-tab ${typeFilter === 'announcements' ? 'active' : ''}`}
           >
-            Unread ({unreadCount})
+            <Megaphone size={14} />
+            Announcements ({notifications.filter(n => n.type === 'announcement').length})
           </button>
           <button
-            onClick={() => setFilter('announcements')}
-            className={`notif-filter-tab ${filter === 'announcements' ? 'active' : ''}`}
+            onClick={() => setTypeFilter('dogs')}
+            className={`notif-filter-tab ${typeFilter === 'dogs' ? 'active' : ''}`}
           >
-            📢 Announcements ({notifications.filter(n => n.type === 'announcement').length})
+            <Dog size={14} />
+            My Dogs ({notifications.filter(n => n.type === 'dog-alert').length})
           </button>
-          <button
-            onClick={() => setFilter('dogs')}
-            className={`notif-filter-tab ${filter === 'dogs' ? 'active' : ''}`}
-          >
-            🐕 My Dogs ({notifications.filter(n => n.type === 'dog-alert').length})
-          </button>
+        </div>
+
+        {/* Unread Filter Toggle - Secondary dimension */}
+        <div className="notif-unread-toggle">
+          <label className="notif-toggle-label">
+            <input
+              type="checkbox"
+              checked={showUnreadOnly}
+              onChange={(e) => setShowUnreadOnly(e.target.checked)}
+              className="notif-toggle-checkbox"
+            />
+            <span className="notif-toggle-text">
+              Show only unread
+              {unreadCount > 0 && <span className="notif-toggle-count">({unreadCount})</span>}
+            </span>
+          </label>
         </div>
 
         {/* Actions */}
@@ -180,11 +192,17 @@ export const NotificationCenter: React.FC = () => {
           {filteredNotifications.length === 0 ? (
             <div className="notif-empty-state">
               <Inbox className="notif-empty-icon" />
-              <h3>Inbox empty</h3>
+              <h3>
+                {showUnreadOnly ? "You're all caught up!" : 'No notifications'}
+              </h3>
               <p>
-                {filter === 'unread'
-                  ? "You're all caught up!"
-                  : 'New notifications will appear here'}
+                {showUnreadOnly
+                  ? 'All notifications have been read'
+                  : typeFilter === 'announcements'
+                    ? 'No announcements yet'
+                    : typeFilter === 'dogs'
+                      ? 'No alerts for your dogs yet'
+                      : 'New notifications will appear here'}
               </p>
             </div>
           ) : (
@@ -205,7 +223,7 @@ export const NotificationCenter: React.FC = () => {
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="notif-item-header">
-                      <span className="notif-item-emoji">{getPriorityEmoji(notification)}</span>
+                      {getTypeIcon(notification)}
                       <h4 className="notif-item-title">{notification.title}</h4>
                     </div>
                     <p className="notif-item-message">{notification.content}</p>

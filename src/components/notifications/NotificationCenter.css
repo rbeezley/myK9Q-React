@@ -108,33 +108,38 @@
   background-color: var(--border);
 }
 
-/* Filter Tabs */
+/* Filter Tabs - Single row for type filter */
 .notif-filter-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 0;
-  padding: 16px 20px 0 20px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: var(--card, white);
 }
 
 .notif-filter-tab {
-  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--muted-foreground, #6b7280);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.notif-filter-tab svg {
+  flex-shrink: 0;
 }
 
 .notif-filter-tab:hover {
-  color: #374151;
-  background: #f9fafb;
+  color: var(--foreground, #374151);
+  background: var(--muted, #f9fafb);
 }
 
 .notif-filter-tab.active {
@@ -142,15 +147,70 @@
   border-bottom-color: var(--primary, #3b82f6);
 }
 
-/* Responsive: Stack tabs on mobile */
+.notif-filter-tab.active svg {
+  color: var(--primary, #3b82f6);
+}
+
+/* Unread Toggle - Checkbox filter */
+.notif-unread-toggle {
+  padding: 12px 20px;
+  background: var(--muted, #f9fafb);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.notif-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.notif-toggle-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary, #3b82f6);
+  cursor: pointer;
+}
+
+.notif-toggle-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground, #374151);
+}
+
+.notif-toggle-count {
+  color: var(--muted-foreground, #6b7280);
+  margin-left: 4px;
+}
+
+/* Type icons in notification items */
+.notif-type-icon {
+  flex-shrink: 0;
+}
+
+.notif-type-icon.dog-type {
+  color: #8b5cf6;
+}
+
+.notif-type-icon.announcement-type {
+  color: var(--primary, #3b82f6);
+}
+
+/* Responsive: Compact tabs on mobile */
 @media (max-width: 480px) {
   .notif-filter-tabs {
-    grid-template-columns: 1fr 1fr;
-    font-size: 12px;
+    padding: 0 12px;
   }
 
   .notif-filter-tab {
-    padding: 8px 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .notif-unread-toggle {
+    padding: 10px 12px;
   }
 }
 
@@ -424,6 +484,7 @@
 
 .theme-dark .notif-filter-tabs {
   border-bottom-color: #2a2a2a;
+  background: var(--card, #1a1a1a);
 }
 
 .theme-dark .notif-filter-tab {
@@ -438,6 +499,33 @@
 .theme-dark .notif-filter-tab.active {
   color: var(--primary, #60a5fa);
   border-bottom-color: var(--primary, #60a5fa);
+}
+
+.theme-dark .notif-filter-tab.active svg {
+  color: var(--primary, #60a5fa);
+}
+
+/* Dark mode: Unread toggle */
+.theme-dark .notif-unread-toggle {
+  background: #242424;
+  border-bottom-color: #2a2a2a;
+}
+
+.theme-dark .notif-toggle-text {
+  color: #d1d5db;
+}
+
+.theme-dark .notif-toggle-count {
+  color: #9ca3af;
+}
+
+/* Dark mode: Type icons */
+.theme-dark .notif-type-icon.dog-type {
+  color: #a78bfa;
+}
+
+.theme-dark .notif-type-icon.announcement-type {
+  color: var(--primary, #60a5fa);
 }
 
 .theme-dark .notif-panel-actions {
