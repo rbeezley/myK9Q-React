@@ -1,8 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import type { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
-import { useAuth } from './AuthContext';
-import type { Announcement } from '../stores/announcementStore';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { logger } from '@/utils/logger';
 
 export interface InAppNotification {
@@ -50,8 +46,6 @@ const MAX_NOTIFICATIONS = 50; // Keep last 50 notifications in memory
 const NOTIFICATION_STORAGE_KEY = 'myK9Q_in_app_notifications';
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { showContext } = useAuth();
-
   // Initialize state from localStorage immediately (not in useEffect)
   const [notifications, setNotifications] = useState<InAppNotification[]>(() => {
     try {
@@ -70,8 +64,9 @@ return recent;
   });
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  // isConnected now reflects service worker availability (for push notifications)
+  // rather than Supabase real-time subscription status
   const [isConnected, setIsConnected] = useState(false);
-  const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
@@ -171,68 +166,21 @@ return recent;
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-return () => {
+      // Check if service worker is ready (indicates push notifications can work)
+      navigator.serviceWorker.ready.then(() => {
+        setIsConnected(true);
+      });
+      return () => {
         navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
-};
+      };
     }
   }, [addNotification]);
 
-  // Set up real-time subscription for announcements
-  useEffect(() => {
-    if (!showContext?.licenseKey) {
-      // No license key - cleanup will be handled by the cleanup function
-      return;
-    }
-
-    const licenseKey = showContext.licenseKey;
-    const showName = showContext.showName;
-
-// Create channel for announcements table
-    const channel = supabase
-      .channel(`in-app-notifications:${licenseKey}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'announcements',
-          filter: `license_key=eq.${licenseKey}`
-        },
-        (payload) => {
-const announcement = payload.new as Announcement;
-
-          // Determine notification type
-          const isDogAlert = false; // We'd need additional context to know if it's a dog alert
-          const type = isDogAlert ? 'dog-alert' : 'announcement';
-
-          // Add as in-app notification
-          addNotification({
-            announcementId: announcement.id,
-            title: announcement.title,
-            content: announcement.content,
-            priority: announcement.priority,
-            type,
-            url: '/announcements',
-            licenseKey: announcement.license_key,
-            showName: showName
-          });
-        }
-      )
-      .subscribe((status) => {
-setIsConnected(status === 'SUBSCRIBED');
-      });
-
-    realtimeChannelRef.current = channel;
-
-    // Cleanup on unmount or license key change
-    return () => {
-if (realtimeChannelRef.current) {
-        realtimeChannelRef.current.unsubscribe();
-        realtimeChannelRef.current = null;
-      }
-      setIsConnected(false);
-    };
-  }, [showContext?.licenseKey, showContext?.showName, addNotification]);
+  // Note: Real-time subscription on announcements table was REMOVED to prevent duplicate notifications.
+  // Push notifications (via database trigger → Edge function → service worker) are the single source of truth.
+  // The service worker forwards push notifications to this context via the message handler above.
+  // If you need real-time updates without push notifications, re-enable this subscription,
+  // but be aware it will cause duplicates if push notifications are also enabled.
 
   const value: NotificationContextValue = {
     notifications,
