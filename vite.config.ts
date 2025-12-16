@@ -6,6 +6,10 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'path'
 
 export default defineConfig({
+  // Build-time constants - injected at compile time
+  define: {
+    __BUILD_TIMESTAMP__: JSON.stringify(new Date().toISOString()),
+  },
   test: {
     globals: true,
     environment: 'jsdom',

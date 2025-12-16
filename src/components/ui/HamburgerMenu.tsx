@@ -10,7 +10,7 @@ import { AboutDialog } from '../dialogs/AboutDialog';
 import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
 import './shared-ui.css';
-import { version } from '../../../package.json';
+import { productVersion } from '../../config/appVersion';
 
 /**
  * HamburgerMenu Component
@@ -301,7 +301,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
               {/* Version Number */}
               <div className="menu-version">
-                v{version}
+                v{productVersion}
               </div>
             </div>
           </nav>

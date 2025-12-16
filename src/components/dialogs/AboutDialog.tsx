@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Info, Mail, Globe, Key } from 'lucide-react';
 import './shared-dialog.css';
-import { version } from '../../../package.json';
+import { productVersion, formattedBuildDate } from '../../config/appVersion';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -107,12 +107,22 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
             <p style={{
               fontSize: '0.875rem',
               color: 'var(--muted-foreground)',
-              marginBottom: '0.5rem',
+              marginBottom: '0.25rem',
+              textAlign: 'center',
+              margin: '0 auto 0.25rem auto',
+              width: '100%'
+            }}>
+              Version {productVersion}
+            </p>
+            <p style={{
+              fontSize: '0.75rem',
+              color: 'var(--muted-foreground)',
+              opacity: 0.7,
               textAlign: 'center',
               margin: '0 auto 0.5rem auto',
               width: '100%'
             }}>
-              Version {version}
+              Build: {formattedBuildDate}
             </p>
           </div>
 
