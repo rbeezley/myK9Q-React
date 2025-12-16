@@ -3,6 +3,7 @@ import { Heart, MoreHorizontal, Clock, Users, UserCheck, Circle, Wrench, Message
 import { getStaleDataStatus, formatStaleTime } from '../../utils/staleDataUtils';
 import { formatSecondsToMMSS } from '../../utils/timeUtils';
 import { UserPermissions } from '../../utils/auth';
+import { Popover } from '@/components/ui';
 
 interface ClassEntry {
   id: number;
@@ -110,8 +111,9 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 
   const statusPulseClass = isStatusAnimating ? 'status-just-changed' : '';
 
-  // State for class details popup
+  // State and ref for class details popup
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const infoIndicatorRef = useRef<HTMLDivElement>(null);
 
   // Format planned start time for display
   const formatPlannedStartTime = (timestamp: string | undefined) => {
@@ -215,6 +217,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           <div className="class-title-section">
             {/* Class name with info indicator for popup */}
             <div
+              ref={infoIndicatorRef}
               className="class-name-wrapper"
               onMouseEnter={() => setShowDetailsPopup(true)}
               onMouseLeave={() => setShowDetailsPopup(false)}
@@ -227,74 +230,63 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               <span className="info-indicator" aria-hidden="true">
                 <Info size={12} />
               </span>
-
-              {/* Class Details Popup */}
-              {showDetailsPopup && (
-                <div className="class-details-popup">
-                  <div className="popup-header">
-                    <span className="popup-title">Class Settings</span>
-                    <button
-                      className="popup-close"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDetailsPopup(false);
-                      }}
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="popup-content">
-                    {/* Max Time */}
-                    <div className="popup-row">
-                      <Clock className="popup-icon" size={14} />
-                      <span className="popup-label">Max Time:</span>
-                      <span className="popup-value time-value">
-                        {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
-                          classEntry.area_count && classEntry.area_count > 1 ? (
-                            <>
-                              {classEntry.time_limit_seconds && <span className="area-time"><span className="area-label">(1)</span> {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>}
-                              {classEntry.time_limit_area2_seconds && <span className="area-time"><span className="area-label">(2)</span> {formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}</span>}
-                              {classEntry.time_limit_area3_seconds && <span className="area-time"><span className="area-label">(3)</span> {formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}</span>}
-                            </>
-                          ) : (
-                            classEntry.time_limit_seconds ? formatSecondsToMMSS(classEntry.time_limit_seconds) : 'TBD'
-                          )
-                        ) : (
-                          'TBD'
-                        )}
-                      </span>
-                    </div>
-
-                    {/* Results Visibility */}
-                    <div className="popup-row">
-                      <Eye className="popup-icon" size={14} />
-                      <span className="popup-label">Results:</span>
-                      <span
-                        className={`release-badge visibility-badge visibility-${classEntry.visibility_preset || 'standard'}`}
-                      >
-                        {classEntry.visibility_preset === 'open'
-                          ? 'Immediately'
-                          : classEntry.visibility_preset === 'review'
-                          ? 'After Review'
-                          : 'After Class'}
-                      </span>
-                    </div>
-
-                    {/* Check-in Mode */}
-                    <div className="popup-row">
-                      <Smartphone className="popup-icon" size={14} />
-                      <span className="popup-label">Check-in:</span>
-                      <span
-                        className={`release-badge checkin-badge ${classEntry.self_checkin_enabled ? 'self-checkin' : 'table-checkin'}`}
-                      >
-                        {classEntry.self_checkin_enabled ? 'App (Self)' : 'At Table'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Class Details Popover - renders via portal to escape overflow */}
+            <Popover
+              isOpen={showDetailsPopup}
+              onClose={() => setShowDetailsPopup(false)}
+              anchorRef={infoIndicatorRef}
+              title="Class Settings"
+              className="class-settings-popover"
+            >
+              {/* Max Time */}
+              <div className="popover-row">
+                <Clock className="popover-icon" size={14} />
+                <span className="popover-label">Max Time:</span>
+                <span className="popover-value time-value">
+                  {(classEntry.time_limit_seconds || classEntry.time_limit_area2_seconds || classEntry.time_limit_area3_seconds) ? (
+                    classEntry.area_count && classEntry.area_count > 1 ? (
+                      <>
+                        {classEntry.time_limit_seconds && <span className="area-time"><span className="area-label">(1)</span> {formatSecondsToMMSS(classEntry.time_limit_seconds)}</span>}
+                        {classEntry.time_limit_area2_seconds && <span className="area-time"><span className="area-label">(2)</span> {formatSecondsToMMSS(classEntry.time_limit_area2_seconds)}</span>}
+                        {classEntry.time_limit_area3_seconds && <span className="area-time"><span className="area-label">(3)</span> {formatSecondsToMMSS(classEntry.time_limit_area3_seconds)}</span>}
+                      </>
+                    ) : (
+                      classEntry.time_limit_seconds ? formatSecondsToMMSS(classEntry.time_limit_seconds) : 'TBD'
+                    )
+                  ) : (
+                    'TBD'
+                  )}
+                </span>
+              </div>
+
+              {/* Results Visibility */}
+              <div className="popover-row">
+                <Eye className="popover-icon" size={14} />
+                <span className="popover-label">Results:</span>
+                <span
+                  className={`popover-badge visibility-${classEntry.visibility_preset || 'standard'}`}
+                >
+                  {classEntry.visibility_preset === 'open'
+                    ? 'Immediately'
+                    : classEntry.visibility_preset === 'review'
+                    ? 'After Review'
+                    : 'After Class'}
+                </span>
+              </div>
+
+              {/* Check-in Mode */}
+              <div className="popover-row">
+                <Smartphone className="popover-icon" size={14} />
+                <span className="popover-label">Check-in:</span>
+                <span
+                  className={`popover-badge ${classEntry.self_checkin_enabled ? 'checkin-self' : 'checkin-table'}`}
+                >
+                  {classEntry.self_checkin_enabled ? 'App (Self)' : 'At Table'}
+                </span>
+              </div>
+            </Popover>
 
             {/* Metadata Section - Judge only (other details in popup) */}
             <div className="metadata-section">

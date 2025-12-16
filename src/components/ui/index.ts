@@ -62,3 +62,5 @@ export { SyncStatusBanner, CompactSyncStatus } from './SyncStatusBanner';
 export type { SyncStatusBannerProps } from './SyncStatusBanner';
 export { SyncStatusPopover } from './SyncStatusPopover';
 export { SyncFailureToast } from './SyncFailureToast';
+export { Popover } from './Popover';
+export type { PopoverProps, PopoverPosition, PopoverAlignment } from './Popover';
