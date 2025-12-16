@@ -484,7 +484,7 @@
   background: rgba(var(--primary-rgb), 0.08);
 }
 
-/* Small circled info indicator */
+/* Small circled info indicator with larger touch target */
 .class-card .info-indicator {
   display: inline-flex;
   align-items: center;
@@ -498,12 +498,35 @@
   flex-shrink: 0;
   margin-top: 0.35rem; /* Align with class name baseline */
   transition: all 0.15s ease;
+  position: relative;
+}
+
+/* Larger touch target (44x44px) for mobile - invisible but tappable */
+.class-card .info-indicator::before {
+  content: '';
+  position: absolute;
+  /* Extend 14px in each direction from 16px icon = 44px total */
+  top: -14px;
+  right: -14px;
+  bottom: -14px;
+  left: -14px;
+  border-radius: 50%;
+  /* Debug: uncomment to visualize touch target */
+  /* background: rgba(255, 0, 0, 0.1); */
 }
 
 .class-name-wrapper:hover .info-indicator {
   opacity: 1;
   background: var(--primary);
   color: var(--primary-foreground);
+}
+
+/* Touch feedback for mobile */
+.class-card .info-indicator:active {
+  opacity: 1;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  transform: scale(0.95);
 }
 
 /* Class details popup */

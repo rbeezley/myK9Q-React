@@ -3,6 +3,9 @@ import { Heart, MoreHorizontal, Users, UserCheck, Circle, Wrench, MessageSquare,
 import { getStaleDataStatus, formatStaleTime } from '../../utils/staleDataUtils';
 import { UserPermissions } from '../../utils/auth';
 import { ClassDetailsPopover } from '@/components/dialogs/ClassDetailsPopover';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { ClassDetailsContent } from '@/components/dialogs/ClassDetailsContent';
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 
 interface ClassEntry {
   id: number;
@@ -72,6 +75,9 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   onPrefetch,
   justToggledClassId,
 }) => {
+  // Detect touch device to choose between bottom sheet (mobile) and popover (desktop)
+  const isTouchDevice = useIsTouchDevice();
+
   // Memoize computed values to prevent redundant function calls
   const statusColor = useMemo(
     () => getStatusColor(classEntry.class_status, classEntry),
@@ -110,9 +116,24 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 
   const statusPulseClass = isStatusAnimating ? 'status-just-changed' : '';
 
-  // State and ref for class details popup
+  // State for class details - popover (desktop) or bottom sheet (mobile)
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
   const infoIndicatorRef = useRef<HTMLDivElement>(null);
+
+  // Class details data (shared between popover and bottom sheet)
+  const classDetailsData = useMemo(() => ({
+    status: classEntry.class_status,
+    totalEntries: classEntry.entry_count,
+    completedEntries: classEntry.completed_count,
+    judgeName: classEntry.judge_name,
+    timeLimitSeconds: classEntry.time_limit_seconds,
+    timeLimitArea2Seconds: classEntry.time_limit_area2_seconds,
+    timeLimitArea3Seconds: classEntry.time_limit_area3_seconds,
+    areaCount: classEntry.area_count,
+    visibilityPreset: classEntry.visibility_preset,
+    selfCheckinEnabled: classEntry.self_checkin_enabled
+  }), [classEntry]);
 
   // Format planned start time for display
   const formatPlannedStartTime = (timestamp: string | undefined) => {
@@ -218,11 +239,27 @@ export const ClassCard: React.FC<ClassCardProps> = ({
             <div
               ref={infoIndicatorRef}
               className="class-name-wrapper"
-              onMouseEnter={() => setShowDetailsPopup(true)}
-              onMouseLeave={() => setShowDetailsPopup(false)}
+              onMouseEnter={() => {
+                // Desktop: show popover on hover
+                if (!isTouchDevice) {
+                  setShowDetailsPopup(true);
+                }
+              }}
+              onMouseLeave={() => {
+                // Desktop: hide popover when mouse leaves
+                if (!isTouchDevice) {
+                  setShowDetailsPopup(false);
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
-                setShowDetailsPopup(!showDetailsPopup);
+                if (isTouchDevice) {
+                  // Mobile: open bottom sheet on tap
+                  setShowBottomSheet(true);
+                } else {
+                  // Desktop fallback: toggle popover on click
+                  setShowDetailsPopup(!showDetailsPopup);
+                }
               }}
             >
               <h3 className="class-name">{classEntry.class_name}</h3>
@@ -231,25 +268,25 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               </span>
             </div>
 
-            {/* Class Details Popover - renders via portal to escape overflow */}
-            <ClassDetailsPopover
-              isOpen={showDetailsPopup}
-              onClose={() => setShowDetailsPopup(false)}
-              anchorRef={infoIndicatorRef}
-              position="top"
-              data={{
-                status: classEntry.class_status,
-                totalEntries: classEntry.entry_count,
-                completedEntries: classEntry.completed_count,
-                judgeName: classEntry.judge_name,
-                timeLimitSeconds: classEntry.time_limit_seconds,
-                timeLimitArea2Seconds: classEntry.time_limit_area2_seconds,
-                timeLimitArea3Seconds: classEntry.time_limit_area3_seconds,
-                areaCount: classEntry.area_count,
-                visibilityPreset: classEntry.visibility_preset,
-                selfCheckinEnabled: classEntry.self_checkin_enabled
-              }}
-            />
+            {/* Desktop: Class Details Popover - renders via portal */}
+            {!isTouchDevice && (
+              <ClassDetailsPopover
+                isOpen={showDetailsPopup}
+                onClose={() => setShowDetailsPopup(false)}
+                anchorRef={infoIndicatorRef}
+                position="top"
+                data={classDetailsData}
+              />
+            )}
+
+            {/* Mobile: Class Details Bottom Sheet */}
+            <BottomSheet
+              isOpen={showBottomSheet}
+              onClose={() => setShowBottomSheet(false)}
+              title={classEntry.class_name}
+            >
+              <ClassDetailsContent data={classDetailsData} />
+            </BottomSheet>
 
             {/* Metadata Section - Judge only (other details in popup) */}
             <div className="metadata-section">
