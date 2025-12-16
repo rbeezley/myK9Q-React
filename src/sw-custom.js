@@ -394,8 +394,9 @@ async function handlePushNotification(event) {
     const data = event.data.json();
     console.log('📨 Push data:', data);
 
-    // Validate required fields
-    if (!data.licenseKey || !data.title) {
+    // Validate required fields (accept both camelCase and snake_case from backend)
+    const licenseKey = data.licenseKey || data.license_key;
+    if (!licenseKey || !data.title) {
       console.warn('Invalid push data - missing required fields');
       return;
     }
@@ -404,7 +405,7 @@ async function handlePushNotification(event) {
     const currentLicense = self.currentLicenseKey;
 
     // Only show notification if it's for the current show
-    if (currentLicense && data.licenseKey !== currentLicense) {
+    if (currentLicense && licenseKey !== currentLicense) {
       console.log('🚫 Push notification ignored - different show');
       return;
     }
@@ -419,12 +420,12 @@ async function handlePushNotification(event) {
     // - Dog alerts: unique tag (no grouping, important to user)
     // - Normal announcements: grouped by show (reduce clutter)
     const notificationTag = isUrgent || isDogAlert
-      ? `${data.type || 'announcement'}-${data.licenseKey}-${data.id}`  // Unique = no grouping
-      : `announcement-${data.licenseKey}-${data.id}`;  // Regular tag
+      ? `${data.type || 'announcement'}-${licenseKey}-${data.id}`  // Unique = no grouping
+      : `announcement-${licenseKey}-${data.id}`;  // Regular tag
 
     const notificationGroup = isUrgent || isDogAlert
       ? undefined  // No group = standalone notification
-      : `show-${data.licenseKey}`;  // Grouped with other announcements
+      : `show-${licenseKey}`;  // Grouped with other announcements
 
     // Build context-aware action buttons
     let actions = [];
@@ -485,7 +486,7 @@ async function handlePushNotification(event) {
       vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
       data: {
         url: data.url || '/announcements',
-        licenseKey: data.licenseKey,
+        licenseKey: licenseKey,
         announcementId: data.id,
         priority: data.priority,
         isUrgent: isUrgent,
@@ -520,7 +521,7 @@ async function handlePushNotification(event) {
 
     // Update summary notification for grouped announcements
     if (notificationGroup && !isUrgent && !isDogAlert) {
-      await updateNotificationSummary(data.licenseKey, data.showName);
+      await updateNotificationSummary(licenseKey, data.showName);
     }
 
   } catch (error) {
@@ -528,12 +529,204 @@ async function handlePushNotification(event) {
   }
 }
 
-// Background sync for offline announcements (future enhancement)
+// =============================================
+// BACKGROUND SYNC HANDLING
+// =============================================
+// Enables offline scores to sync even when app is closed
+// Supported in Chrome/Edge, graceful degradation elsewhere
+
+// Supabase config - injected at build time by Vite
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// IndexedDB constants (must match DatabaseManager.ts)
+const DB_NAME = 'myK9Q_Replication';
+const DB_VERSION = 5;
+const OFFLINE_QUEUE_STORE = 'offline_queue';
+
+/**
+ * Open the replication database
+ * Simplified version that only needs read/write access to offline_queue
+ */
+function openReplicationDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => {
+      console.error('[SW] Failed to open IndexedDB:', request.error);
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    // If upgrade is needed, we're in trouble - shouldn't happen in SW
+    request.onupgradeneeded = () => {
+      console.warn('[SW] IndexedDB upgrade needed - this should not happen');
+    };
+  });
+}
+
+/**
+ * Build the score update payload for Supabase REST API
+ */
+function buildScoreUpdate(score) {
+  const { scoreData } = score;
+
+  // Map scoreData to database columns (matches scoreSubmission.ts logic)
+  const update = {
+    result_status: scoreData.resultText,
+    is_scored: true,
+    entry_status: 'completed',
+    updated_at: new Date().toISOString(),
+  };
+
+  // Optional fields
+  if (scoreData.searchTime) {
+    // Convert MM:SS.mm to seconds
+    const [minutes, rest] = scoreData.searchTime.split(':');
+    const [seconds, ms] = (rest || '0').split('.');
+    update.search_time_seconds =
+      parseInt(minutes || '0') * 60 +
+      parseInt(seconds || '0') +
+      parseInt(ms || '0') / 100;
+  }
+
+  if (scoreData.faultCount !== undefined) {
+    update.total_faults = scoreData.faultCount;
+  }
+
+  if (scoreData.points !== undefined) {
+    update.points_earned = scoreData.points;
+  }
+
+  if (scoreData.nonQualifyingReason) {
+    update.disqualification_reason = scoreData.nonQualifyingReason;
+  }
+
+  return update;
+}
+
+/**
+ * Sync offline queue to Supabase
+ * Called by browser when network is available and sync tag is registered
+ */
+async function syncOfflineQueue() {
+  console.log('[SW] 🔄 Background sync triggered');
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('[SW] Missing Supabase config - cannot sync');
+    return;
+  }
+
+  let db;
+  try {
+    db = await openReplicationDB();
+  } catch (error) {
+    console.error('[SW] Failed to open database:', error);
+    return;
+  }
+
+  // Get all mutations from offline_queue store
+  let mutations;
+  try {
+    mutations = await new Promise((resolve, reject) => {
+      const tx = db.transaction(OFFLINE_QUEUE_STORE, 'readonly');
+      const store = tx.objectStore(OFFLINE_QUEUE_STORE);
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error('[SW] Failed to read offline queue:', error);
+    db.close();
+    return;
+  }
+
+  // Filter for pending score submissions
+  const pendingScores = mutations.filter(
+    (m) => m.type === 'SUBMIT_SCORE' && m.status === 'pending'
+  );
+
+  if (pendingScores.length === 0) {
+    console.log('[SW] No pending scores to sync');
+    db.close();
+    return;
+  }
+
+  console.log(`[SW] Syncing ${pendingScores.length} offline score(s)...`);
+
+  let successCount = 0;
+
+  for (const mutation of pendingScores) {
+    const score = mutation.data;
+
+    try {
+      // Submit to Supabase REST API
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/entries?id=eq.${score.entryId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+            'x-license-key': score.licenseKey,
+          },
+          body: JSON.stringify(buildScoreUpdate(score)),
+        }
+      );
+
+      if (response.ok) {
+        // Delete from queue
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(OFFLINE_QUEUE_STORE, 'readwrite');
+          const store = tx.objectStore(OFFLINE_QUEUE_STORE);
+          const request = store.delete(mutation.id);
+
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+
+        successCount++;
+        console.log(`[SW] ✅ Synced score for entry ${score.entryId}`);
+      } else {
+        const errorText = await response.text();
+        console.error(`[SW] ❌ Failed to sync entry ${score.entryId}:`, errorText);
+        // Don't delete - browser will retry
+      }
+    } catch (error) {
+      console.error(`[SW] ❌ Network error syncing entry ${score.entryId}:`, error);
+      // Network error - browser will retry automatically
+    }
+  }
+
+  db.close();
+
+  // Notify all open clients that sync completed
+  const allClients = await clients.matchAll({ type: 'window' });
+  allClients.forEach((client) => {
+    client.postMessage({
+      type: 'BACKGROUND_SYNC_COMPLETE',
+      syncedCount: successCount,
+      totalCount: pendingScores.length,
+    });
+  });
+
+  console.log(`[SW] 🎉 Background sync complete: ${successCount}/${pendingScores.length}`);
+}
+
+// Handle background sync events
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'announcement-sync') {
+  if (event.tag === 'offline-queue-sync') {
+    event.waitUntil(syncOfflineQueue());
+  } else if (event.tag === 'announcement-sync') {
     console.log('🔄 Background sync for announcements');
     // Could sync offline-created announcements here
   }
 });
 
-console.log('📱 Custom service worker with push notifications loaded');
+console.log('📱 Custom service worker with push notifications and background sync loaded');
