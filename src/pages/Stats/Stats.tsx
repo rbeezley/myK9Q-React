@@ -447,12 +447,16 @@ export const Stats: React.FC = () => {
             <BarChart3 />
           </div>
           <div className="card-content">
-            <h3>Total Entries</h3>
-            <p className="card-value">{data.totalEntries}</p>
+            <h3>Entries</h3>
+            <p className="card-value">
+              {data.totalAllEntries > 0
+                ? `${Math.round((data.scoredEntries / data.totalAllEntries) * 100)}%`
+                : '0%'}
+            </p>
             <p className="card-subtitle">
               {filters.breed
-                ? `${data.uniqueDogs} ${data.uniqueDogs === 1 ? 'dog' : 'dogs'} • ${data.scoredEntries} scored`
-                : `${data.scoredEntries} scored`}
+                ? `${data.uniqueDogs} ${data.uniqueDogs === 1 ? 'dog' : 'dogs'} • ${data.scoredEntries} of ${data.totalAllEntries} scored`
+                : `${data.scoredEntries} of ${data.totalAllEntries} scored`}
             </p>
           </div>
         </div>

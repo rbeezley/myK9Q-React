@@ -5,7 +5,8 @@
 // Core stats data structure
 export interface StatsData {
   // Summary metrics
-  totalEntries: number;
+  totalAllEntries: number;  // All entries (scored + unscored)
+  totalEntries: number;     // Scored entries only (from view)
   scoredEntries: number;
   qualifiedCount: number;
   nqCount: number;

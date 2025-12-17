@@ -28,6 +28,7 @@ import { logger } from '@/utils/logger';
  * Empty stats object for when no data is found
  */
 export const EMPTY_STATS: StatsData = {
+  totalAllEntries: 0,
   totalEntries: 0,
   scoredEntries: 0,
   qualifiedCount: 0,
@@ -211,6 +212,86 @@ export function applyCommonFilters<T>(
   if (filters.classId) q = q.eq('class_id', filters.classId);
 
   return q as unknown as T;
+}
+
+// ========================================
+// TOTAL ENTRIES COUNT (ALL ENTRIES)
+// ========================================
+
+/**
+ * Fetch total entries count from entries table (includes unscored entries)
+ * This queries the entries table directly, not the view which filters to scored only
+ */
+export async function fetchTotalEntriesCount(
+  context: StatsContext,
+  licenseKey: string
+): Promise<number> {
+  try {
+    // First, get the class IDs we need to filter by (applies level + element/level filters)
+    let classIds: string[] = [];
+
+    if (context.level === 'class' && context.classId) {
+      // Single class - just use it directly
+      classIds = [context.classId];
+    } else if (context.level === 'trial' && context.trialId) {
+      // Get class IDs for this trial, with optional element/level filters
+      let classQuery = supabase
+        .from('classes')
+        .select('id')
+        .eq('trial_id', context.trialId);
+
+      if (context.filters.element) classQuery = classQuery.eq('element', context.filters.element);
+      if (context.filters.level) classQuery = classQuery.eq('level', context.filters.level);
+
+      const { data } = await classQuery;
+      classIds = data?.map(c => c.id) || [];
+    } else if (context.level === 'show' && context.showId) {
+      // Get trial IDs for this show, then class IDs with optional element/level filters
+      const { data: trialIds } = await supabase
+        .from('trials')
+        .select('id')
+        .eq('show_id', context.showId);
+
+      if (trialIds && trialIds.length > 0) {
+        let classQuery = supabase
+          .from('classes')
+          .select('id')
+          .in('trial_id', trialIds.map(t => t.id));
+
+        if (context.filters.element) classQuery = classQuery.eq('element', context.filters.element);
+        if (context.filters.level) classQuery = classQuery.eq('level', context.filters.level);
+
+        const { data } = await classQuery;
+        classIds = data?.map(c => c.id) || [];
+      }
+    }
+
+    if (classIds.length === 0) {
+      return 0;
+    }
+
+    // Now count entries for these class IDs
+    let query = supabase
+      .from('entries')
+      .select('id', { count: 'exact', head: true })
+      .eq('license_key', licenseKey)
+      .in('class_id', classIds);
+
+    // Apply breed filter (this IS on entries table)
+    if (context.filters.breed) query = query.eq('dog_breed', context.filters.breed);
+
+    const { count, error } = await query;
+
+    if (error) {
+      logger.error('Error fetching total entries count:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (err) {
+    logger.error('Error in fetchTotalEntriesCount:', err);
+    return 0;
+  }
 }
 
 // ========================================

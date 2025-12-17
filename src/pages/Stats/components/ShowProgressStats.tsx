@@ -243,9 +243,9 @@ export function ShowProgressStats({ trialId }: ShowProgressStatsProps) {
           <CheckCircle />
         </div>
         <div className="card-content">
-          <h3>Completed</h3>
+          <h3>Classes</h3>
           <p className="card-value">{mergedStats.completionPercent}%</p>
-          <p className="card-subtitle">{mergedStats.completedClasses} of {mergedStats.totalClasses}</p>
+          <p className="card-subtitle">{mergedStats.completedClasses} of {mergedStats.totalClasses} done</p>
         </div>
       </div>
     </div>

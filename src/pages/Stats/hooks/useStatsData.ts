@@ -31,6 +31,7 @@ import {
   fetchJudgeSummaryData,
   fetchFastestTimes,
   fetchCleanSweepDogs,
+  fetchTotalEntriesCount,
   hasBreedRelatedFilters,
   hasAdditionalFilters
 } from './statsDataHelpers';
@@ -198,11 +199,12 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
       const timeStats = calculateTimeStats(statsData);
 
       // Fetch additional stats in parallel
-      const [breedStats, judgeStats, fastestTimesResult, cleanSweepDogs] = await Promise.all([
+      const [breedStats, judgeStats, fastestTimesResult, cleanSweepDogs, totalAllEntries] = await Promise.all([
         fetchBreedStats(context, licenseKey, statsData),
         fetchJudgeStats(context, licenseKey),
         fetchFastestTimes(context, licenseKey),
-        fetchCleanSweepDogs(context, licenseKey)
+        fetchCleanSweepDogs(context, licenseKey),
+        fetchTotalEntriesCount(context, licenseKey)
       ]);
 
       // Assemble final stats data
@@ -210,6 +212,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         ...counts,
         ...rates,
         ...timeStats,
+        totalAllEntries,
         fastestTime: fastestTimesResult.fastestTime,
         breedStats,
         judgeStats,
