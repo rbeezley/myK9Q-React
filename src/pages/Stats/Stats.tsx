@@ -13,6 +13,7 @@ import type { Trial, Class } from '@/services/replication';
 import { logger } from '@/utils/logger';
 import type { StatsLevel, StatsFilters } from './types/stats.types';
 import { OfflineFallback } from '@/components/ui';
+import { ShowProgressStats } from './components/ShowProgressStats';
 import './Stats.css';
 
 // Lazy load heavy chart components
@@ -435,6 +436,9 @@ export const Stats: React.FC = () => {
           />
         </Suspense>
       </div>
+
+      {/* Show Progress Stats */}
+      <ShowProgressStats trialId={trialId} />
 
       {/* Summary Cards */}
       <div className="stats-cards">

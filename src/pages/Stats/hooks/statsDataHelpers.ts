@@ -273,6 +273,7 @@ export function aggregateBreedStatsFromData(statsData: StatsQueryResult[]): Bree
 
 /**
  * Fetch breed stats from pre-aggregated view
+ * Note: The view groups by class_id, so we need to aggregate results by breed
  */
 export async function fetchBreedStatsFromView(
   context: StatsContext,
@@ -289,21 +290,68 @@ export async function fetchBreedStatsFromView(
     query = query.eq('dog_breed', context.filters.breed);
   }
 
-  const { data, error } = await query
-    .order('total_entries', { ascending: false })
-    .limit(10);
+  const { data, error } = await query;
 
   if (error) throw error;
 
-  return (data || []).map((breed: BreedStatsQueryResult) => ({
-    breed: breed.dog_breed,
-    totalEntries: breed.total_entries,
-    qualifiedCount: breed.qualified_count,
-    nqCount: breed.nq_count,
-    qualificationRate: breed.qualification_rate,
-    averageTime: breed.avg_time,
-    fastestTime: breed.fastest_time
-  }));
+  // The view returns one row per class per breed, so we need to aggregate by breed
+  const breedMap = new Map<string, {
+    totalEntries: number;
+    qualifiedCount: number;
+    nqCount: number;
+    fastestTime: number | null;
+    qualifiedTimes: number[];
+  }>();
+
+  for (const row of (data || []) as BreedStatsQueryResult[]) {
+    if (!row.dog_breed) continue;
+
+    const breed = row.dog_breed.trim();
+    const existing = breedMap.get(breed) || {
+      totalEntries: 0,
+      qualifiedCount: 0,
+      nqCount: 0,
+      fastestTime: null,
+      qualifiedTimes: []
+    };
+
+    existing.totalEntries += row.total_entries || 0;
+    existing.qualifiedCount += row.qualified_count || 0;
+    existing.nqCount += row.nq_count || 0;
+
+    // Track fastest time across all classes
+    if (row.fastest_time && row.fastest_time > 0) {
+      if (existing.fastestTime === null || row.fastest_time < existing.fastestTime) {
+        existing.fastestTime = row.fastest_time;
+      }
+    }
+
+    // Collect times for average calculation
+    if (row.avg_time && row.avg_time > 0 && row.qualified_count > 0) {
+      // Weight by qualified count for proper averaging
+      for (let i = 0; i < row.qualified_count; i++) {
+        existing.qualifiedTimes.push(row.avg_time);
+      }
+    }
+
+    breedMap.set(breed, existing);
+  }
+
+  // Convert to array and calculate final stats
+  return Array.from(breedMap.entries())
+    .map(([breed, stats]) => ({
+      breed,
+      totalEntries: stats.totalEntries,
+      qualifiedCount: stats.qualifiedCount,
+      nqCount: stats.nqCount,
+      qualificationRate: stats.totalEntries > 0 ? (stats.qualifiedCount / stats.totalEntries) * 100 : 0,
+      averageTime: stats.qualifiedTimes.length > 0
+        ? stats.qualifiedTimes.reduce((sum, t) => sum + t, 0) / stats.qualifiedTimes.length
+        : null,
+      fastestTime: stats.fastestTime
+    }))
+    .sort((a, b) => b.totalEntries - a.totalEntries)
+    .slice(0, 10);
 }
 
 // ========================================

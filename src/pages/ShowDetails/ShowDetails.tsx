@@ -1,23 +1,23 @@
 /**
- * ShowDetails Page (Show Dashboard)
+ * ShowDetails Page
  *
- * Streamlined dashboard displaying:
- * - Stats row (tappable counts for announcements, favorites, active classes, progress)
- * - Class overview table with tabs (Pending / Completed)
- * - Show contact information
+ * Displays show information:
+ * - Event details (organization, dates)
+ * - Location and venue
+ * - Contact information (secretary, chairman)
+ * - Notes
  *
  * Accessible from hamburger menu as "Show Details".
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Activity, Info } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLongPress } from '@/hooks/useLongPress';
 import { logger } from '@/utils/logger';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnnouncementStore } from '@/stores/announcementStore';
-import { TabBar, Tab } from '@/components/ui';
 import {
   ShowDetailsHeader,
   ShowDetailsLoading,
@@ -29,18 +29,13 @@ import {
 } from './ShowDetailsComponents';
 import { getSecretaryInfo, getChairmanInfo } from './showDetailsUtils';
 import { useDashboardData } from './hooks/useDashboardData';
-import { StatsRow } from './components/StatsRow';
-import { ClassTable } from './components/ClassTable';
 import './ShowDetails.css';
-
-type PageTab = 'live' | 'info';
 
 export function ShowDetails() {
   const { licenseKey: urlLicenseKey } = useParams<{ licenseKey: string }>();
   const navigate = useNavigate();
   const { showContext } = useAuth();
   const hapticFeedback = useHapticFeedback();
-  const [activeTab, setActiveTab] = useState<PageTab>('live');
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Use URL param or auth context
@@ -56,20 +51,13 @@ export function ShowDetails() {
     }
   }, [licenseKey, showContext?.showName, setLicenseKey]);
 
-  // Use dashboard data hook for all data
+  // Use dashboard data hook for show data
   const {
-    stats,
     show,
-    trials,
-    pendingClasses,
-    completedClasses,
     isLoading,
     error,
     refetch,
   } = useDashboardData(licenseKey, showId);
-
-  // Get first trial ID for navigation (temporary until we handle multi-trial)
-  const firstTrialId = trials.length > 0 ? String(trials[0].id) : undefined;
 
   // Handle refresh - full refresh when user explicitly taps refresh button
   const handleRefresh = useCallback(async () => {
@@ -98,18 +86,6 @@ export function ShowDetails() {
     enabled: !isManualRefreshing,
   });
 
-  // Handle tab change
-  const handleTabChange = (tabId: string) => {
-    hapticFeedback.light();
-    setActiveTab(tabId as PageTab);
-  };
-
-  // Tab configuration
-  const tabs: Tab[] = [
-    { id: 'live', label: 'Live', icon: <Activity size={16} /> },
-    { id: 'info', label: 'Info', icon: <Info size={16} /> },
-  ];
-
   // Loading state
   if (isLoading) {
     return <ShowDetailsLoading />;
@@ -134,49 +110,22 @@ export function ShowDetails() {
         refreshLongPressHandlers={refreshLongPressHandlers}
       />
 
-      {/* Page-level tabs */}
-      <TabBar
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
-
       <main className="show-details-content">
-        {activeTab === 'live' ? (
-          /* Live Tab: Stats + Classes */
-          <>
-            <StatsRow
-              stats={stats}
-              licenseKey={licenseKey}
-              trialId={firstTrialId}
-            />
-            <ClassTable
-              pendingClasses={pendingClasses}
-              completedClasses={completedClasses}
-              trialId={firstTrialId}
-              licenseKey={licenseKey}
-              organization={show.organization}
-              onClassUpdate={refetch}
-            />
-          </>
-        ) : (
-          /* Info Tab: Location, Event, Contacts, Notes - 2-col grid on desktop */
-          <div className="show-details-info-grid">
-            <EventDetailsCard show={show} />
-            <LocationCard show={show} />
-            <ContactCard
-              title="Trial Secretary"
-              icon={<User />}
-              contact={secretaryInfo}
-            />
-            <ContactCard
-              title="Trial Chairman"
-              icon={<User />}
-              contact={chairmanInfo}
-            />
-            <NotesCard notes={show.notes} />
-          </div>
-        )}
+        <div className="show-details-info-grid">
+          <EventDetailsCard show={show} />
+          <LocationCard show={show} />
+          <ContactCard
+            title="Trial Secretary"
+            icon={<User />}
+            contact={secretaryInfo}
+          />
+          <ContactCard
+            title="Trial Chairman"
+            icon={<User />}
+            contact={chairmanInfo}
+          />
+          <NotesCard notes={show.notes} />
+        </div>
       </main>
     </div>
   );

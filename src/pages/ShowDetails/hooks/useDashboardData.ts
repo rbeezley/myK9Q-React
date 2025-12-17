@@ -409,9 +409,9 @@ export function useDashboardData(
   // We check for both to handle any inconsistencies
   const stats = useMemo((): DashboardStats => {
     const classes = classesQuery.data || [];
+    // Only count classes explicitly marked as "in progress" - not setup, briefing, etc.
     const activeClasses = classes.filter(c =>
-      c.class_status === 'in_progress' || c.class_status === 'in-progress' ||
-      c.class_status === 'offline-scoring' || c.class_status === 'offline_scoring'
+      c.class_status === 'in_progress' || c.class_status === 'in-progress'
     ).length;
     const completedClasses = classes.filter(c => c.class_status === 'completed').length;
     const totalClasses = classes.length;

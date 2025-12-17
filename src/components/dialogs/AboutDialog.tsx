@@ -42,19 +42,19 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
 
         <div className="dialog-content">
           {/* App Info */}
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
             {/* Logo */}
             <div style={{
               display: 'flex',
               justifyContent: 'center',
-              marginBottom: '1rem'
+              marginBottom: '0.75rem'
             }}>
               <div style={{
-                width: '96px',
-                height: '96px',
-                borderRadius: '20px',
+                width: '72px',
+                height: '72px',
+                borderRadius: '16px',
                 background: 'var(--muted)',
-                padding: '12px',
+                padding: '8px',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                 border: '2px solid var(--border)'
               }}>
@@ -85,10 +85,9 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
               fontSize: '1rem',
               color: 'var(--primary)',
               fontWeight: 600,
-              marginBottom: '1rem',
               letterSpacing: '0.05em',
               textAlign: 'center',
-              margin: '0 auto 1rem auto',
+              margin: '0 auto 0.5rem auto',
               width: '100%'
             }}>
               Queue & Qualify
@@ -119,15 +118,15 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
           {licenseKey && (
             <div style={{
               background: 'var(--muted)',
-              padding: '1rem',
+              padding: '0.75rem',
               borderRadius: 'var(--token-space-md)',
-              marginBottom: '1.5rem'
+              marginBottom: '1rem'
             }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'var(--token-space-md)',
-                marginBottom: 'var(--token-space-md)'
+                gap: 'var(--token-space-sm)',
+                marginBottom: 'var(--token-space-sm)'
               }}>
                 <Key className="h-4 w-4" style={{ color: 'var(--muted-foreground)' }} />
                 <span style={{
@@ -156,7 +155,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--token-space-lg)'
+            gap: 'var(--token-space-md)'
           }}>
             <a
               href="https://myk9t.com"
@@ -166,7 +165,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--token-space-md)',
-                padding: 'var(--token-space-lg)',
+                padding: 'var(--token-space-md) var(--token-space-lg)',
                 background: 'var(--muted)',
                 borderRadius: 'var(--token-space-md)',
                 color: 'var(--primary)',
@@ -194,7 +193,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--token-space-md)',
-                padding: 'var(--token-space-lg)',
+                padding: 'var(--token-space-md) var(--token-space-lg)',
                 background: 'var(--muted)',
                 borderRadius: 'var(--token-space-md)',
                 color: 'var(--primary)',
@@ -219,8 +218,8 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
 
           {/* Copyright */}
           <div style={{
-            marginTop: '2rem',
-            paddingTop: '1rem',
+            marginTop: '1.25rem',
+            paddingTop: '0.75rem',
             borderTop: '1px solid var(--border)',
             textAlign: 'center'
           }}>
