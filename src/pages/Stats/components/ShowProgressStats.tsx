@@ -10,7 +10,7 @@
  * Uses proper license_key filtering for accurate data.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Heart, Clock, CheckCircle } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
@@ -128,8 +128,24 @@ export function ShowProgressStats({ trialId }: ShowProgressStatsProps) {
   const licenseKey = showContext?.licenseKey;
   const showId = showContext?.showId;
 
-  // Get unread count from announcement store (already filtered by license_key in the store)
-  const { unreadCount } = useAnnouncementStore();
+  // Get unread count from announcement store
+  const { unreadCount, setLicenseKey, currentLicenseKey, fetchAnnouncements } = useAnnouncementStore();
+
+  // Ensure announcement store is initialized for current license key
+  // If license key differs, setLicenseKey triggers a fetch
+  // If same license key, we still fetch to ensure fresh data (handles expired announcements)
+  useEffect(() => {
+    if (!showContext?.licenseKey) return;
+
+    if (currentLicenseKey !== showContext.licenseKey) {
+      // Different license key - setLicenseKey will fetch
+      setLicenseKey(showContext.licenseKey, showContext.showName);
+    } else {
+      // Same license key - fetch directly to get fresh data
+      // This ensures expired announcements are properly excluded
+      fetchAnnouncements(showContext.licenseKey);
+    }
+  }, [showContext, currentLicenseKey, setLicenseKey, fetchAnnouncements]);
 
   // Fetch progress stats with proper filtering
   const { data: stats } = useQuery({
