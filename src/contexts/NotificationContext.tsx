@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { logger } from '@/utils/logger';
+import { useAnnouncementStore, type Announcement } from '@/stores/announcementStore';
 
 export interface InAppNotification {
   id: string;
@@ -45,9 +46,31 @@ const NotificationContext = createContext<NotificationContextValue | undefined>(
 const MAX_NOTIFICATIONS = 50; // Keep last 50 notifications in memory
 const NOTIFICATION_STORAGE_KEY = 'myK9Q_in_app_notifications';
 
+/**
+ * Convert a database announcement to InAppNotification format
+ */
+function announcementToNotification(announcement: Announcement, showName?: string): InAppNotification {
+  return {
+    id: `announcement_${announcement.id}`,
+    announcementId: announcement.id,
+    title: announcement.title,
+    content: announcement.content,
+    priority: announcement.priority,
+    type: 'announcement',
+    timestamp: announcement.created_at,
+    isRead: announcement.is_read ?? false,
+    url: '/announcements',
+    licenseKey: announcement.license_key,
+    showName: showName
+  };
+}
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize state from localStorage immediately (not in useEffect)
-  const [notifications, setNotifications] = useState<InAppNotification[]>(() => {
+  // Get announcements from the announcement store
+  const { announcements, currentShowName, markAsRead: markAnnouncementAsRead } = useAnnouncementStore();
+
+  // Initialize push notification state from localStorage (not in useEffect)
+  const [pushNotifications, setPushNotifications] = useState<InAppNotification[]>(() => {
     try {
       const stored = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
       if (stored) {
@@ -55,7 +78,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Filter to only show notifications from the last 24 hours
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         const recent = parsed.filter((n: InAppNotification) => n.timestamp > oneDayAgo);
-return recent;
+        return recent;
       }
     } catch (error) {
       logger.error('Error loading notifications from storage:', error);
@@ -68,19 +91,39 @@ return recent;
   // rather than Supabase real-time subscription status
   const [isConnected, setIsConnected] = useState(false);
 
-  // Save notifications to localStorage whenever they change
+  // Save push notifications to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifications));
+      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(pushNotifications));
     } catch (error) {
       logger.error('Error saving notifications to storage:', error);
     }
-  }, [notifications]);
+  }, [pushNotifications]);
+
+  // Merge announcements with push notifications
+  // Announcements from store take priority (they have authoritative read status)
+  // Push notifications for dog-alerts are kept separately
+  const notifications = useMemo(() => {
+    // Convert announcements to notification format (exclude expired)
+    const now = new Date();
+    const announcementNotifs = announcements
+      .filter(a => !a.expires_at || new Date(a.expires_at) > now)
+      .map(a => announcementToNotification(a, currentShowName || undefined));
+
+    // Get dog-alert push notifications (these don't come from announcements)
+    const dogAlertNotifs = pushNotifications.filter(n => n.type === 'dog-alert');
+
+    // Combine and sort by timestamp (newest first)
+    const merged = [...announcementNotifs, ...dogAlertNotifs];
+    merged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return merged.slice(0, MAX_NOTIFICATIONS);
+  }, [announcements, pushNotifications, currentShowName]);
 
   // Calculate unread count
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  // Add notification
+  // Add notification (for push notifications only - announcements come from store)
   const addNotification = useCallback((notification: Omit<InAppNotification, 'id' | 'isRead' | 'timestamp'>) => {
     const newNotification: InAppNotification = {
       ...notification,
@@ -89,11 +132,11 @@ return recent;
       timestamp: new Date().toISOString()
     };
 
-    setNotifications(prev => {
+    setPushNotifications(prev => {
       // Add to beginning of array (newest first)
       const updated = [newNotification, ...prev];
 
-// Keep only MAX_NOTIFICATIONS most recent
+      // Keep only MAX_NOTIFICATIONS most recent
       return updated.slice(0, MAX_NOTIFICATIONS);
     });
 
@@ -103,26 +146,54 @@ return recent;
 
   // Mark notification as read
   const markAsRead = useCallback((notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
-    );
-  }, []);
+    // Check if this is an announcement (id starts with 'announcement_')
+    if (notificationId.startsWith('announcement_')) {
+      const announcementId = parseInt(notificationId.replace('announcement_', ''), 10);
+      if (!isNaN(announcementId)) {
+        markAnnouncementAsRead(announcementId);
+      }
+    } else {
+      // It's a push notification - update local state
+      setPushNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+      );
+    }
+  }, [markAnnouncementAsRead]);
 
   // Mark all as read
   const markAllAsRead = useCallback(() => {
-    setNotifications(prev =>
+    // Mark all announcements as read via the store
+    const announcementStore = useAnnouncementStore.getState();
+    announcementStore.markAllAsRead();
+
+    // Mark all push notifications as read
+    setPushNotifications(prev =>
       prev.map(n => ({ ...n, isRead: true }))
     );
   }, []);
 
   // Remove notification
   const removeNotification = useCallback((notificationId: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-  }, []);
+    // For announcements, we just mark as read (can't delete from Inbox)
+    // For push notifications, we can remove from local state
+    if (notificationId.startsWith('announcement_')) {
+      const announcementId = parseInt(notificationId.replace('announcement_', ''), 10);
+      if (!isNaN(announcementId)) {
+        markAnnouncementAsRead(announcementId);
+      }
+    } else {
+      setPushNotifications(prev => prev.filter(n => n.id !== notificationId));
+    }
+  }, [markAnnouncementAsRead]);
 
-  // Clear all notifications
+  // Clear all notifications (push only - announcements persist in database)
   const clearAll = useCallback(() => {
-    setNotifications([]);
+    // Mark all announcements as read
+    const announcementStore = useAnnouncementStore.getState();
+    announcementStore.markAllAsRead();
+
+    // Clear push notifications
+    setPushNotifications([]);
   }, []);
 
   // Panel controls
