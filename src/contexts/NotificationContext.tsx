@@ -2,6 +2,55 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { logger } from '@/utils/logger';
 import { useAnnouncementStore, type Announcement } from '@/stores/announcementStore';
 
+/**
+ * Validates and fixes notification URLs.
+ * Handles legacy/malformed URLs from push notifications.
+ *
+ * Valid routes:
+ * - /announcements
+ * - /class/{classId}/entries
+ * - /trial/{trialId}/classes
+ *
+ * Invalid routes this fixes:
+ * - /entries → /class/{classId}/entries (if classId available)
+ * - /entries/{id} → /class/{classId}/entries (if classId available)
+ * - /classes/{id} → /class/{classId}/entries
+ */
+function normalizeNotificationUrl(url: string | undefined, classId?: number): string {
+  // Default fallback
+  const defaultUrl = '/announcements';
+
+  if (!url) return defaultUrl;
+
+  // Already valid URLs - pass through
+  if (url === '/announcements') return url;
+  if (url.match(/^\/class\/\d+\/entries/)) return url;
+  if (url.match(/^\/trial\/\d+\/classes/)) return url;
+
+  // Fix malformed URLs if we have classId
+  if (classId) {
+    // /entries or /entries/{anything} → /class/{classId}/entries
+    if (url === '/entries' || url.startsWith('/entries/')) {
+      logger.warn(`Fixing malformed notification URL: ${url} → /class/${classId}/entries`);
+      return `/class/${classId}/entries`;
+    }
+
+    // /classes/{id} → /class/{classId}/entries
+    if (url.match(/^\/classes\/\d+/)) {
+      logger.warn(`Fixing malformed notification URL: ${url} → /class/${classId}/entries`);
+      return `/class/${classId}/entries`;
+    }
+  }
+
+  // Unknown URL without classId - log warning and use default
+  if (url !== defaultUrl && !url.startsWith('/class/') && !url.startsWith('/trial/')) {
+    logger.warn(`Unknown notification URL pattern: ${url}, falling back to ${defaultUrl}`);
+    return defaultUrl;
+  }
+
+  return url;
+}
+
 export interface InAppNotification {
   id: string;
   announcementId: number;
@@ -218,17 +267,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           type = 'announcement';
         }
 
-        // Add to notification center
+        // Extract classId from payload (supports both snake_case and camelCase)
+        const classId = data.class_id || data.classId;
+
+        // Add to notification center with normalized URL
         addNotification({
           announcementId: data.id || data.announcement_id || 0,
           title: data.title || 'Notification',
           content: data.body || data.content || '',
           priority: (data.priority || 'normal') as 'normal' | 'high' | 'urgent',
           type,
-          url: data.url || '/announcements',
+          // Use normalizeNotificationUrl to fix malformed URLs from legacy triggers
+          url: normalizeNotificationUrl(data.url, classId),
           dogId: data.dogId,
           dogName: data.dog_name || data.dogName,
-          classId: data.class_id || data.classId,
+          classId: classId,
           licenseKey: data.license_key || data.licenseKey || '',
           showName: data.show_name || data.showName
         });

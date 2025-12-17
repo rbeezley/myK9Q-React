@@ -218,13 +218,24 @@ self.addEventListener('notificationclick', (event) => {
 
   // Determine URL based on action and notification data
   let urlToOpen = '/announcements'; // Default
+  const notifData = event.notification.data || {};
 
-  if (event.action === 'view-class' && event.notification.data?.classId) {
+  if (event.action === 'view-class' && notifData.classId) {
     // Navigate to entry list (running order for the class)
-    urlToOpen = `/class/${event.notification.data.classId}/entries`;
+    urlToOpen = `/class/${notifData.classId}/entries`;
   } else if (event.action === 'view' || !event.action) {
     // Default view action - use custom URL or announcements
-    urlToOpen = event.notification.data?.url || '/announcements';
+    const rawUrl = notifData.url || '/announcements';
+
+    // Fix malformed URLs from legacy database triggers
+    // Invalid: /entries, /entries/{id}, /classes/{id}
+    // Valid: /class/{classId}/entries
+    if (notifData.classId && (rawUrl === '/entries' || rawUrl.startsWith('/entries/') || rawUrl.match(/^\/classes\/\d+/))) {
+      console.log(`🔧 [SW] Fixing malformed URL: ${rawUrl} → /class/${notifData.classId}/entries`);
+      urlToOpen = `/class/${notifData.classId}/entries`;
+    } else {
+      urlToOpen = rawUrl;
+    }
   }
 
   // If summary notification clicked, close all grouped notifications and navigate
