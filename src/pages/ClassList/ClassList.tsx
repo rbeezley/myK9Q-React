@@ -7,7 +7,6 @@ import { supabase } from '../../lib/supabase';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Entry } from '@/services/replication';
 import { logger } from '@/utils/logger';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -41,7 +40,6 @@ export const ClassList: React.FC = () => {
   const { hasPermission } = usePermission();
   const hapticFeedback = useHapticFeedback();
   const { prefetch } = usePrefetch();
-  const { settings } = useSettingsStore();
 
   // Use React Query for data fetching
   const {
@@ -722,7 +720,7 @@ export const ClassList: React.FC = () => {
       {/* Pull to Refresh Wrapper - wraps only scrollable content */}
       <PullToRefresh
         onRefresh={handleRefresh}
-        enabled={settings.pullToRefresh}
+        enabled
         threshold={80}
       >
 

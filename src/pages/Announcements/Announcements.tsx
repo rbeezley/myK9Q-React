@@ -5,7 +5,6 @@ import { usePermission } from '../../hooks/usePermission';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import type { Announcement } from '../../stores/announcementStore';
 import { HamburgerMenu, CompactOfflineIndicator, PullToRefresh } from '../../components/ui';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useLongPress } from '@/hooks/useLongPress';
 import { AnnouncementCard } from '../../components/announcements/AnnouncementCard';
 import { CreateAnnouncementModal } from '../../components/announcements/CreateAnnouncementModal';
@@ -36,7 +35,6 @@ export const Announcements: React.FC = () => {
   const navigate = useNavigate();
   const { showContext, role } = useAuth();
   const { hasRole } = usePermission();
-  const { settings } = useSettingsStore();
   const {
     announcements,
     unreadCount,
@@ -308,7 +306,7 @@ export const Announcements: React.FC = () => {
       {/* Content with Pull to Refresh */}
       <PullToRefresh
         onRefresh={handleRefresh}
-        enabled={settings.pullToRefresh}
+        enabled
         threshold={80}
       >
       <div className="announcements-content">

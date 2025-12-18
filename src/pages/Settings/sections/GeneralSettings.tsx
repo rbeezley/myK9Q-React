@@ -3,7 +3,7 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Smartphone, RefreshCw, RotateCcw } from 'lucide-react';
+import { Smartphone, RotateCcw } from 'lucide-react';
 
 interface GeneralSettingsProps {
     onShowOnboarding: () => void;
@@ -22,18 +22,6 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ onShowOnboardi
                     <SettingsToggle
                         checked={settings.hapticFeedback}
                         onChange={(checked) => updateSettings({ hapticFeedback: checked })}
-                    />
-                }
-            />
-
-            <SettingsRow
-                icon={<RefreshCw size={20} />}
-                label="Pull to Refresh"
-                description="Swipe down to reload lists"
-                action={
-                    <SettingsToggle
-                        checked={settings.pullToRefresh}
-                        onChange={(checked) => updateSettings({ pullToRefresh: checked })}
                     />
                 }
             />

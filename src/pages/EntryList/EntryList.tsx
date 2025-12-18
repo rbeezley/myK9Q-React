@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { usePrefetch } from '@/hooks/usePrefetch';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { ErrorState, PullToRefresh, TabBar, Tab, FilterPanel, SortOption } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
@@ -46,7 +45,6 @@ export const EntryList: React.FC = () => {
   const { showContext, role } = useAuth();
   const { hasPermission } = usePermission();
   const { prefetch } = usePrefetch();
-  const { settings } = useSettingsStore();
 
   // Drag state ref - prevents sync-triggered refreshes during drag operations
   const isDraggingRef = useRef<boolean>(false);
@@ -711,7 +709,7 @@ export const EntryList: React.FC = () => {
         onTabChange={(tabId) => setActiveTab(tabId as TabType)}
       />
 
-      <PullToRefresh onRefresh={() => refresh(true)} enabled={settings.pullToRefresh} threshold={80}>
+      <PullToRefresh onRefresh={() => refresh(true)} enabled threshold={80}>
         <div className="entry-list-scrollable">
           <div className="entry-list-content">
             <EntryListContent

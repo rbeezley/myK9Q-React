@@ -403,7 +403,7 @@ export const Home: React.FC = () => {
       {/* Pull to Refresh Wrapper */}
       <PullToRefresh
         onRefresh={handleRefresh}
-        enabled={settings.pullToRefresh}
+        enabled
         threshold={100}
         maxPullDistance={140}
       >
