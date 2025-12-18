@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import { PWAInstallBanner } from '../PWAInstallBanner';
 import { DatabaseRecovery } from '../diagnostics/DatabaseRecovery';
 import { AutoLogoutWarning } from '../ui/AutoLogoutWarning';
-import { ToastContainer } from '../notifications/ToastContainer';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { OfflineIndicator, OfflineQueueStatus } from '../ui';
 import { MonitoringDashboard } from '../monitoring/MonitoringDashboard';
@@ -31,8 +30,7 @@ interface MainLayoutProps {
  * - PWA installation banner
  * - Database recovery UI
  * - Auto-logout warning
- * - Toast notifications
- * - Notification center
+ * - Notification center (Inbox panel)
  * - Offline indicators
  * - Monitoring dashboards
  * - Developer tools
@@ -55,7 +53,6 @@ export function MainLayout({ children, autoLogout }: MainLayoutProps) {
         />
       )}
 
-      <ToastContainer />
       <NotificationCenter />
       <OfflineIndicator />
       <OfflineQueueStatus />

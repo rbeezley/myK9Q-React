@@ -250,15 +250,15 @@
 }
 
 .theme-dark .toast-urgent {
-  background: rgba(220, 38, 38, 0.15);
+  background: #3d1f1f; /* Solid dark red - readable */
 }
 
 .theme-dark .toast-high {
-  background: rgba(245, 158, 11, 0.15);
+  background: #3d3320; /* Solid dark amber - readable */
 }
 
 .theme-dark .toast-normal {
-  background: rgba(59, 130, 246, 0.15);
+  background: #1e2d3d; /* Solid dark blue - readable */
 }
 
 .theme-dark .toast-icon-container {
