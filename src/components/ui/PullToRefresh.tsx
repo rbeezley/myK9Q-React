@@ -265,15 +265,17 @@ export function PullToRefresh({
 
   // Set up touch event listeners
   // Uses refs to track actual attached listeners for reliable cleanup
+  // IMPORTANT: removeEventListener must use the same options as addEventListener on mobile browsers
   useEffect(() => {
     const container = containerRef.current;
 
     // Always clean up any existing listeners first (using stored refs)
     // This ensures old listeners are removed even when callback refs change
+    // CRITICAL: Must pass same options to removeEventListener as addEventListener
     if (listenersRef.current.touchStart) {
-      container?.removeEventListener('touchstart', listenersRef.current.touchStart);
-      container?.removeEventListener('touchmove', listenersRef.current.touchMove!);
-      container?.removeEventListener('touchend', listenersRef.current.touchEnd!);
+      container?.removeEventListener('touchstart', listenersRef.current.touchStart, { passive: false } as EventListenerOptions);
+      container?.removeEventListener('touchmove', listenersRef.current.touchMove!, { passive: false } as EventListenerOptions);
+      container?.removeEventListener('touchend', listenersRef.current.touchEnd!, { passive: true } as EventListenerOptions);
       listenersRef.current = { touchStart: null, touchMove: null, touchEnd: null };
     }
 
@@ -293,10 +295,11 @@ export function PullToRefresh({
 
     return () => {
       // Cleanup uses the stored refs to ensure we remove the correct functions
+      // CRITICAL: Must pass same options to removeEventListener as addEventListener
       if (listenersRef.current.touchStart) {
-        container.removeEventListener('touchstart', listenersRef.current.touchStart);
-        container.removeEventListener('touchmove', listenersRef.current.touchMove!);
-        container.removeEventListener('touchend', listenersRef.current.touchEnd!);
+        container.removeEventListener('touchstart', listenersRef.current.touchStart, { passive: false } as EventListenerOptions);
+        container.removeEventListener('touchmove', listenersRef.current.touchMove!, { passive: false } as EventListenerOptions);
+        container.removeEventListener('touchend', listenersRef.current.touchEnd!, { passive: true } as EventListenerOptions);
         listenersRef.current = { touchStart: null, touchMove: null, touchEnd: null };
       }
     };
