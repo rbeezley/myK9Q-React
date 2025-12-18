@@ -14,9 +14,9 @@ const path = require('path');
 // Configuration
 const SOURCE_IMAGE = path.join(__dirname, '../public/myK9Q-teal-512.png');
 const OUTPUT_DIR = path.join(__dirname, '../public');
-const BACKGROUND_COLOR = '#14b8a6'; // Teal theme color
 
 // For maskable icons, logo should be ~65% of canvas to stay in safe zone
+// Background is transparent - the teal logo shows on whatever background the OS provides
 const LOGO_SCALE = 0.65;
 
 async function generateMaskableIcon(size, outputName) {
@@ -34,13 +34,13 @@ async function generateMaskableIcon(size, outputName) {
     })
     .toBuffer();
 
-  // Create canvas with teal background and composite the logo centered
+  // Create canvas with transparent background and composite the logo centered
   await sharp({
     create: {
       width: size,
       height: size,
       channels: 4,
-      background: BACKGROUND_COLOR
+      background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
     }
   })
     .composite([
@@ -59,7 +59,7 @@ async function generateMaskableIcon(size, outputName) {
 async function main() {
   console.log('Generating maskable icons with proper safe zone padding...\n');
   console.log(`Source: ${SOURCE_IMAGE}`);
-  console.log(`Background: ${BACKGROUND_COLOR}`);
+  console.log(`Background: transparent`);
   console.log(`Logo scale: ${LOGO_SCALE * 100}% of canvas\n`);
 
   try {
