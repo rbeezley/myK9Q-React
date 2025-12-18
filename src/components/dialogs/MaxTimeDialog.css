@@ -60,47 +60,59 @@
 
 .time-inputs-grid {
   display: grid;
-  gap: var(--token-space-xl);  /* Mobile: smaller gap */
-  margin: var(--token-space-3xl) 0;
+  gap: var(--token-space-lg);  /* Compact: reduced gap between areas */
+  margin: var(--token-space-xl) 0;
 }
-
-/* Removed desktop-first @media (max-width: 640px) block - converted to mobile-first below */
 
 .time-input-group {
   display: flex;
   flex-direction: column;
-  gap: var(--token-space-lg);  /* Mobile: larger spacing */
+  gap: var(--token-space-md);  /* Compact: tighter spacing */
+}
+
+/* Inline row: label + input on same line */
+.time-input-row {
+  display: flex;
+  flex-direction: row;  /* Force horizontal */
+  flex-wrap: nowrap;  /* Prevent wrapping */
+  align-items: center;
+  gap: var(--token-space-lg);
 }
 
 .time-input-label {
-  font-size: 1rem;  /* Mobile: larger font */
+  font-size: 0.875rem;  /* Compact: smaller label */
   font-weight: 600;
   color: var(--token-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 7rem;  /* Wide enough for "Area 1 Max Time" */
 }
 
 .time-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 110px;  /* Fixed narrow width */
+  flex-shrink: 0;
 }
 
 .input-icon {
   position: absolute;
-  left: var(--token-space-2xl);  /* Mobile: larger offset */
-  width: 1.5rem;  /* Mobile: larger icon */
-  height: 1.5rem;
+  left: var(--token-space-md);
+  width: 1rem;  /* Compact: smaller icon */
+  height: 1rem;
   color: var(--token-text-tertiary);
   z-index: var(--token-z-raised);
 }
 
 .clear-time-btn {
   position: absolute;
-  right: var(--token-space-xl);  /* Mobile: larger offset */
+  right: var(--token-space-xs);  /* Tight fit for narrow input */
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.375rem;  /* Mobile: larger padding */
-  border-radius: 6px;
+  padding: var(--token-space-xs);  /* Compact: minimal padding */
+  border-radius: 4px;
   color: var(--token-text-tertiary);
   transition: all 0.2s;
   z-index: var(--token-z-raised);
@@ -121,18 +133,18 @@
 
 .time-input {
   width: 100%;
-  padding: var(--token-space-2xl) 3.5rem var(--token-space-2xl) 3.5rem;  /* Mobile: larger padding */
-  border: var(--token-space-xs) solid var(--border);
-  border-radius: var(--token-space-xl);  /* Mobile: larger radius */
-  font-size: 1.25rem;  /* Mobile: larger font */
-  font-weight: 500;
+  padding: var(--token-space-md) var(--token-space-lg);  /* Compact: simple symmetric padding */
+  border: 1px solid var(--border);
+  border-radius: var(--token-space-md);
+  font-size: 0.9375rem;  /* Compact: smaller font */
+  font-weight: 600;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   transition: all 0.2s;
   background: var(--input-bg, white);
   color: var(--input-text, var(--foreground));
   text-align: center;
-  min-height: 3.5rem;  /* Mobile: larger min-height */
+  min-height: 2.25rem;  /* Compact: smaller height */
   /* Prevent zoom on iOS */
   -webkit-appearance: none;
   appearance: none;
@@ -170,21 +182,22 @@
 }
 
 .help-text {
-  padding: var(--token-space-xl);
+  padding: var(--token-space-lg);  /* Compact: smaller padding */
   background: var(--input);
   border-radius: var(--token-space-md);
   border-left: var(--token-space-sm) solid #6366f1;
+  margin-top: var(--token-space-md);  /* Add small margin */
 }
 
 .help-text p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;  /* Compact: smaller font */
   color: var(--muted-foreground);
-  line-height: 1.5;
+  line-height: 1.4;  /* Compact: tighter line height */
 }
 
 .help-text p + p {
-  margin-top: var(--token-space-md);
+  margin-top: var(--token-space-sm);  /* Compact: tighter spacing */
 }
 
 /* Dictated Time Display */
@@ -277,23 +290,24 @@
 .time-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--token-space-md);  /* Mobile: larger spacing */
-  justify-content: center;
-  margin-top: var(--token-space-md);
+  gap: var(--token-space-sm);  /* Compact: tighter spacing */
+  justify-content: flex-start;  /* Align with input */
+  margin-top: 0;  /* No top margin - row handles spacing */
+  padding-left: 0;  /* Will be aligned with labels via row */
 }
 
 .time-preset-btn {
-  padding: var(--token-space-lg) var(--token-space-xl);  /* Mobile: larger padding */
+  padding: var(--token-space-md) var(--token-space-lg);  /* Compact: smaller padding */
   background: var(--input);
   border: 1px solid var(--border);
-  border-radius: var(--token-space-lg);  /* Mobile: larger radius */
-  font-size: 1rem;  /* Mobile: larger font */
+  border-radius: var(--token-space-md);  /* Compact: smaller radius */
+  font-size: 0.875rem;  /* Compact: smaller font */
   font-weight: 600;
   color: var(--token-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 3rem;  /* Mobile: larger touch target */
-  min-width: 4rem;  /* Mobile: larger button */
+  min-height: 2.25rem;  /* Compact: smaller touch target */
+  min-width: 3.25rem;  /* Compact: smaller button */
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   letter-spacing: 0.05em;
 }
@@ -377,8 +391,10 @@
 }
 
 .save-button:disabled {
-  opacity: 0.6;
+  background: #e5e7eb;  /* Gray-200 - clearly different from primary blue */
+  color: #9ca3af;       /* Gray-400 - muted text */
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .button-spinner {
@@ -410,50 +426,50 @@
   }
 
   .time-inputs-grid {
-    gap: var(--token-space-3xl);  /* Desktop: larger gap */
+    gap: var(--token-space-xl);  /* Desktop: moderate gap between areas */
   }
 
-  /* Time input controls */
+  /* Time input controls - desktop matches compact mobile */
   .time-input {
-    padding: var(--token-space-xl) 3rem var(--token-space-xl) 3rem;  /* Desktop: smaller padding */
-    border-radius: var(--token-space-lg);  /* Desktop: smaller radius */
-    font-size: 1.125rem;  /* Desktop: smaller font */
-    min-height: 3rem;  /* Desktop: smaller height */
+    padding: var(--token-space-md) var(--token-space-lg);
+    border-radius: var(--token-space-md);
+    font-size: 1rem;
+    min-height: 2.25rem;
   }
 
-  .input-icon {
-    left: var(--token-space-xl);  /* Desktop: smaller offset */
-    width: 1.25rem;  /* Desktop: smaller icon */
-    height: 1.25rem;
+  .time-input-wrapper {
+    width: 120px;  /* Slightly wider on desktop */
   }
 
   .clear-time-btn {
-    right: var(--token-space-lg);  /* Desktop: smaller offset */
-    padding: var(--token-space-sm);  /* Desktop: smaller padding */
+    right: var(--token-space-sm);
+    padding: var(--token-space-xs);
   }
 
   .time-input-group {
-    gap: var(--token-space-md);  /* Desktop: smaller spacing */
+    gap: var(--token-space-sm);  /* Desktop: tighter spacing */
   }
 
   .time-input-label {
-    font-size: 0.875rem;  /* Desktop: smaller font */
+    font-size: 0.875rem;
+    min-width: 7.5rem;  /* Ensure labels align for multi-area */
   }
 
   .time-input-container {
-    gap: var(--token-space-lg);  /* Desktop: smaller spacing */
+    gap: var(--token-space-md);  /* Desktop: compact spacing */
   }
 
   .time-presets {
-    gap: 0.375rem;  /* Desktop: compact spacing */
+    gap: var(--token-space-sm);  /* Desktop: same as mobile compact */
   }
 
   .time-preset-btn {
-    padding: var(--token-space-md) var(--token-space-lg);  /* Desktop: smaller padding */
-    font-size: 0.875rem;  /* Desktop: smaller font */
-    min-height: 2.5rem;  /* Desktop: smaller height */
-    min-width: 3.5rem;  /* Desktop: smaller button */
-    border-radius: var(--token-space-md);  /* Desktop: smaller radius */
+    /* Desktop: same as mobile compact - already small */
+    padding: var(--token-space-md) var(--token-space-lg);
+    font-size: 0.875rem;
+    min-height: 2.25rem;
+    min-width: 3.25rem;
+    border-radius: var(--token-space-md);
   }
 
   /* Dictated time display */
@@ -506,7 +522,7 @@
 }
 
 .theme-dark .time-input-label {
-  color: var(--surface-subtle);
+  color: #e5e7eb;  /* Light gray - high contrast in dark mode */
 }
 
 .theme-dark .time-input {
@@ -603,6 +619,12 @@
   background: var(--foreground-muted);
   color: var(--surface-subtle);
   border-color: var(--text-gray);
+}
+
+.theme-dark .save-button:disabled {
+  background: #374151;  /* Gray-700 - clearly different from primary */
+  color: #6b7280;       /* Gray-500 - muted text */
+  opacity: 0.6;
 }
 
 

@@ -300,6 +300,30 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
     return presets;
   };
 
+  // Check if save button should be enabled
+  const canSave = (): boolean => {
+    if (!timeRange || saving) return false;
+
+    // Check all required areas have times
+    const requiredAreas = timeRange.areas;
+    const filledTimes = times.slice(0, requiredAreas).filter(time => time !== '');
+
+    const allFilled = filledTimes.length === requiredAreas;
+    const allEmpty = filledTimes.length === 0;
+
+    // If showWarning is true (max time required), must fill all areas - can't save empty
+    if (showWarning && allEmpty) return false;
+
+    // Otherwise: all areas must be filled (or all must be empty for clearing)
+    if (!allFilled && !allEmpty) return false;
+
+    // No validation errors
+    const hasErrors = errors.slice(0, requiredAreas).some(error => error !== '');
+    if (hasErrors) return false;
+
+    return true;
+  };
+
   const handleTimeChange = (areaIndex: number, value: string) => {
     const formatted = formatTimeInput(value);
     const newTimes = [...times];
@@ -644,12 +668,12 @@ const { error } = await supabase
                 <div className="time-inputs-grid">
                   {Array.from({ length: timeRange.areas }, (_, index) => (
                     <div key={index} className="time-input-group">
-                      <label className="time-input-label">
-                        {getAreaLabel(index)}
-                      </label>
-                      <div className="time-input-container">
+                      {/* Inline row: label + input */}
+                      <div className="time-input-row">
+                        <label className="time-input-label">
+                          {getAreaLabel(index)}
+                        </label>
                         <div className="time-input-wrapper">
-                          <Clock className="input-icon" />
                           <input
                             ref={index === 0 ? firstInputRef : undefined}
                             type="text"
@@ -687,21 +711,22 @@ const { error } = await supabase
                             </button>
                           )}
                         </div>
-                        <div className="time-presets">
-                          {generateTimePresets().map((preset) => (
-                            <button
-                              key={preset}
-                              type="button"
-                              className={`time-preset-btn ${
-                                times[index] === preset ? 'active' : ''
-                              }`}
-                              onClick={() => setPresetTime(index, preset)}
-                              aria-label={`Set time to ${preset}`}
-                            >
-                              {preset}
-                            </button>
-                          ))}
-                        </div>
+                      </div>
+                      {/* Preset buttons below */}
+                      <div className="time-presets">
+                        {generateTimePresets().map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            className={`time-preset-btn ${
+                              times[index] === preset ? 'active' : ''
+                            }`}
+                            onClick={() => setPresetTime(index, preset)}
+                            aria-label={`Set time to ${preset}`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
                       </div>
                       {errors[index] && (
                         <div className="input-error">
@@ -751,7 +776,7 @@ const { error } = await supabase
             <button
               className="save-button"
               onClick={handleSave}
-              disabled={saving}
+              disabled={!canSave()}
             >
               {saving ? (
                 <>

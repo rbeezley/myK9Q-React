@@ -92,12 +92,16 @@ export const EntryList: React.FC = () => {
   const [classOptionsDialogOpen, setClassOptionsDialogOpen] = useState(false);
   const [requirementsDialogOpen, setRequirementsDialogOpen] = useState(false);
   const [maxTimeDialogOpen, setMaxTimeDialogOpen] = useState(false);
+  const [maxTimeRequiredWarning, setMaxTimeRequiredWarning] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [noStatsDialogOpen, setNoStatsDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
+
+  // Track if we've already checked for max time requirement (prevent re-triggering after save)
+  const hasCheckedMaxTime = useRef(false);
 
   // Reset menu state
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
@@ -165,6 +169,28 @@ export const EntryList: React.FC = () => {
     }
   }, [isRefreshing, hasCompletedInitialLoad]);
 
+  // Auto-open MaxTimeDialog if max time not set and user can score (runs once per page load)
+  useEffect(() => {
+    // Only run this check once per page load
+    if (hasCheckedMaxTime.current) return;
+
+    if (
+      hasCompletedInitialLoad &&
+      classInfo &&
+      hasPermission('canScore') &&
+      entries.length > 0  // Class has entries to score
+    ) {
+      // Mark that we've done the initial check
+      hasCheckedMaxTime.current = true;
+
+      // If no max time set, auto-open the dialog with warning
+      if (!classInfo.timeLimit) {
+        setMaxTimeRequiredWarning(true);
+        setMaxTimeDialogOpen(true);
+      }
+    }
+  }, [hasCompletedInitialLoad, classInfo, hasPermission, entries.length]);
+
   // Scoresheet route helper
   const getScoreSheetRoute = useCallback((entry: Entry): string => {
     return getScoresheetRoute({
@@ -209,6 +235,13 @@ export const EntryList: React.FC = () => {
 
     if (!hasPermission('canScore')) {
       alert('You do not have permission to score entries.');
+      return;
+    }
+
+    // Block scoring if max time not set - show dialog instead
+    if (!classInfo?.timeLimit) {
+      setMaxTimeRequiredWarning(true);
+      setMaxTimeDialogOpen(true);
       return;
     }
 
@@ -797,12 +830,24 @@ export const EntryList: React.FC = () => {
       {classInfo && (
         <MaxTimeDialog
           isOpen={maxTimeDialogOpen}
-          onClose={() => setMaxTimeDialogOpen(false)}
+          onClose={() => {
+            setMaxTimeDialogOpen(false);
+            // If dialog was auto-opened due to missing max time, navigate back to class list
+            if (maxTimeRequiredWarning) {
+              setMaxTimeRequiredWarning(false);
+              navigate(-1);
+            }
+          }}
+          showWarning={maxTimeRequiredWarning}
           classData={{
             id: Number(classId),
             element: classInfo.element,
             level: classInfo.level,
-            class_name: classInfo.className
+            class_name: classInfo.className,
+            time_limit_seconds: classInfo.timeLimit ? parseInt(classInfo.timeLimit) : undefined,
+            time_limit_area2_seconds: classInfo.timeLimit2 ? parseInt(classInfo.timeLimit2) : undefined,
+            time_limit_area3_seconds: classInfo.timeLimit3 ? parseInt(classInfo.timeLimit3) : undefined,
+            area_count: classInfo.areas
           }}
           onTimeUpdate={refresh}
         />
