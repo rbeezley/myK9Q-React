@@ -134,7 +134,6 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [_lastFetch, _setLastFetch] = useState(0);
 
   // Track online/offline status
   useEffect(() => {
@@ -219,8 +218,6 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         cleanSweepDogs,
         fastestTimes: fastestTimesResult.fastestTimes
       });
-
-      _setLastFetch(Date.now());
     } catch (err) {
       logger.error('Error fetching stats:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch statistics'));
@@ -229,15 +226,18 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
     }
   };
 
-  // Refetch function
+  // Refetch trigger state - increment to force a refetch
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
+
+  // Refetch function - triggers a new fetch from server
   const refetch = () => {
-    _setLastFetch(0);
+    setRefetchTrigger(prev => prev + 1);
   };
 
-  // Effect to fetch data when cache key changes
+  // Effect to fetch data when cache key or refetch trigger changes
   useEffect(() => {
     fetchStats();
-  }, [cacheKey]);
+  }, [cacheKey, refetchTrigger]);
 
   return {
     data,

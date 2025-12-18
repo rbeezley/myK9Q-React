@@ -12,6 +12,7 @@ import { CreateAnnouncementModal } from '../../components/announcements/CreateAn
 import { DeleteConfirmationModal } from '../../components/announcements/DeleteConfirmationModal';
 import { FilterPanel } from '../../components/ui/FilterPanel';
 import { logger } from '@/utils/logger';
+import { ensureReplicationManager } from '@/utils/replicationHelper';
 import {
   Plus,
   Bell,
@@ -107,6 +108,7 @@ export const Announcements: React.FC = () => {
     setFilters({ searchTerm });
   }, [searchTerm, setFilters]);
 
+  // Manual refresh - syncs from server first to get fresh data
   const handleRefresh = useCallback(async () => {
     if (!currentLicenseKey) return;
 
@@ -114,6 +116,17 @@ export const Announcements: React.FC = () => {
     // Minimum feedback duration so users see something happened
     const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
     try {
+      // Sync announcements from server first
+      try {
+        logger.log('🔄 Force sync requested - syncing announcements from server...');
+        const manager = await ensureReplicationManager();
+        await manager.syncTable('announcements', { licenseKey: currentLicenseKey });
+        logger.log('✅ Force sync complete');
+      } catch (syncError) {
+        // Sync failed (likely offline) - continue with cached data
+        logger.warn('⚠️ Sync failed (offline?), using cached data:', syncError);
+      }
+
       await Promise.all([fetchAnnouncements(currentLicenseKey), minFeedbackDelay]);
     } catch (error) {
       logger.error('Failed to refresh announcements:', error);

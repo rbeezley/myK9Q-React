@@ -86,7 +86,7 @@ export interface DashboardData {
   // State
   isLoading: boolean;
   error: string | null;
-  refetch: (options?: { all?: boolean }) => Promise<void>;
+  refetch: (options?: { all?: boolean; forceSync?: boolean }) => Promise<void>;
 }
 
 // ============================================================
@@ -453,7 +453,25 @@ export function useDashboardData(
 
   // Combined refetch - uses refetchQueries for immediate data refresh
   // NOTE: Only refetches classes query by default to avoid "show not found" race condition
-  const refetch = useCallback(async (options?: { all?: boolean }): Promise<void> => {
+  // forceSync option syncs from server before refetching cache
+  const refetch = useCallback(async (options?: { all?: boolean; forceSync?: boolean }): Promise<void> => {
+    // If forceSync, sync from server before refetching from cache
+    if (options?.forceSync && licenseKey) {
+      try {
+        logger.log('🔄 Force sync requested - syncing classes, entries, and shows from server...');
+        const manager = await ensureReplicationManager();
+        await Promise.all([
+          manager.syncTable('classes', { licenseKey }),
+          manager.syncTable('entries', { licenseKey }),
+          manager.syncTable('shows', { licenseKey }),
+        ]);
+        logger.log('✅ Force sync complete');
+      } catch (syncError) {
+        // Sync failed (likely offline) - continue with cached data
+        logger.warn('⚠️ Sync failed (offline?), using cached data:', syncError);
+      }
+    }
+
     // Force immediate refetch of classes query (not just invalidate)
     await queryClient.refetchQueries({
       queryKey: dashboardKeys.classes(licenseKey || ''),

@@ -437,11 +437,12 @@ export const EntryList: React.FC = () => {
   }, [currentEntries, setSortOrder]);
 
   // Manual refresh with minimum feedback duration
+  // Uses forceSync=true to fetch fresh data from server, not just cache
   const handleManualRefresh = useCallback(async () => {
     setIsManualRefreshing(true);
     const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
     try {
-      await Promise.all([refresh(), minFeedbackDelay]);
+      await Promise.all([refresh(true), minFeedbackDelay]); // forceSync=true
     } finally {
       setIsManualRefreshing(false);
     }
@@ -710,7 +711,7 @@ export const EntryList: React.FC = () => {
         onTabChange={(tabId) => setActiveTab(tabId as TabType)}
       />
 
-      <PullToRefresh onRefresh={refresh} enabled={settings.pullToRefresh} threshold={80}>
+      <PullToRefresh onRefresh={() => refresh(true)} enabled={settings.pullToRefresh} threshold={80}>
         <div className="entry-list-scrollable">
           <div className="entry-list-content">
             <EntryListContent

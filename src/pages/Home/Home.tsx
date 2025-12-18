@@ -166,6 +166,7 @@ export const Home: React.FC = () => {
   }, [favoriteDogs, showContext?.licenseKey, dogFavoritesLoaded]);
 
   // ✨ React Query: Refresh handler with minimum feedback duration
+  // Uses forceSync=true to fetch fresh data from server first
   const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
     setIsManualRefreshing(true);
@@ -174,7 +175,7 @@ export const Home: React.FC = () => {
     const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-      await Promise.all([refetch(), minFeedbackDelay]);
+      await Promise.all([refetch(true), minFeedbackDelay]); // forceSync=true
     } finally {
       setIsManualRefreshing(false);
     }

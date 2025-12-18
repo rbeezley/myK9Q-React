@@ -194,6 +194,7 @@ export const ClassList: React.FC = () => {
   // Local state for manual refresh feedback (ensures minimum visible duration)
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
+  // Manual refresh with forceSync=true to fetch fresh data from server
   const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
     setIsManualRefreshing(true);
@@ -202,7 +203,7 @@ export const ClassList: React.FC = () => {
     const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-      await Promise.all([refetch(), minFeedbackDelay]);
+      await Promise.all([refetch(true), minFeedbackDelay]); // forceSync=true
     } finally {
       setIsManualRefreshing(false);
     }

@@ -94,7 +94,8 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
   const pendingRefreshRef = useRef(false);
 
   // Fetch data function
-  const refresh = useCallback(async () => {
+  // forceSync: if true, syncs with server before reading cache (for user-initiated refresh)
+  const refresh = useCallback(async (forceSync: boolean = false) => {
     // If already refreshing, mark that we need another refresh after this one completes
     if (isRefreshingRef.current) {
       pendingRefreshRef.current = true;
@@ -105,6 +106,24 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
     setIsRefreshing(true);
     setFetchError(null);
     try {
+      // If forceSync requested, sync with server first to get fresh data
+      // Wrapped in try-catch so offline users still get cached data
+      if (forceSync && showContext?.licenseKey) {
+        try {
+          logger.log('🔄 Force sync requested - syncing entries and classes from server...');
+          const manager = await ensureReplicationManager();
+          // Sync entries and classes tables to get latest data
+          await Promise.all([
+            manager.syncTable('entries', { licenseKey: showContext.licenseKey }),
+            manager.syncTable('classes', { licenseKey: showContext.licenseKey }),
+          ]);
+          logger.log('✅ Force sync complete');
+        } catch (syncError) {
+          // Sync failed (likely offline) - continue with cached data
+          logger.warn('⚠️ Sync failed (offline?), using cached data:', syncError);
+        }
+      }
+
       const result = await fetchFunction();
       setData(result);
     } catch (error) {
@@ -121,7 +140,7 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
         setTimeout(() => refresh(), 0);
       }
     }
-  }, [fetchFunction]);
+  }, [fetchFunction, showContext?.licenseKey]);
 
   // Initial load
   useEffect(() => {

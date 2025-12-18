@@ -60,6 +60,7 @@ export function ShowDetails() {
   } = useDashboardData(licenseKey, showId);
 
   // Handle refresh - full refresh when user explicitly taps refresh button
+  // Uses forceSync=true to fetch fresh data from server first
   const handleRefresh = useCallback(async () => {
     hapticFeedback.medium();
     setIsManualRefreshing(true);
@@ -68,7 +69,7 @@ export function ShowDetails() {
     const minFeedbackDelay = new Promise(resolve => setTimeout(resolve, 500));
 
     try {
-      await Promise.all([refetch({ all: true }), minFeedbackDelay]);
+      await Promise.all([refetch({ all: true, forceSync: true }), minFeedbackDelay]);
     } finally {
       setIsManualRefreshing(false);
     }

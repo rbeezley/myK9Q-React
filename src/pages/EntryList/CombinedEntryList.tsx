@@ -610,7 +610,7 @@ export const CombinedEntryList: React.FC = () => {
         hasError={hasError}
         hasActiveFilters={hasActiveFilters}
         onFilterClick={() => setIsFilterPanelOpen(true)}
-        onRefresh={refresh}
+        onRefresh={() => refresh(true)}
         showSectionsBadge={true}
         actionsMenu={{
           printOptions: [
