@@ -52,6 +52,14 @@ export function PullToRefresh({
   const currentYRef = useRef(0);
   const isPullingRef = useRef(false);
 
+  // Store references to attached listeners for proper cleanup
+  // This fixes the bug where removeEventListener fails because callback references change
+  const listenersRef = useRef<{
+    touchStart: ((e: TouchEvent) => void) | null;
+    touchMove: ((e: TouchEvent) => void) | null;
+    touchEnd: (() => void) | null;
+  }>({ touchStart: null, touchMove: null, touchEnd: null });
+
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (!enabled || isRefreshing) return;
 
@@ -256,18 +264,41 @@ export function PullToRefresh({
   }, [enabled, pullState, threshold, onRefresh, isRefreshing]);
 
   // Set up touch event listeners
+  // Uses refs to track actual attached listeners for reliable cleanup
   useEffect(() => {
     const container = containerRef.current;
+
+    // Always clean up any existing listeners first (using stored refs)
+    // This ensures old listeners are removed even when callback refs change
+    if (listenersRef.current.touchStart) {
+      container?.removeEventListener('touchstart', listenersRef.current.touchStart);
+      container?.removeEventListener('touchmove', listenersRef.current.touchMove!);
+      container?.removeEventListener('touchend', listenersRef.current.touchEnd!);
+      listenersRef.current = { touchStart: null, touchMove: null, touchEnd: null };
+    }
+
+    // If disabled or no container, don't add new listeners
     if (!container || !enabled) return;
+
+    // Store references to the exact functions we're attaching
+    listenersRef.current = {
+      touchStart: handleTouchStart,
+      touchMove: handleTouchMove,
+      touchEnd: handleTouchEnd,
+    };
 
     container.addEventListener('touchstart', handleTouchStart, { passive: false });
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
     container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      // Cleanup uses the stored refs to ensure we remove the correct functions
+      if (listenersRef.current.touchStart) {
+        container.removeEventListener('touchstart', listenersRef.current.touchStart);
+        container.removeEventListener('touchmove', listenersRef.current.touchMove!);
+        container.removeEventListener('touchend', listenersRef.current.touchEnd!);
+        listenersRef.current = { touchStart: null, touchMove: null, touchEnd: null };
+      }
     };
   }, [enabled, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
