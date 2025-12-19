@@ -22,13 +22,10 @@ export default defineConfig({
     hookTimeout: 30000, // Increase from default 10s to 30s for IndexedDB cleanup
     testTimeout: 15000, // 15s timeout for individual tests
 
-    // Test isolation configuration - prevents cross-file mock contamination
-    // Uses process forks instead of threads for better isolation between test files
-    pool: 'forks',
-
-    // Disable file-level parallelism to fix "No test suite found" errors on Windows
-    // This is a Vitest 4 issue where parallel module loading causes race conditions
-    // Tests within each file still run in parallel for reasonable performance
+    // Test isolation - use vmThreads pool for better isolation
+    // This creates a new VM context for each test file, preventing module state leakage
+    pool: 'vmThreads',
+    // Sequential file execution to avoid module loading race conditions on Windows
     fileParallelism: false,
 
     exclude: [

@@ -5,7 +5,8 @@
  * Note: This IS the logging utility - console usage is intentional
  */
 
-const isDev = import.meta.env.DEV;
+// Safe access to import.meta.env for test environments where it may not be defined
+const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV === true;
 
 /**
  * Get console logging setting from settingsStore
