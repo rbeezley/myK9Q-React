@@ -1,5 +1,5 @@
 // src/pages/Results/Results.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useResultsData } from './hooks/useResultsData';
@@ -62,19 +62,24 @@ export function Results() {
     setSearchParams(params);
   };
 
-  // Initialize filters from URL (only on mount, not on every render)
-  const initialElement = searchParams.get('element');
-  const initialLevel = searchParams.get('level');
-  if (
-    (initialElement && filters.element !== initialElement) ||
-    (initialLevel && filters.level !== initialLevel)
-  ) {
-    setFilters({
-      ...filters,
-      element: initialElement,
-      level: initialLevel,
-    });
-  }
+  // Initialize filters from URL params on mount
+  useEffect(() => {
+    const urlElement = searchParams.get('element');
+    const urlLevel = searchParams.get('level');
+
+    // Only update if URL has params that differ from current filters
+    if (
+      (urlElement && filters.element !== urlElement) ||
+      (urlLevel && filters.level !== urlLevel)
+    ) {
+      setFilters({
+        ...filters,
+        element: urlElement,
+        level: urlLevel,
+      });
+    }
+    // Only run on mount - searchParams is stable from useSearchParams
+  }, [searchParams, setFilters]);
 
   if (!showContext?.showId) {
     return (
