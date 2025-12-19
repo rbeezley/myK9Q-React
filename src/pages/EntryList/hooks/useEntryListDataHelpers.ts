@@ -16,6 +16,21 @@ import { logger } from '@/utils/logger';
 import { getVisibleResultFields } from '@/services/resultVisibilityService';
 import type { VisibleResultFields } from '@/types/visibility';
 import type { UserRole } from '@/utils/auth';
+import { getAreaCountForClass } from '@/utils/classUtils';
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Calculate area count with fallback logic.
+ * Uses stored value if available, otherwise derives from element/level.
+ */
+function calcAreaCount(storedValue: number | undefined | null, element?: string, level?: string): number {
+  if (storedValue) return storedValue;
+  if (element && level) return getAreaCountForClass(element, level);
+  return 1;
+}
 
 // =============================================================================
 // TYPE DEFINITIONS
@@ -168,6 +183,8 @@ export function buildSingleClassInfo(
   const sectionPart = classData.section && classData.section !== '-' ? ` ${classData.section}` : '';
   const completedEntries = entries.filter(e => e.isScored).length;
 
+  const areaCount = calcAreaCount(classData.area_count, classData.element, classData.level);
+
   return {
     className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
     element: classData.element || '',
@@ -185,7 +202,7 @@ export function buildSingleClassInfo(
     timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
     timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-    areas: classData.area_count,
+    areas: areaCount,
     visibilityPreset: visibilityPreset || 'standard'
   };
 }
@@ -202,6 +219,8 @@ export function buildCombinedClassInfo(
   trialData?: Trial | null,
   visibilityPreset?: 'open' | 'standard' | 'review'
 ): ClassInfo {
+  const areaCount = calcAreaCount(classDataA.area_count, classDataA.element, classDataA.level);
+
   return {
     className: `${classDataA.element} ${classDataA.level} A & B`,
     element: classDataA.element || '',
@@ -218,7 +237,7 @@ export function buildCombinedClassInfo(
     timeLimit: classDataA.time_limit_seconds ? `${classDataA.time_limit_seconds}s` : undefined,
     timeLimit2: classDataA.time_limit_area2_seconds ? `${classDataA.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classDataA.time_limit_area3_seconds ? `${classDataA.time_limit_area3_seconds}s` : undefined,
-    areas: classDataA.area_count,
+    areas: areaCount,
     visibilityPreset: visibilityPreset || 'standard'
   };
 }
@@ -366,6 +385,8 @@ export async function fetchFromSupabase(
   // Fetch visibility preset for class settings display
   const visibilityPreset = await fetchVisibilityPreset(classId);
 
+  const areaCount = calcAreaCount(classData.area_count, classData.element, classData.level);
+
   const classInfo: ClassInfo = {
     className: `${classData.element} ${classData.level}${sectionPart}`.trim(),
     element: classData.element || '',
@@ -383,7 +404,7 @@ export async function fetchFromSupabase(
     timeLimit: classData.time_limit_seconds ? `${classData.time_limit_seconds}s` : undefined,
     timeLimit2: classData.time_limit_area2_seconds ? `${classData.time_limit_area2_seconds}s` : undefined,
     timeLimit3: classData.time_limit_area3_seconds ? `${classData.time_limit_area3_seconds}s` : undefined,
-    areas: classData.area_count,
+    areas: areaCount,
     visibilityPreset
   };
 
@@ -542,6 +563,8 @@ export async function fetchCombinedFromSupabase(
   // Fetch visibility preset (use class A's setting for combined view)
   const visibilityPreset = await fetchVisibilityPreset(classIdA);
 
+  const areaCount = calcAreaCount(firstEntry.areas, firstEntry.element, firstEntry.level);
+
   const classInfo: ClassInfo = {
     className: `${firstEntry.element} ${firstEntry.level} A & B`,
     element: firstEntry.element || '',
@@ -558,7 +581,7 @@ export async function fetchCombinedFromSupabase(
     timeLimit: firstEntry.timeLimit,
     timeLimit2: firstEntry.timeLimit2,
     timeLimit3: firstEntry.timeLimit3,
-    areas: firstEntry.areas,
+    areas: areaCount,
     visibilityPreset
   };
 

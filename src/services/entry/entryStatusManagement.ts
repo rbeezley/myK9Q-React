@@ -385,9 +385,23 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
     // Get the class_id before resetting the score
     const { data: entryData } = await supabase
       .from('entries')
-      .select('class_id')
+      .select('class_id, is_scored')
       .eq('id', entryId)
       .single();
+
+    // CRITICAL: Unlock the entry first if it's scored
+    // The protect_scored_entries trigger blocks changes to scoring fields
+    // unless score_unlocked=TRUE (checked on OLD value, not NEW)
+    if (entryData?.is_scored) {
+      logger.log(`🔓 [resetEntryScore] Unlocking entry ${entryId} before reset`);
+      const { error: unlockError } = await supabase
+        .rpc('unlock_entry_for_edit', { p_entry_id: entryId });
+
+      if (unlockError) {
+        logger.error('❌ Failed to unlock entry for reset:', unlockError);
+        throw new Error(`Failed to unlock entry: ${unlockError.message}`);
+      }
+    }
 
     // Reset score fields in the entries table (results merged into entries)
     // CRITICAL: Include updated_at to trigger replication sync
@@ -398,6 +412,9 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
         result_status: 'pending',
         entry_status: 'no-status', // Reset entry status when score is cleared
         search_time_seconds: 0,
+        area1_time_seconds: 0,
+        area2_time_seconds: 0,
+        area3_time_seconds: 0,
         total_correct_finds: 0,
         total_incorrect_finds: 0,
         total_faults: 0,

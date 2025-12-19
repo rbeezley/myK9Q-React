@@ -35,7 +35,9 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
           Dim strScoredList As String
           Dim intUserChoice As Integer
           Dim lngUnlocked As Long
-          
+          Dim blnOverwriteScores As Boolean
+          blnOverwriteScores = False  ' Default: protect existing scores
+
           If strCalledBy = "Trial" Then
               ' TRIAL-LEVEL CHECK: Check ALL classes in the trial
               strScoredList = CheckScoredEntriesForTrial_v3(iShowID, iTrialID)
@@ -54,18 +56,20 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
                           
                       Case vbRetry   ' Unlock & Overwrite
                           lngUnlocked = UnlockTrialForReupload_v3(iShowID, iTrialID)
+                          blnOverwriteScores = True  ' Flag to reset scores in entry upload
                           MsgBox lngUnlocked & " entries unlocked for overwrite." & vbCrLf & _
                                  "Scores CAN now be overwritten.", vbExclamation, "Entries Unlocked"
                   End Select
               End If
-              
+
           ElseIf strCalledBy = "Class" Then
               ' CLASS-LEVEL CHECK: Check just this class
               strScoredList = CheckScoredEntries_v3(iShowID, iClassID)
               
               If strScoredList <> "" Then
                   Dim strClassName As String
-                  strClassName = Nz(DLookup("className", "tbl_Class", "classID = " & iClassID), "this class")
+                  strClassName = Nz(DLookup("Element", "tbl_Class", "classID = " & iClassID), "") & " " & _
+                                 Nz(DLookup("Level", "tbl_Class", "classID = " & iClassID), "")
                   
                   intUserChoice = ShowScoredEntriesWarning(strScoredList, strClassName)
                   
@@ -80,6 +84,7 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
                           
                       Case vbRetry   ' Unlock & Overwrite
                           lngUnlocked = UnlockClassForReupload_v3(iShowID, iClassID)
+                          blnOverwriteScores = True  ' Flag to reset scores in entry upload
                           MsgBox lngUnlocked & " entries unlocked for overwrite." & vbCrLf & _
                                  "Scores CAN now be overwritten.", vbExclamation, "Entries Unlocked"
                   End Select
@@ -120,11 +125,11 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
 31540     If strCalledBy = "Class" Then
 31550         Forms!frm_Progress_myK9Q.lblCurrentTask.Caption = "Uploading Entries for Class ID: " & iClassID
 31560         Forms!frm_Progress_myK9Q.Repaint
-31570         Call SyncEntriesViaAPI_v3(iTrialID, iShowID, iClassID)
+31570         Call SyncEntriesViaAPI_v3(iTrialID, iShowID, iClassID, blnOverwriteScores)
 31580     Else
 31590         Forms!frm_Progress_myK9Q.lblCurrentTask.Caption = "Uploading all Entries for Trial ID: " & iTrialID
 31600         Forms!frm_Progress_myK9Q.Repaint
-31610         Call SyncEntriesViaAPI_v3(iTrialID, iShowID)
+31610         Call SyncEntriesViaAPI_v3(iTrialID, iShowID, 0, blnOverwriteScores)
 31620     End If
           
 31630     DoCmd.Close acForm, "frm_Progress_myK9Q", acSaveNo
@@ -375,56 +380,27 @@ Error_Handler:
 33810     Resume Exit_Sub
 End Sub
 
-Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Long, Optional ByVal lngClassID As Long = 0)
+Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Long, Optional ByVal lngClassID As Long = 0, Optional ByVal blnResetScores As Boolean = False)
 33820     On Error GoTo Error_Handler
           Dim db As DAO.Database, rs As DAO.Recordset, strSQL As String
           Const TABLE_NAME As String = "entries"
           Dim http As Object, json As String, recordsArray As String, filterClause As String
           Dim classIdMap As Scripting.Dictionary
 33830     Set classIdMap = New Scripting.Dictionary
-          
-          ' ======================================================================
-          ' NEW: Check for scored entries before uploading
-          ' ======================================================================
-          If lngClassID > 0 Then
-              ' Single class upload - check this class
-              Dim scoredEntries As String
-              Dim className As String
-              
-              className = Nz(DLookup("Element", "tbl_Class", "classID = " & lngClassID), "") & " " & _
-                          Nz(DLookup("Level", "tbl_Class", "classID = " & lngClassID), "")
-              
-              scoredEntries = CheckScoredEntries_v3(lngShowID, lngClassID)
-              
-              If Len(scoredEntries) > 0 Then
-                  Dim userChoice As Integer
-                  userChoice = ShowScoredEntriesWarning(scoredEntries, className)
-                  
-                  Select Case userChoice
-                      Case 1  ' Cancel
-                          MsgBox "Upload cancelled.", vbInformation, "Upload Cancelled"
-                          GoTo Exit_Sub
-                      Case 2  ' Upload Anyway - do nothing, trigger will protect
-                          ' Continue with upload - scores are protected by database trigger
-                      Case 3  ' Unlock & Overwrite
-                          Dim unlockCount As Long
-                          unlockCount = UnlockClassForReupload_v3(lngShowID, lngClassID)
-                          If unlockCount < 0 Then
-                              MsgBox "Failed to unlock entries. Upload cancelled.", vbCritical, "Unlock Failed"
-                              GoTo Exit_Sub
-                          End If
-                          ' Continue with upload - scores will be overwritten
-                  End Select
-              End If
-          End If
-          ' ======================================================================
-          ' END: Scored entries check
-          ' ======================================================================
-          
+
+          ' NOTE: Scored entries check is now handled in the main upload routine
+          ' (UploadToMyK9Q_v3) BEFORE calling this function. Do not duplicate here.
+
 33840     If lngClassID > 0 Then filterClause = "E.classID_FK = " & lngClassID Else filterClause = "E.TrialID_FK = " & lngTrialID
           
 33850     Set db = CurrentDb
-33860     strSQL = "SELECT E.entryID, E.classID_FK, E.Armband, P.FullName AS HandlerName, D.CallName, B.BreedName, E.ExhibitorOrder " & _
+          ' Include scoring fields when blnResetScores is True (user chose Overwrite)
+33860     strSQL = "SELECT E.entryID, E.classID_FK, E.Armband, P.FullName AS HandlerName, D.CallName, B.BreedName, E.ExhibitorOrder, " & _
+                   "E.Qualified, E.NQ, E.Excused, E.Absent, E.Withdrawn, " & _
+                   "E.NQReason, E.ExcusedReason, E.WithdrawnReason, " & _
+                   "E.SearchTime, E.AreaTime1, E.AreaTime2, E.AreaTime3, " & _
+                   "E.FaultHE, E.FaultSC, E.FaultDS, " & _
+                   "E.PlacementSort, E.CorrectCount, E.IncorrectCount, E.TotalScore " & _
                    "FROM (((tbl_Entry AS E LEFT JOIN tbl_Person AS P ON E.HandlerID_FK = P.personID) " & _
                    "LEFT JOIN tbl_Exhibitor AS D ON E.exhibitorID_FK = D.exhibitorID) " & _
                    "LEFT JOIN tbl_Breed AS B ON D.AKCBreedID_FK = B.breedID) " & _
@@ -483,8 +459,65 @@ Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Lo
                             """access_entry_id"": " & Nz(rs!entryID, 0) & "," & _
                             """access_class_id"": " & Nz(rs!ClassID_FK, 0) & "," & _
                             """access_trial_id"": " & lngTrialID & "," & _
-                            """access_show_id"": " & lngShowID & "" & _
-                        "}"
+                            """access_show_id"": " & lngShowID
+
+              ' If overwriting scores (user chose Overwrite), include ACTUAL Access scoring data
+              If blnResetScores Then
+                  Dim strResultStatus As String
+                  Dim strReason As String
+                  Dim lngTotalFaults As Long
+                  Dim blnIsScored As Boolean
+
+                  ' Determine result_status from Access Yes/No fields
+                  If Nz(rs!Qualified, False) = True Then
+                      strResultStatus = "q"
+                      blnIsScored = True
+                  ElseIf Nz(rs!NQ, False) = True Then
+                      strResultStatus = "nq"
+                      strReason = Nz(rs!NQReason, "")
+                      blnIsScored = True
+                  ElseIf Nz(rs!Excused, False) = True Then
+                      strResultStatus = "excused"
+                      strReason = Nz(rs!ExcusedReason, "")
+                      blnIsScored = True
+                  ElseIf Nz(rs!Absent, False) = True Then
+                      strResultStatus = "absent"
+                      blnIsScored = True
+                  ElseIf Nz(rs!Withdrawn, False) = True Then
+                      strResultStatus = "withdrawn"
+                      strReason = Nz(rs!WithdrawnReason, "")
+                      blnIsScored = True
+                  Else
+                      strResultStatus = "pending"
+                      blnIsScored = False
+                  End If
+
+                  ' Sum fault fields
+                  lngTotalFaults = Nz(rs!FaultHE, 0) + Nz(rs!FaultSC, 0) + Nz(rs!FaultDS, 0)
+
+                  ' Build scoring JSON with actual Access values
+                  json = json & "," & _
+                            """is_scored"": " & LCase(CStr(blnIsScored)) & "," & _
+                            """result_status"": """ & strResultStatus & """," & _
+                            """search_time_seconds"": " & ConvertTimeToSeconds(Nz(rs!SearchTime, "")) & "," & _
+                            """area1_time_seconds"": " & ConvertTimeToSeconds(Nz(rs!AreaTime1, "")) & "," & _
+                            """area2_time_seconds"": " & ConvertTimeToSeconds(Nz(rs!AreaTime2, "")) & "," & _
+                            """area3_time_seconds"": " & ConvertTimeToSeconds(Nz(rs!AreaTime3, "")) & "," & _
+                            """total_faults"": " & lngTotalFaults & "," & _
+                            """total_correct_finds"": " & Nz(rs!CorrectCount, 0) & "," & _
+                            """total_incorrect_finds"": " & Nz(rs!IncorrectCount, 0) & "," & _
+                            """final_placement"": " & Nz(rs!PlacementSort, 0) & "," & _
+                            """total_score"": " & Nz(rs!TotalScore, 0) & "," & _
+                            """points_earned"": 0," & _
+                            """scoring_completed_at"": null"
+
+                  ' Add disqualification reason if present
+                  If strReason <> "" Then
+                      json = json & "," & """disqualification_reason"": """ & JsonSafe(strReason) & """"
+                  End If
+              End If
+
+              json = json & "}"
 34220             recordsArray = recordsArray & json & ","
 34230         End If
 34240         rs.MoveNext
@@ -751,31 +784,36 @@ Public Sub myK9Q_Class_Result_Download_v3()
                   ' Sync Time Limits back to Access tbl_Class
                   ' =================================================================
                   On Error Resume Next
-                  Set rsClass = db.OpenRecordset("SELECT * FROM tbl_Class WHERE Class_ID = " & iClassID, dbOpenDynaset)
+                  Set rsClass = db.OpenRecordset("SELECT * FROM tbl_Class WHERE classID = " & iClassID, dbOpenDynaset)
                   
                   If Not rsClass.EOF Then
                       rsClass.Edit
-                      
-                      ' Convert seconds to Access Time format (fractional day)
-                      ' 86400 seconds = 1 day
+
+                      ' Convert seconds to MM:SS text format (Access TimeLimit fields are Short Text)
+                      ' Must convert to Long for integer division and Mod to work correctly
+                      Dim lngSeconds As Long
+
                       If classTimeLimitSeconds > 0 Then
-                          rsClass!TimeLimit = classTimeLimitSeconds / 86400
+                          lngSeconds = CLng(classTimeLimitSeconds)
+                          rsClass!TimeLimit = Format(lngSeconds \ 60, "00") & ":" & Format(lngSeconds Mod 60, "00")
                       Else
                           rsClass!TimeLimit = Null
                       End If
-                      
+
                       If classTimeLimit2Seconds > 0 Then
-                          rsClass!TimeLimit2 = classTimeLimit2Seconds / 86400
+                          lngSeconds = CLng(classTimeLimit2Seconds)
+                          rsClass!TimeLimit2 = Format(lngSeconds \ 60, "00") & ":" & Format(lngSeconds Mod 60, "00")
                       Else
                           rsClass!TimeLimit2 = Null
                       End If
-                      
+
                       If classTimeLimit3Seconds > 0 Then
-                          rsClass!TimeLimit3 = classTimeLimit3Seconds / 86400
+                          lngSeconds = CLng(classTimeLimit3Seconds)
+                          rsClass!TimeLimit3 = Format(lngSeconds \ 60, "00") & ":" & Format(lngSeconds Mod 60, "00")
                       Else
                           rsClass!TimeLimit3 = Null
                       End If
-                      
+
                       rsClass.Update
                       Debug.Print "Time limits synced to Access - TL1: " & classTimeLimitSeconds & "s, TL2: " & classTimeLimit2Seconds & "s, TL3: " & classTimeLimit3Seconds & "s"
                   End If
@@ -1043,7 +1081,7 @@ Private Function ParseTrialScoredResponse(ByVal strJSON As String) As String
         
         If strClassName <> "" And lngCount > 0 Then
             If strResult <> "" Then strResult = strResult & vbCrLf
-            strResult = strResult & "  • " & strClassName & ": " & lngCount & " scored entries"
+            strResult = strResult & "  ï¿½ " & strClassName & ": " & lngCount & " scored entries"
         End If
     Next i
     
@@ -1139,15 +1177,21 @@ End Function
 ' =============================================================================
 Private Function UnlockClassForReupload_v3(ByVal lngShowID As Long, ByVal lngClassID As Long) As Long
     On Error GoTo ErrorHandler
-    
+
     Dim strURL As String
     Dim strResponse As String
     Dim objHTTP As Object
-    Dim strSupabaseClassID As String
-    
-    strSupabaseClassID = Nz(DLookup("myK9Q_ClassID", "tbl_Class", "classID = " & lngClassID), "")
-    
-    If strSupabaseClassID = "" Then
+    Dim lngSupabaseClassID As Long
+    Dim strLicenseKey As String
+
+    ' Get the license key from the show
+    strLicenseKey = Nz(DLookup("MobileAppLicKey", "tbl_Show", "showID = " & lngShowID), "")
+
+    ' Use same method as CheckScoredEntries_v3 to get Supabase class ID
+    lngSupabaseClassID = GetSupabaseClassID_v3(strLicenseKey, lngClassID)
+
+    If lngSupabaseClassID = 0 Then
+        Debug.Print "UnlockClassForReupload_v3: Could not find Supabase class ID for Access class " & lngClassID
         UnlockClassForReupload_v3 = 0
         Exit Function
     End If
@@ -1161,7 +1205,7 @@ Private Function UnlockClassForReupload_v3(ByVal lngShowID As Long, ByVal lngCla
     objHTTP.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
     objHTTP.setRequestHeader "Content-Type", "application/json"
     
-    objHTTP.send "{""p_class_id"": " & strSupabaseClassID & "}"
+    objHTTP.send "{""p_class_id"": " & lngSupabaseClassID & "}"
     
     If objHTTP.Status = 200 Then
         strResponse = objHTTP.responseText
@@ -1184,15 +1228,27 @@ End Function
 ' =============================================================================
 Private Function UnlockTrialForReupload_v3(ByVal lngShowID As Long, ByVal lngTrialID As Long) As Long
     On Error GoTo ErrorHandler
-    
+
     Dim strURL As String
     Dim strResponse As String
     Dim objHTTP As Object
-    Dim strSupabaseTrialID As String
-    
-    strSupabaseTrialID = Nz(DLookup("myK9Q_TrialID", "tbl_Trial", "trialID = " & lngTrialID), "")
-    
-    If strSupabaseTrialID = "" Then
+    Dim lngSupabaseTrialID As Long
+    Dim strLicenseKey As String
+
+    ' Get license key from show (needed for API lookup)
+    strLicenseKey = Nz(DLookup("MobileAppLicKey", "tbl_Show", "showID = " & lngShowID), "")
+
+    If strLicenseKey = "" Then
+        Debug.Print "UnlockTrialForReupload_v3: No license key found for show " & lngShowID
+        UnlockTrialForReupload_v3 = 0
+        Exit Function
+    End If
+
+    ' Use API lookup to get Supabase trial ID (same as CheckScoredEntriesInTrial uses)
+    lngSupabaseTrialID = GetSupabaseTrialID_v3(strLicenseKey, lngTrialID)
+
+    If lngSupabaseTrialID = 0 Then
+        Debug.Print "UnlockTrialForReupload_v3: Could not find Supabase trial ID for Access trial " & lngTrialID
         UnlockTrialForReupload_v3 = 0
         Exit Function
     End If
@@ -1206,7 +1262,7 @@ Private Function UnlockTrialForReupload_v3(ByVal lngShowID As Long, ByVal lngTri
     objHTTP.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
     objHTTP.setRequestHeader "Content-Type", "application/json"
     
-    objHTTP.send "{""p_trial_id"": " & strSupabaseTrialID & "}"
+    objHTTP.send "{""p_trial_id"": " & lngSupabaseTrialID & "}"
     
     If objHTTP.Status = 200 Then
         strResponse = objHTTP.responseText
@@ -1229,30 +1285,96 @@ End Function
 ' =============================================================================
 Private Function ShowScoredEntriesWarning(ByVal scoredEntriesList As String, ByVal className As String) As Integer
     Dim strMsg As String
-    
-    strMsg = "WARNING: Scored entries found in " & className & ":" & vbCrLf & vbCrLf
+    Dim intResult As Integer
+
+    strMsg = "Scored entries found in " & className & ":" & vbCrLf & vbCrLf
     strMsg = strMsg & scoredEntriesList & vbCrLf & vbCrLf
-    strMsg = strMsg & "These scores are PROTECTED and will NOT be overwritten." & vbCrLf & vbCrLf
-    strMsg = strMsg & "Choose an option:" & vbCrLf
-    strMsg = strMsg & "  [Abort] = Cancel upload" & vbCrLf
-    strMsg = strMsg & "  [Ignore] = Upload anyway (scores stay protected)" & vbCrLf
-    strMsg = strMsg & "  [Retry] = UNLOCK & overwrite scores"
-    
-    ShowScoredEntriesWarning = MsgBox(strMsg, vbExclamation + vbAbortRetryIgnore, "Scored Entries Found")
+    strMsg = strMsg & "These scores are PROTECTED in myK9Q." & vbCrLf & vbCrLf
+    strMsg = strMsg & "What would you like to do?" & vbCrLf & vbCrLf
+    strMsg = strMsg & "[Abort] = CANCEL" & vbCrLf
+    strMsg = strMsg & "   Don't upload anything." & vbCrLf & vbCrLf
+    strMsg = strMsg & "[Ignore] = KEEP SCORES" & vbCrLf
+    strMsg = strMsg & "   Upload entry details (handler, armband, etc.)" & vbCrLf
+    strMsg = strMsg & "   Scores in myK9Q will NOT change." & vbCrLf & vbCrLf
+    strMsg = strMsg & "[Retry] = OVERWRITE SCORES" & vbCrLf
+    strMsg = strMsg & "   DANGER: Replace myK9Q scores with Access data."
+
+    intResult = MsgBox(strMsg, vbExclamation + vbAbortRetryIgnore, "Scored Entries Found")
+
+    ' If user selected Overwrite, show a second confirmation
+    If intResult = vbRetry Then
+        strMsg = "ARE YOU SURE?" & vbCrLf & vbCrLf
+        strMsg = strMsg & "This will REPLACE all scoring data in myK9Q " & _
+                 "with whatever is currently in Access." & vbCrLf & vbCrLf
+        strMsg = strMsg & "If Access has NO scores, myK9Q scores will be ERASED." & vbCrLf & vbCrLf
+        strMsg = strMsg & "This action CANNOT be undone."
+
+        If MsgBox(strMsg, vbCritical + vbYesNo + vbDefaultButton2, "Confirm Overwrite") = vbNo Then
+            intResult = vbAbort  ' User backed out - treat as Cancel
+        End If
+    End If
+
+    ShowScoredEntriesWarning = intResult
 End Function
 
 Private Function ShowTrialScoredEntriesWarning(ByVal scoredEntriesList As String) As Integer
     Dim strMsg As String
-    
-    strMsg = "WARNING: Scored entries found in this trial:" & vbCrLf & vbCrLf
+    Dim intResult As Integer
+
+    strMsg = "Scored entries found in this trial:" & vbCrLf & vbCrLf
     strMsg = strMsg & scoredEntriesList & vbCrLf & vbCrLf
-    strMsg = strMsg & "These scores are PROTECTED and will NOT be overwritten." & vbCrLf & vbCrLf
-    strMsg = strMsg & "Choose an option:" & vbCrLf
-    strMsg = strMsg & "  [Abort] = Cancel upload" & vbCrLf
-    strMsg = strMsg & "  [Ignore] = Upload anyway (scores stay protected)" & vbCrLf
-    strMsg = strMsg & "  [Retry] = UNLOCK ALL & overwrite scores"
-    
-    ShowTrialScoredEntriesWarning = MsgBox(strMsg, vbExclamation + vbAbortRetryIgnore, "Scored Entries Found")
+    strMsg = strMsg & "These scores are PROTECTED in myK9Q." & vbCrLf & vbCrLf
+    strMsg = strMsg & "What would you like to do?" & vbCrLf & vbCrLf
+    strMsg = strMsg & "[Abort] = CANCEL" & vbCrLf
+    strMsg = strMsg & "   Don't upload anything." & vbCrLf & vbCrLf
+    strMsg = strMsg & "[Ignore] = KEEP SCORES" & vbCrLf
+    strMsg = strMsg & "   Upload entry details (handler, armband, etc.)" & vbCrLf
+    strMsg = strMsg & "   Scores in myK9Q will NOT change." & vbCrLf & vbCrLf
+    strMsg = strMsg & "[Retry] = OVERWRITE ALL SCORES" & vbCrLf
+    strMsg = strMsg & "   DANGER: Replace ALL myK9Q scores with Access data."
+
+    intResult = MsgBox(strMsg, vbExclamation + vbAbortRetryIgnore, "Scored Entries Found")
+
+    ' If user selected Overwrite, show a second confirmation
+    If intResult = vbRetry Then
+        strMsg = "ARE YOU SURE?" & vbCrLf & vbCrLf
+        strMsg = strMsg & "This will REPLACE ALL scoring data in the ENTIRE TRIAL " & _
+                 "with whatever is currently in Access." & vbCrLf & vbCrLf
+        strMsg = strMsg & "If Access has NO scores, ALL myK9Q scores will be ERASED." & vbCrLf & vbCrLf
+        strMsg = strMsg & "This action CANNOT be undone."
+
+        If MsgBox(strMsg, vbCritical + vbYesNo + vbDefaultButton2, "Confirm Overwrite") = vbNo Then
+            intResult = vbAbort  ' User backed out - treat as Cancel
+        End If
+    End If
+
+    ShowTrialScoredEntriesWarning = intResult
+End Function
+
+' =============================================================================
+' TIME CONVERSION HELPER
+' =============================================================================
+' Converts Access time strings (e.g., "01:23", "01:23.45", "1:23") to seconds
+Private Function ConvertTimeToSeconds(ByVal strTime As String) As Double
+    On Error Resume Next
+    ConvertTimeToSeconds = 0
+
+    If Len(Trim(strTime)) = 0 Then Exit Function
+
+    Dim parts() As String
+    Dim minutes As Double
+    Dim seconds As Double
+
+    ' Handle MM:SS or MM:SS.ss format
+    If InStr(strTime, ":") > 0 Then
+        parts = Split(strTime, ":")
+        minutes = Val(parts(0))
+        seconds = Val(parts(1))  ' Val handles decimals like "23.45"
+        ConvertTimeToSeconds = (minutes * 60) + seconds
+    Else
+        ' Just seconds
+        ConvertTimeToSeconds = Val(strTime)
+    End If
 End Function
 
 ' =============================================================================

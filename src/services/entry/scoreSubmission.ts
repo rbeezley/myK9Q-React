@@ -122,14 +122,26 @@ function prepareScoreUpdateData(
     willSetEntryStatus: isActuallyScored ? 'completed' : 'in-ring'
   });
 
+  // Non-qualifying results should have no meaningful times
+  // NQ/Excused/Absent/Withdrawn dogs didn't complete a valid search
+  const isNonQualifyingResult = ['nq', 'excused', 'absent', 'withdrawn'].includes(resultStatus);
+
   const scoreUpdateData: Partial<ResultData> = {
     entry_id: entryId,
     result_status: resultStatus,
-    search_time_seconds: scoreData.searchTime ? convertTimeToSeconds(scoreData.searchTime) : 0,
+    search_time_seconds: isNonQualifyingResult ? 0 : (scoreData.searchTime ? convertTimeToSeconds(scoreData.searchTime) : 0),
     is_scored: isActuallyScored,
     is_in_ring: false, // Mark as no longer in ring when score is submitted
     scoring_completed_at: isActuallyScored ? new Date().toISOString() : null,
   };
+
+  // Clear area times for non-qualifying results
+  // These dogs didn't complete a valid search, so times are meaningless
+  if (isNonQualifyingResult) {
+    scoreUpdateData.area1_time_seconds = 0;
+    scoreUpdateData.area2_time_seconds = 0;
+    scoreUpdateData.area3_time_seconds = 0;
+  }
 
   // Add optional fields if they exist
   if (scoreData.faultCount !== undefined) {
