@@ -39,8 +39,17 @@ export interface UseResultsDataParams {
   userRole?: UserRole; // Reserved for future visibility filtering
 }
 
+export interface PendingClassInfo {
+  classId: number;
+  className: string;
+  element: string;
+  level: string;
+  section?: string;
+}
+
 export interface UseResultsDataReturn {
   completedClasses: CompletedClassResult[];
+  pendingClasses: PendingClassInfo[];
   trials: TrialOption[];
   isLoading: boolean;
   error: Error | null;
@@ -194,8 +203,21 @@ export function useResultsData({
     return true;
   });
 
+  // Separate classes with placements from those without (pending)
+  const classesWithPlacements = filteredClasses.filter((cls) => cls.placements.length > 0);
+  const pendingClasses: PendingClassInfo[] = filteredClasses
+    .filter((cls) => cls.placements.length === 0)
+    .map((cls) => ({
+      classId: cls.classId,
+      className: cls.className,
+      element: cls.element,
+      level: cls.level,
+      section: cls.section,
+    }));
+
   return {
-    completedClasses: filteredClasses,
+    completedClasses: classesWithPlacements,
+    pendingClasses,
     trials,
     isLoading,
     error,

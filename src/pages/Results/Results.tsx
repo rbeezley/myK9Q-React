@@ -1,15 +1,18 @@
 // src/pages/Results/Results.tsx
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useResultsData } from './hooks/useResultsData';
 import { ResultsFilters } from './components/ResultsFilters';
 import { PodiumCard } from '../../components/podium';
 import { HamburgerMenu } from '../../components/ui';
+import { ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import './Results.css';
 
 export function Results() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { showContext, role } = useAuth();
+  const [pendingExpanded, setPendingExpanded] = useState(false);
 
   // Get optional trialId from URL if provided (for filtering to specific trial)
   const trialIdParam = searchParams.get('trialId');
@@ -17,6 +20,7 @@ export function Results() {
 
   const {
     completedClasses,
+    pendingClasses,
     trials,
     isLoading,
     error,
@@ -138,6 +142,38 @@ export function Results() {
                 animate={true}
               />
             ))}
+          </div>
+        )}
+
+        {/* Pending Results Section - Collapsed by default */}
+        {!isLoading && !error && pendingClasses.length > 0 && (
+          <div className="results-page__pending-section">
+            <button
+              className="results-page__pending-header"
+              onClick={() => setPendingExpanded(!pendingExpanded)}
+              aria-expanded={pendingExpanded}
+            >
+              <span className="results-page__pending-toggle">
+                {pendingExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+              </span>
+              <Clock size={16} className="results-page__pending-icon" />
+              <span className="results-page__pending-title">
+                Pending Results
+              </span>
+              <span className="results-page__pending-count">
+                {pendingClasses.length} {pendingClasses.length === 1 ? 'class' : 'classes'}
+              </span>
+            </button>
+
+            {pendingExpanded && (
+              <div className="results-page__pending-list">
+                {pendingClasses.map((cls) => (
+                  <div key={cls.classId} className="results-page__pending-item">
+                    {cls.className}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>

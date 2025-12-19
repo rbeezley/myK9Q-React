@@ -246,6 +246,83 @@
   margin: 0;
 }
 
+/* ===== PENDING RESULTS SECTION ===== */
+/* Subtle collapsible section for classes without placements */
+
+.results-page__pending-section {
+  margin-top: var(--token-space-4xl);
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  padding-top: var(--token-space-xl);
+}
+
+.results-page__pending-header {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  width: 100%;
+  padding: var(--token-space-md) var(--token-space-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.results-page__pending-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(212, 175, 55, 0.2);
+}
+
+.results-page__pending-toggle {
+  display: flex;
+  align-items: center;
+  color: rgba(212, 175, 55, 0.6);
+}
+
+.results-page__pending-icon {
+  color: rgba(212, 175, 55, 0.5);
+}
+
+.results-page__pending-title {
+  font-weight: 500;
+}
+
+.results-page__pending-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.results-page__pending-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--token-space-sm);
+  margin-top: var(--token-space-md);
+  padding: var(--token-space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.results-page__pending-item {
+  padding: var(--token-space-xs) var(--token-space-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .results-page__grid {
@@ -377,6 +454,42 @@
   :root.theme-auto .results-page__empty p {
     color: rgba(45, 42, 38, 0.5);
   }
+
+  /* Auto light mode pending section */
+  :root.theme-auto .results-page__pending-section {
+    border-top-color: rgba(153, 101, 21, 0.2);
+  }
+
+  :root.theme-auto .results-page__pending-header {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(45, 42, 38, 0.5);
+  }
+
+  :root.theme-auto .results-page__pending-header:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: rgba(45, 42, 38, 0.7);
+    border-color: rgba(153, 101, 21, 0.3);
+  }
+
+  :root.theme-auto .results-page__pending-toggle,
+  :root.theme-auto .results-page__pending-icon {
+    color: rgba(153, 101, 21, 0.6);
+  }
+
+  :root.theme-auto .results-page__pending-count {
+    color: rgba(45, 42, 38, 0.4);
+  }
+
+  :root.theme-auto .results-page__pending-list {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  :root.theme-auto .results-page__pending-item {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(45, 42, 38, 0.6);
+  }
 }
 
 /* Forced light mode */
@@ -457,4 +570,40 @@
 
 :root.theme-light .results-page__empty p {
   color: rgba(45, 42, 38, 0.5);
+}
+
+/* Light mode pending section */
+:root.theme-light .results-page__pending-section {
+  border-top-color: rgba(153, 101, 21, 0.2);
+}
+
+:root.theme-light .results-page__pending-header {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(45, 42, 38, 0.5);
+}
+
+:root.theme-light .results-page__pending-header:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(45, 42, 38, 0.7);
+  border-color: rgba(153, 101, 21, 0.3);
+}
+
+:root.theme-light .results-page__pending-toggle,
+:root.theme-light .results-page__pending-icon {
+  color: rgba(153, 101, 21, 0.6);
+}
+
+:root.theme-light .results-page__pending-count {
+  color: rgba(45, 42, 38, 0.4);
+}
+
+:root.theme-light .results-page__pending-list {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+:root.theme-light .results-page__pending-item {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(45, 42, 38, 0.6);
 }
