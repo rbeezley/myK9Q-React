@@ -25,12 +25,11 @@ export default defineConfig({
     // Test isolation configuration - prevents cross-file mock contamination
     // Uses process forks instead of threads for better isolation between test files
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: false, // Allow parallelism for performance
-        maxForks: 4, // Limit concurrent test files to reduce mock contention
-      },
-    },
+
+    // Disable file-level parallelism to fix "No test suite found" errors on Windows
+    // This is a Vitest 4 issue where parallel module loading causes race conditions
+    // Tests within each file still run in parallel for reasonable performance
+    fileParallelism: false,
 
     exclude: [
       'node_modules/**',
