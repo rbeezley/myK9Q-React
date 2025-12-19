@@ -166,6 +166,20 @@ export async function markInRing(
   }
 }
 
+/** Fields that can be updated in local cache */
+interface LocalCacheEntryUpdates {
+  entry_status?: string;
+  is_in_ring?: boolean;
+  // Score reset fields
+  is_scored?: boolean;
+  result_status?: string;
+  final_placement?: number;
+  search_time_seconds?: number;
+  total_faults?: number;
+  total_score?: number;
+  points_earned?: number;
+}
+
 /**
  * Helper to update the local IndexedDB cache directly without syncing from server.
  * This prevents race conditions where stale data from read replicas overwrites
@@ -173,7 +187,7 @@ export async function markInRing(
  */
 async function updateLocalCacheEntry(
   entryId: number,
-  updates: { entry_status?: string; is_in_ring?: boolean }
+  updates: LocalCacheEntryUpdates
 ): Promise<void> {
   try {
     const manager = getReplicationManager();
@@ -195,22 +209,20 @@ async function updateLocalCacheEntry(
       return;
     }
 
-    // Update the entry with new values
+    // Update the entry with new values (only override if provided)
     const updatedEntry: Entry = {
       ...currentEntry,
-      entry_status: updates.entry_status ?? currentEntry.entry_status,
-      is_in_ring: updates.is_in_ring ?? currentEntry.is_in_ring,
+      ...Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+      ),
       updated_at: new Date().toISOString()
-    };
+    } as Entry;
 
     // Write back to cache (not dirty - already synced to server)
     await entriesTable.set(String(entryId), updatedEntry, false);
 
-     
-    logger.log(`✅ [updateLocalCacheEntry] Updated entry ${entryId} in cache:`, {
-      entry_status: updatedEntry.entry_status,
-      is_in_ring: updatedEntry.is_in_ring
-    });
+
+    logger.log(`✅ [updateLocalCacheEntry] Updated entry ${entryId} in cache:`, updates);
   } catch (error) {
     logger.error('❌ [updateLocalCacheEntry] Failed to update cache:', error);
     // Non-fatal - the DB write succeeded, cache will catch up on next sync
@@ -445,9 +457,19 @@ export async function resetEntryScore(entryId: number): Promise<boolean> {
 // CRITICAL FIX: Update local cache directly instead of relying on sync.
     // The sync fetches from read replicas which may have stale 'completed' status
     // due to replication lag, overwriting our correct local changes.
-     
-    logger.log(`🔄 [resetEntryScore] Updating local cache for entry ${entryId} -> entry_status='no-status'`);
-    await updateLocalCacheEntry(entryId, { entry_status: 'no-status', is_in_ring: false });
+    // MUST reset ALL score fields including final_placement to avoid showing stale values (e.g., 9990th)
+    logger.log(`🔄 [resetEntryScore] Updating local cache for entry ${entryId} -> full score reset`);
+    await updateLocalCacheEntry(entryId, {
+      entry_status: 'no-status',
+      is_in_ring: false,
+      is_scored: false,
+      result_status: 'pending',
+      final_placement: 0,
+      search_time_seconds: 0,
+      total_faults: 0,
+      total_score: 0,
+      points_earned: 0
+    });
 
     // Fire-and-forget sync for eventual consistency (other clients, background refresh)
     // Don't await - local cache already updated, sync runs in background

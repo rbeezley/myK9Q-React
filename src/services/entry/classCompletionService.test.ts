@@ -19,6 +19,21 @@ vi.mock('@/utils/validationUtils', () => ({
   shouldCheckCompletion: vi.fn(),
 }));
 
+// Mock the ReplicationManager to return null (simulating no cache available)
+// This forces the code to use the Supabase fallback path
+vi.mock('../replication/ReplicationManager', () => ({
+  getReplicationManager: vi.fn(() => null),
+}));
+
+// Mock the logger to prevent import errors
+vi.mock('@/utils/logger', () => ({
+  logger: {
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 describe('classCompletionService', () => {
   const mockClassId = 123;
   const mockPairedClassId = 124;
@@ -36,41 +51,23 @@ describe('classCompletionService', () => {
 
   describe('checkAndUpdateClassCompletion', () => {
     it('should check completion for single class', async () => {
-      // Arrange
-      const mockEntries = [{ id: 1 }, { id: 2 }, { id: 3 }];
-      const mockScoredEntries = [{ id: 1, is_scored: true }, { id: 2, is_scored: true }, { id: 3, is_scored: true }];
+      // Arrange - new query pattern: single query for entries with is_scored field
+      const mockEntries = [
+        { id: 1, is_scored: true },
+        { id: 2, is_scored: true },
+        { id: 3, is_scored: true }
+      ];
 
       vi.mocked(shouldCheckCompletion).mockReturnValue(true);
-
-      const mockFrom = vi.fn().mockReturnThis();
-      const mockSelect = vi.fn().mockReturnThis();
-      const mockEq = vi.fn().mockReturnThis();
-      const mockIn = vi.fn().mockReturnThis();
-      const mockUpdate = vi.fn().mockReturnThis();
-      const mockSingle = vi.fn();
 
       vi.mocked(supabase.from).mockImplementation((table) => {
         if (table === 'entries') {
           return {
-            select: vi.fn().mockImplementation((fields) => {
-              if (fields === 'id') {
-                return {
-                  eq: vi.fn().mockResolvedValue({
-                    data: mockEntries,
-                    error: null,
-                  }),
-                };
-              } else if (fields === 'id, is_scored') {
-                return {
-                  in: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockResolvedValue({
-                      data: mockScoredEntries,
-                      error: null,
-                    }),
-                  }),
-                };
-              }
-              return { eq: vi.fn() };
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: mockEntries,
+                error: null,
+              }),
             }),
           } as any;
         } else if (table === 'classes') {
@@ -113,9 +110,8 @@ describe('classCompletionService', () => {
     });
 
     it('should check completion for paired classes', async () => {
-      // Arrange
-      const mockEntries = [{ id: 1 }];
-      const mockScoredEntries: any[] = [];
+      // Arrange - entries with is_scored: false for both classes
+      const mockEntries = [{ id: 1, is_scored: false }];
 
       vi.mocked(shouldCheckCompletion).mockReturnValue(false); // Skip update
 
@@ -125,12 +121,6 @@ describe('classCompletionService', () => {
             data: mockEntries,
             error: null,
           }),
-          in: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({
-              data: mockScoredEntries,
-              error: null,
-            }),
-          }),
         }),
       }) as any);
 
@@ -138,8 +128,8 @@ describe('classCompletionService', () => {
       await checkAndUpdateClassCompletion(mockClassId, mockPairedClassId);
 
       // Assert
-      // Should query entries for both classes
-      expect(supabase.from).toHaveBeenCalledTimes(4); // 2 classes × 2 queries each
+      // Should query entries for both classes (1 query each with new pattern)
+      expect(supabase.from).toHaveBeenCalledTimes(2); // 2 classes × 1 query each
     });
 
     it('should handle errors gracefully', async () => {
@@ -158,33 +148,23 @@ describe('classCompletionService', () => {
     });
 
     it('should mark class as in_progress when partially scored', async () => {
-      // Arrange
-      const mockEntries = [{ id: 1 }, { id: 2 }, { id: 3 }];
-      const mockScoredEntries = [{ id: 1, is_scored: true }]; // Only 1 of 3 scored
+      // Arrange - 3 entries, only 1 scored
+      const mockEntries = [
+        { id: 1, is_scored: true },
+        { id: 2, is_scored: false },
+        { id: 3, is_scored: false }
+      ];
 
       vi.mocked(shouldCheckCompletion).mockReturnValue(true);
 
       vi.mocked(supabase.from).mockImplementation((table) => {
         if (table === 'entries') {
           return {
-            select: vi.fn().mockImplementation((fields) => {
-              if (fields === 'id') {
-                return {
-                  eq: vi.fn().mockResolvedValue({
-                    data: mockEntries,
-                    error: null,
-                  }),
-                };
-              } else {
-                return {
-                  in: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockResolvedValue({
-                      data: mockScoredEntries,
-                      error: null,
-                    }),
-                  }),
-                };
-              }
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: mockEntries,
+                error: null,
+              }),
             }),
           } as any;
         } else if (table === 'classes') {
@@ -210,31 +190,22 @@ describe('classCompletionService', () => {
     });
 
     it('should skip update when shouldCheckCompletion returns false', async () => {
-      // Arrange
-      const mockEntries = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
-      const mockScoredEntries = [{ id: 1, is_scored: true }, { id: 2, is_scored: true }]; // 2 of 4 (middle)
+      // Arrange - 4 entries, 2 scored (middle)
+      const mockEntries = [
+        { id: 1, is_scored: true },
+        { id: 2, is_scored: true },
+        { id: 3, is_scored: false },
+        { id: 4, is_scored: false }
+      ];
 
       vi.mocked(shouldCheckCompletion).mockReturnValue(false); // Skip
 
       vi.mocked(supabase.from).mockImplementation(() => ({
-        select: vi.fn().mockImplementation((fields) => {
-          if (fields === 'id') {
-            return {
-              eq: vi.fn().mockResolvedValue({
-                data: mockEntries,
-                error: null,
-              }),
-            };
-          } else {
-            return {
-              in: vi.fn().mockReturnValue({
-                eq: vi.fn().mockResolvedValue({
-                  data: mockScoredEntries,
-                  error: null,
-                }),
-              }),
-            };
-          }
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({
+            data: mockEntries,
+            error: null,
+          }),
         }),
       }) as any);
 
@@ -248,9 +219,8 @@ describe('classCompletionService', () => {
     });
 
     it('should handle placement calculation errors', async () => {
-      // Arrange
-      const mockEntries = [{ id: 1 }];
-      const mockScoredEntries = [{ id: 1, is_scored: true }];
+      // Arrange - single scored entry
+      const mockEntries = [{ id: 1, is_scored: true }];
 
       vi.mocked(shouldCheckCompletion).mockReturnValue(true);
       vi.mocked(recalculatePlacementsForClass).mockRejectedValue(new Error('Placement error'));
@@ -258,24 +228,11 @@ describe('classCompletionService', () => {
       vi.mocked(supabase.from).mockImplementation((table) => {
         if (table === 'entries') {
           return {
-            select: vi.fn().mockImplementation((fields) => {
-              if (fields === 'id') {
-                return {
-                  eq: vi.fn().mockResolvedValue({
-                    data: mockEntries,
-                    error: null,
-                  }),
-                };
-              } else {
-                return {
-                  in: vi.fn().mockReturnValue({
-                    eq: vi.fn().mockResolvedValue({
-                      data: mockScoredEntries,
-                      error: null,
-                    }),
-                  }),
-                };
-              }
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: mockEntries,
+                error: null,
+              }),
             }),
           } as any;
         } else if (table === 'classes') {
@@ -316,20 +273,14 @@ describe('classCompletionService', () => {
 
   describe('manuallyCheckClassCompletion', () => {
     it('should trigger completion check', async () => {
-      // Arrange
-      const mockEntries = [{ id: 1 }];
+      // Arrange - single unscored entry
+      const mockEntries = [{ id: 1, is_scored: false }];
 
       vi.mocked(supabase.from).mockImplementation(() => ({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
             data: mockEntries,
             error: null,
-          }),
-          in: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({
-              data: [],
-              error: null,
-            }),
           }),
         }),
       }) as any);

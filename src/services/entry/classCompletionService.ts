@@ -3,6 +3,7 @@ import { shouldCheckCompletion } from '@/utils/validationUtils';
 import { recalculatePlacementsForClass } from '../placementService';
 import { getReplicationManager } from '../replication/ReplicationManager';
 import type { Class } from '../replication/tables/ReplicatedClassesTable';
+import type { Entry } from '../replication/tables/ReplicatedEntriesTable';
 import { logger } from '@/utils/logger';
 
 /** Nested show data from joined query */
@@ -105,45 +106,81 @@ async function updateSingleClassCompletion(
   justScoredEntryId?: number,
   justResetEntryId?: number
 ): Promise<void> {
-  // Get all entries for this class
-  const { data: entries, error: entriesError } = await supabase
-    .from('entries')
-    .select('id')
-    .eq('class_id', classId);
+  // CRITICAL FIX: Query LOCAL CACHE instead of server to avoid read replica lag
+  // When multiple entries are reset quickly, each completion check was querying
+  // the read replica which still showed entries as scored. Since each check only
+  // adjusted for its own entryId, the class never saw 0 scored entries.
+  // The local cache is updated immediately by resetEntryScore() and has the correct state.
 
-  if (entriesError || !entries || entries.length === 0) {
-    logger.log(`🔍 [classCompletion] No entries found for class ${classId}:`, { entriesError });
-return;
+  const manager = getReplicationManager();
+  let entries: { id: number; is_scored: boolean }[] = [];
+  let usedLocalCache = false;
+
+  if (manager) {
+    const entriesTable = manager.getTable('entries');
+    if (entriesTable) {
+      try {
+        // Get all cached entries and filter by class_id
+        // Note: getAll requires licenseKey, but entries already filtered by show context
+        const allCachedEntries = await entriesTable.getAll() as Entry[];
+        const classEntries = allCachedEntries.filter(e => String(e.class_id) === String(classId));
+
+        if (classEntries.length > 0) {
+          entries = classEntries.map(e => ({
+            id: Number(e.id),
+            is_scored: e.is_scored
+          }));
+          usedLocalCache = true;
+          logger.log(`✅ [classCompletion] Using local cache for class ${classId}: ${classEntries.length} entries`);
+        }
+      } catch (cacheError) {
+        logger.warn('⚠️ [classCompletion] Failed to query local cache, falling back to server:', cacheError);
+      }
+    }
   }
 
-  const entryIds = entries.map(e => e.id);
+  // Fallback to server query if local cache unavailable
+  if (!usedLocalCache) {
+    logger.log(`🔄 [classCompletion] Falling back to server query for class ${classId}`);
+    const { data: serverEntries, error: entriesError } = await supabase
+      .from('entries')
+      .select('id, is_scored')
+      .eq('class_id', classId);
 
-  // Check how many entries are scored (results merged into entries table)
-  const { data: scoredEntries, error: resultsError } = await supabase
-    .from('entries')
-    .select('id, is_scored')
-    .in('id', entryIds)
-    .eq('is_scored', true);
+    if (entriesError || !serverEntries || serverEntries.length === 0) {
+      logger.log(`🔍 [classCompletion] No entries found for class ${classId}:`, { entriesError });
+      return;
+    }
 
-  if (resultsError) {
-    logger.error('❌ Error fetching scored entries:', resultsError);
+    entries = serverEntries.map(e => ({
+      id: e.id,
+      is_scored: e.is_scored
+    }));
+  }
+
+  if (entries.length === 0) {
+    logger.log(`🔍 [classCompletion] No entries found for class ${classId}`);
     return;
   }
 
-  // CRITICAL FIX: Handle read replica lag for BOTH scoring and resetting
-  const scoredIdsFromQuery = scoredEntries?.map(e => e.id) || [];
-  let scoredCount = scoredIdsFromQuery.length;
+  // Count scored entries from the (now accurate) data source
+  let scoredCount = entries.filter(e => e.is_scored).length;
+  const scoredIds = entries.filter(e => e.is_scored).map(e => e.id);
 
-  // Case 1: Just scored an entry - add to count if read replica missed it
-  if (justScoredEntryId && !scoredIdsFromQuery.includes(justScoredEntryId)) {
-    logger.log(`⚠️ [classCompletion] Read replica lag (score): entry ${justScoredEntryId} not in scored list, adding to count`);
-    scoredCount += 1;
-  }
+  // Only apply read replica lag adjustments when using server fallback
+  // Local cache is already accurate and doesn't need adjustment
+  if (!usedLocalCache) {
+    // Case 1: Just scored an entry - add to count if read replica missed it
+    if (justScoredEntryId && !scoredIds.includes(justScoredEntryId)) {
+      logger.log(`⚠️ [classCompletion] Read replica lag (score): entry ${justScoredEntryId} not in scored list, adding to count`);
+      scoredCount += 1;
+    }
 
-  // Case 2: Just reset an entry - remove from count if read replica still shows it as scored
-  if (justResetEntryId && scoredIdsFromQuery.includes(justResetEntryId)) {
-    logger.log(`⚠️ [classCompletion] Read replica lag (reset): entry ${justResetEntryId} still in scored list, removing from count`);
-    scoredCount -= 1;
+    // Case 2: Just reset an entry - remove from count if read replica still shows it as scored
+    if (justResetEntryId && scoredIds.includes(justResetEntryId)) {
+      logger.log(`⚠️ [classCompletion] Read replica lag (reset): entry ${justResetEntryId} still in scored list, removing from count`);
+      scoredCount -= 1;
+    }
   }
 
   const totalCount = entries.length;
@@ -151,7 +188,8 @@ return;
   logger.log(`🔍 [classCompletion] Class ${classId} status:`, {
     scoredCount,
     totalCount,
-    scoredIdsFromQuery,
+    scoredIds,
+    usedLocalCache,
     justScoredEntryId,
     justResetEntryId,
     willUpdate: true // Always update after reset to ensure class moves to correct tab

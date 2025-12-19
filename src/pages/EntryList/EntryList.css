@@ -99,7 +99,8 @@
 .entry-list-header .class-info {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%); /* Center both horizontally and vertically */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -112,8 +113,9 @@
 /* Clickable class info - tap to show details */
 .class-info-clickable {
   cursor: pointer;
-  border-radius: var(--token-radius-md);
+  border-radius: var(--token-radius-sm);
   transition: background-color 0.15s ease;
+  padding: 2px 6px; /* Minimal padding - just enough for hover highlight */
 }
 
 .class-info-clickable:hover {
