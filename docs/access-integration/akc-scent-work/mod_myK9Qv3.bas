@@ -3,6 +3,26 @@ Option Compare Database
 Option Explicit
 
 ' ==========================================================================
+' mod_myK9Qv3 - myK9Q v3 API Integration Module
+' ==========================================================================
+'
+' REQUIRED FORM: dlg_ScoredEntriesWarning
+' ----------------------------------------
+' This module requires a custom form named "dlg_ScoredEntriesWarning" for
+' displaying scored entries warnings with clear button labels.
+'
+' Form Requirements:
+'   - Name: dlg_ScoredEntriesWarning
+'   - Pop Up: Yes, Modal: Yes, Border Style: Dialog
+'   - Public variable: ReturnValue As Integer
+'   - Controls: lblClassName (Label), txtEntryList (TextBox),
+'               btnCancel, btnKeepScores, btnOverwrite (Command Buttons)
+'   - Button handlers set ReturnValue (0=Cancel, 1=Keep, 2=Overwrite)
+'     and use Me.Visible = False (NOT DoCmd.Close)
+'
+' See docs/access-integration/README.md for form setup instructions.
+'
+' ==========================================================================
 ' === CORE UPLOAD AND DELETE ROUTINES
 ' ==========================================================================
 
@@ -469,8 +489,9 @@ Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Lo
                   Dim blnIsScored As Boolean
 
                   ' Determine result_status from Access Yes/No fields
+                  ' IMPORTANT: Use exact database enum values (qualified, nq, excused, absent, withdrawn, pending)
                   If Nz(rs!Qualified, False) = True Then
-                      strResultStatus = "q"
+                      strResultStatus = "qualified"
                       blnIsScored = True
                   ElseIf Nz(rs!NQ, False) = True Then
                       strResultStatus = "nq"
@@ -511,9 +532,11 @@ Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Lo
                             """points_earned"": 0," & _
                             """scoring_completed_at"": null"
 
-                  ' Add disqualification reason if present
+                  ' Add disqualification reason (always include for batch consistency - PGRST102 fix)
                   If strReason <> "" Then
                       json = json & "," & """disqualification_reason"": """ & JsonSafe(strReason) & """"
+                  Else
+                      json = json & "," & """disqualification_reason"": null"
                   End If
               End If
 
@@ -1283,72 +1306,84 @@ End Function
 ' =============================================================================
 ' WARNING DIALOGS
 ' =============================================================================
+' ============================================================================
+' ShowScoredEntriesWarning - CLASS-LEVEL dialog using custom form
+' ============================================================================
+' Uses custom form dlg_ScoredEntriesWarning for clearer button labels
+' Returns: vbAbort (Cancel), vbIgnore (Keep Scores), vbRetry (Overwrite)
+' ============================================================================
 Private Function ShowScoredEntriesWarning(ByVal scoredEntriesList As String, ByVal className As String) As Integer
-    Dim strMsg As String
+    On Error GoTo Err_Handler
+
+    Dim strOpenArgs As String
+    strOpenArgs = className & "|" & scoredEntriesList
+
+    ' Open custom dialog form (requires dlg_ScoredEntriesWarning form in database)
+    DoCmd.OpenForm "dlg_ScoredEntriesWarning", acNormal, , , , acDialog, strOpenArgs
+
+    ' Get return value from form
     Dim intResult As Integer
+    On Error Resume Next
+    intResult = Forms("dlg_ScoredEntriesWarning").ReturnValue
+    If Err.Number <> 0 Then intResult = 0
+    On Error GoTo Err_Handler
 
-    strMsg = "Scored entries found in " & className & ":" & vbCrLf & vbCrLf
-    strMsg = strMsg & scoredEntriesList & vbCrLf & vbCrLf
-    strMsg = strMsg & "These scores are PROTECTED in myK9Q." & vbCrLf & vbCrLf
-    strMsg = strMsg & "What would you like to do?" & vbCrLf & vbCrLf
-    strMsg = strMsg & "[Abort] = CANCEL" & vbCrLf
-    strMsg = strMsg & "   Don't upload anything." & vbCrLf & vbCrLf
-    strMsg = strMsg & "[Ignore] = KEEP SCORES" & vbCrLf
-    strMsg = strMsg & "   Upload entry details (handler, armband, etc.)" & vbCrLf
-    strMsg = strMsg & "   Scores in myK9Q will NOT change." & vbCrLf & vbCrLf
-    strMsg = strMsg & "[Retry] = OVERWRITE SCORES" & vbCrLf
-    strMsg = strMsg & "   DANGER: Replace myK9Q scores with Access data."
+    ' Close form if still open
+    On Error Resume Next
+    DoCmd.Close acForm, "dlg_ScoredEntriesWarning"
+    On Error GoTo 0
 
-    intResult = MsgBox(strMsg, vbExclamation + vbAbortRetryIgnore, "Scored Entries Found")
+    ' Convert to vbAbort/vbIgnore/vbRetry for compatibility with existing code
+    Select Case intResult
+        Case 0: ShowScoredEntriesWarning = vbAbort   ' Cancel
+        Case 1: ShowScoredEntriesWarning = vbIgnore  ' Keep Scores
+        Case 2: ShowScoredEntriesWarning = vbRetry   ' Overwrite
+        Case Else: ShowScoredEntriesWarning = vbAbort
+    End Select
+    Exit Function
 
-    ' If user selected Overwrite, show a second confirmation
-    If intResult = vbRetry Then
-        strMsg = "ARE YOU SURE?" & vbCrLf & vbCrLf
-        strMsg = strMsg & "This will REPLACE all scoring data in myK9Q " & _
-                 "with whatever is currently in Access." & vbCrLf & vbCrLf
-        strMsg = strMsg & "If Access has NO scores, myK9Q scores will be ERASED." & vbCrLf & vbCrLf
-        strMsg = strMsg & "This action CANNOT be undone."
-
-        If MsgBox(strMsg, vbCritical + vbYesNo + vbDefaultButton2, "Confirm Overwrite") = vbNo Then
-            intResult = vbAbort  ' User backed out - treat as Cancel
-        End If
-    End If
-
-    ShowScoredEntriesWarning = intResult
+Err_Handler:
+    ShowScoredEntriesWarning = vbAbort  ' Cancel on error
 End Function
 
+' ============================================================================
+' ShowTrialScoredEntriesWarning - TRIAL-LEVEL dialog using custom form
+' ============================================================================
+' Uses custom form dlg_ScoredEntriesWarning for clearer button labels
+' Returns: vbAbort (Cancel), vbIgnore (Keep Scores), vbRetry (Overwrite)
+' ============================================================================
 Private Function ShowTrialScoredEntriesWarning(ByVal scoredEntriesList As String) As Integer
-    Dim strMsg As String
+    On Error GoTo Err_Handler
+
+    Dim strOpenArgs As String
+    strOpenArgs = "Multiple Classes (Trial Upload)" & "|" & scoredEntriesList
+
+    ' Open custom dialog form (requires dlg_ScoredEntriesWarning form in database)
+    DoCmd.OpenForm "dlg_ScoredEntriesWarning", acNormal, , , , acDialog, strOpenArgs
+
+    ' Get return value from form
     Dim intResult As Integer
+    On Error Resume Next
+    intResult = Forms("dlg_ScoredEntriesWarning").ReturnValue
+    If Err.Number <> 0 Then intResult = 0
+    On Error GoTo Err_Handler
 
-    strMsg = "Scored entries found in this trial:" & vbCrLf & vbCrLf
-    strMsg = strMsg & scoredEntriesList & vbCrLf & vbCrLf
-    strMsg = strMsg & "These scores are PROTECTED in myK9Q." & vbCrLf & vbCrLf
-    strMsg = strMsg & "What would you like to do?" & vbCrLf & vbCrLf
-    strMsg = strMsg & "[Abort] = CANCEL" & vbCrLf
-    strMsg = strMsg & "   Don't upload anything." & vbCrLf & vbCrLf
-    strMsg = strMsg & "[Ignore] = KEEP SCORES" & vbCrLf
-    strMsg = strMsg & "   Upload entry details (handler, armband, etc.)" & vbCrLf
-    strMsg = strMsg & "   Scores in myK9Q will NOT change." & vbCrLf & vbCrLf
-    strMsg = strMsg & "[Retry] = OVERWRITE ALL SCORES" & vbCrLf
-    strMsg = strMsg & "   DANGER: Replace ALL myK9Q scores with Access data."
+    ' Close form if still open
+    On Error Resume Next
+    DoCmd.Close acForm, "dlg_ScoredEntriesWarning"
+    On Error GoTo 0
 
-    intResult = MsgBox(strMsg, vbExclamation + vbAbortRetryIgnore, "Scored Entries Found")
+    ' Convert to vbAbort/vbIgnore/vbRetry for compatibility with existing code
+    Select Case intResult
+        Case 0: ShowTrialScoredEntriesWarning = vbAbort   ' Cancel
+        Case 1: ShowTrialScoredEntriesWarning = vbIgnore  ' Keep Scores
+        Case 2: ShowTrialScoredEntriesWarning = vbRetry   ' Overwrite
+        Case Else: ShowTrialScoredEntriesWarning = vbAbort
+    End Select
+    Exit Function
 
-    ' If user selected Overwrite, show a second confirmation
-    If intResult = vbRetry Then
-        strMsg = "ARE YOU SURE?" & vbCrLf & vbCrLf
-        strMsg = strMsg & "This will REPLACE ALL scoring data in the ENTIRE TRIAL " & _
-                 "with whatever is currently in Access." & vbCrLf & vbCrLf
-        strMsg = strMsg & "If Access has NO scores, ALL myK9Q scores will be ERASED." & vbCrLf & vbCrLf
-        strMsg = strMsg & "This action CANNOT be undone."
-
-        If MsgBox(strMsg, vbCritical + vbYesNo + vbDefaultButton2, "Confirm Overwrite") = vbNo Then
-            intResult = vbAbort  ' User backed out - treat as Cancel
-        End If
-    End If
-
-    ShowTrialScoredEntriesWarning = intResult
+Err_Handler:
+    ShowTrialScoredEntriesWarning = vbAbort  ' Cancel on error
 End Function
 
 ' =============================================================================
