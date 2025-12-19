@@ -1,11 +1,9 @@
 /**
  * Admin Components Index
  *
- * Centralized exports for all CompetitionAdmin sub-components.
+ * Centralized exports for all admin sub-components.
+ * Used by ResultsControlTab in TrialSecretary.
  */
-
-export { AdminHeader } from './AdminHeader';
-export type { AdminHeaderProps } from './AdminHeader';
 
 export { AdminNameDialog } from './AdminNameDialog';
 export type { AdminNameDialogProps } from './AdminNameDialog';

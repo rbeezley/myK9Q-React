@@ -1,21 +1,19 @@
 /**
- * Competition Administration Interface
+ * Results Control Tab
  *
  * Allows event organizers to control per-class results release
- * for AKC Nationals and other special events.
- *
- * Refactored from 1,252 lines to ~280 lines using extracted hooks and components.
+ * and self check-in settings. Adapted from CompetitionAdmin for use
+ * as a tab within the Trial Secretary page.
  */
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { User } from 'lucide-react';
 
-// Dialogs
-import { ConfirmationDialog } from './ConfirmationDialog';
-import { SuccessDialog } from './SuccessDialog';
+// Dialogs from Admin page
+import { ConfirmationDialog } from '../../Admin/ConfirmationDialog';
+import { SuccessDialog } from '../../Admin/SuccessDialog';
 
-// Extracted hooks
+// Extracted hooks from Admin page
 import {
   useAdminName,
   useBulkOperations,
@@ -23,29 +21,34 @@ import {
   useDialogs,
   useSelfCheckinSettings,
   useVisibilitySettings,
-} from './hooks';
+} from '../../Admin/hooks';
 
-// Extracted components
+// Extracted components from Admin page
 import {
-  AdminHeader,
   AdminNameDialog,
   ClassesList,
   ResultVisibilitySection,
   SelfCheckinSection,
-} from './components';
+} from '../../Admin/components';
 
 // Utils
-import { formatTrialDate } from '../../utils/dateUtils';
-import type { VisibilityPreset } from '../../types/visibility';
-import { OfflineFallback } from '@/components/ui';
+import { formatTrialDate } from '../../../utils/dateUtils';
+import type { VisibilityPreset } from '../../../types/visibility';
 
-import './CompetitionAdmin.css';
+// Styles
+import '../../Admin/CompetitionAdmin.css';
 
-export const CompetitionAdmin: React.FC = () => {
-  const { licenseKey } = useParams<{ licenseKey: string }>();
+interface ResultsControlTabProps {
+  licenseKey: string;
+  isReadOnly: boolean;
+}
 
+export const ResultsControlTab: React.FC<ResultsControlTabProps> = ({
+  licenseKey,
+  isReadOnly,
+}) => {
   // Data fetching
-  const { showInfo, classes, trials, isLoading, isOffline, error: queryError, refetch } = useCompetitionAdminData(licenseKey);
+  const { classes, trials, isLoading, isOffline, error: queryError, refetch } = useCompetitionAdminData(licenseKey);
 
   // Admin name management
   const { adminName, setAdminName, requireAdminName } = useAdminName();
@@ -107,7 +110,7 @@ export const CompetitionAdmin: React.FC = () => {
   // Wrapped handlers that check admin name and show dialogs
   const onSetShowVisibility = async (preset: VisibilityPreset) => {
     if (!requireAdminName(() => openAdminNameDialog(adminName, () => onSetShowVisibility(preset)))) return;
-    const result = await handleSetShowVisibility(preset, adminName, licenseKey || '');
+    const result = await handleSetShowVisibility(preset, adminName, licenseKey);
     setSuccessDialog({
       isOpen: true,
       title: result.success ? 'Show Visibility Updated!' : 'Error',
@@ -146,7 +149,7 @@ export const CompetitionAdmin: React.FC = () => {
 
   const onSetShowSelfCheckin = async (enabled: boolean) => {
     if (!requireAdminName(() => openAdminNameDialog(adminName, () => onSetShowSelfCheckin(enabled)))) return;
-    const result = await handleSetShowSelfCheckin(enabled, licenseKey || '');
+    const result = await handleSetShowSelfCheckin(enabled, licenseKey);
     setSuccessDialog({
       isOpen: true,
       title: result.success ? 'Show Self Check-In Updated!' : 'Error',
@@ -237,23 +240,25 @@ export const CompetitionAdmin: React.FC = () => {
     });
   };
 
-  // Offline state - show graceful degradation message
+  // Offline state
   if (isOffline) {
     return (
-      <OfflineFallback
-        message="Competition admin features require an internet connection. Please reconnect to manage classes and settings."
-      />
+      <div className="results-control-tab results-control-tab--offline">
+        <div className="offline-message">
+          <span className="offline-icon">📡</span>
+          <h3>Connection Required</h3>
+          <p>Results control features require an internet connection. Please reconnect to manage classes and settings.</p>
+        </div>
+      </div>
     );
   }
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="admin-container">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <div>Loading competition classes...</div>
-        </div>
+      <div className="results-control-tab results-control-tab--loading">
+        <div className="loading-spinner"></div>
+        <div>Loading competition classes...</div>
       </div>
     );
   }
@@ -261,77 +266,79 @@ export const CompetitionAdmin: React.FC = () => {
   // Error state
   if (queryError) {
     return (
-      <div className="admin-container">
-        <div className="error-state">
-          <div className="error-icon">⚠️</div>
-          <div>Error: {(queryError as Error).message || 'Failed to load data'}</div>
-          <button onClick={() => refetch()} className="retry-button">Retry</button>
+      <div className="results-control-tab results-control-tab--error">
+        <div className="error-icon">⚠️</div>
+        <div>Error: {(queryError as Error).message || 'Failed to load data'}</div>
+        <button onClick={() => refetch()} className="retry-button">Retry</button>
+      </div>
+    );
+  }
+
+  // Read-only mode - show message
+  if (isReadOnly) {
+    return (
+      <div className="results-control-tab results-control-tab--readonly">
+        <div className="readonly-message">
+          <span className="readonly-icon">🔒</span>
+          <h3>Admin Access Required</h3>
+          <p>Only administrators can modify results visibility and self check-in settings.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="competition-admin page-container">
-      <AdminHeader
-        showInfo={showInfo}
-        licenseKey={licenseKey}
-        isLoading={isLoading}
-        onRefresh={refetch}
+    <div className="results-control-tab">
+      {/* Admin Name Input */}
+      <div className="admin-controls">
+        <div className="admin-input-group">
+          <label htmlFor="adminName">
+            <User className="input-icon" />
+            Administrator Name:
+          </label>
+          <input
+            id="adminName"
+            type="text"
+            value={adminName}
+            onChange={(e) => setAdminName(e.target.value)}
+            placeholder="Enter your name (optional - will prompt if needed)"
+            className="admin-input"
+          />
+        </div>
+      </div>
+
+      <ResultVisibilitySection
+        isExpanded={visibilitySectionExpanded}
+        onToggleExpanded={() => setVisibilitySectionExpanded(!visibilitySectionExpanded)}
+        showVisibilityPreset={showVisibilityPreset}
+        trialVisibilitySettings={trialVisibilitySettings}
+        trials={trials}
+        onSetShowVisibility={onSetShowVisibility}
+        onSetTrialVisibility={onSetTrialVisibility}
+        onRemoveTrialVisibility={onRemoveTrialVisibility}
       />
 
-      <div className="admin-content">
-        {/* Admin Name Input */}
-        <div className="admin-controls">
-          <div className="admin-input-group">
-            <label htmlFor="adminName">
-              <User className="input-icon" />
-              Administrator Name:
-            </label>
-            <input
-              id="adminName"
-              type="text"
-              value={adminName}
-              onChange={(e) => setAdminName(e.target.value)}
-              placeholder="Enter your name (optional - will prompt if needed)"
-              className="admin-input"
-            />
-          </div>
-        </div>
+      <SelfCheckinSection
+        isExpanded={checkinSectionExpanded}
+        onToggleExpanded={() => setCheckinSectionExpanded(!checkinSectionExpanded)}
+        showSelfCheckinEnabled={showSelfCheckinEnabled}
+        trialSelfCheckinSettings={trialSelfCheckinSettings}
+        trials={trials}
+        onSetShowSelfCheckin={onSetShowSelfCheckin}
+        onSetTrialSelfCheckin={onSetTrialSelfCheckin}
+        onRemoveTrialSelfCheckin={onRemoveTrialSelfCheckin}
+      />
 
-        <ResultVisibilitySection
-          isExpanded={visibilitySectionExpanded}
-          onToggleExpanded={() => setVisibilitySectionExpanded(!visibilitySectionExpanded)}
-          showVisibilityPreset={showVisibilityPreset}
-          trialVisibilitySettings={trialVisibilitySettings}
-          trials={trials}
-          onSetShowVisibility={onSetShowVisibility}
-          onSetTrialVisibility={onSetTrialVisibility}
-          onRemoveTrialVisibility={onRemoveTrialVisibility}
-        />
-
-        <SelfCheckinSection
-          isExpanded={checkinSectionExpanded}
-          onToggleExpanded={() => setCheckinSectionExpanded(!checkinSectionExpanded)}
-          showSelfCheckinEnabled={showSelfCheckinEnabled}
-          trialSelfCheckinSettings={trialSelfCheckinSettings}
-          trials={trials}
-          onSetShowSelfCheckin={onSetShowSelfCheckin}
-          onSetTrialSelfCheckin={onSetTrialSelfCheckin}
-          onRemoveTrialSelfCheckin={onRemoveTrialSelfCheckin}
-        />
-
-        <ClassesList
-          classes={classes}
-          selectedClasses={selectedClasses}
-          onToggleClassSelection={toggleClassSelection}
-          onSelectAllClasses={() => selectAllClasses(classes)}
-          onClearSelection={clearSelection}
-          onBulkSetVisibility={onBulkSetVisibility}
-          onBulkEnableCheckin={onBulkEnableCheckin}
-          onBulkDisableCheckin={onBulkDisableCheckin}
-        />
-      </div>
+      <ClassesList
+        classes={classes}
+        selectedClasses={selectedClasses}
+        onToggleClassSelection={toggleClassSelection}
+        onSelectAllClasses={() => selectAllClasses(classes)}
+        onClearSelection={clearSelection}
+        onBulkSetVisibility={onBulkSetVisibility}
+        onBulkEnableCheckin={onBulkEnableCheckin}
+        onBulkDisableCheckin={onBulkDisableCheckin}
+      />
 
       {/* Dialogs */}
       <ConfirmationDialog
@@ -363,3 +370,5 @@ export const CompetitionAdmin: React.FC = () => {
     </div>
   );
 };
+
+export default ResultsControlTab;

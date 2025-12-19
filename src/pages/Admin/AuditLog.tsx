@@ -79,7 +79,7 @@ const AuditLog: React.FC = () => {
       {/* Header */}
       <div className="audit-log-header">
         <div className="header-top">
-          <HamburgerMenu currentPage="admin" />
+          <HamburgerMenu />
           <div className="header-info">
             <div className="header-title">
               <Clock className="header-icon" />

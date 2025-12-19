@@ -68,6 +68,19 @@ export function KanbanBoard({ isReadOnly = false }: KanbanBoardProps) {
     })
   );
 
+  // Non-admin users cannot access the To-Do Board
+  if (isReadOnly) {
+    return (
+      <div className="kanban-container kanban-readonly">
+        <div className="kanban-access-denied">
+          <span className="access-denied-icon">🔒</span>
+          <h3>Admin Access Required</h3>
+          <p>Only administrators can view and manage the to-do board.</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     // Disable drag in read-only mode
     if (isReadOnly) return;

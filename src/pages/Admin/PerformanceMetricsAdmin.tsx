@@ -41,7 +41,7 @@ export function PerformanceMetricsAdmin() {
 
   return (
     <div className="metrics-admin">
-      <HamburgerMenu currentPage="admin" />
+      <HamburgerMenu />
 
       <div className="metrics-header">
         <h1>📊 Performance Metrics - {showContext?.showName || 'Current Show'}</h1>

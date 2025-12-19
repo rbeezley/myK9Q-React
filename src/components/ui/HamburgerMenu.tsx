@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Shield, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -33,7 +33,7 @@ interface HamburgerMenuProps {
     action: () => void;
   };
   /** Current page to highlight in menu */
-  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'admin' | 'tv' | 'show' | 'results' | 'secretary';
+  currentPage?: 'home' | 'announcements' | 'settings' | 'stats' | 'entries' | 'tv' | 'show' | 'results' | 'secretary';
   /** Additional CSS classes for the menu button */
   className?: string;
 }
@@ -251,14 +251,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   >
                     <Monitor className="menu-icon" />
                     <span>TV Display</span>
-                  </button>
-
-                  <button
-                    className={`menu-item ${currentPage === 'admin' ? 'active' : ''}`}
-                    onClick={() => handleMenuItemClick(() => navigate(`/admin/${showContext?.licenseKey || 'myK9Q1-d8609f3b-d3fd43aa-6323a604'}`))}
-                  >
-                    <Shield className="menu-icon" />
-                    <span>Results Control</span>
                   </button>
                 </>
               )}

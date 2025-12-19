@@ -14,16 +14,17 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { HamburgerMenu, CompactOfflineIndicator, TabBar } from '../../components/ui';
 import type { Tab } from '../../components/ui';
-import { ClipboardList, Users, MoreVertical, Plus, Settings, Eye } from 'lucide-react';
+import { ClipboardList, Users, MoreVertical, Plus, Settings, Eye, Sliders } from 'lucide-react';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ScheduleBoard } from './components/ScheduleBoard';
+import { ResultsControlTab } from './components/ResultsControlTab';
 import './TrialSecretary.css';
 
-type TabType = 'kanban' | 'schedule';
+type TabType = 'kanban' | 'schedule' | 'results';
 
 export function TrialSecretary() {
   const { role, showContext } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('kanban');
+  const [activeTab, setActiveTab] = useState<TabType>('schedule');
   const [showActionsMenu, setShowActionsMenu] = useState(false);
 
   // Read-only mode for non-admin users
@@ -34,8 +35,9 @@ export function TrialSecretary() {
 
   // Tab configuration for TabBar component
   const tabs: Tab[] = useMemo(() => [
+    { id: 'schedule', label: 'Volunteers', icon: <Users size={16} /> },
     { id: 'kanban', label: 'To-Do Board', icon: <ClipboardList size={16} /> },
-    { id: 'schedule', label: 'Steward Schedule', icon: <Users size={16} /> },
+    { id: 'results', label: 'Results/Check-In Settings', icon: <Sliders size={16} /> },
   ], []);
 
   // Clear trigger after it's been consumed
@@ -134,6 +136,12 @@ export function TrialSecretary() {
             isReadOnly={isReadOnly}
             externalTrigger={isReadOnly ? null : scheduleTrigger}
             onTriggerConsumed={clearScheduleTrigger}
+          />
+        )}
+        {activeTab === 'results' && showContext?.licenseKey && (
+          <ResultsControlTab
+            licenseKey={showContext.licenseKey}
+            isReadOnly={isReadOnly}
           />
         )}
       </div>
