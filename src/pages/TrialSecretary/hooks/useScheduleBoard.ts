@@ -1,11 +1,12 @@
 /**
  * Schedule Board Hook
  *
- * Manages steward schedule state with localStorage persistence.
+ * Manages steward schedule state with Supabase persistence.
+ * Falls back to localStorage when offline.
  * Fetches class data from the trial for scheduling context.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import type {
@@ -23,58 +24,243 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// Database row types (snake_case from Supabase)
+interface DbVolunteerRole {
+  id: string;
+  license_key: string;
+  name: string;
+  color: string;
+  is_ring_role: boolean;
+  is_active: boolean;
+  sort_order: number;
+}
+
+interface DbVolunteer {
+  id: string;
+  license_key: string;
+  name: string;
+  phone: string | null;
+  is_exhibitor: boolean;
+  exhibitor_id: number | null;
+  entered_class_ids: number[];
+  notes: string | null;
+}
+
+interface DbClassAssignment {
+  id: string;
+  license_key: string;
+  class_id: number;
+  role_id: string;
+  volunteer_id: string;
+}
+
+interface DbGeneralAssignment {
+  id: string;
+  license_key: string;
+  role_id: string;
+  volunteer_id: string;
+  description: string | null;
+  time_range: string | null;
+}
+
+// Convert DB rows to app types
+function dbRoleToApp(row: DbVolunteerRole): ScheduleRole {
+  return {
+    id: row.id,
+    name: row.name,
+    color: row.color,
+    isRingRole: row.is_ring_role,
+    isActive: row.is_active,
+  };
+}
+
+function dbVolunteerToApp(row: DbVolunteer): Volunteer {
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone ?? undefined,
+    isExhibitor: row.is_exhibitor,
+    exhibitorId: row.exhibitor_id ?? undefined,
+    enteredClassIds: row.entered_class_ids ?? [],
+    notes: row.notes ?? undefined,
+  };
+}
+
+// Group class assignments by class+role (DB stores one row per volunteer)
+function groupClassAssignments(rows: DbClassAssignment[]): ClassAssignment[] {
+  const grouped = new Map<string, ClassAssignment>();
+
+  for (const row of rows) {
+    const key = `${row.class_id}-${row.role_id}`;
+    const existing = grouped.get(key);
+
+    if (existing) {
+      existing.volunteerIds.push(row.volunteer_id);
+    } else {
+      grouped.set(key, {
+        id: row.id, // Use first row's ID
+        classId: row.class_id,
+        roleId: row.role_id,
+        volunteerIds: [row.volunteer_id],
+      });
+    }
+  }
+
+  return Array.from(grouped.values());
+}
+
+// Group general assignments by role (DB stores one row per volunteer)
+function groupGeneralAssignments(rows: DbGeneralAssignment[]): GeneralAssignment[] {
+  const grouped = new Map<string, GeneralAssignment>();
+
+  for (const row of rows) {
+    const existing = grouped.get(row.role_id);
+
+    if (existing) {
+      existing.volunteerIds.push(row.volunteer_id);
+    } else {
+      grouped.set(row.role_id, {
+        id: row.id,
+        roleId: row.role_id,
+        volunteerIds: [row.volunteer_id],
+        description: row.description ?? undefined,
+        timeRange: row.time_range ?? undefined,
+      });
+    }
+  }
+
+  return Array.from(grouped.values());
+}
+
 export function useScheduleBoard() {
   const { showContext } = useAuth();
-  const storageKey = `${STORAGE_KEY_PREFIX}${showContext?.licenseKey || 'default'}`;
+  const licenseKey = showContext?.licenseKey;
+  const storageKey = `${STORAGE_KEY_PREFIX}${licenseKey || 'default'}`;
 
   // Class data from Supabase
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing] = useState(false); // TODO: Track sync status for UI feedback
 
-  // Schedule state (persisted to localStorage)
+  // Schedule state
   const [roles, setRoles] = useState<ScheduleRole[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [classAssignments, setClassAssignments] = useState<ClassAssignment[]>([]);
   const [generalAssignments, setGeneralAssignments] = useState<GeneralAssignment[]>([]);
 
-  // Load schedule state from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const state = JSON.parse(stored);
-        setRoles(state.roles || getDefaultRoles());
-        setVolunteers(state.volunteers || []);
-        setClassAssignments(state.classAssignments || []);
-        // Migrate old generalAssignments format (volunteerId -> volunteerIds)
-        const migratedGeneralAssignments = (state.generalAssignments || []).map((a: any) => {
-          if ('volunteerId' in a && !('volunteerIds' in a)) {
-            // Old format: convert volunteerId to volunteerIds array
-            return {
-              id: a.id,
-              roleId: a.roleId,
-              volunteerIds: a.volunteerId ? [a.volunteerId] : [],
-              description: a.description,
-              timeRange: a.timeRange,
-            } as GeneralAssignment;
-          }
-          return a as GeneralAssignment;
-        });
-        setGeneralAssignments(migratedGeneralAssignments);
-      } else {
-        // Initialize with default roles
-        setRoles(getDefaultRoles());
-      }
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to load from localStorage:', error);
-      setRoles(getDefaultRoles());
-    }
-  }, [storageKey]);
+  // Track if initial load is complete to avoid saving empty state
+  const isInitialized = useRef(false);
+  const isMigrating = useRef(false);
 
-  // Save schedule state to localStorage
+  // Load schedule data from Supabase (or localStorage fallback)
   useEffect(() => {
-    // Skip initial save before data is loaded
-    if (roles.length === 0) return;
+    async function loadScheduleData() {
+      if (!licenseKey) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        // Try to load from Supabase first
+        const [rolesResult, volunteersResult, classAssignResult, generalAssignResult] = await Promise.all([
+          supabase.from('volunteer_roles').select('*').eq('license_key', licenseKey),
+          supabase.from('volunteers').select('*').eq('license_key', licenseKey),
+          supabase.from('volunteer_class_assignments').select('*').eq('license_key', licenseKey),
+          supabase.from('volunteer_general_assignments').select('*').eq('license_key', licenseKey),
+        ]);
+
+        // Check if any data exists in Supabase
+        const hasSupabaseData =
+          (rolesResult.data && rolesResult.data.length > 0) ||
+          (volunteersResult.data && volunteersResult.data.length > 0);
+
+        if (hasSupabaseData) {
+          // Load from Supabase
+          setRoles(rolesResult.data?.map(dbRoleToApp) || getDefaultRoles());
+          setVolunteers(volunteersResult.data?.map(dbVolunteerToApp) || []);
+          setClassAssignments(groupClassAssignments(classAssignResult.data || []));
+          setGeneralAssignments(groupGeneralAssignments(generalAssignResult.data || []));
+        } else {
+          // Check localStorage for existing data to migrate
+          const stored = localStorage.getItem(storageKey);
+          if (stored) {
+            const state = JSON.parse(stored);
+
+            // Set state from localStorage
+            const localRoles = state.roles || getDefaultRoles();
+            const localVolunteers = state.volunteers || [];
+            const localClassAssignments = state.classAssignments || [];
+
+            // Migrate old generalAssignments format
+            const localGeneralAssignments = (state.generalAssignments || []).map((a: any) => {
+              if ('volunteerId' in a && !('volunteerIds' in a)) {
+                return {
+                  id: a.id,
+                  roleId: a.roleId,
+                  volunteerIds: a.volunteerId ? [a.volunteerId] : [],
+                  description: a.description,
+                  timeRange: a.timeRange,
+                } as GeneralAssignment;
+              }
+              return a as GeneralAssignment;
+            });
+
+            setRoles(localRoles);
+            setVolunteers(localVolunteers);
+            setClassAssignments(localClassAssignments);
+            setGeneralAssignments(localGeneralAssignments);
+
+            // Migrate to Supabase in background
+            isMigrating.current = true;
+            migrateToSupabase(licenseKey, localRoles, localVolunteers, localClassAssignments, localGeneralAssignments)
+              .then(() => {
+                isMigrating.current = false;
+              })
+              .catch(err => {
+                console.error('[useScheduleBoard] Migration failed:', err);
+                isMigrating.current = false;
+              });
+          } else {
+            // No data anywhere, use defaults
+            setRoles(getDefaultRoles());
+          }
+        }
+
+        isInitialized.current = true;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to load from Supabase, using localStorage:', error);
+
+        // Fall back to localStorage
+        try {
+          const stored = localStorage.getItem(storageKey);
+          if (stored) {
+            const state = JSON.parse(stored);
+            setRoles(state.roles || getDefaultRoles());
+            setVolunteers(state.volunteers || []);
+            setClassAssignments(state.classAssignments || []);
+            setGeneralAssignments(state.generalAssignments || []);
+          } else {
+            setRoles(getDefaultRoles());
+          }
+        } catch (localError) {
+          console.error('[useScheduleBoard] localStorage fallback failed:', localError);
+          setRoles(getDefaultRoles());
+        }
+
+        isInitialized.current = true;
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadScheduleData();
+  }, [licenseKey, storageKey]);
+
+  // Save to localStorage as backup (for offline support)
+  useEffect(() => {
+    if (!isInitialized.current || roles.length === 0) return;
 
     try {
       const state: ScheduleState = {
@@ -93,25 +279,22 @@ export function useScheduleBoard() {
   // Fetch class data from Supabase
   useEffect(() => {
     async function fetchClasses() {
-      if (!showContext?.licenseKey) {
+      if (!licenseKey) {
         setIsLoading(false);
         return;
       }
 
       try {
-        setIsLoading(true);
-
         // First get the show ID from license_key
         const { data: showData, error: showError } = await supabase
           .from('shows')
           .select('id')
-          .eq('license_key', showContext.licenseKey)
+          .eq('license_key', licenseKey)
           .single();
 
         if (showError || !showData) {
           console.error('[useScheduleBoard] Failed to find show:', showError);
           setClasses([]);
-          setIsLoading(false);
           return;
         }
 
@@ -125,7 +308,6 @@ export function useScheduleBoard() {
 
         if (!trials || trials.length === 0) {
           setClasses([]);
-          setIsLoading(false);
           return;
         }
 
@@ -151,7 +333,6 @@ export function useScheduleBoard() {
               .select('*', { count: 'exact', head: true })
               .eq('class_id', cls.id);
 
-            // Extract trial info from the joined data (Supabase returns single object for !inner join)
             const trialInfo = cls.trials as unknown as { trial_date: string; trial_number: number } | null;
 
             return {
@@ -173,54 +354,115 @@ export function useScheduleBoard() {
       } catch (error) {
         console.error('[useScheduleBoard] Failed to fetch classes:', error);
         setClasses([]);
-      } finally {
-        setIsLoading(false);
       }
     }
 
     fetchClasses();
-  }, [showContext?.licenseKey]);
+  }, [licenseKey]);
 
   // Volunteer management
-  const addVolunteer = useCallback((data: Omit<Volunteer, 'id'>) => {
+  const addVolunteer = useCallback(async (data: Omit<Volunteer, 'id'>) => {
+    if (!licenseKey) return;
+
     const newVolunteer: Volunteer = {
       ...data,
       id: generateId(),
     };
-    setVolunteers(prev => [...prev, newVolunteer]);
-  }, []);
 
-  const updateVolunteer = useCallback((id: string, updates: Partial<Volunteer>) => {
+    // Optimistic update
+    setVolunteers(prev => [...prev, newVolunteer]);
+
+    // Sync to Supabase
+    try {
+      const { error } = await supabase.from('volunteers').insert({
+        id: newVolunteer.id,
+        license_key: licenseKey,
+        name: newVolunteer.name,
+        phone: newVolunteer.phone || null,
+        is_exhibitor: newVolunteer.isExhibitor,
+        exhibitor_id: newVolunteer.exhibitorId || null,
+        entered_class_ids: newVolunteer.enteredClassIds || [],
+        notes: newVolunteer.notes || null,
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to add volunteer to Supabase:', error);
+      // Keep the optimistic update - localStorage backup ensures persistence
+    }
+  }, [licenseKey]);
+
+  const updateVolunteer = useCallback(async (id: string, updates: Partial<Volunteer>) => {
+    if (!licenseKey) return;
+
+    // Optimistic update
     setVolunteers(prev =>
       prev.map(v => (v.id === id ? { ...v, ...updates } : v))
     );
-  }, []);
 
-  const deleteVolunteer = useCallback((id: string) => {
+    // Sync to Supabase
+    try {
+      const dbUpdates: Partial<DbVolunteer> = {};
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.phone !== undefined) dbUpdates.phone = updates.phone || null;
+      if (updates.isExhibitor !== undefined) dbUpdates.is_exhibitor = updates.isExhibitor;
+      if (updates.exhibitorId !== undefined) dbUpdates.exhibitor_id = updates.exhibitorId || null;
+      if (updates.enteredClassIds !== undefined) dbUpdates.entered_class_ids = updates.enteredClassIds;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+
+      const { error } = await supabase
+        .from('volunteers')
+        .update(dbUpdates)
+        .eq('id', id)
+        .eq('license_key', licenseKey);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to update volunteer in Supabase:', error);
+    }
+  }, [licenseKey]);
+
+  const deleteVolunteer = useCallback(async (id: string) => {
+    if (!licenseKey) return;
+
+    // Optimistic update
     setVolunteers(prev => prev.filter(v => v.id !== id));
-    // Also remove from class assignments
     setClassAssignments(prev =>
       prev.map(a => ({
         ...a,
         volunteerIds: a.volunteerIds.filter(vid => vid !== id),
       })).filter(a => a.volunteerIds.length > 0)
     );
-    // Also remove from general assignments
     setGeneralAssignments(prev =>
       prev.map(a => ({
         ...a,
         volunteerIds: a.volunteerIds.filter(vid => vid !== id),
       })).filter(a => a.volunteerIds.length > 0)
     );
-  }, []);
+
+    // Sync to Supabase (CASCADE will handle assignments)
+    try {
+      const { error } = await supabase
+        .from('volunteers')
+        .delete()
+        .eq('id', id)
+        .eq('license_key', licenseKey);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to delete volunteer from Supabase:', error);
+    }
+  }, [licenseKey]);
 
   // Class assignment management
-  const assignToClass = useCallback((volunteerId: string, classId: number, roleId: string) => {
+  const assignToClass = useCallback(async (volunteerId: string, classId: number, roleId: string) => {
+    if (!licenseKey) return;
+
+    // Optimistic update
     setClassAssignments(prev => {
       const existing = prev.find(a => a.classId === classId && a.roleId === roleId);
 
       if (existing) {
-        // Add to existing assignment if not already there
         if (existing.volunteerIds.includes(volunteerId)) {
           return prev;
         }
@@ -231,7 +473,6 @@ export function useScheduleBoard() {
         );
       }
 
-      // Create new assignment
       const newAssignment: ClassAssignment = {
         id: generateId(),
         classId,
@@ -240,9 +481,27 @@ export function useScheduleBoard() {
       };
       return [...prev, newAssignment];
     });
-  }, []);
 
-  const removeFromClass = useCallback((volunteerId: string, classId: number, roleId: string) => {
+    // Sync to Supabase
+    try {
+      const { error } = await supabase.from('volunteer_class_assignments').insert({
+        id: generateId(),
+        license_key: licenseKey,
+        class_id: classId,
+        role_id: roleId,
+        volunteer_id: volunteerId,
+      });
+
+      if (error && !error.message.includes('duplicate')) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to assign to class in Supabase:', error);
+    }
+  }, [licenseKey]);
+
+  const removeFromClass = useCallback(async (volunteerId: string, classId: number, roleId: string) => {
+    if (!licenseKey) return;
+
+    // Optimistic update
     setClassAssignments(prev =>
       prev.map(a => {
         if (a.classId === classId && a.roleId === roleId) {
@@ -254,15 +513,32 @@ export function useScheduleBoard() {
         return a;
       }).filter(a => a.volunteerIds.length > 0)
     );
-  }, []);
 
-  // General duty management (similar to class assignments)
-  const assignToGeneralDuty = useCallback((volunteerId: string, roleId: string) => {
+    // Sync to Supabase
+    try {
+      const { error } = await supabase
+        .from('volunteer_class_assignments')
+        .delete()
+        .eq('license_key', licenseKey)
+        .eq('class_id', classId)
+        .eq('role_id', roleId)
+        .eq('volunteer_id', volunteerId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to remove class assignment from Supabase:', error);
+    }
+  }, [licenseKey]);
+
+  // General duty management
+  const assignToGeneralDuty = useCallback(async (volunteerId: string, roleId: string) => {
+    if (!licenseKey) return;
+
+    // Optimistic update
     setGeneralAssignments(prev => {
       const existing = prev.find(a => a.roleId === roleId);
 
       if (existing) {
-        // Add to existing assignment if not already there
         if (existing.volunteerIds.includes(volunteerId)) {
           return prev;
         }
@@ -273,7 +549,6 @@ export function useScheduleBoard() {
         );
       }
 
-      // Create new assignment
       const newAssignment: GeneralAssignment = {
         id: generateId(),
         roleId,
@@ -281,9 +556,26 @@ export function useScheduleBoard() {
       };
       return [...prev, newAssignment];
     });
-  }, []);
 
-  const removeFromGeneralDuty = useCallback((volunteerId: string, roleId: string) => {
+    // Sync to Supabase
+    try {
+      const { error } = await supabase.from('volunteer_general_assignments').insert({
+        id: generateId(),
+        license_key: licenseKey,
+        role_id: roleId,
+        volunteer_id: volunteerId,
+      });
+
+      if (error && !error.message.includes('duplicate')) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to assign to general duty in Supabase:', error);
+    }
+  }, [licenseKey]);
+
+  const removeFromGeneralDuty = useCallback(async (volunteerId: string, roleId: string) => {
+    if (!licenseKey) return;
+
+    // Optimistic update
     setGeneralAssignments(prev =>
       prev.map(a => {
         if (a.roleId === roleId) {
@@ -295,12 +587,57 @@ export function useScheduleBoard() {
         return a;
       }).filter(a => a.volunteerIds.length > 0)
     );
-  }, []);
+
+    // Sync to Supabase
+    try {
+      const { error } = await supabase
+        .from('volunteer_general_assignments')
+        .delete()
+        .eq('license_key', licenseKey)
+        .eq('role_id', roleId)
+        .eq('volunteer_id', volunteerId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to remove general assignment from Supabase:', error);
+    }
+  }, [licenseKey]);
 
   // Role management
-  const updateRoles = useCallback((newRoles: ScheduleRole[]) => {
+  const updateRoles = useCallback(async (newRoles: ScheduleRole[]) => {
+    if (!licenseKey) return;
+
+    const oldRoles = roles;
     setRoles(newRoles);
-  }, []);
+
+    // Sync to Supabase - delete all and re-insert
+    try {
+      await supabase
+        .from('volunteer_roles')
+        .delete()
+        .eq('license_key', licenseKey);
+
+      if (newRoles.length > 0) {
+        const { error } = await supabase.from('volunteer_roles').insert(
+          newRoles.map((role, index) => ({
+            id: role.id,
+            license_key: licenseKey,
+            name: role.name,
+            color: role.color,
+            is_ring_role: role.isRingRole,
+            is_active: role.isActive,
+            sort_order: index,
+          }))
+        );
+
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('[useScheduleBoard] Failed to update roles in Supabase:', error);
+      // Revert on failure
+      setRoles(oldRoles);
+    }
+  }, [licenseKey, roles]);
 
   return {
     classes,
@@ -309,6 +646,7 @@ export function useScheduleBoard() {
     classAssignments,
     generalAssignments,
     isLoading,
+    isSyncing,
     addVolunteer,
     updateVolunteer,
     deleteVolunteer,
@@ -330,4 +668,83 @@ function getDefaultRoles(): ScheduleRole[] {
     { id: 'ring-setup', name: 'Ring Setup', color: '#06b6d4', isRingRole: false, isActive: true },
     { id: 'ribbons', name: 'Ribbons', color: '#ec4899', isRingRole: false, isActive: true },
   ];
+}
+
+// Migrate localStorage data to Supabase
+async function migrateToSupabase(
+  licenseKey: string,
+  roles: ScheduleRole[],
+  volunteers: Volunteer[],
+  classAssignments: ClassAssignment[],
+  generalAssignments: GeneralAssignment[]
+): Promise<void> {
+  // Insert roles
+  if (roles.length > 0) {
+    const { error: rolesError } = await supabase.from('volunteer_roles').insert(
+      roles.map((role, index) => ({
+        id: role.id,
+        license_key: licenseKey,
+        name: role.name,
+        color: role.color,
+        is_ring_role: role.isRingRole,
+        is_active: role.isActive,
+        sort_order: index,
+      }))
+    );
+    if (rolesError) console.error('[migrateToSupabase] Roles error:', rolesError);
+  }
+
+  // Insert volunteers
+  if (volunteers.length > 0) {
+    const { error: volunteersError } = await supabase.from('volunteers').insert(
+      volunteers.map(v => ({
+        id: v.id,
+        license_key: licenseKey,
+        name: v.name,
+        phone: v.phone || null,
+        is_exhibitor: v.isExhibitor,
+        exhibitor_id: v.exhibitorId || null,
+        entered_class_ids: v.enteredClassIds || [],
+        notes: v.notes || null,
+      }))
+    );
+    if (volunteersError) console.error('[migrateToSupabase] Volunteers error:', volunteersError);
+  }
+
+  // Insert class assignments (one row per volunteer)
+  const classAssignmentRows = classAssignments.flatMap(a =>
+    a.volunteerIds.map(volunteerId => ({
+      id: generateId(),
+      license_key: licenseKey,
+      class_id: a.classId,
+      role_id: a.roleId,
+      volunteer_id: volunteerId,
+    }))
+  );
+
+  if (classAssignmentRows.length > 0) {
+    const { error: classError } = await supabase
+      .from('volunteer_class_assignments')
+      .insert(classAssignmentRows);
+    if (classError) console.error('[migrateToSupabase] Class assignments error:', classError);
+  }
+
+  // Insert general assignments (one row per volunteer)
+  const generalAssignmentRows = generalAssignments.flatMap(a =>
+    a.volunteerIds.map(volunteerId => ({
+      id: generateId(),
+      license_key: licenseKey,
+      role_id: a.roleId,
+      volunteer_id: volunteerId,
+      description: a.description || null,
+      time_range: a.timeRange || null,
+    }))
+  );
+
+  if (generalAssignmentRows.length > 0) {
+    const { error: generalError } = await supabase
+      .from('volunteer_general_assignments')
+      .insert(generalAssignmentRows);
+    if (generalError) console.error('[migrateToSupabase] General assignments error:', generalError);
+  }
 }
