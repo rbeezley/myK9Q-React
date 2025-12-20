@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Plus, User, Pencil, Trash2 } from 'lucide-react';
+import { Plus, User, Pencil, Trash2, GripVertical } from 'lucide-react';
 import type { Volunteer } from '../types';
 
 interface VolunteerPoolProps {
@@ -31,6 +31,11 @@ export function VolunteerPool({
         <h3 className="volunteer-pool-title">Available Volunteers</h3>
         <span className="volunteer-pool-count">{volunteers.length}</span>
       </div>
+
+      <p className="volunteer-pool-hint">
+        <GripVertical size={14} />
+        <span>Drag volunteers to General Duties or Class Assignments below</span>
+      </p>
 
       <div className="volunteer-pool-content">
         {volunteers.map((volunteer) => (

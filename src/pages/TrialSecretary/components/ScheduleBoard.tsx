@@ -22,7 +22,7 @@ import {
 } from '@dnd-kit/core';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Users, Briefcase } from 'lucide-react';
+import { Users, Briefcase, ChevronDown, ChevronRight } from 'lucide-react';
 import { useScheduleBoard } from '../hooks/useScheduleBoard';
 import { VolunteerPool } from './VolunteerPool';
 import { VolunteerChip } from './VolunteerChip';
@@ -91,6 +91,7 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
   const [volunteerDialogOpen, setVolunteerDialogOpen] = useState(false);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
   const [roleConfigOpen, setRoleConfigOpen] = useState(false);
+  const [generalDutiesExpanded, setGeneralDutiesExpanded] = useState(true);
 
   // Handle external triggers from header menu - intentional setState in effect
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -246,13 +247,18 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
         {/* Scrollable content area */}
         <div className="schedule-scrollable-content">
           {/* General Duties Section */}
-          <div className="schedule-table-wrapper general-duties-wrapper">
-            <div className="schedule-section-header">
+          <div className={`schedule-table-wrapper general-duties-wrapper ${!generalDutiesExpanded ? 'collapsed' : ''}`}>
+            <button
+              className="schedule-section-header schedule-section-header-collapsible"
+              onClick={() => setGeneralDutiesExpanded(!generalDutiesExpanded)}
+              aria-expanded={generalDutiesExpanded}
+            >
+              {generalDutiesExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
               <Briefcase size={18} />
               <span>General Duties</span>
-            </div>
+            </button>
 
-            {generalRoles.length === 0 ? (
+            {!generalDutiesExpanded ? null : generalRoles.length === 0 ? (
               <div className="empty-state">
                 <p>No general duty roles configured. Go to Manage Roles to add some.</p>
               </div>
