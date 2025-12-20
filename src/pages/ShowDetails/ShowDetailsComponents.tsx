@@ -16,7 +16,8 @@ import {
   User,
   FileText,
   ArrowLeft,
-  RefreshCw
+  RefreshCw,
+  CloudSun
 } from 'lucide-react';
 import { HamburgerMenu, CompactOfflineIndicator } from '@/components/ui';
 import type { Show } from '@/services/replication';
@@ -25,6 +26,7 @@ import {
   formatDateRange,
   formatPhoneNumber,
   getGoogleMapsUrl,
+  getWeatherUrl,
   getFullSiteAddress,
   hasContactInfo
 } from './showDetailsUtils';
@@ -205,6 +207,18 @@ export function EventDetailsCard({ show }: { show: Show }) {
           <span className="detail-value">{show.club_name}</span>
         </div>
 
+        {show.website && (
+          <a
+            href={show.website.startsWith('http') ? show.website : `https://${show.website}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="show-detail-row show-detail-link"
+          >
+            <Globe size={16} className="detail-icon" />
+            <span className="detail-text">Club Website</span>
+          </a>
+        )}
+
         <div className="show-detail-inline">
           <span className="detail-label">Event:</span>
           <span className="detail-value">{show.show_name}</span>
@@ -237,7 +251,7 @@ export function EventDetailsCard({ show }: { show: Show }) {
             className="show-detail-row show-detail-link event-details-link"
           >
             <Globe size={16} className="detail-icon" />
-            <span className="detail-text">View Event Details</span>
+            <span className="detail-text">Event Website</span>
           </a>
         )}
       </div>
@@ -250,7 +264,7 @@ export function EventDetailsCard({ show }: { show: Show }) {
  */
 export function LocationCard({ show }: { show: Show }) {
   const fullSiteAddress = getFullSiteAddress(show);
-  const hasLocationInfo = fullSiteAddress || show.location || show.website || show.site_name;
+  const hasLocationInfo = fullSiteAddress || show.location || show.site_name;
 
   if (!hasLocationInfo) return null;
 
@@ -294,15 +308,16 @@ export function LocationCard({ show }: { show: Show }) {
           </a>
         )}
 
-        {show.website && (
+        {/* Weather link */}
+        {(fullSiteAddress || show.location) && (
           <a
-            href={show.website.startsWith('http') ? show.website : `https://${show.website}`}
+            href={getWeatherUrl(show)}
             target="_blank"
             rel="noopener noreferrer"
             className="show-detail-row show-detail-link"
           >
-            <Globe size={16} className="detail-icon" />
-            <span className="detail-text">Club Website</span>
+            <CloudSun size={16} className="detail-icon" />
+            <span className="detail-text">Check Weather</span>
           </a>
         )}
       </div>

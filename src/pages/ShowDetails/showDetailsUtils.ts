@@ -74,6 +74,26 @@ export function getGoogleMapsUrl(address: string): string {
 }
 
 /**
+ * Get weather URL for a location (uses Google search weather widget)
+ * Uses city/state/zip format which triggers the weather widget better than full address
+ */
+export function getWeatherUrl(show: Show): string {
+  // Build a simple location for weather (city, state zip works best for Google's weather widget)
+  const parts = [
+    show.site_city,
+    show.site_state,
+    show.site_zip
+  ].filter(Boolean);
+
+  // Fallback to full address or legacy location
+  const location = parts.length > 0
+    ? parts.join(' ')
+    : (getFullSiteAddress(show) || show.location || '');
+
+  return `https://www.google.com/search?q=weather+${encodeURIComponent(location)}`;
+}
+
+/**
  * Build full site address from show data
  */
 export function getFullSiteAddress(show: Show): string | null {

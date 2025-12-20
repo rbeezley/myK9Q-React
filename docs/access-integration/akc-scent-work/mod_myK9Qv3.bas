@@ -15,10 +15,24 @@ Option Explicit
 '   - Name: dlg_ScoredEntriesWarning
 '   - Pop Up: Yes, Modal: Yes, Border Style: Dialog
 '   - Public variable: ReturnValue As Integer
-'   - Controls: lblClassName (Label), txtEntryList (TextBox),
-'               btnCancel, btnKeepScores, btnOverwrite (Command Buttons)
+'   - Controls: lblClassName (Label), txtEntryList (TextBox), lblTitle (Label),
+'               lblMessage (Label), btnCancel, btnKeepScores, btnOverwrite (Command Buttons)
 '   - Button handlers set ReturnValue (0=Cancel, 1=Keep, 2=Overwrite)
 '     and use Me.Visible = False (NOT DoCmd.Close)
+'
+' OpenArgs Format:
+'   UPLOAD (protecting myK9Q scores): "ClassName|EntryList"
+'   DOWNLOAD (protecting Access scores): "ACCESS|ClassName|EntryList"
+'
+' Form_Load should check if Left(Me.OpenArgs, 7) = "ACCESS|" to determine mode:
+'   - UPLOAD mode: Title = "Scored Entries Found"
+'                  Message = "These scores are PROTECTED in myK9Q..."
+'                  btnKeepScores.Caption = "Keep myK9Q Scores"
+'                  btnOverwrite.Caption = "Overwrite myK9Q Scores"
+'   - DOWNLOAD mode: Title = "Scored Entries Found"
+'                    Message = "These scores are PROTECTED in Access..."
+'                    btnKeepScores.Caption = "Keep Access Scores"
+'                    btnOverwrite.Caption = "Overwrite Access Scores"
 '
 ' See docs/access-integration/README.md for form setup instructions.
 '
@@ -61,7 +75,7 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
           If strCalledBy = "Trial" Then
               ' TRIAL-LEVEL CHECK: Check ALL classes in the trial
               strScoredList = CheckScoredEntriesForTrial_v3(iShowID, iTrialID)
-              
+
               If strScoredList <> "" Then
                   intUserChoice = ShowTrialScoredEntriesWarning(strScoredList)
                   
@@ -72,8 +86,7 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
                           
                       Case vbIgnore  ' Upload Anyway (scores protected)
                           ' Continue - database trigger will protect scores
-                          Debug.Print "Trial upload proceeding with score protection"
-                          
+
                       Case vbRetry   ' Unlock & Overwrite
                           lngUnlocked = UnlockTrialForReupload_v3(iShowID, iTrialID)
                           blnOverwriteScores = True  ' Flag to reset scores in entry upload
@@ -100,8 +113,7 @@ Public Sub myK9Q_Upload_v3(strCalledBy As String)
                           
                       Case vbIgnore  ' Upload Anyway (scores protected)
                           ' Continue - database trigger will protect scores
-                          Debug.Print "Class upload proceeding with score protection"
-                          
+
                       Case vbRetry   ' Unlock & Overwrite
                           lngUnlocked = UnlockClassForReupload_v3(iShowID, iClassID)
                           blnOverwriteScores = True  ' Flag to reset scores in entry upload
@@ -226,10 +238,10 @@ Public Sub SyncShowViaAPI_v3(ByVal lngShowID As Long, ByVal strNote As String)
           Dim http As Object, json As String, recordsArray As String
           
 32910     Set db = CurrentDb
-32920     strSQL = "SELECT C.AKCClubName, S.MobileAppLicKey, S.startdate, S.enddate, S.showid, S.showname, S.eventurl, " & _
+32920     strSQL = "SELECT C.AKCClubName, C.Website AS ClubWebsite, S.MobileAppLicKey, S.startdate, S.enddate, S.showid, S.showname, S.eventurl, " & _
                      "P1.FullName AS Secretary, P1.Email AS SecretaryEmail, P1.phone AS SecretaryPhone, " & _
                      "P2.FullName AS Chairman, P2.Email AS ChairmanEmail, P2.phone AS ChairmanPhone, " & _
-                     "S.SiteAddress, S.SiteCity, ST.StateName, S.SiteZip, S.ShowType " & _
+                     "S.SiteName, S.SiteAddress, S.SiteCity, ST.StateName, S.SiteZip, S.ShowType " & _
                      "INTO temp_ForShowSync FROM ((((tbl_Show AS S LEFT JOIN tbl_Club AS C ON S.ClubID_FK = C.clubID) LEFT JOIN tbl_Person AS P1 ON S.SecretaryID_FK = P1.personID) LEFT JOIN tbl_Person AS P2 ON S.ChairmanID_FK = P2.personID) LEFT JOIN tbl_State AS ST ON S.SiteStateID_FK = ST.stateID) " & _
                      "WHERE S.showID = " & lngShowID
 32930     DoCmd.SetWarnings False
@@ -256,6 +268,7 @@ Public Sub SyncShowViaAPI_v3(ByVal lngShowID As Long, ByVal strNote As String)
                 """end_date"":""" & Format(Nz(rs!EndDate, Now), "yyyy-mm-dd") & """," & _
                 """organization"":""AKC Scent Work""," & _
                 """show_type"":""" & JsonSafe(Nz(rs!ShowType, "Regular")) & """," & _
+                """site_name"":""" & JsonSafe(Nz(rs!SiteName, "")) & """," & _
                 """site_address"":""" & JsonSafe(Nz(rs!SiteAddress, "")) & """," & _
                 """site_city"":""" & JsonSafe(Nz(rs!SiteCity, "")) & """," & _
                 """site_state"":""" & JsonSafe(Nz(rs!StateName, "")) & """," & _
@@ -267,7 +280,7 @@ Public Sub SyncShowViaAPI_v3(ByVal lngShowID As Long, ByVal strNote As String)
                 """chairman_email"":""" & JsonSafe(Nz(rs!ChairmanEmail, "")) & """," & _
                 """chairman_phone"":""" & JsonSafe(Nz(rs!ChairmanPhone, "")) & """," & _
                 """event_url"":""" & JsonSafe(Nz(rs!eventurl, "")) & """," & _
-                """website"":""" & JsonSafe(Nz(rs!eventurl, "")) & """," & _
+                """website"":""" & JsonSafe(Nz(rs!ClubWebsite, "")) & """," & _
                 """notes"":""" & JsonSafe(strNote) & """" & _
             "}"
 33080     recordsArray = recordsArray & json & "]"
@@ -780,10 +793,44 @@ Public Sub myK9Q_Class_Result_Download_v3()
           Dim classTimeLimit2Seconds As Double
           Dim classTimeLimit3Seconds As Double
           Dim rsClass As DAO.Recordset
-          
+
 32050     Set db = CurrentDb
 32060     iClassID = Forms!frm_Class_Main.txtClassID
 32070     iShowID = DLookup("ShowID_FK", "tbl_Trial", "TrialID = " & Forms!frm_Class_Main.txtTrialID)
+
+          ' ==========================================================
+          ' SCORED ENTRIES PROTECTION CHECK (Protect Access scores)
+          ' ==========================================================
+          Dim strScoredListAccess As String
+          Dim intUserChoice As Integer
+          Dim blnOverwriteAccessScores As Boolean
+          Dim strClassName As String
+          blnOverwriteAccessScores = False  ' Default: protect existing Access scores
+
+          strScoredListAccess = CheckScoredEntriesInAccess_v3(iClassID)
+
+          If strScoredListAccess <> "" Then
+              strClassName = Nz(DLookup("Element", "tbl_Class", "classID = " & iClassID), "") & " " & _
+                             Nz(DLookup("Level", "tbl_Class", "classID = " & iClassID), "")
+
+              intUserChoice = ShowAccessScoredEntriesWarning(strScoredListAccess, strClassName)
+
+              Select Case intUserChoice
+                  Case vbAbort   ' Cancel
+                      MsgBox "Download cancelled.", vbInformation, "Download Cancelled"
+                      Exit Sub
+
+                  Case vbIgnore  ' Keep Access Scores - exit without changes
+                      MsgBox "Download cancelled. Access scores preserved.", vbInformation, "Scores Protected"
+                      Exit Sub
+
+                  Case vbRetry   ' Overwrite Access Scores
+                      blnOverwriteAccessScores = True
+              End Select
+          End If
+          ' ==========================================================
+          ' END SCORED ENTRIES PROTECTION CHECK
+          ' ==========================================================
 
 32080     DoCmd.OpenForm "frm_Progress_myK9Q", acNormal
 32090     Forms!frm_Progress_myK9Q.lblCurrentTask.Caption = "Downloading results for Class ID: " & iClassID
@@ -849,7 +896,7 @@ Public Sub myK9Q_Class_Result_Download_v3()
 32210     End If
           
           ' --- Get all ENTRIES with their result data (results are now on entries table) ---
-32220     http.Open "GET", SUPABASE_URL_2 & "/rest/v1/entries?select=access_entry_id,result_status,disqualification_reason,search_time_seconds,area1_time_seconds,area2_time_seconds,area3_time_seconds,total_faults,total_correct_finds,total_incorrect_finds,no_finish_count,is_scored&access_class_id=eq." & iClassID, False
+32220     http.Open "GET", SUPABASE_URL_2 & "/rest/v1/entries?select=access_entry_id,result_status,disqualification_reason,search_time_seconds,area1_time_seconds,area2_time_seconds,area3_time_seconds,total_faults,total_correct_finds,total_incorrect_finds,no_finish_count,is_scored,final_placement&access_class_id=eq." & iClassID, False
 32230     http.setRequestHeader "apikey", SUPABASE_KEY_2
 32240     http.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
 32250     http.send
@@ -867,8 +914,17 @@ Public Sub myK9Q_Class_Result_Download_v3()
 32490             accessEntryID = CLng(Nz(dataItem("access_entry_id"), 0))
 
 32530             If accessEntryID > 0 Then
-                      ' Only process if it has been scored
+                      ' Only process if it has been scored in myK9Q
                       If Nz(dataItem("is_scored"), False) = True Then
+                          ' Check if this entry is already scored in Access
+                          Dim blnScoredInAccess As Boolean
+                          blnScoredInAccess = IsEntryScoredInAccess(accessEntryID)
+
+                          ' Skip if scored in Access and user chose to keep Access scores
+                          If blnScoredInAccess And Not blnOverwriteAccessScores Then
+                              GoTo NextEntry
+                          End If
+
 32540                     strSQL = "UPDATE tbl_Entry SET " & _
                                     "NQReason = '" & JsonSafe(Nz(dataItem("disqualification_reason"), "None")) & "', " & _
                                     "SearchTime = '" & ConvertSecondsToTimeFormat(dataItem("search_time_seconds")) & "', " & _
@@ -885,27 +941,34 @@ Public Sub myK9Q_Class_Result_Download_v3()
 32550                     db.Execute strSQL, dbFailOnError
                           
                           Dim SearchTime As Double
+                          Dim Area1Time As Double
+                          Dim Area2Time As Double
+                          Dim Area3Time As Double
 32560                     SearchTime = CDbl(Nz(dataItem("search_time_seconds"), 0))
-                          
+                          Area1Time = CDbl(Nz(dataItem("area1_time_seconds"), 0))
+                          Area2Time = CDbl(Nz(dataItem("area2_time_seconds"), 0))
+                          Area3Time = CDbl(Nz(dataItem("area3_time_seconds"), 0))
+
 32570                     Select Case LCase(Nz(dataItem("result_status"), "pending"))
                               Case "qualified"
-32580                             strSQL = "UPDATE tbl_Entry SET Qualified = True, NQ = False, Absent = False, Excused = False, Withdrawn = False, Millisecs1 = " & CLng(SearchTime * 1000) & " WHERE entryID = " & accessEntryID
+32580                             strSQL = "UPDATE tbl_Entry SET Qualified = True, NQ = False, Absent = False, Excused = False, Withdrawn = False, Millisecs1 = " & CLng(Area1Time * 1000) & ", Millisecs2 = " & CLng(Area2Time * 1000) & ", Millisecs3 = " & CLng(Area3Time * 1000) & " WHERE entryID = " & accessEntryID
 32590                         Case "nq"
-32600                             strSQL = "UPDATE tbl_Entry SET NQ = True, Qualified = False, Absent = False, Excused = False, Withdrawn = False WHERE entryID = " & accessEntryID
+32600                             strSQL = "UPDATE tbl_Entry SET NQ = True, Qualified = False, Absent = False, Excused = False, Withdrawn = False, Millisecs1 = 0, Millisecs2 = 0, Millisecs3 = 0 WHERE entryID = " & accessEntryID
 32610                         Case "absent"
-32620                             strSQL = "UPDATE tbl_Entry SET Absent = True, Qualified = False, NQ = False, Excused = False, Withdrawn = False WHERE entryID = " & accessEntryID
+32620                             strSQL = "UPDATE tbl_Entry SET Absent = True, Qualified = False, NQ = False, Excused = False, Withdrawn = False, Millisecs1 = 0, Millisecs2 = 0, Millisecs3 = 0 WHERE entryID = " & accessEntryID
 32630                         Case "excused"
-32640                             strSQL = "UPDATE tbl_Entry SET Excused = True, ExcusedReason = '" & JsonSafe(Nz(dataItem("disqualification_reason"), "")) & "', Qualified = False, NQ = False, Absent = False, Withdrawn = False, Millisecs1 = " & (classTimeLimitSeconds * 1000) & " WHERE entryID = " & accessEntryID
+32640                             strSQL = "UPDATE tbl_Entry SET Excused = True, ExcusedReason = '" & JsonSafe(Nz(dataItem("disqualification_reason"), "")) & "', Qualified = False, NQ = False, Absent = False, Withdrawn = False, Millisecs1 = 0, Millisecs2 = 0, Millisecs3 = 0 WHERE entryID = " & accessEntryID
 32650                         Case "withdrawn"
-32660                             strSQL = "UPDATE tbl_Entry SET Withdrawn = True, Qualified = False, NQ = False, Absent = False, Excused = False WHERE entryID = " & accessEntryID
+32660                             strSQL = "UPDATE tbl_Entry SET Withdrawn = True, Qualified = False, NQ = False, Absent = False, Excused = False, Millisecs1 = 0, Millisecs2 = 0, Millisecs3 = 0 WHERE entryID = " & accessEntryID
 32670                         Case Else
-32680                             strSQL = "UPDATE tbl_Entry SET Qualified = False, NQ = False, Absent = False, Excused = False, Withdrawn = False WHERE entryID = " & accessEntryID
+32680                             strSQL = "UPDATE tbl_Entry SET Qualified = False, NQ = False, Absent = False, Excused = False, Withdrawn = False, Millisecs1 = 0, Millisecs2 = 0, Millisecs3 = 0 WHERE entryID = " & accessEntryID
 32690                     End Select
 32700                     db.Execute strSQL, dbFailOnError
                           
 32710                     updatedCount = updatedCount + 1
                       End If
 32720             End If
+NextEntry:
 32730         Next dataItem
 32740     End If
 
@@ -1146,35 +1209,69 @@ End Function
 ' =============================================================================
 Private Function CheckScoredEntriesForTrial_v3(ByVal lngShowID As Long, ByVal lngTrialID As Long) As String
     On Error GoTo ErrorHandler
-    
+
     Dim strURL As String
     Dim strResponse As String
     Dim objHTTP As Object
     Dim strLicenseKey As String
-    Dim strSupabaseTrialID As String
-    
-    ' Get license key and Supabase trial ID
+    Dim lngSupabaseTrialID As Long
+    Dim strClassIDs As String
+    Dim parsedClasses As Object
+    Dim classItem As Object
+
+    ' Get license key
     strLicenseKey = Nz(DLookup("MobileAppLicKey", "tbl_Show", "showID = " & lngShowID), "")
-    strSupabaseTrialID = Nz(DLookup("myK9Q_TrialID", "tbl_Trial", "trialID = " & lngTrialID), "")
-    
-    If strLicenseKey = "" Or strSupabaseTrialID = "" Then
+    If strLicenseKey = "" Then
         CheckScoredEntriesForTrial_v3 = ""
         Exit Function
     End If
-    
-    ' Query: Get scored entries with class info
-    strURL = SUPABASE_URL_2 & "/rest/v1/entries?select=id,armband_number,handler_name,dog_call_name,classes(class_name)" & _
-             "&classes.trial_id=eq." & strSupabaseTrialID & _
-             "&is_scored=eq.true" & _
-             "&license_key=eq." & strLicenseKey
-    
+
+    ' Get Supabase trial ID via API lookup
+    lngSupabaseTrialID = GetSupabaseTrialID_v3(strLicenseKey, lngTrialID)
+    If lngSupabaseTrialID = 0 Then
+        CheckScoredEntriesForTrial_v3 = ""
+        Exit Function
+    End If
+
     Set objHTTP = CreateObject("MSXML2.XMLHTTP")
+
+    ' STEP 1: Get all class IDs for this trial
+    strURL = SUPABASE_URL_2 & "/rest/v1/classes?select=id&trial_id=eq." & lngSupabaseTrialID
+
     objHTTP.Open "GET", strURL, False
     objHTTP.setRequestHeader "apikey", SUPABASE_KEY_2
     objHTTP.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
-    
     objHTTP.send
-    
+
+    If objHTTP.Status <> 200 Then
+        CheckScoredEntriesForTrial_v3 = ""
+        Exit Function
+    End If
+
+    ' Parse class IDs into comma-separated list
+    strClassIDs = ""
+    Set parsedClasses = ParseJson(objHTTP.responseText)
+    If parsedClasses Is Nothing Or parsedClasses.count = 0 Then
+        CheckScoredEntriesForTrial_v3 = ""
+        Exit Function
+    End If
+
+    For Each classItem In parsedClasses
+        If strClassIDs <> "" Then strClassIDs = strClassIDs & ","
+        strClassIDs = strClassIDs & CLng(classItem("id"))
+    Next classItem
+
+    ' STEP 2: Query entries where class_id is in the list and is_scored=true
+    strURL = SUPABASE_URL_2 & "/rest/v1/entries?select=id,armband_number,handler_name,dog_call_name" & _
+             "&class_id=in.(" & strClassIDs & ")" & _
+             "&is_scored=eq.true" & _
+             "&license_key=eq." & strLicenseKey
+
+    objHTTP.Open "GET", strURL, False
+    objHTTP.setRequestHeader "apikey", SUPABASE_KEY_2
+    objHTTP.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
+    objHTTP.send
+
     If objHTTP.Status = 200 Then
         strResponse = objHTTP.responseText
         If strResponse <> "[]" And Len(strResponse) > 2 Then
@@ -1183,13 +1280,13 @@ Private Function CheckScoredEntriesForTrial_v3(ByVal lngShowID As Long, ByVal ln
             CheckScoredEntriesForTrial_v3 = ""
         End If
     Else
-        Debug.Print "CheckScoredEntriesForTrial_v3 failed: " & objHTTP.Status
         CheckScoredEntriesForTrial_v3 = ""
     End If
-    
+
     Set objHTTP = Nothing
+    Set parsedClasses = Nothing
     Exit Function
-    
+
 ErrorHandler:
     Debug.Print "CheckScoredEntriesForTrial_v3 Error: " & Err.Description
     CheckScoredEntriesForTrial_v3 = ""
@@ -1480,21 +1577,21 @@ End Function
 
 Private Function ExtractJSONValue(ByVal strJSON As String, ByVal strKey As String) As String
     On Error Resume Next
-    
+
     Dim lngStart As Long
     Dim lngEnd As Long
     Dim strSearch As String
-    
+
     strSearch = """" & strKey & """:"
     lngStart = InStr(strJSON, strSearch)
-    
+
     If lngStart = 0 Then
         ExtractJSONValue = ""
         Exit Function
     End If
-    
+
     lngStart = lngStart + Len(strSearch)
-    
+
     ' Check if value is quoted string or number
     If Mid(strJSON, lngStart, 1) = """" Then
         lngStart = lngStart + 1
@@ -1503,7 +1600,7 @@ Private Function ExtractJSONValue(ByVal strJSON As String, ByVal strKey As Strin
         lngEnd = InStr(lngStart, strJSON, ",")
         If lngEnd = 0 Then lngEnd = InStr(lngStart, strJSON, "}")
     End If
-    
+
     If lngEnd > lngStart Then
         ExtractJSONValue = Mid(strJSON, lngStart, lngEnd - lngStart)
     Else
@@ -1511,3 +1608,274 @@ Private Function ExtractJSONValue(ByVal strJSON As String, ByVal strKey As Strin
     End If
 End Function
 
+' ==========================================================================
+' === DOWNLOAD PROTECTION FUNCTIONS (Protect Access scores from overwrite)
+' ==========================================================================
+
+' =============================================================================
+' CHECK FOR SCORED ENTRIES IN ACCESS (for download protection)
+' Returns a formatted list of entries that are already scored in Access
+' =============================================================================
+Private Function CheckScoredEntriesInAccess_v3(ByVal lngClassID As Long) As String
+    On Error GoTo Check_Error
+
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+    Dim strSQL As String
+    Dim result As String
+
+    Set db = CurrentDb
+
+    ' Query for entries that have any result set in Access
+    strSQL = "SELECT E.Armband, D.CallName, P.FullName AS HandlerName " & _
+             "FROM ((tbl_Entry AS E " & _
+             "LEFT JOIN tbl_Exhibitor AS D ON E.exhibitorID_FK = D.exhibitorID) " & _
+             "LEFT JOIN tbl_Person AS P ON E.HandlerID_FK = P.personID) " & _
+             "WHERE E.classID_FK = " & lngClassID & " " & _
+             "AND E.entry_status = 'Accepted' " & _
+             "AND (E.Qualified = True OR E.NQ = True OR E.Excused = True OR E.Absent = True OR E.Withdrawn = True)"
+
+    Set rs = db.OpenRecordset(strSQL, dbOpenSnapshot)
+
+    result = ""
+    If Not rs.EOF Then
+        rs.MoveFirst
+        Do While Not rs.EOF
+            result = result & Nz(rs!Armband, "?") & " - " & _
+                     Nz(rs!CallName, "Unknown") & " - " & _
+                     Nz(rs!HandlerName, "Unknown") & vbCrLf
+            rs.MoveNext
+        Loop
+    End If
+
+    rs.Close
+    CheckScoredEntriesInAccess_v3 = result
+
+Check_Exit:
+    Set rs = Nothing
+    Set db = Nothing
+    Exit Function
+
+Check_Error:
+    Debug.Print "CheckScoredEntriesInAccess_v3 Error: " & Err.Description
+    CheckScoredEntriesInAccess_v3 = ""
+    Resume Check_Exit
+End Function
+
+' =============================================================================
+' CHECK IF SINGLE ENTRY IS SCORED IN ACCESS
+' Returns True if the entry has any result set
+' =============================================================================
+Private Function IsEntryScoredInAccess(ByVal lngEntryID As Long) As Boolean
+    On Error GoTo Check_Error
+
+    Dim varResult As Variant
+
+    ' Check if any scoring field is True
+    varResult = DLookup("entryID", "tbl_Entry", _
+                        "entryID = " & lngEntryID & " AND " & _
+                        "(Qualified = True OR NQ = True OR Excused = True OR Absent = True OR Withdrawn = True)")
+
+    IsEntryScoredInAccess = Not IsNull(varResult)
+    Exit Function
+
+Check_Error:
+    Debug.Print "IsEntryScoredInAccess Error: " & Err.Description
+    IsEntryScoredInAccess = False
+End Function
+
+' ============================================================================
+' ShowAccessScoredEntriesWarning - Dialog for DOWNLOAD protection
+' ============================================================================
+' Uses custom form dlg_ScoredEntriesWarning with modified title for download
+' Returns: vbAbort (Cancel), vbIgnore (Keep Access Scores), vbRetry (Overwrite)
+' ============================================================================
+Private Function ShowAccessScoredEntriesWarning(ByVal scoredEntriesList As String, ByVal className As String) As Integer
+    On Error GoTo Err_Handler
+
+    Dim strOpenArgs As String
+    ' Use special prefix to indicate this is for ACCESS scores (download protection)
+    strOpenArgs = "ACCESS|" & className & "|" & scoredEntriesList
+
+    ' Open custom dialog form (requires dlg_ScoredEntriesWarning form in database)
+    DoCmd.OpenForm "dlg_ScoredEntriesWarning", acNormal, , , , acDialog, strOpenArgs
+
+    ' Get return value from form
+    Dim intResult As Integer
+    On Error Resume Next
+    intResult = Forms("dlg_ScoredEntriesWarning").ReturnValue
+    If Err.Number <> 0 Then intResult = 0
+    On Error GoTo Err_Handler
+
+    ' Close form if still open
+    On Error Resume Next
+    DoCmd.Close acForm, "dlg_ScoredEntriesWarning"
+    On Error GoTo 0
+
+    ' Convert to vbAbort/vbIgnore/vbRetry for compatibility with existing code
+    Select Case intResult
+        Case 0: ShowAccessScoredEntriesWarning = vbAbort   ' Cancel
+        Case 1: ShowAccessScoredEntriesWarning = vbIgnore  ' Keep Access Scores
+        Case 2: ShowAccessScoredEntriesWarning = vbRetry   ' Overwrite Access Scores
+        Case Else: ShowAccessScoredEntriesWarning = vbAbort
+    End Select
+    Exit Function
+
+Err_Handler:
+    ShowAccessScoredEntriesWarning = vbAbort  ' Cancel on error
+End Function
+
+' ==========================================================================
+' === LEGACY ROUTINES (Need updating for v3 schema)
+' ==========================================================================
+
+Public Function myK9Q_License_Status(iShowID As Integer, strClubname As String)
+
+26250   On Error Resume Next
+
+        Dim strAction As String, strKey As String, strStartDate As String, strProduct As String
+        Dim db As DAO.Database
+        Dim rs As DAO.Recordset
+        Dim dExpDate As Date
+
+26260   If CheckInternetConnectivity = True Then
+
+26270       Set db = CurrentDb
+26280       Set rs = db.OpenRecordset("SELECT MobileAppLicKey, MobileAppLicKeyStatus FROM tbl_Show WHERE ShowID = " & iShowID)
+
+
+26290       strAction = "status-check"
+26300       strProduct = "myK9Q"
+
+26310       strStartDate = DLookup("StartDate", "tbl_Show", "showID = " & iShowID)
+26320       strKey = DLookup("MobileAppLicKey", "tbl_Show", "showID = " & iShowID)
+26330       strClubname = strClubname & "-" & strStartDate
+
+
+26340       If InStr(1, strKey, "myK9Q") Then
+26350           rs.Edit
+26360           rs!MobileAppLicKeyStatus = "Verifying Key Status"
+26370           rs!MobileAppLicKeyStatus = WebRequest(strAction, strProduct, strKey, strClubname, dExpDate)
+26380           rs.Update
+
+26390           If InStr(rs!MobileAppLicKeyStatus, "License key is Active") Then
+26400               myK9Q_License_Status = True
+26410           Else
+26420               myK9Q_License_Status = False
+26430           End If
+26440       End If
+
+26450   Else
+26460       MsgBox "Unable to validate License Key without Internet Connectivity", vbInformation, "No Internet Connectivity"
+26470       Exit Function
+26480   End If
+
+End Function
+
+
+' ==========================================================================
+' === UPDATE SHOW DETAILS (v3 - REST API)
+' ==========================================================================
+
+Public Sub UpdateShowDetails_v3()
+52500     On Error GoTo UpdateShow_Error
+
+          Dim strmyK9Q As String
+          Dim strClubname As String
+          Dim strChairmanName As String
+          Dim strChairmanEmail As String
+          Dim strChairmanPhone As String
+          Dim strSecretaryName As String
+          Dim strSecretaryEmail As String
+          Dim strSecretaryPhone As String
+          Dim strSiteState As String
+          Dim strClubWebsite As String
+          Dim strNote As String
+          Dim iShowID As Long
+          Dim iClubID As Long
+          Dim strLicenseKey As String
+          Dim http As Object
+          Dim json As String
+
+
+          ' Check if Valid License
+52510     iShowID = Forms!frm_Show.txtShowID
+52520     iClubID = Nz(DLookup("ClubID_FK", "tbl_Show", "ShowID = " & iShowID), 0)
+52525     strLicenseKey = Nz(DLookup("MobileAppLicKey", "tbl_Show", "showID = " & iShowID), "")
+52530     strmyK9Q = Nz(DLookup("MobileAppLicKeyStatus", "tbl_Show", "showID = " & iShowID), "")
+
+52540     If InStr(1, strmyK9Q, "Active and Valid") Then
+
+52550         strClubname = Nz(DLookup("AKCClubName", "tbl_Club", "ClubID = " & iClubID), "")
+
+              ' Progress Bar
+52560         DoCmd.OpenForm "frm_Progress_myK9Q", acNormal
+52570         Forms!frm_Progress_myK9Q.lblCurrentTask.Caption = "Verifying License Key for Club ID: " & iClubID
+
+52580         Call myK9Q_License_Status(CInt(iShowID), strClubname)
+
+52590         DoCmd.Close acForm, "frm_Progress_myK9Q", acSaveNo
+
+52600     Else
+52610         MsgBox "Unable to Upload data without a Valid myK9Q License Key. Check myK9Q License Key and Status and Retry.", vbInformation, "myK9Q License Key"
+52620         Exit Sub
+52630     End If
+
+          ' Gather show details
+52640     strChairmanName = Nz(DLookup("FullName", "tbl_Person", "personID = " & Nz(Forms!frm_Show.ChairmanID_FK, 0)), "")
+52650     strChairmanEmail = Nz(DLookup("Email", "tbl_Person", "personID = " & Nz(Forms!frm_Show.ChairmanID_FK, 0)), "")
+52660     strChairmanPhone = Nz(DLookup("Phone", "tbl_Person", "personID = " & Nz(Forms!frm_Show.ChairmanID_FK, 0)), "")
+52670     strSecretaryName = Nz(DLookup("FullName", "tbl_Person", "personID = " & Nz(Forms!frm_Show.SecretaryID_FK, 0)), "")
+52680     strSecretaryEmail = Nz(DLookup("Email", "tbl_Person", "personID = " & Nz(Forms!frm_Show.SecretaryID_FK, 0)), "")
+52690     strSecretaryPhone = Nz(DLookup("Phone", "tbl_Person", "personID = " & Nz(Forms!frm_Show.SecretaryID_FK, 0)), "")
+52700     strSiteState = Nz(DLookup("StateName", "tbl_State", "StateID = " & Nz(Forms!frm_Show.SiteStateID_FK, 0)), "")
+52710     strClubWebsite = Nz(DLookup("Website", "tbl_Club", "ClubID = " & iClubID), "")
+52720     strNote = Nz(DLookup("note", "tbl_show", "showID = " & iShowID), "")
+52730     strNote = Replace(strNote, "<div>", "")
+52740     strNote = Replace(strNote, "</div>", "")
+
+          ' Build JSON for PATCH request
+52750     json = "{" & _
+                    """chairman_name"":""" & JsonSafe(strChairmanName) & """," & _
+                    """chairman_email"":""" & JsonSafe(strChairmanEmail) & """," & _
+                    """chairman_phone"":""" & JsonSafe(strChairmanPhone) & """," & _
+                    """secretary_name"":""" & JsonSafe(strSecretaryName) & """," & _
+                    """secretary_email"":""" & JsonSafe(strSecretaryEmail) & """," & _
+                    """secretary_phone"":""" & JsonSafe(strSecretaryPhone) & """," & _
+                    """website"":""" & JsonSafe(strClubWebsite) & """," & _
+                    """event_url"":""" & JsonSafe(Nz(Forms!frm_Show.eventurl, "")) & """," & _
+                    """site_name"":""" & JsonSafe(Nz(Forms!frm_Show.SiteName, "")) & """," & _
+                    """site_address"":""" & JsonSafe(Nz(Forms!frm_Show.SiteAddress, "")) & """," & _
+                    """site_city"":""" & JsonSafe(Nz(Forms!frm_Show.SiteCity, "")) & """," & _
+                    """site_state"":""" & JsonSafe(strSiteState) & """," & _
+                    """site_zip"":""" & JsonSafe(Nz(Forms!frm_Show.SiteZip, "")) & """," & _
+                    """notes"":""" & JsonSafe(strNote) & """" & _
+                 "}"
+
+          ' Send PATCH request to update show
+52760     Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+52770     http.Open "PATCH", SUPABASE_URL_2 & "/rest/v1/shows?license_key=eq." & strLicenseKey, False
+52780     http.setRequestHeader "apikey", SUPABASE_KEY_2
+52790     http.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
+52800     http.setRequestHeader "Content-Type", "application/json"
+52810     http.setRequestHeader "Prefer", "return=representation"
+52820     http.send json
+
+52830     If http.Status >= 200 And http.Status < 300 Then
+              ' Check if any rows were updated (empty array means show not found)
+52835         If http.responseText = "[]" Then
+52836             MsgBox "Show not found in myK9Q database. Activate the myK9Q license key to upload the show first.", vbExclamation, "Show Not Found"
+52837         Else
+52840             MsgBox "Show Details updated in myK9Q cloud database", vbInformation, "Show Details Update"
+52838         End If
+52850     Else
+52860         MsgBox "Error updating show details:" & vbCrLf & http.Status & " - " & http.responseText, vbCritical, "Update Failed"
+52870     End If
+
+52880     Set http = Nothing
+52890     Exit Sub
+
+UpdateShow_Error:
+52900     MsgBox "Error in UpdateShowDetails_v3: " & Err.Description, vbCritical
+52910     Set http = Nothing
+End Sub

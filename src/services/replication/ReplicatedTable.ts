@@ -522,9 +522,20 @@ export abstract class ReplicatedTable<T extends { id: string }> {
     return this.batchManager.batchDelete(ids);
   }
 
-  /** Clear all cached rows for this table */
+  /** Clear all cached rows for this table AND reset sync metadata */
   async clearCache(): Promise<void> {
-    return this.batchManager.clearCache();
+    await this.batchManager.clearCache();
+
+    // CRITICAL: Also reset sync metadata so next sync does a full fetch
+    // Without this, incremental sync may skip rows updated before lastIncrementalSyncAt
+    await this.cacheManager.updateSyncMetadata({
+      lastFullSyncAt: 0,
+      lastIncrementalSyncAt: 0,
+      totalRows: 0,
+      syncStatus: 'idle',
+      errorMessage: undefined,
+    });
+    this.logger.log(`[${this.tableName}] Sync metadata reset`);
   }
 
   // --- Cache Management (delegated to ReplicatedTableCacheManager) ---
