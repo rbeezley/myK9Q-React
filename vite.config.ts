@@ -22,9 +22,9 @@ export default defineConfig({
     hookTimeout: 30000, // Increase from default 10s to 30s for IndexedDB cleanup
     testTimeout: 15000, // 15s timeout for individual tests
 
-    // Test isolation - use vmThreads pool for better isolation
-    // This creates a new VM context for each test file, preventing module state leakage
-    pool: 'vmThreads',
+    // Test isolation - use forks pool for better isolation
+    // vmThreads caused "multiple elements found" errors in CI due to improper cleanup
+    pool: 'forks',
     // Sequential file execution to avoid module loading race conditions on Windows
     fileParallelism: false,
 
