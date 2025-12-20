@@ -24,10 +24,12 @@ import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Users, Briefcase, ChevronDown, ChevronRight } from 'lucide-react';
 import { useScheduleBoard } from '../hooks/useScheduleBoard';
+import { useScheduleFiltering } from '../hooks/useScheduleFiltering';
 import { VolunteerPool } from './VolunteerPool';
 import { VolunteerChip } from './VolunteerChip';
 import { VolunteerDialog } from './VolunteerDialog';
 import { RoleConfigDialog } from './RoleConfigDialog';
+import { ActiveFilterChip, FilterPanel } from '../../../components/ui';
 import type { Volunteer, ClassInfo } from '../types';
 
 interface ScheduleBoardProps {
@@ -37,6 +39,24 @@ interface ScheduleBoardProps {
   externalTrigger?: 'add-volunteer' | 'manage-roles' | null;
   /** Callback when trigger has been consumed */
   onTriggerConsumed?: () => void;
+  /** Search term for filtering classes/volunteers */
+  searchTerm?: string;
+  /** Callback to set search term */
+  onSearchChange?: (term: string) => void;
+  /** Selected volunteer names for multi-select filtering */
+  selectedVolunteers?: string[];
+  /** Callback to update selected volunteers */
+  onSelectedVolunteersChange?: (volunteers: string[]) => void;
+  /** Selected judge names for multi-select filtering */
+  selectedJudges?: string[];
+  /** Callback to update selected judges */
+  onSelectedJudgesChange?: (judges: string[]) => void;
+  /** Callback to clear all filters */
+  onClearAllFilters?: () => void;
+  /** Whether the filter panel is open */
+  isFilterOpen?: boolean;
+  /** Callback to close the filter panel */
+  onFilterClose?: () => void;
 }
 
 // Helper to format class name from components
@@ -69,7 +89,21 @@ function formatTrialId(cls: ClassInfo): string {
   return `${weekday}, ${month} ${ordinal(day)}, ${year}${trialNum}`;
 }
 
-export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerConsumed }: ScheduleBoardProps) {
+// eslint-disable-next-line complexity -- Complex component with many features (drag-drop, filtering, dialogs)
+export function ScheduleBoard({
+  isReadOnly = false,
+  externalTrigger,
+  onTriggerConsumed,
+  searchTerm = '',
+  onSearchChange,
+  selectedVolunteers = [],
+  onSelectedVolunteersChange,
+  selectedJudges = [],
+  onSelectedJudgesChange,
+  onClearAllFilters,
+  isFilterOpen = false,
+  onFilterClose
+}: ScheduleBoardProps) {
   const {
     classes,
     roles,
@@ -93,6 +127,18 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
   const [roleConfigOpen, setRoleConfigOpen] = useState(false);
   const [generalDutiesExpanded, setGeneralDutiesExpanded] = useState(true);
 
+  // Use filtering hook for volunteer/judge multi-select
+  const { hasAnyFilter, filteredClasses, filteredGeneralRoles, uniqueJudges } = useScheduleFiltering({
+    classes,
+    roles,
+    volunteers,
+    classAssignments,
+    generalAssignments,
+    searchTerm,
+    selectedVolunteers,
+    selectedJudges,
+  });
+
   // Handle external triggers from header menu - intentional setState in effect
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -107,13 +153,9 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
   }, [externalTrigger, onTriggerConsumed]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Filter roles by type
+  // Filter ring roles (always show all active ring roles - they're column headers)
   const ringRoles = useMemo(
     () => roles.filter(r => r.isRingRole && r.isActive),
-    [roles]
-  );
-  const generalRoles = useMemo(
-    () => roles.filter(r => !r.isRingRole && r.isActive),
     [roles]
   );
 
@@ -244,6 +286,25 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
           />
         </div>
 
+        {/* Active Filter Chip - shows when any filter is active */}
+        {hasAnyFilter && (
+          <div className="schedule-filter-chip-container">
+            <ActiveFilterChip
+              searchTerm={
+                // Build a descriptive filter string
+                [
+                  searchTerm ? `"${searchTerm}"` : '',
+                  selectedVolunteers.length > 0 ? selectedVolunteers.join(', ') : '',
+                  selectedJudges.length > 0 ? `Judge: ${selectedJudges.join(', ')}` : ''
+                ].filter(Boolean).join(' + ')
+              }
+              matchCount={filteredClasses.length + filteredGeneralRoles.length}
+              totalCount={classes.length + roles.filter(r => !r.isRingRole && r.isActive).length}
+              onClear={onClearAllFilters || (() => {})}
+            />
+          </div>
+        )}
+
         {/* Scrollable content area */}
         <div className="schedule-scrollable-content">
           {/* General Duties Section */}
@@ -258,9 +319,9 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
               <span>General Duties</span>
             </button>
 
-            {!generalDutiesExpanded ? null : generalRoles.length === 0 ? (
+            {!generalDutiesExpanded ? null : filteredGeneralRoles.length === 0 ? (
               <div className="empty-state">
-                <p>No general duty roles configured. Go to Manage Roles to add some.</p>
+                <p>{hasAnyFilter ? 'No matching general duties found.' : 'No general duty roles configured. Go to Manage Roles to add some.'}</p>
               </div>
             ) : (
               <table className="general-duties-table">
@@ -271,7 +332,7 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
                   </tr>
                 </thead>
                 <tbody>
-                  {generalRoles.map(role => {
+                  {filteredGeneralRoles.map(role => {
                     const assigned = getGeneralDutyVolunteers(role.id);
                     return (
                       <tr key={role.id} className="general-duty-row">
@@ -312,9 +373,9 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
               <span>Class Assignments</span>
             </div>
 
-            {classes.length === 0 ? (
+            {filteredClasses.length === 0 ? (
               <div className="empty-state">
-                <p>No classes found for this trial.</p>
+                <p>{hasAnyFilter ? 'No matching classes found.' : 'No classes found for this trial.'}</p>
               </div>
             ) : (
               <table className="schedule-table">
@@ -328,7 +389,7 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
                   </tr>
                 </thead>
                 <tbody>
-                  {classes.map(cls => (
+                  {filteredClasses.map(cls => (
                     <tr key={cls.id}>
                       <td>
                         <div className="schedule-class-info">
@@ -403,6 +464,87 @@ export function ScheduleBoard({ isReadOnly = false, externalTrigger, onTriggerCo
         roles={roles}
         onSave={updateRoles}
       />
+
+      {/* Search/Filter Panel with multi-select chips */}
+      <FilterPanel
+        isOpen={isFilterOpen}
+        onClose={onFilterClose || (() => {})}
+        searchTerm={searchTerm}
+        onSearchChange={onSearchChange || (() => {})}
+        searchPlaceholder="Type to search..."
+        sortOptions={[]}
+        sortOrder=""
+        onSortChange={() => {}}
+        title="Find Assignments"
+      >
+        {/* Quick-pick: Volunteers (multi-select) */}
+        {volunteers.length > 0 && (
+          <div className="filter-quick-pick-section">
+            <label className="filter-quick-pick-label">
+              Volunteers {selectedVolunteers.length > 0 && `(${selectedVolunteers.length} selected)`}
+            </label>
+            <div className="filter-quick-pick-chips">
+              {volunteers.map(v => {
+                const isSelected = selectedVolunteers.includes(v.name);
+                return (
+                  <button
+                    key={v.id}
+                    className={`filter-quick-pick-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => {
+                      if (isSelected) {
+                        onSelectedVolunteersChange?.(selectedVolunteers.filter(sv => sv !== v.name));
+                      } else {
+                        onSelectedVolunteersChange?.([...selectedVolunteers, v.name]);
+                      }
+                    }}
+                  >
+                    {v.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Quick-pick: Judges (multi-select) */}
+        {uniqueJudges.length > 0 && (
+          <div className="filter-quick-pick-section">
+            <label className="filter-quick-pick-label">
+              Judges {selectedJudges.length > 0 && `(${selectedJudges.length} selected)`}
+            </label>
+            <div className="filter-quick-pick-chips">
+              {uniqueJudges.map(judge => {
+                const isSelected = selectedJudges.includes(judge);
+                return (
+                  <button
+                    key={judge}
+                    className={`filter-quick-pick-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => {
+                      if (isSelected) {
+                        onSelectedJudgesChange?.(selectedJudges.filter(sj => sj !== judge));
+                      } else {
+                        onSelectedJudgesChange?.([...selectedJudges, judge]);
+                      }
+                    }}
+                  >
+                    {judge}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Done button */}
+        <div className="filter-panel-actions">
+          <button
+            className="filter-panel-done-btn"
+            onClick={onFilterClose}
+          >
+            Done
+          </button>
+        </div>
+      </FilterPanel>
     </div>
   );
 }

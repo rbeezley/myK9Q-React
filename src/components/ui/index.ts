@@ -64,3 +64,5 @@ export { SyncStatusPopover } from './SyncStatusPopover';
 export { SyncFailureToast } from './SyncFailureToast';
 export { Popover } from './Popover';
 export type { PopoverProps, PopoverPosition, PopoverAlignment } from './Popover';
+export { ActiveFilterChip } from './ActiveFilterChip';
+export type { ActiveFilterChipProps } from './ActiveFilterChip';

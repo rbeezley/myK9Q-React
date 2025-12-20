@@ -12,7 +12,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { HamburgerMenu, CompactOfflineIndicator, TabBar } from '../../components/ui';
+import { HamburgerMenu, CompactOfflineIndicator, TabBar, FilterTriggerButton } from '../../components/ui';
 import type { Tab } from '../../components/ui';
 import { ClipboardList, Users, MoreVertical, Plus, Settings, Eye, Sliders } from 'lucide-react';
 import { KanbanBoard } from './components/KanbanBoard';
@@ -32,6 +32,22 @@ export function TrialSecretary() {
 
   // External triggers for ScheduleBoard actions
   const [scheduleTrigger, setScheduleTrigger] = useState<'add-volunteer' | 'manage-roles' | null>(null);
+
+  // Search/filter state for volunteer schedule
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
+  const [selectedJudges, setSelectedJudges] = useState<string[]>([]);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm.length > 0 || selectedVolunteers.length > 0 || selectedJudges.length > 0;
+
+  // Clear all filters
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm('');
+    setSelectedVolunteers([]);
+    setSelectedJudges([]);
+  }, []);
 
   // Tab configuration for TabBar component
   const tabs: Tab[] = useMemo(() => [
@@ -79,44 +95,54 @@ export function TrialSecretary() {
           )}
         </div>
 
-        {/* Actions menu (three-dot) - only show on schedule tab for admin users */}
-        {activeTab === 'schedule' && !isReadOnly && (
+        {/* Header buttons - show on schedule tab */}
+        {activeTab === 'schedule' && (
           <div className="header-buttons">
-            <div className="actions-menu-container">
-              <button
-                className="icon-button actions-button"
-                onClick={() => setShowActionsMenu(!showActionsMenu)}
-                aria-label="Actions menu"
-                title="More Actions"
-              >
-                <MoreVertical className="h-5 w-5" />
-              </button>
+            {/* Filter/Search button - visible for all users */}
+            <FilterTriggerButton
+              onClick={() => setIsFilterPanelOpen(true)}
+              hasActiveFilters={hasActiveFilters}
+              activeFilterCount={selectedVolunteers.length + selectedJudges.length + (searchTerm ? 1 : 0)}
+            />
 
-              {showActionsMenu && (
-                <div className="actions-dropdown-menu">
-                  <button
-                    onClick={() => {
-                      setShowActionsMenu(false);
-                      setScheduleTrigger('add-volunteer');
-                    }}
-                    className="action-menu-item"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Volunteer
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowActionsMenu(false);
-                      setScheduleTrigger('manage-roles');
-                    }}
-                    className="action-menu-item"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Manage Roles
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Actions menu (three-dot) - only for admin users */}
+            {!isReadOnly && (
+              <div className="actions-menu-container">
+                <button
+                  className="icon-button actions-button"
+                  onClick={() => setShowActionsMenu(!showActionsMenu)}
+                  aria-label="Actions menu"
+                  title="More Actions"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+
+                {showActionsMenu && (
+                  <div className="actions-dropdown-menu">
+                    <button
+                      onClick={() => {
+                        setShowActionsMenu(false);
+                        setScheduleTrigger('add-volunteer');
+                      }}
+                      className="action-menu-item"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Volunteer
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowActionsMenu(false);
+                        setScheduleTrigger('manage-roles');
+                      }}
+                      className="action-menu-item"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Manage Roles
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -136,6 +162,15 @@ export function TrialSecretary() {
             isReadOnly={isReadOnly}
             externalTrigger={isReadOnly ? null : scheduleTrigger}
             onTriggerConsumed={clearScheduleTrigger}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedVolunteers={selectedVolunteers}
+            onSelectedVolunteersChange={setSelectedVolunteers}
+            selectedJudges={selectedJudges}
+            onSelectedJudgesChange={setSelectedJudges}
+            onClearAllFilters={clearAllFilters}
+            isFilterOpen={isFilterPanelOpen}
+            onFilterClose={() => setIsFilterPanelOpen(false)}
           />
         )}
         {activeTab === 'results' && showContext?.licenseKey && (
