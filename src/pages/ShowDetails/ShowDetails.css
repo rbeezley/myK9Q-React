@@ -425,3 +425,61 @@
 }
 
 /* Page-level tabs use shared TabBar component from components/ui/TabBar.css */
+
+/* ============================================================================
+   Upcoming Shows Card
+   ============================================================================ */
+
+.upcoming-shows-header {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--token-space-sm);
+  margin-bottom: var(--token-space-xs);
+  padding-bottom: var(--token-space-2xs);
+  border-bottom: 1px solid var(--border);
+}
+
+.upcoming-shows-header:first-child {
+  margin-top: 0;
+}
+
+.upcoming-show-item {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-sm);
+  border-radius: var(--token-radius-md);
+  background: var(--muted);
+  transition: background-color 0.2s ease;
+}
+
+.theme-dark .upcoming-show-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.upcoming-show-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-2xs);
+  min-width: 0; /* Allow text truncation */
+}
+
+.upcoming-show-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upcoming-show-details {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

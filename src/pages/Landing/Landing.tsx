@@ -4,7 +4,7 @@ import {
   Trophy, Users, Award, Shield,
   ChevronRight, Timer, Bell, Settings, Zap, UserCheck,
   BookOpen, Video, ExternalLink, ArrowRight, Check, DollarSign, Menu, X,
-  RefreshCw, WifiOff, Smartphone, BarChart3, Volume2, ClipboardList, Download
+  RefreshCw, WifiOff, Smartphone, BarChart3, Volume2, ClipboardList, Download, Calendar
 } from 'lucide-react';
 import './Landing.css';
 
@@ -408,6 +408,54 @@ export function Landing() {
                 </p>
               </div>
               <ExternalLink className="resource-arrow" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Find Events Section */}
+      <section id="events" className="events-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Find Events</h2>
+            <div className="title-accent"></div>
+          </div>
+
+          <div className="events-grid">
+            <a
+              href="https://www.apps.akc.org/apps/event_calendar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="event-card"
+            >
+              <div className="event-icon-frame">
+                <Calendar className="event-icon" />
+              </div>
+              <div className="event-content">
+                <h3 className="event-title">AKC Event Calendar</h3>
+                <p className="event-desc">
+                  Find AKC scent work trials near you
+                </p>
+              </div>
+              <ExternalLink className="event-arrow" />
+            </a>
+
+            <a
+              href="https://www.ukcdogs.com/nosework-events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="event-card"
+            >
+              <div className="event-icon-frame">
+                <Calendar className="event-icon" />
+              </div>
+              <div className="event-content">
+                <h3 className="event-title">UKC Nosework Events</h3>
+                <p className="event-desc">
+                  Browse UKC nosework trials
+                </p>
+              </div>
+              <ExternalLink className="event-arrow" />
             </a>
           </div>
         </div>

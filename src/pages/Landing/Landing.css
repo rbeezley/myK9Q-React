@@ -1379,6 +1379,86 @@ section {
   color: var(--color-energy);
 }
 
+/* Events Section - Find AKC/UKC trials */
+.events-section {
+  padding: var(--space-4xl) 0;
+  background: var(--color-void);
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-xl);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.event-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  background: var(--color-slate);
+  border: 1px solid var(--color-steel);
+  border-radius: 1rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.event-card:hover {
+  border-color: var(--color-energy);
+  background: linear-gradient(135deg, var(--color-slate), var(--color-void));
+  transform: translateX(4px);
+}
+
+.event-icon-frame {
+  width: 48px;
+  height: 48px;
+  background: var(--color-void);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.event-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-energy);
+}
+
+.event-content {
+  flex: 1;
+}
+
+.event-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-energy);
+  margin: 0 0 0.25rem 0;
+}
+
+.event-desc {
+  font-size: 0.875rem;
+  color: var(--color-zinc);
+  margin: 0;
+}
+
+.event-arrow {
+  width: 20px;
+  height: 20px;
+  color: var(--color-zinc);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover .event-arrow {
+  transform: translateX(4px);
+  color: var(--color-energy);
+}
+
 /* CTA Section */
 .cta-section {
   padding: var(--space-4xl) 0;

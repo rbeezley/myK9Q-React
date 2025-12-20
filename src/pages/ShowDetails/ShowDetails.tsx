@@ -12,12 +12,14 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { User } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLongPress } from '@/hooks/useLongPress';
 import { logger } from '@/utils/logger';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnnouncementStore } from '@/stores/announcementStore';
+import { replicatedShowsTable } from '@/services/replication';
 import {
   ShowDetailsHeader,
   ShowDetailsLoading,
@@ -25,7 +27,8 @@ import {
   ContactCard,
   NotesCard,
   LocationCard,
-  EventDetailsCard
+  EventDetailsCard,
+  UpcomingShowsCard
 } from './ShowDetailsComponents';
 import { getSecretaryInfo, getChairmanInfo } from './showDetailsUtils';
 import { useDashboardData } from './hooks/useDashboardData';
@@ -58,6 +61,13 @@ export function ShowDetails() {
     error,
     refetch,
   } = useDashboardData(licenseKey, showId);
+
+  // Fetch all shows for upcoming shows section
+  const { data: allShows = [] } = useQuery({
+    queryKey: ['allShows'],
+    queryFn: () => replicatedShowsTable.getAllShows(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   // Handle refresh - full refresh when user explicitly taps refresh button
   // Uses forceSync=true to fetch fresh data from server first
@@ -126,6 +136,11 @@ export function ShowDetails() {
             contact={chairmanInfo}
           />
           <NotesCard notes={show.notes} />
+          <UpcomingShowsCard
+            shows={allShows}
+            currentLicenseKey={licenseKey}
+            organization={show.organization}
+          />
         </div>
       </main>
     </div>

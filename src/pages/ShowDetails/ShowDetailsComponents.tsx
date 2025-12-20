@@ -341,3 +341,76 @@ export function NotesCard({ notes }: { notes?: string | null }) {
     </section>
   );
 }
+
+/**
+ * Upcoming Shows card - shows other myK9Q events + external links
+ */
+export function UpcomingShowsCard({
+  shows,
+  currentLicenseKey
+}: {
+  shows: Show[];
+  currentLicenseKey?: string;
+  organization?: string; // Kept for API compatibility but not used
+}) {
+  // Filter to upcoming shows (start_date > today), excluding current show
+  const today = new Date().toISOString().split('T')[0];
+  const upcomingShows = shows
+    .filter(show =>
+      show.start_date >= today &&
+      show.license_key !== currentLicenseKey
+    )
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+    .slice(0, 5); // Limit to 5 shows
+
+  return (
+    <section className="show-details-card">
+      <h2 className="show-details-card-title">
+        <Calendar />
+        Find Events
+      </h2>
+
+      <div className="show-details-list">
+        {/* myK9Q Upcoming Shows */}
+        {upcomingShows.length > 0 && (
+          <>
+            <div className="upcoming-shows-header">Upcoming in myK9Q</div>
+            {upcomingShows.map(show => (
+              <div key={show.license_key} className="upcoming-show-item">
+                <div className="upcoming-show-info">
+                  <span className="upcoming-show-name">{show.show_name}</span>
+                  <span className="upcoming-show-details">
+                    {show.club_name} • {formatDateRange(show.start_date, show.end_date)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* External Links - Always show both */}
+        <div className="upcoming-shows-header">Find More Events</div>
+
+        <a
+          href="https://www.apps.akc.org/apps/event_calendar/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="show-detail-row show-detail-link"
+        >
+          <Globe size={16} className="detail-icon" />
+          <span className="detail-text">AKC Event Calendar</span>
+        </a>
+
+        <a
+          href="https://www.ukcdogs.com/nosework-events"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="show-detail-row show-detail-link"
+        >
+          <Globe size={16} className="detail-icon" />
+          <span className="detail-text">UKC Nosework Events</span>
+        </a>
+      </div>
+    </section>
+  );
+}
