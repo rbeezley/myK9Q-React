@@ -177,18 +177,19 @@ json = json & "," & _
 
 ## Implementation Checklist
 
-- [ ] Apply database migration to add `element_time_seconds` column
-- [ ] Copy AKC module as base
-- [ ] Change organization to `"UKC Nosework"`
-- [ ] Update `SyncClassesViaAPI_v3`:
-  - [ ] Change `C.Section` → `C.Division` in SQL
-  - [ ] Remove `TimeLimit2`, `TimeLimit3`, `Areas` from SQL
-  - [ ] Hardcode `area_count` to 1
-  - [ ] Hardcode `time_limit_area2/3_seconds` to null
-- [ ] Update `SyncEntriesViaAPI_v3`:
-  - [ ] Add `E.ElementTime` to SQL
-  - [ ] Remove `E.AreaTime1/2/3` from SQL
-  - [ ] Map `ElementTime` → `element_time_seconds`
+- [x] Apply database migration to add `element_time_seconds` column *(completed 2025-12-21)*
+- [x] Copy AKC module as base *(completed 2025-12-21)*
+- [x] Change organization to `"UKC Nosework"` *(completed 2025-12-21)*
+- [x] Update `SyncClassesViaAPI_v3`:
+  - [x] Change `C.Section` → `C.Division` in SQL
+  - [x] Remove `TimeLimit2`, `TimeLimit3`, `Areas` from SQL
+  - [x] Hardcode `area_count` to 1
+  - [x] Hardcode `time_limit_area2/3_seconds` to null
+- [x] Update `SyncEntriesViaAPI_v3`:
+  - [x] Add `E.ElementTime` to SQL
+  - [x] Remove `E.AreaTime1/2/3` from SQL
+  - [x] Map `ElementTime` → `element_time_seconds`
+- [x] Update `myK9Q_Class_Result_Download_v3` for UKC timing fields
 - [ ] Create UKC test data in Access
 - [ ] Test upload cycle
 - [ ] Test download cycle

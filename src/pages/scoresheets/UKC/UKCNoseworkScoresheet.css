@@ -1,44 +1,49 @@
 /**
  * UKC Nosework Scoresheet Styles
+ * Extends AKC Flutter CSS for UKC-specific components
  */
 
-.ukc-nosework-scoresheet {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-/* Fault Counter Section */
+/* Fault Counter Section - UKC Specific */
 .fault-section {
   text-align: center;
 }
 
-/* Mobile: Tighter spacing */
+.fault-section h3 {
+  margin: 0 0 var(--token-space-lg) 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--scoresheet-text-secondary);
+}
+
+/* Fault Counter Controls */
 .fault-counter {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--token-space-xl);
-  margin: var(--token-space-3xl) 0;
+  margin: var(--token-space-lg) 0;
 }
 
-/* Mobile: Smaller button size */
+/* Fault Buttons - Match timer button style */
 .fault-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: var(--token-space-xs) solid var(--color-border, var(--border-light));
-  background: var(--color-background, white);
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  border: 2px solid var(--scoresheet-input-border);
+  background: var(--scoresheet-card-bg);
   font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--color-text, #333);
+  color: var(--scoresheet-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fault-btn:hover:not(:disabled) {
-  background: var(--color-primary, #6366f1);
-  color: white;
   transform: scale(1.05);
+  box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.2);
 }
 
 .fault-btn:active:not(:disabled) {
@@ -51,234 +56,93 @@
 }
 
 .fault-btn.increment {
-  border-color: var(--color-danger, var(--status-pulled));
+  border-color: var(--token-error);
+  color: var(--token-error);
+}
+
+.fault-btn.increment:hover:not(:disabled) {
+  background: var(--token-error);
+  color: white;
 }
 
 .fault-btn.decrement {
-  border-color: var(--color-success, var(--status-checked-in));
+  border-color: var(--status-checked-in);
+  color: var(--status-checked-in);
 }
 
-/* Mobile: Smaller count display */
+.fault-btn.decrement:hover:not(:disabled) {
+  background: var(--status-checked-in);
+  color: white;
+}
+
+/* Fault Count Display */
 .fault-count {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: bold;
   min-width: 80px;
-  padding: var(--token-space-xl);
-  background: var(--color-muted, var(--surface-subtle));
+  padding: var(--token-space-lg);
+  background: var(--muted);
   border-radius: var(--token-space-lg);
-  color: var(--color-text, #333);
+  color: var(--scoresheet-text);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
+/* Fault Info Text */
 .fault-info {
-  margin-top: var(--token-space-xl);
-  font-size: 0.95rem;
-  color: var(--color-text-secondary, var(--text-gray));
+  margin-top: var(--token-space-lg);
+  font-size: 14px;
+  color: var(--scoresheet-text-secondary);
 }
 
 .fault-info .info-text {
-  padding: var(--token-space-md) var(--token-space-xl);
+  display: inline-block;
+  padding: var(--token-space-sm) var(--token-space-lg);
   border-radius: var(--token-space-md);
-  background: var(--color-muted, var(--surface-subtle));
+  background: var(--muted);
 }
 
 .fault-info .warning {
-  background: var(--color-danger-light, #fee2e2);
-  color: var(--color-danger, var(--status-pulled));
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--token-error);
   font-weight: 600;
 }
 
-/* Time Display */
-/* Mobile: Smaller time font */
-.time-display {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  margin-top: var(--token-space-xl);
-  padding: var(--token-space-xl);
-  background: var(--color-muted, var(--surface-subtle));
-  border-radius: var(--token-space-lg);
-  color: var(--color-primary, #6366f1);
+/* Light theme adjustments */
+.theme-light .fault-btn {
+  background: var(--scoresheet-card-bg);
 }
 
-/* Qualifying Options */
-/* Mobile: Single column */
-.qualifying-options {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--token-space-xl);
-  margin-top: var(--token-space-xl);
+.theme-light .fault-count {
+  background: var(--muted);
 }
 
-.result-chip {
-  padding: var(--token-space-xl);
-  border: var(--token-space-xs) solid var(--color-border, var(--border-light));
-  border-radius: var(--token-space-lg);
-  background: var(--color-background, white);
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  color: var(--color-text, #333);
+.theme-light .fault-info .info-text {
+  background: var(--muted);
 }
 
-.result-chip:hover {
-  border-color: var(--color-primary, #6366f1);
-  transform: translateY(-2px);
-  box-shadow: 0 var(--token-space-sm) 6px rgba(0, 0, 0, 0.1);
+.theme-light .fault-info .warning {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--token-error-contrast);
 }
 
-.result-chip:active {
-  transform: translateY(0);
-}
-
-.result-chip.selected {
-  background: var(--color-primary, #6366f1);
-  color: white;
-  border-color: var(--color-primary, #6366f1);
-}
-
-/* NQ Reason Input */
-.nq-reason {
-  margin-top: var(--token-space-3xl);
-}
-
-.nq-reason label {
-  display: block;
-  margin-bottom: var(--token-space-md);
-  font-weight: 600;
-  color: var(--color-text, #333);
-}
-
-.nq-reason input {
-  width: 100%;
-  padding: var(--token-space-lg);
-  border: var(--token-space-xs) solid var(--color-border, var(--border-light));
-  border-radius: var(--token-space-md);
-  font-size: 1rem;
-  background: var(--color-background, white);
-  color: var(--color-text, #333);
-}
-
-.nq-reason input:focus {
-  outline: none;
-  border-color: var(--color-primary, #6366f1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-/* Confirmation Dialog */
-.confirmation-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--token-z-modal);
-  backdrop-filter: blur(4px);
-}
-
-.confirmation-dialog {
-  background: var(--color-background, white);
-  border-radius: var(--token-space-xl);
-  padding: var(--token-space-4xl);
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 var(--token-space-2xl) 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.confirmation-dialog h2 {
-  margin: 0 0 var(--token-space-3xl) 0;
-  color: var(--color-text, #333);
-}
-
-.confirmation-details {
-  margin-bottom: var(--token-space-3xl);
-  padding: var(--token-space-xl);
-  background: var(--color-muted, var(--surface-subtle));
-  border-radius: var(--token-space-md);
-}
-
-.confirmation-details p {
-  margin: var(--token-space-md) 0;
-  color: var(--color-text, #333);
-}
-
-.confirmation-actions {
-  display: flex;
-  gap: var(--token-space-xl);
-  justify-content: flex-end;
-}
-
-/* Dark Mode */
-.theme-dark {
-  --color-background: var(--card);
-  --color-text: #f9fafb;
-  --color-text-secondary: var(--text-light-gray);
-  --color-border: var(--foreground-muted);
-  --color-muted: var(--foreground-muted);
-  --color-primary: #818cf8;
-  --color-danger: #f87171;
-  --color-danger-light: #7f1d1d;
-  --color-success: #34d399;
-}
-
-.theme-dark .fault-btn {
-  background: var(--color-background);
-}
-
-.theme-dark .fault-count {
-  background: var(--foreground);
-}
-
-.theme-dark .time-display {
-  background: var(--foreground);
-}
-
-.theme-dark .result-chip {
-  background: var(--color-background);
-}
-
-.theme-dark .result-chip.selected {
-  background: var(--color-primary);
-  color: var(--foreground);
-}
-
-/* Touch Feedback */
-.fault-btn:active:not(:disabled) {
-  transform: scale(0.95);
-  transition: transform 0.05s;
-}
-
-.result-chip:active {
-  transform: scale(0.98);
-  transition: transform 0.05s;
-}
-
-/* Desktop: Larger controls and spacing */
+/* Desktop: Larger controls */
 @media (min-width: 640px) {
   .fault-counter {
-    gap: var(--token-space-4xl);
+    gap: var(--token-space-3xl);
   }
 
   .fault-btn {
-    width: 60px;
-    height: 60px;
-    font-size: 2rem;
+    width: 64px;
+    height: 64px;
+    font-size: 1.75rem;
   }
 
   .fault-count {
     font-size: 3rem;
     min-width: 100px;
-  }
-
-  .time-display {
-    font-size: 2rem;
-  }
-
-  .qualifying-options {
-    grid-template-columns: repeat(2, 1fr);
+    padding: var(--token-space-xl);
   }
 }

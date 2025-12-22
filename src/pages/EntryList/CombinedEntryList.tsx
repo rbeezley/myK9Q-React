@@ -269,7 +269,9 @@ export const CombinedEntryList: React.FC = () => {
         navigate(`/scoresheet/akc-fastcat/${entry.classId}/${entry.id}`, { state: navigationState });
       }
     } else if (orgData.organization === 'UKC') {
-      if (element === 'Obedience') {
+      if (orgData.activity_type === 'Nosework') {
+        navigate(`/scoresheet/ukc-nosework/${entry.classId}/${entry.id}`, { state: navigationState });
+      } else if (element === 'Obedience') {
         navigate(`/scoresheet/ukc-obedience/${entry.classId}/${entry.id}`, { state: navigationState });
       } else if (element === 'Rally') {
         navigate(`/scoresheet/ukc-rally/${entry.classId}/${entry.id}`, { state: navigationState });
