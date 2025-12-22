@@ -60,6 +60,7 @@ export const CombinedEntryList: React.FC = () => {
   });
 
   // Force fresh fetch on mount
+  // NOTE: refresh is now stable via useCallback, so this won't cause infinite loops
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -105,45 +106,15 @@ export const CombinedEntryList: React.FC = () => {
     supportSectionFilter: true
   });
 
-  // Subscribe to cache updates from ReplicationManager
-  const classIds = useMemo(
-    () => classIdA && classIdB ? [parseInt(classIdA), parseInt(classIdB)] : [],
-    [classIdA, classIdB]
-  );
-
-  useEffect(() => {
-    if (!classIds.length) return;
-
-    let unsubscribe: (() => void) | null = null;
-
-    const setupCacheListener = async () => {
-      try {
-        const { ensureReplicationManager } = await import('@/utils/replicationHelper');
-        const manager = await ensureReplicationManager();
-
-        unsubscribe = manager.onCacheUpdate('entries', (_tableName: string) => {
-          refresh();
-        });
-
-        logger.log('[CombinedEntryList] Subscribed to cache updates from ReplicationManager');
-      } catch (error) {
-        logger.error('[CombinedEntryList] Failed to subscribe to cache updates:', error);
-      }
-    };
-
-    setupCacheListener();
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-        logger.log('[CombinedEntryList] Unsubscribed from cache updates');
-      }
-    };
-  }, [classIds, refresh]);
+  // NOTE: Cache update subscription is handled by useEntryListData hook.
+  // Previously had a duplicate subscription here via manager.onCacheUpdate()
+  // that caused double notifications. Removed to prevent issues.
 
   // Sync local entries with fetched data
+  // Note: This pattern synchronizes React Query data with local state for optimistic UI updates
   useEffect(() => {
     if (entries.length > 0 && !isDraggingRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: syncing external data to local state
       setLocalEntries(entries);
     }
   }, [entries]);
@@ -219,6 +190,7 @@ export const CombinedEntryList: React.FC = () => {
   }, [showContext?.org, showContext?.competition_type]);
 
   // Prefetch handler
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- Using specific property access is intentional
   const handleEntryPrefetch = useCallback((entry: Entry) => {
     if (entry.isScored || !showContext?.org) return;
 
