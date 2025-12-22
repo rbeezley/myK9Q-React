@@ -250,6 +250,14 @@ export function useDogDetailsData(
 
     let unsubscribeEntries: (() => void) | undefined;
     let unsubscribeClasses: (() => void) | undefined;
+    let isMounted = true;
+    // Track if we've done the initial callback for each subscription
+    // subscribe() immediately calls back with current data - we need to skip that
+    let entriesInitialDone = false;
+    let classesInitialDone = false;
+    // Debounce invalidation to coalesce rapid notifications
+    let invalidationTimeout: ReturnType<typeof setTimeout> | null = null;
+    const INVALIDATION_DEBOUNCE_MS = 500;
 
     const setupSubscriptions = async () => {
       try {
@@ -257,17 +265,40 @@ export function useDogDetailsData(
         const entriesTable = manager.getTable('entries');
         const classesTable = manager.getTable('classes');
 
+        if (!isMounted) return;
+
+        // Debounced invalidation function
+        const debouncedInvalidate = () => {
+          if (!isMounted) return;
+          if (invalidationTimeout) {
+            clearTimeout(invalidationTimeout);
+          }
+          invalidationTimeout = setTimeout(() => {
+            if (!isMounted) return;
+            logger.log('[DogDetails] 🔄 Invalidating query after debounce');
+            queryClient.invalidateQueries({ queryKey });
+          }, INVALIDATION_DEBOUNCE_MS);
+        };
+
         if (entriesTable) {
           unsubscribeEntries = entriesTable.subscribe(() => {
-            logger.log('[DogDetails] 🔄 Entries cache updated - invalidating query');
-            queryClient.invalidateQueries({ queryKey });
+            // Skip the immediate callback that subscribe() triggers
+            if (!entriesInitialDone) {
+              entriesInitialDone = true;
+              return;
+            }
+            debouncedInvalidate();
           });
         }
 
         if (classesTable) {
           unsubscribeClasses = classesTable.subscribe(() => {
-            logger.log('[DogDetails] 🔄 Classes cache updated - invalidating query');
-            queryClient.invalidateQueries({ queryKey });
+            // Skip the immediate callback that subscribe() triggers
+            if (!classesInitialDone) {
+              classesInitialDone = true;
+              return;
+            }
+            debouncedInvalidate();
           });
         }
 
@@ -280,6 +311,8 @@ export function useDogDetailsData(
     setupSubscriptions();
 
     return () => {
+      isMounted = false;
+      if (invalidationTimeout) clearTimeout(invalidationTimeout);
       if (unsubscribeEntries) unsubscribeEntries();
       if (unsubscribeClasses) unsubscribeClasses();
       logger.log('[DogDetails] 🗑️ Unsubscribed from cache updates');
