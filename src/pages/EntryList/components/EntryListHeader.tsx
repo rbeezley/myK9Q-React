@@ -89,7 +89,14 @@ export const EntryListHeader: React.FC<EntryListHeaderProps> = ({
   // Memoize popover data to reduce inline complexity
   const popoverData = React.useMemo(() => {
     if (!classInfo) return null;
+    // For combined sections, show both class IDs (e.g., "44311 / 44292")
+    const classIdDisplay = classInfo.actualClassId
+      ? classInfo.actualClassId
+      : classInfo.actualClassIdA && classInfo.actualClassIdB
+        ? `${classInfo.actualClassIdA} / ${classInfo.actualClassIdB}`
+        : classInfo.actualClassIdA || classInfo.actualClassIdB;
     return {
+      classId: classIdDisplay,
       status: classInfo.classStatus,
       totalEntries: classInfo.totalEntries,
       completedEntries: classInfo.completedEntries,

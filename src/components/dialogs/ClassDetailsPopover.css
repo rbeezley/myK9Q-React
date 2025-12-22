@@ -33,3 +33,22 @@
   background: rgba(var(--destructive-rgb, 239, 68, 68), 0.15);
   color: var(--destructive);
 }
+
+/* Subtle row for less important info (e.g., Class ID for troubleshooting) */
+.popover-row-subtle {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color, #e2e8f0);
+  opacity: 0.7;
+}
+
+.popover-row-subtle .popover-icon,
+.popover-row-subtle .popover-label {
+  opacity: 0.8;
+}
+
+.popover-value-mono {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}

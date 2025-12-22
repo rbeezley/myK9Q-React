@@ -123,6 +123,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 
   // Class details data (shared between popover and bottom sheet)
   const classDetailsData = useMemo(() => ({
+    classId: classEntry.id,
     status: classEntry.class_status,
     totalEntries: classEntry.entry_count,
     completedEntries: classEntry.completed_count,

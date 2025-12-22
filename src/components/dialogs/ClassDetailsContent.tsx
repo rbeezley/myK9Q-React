@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Eye, Smartphone, User, Users, Activity, ListChecks } from 'lucide-react';
+import { Clock, Eye, Smartphone, User, Users, Activity, ListChecks, Hash } from 'lucide-react';
 import { formatSecondsToMMSS } from '@/utils/timeUtils';
 import './ClassDetailsPopover.css';
 
@@ -8,6 +8,9 @@ import './ClassDetailsPopover.css';
 // =============================================================================
 
 export interface ClassDetailsData {
+  // Identity
+  classId?: number | string;
+
   // Status & Progress
   status?: string;
   totalEntries?: number;
@@ -192,6 +195,15 @@ export const ClassDetailsContent: React.FC<ClassDetailsContentProps> = ({
           {data.selfCheckinEnabled ? 'App (Self)' : 'At Table'}
         </span>
       </div>
+
+      {/* Class ID - subtle, for troubleshooting */}
+      {data.classId && (
+        <div className="popover-row popover-row-subtle">
+          <Hash className="popover-icon" size={14} />
+          <span className="popover-label">Class ID:</span>
+          <span className="popover-value popover-value-mono">{data.classId}</span>
+        </div>
+      )}
     </div>
   );
 };

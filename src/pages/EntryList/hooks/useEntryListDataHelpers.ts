@@ -150,11 +150,12 @@ export async function fetchVisibilityPreset(
   classId: number | string
 ): Promise<'open' | 'standard' | 'review'> {
   try {
+    // Use maybeSingle() to avoid 406 error when no row exists for this class
     const { data } = await supabase
       .from('class_result_visibility_overrides')
-      .select('preset_name')
+      .select('class_id, preset_name')
       .eq('class_id', parseInt(String(classId)))
-      .single();
+      .maybeSingle();
 
     if (data?.preset_name && ['open', 'standard', 'review'].includes(data.preset_name)) {
       return data.preset_name as 'open' | 'standard' | 'review';
