@@ -4,8 +4,9 @@ import {
   Trophy, Users, Award, Shield,
   ChevronRight, Timer, Bell, Settings, Zap, UserCheck,
   BookOpen, Video, ExternalLink, ArrowRight, Check, DollarSign, Menu, X,
-  RefreshCw, WifiOff, Smartphone, BarChart3, Volume2, ClipboardList, Download, Calendar
+  RefreshCw, WifiOff, Smartphone, BarChart3, Volume2, ClipboardList, Download, Calendar, HelpCircle
 } from 'lucide-react';
+import { FAQSection } from '../../components/chatbot/FAQSection';
 import './Landing.css';
 
 export function Landing() {
@@ -41,6 +42,7 @@ export function Landing() {
             <button onClick={() => scrollToSection('capabilities')} className="nav-link">Capabilities</button>
             <button onClick={() => scrollToSection('pricing')} className="nav-link">Pricing</button>
             <button onClick={() => scrollToSection('resources')} className="nav-link">Resources</button>
+            <button onClick={() => scrollToSection('faq')} className="nav-link">FAQ</button>
           </div>
 
           <div className="nav-actions">
@@ -65,6 +67,7 @@ export function Landing() {
             <button onClick={() => scrollToSection('capabilities')} className="nav-mobile-link">Capabilities</button>
             <button onClick={() => scrollToSection('pricing')} className="nav-mobile-link">Pricing</button>
             <button onClick={() => scrollToSection('resources')} className="nav-mobile-link">Resources</button>
+            <button onClick={() => scrollToSection('faq')} className="nav-mobile-link">FAQ</button>
             <button onClick={handleGetStarted} className="nav-mobile-cta">
               Get Started
             </button>
@@ -457,6 +460,25 @@ export function Landing() {
               </div>
               <ExternalLink className="event-arrow" />
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="faq-landing-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Frequently Asked Questions</h2>
+            <div className="title-accent"></div>
+          </div>
+
+          <div className="faq-landing-content">
+            <FAQSection />
+          </div>
+
+          <div className="faq-landing-footer">
+            <HelpCircle className="faq-footer-icon" />
+            <p>Can't find what you're looking for? Log in and ask our AI assistant for help.</p>
           </div>
         </div>
       </section>
