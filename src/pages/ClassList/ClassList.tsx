@@ -29,7 +29,7 @@ import { useClassStatus, type StatusDependencies } from './hooks/useClassStatus'
 import { useClassRealtime } from './hooks/useClassRealtime';
 import { usePrintReports, type ReportDependencies } from './hooks/usePrintReports';
 import { useFavoriteClasses } from './hooks/useFavoriteClasses';
-import { findPairedNoviceClass, groupNoviceClasses } from './utils/noviceClassGrouping';
+import { findPairedSectionedClass, groupSectionedClasses, shouldCombineAllSections } from './utils/noviceClassGrouping';
 
 // eslint-disable-next-line complexity -- Large page component with many dialog/action handlers
 export const ClassList: React.FC = () => {
@@ -272,10 +272,11 @@ export const ClassList: React.FC = () => {
     return false;
   };
 
-  // Helper function to find the paired Novice class (A pairs with B, and vice versa)
+  // Helper function to find the paired sectioned class (A pairs with B, and vice versa)
+  // For UKC Nosework: all levels; for AKC: only Novice
   const findPaired = useCallback((clickedClass: ClassEntry): ClassEntry | null => {
-    return findPairedNoviceClass(clickedClass, classes);
-  }, [classes]);
+    return findPairedSectionedClass(clickedClass, classes, showContext?.org);
+  }, [classes, showContext?.org]);
 
   // Prefetch class entry data when hovering/touching class card
   const handleClassPrefetch = useCallback(async (classId: number) => {
@@ -342,15 +343,20 @@ export const ClassList: React.FC = () => {
       return;
     }
 
-    // Check if this is a combined Novice A & B class (has pairedClassId)
+    // Check if this is a combined A & B class (has pairedClassId from grouping)
     if (classEntry.pairedClassId) {
       // Navigate directly to combined view with both class IDs
       navigate(`/class/${classEntry.id}/${classEntry.pairedClassId}/entries/combined`);
       return;
     }
 
-    // Fallback: Check if this is a Novice class and has a paired class
-    if (classEntry.level === 'Novice' && (classEntry.section === 'A' || classEntry.section === 'B')) {
+    // Fallback: Check if this class should be paired based on organization
+    // UKC Nosework: all levels with A/B sections; AKC: only Novice
+    const combineAll = shouldCombineAllSections(showContext?.org);
+    const shouldCheckForPair = (classEntry.section === 'A' || classEntry.section === 'B') &&
+      (combineAll || classEntry.level === 'Novice');
+
+    if (shouldCheckForPair) {
       const paired = findPaired(classEntry);
       if (paired) {
         // Navigate directly to combined view with both class IDs (no dialog)
@@ -359,7 +365,7 @@ export const ClassList: React.FC = () => {
       }
     }
 
-    // Proceed with navigation (single class or non-Novice)
+    // Proceed with navigation (single class or non-pairable)
     navigate(`/class/${classEntry.id}/entries`);
   };
 
@@ -504,15 +510,16 @@ export const ClassList: React.FC = () => {
     return result;
   }, []);
 
-  // Helper function to group Novice A/B classes into combined entries
-  const groupNoviceClassesCached = useCallback((classList: ClassEntry[]): ClassEntry[] => {
-    return groupNoviceClasses(classList, findPaired);
-  }, [findPaired]);
+  // Helper function to group sectioned A/B classes into combined entries
+  // UKC Nosework: all levels; AKC: only Novice
+  const groupSectionedClassesCached = useCallback((classList: ClassEntry[]): ClassEntry[] => {
+    return groupSectionedClasses(classList, showContext?.org);
+  }, [showContext?.org]);
 
   // Memoized grouped classes - used for consistent counts across tabs and panel
   const groupedClasses = useMemo(() => {
-    return groupNoviceClassesCached(classes);
-  }, [groupNoviceClassesCached, classes]);
+    return groupSectionedClassesCached(classes);
+  }, [groupSectionedClassesCached, classes]);
 
   // Search and sort functionality
   // Memoized filtered and sorted classes for performance optimization

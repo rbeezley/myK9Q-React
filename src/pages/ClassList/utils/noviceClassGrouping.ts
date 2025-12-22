@@ -1,36 +1,63 @@
 /**
- * Novice Class Grouping Utilities
+ * Sectioned Class Grouping Utilities
  *
- * Pure utility functions for grouping Novice A/B classes together.
+ * Pure utility functions for grouping A/B section classes together.
+ * - AKC Scent Work: Only Novice level has A/B sections
+ * - UKC Nosework: ALL levels have A/B divisions
+ *
  * Extracted from ClassList.tsx for better testability and reusability.
  */
 
 import type { ClassEntry } from '../hooks/useClassListData';
 
 /**
- * Find the paired Novice class for a given class entry
+ * Check if the organization uses A/B sections for all levels
+ * Currently only UKC Nosework uses divisions for all levels
+ */
+export function shouldCombineAllSections(organization: string | undefined): boolean {
+  if (!organization) return false;
+  const orgLower = organization.toLowerCase();
+  return orgLower.includes('ukc') && orgLower.includes('nosework');
+}
+
+/**
+ * Find the paired class for a given class entry with A/B sections
  *
- * For Novice level classes, finds the matching class with the opposite section:
- * - Novice A pairs with Novice B
- * - Novice B pairs with Novice A
+ * Behavior depends on organization:
+ * - UKC Nosework: ALL levels with A/B sections are paired
+ * - AKC (default): Only Novice level classes are paired
  *
  * @param clickedClass - The class entry to find a pair for
  * @param allClasses - Complete list of all classes to search within
+ * @param organization - Organization string (e.g., "UKC Nosework", "AKC Scent Work")
  * @returns The paired class entry, or null if no pair exists
  *
  * @example
  * ```typescript
+ * // AKC: Only Novice classes are paired
  * const noviceA = { element: 'Interiors', level: 'Novice', section: 'A', ... };
- * const paired = findPairedNoviceClass(noviceA, classes);
- * // Returns the matching Novice B class if it exists
+ * const paired = findPairedSectionedClass(noviceA, classes, 'AKC Scent Work');
+ *
+ * // UKC: All levels are paired
+ * const masterA = { element: 'Interiors', level: 'Master', section: 'A', ... };
+ * const paired = findPairedSectionedClass(masterA, classes, 'UKC Nosework');
  * ```
  */
-export function findPairedNoviceClass(
+export function findPairedSectionedClass(
   clickedClass: ClassEntry,
-  allClasses: ClassEntry[]
+  allClasses: ClassEntry[],
+  organization?: string
 ): ClassEntry | null {
-  // Only proceed if this is a Novice level class
-  if (clickedClass.level !== 'Novice') {
+  // Check if class has a section that can be paired
+  if (clickedClass.section !== 'A' && clickedClass.section !== 'B') {
+    return null;
+  }
+
+  // Determine if we should combine based on organization
+  const combineAll = shouldCombineAllSections(organization);
+
+  // For AKC (default), only combine Novice level
+  if (!combineAll && clickedClass.level !== 'Novice') {
     return null;
   }
 
@@ -48,57 +75,74 @@ export function findPairedNoviceClass(
 }
 
 /**
- * Group Novice A/B classes into combined entries
+ * @deprecated Use findPairedSectionedClass instead
+ * Kept for backwards compatibility
+ */
+export function findPairedNoviceClass(
+  clickedClass: ClassEntry,
+  allClasses: ClassEntry[]
+): ClassEntry | null {
+  return findPairedSectionedClass(clickedClass, allClasses, undefined);
+}
+
+/**
+ * Group sectioned A/B classes into combined entries
  *
- * Processes a list of classes and combines matching Novice A/B pairs into
+ * Processes a list of classes and combines matching A/B pairs into
  * single "A & B" entries with aggregated data. This reduces visual clutter
  * and provides a unified view of related classes.
  *
- * **Combination rules:**
- * - Only Novice level classes with section 'A' or 'B' are combined
+ * **Combination rules depend on organization:**
+ * - UKC Nosework: ALL levels with section 'A' or 'B' are combined
+ * - AKC (default): Only Novice level classes are combined
  * - Classes must match on `element` and `level`
  * - Combined entry uses section 'A' as primary ID
  * - Entry counts, completion counts, and dog arrays are merged
  * - Favorite status is true if either class is favorited
  *
  * @param classList - Original list of class entries
- * @param findPaired - Optional custom function to find paired classes (defaults to findPairedNoviceClass)
- * @returns New array with Novice A/B classes combined, other classes unchanged
+ * @param organization - Organization string (e.g., "UKC Nosework", "AKC Scent Work")
+ * @param findPaired - Optional custom function to find paired classes
+ * @returns New array with A/B classes combined, other classes unchanged
  *
  * @example
  * ```typescript
- * const classes = [
- *   { id: 1, element: 'Interiors', level: 'Novice', section: 'A', entry_count: 10, ... },
- *   { id: 2, element: 'Interiors', level: 'Novice', section: 'B', entry_count: 8, ... },
- *   { id: 3, element: 'Containers', level: 'Advanced', section: 'A', entry_count: 5, ... }
- * ];
+ * // AKC: Only Novice classes are combined
+ * const grouped = groupSectionedClasses(classes, 'AKC Scent Work');
  *
- * const grouped = groupNoviceClasses(classes);
- * // Returns:
- * // [
- * //   { id: 1, element: 'Interiors', level: 'Novice', section: 'A & B', entry_count: 18, ... },
- * //   { id: 3, element: 'Containers', level: 'Advanced', section: 'A', entry_count: 5, ... }
- * // ]
+ * // UKC: All levels are combined
+ * const grouped = groupSectionedClasses(classes, 'UKC Nosework');
  * ```
  */
-export function groupNoviceClasses(
+export function groupSectionedClasses(
   classList: ClassEntry[],
-  findPaired: (classEntry: ClassEntry, allClasses: ClassEntry[]) => ClassEntry | null = findPairedNoviceClass
+  organization?: string,
+  findPaired?: (classEntry: ClassEntry, allClasses: ClassEntry[]) => ClassEntry | null
 ): ClassEntry[] {
   // NOTE: Duplicate records are prevented at the storage layer (ReplicatedTableBatch.ts).
   // See cleanupDuplicateRecords() in DatabaseManager.ts for migration of legacy data.
 
+  const combineAll = shouldCombineAllSections(organization);
   const grouped: ClassEntry[] = [];
   const processedIds = new Set<number>();
+
+  // Default findPaired function if not provided
+  const findPairedFn = findPaired || ((entry: ClassEntry, all: ClassEntry[]) =>
+    findPairedSectionedClass(entry, all, organization)
+  );
 
   for (const classEntry of classList) {
     // Skip if already processed as part of a pair
     if (processedIds.has(classEntry.id)) continue;
 
-    // Check if this is a Novice class with section A or B
-    if (classEntry.level === 'Novice' && (classEntry.section === 'A' || classEntry.section === 'B')) {
+    // Check if this class has a section that can be paired
+    const hasPairableSection = classEntry.section === 'A' || classEntry.section === 'B';
+    // For AKC: only Novice; for UKC Nosework: all levels
+    const shouldCheckForPair = hasPairableSection && (combineAll || classEntry.level === 'Novice');
+
+    if (shouldCheckForPair) {
       // Find the paired class
-      const paired = findPaired(classEntry, classList);
+      const paired = findPairedFn(classEntry, classList);
 
       if (paired) {
         // Mark both as processed
@@ -129,7 +173,7 @@ export function groupNoviceClasses(
         grouped.push(classEntry);
       }
     } else {
-      // Not a Novice A/B class, add as-is
+      // Not a pairable class, add as-is
       grouped.push(classEntry);
     }
   }
@@ -138,7 +182,18 @@ export function groupNoviceClasses(
 }
 
 /**
- * Check if a class entry is a combined Novice A & B entry
+ * @deprecated Use groupSectionedClasses instead
+ * Kept for backwards compatibility
+ */
+export function groupNoviceClasses(
+  classList: ClassEntry[],
+  findPaired?: (classEntry: ClassEntry, allClasses: ClassEntry[]) => ClassEntry | null
+): ClassEntry[] {
+  return groupSectionedClasses(classList, undefined, findPaired);
+}
+
+/**
+ * Check if a class entry is a combined A & B entry
  *
  * @param classEntry - The class entry to check
  * @returns True if this is a combined entry with section 'A & B'
@@ -148,18 +203,25 @@ export function groupNoviceClasses(
  * const combined = { section: 'A & B', pairedClassId: 123, ... };
  * const single = { section: 'A', ... };
  *
- * isCombinedNoviceEntry(combined); // true
- * isCombinedNoviceEntry(single);   // false
+ * isCombinedEntry(combined); // true
+ * isCombinedEntry(single);   // false
  * ```
  */
-export function isCombinedNoviceEntry(classEntry: ClassEntry): boolean {
+export function isCombinedEntry(classEntry: ClassEntry): boolean {
   return classEntry.section === 'A & B' && !!classEntry.pairedClassId;
+}
+
+/**
+ * @deprecated Use isCombinedEntry instead
+ */
+export function isCombinedNoviceEntry(classEntry: ClassEntry): boolean {
+  return isCombinedEntry(classEntry);
 }
 
 /**
  * Get all class IDs from a potentially combined entry
  *
- * If the entry is a combined Novice A & B class, returns both IDs.
+ * If the entry is a combined A & B class, returns both IDs.
  * Otherwise returns just the single class ID.
  *
  * @param classEntry - The class entry to extract IDs from
@@ -175,7 +237,7 @@ export function isCombinedNoviceEntry(classEntry: ClassEntry): boolean {
  * ```
  */
 export function getClassIds(classEntry: ClassEntry): number[] {
-  if (isCombinedNoviceEntry(classEntry)) {
+  if (isCombinedEntry(classEntry)) {
     return [classEntry.id, classEntry.pairedClassId!];
   }
   return [classEntry.id];
