@@ -47,21 +47,9 @@ export interface AppSettings {
 
   // Developer Tools
   developerMode: boolean;
-  devShowFPS: boolean;
-  devShowMemory: boolean;
-  devShowNetwork: boolean;
-  devShowStateInspector: boolean;
-  devShowPerformanceProfiler: boolean;
-  devLogStateChanges: boolean;
-  devLogNetworkRequests: boolean;
-  devLogPerformanceMarks: boolean;
   consoleLogging: 'none' | 'errors' | 'all';
   enableBetaFeatures: boolean;
   enablePerformanceMonitoring: boolean; // Track metrics to database
-
-  // Legacy (deprecated)
-  showFPS?: boolean;
-  showNetworkRequests?: boolean;
 }
 
 interface SettingsState {
@@ -110,14 +98,6 @@ const defaultSettings: AppSettings = {
 
   // Developer Tools
   developerMode: false,
-  devShowFPS: false,
-  devShowMemory: false,
-  devShowNetwork: false,
-  devShowStateInspector: false,
-  devShowPerformanceProfiler: false,
-  devLogStateChanges: false,
-  devLogNetworkRequests: false,
-  devLogPerformanceMarks: false,
   consoleLogging: 'errors',
   enableBetaFeatures: false,
   enablePerformanceMonitoring: true, // Auto-enabled to help improve the app

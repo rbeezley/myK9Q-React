@@ -2,44 +2,24 @@
  * DeveloperToolsSection Component
  *
  * Provides developer tools and debugging controls for advanced users.
- * Includes performance monitors, network inspector, and console logging.
- *
- * Extracted from AdvancedSettings.tsx
+ * Simplified to essential tools only - use browser DevTools for detailed debugging.
  */
 
 import React from 'react';
 import { SettingsRow } from './SettingsRow';
 import { SettingsToggle } from './SettingsToggle';
-import { Terminal, Activity, Cpu, Network } from 'lucide-react';
+import { Terminal } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 
 /**
  * DeveloperToolsSection Component
  *
- * Displays developer mode toggle and conditionally shows debugging tools:
- * - FPS Counter: Frame rate monitor for performance tracking
- * - Memory Monitor: Real-time memory usage display
- * - Network Inspector: Network request monitoring
+ * Displays developer mode toggle and console logging control:
+ * - Developer Mode: Enables subscription monitor for leak detection
  * - Console Logging: Verbosity level control (none/errors/all)
  *
- * **Features:**
- * - Developer mode master toggle
- * - Conditional display of debug tools
- * - Independent control of each monitor
- * - Console logging verbosity selection
- * - Settings persist across sessions
- *
- * **Use Cases:**
- * - Performance debugging and optimization
- * - Identifying bottlenecks in production
- * - Monitoring network requests
- * - Troubleshooting with verbose logging
- * - Beta feature testing
- *
- * @example
- * ```tsx
- * <DeveloperToolsSection />
- * ```
+ * Note: For performance/network debugging, use browser DevTools which
+ * provides far more comprehensive analysis capabilities.
  */
 export function DeveloperToolsSection(): React.ReactElement {
   const { settings, updateSettings } = useSettingsStore();
@@ -50,7 +30,7 @@ export function DeveloperToolsSection(): React.ReactElement {
       <SettingsRow
         icon={<Terminal size={20} />}
         label="Developer Mode"
-        description="Enable debugging tools"
+        description="Enable subscription monitor"
         action={
           <SettingsToggle
             checked={settings.developerMode}
@@ -62,45 +42,6 @@ export function DeveloperToolsSection(): React.ReactElement {
       {/* Conditional Developer Tools */}
       {settings.developerMode && (
         <>
-          {/* FPS Counter */}
-          <SettingsRow
-            icon={<Activity size={20} />}
-            label="FPS Counter"
-            description="Display frames per second"
-            action={
-              <SettingsToggle
-                checked={settings.devShowFPS}
-                onChange={(checked) => updateSettings({ devShowFPS: checked })}
-              />
-            }
-          />
-
-          {/* Memory Monitor */}
-          <SettingsRow
-            icon={<Cpu size={20} />}
-            label="Memory Monitor"
-            description="Show memory usage stats"
-            action={
-              <SettingsToggle
-                checked={settings.devShowMemory}
-                onChange={(checked) => updateSettings({ devShowMemory: checked })}
-              />
-            }
-          />
-
-          {/* Network Inspector */}
-          <SettingsRow
-            icon={<Network size={20} />}
-            label="Network Inspector"
-            description="Monitor network requests"
-            action={
-              <SettingsToggle
-                checked={settings.devShowNetwork}
-                onChange={(checked) => updateSettings({ devShowNetwork: checked })}
-              />
-            }
-          />
-
           {/* Console Logging */}
           <SettingsRow
             label="Console Logging"

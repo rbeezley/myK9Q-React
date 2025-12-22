@@ -59,11 +59,8 @@ export const CombinedEntryList: React.FC = () => {
     classIdB
   });
 
-  // Force fresh fetch on mount
-  // NOTE: refresh is now stable via useCallback, so this won't cause infinite loops
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // NOTE: React Query automatically fetches on mount when enabled: true
+  // Removed manual refresh() call that was causing double-fetch and flash on load
 
   // Actions using shared hook
   const {

@@ -4,10 +4,6 @@ import { DatabaseRecovery } from '../diagnostics/DatabaseRecovery';
 import { AutoLogoutWarning } from '../ui/AutoLogoutWarning';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { OfflineIndicator, OfflineQueueStatus } from '../ui';
-import { MonitoringDashboard } from '../monitoring/MonitoringDashboard';
-import { PerformanceMonitor } from '../monitoring/PerformanceMonitor';
-import { NetworkInspector } from '../monitoring/NetworkInspector';
-import { StateInspector } from '../monitoring/StateInspector';
 import { SubscriptionMonitor } from '../debug/SubscriptionMonitor';
 
 interface AutoLogoutState {
@@ -32,8 +28,7 @@ interface MainLayoutProps {
  * - Auto-logout warning
  * - Notification center (Inbox panel)
  * - Offline indicators
- * - Monitoring dashboards
- * - Developer tools
+ * - Subscription monitor (dev tool for leak detection)
  *
  * @param children - The main application content (typically Routes)
  * @param autoLogout - Auto-logout state and callbacks
@@ -56,13 +51,8 @@ export function MainLayout({ children, autoLogout }: MainLayoutProps) {
       <NotificationCenter />
       <OfflineIndicator />
       <OfflineQueueStatus />
-      {/* SyncFailureToast removed - the OfflineIndicator is more accurate */}
-      <MonitoringDashboard />
 
-      {/* Developer Tools */}
-      <PerformanceMonitor />
-      <NetworkInspector />
-      <StateInspector />
+      {/* Developer Tools - Subscription Monitor for leak detection */}
       <SubscriptionMonitor />
 
       {/* Main Application Content */}

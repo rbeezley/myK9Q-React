@@ -109,7 +109,8 @@ export const useEntryListData = ({ classId, classIdA, classIdB, isDraggingRef }:
     gcTime: 5 * 60 * 1000, // 5 minutes cache
     networkMode: 'always', // Run query even offline, will use cached data
     retry: false, // Don't retry when offline
-    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnWindowFocus: false, // Disabled - cache subscriptions handle updates
+    refetchOnReconnect: false, // Disabled - cache subscriptions handle updates
   });
 
   // Subscribe to replication table changes to invalidate React Query cache

@@ -3,7 +3,7 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Database, Download, Trash2, Terminal, Activity, Network, Cpu } from 'lucide-react';
+import { Database, Download, Trash2, Terminal } from 'lucide-react';
 import { formatBytes } from '@/services/dataExportService';
 
 interface AdvancedSettingsProps {
@@ -77,60 +77,28 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             />
 
             {settings.developerMode && (
-                <>
-                    <SettingsRow
-                        icon={<Activity size={20} />}
-                        label="FPS Counter"
-                        action={
-                            <SettingsToggle
-                                checked={settings.devShowFPS}
-                                onChange={(checked) => updateSettings({ devShowFPS: checked })}
-                            />
-                        }
-                    />
-                    <SettingsRow
-                        icon={<Cpu size={20} />}
-                        label="Memory Monitor"
-                        action={
-                            <SettingsToggle
-                                checked={settings.devShowMemory}
-                                onChange={(checked) => updateSettings({ devShowMemory: checked })}
-                            />
-                        }
-                    />
-                    <SettingsRow
-                        icon={<Network size={20} />}
-                        label="Network Inspector"
-                        action={
-                            <SettingsToggle
-                                checked={settings.devShowNetwork}
-                                onChange={(checked) => updateSettings({ devShowNetwork: checked })}
-                            />
-                        }
-                    />
-                    <SettingsRow
-                        label="Console Logging"
-                        description="Verbosity level"
-                        action={
-                            <select
-                                value={settings.consoleLogging}
-                                onChange={(e) => updateSettings({ consoleLogging: e.target.value as 'none' | 'errors' | 'all' })}
-                                className="settings-select"
-                                style={{
-                                    backgroundColor: 'var(--input-bg)',
-                                    border: '1px solid var(--input-border)',
-                                    color: 'var(--input-text)',
-                                    padding: '6px 12px',
-                                    borderRadius: '8px'
-                                }}
-                            >
-                                <option value="none">None</option>
-                                <option value="errors">Errors</option>
-                                <option value="all">All</option>
-                            </select>
-                        }
-                    />
-                </>
+                <SettingsRow
+                    label="Console Logging"
+                    description="Verbosity level"
+                    action={
+                        <select
+                            value={settings.consoleLogging}
+                            onChange={(e) => updateSettings({ consoleLogging: e.target.value as 'none' | 'errors' | 'all' })}
+                            className="settings-select"
+                            style={{
+                                backgroundColor: 'var(--input-bg)',
+                                border: '1px solid var(--input-border)',
+                                color: 'var(--input-text)',
+                                padding: '6px 12px',
+                                borderRadius: '8px'
+                            }}
+                        >
+                            <option value="none">None</option>
+                            <option value="errors">Errors</option>
+                            <option value="all">All</option>
+                        </select>
+                    }
+                />
             )}
         </SettingsSection>
     );

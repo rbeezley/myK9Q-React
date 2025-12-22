@@ -158,8 +158,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
 
       // Advanced - enabled
       developerMode: true,
-      showFPS: false,
-      showNetworkRequests: false,
       consoleLogging: 'all',
       enableBetaFeatures: true,
       enablePerformanceMonitoring: true,

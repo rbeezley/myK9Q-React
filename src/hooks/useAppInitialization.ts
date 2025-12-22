@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import { useSettingsStore, initializeSettings } from '../stores/settingsStore';
 import { performanceMonitor } from '../services/performanceMonitor';
-import { analyticsService } from '../services/analyticsService';
 import { notificationIntegration } from '../services/notificationIntegration';
 import voiceAnnouncementService from '../services/voiceAnnouncementService';
-import developerModeService from '../services/developerMode';
 import { subscriptionCleanup } from '../services/subscriptionCleanup';
 import { metricsApiService } from '../services/metricsApiService';
 import { scheduleAutoCleanup } from '../utils/cacheManager';
@@ -17,9 +15,7 @@ import { applyDeviceClasses, startPerformanceMonitoring } from '../utils/deviceD
  * - Initialize user settings
  * - Apply device-specific CSS classes
  * - Start performance monitoring
- * - Initialize analytics
  * - Set up notification integration
- * - Initialize developer tools
  * - Schedule auto-cleanup tasks
  * - Set up subscription auto-cleanup
  * - Handle performance report on page unload
@@ -72,16 +68,11 @@ export function useAppInitialization() {
     // Start monitoring performance
     const stopMonitoring = startPerformanceMonitoring();
 
-    // Initialize performance and analytics
+    // Initialize performance monitoring
     performanceMonitor.setEnabled(true);
-    analyticsService.setEnabled(true);
-    analyticsService.trackPageView(window.location.pathname);
 
     // Initialize notification integration
     notificationIntegration.initialize();
-
-    // Initialize developer tools
-    developerModeService.initialize();
 
     // Schedule auto-cleanup
     scheduleAutoCleanup();

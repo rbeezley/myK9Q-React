@@ -186,11 +186,14 @@ export async function applySmartDefaults(
   }
 
   // Otherwise, only fill in undefined/null values
-  const mergedSettings = { ...currentSettings } as AppSettings & Record<string, SettingsValue>;
+  const mergedSettings = { ...currentSettings } as AppSettings;
 
-  Object.keys(smartDefaults).forEach((key) => {
-    if (mergedSettings[key] === undefined || mergedSettings[key] === null) {
-      mergedSettings[key] = smartDefaults[key as keyof AppSettings];
+  (Object.keys(smartDefaults) as Array<keyof AppSettings>).forEach((key) => {
+    const currentValue = mergedSettings[key];
+    const smartValue = smartDefaults[key];
+    if ((currentValue === undefined || currentValue === null) && smartValue !== undefined) {
+      // Type assertion needed due to complex union types in AppSettings
+      (mergedSettings as Record<keyof AppSettings, SettingsValue>)[key] = smartValue as SettingsValue;
     }
   });
 
