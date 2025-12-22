@@ -478,7 +478,7 @@ export function Landing() {
 
           <div className="faq-landing-footer">
             <HelpCircle className="faq-footer-icon" />
-            <p>Can't find what you're looking for? Log in and ask our AI assistant for help.</p>
+            <p>Can't find what you're looking for? Log in and ask our AI assistant (AskQ) for help.</p>
           </div>
         </div>
       </section>
