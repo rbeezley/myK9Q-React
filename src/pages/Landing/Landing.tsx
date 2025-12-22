@@ -377,12 +377,7 @@ export function Landing() {
           </div>
 
           <div className="resources-grid">
-            <a
-              href="https://myk9t.com/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="resource-card"
-            >
+            <div className="resource-card resource-card-coming-soon">
               <div className="resource-icon-frame">
                 <BookOpen className="resource-icon" />
               </div>
@@ -392,15 +387,10 @@ export function Landing() {
                   Complete documentation and tutorials
                 </p>
               </div>
-              <ExternalLink className="resource-arrow" />
-            </a>
+              <span className="coming-soon-badge">Coming Soon</span>
+            </div>
 
-            <a
-              href="https://www.youtube.com/watch?v=WRaKZnFPtmI&list=PL6PN3duVGm8-WDKvOobppaZC7Mc_13Xdj"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="resource-card"
-            >
+            <div className="resource-card resource-card-coming-soon">
               <div className="resource-icon-frame">
                 <Video className="resource-icon" />
               </div>
@@ -410,8 +400,27 @@ export function Landing() {
                   Step-by-step explainer videos
                 </p>
               </div>
-              <ExternalLink className="resource-arrow" />
-            </a>
+              <span className="coming-soon-badge">Coming Soon</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="faq-landing-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Frequently Asked Questions</h2>
+            <div className="title-accent"></div>
+          </div>
+
+          <div className="faq-landing-content">
+            <FAQSection />
+          </div>
+
+          <div className="faq-landing-footer">
+            <HelpCircle className="faq-footer-icon" />
+            <p>Can't find what you're looking for? Log in and ask our AI assistant (AskQ) for help.</p>
           </div>
         </div>
       </section>
@@ -460,25 +469,6 @@ export function Landing() {
               </div>
               <ExternalLink className="event-arrow" />
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq" className="faq-landing-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Frequently Asked Questions</h2>
-            <div className="title-accent"></div>
-          </div>
-
-          <div className="faq-landing-content">
-            <FAQSection />
-          </div>
-
-          <div className="faq-landing-footer">
-            <HelpCircle className="faq-footer-icon" />
-            <p>Can't find what you're looking for? Log in and ask our AI assistant (AskQ) for help.</p>
           </div>
         </div>
       </section>
