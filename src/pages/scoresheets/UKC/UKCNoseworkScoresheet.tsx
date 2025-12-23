@@ -582,11 +582,11 @@ export const UKCNoseworkScoresheet: React.FC = () => {
                 showEX={true}
                 onNQClick={() => {
                   setQualifying('NQ');
-                  setNonQualifyingReason('');
+                  setNonQualifyingReason('Incorrect call selected');
                 }}
                 onEXClick={() => {
                   setQualifying('EX');
-                  setNonQualifyingReason('Excused');
+                  setNonQualifyingReason('Dog eliminated in area');
                 }}
                 selectedResultInternal={qualifying || ''}
                 faultCount={faultCount}
