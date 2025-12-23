@@ -7,6 +7,41 @@ import type { Entry } from '../replication/tables/ReplicatedEntriesTable';
 import { logger } from '@/utils/logger';
 
 /**
+ * In-memory store for tracking previous entry statuses before entering ring.
+ * This allows restoring the status when a scoresheet is canceled (wrong dog clicked).
+ *
+ * The Map is cleared when:
+ * - Entry is scored (status becomes 'completed' anyway)
+ * - Entry leaves ring and status is restored
+ * - App refreshes (acceptable - user would re-open scoresheet)
+ */
+const previousStatusStore = new Map<number, EntryStatus>();
+
+/**
+ * Save an entry's status before marking it in-ring.
+ * @param entryId - Entry ID
+ * @param status - The status to save (before entering ring)
+ */
+export function savePreviousStatus(entryId: number, status: EntryStatus): void {
+  previousStatusStore.set(entryId, status);
+  logger.log(`💾 [savePreviousStatus] Saved status '${status}' for entry ${entryId}`);
+}
+
+/**
+ * Get and clear the previous status for an entry.
+ * @param entryId - Entry ID
+ * @returns The saved status, or undefined if not found
+ */
+export function popPreviousStatus(entryId: number): EntryStatus | undefined {
+  const status = previousStatusStore.get(entryId);
+  previousStatusStore.delete(entryId);
+  if (status) {
+    logger.log(`📤 [popPreviousStatus] Retrieved and cleared status '${status}' for entry ${entryId}`);
+  }
+  return status;
+}
+
+/**
  * Entry Status Management Module
  *
  * Handles all entry status transitions and updates:
@@ -103,6 +138,9 @@ export async function markInRing(
         .maybeSingle();
 
       if (entry?.is_scored) {
+        // Entry was scored - clear any saved previous status (no longer needed)
+        popPreviousStatus(entryId);
+
         // Update to completed status instead of no-status
         // Also update is_in_ring for backward compatibility with deprecated field
         const { error } = await supabase
@@ -132,8 +170,29 @@ export async function markInRing(
       }
     }
 
-    // Normal behavior: toggle between 'no-status' and 'in-ring'
-    const newStatus: EntryStatus = inRing ? 'in-ring' : 'no-status';
+    // Determine the new status based on direction
+    let newStatus: EntryStatus;
+
+    if (inRing) {
+      // ENTERING RING: Save current status before changing to 'in-ring'
+      // This allows restoring when scoresheet is canceled (e.g., wrong dog clicked)
+      const manager = getReplicationManager();
+      const entriesTable = manager?.getTable('entries');
+      const currentEntry = await entriesTable?.get(String(entryId)) as Entry | undefined;
+      const currentStatus = (currentEntry?.entry_status as EntryStatus) || 'no-status';
+
+      // Only save if not already in-ring (shouldn't happen, but be safe)
+      if (currentStatus !== 'in-ring') {
+        savePreviousStatus(entryId, currentStatus);
+      }
+
+      newStatus = 'in-ring';
+    } else {
+      // LEAVING RING (not scored): Restore previous status or default to 'no-status'
+      const previousStatus = popPreviousStatus(entryId);
+      newStatus = previousStatus || 'no-status';
+      logger.log(`🔄 [markInRing] Restoring status for entry ${entryId}: ${previousStatus ? `'${previousStatus}'` : "'no-status' (no saved status)"}`);
+    }
 
     // Also update is_in_ring for backward compatibility with deprecated field
     const { error } = await supabase
@@ -151,7 +210,7 @@ export async function markInRing(
       throw error;
     }
 
- 
+
     logger.log(`✅ [markInRing] Entry ${entryId} -> entry_status='${newStatus}', is_in_ring=${inRing}`);
 
     // CRITICAL FIX: Update local cache directly instead of syncing from server.
