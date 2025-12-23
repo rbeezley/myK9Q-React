@@ -69,11 +69,6 @@ export const DogCard = React.memo<DogCardProps>(({
         )}
         <div className="dog-card-armband">
           <ArmbandBadge number={armband} />
-          {sectionBadge && (
-            <div className={`section-badge section-${sectionBadge.toLowerCase()}`}>
-              {sectionBadge}
-            </div>
-          )}
         </div>
 
         <div className="dog-card-details">
@@ -91,6 +86,12 @@ export const DogCard = React.memo<DogCardProps>(({
       {actionButton && (
         <div className="dog-card-action">
           {actionButton}
+        </div>
+      )}
+
+      {sectionBadge && (
+        <div className={`section-badge section-${sectionBadge.toLowerCase()}`}>
+          {sectionBadge}
         </div>
       )}
     </div>

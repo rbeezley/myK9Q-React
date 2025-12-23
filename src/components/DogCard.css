@@ -181,21 +181,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--token-space-md);
 }
 
-/* Section Badge (for combined Novice A & B view) */
+/* Section Badge - Bottom-left corner of card (near armband) */
 .section-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  font-size: 0.875rem;
-  font-weight: 700;
+  padding: var(--token-space-sm) var(--token-space-lg);
+  border-radius: 0 var(--token-space-lg) 0 0; /* Round top-right corner */
+  font-size: 0.75rem;
+  font-weight: 600;
   color: white;
-  box-shadow: 0 var(--token-space-xs) var(--token-space-sm) var(--shadow-subtle);
+  z-index: var(--token-z-raised);
 }
 
 .section-badge.section-a {
