@@ -1,5 +1,9 @@
 /**
  * Tests for DeveloperToolsSection Component
+ *
+ * Tests the simplified developer tools section which includes:
+ * - Developer Mode toggle (enables subscription monitor)
+ * - Console Logging dropdown (shown when developer mode is on)
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -17,9 +21,6 @@ describe('DeveloperToolsSection', () => {
 
   const defaultSettings = {
     developerMode: false,
-    devShowFPS: false,
-    devShowMemory: false,
-    devShowNetwork: false,
     consoleLogging: 'none' as 'none' | 'errors' | 'all'
   };
 
@@ -37,7 +38,7 @@ describe('DeveloperToolsSection', () => {
       render(<DeveloperToolsSection />);
 
       expect(screen.getByText('Developer Mode')).toBeInTheDocument();
-      expect(screen.getByText('Enable debugging tools')).toBeInTheDocument();
+      expect(screen.getByText('Enable subscription monitor')).toBeInTheDocument();
     });
 
     it('should show developer mode as off by default', () => {
@@ -64,9 +65,9 @@ describe('DeveloperToolsSection', () => {
 
       render(<DeveloperToolsSection />);
 
-      // When developer mode is on, there are multiple checkboxes - first one is developer mode toggle
-      const toggles = screen.getAllByRole('checkbox');
-      fireEvent.click(toggles[0]);
+      // When developer mode is on, first checkbox is developer mode toggle
+      const toggle = screen.getAllByRole('checkbox')[0];
+      fireEvent.click(toggle);
 
       expect(mockUpdateSettings).toHaveBeenCalledWith({ developerMode: false });
     });
@@ -80,16 +81,13 @@ describe('DeveloperToolsSection', () => {
   });
 
   describe('Conditional developer tools display', () => {
-    it('should not show developer tools when developer mode is off', () => {
+    it('should not show console logging when developer mode is off', () => {
       render(<DeveloperToolsSection />);
 
-      expect(screen.queryByText('FPS Counter')).not.toBeInTheDocument();
-      expect(screen.queryByText('Memory Monitor')).not.toBeInTheDocument();
-      expect(screen.queryByText('Network Inspector')).not.toBeInTheDocument();
       expect(screen.queryByText('Console Logging')).not.toBeInTheDocument();
     });
 
-    it('should show all developer tools when developer mode is on', () => {
+    it('should show console logging when developer mode is on', () => {
       (useSettingsStore as any).mockReturnValue({
         settings: { ...defaultSettings, developerMode: true },
         updateSettings: mockUpdateSettings
@@ -97,135 +95,7 @@ describe('DeveloperToolsSection', () => {
 
       render(<DeveloperToolsSection />);
 
-      expect(screen.getByText('FPS Counter')).toBeInTheDocument();
-      expect(screen.getByText('Memory Monitor')).toBeInTheDocument();
-      expect(screen.getByText('Network Inspector')).toBeInTheDocument();
       expect(screen.getByText('Console Logging')).toBeInTheDocument();
-    });
-  });
-
-  describe('FPS Counter', () => {
-    beforeEach(() => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true },
-        updateSettings: mockUpdateSettings
-      });
-    });
-
-    it('should render FPS counter toggle', () => {
-      render(<DeveloperToolsSection />);
-
-      expect(screen.getByText('FPS Counter')).toBeInTheDocument();
-      expect(screen.getByText('Display frames per second')).toBeInTheDocument();
-    });
-
-    it('should call updateSettings when FPS counter is toggled', () => {
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const fpsToggle = toggles[1]; // Second toggle (first is developer mode)
-      fireEvent.click(fpsToggle);
-
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ devShowFPS: true });
-    });
-
-    it('should show FPS counter as off by default', () => {
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const fpsToggle = toggles[1];
-      expect(fpsToggle).not.toBeChecked();
-    });
-
-    it('should show FPS counter as on when enabled in settings', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true, devShowFPS: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const fpsToggle = toggles[1];
-      expect(fpsToggle).toBeChecked();
-    });
-  });
-
-  describe('Memory Monitor', () => {
-    beforeEach(() => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true },
-        updateSettings: mockUpdateSettings
-      });
-    });
-
-    it('should render memory monitor toggle', () => {
-      render(<DeveloperToolsSection />);
-
-      expect(screen.getByText('Memory Monitor')).toBeInTheDocument();
-      expect(screen.getByText('Show memory usage stats')).toBeInTheDocument();
-    });
-
-    it('should call updateSettings when memory monitor is toggled', () => {
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const memoryToggle = toggles[2]; // Third toggle
-      fireEvent.click(memoryToggle);
-
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ devShowMemory: true });
-    });
-
-    it('should show memory monitor as on when enabled in settings', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true, devShowMemory: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const memoryToggle = toggles[2];
-      expect(memoryToggle).toBeChecked();
-    });
-  });
-
-  describe('Network Inspector', () => {
-    beforeEach(() => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true },
-        updateSettings: mockUpdateSettings
-      });
-    });
-
-    it('should render network inspector toggle', () => {
-      render(<DeveloperToolsSection />);
-
-      expect(screen.getByText('Network Inspector')).toBeInTheDocument();
-      expect(screen.getByText('Monitor network requests')).toBeInTheDocument();
-    });
-
-    it('should call updateSettings when network inspector is toggled', () => {
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const networkToggle = toggles[3]; // Fourth toggle
-      fireEvent.click(networkToggle);
-
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ devShowNetwork: true });
-    });
-
-    it('should show network inspector as on when enabled in settings', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true, devShowNetwork: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      const networkToggle = toggles[3];
-      expect(networkToggle).toBeChecked();
     });
   });
 
@@ -290,32 +160,6 @@ describe('DeveloperToolsSection', () => {
     });
   });
 
-  describe('All developer tools enabled', () => {
-    it('should handle all developer tools being enabled simultaneously', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: {
-          developerMode: true,
-          devShowFPS: true,
-          devShowMemory: true,
-          devShowNetwork: true,
-          consoleLogging: 'all'
-        },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<DeveloperToolsSection />);
-
-      const toggles = screen.getAllByRole('checkbox');
-      expect(toggles[0]).toBeChecked(); // Developer mode
-      expect(toggles[1]).toBeChecked(); // FPS
-      expect(toggles[2]).toBeChecked(); // Memory
-      expect(toggles[3]).toBeChecked(); // Network
-
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
-      expect(select.value).toBe('all');
-    });
-  });
-
   describe('Icon rendering', () => {
     it('should render Terminal icon when developer mode is off', () => {
       const { container } = render(<DeveloperToolsSection />);
@@ -324,7 +168,7 @@ describe('DeveloperToolsSection', () => {
       expect(icons.length).toBe(1); // Only Terminal icon
     });
 
-    it('should render all icons when developer mode is on', () => {
+    it('should render only Terminal icon when developer mode is on', () => {
       (useSettingsStore as any).mockReturnValue({
         settings: { ...defaultSettings, developerMode: true },
         updateSettings: mockUpdateSettings
@@ -333,8 +177,8 @@ describe('DeveloperToolsSection', () => {
       const { container } = render(<DeveloperToolsSection />);
 
       const icons = container.querySelectorAll('svg');
-      // Terminal + Activity + Cpu + Network = 4 icons
-      expect(icons.length).toBe(4);
+      // Only Terminal icon (Console Logging has no icon)
+      expect(icons.length).toBe(1);
     });
   });
 
@@ -342,8 +186,8 @@ describe('DeveloperToolsSection', () => {
     it('should handle enabling developer mode workflow', () => {
       const { rerender } = render(<DeveloperToolsSection />);
 
-      // Initially developer tools hidden
-      expect(screen.queryByText('FPS Counter')).not.toBeInTheDocument();
+      // Initially console logging hidden
+      expect(screen.queryByText('Console Logging')).not.toBeInTheDocument();
 
       // User enables developer mode
       const toggle = screen.getByRole('checkbox');
@@ -357,27 +201,17 @@ describe('DeveloperToolsSection', () => {
       });
       rerender(<DeveloperToolsSection />);
 
-      // Developer tools now visible
-      expect(screen.getByText('FPS Counter')).toBeInTheDocument();
-      expect(screen.getByText('Memory Monitor')).toBeInTheDocument();
+      // Console logging now visible
+      expect(screen.getByText('Console Logging')).toBeInTheDocument();
     });
 
-    it('should handle performance debugging workflow', () => {
+    it('should handle debugging workflow', () => {
       (useSettingsStore as any).mockReturnValue({
         settings: { ...defaultSettings, developerMode: true },
         updateSettings: mockUpdateSettings
       });
 
       render(<DeveloperToolsSection />);
-
-      // Enable FPS counter
-      const toggles = screen.getAllByRole('checkbox');
-      fireEvent.click(toggles[1]);
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ devShowFPS: true });
-
-      // Enable memory monitor
-      fireEvent.click(toggles[2]);
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ devShowMemory: true });
 
       // Set console logging to "all"
       const select = screen.getByRole('combobox');
@@ -385,32 +219,10 @@ describe('DeveloperToolsSection', () => {
       expect(mockUpdateSettings).toHaveBeenCalledWith({ consoleLogging: 'all' });
     });
 
-    it('should handle network debugging workflow', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, developerMode: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<DeveloperToolsSection />);
-
-      // Enable network inspector
-      const toggles = screen.getAllByRole('checkbox');
-      fireEvent.click(toggles[3]);
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ devShowNetwork: true });
-
-      // Set console logging to errors only
-      const select = screen.getByRole('combobox');
-      fireEvent.change(select, { target: { value: 'errors' } });
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ consoleLogging: 'errors' });
-    });
-
     it('should handle disabling developer mode', () => {
       (useSettingsStore as any).mockReturnValue({
         settings: {
           developerMode: true,
-          devShowFPS: true,
-          devShowMemory: true,
-          devShowNetwork: true,
           consoleLogging: 'all'
         },
         updateSettings: mockUpdateSettings
@@ -418,29 +230,26 @@ describe('DeveloperToolsSection', () => {
 
       const { rerender } = render(<DeveloperToolsSection />);
 
-      // All tools visible
-      expect(screen.getByText('FPS Counter')).toBeInTheDocument();
+      // Console logging visible
+      expect(screen.getByText('Console Logging')).toBeInTheDocument();
 
-      // Disable developer mode - when all tools are on, first checkbox is the developer mode toggle
-      const toggles = screen.getAllByRole('checkbox');
-      fireEvent.click(toggles[0]);
+      // Disable developer mode
+      const toggle = screen.getAllByRole('checkbox')[0];
+      fireEvent.click(toggle);
       expect(mockUpdateSettings).toHaveBeenCalledWith({ developerMode: false });
 
       // Simulate settings update
       (useSettingsStore as any).mockReturnValue({
         settings: {
           developerMode: false,
-          devShowFPS: true, // Still enabled but hidden
-          devShowMemory: true,
-          devShowNetwork: true,
-          consoleLogging: 'all'
+          consoleLogging: 'all' // Still set but hidden
         },
         updateSettings: mockUpdateSettings
       });
       rerender(<DeveloperToolsSection />);
 
-      // All tools hidden
-      expect(screen.queryByText('FPS Counter')).not.toBeInTheDocument();
+      // Console logging hidden
+      expect(screen.queryByText('Console Logging')).not.toBeInTheDocument();
     });
   });
 });
