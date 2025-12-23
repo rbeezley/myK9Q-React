@@ -2,17 +2,22 @@
  * UKC Nosework Scoresheet
  *
  * Scoring system: Time + Faults
- * - Single search time (not multi-area like AKC)
- * - Fault counting
+ * - Single search time for Novice/Advanced (single hide)
+ * - Dual timer for Superior/Master/Elite (multiple hides):
+ *   - Search Time: Pausable, accumulated active searching
+ *   - Element Time: Continuous, total run duration
  * - Q/NQ based on faults and time
  *
  * Refactored to use shared hooks (2025-12-21):
  * - Uses useEntryNavigation for consistent entry loading
  * - Uses useScoresheetCore for core state management
  * - Matches AKC scoresheet styling patterns
+ *
+ * Dual stopwatch added (2025-12-23):
+ * - See docs/plans/2025-12-23-ukc-nosework-dual-stopwatch-design.md
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
@@ -20,7 +25,7 @@ import { ClipboardCheck, X } from 'lucide-react';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
 
 // Shared hooks from refactoring
-import { useScoresheetCore, useEntryNavigation, useStopwatch } from '../hooks';
+import { useScoresheetCore, useEntryNavigation, useStopwatch, useElementTimer } from '../hooks';
 
 // Extracted components
 import { ScoreConfirmationDialog } from '../components/ScoreConfirmationDialog';
@@ -31,10 +36,43 @@ import '../AKC/AKCScentWorkScoresheet-JudgeDialog.css';
 import './UKCNoseworkScoresheet.css';
 
 // ==========================================================================
+// HELPER FUNCTIONS
+// ==========================================================================
+
+/**
+ * Check if level requires dual timer mode (multiple hides)
+ */
+function isDualTimerLevel(level?: string): boolean {
+  if (!level) return false;
+  const normalizedLevel = level.toLowerCase();
+  return ['superior', 'master', 'elite'].includes(normalizedLevel);
+}
+
+/**
+ * Calculate remaining time from element time (for dual timer mode)
+ * Returns formatted string "M:SS.ss"
+ */
+function getRemainingFromElement(elementTimeMs: number, maxTime: string): string {
+  // Parse max time string (format: "3:00.00" or "3:00")
+  const parts = maxTime.split(':');
+  const minutes = parseFloat(parts[0]);
+  const seconds = parseFloat(parts[1] || '0');
+  const maxTimeMs = (minutes * 60 + seconds) * 1000;
+
+  // Calculate remaining
+  const remainingMs = Math.max(0, maxTimeMs - elementTimeMs);
+  const remainingSeconds = remainingMs / 1000;
+  const mins = Math.floor(remainingSeconds / 60);
+  const secs = (remainingSeconds % 60).toFixed(2);
+
+  return `${mins}:${secs.padStart(5, '0')}`;
+}
+
+// ==========================================================================
 // EXTRACTED SUB-COMPONENTS (to reduce cyclomatic complexity)
 // ==========================================================================
 
-interface TimerControlsProps {
+interface SingleTimerControlsProps {
   isRunning: boolean;
   time: number;
   isTimeExpired: boolean;
@@ -43,7 +81,10 @@ interface TimerControlsProps {
   onReset: () => void;
 }
 
-const TimerControls: React.FC<TimerControlsProps> = ({
+/**
+ * Timer controls for Novice/Advanced (single timer mode)
+ */
+const SingleTimerControls: React.FC<SingleTimerControlsProps> = ({
   isRunning, time, isTimeExpired, onStart, onStop, onReset
 }) => {
   if (isRunning) {
@@ -73,6 +114,156 @@ const TimerControls: React.FC<TimerControlsProps> = ({
     </button>
   );
 };
+
+interface DualTimerControlsProps {
+  searchIsRunning: boolean;
+  elementIsRunning: boolean;
+  searchTime: number;
+  onStart: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onResumeAll: () => void;
+  onReset: () => void;
+}
+
+/**
+ * Timer controls for Superior/Master/Elite (dual timer mode)
+ * Note: Finish button is rendered in the element-time-row, not here
+ */
+const DualTimerControls: React.FC<DualTimerControlsProps> = ({
+  searchIsRunning, elementIsRunning, searchTime,
+  onStart, onPause, onResume, onResumeAll, onReset
+}) => {
+  // Not started yet
+  if (searchTime === 0 && !searchIsRunning && !elementIsRunning) {
+    return (
+      <button className="timer-btn-start start" onClick={onStart}>
+        Start
+      </button>
+    );
+  }
+
+  // Both stopped (after Finish)
+  if (!searchIsRunning && !elementIsRunning && searchTime > 0) {
+    return (
+      <div className="dual-timer-controls">
+        <button className="timer-btn-start resume" onClick={onResumeAll} title="Resume both timers">
+          Resume
+        </button>
+        <button className="timer-btn-start reset" onClick={onReset} title="Reset both timers">
+          Reset
+        </button>
+      </div>
+    );
+  }
+
+  // Search paused, Element running (between alerts)
+  if (!searchIsRunning && elementIsRunning) {
+    return (
+      <button className="timer-btn-start resume" onClick={onResume} title="Resume search timing">
+        Resume
+      </button>
+    );
+  }
+
+  // Both running (actively searching)
+  return (
+    <button className="timer-btn-start stop" onClick={onPause} title="Pause search time (Element continues)">
+      Pause
+    </button>
+  );
+};
+
+interface TimerSectionProps {
+  dualTimerMode: boolean;
+  stopwatch: ReturnType<typeof useStopwatch>;
+  elementTimer: ReturnType<typeof useElementTimer>;
+  onDualReset: () => void;
+  onDualStart: () => void;
+  onDualPause: () => void;
+  onDualResume: () => void;
+  onDualFinish: () => void;
+  onDualResumeAll: () => void;
+  onSingleStop: () => void;
+  maxTime: string;
+}
+
+/**
+ * Timer section component - handles both single and dual timer modes
+ */
+const TimerSection: React.FC<TimerSectionProps> = ({
+  dualTimerMode,
+  stopwatch,
+  elementTimer,
+  onDualReset,
+  onDualStart,
+  onDualPause,
+  onDualResume,
+  onDualFinish,
+  onDualResumeAll,
+  onSingleStop,
+  maxTime
+}) => (
+  <div className="scoresheet-timer-card">
+    {/* Dual Timer Mode: Element Time row with Finish button */}
+    {dualTimerMode && (
+      <div className="element-time-row">
+        <span className="element-time-label">Element:</span>
+        <span className={`element-time-value ${elementTimer.isRunning ? 'running' : ''}`}>
+          {elementTimer.formatTime(elementTimer.time)}
+        </span>
+        {(stopwatch.isRunning || elementTimer.isRunning) && (
+          <button
+            className="timer-btn-finish"
+            onClick={onDualFinish}
+            title="Stop both timers (final alert)"
+          >
+            Finish
+          </button>
+        )}
+      </div>
+    )}
+
+    {/* Main Search Time Display */}
+    <div className={`timer-display-large ${stopwatch.shouldShow30SecondWarning() ? 'warning' : ''} ${stopwatch.isTimeExpired() ? 'expired' : ''}`}>
+      {stopwatch.formatTime(stopwatch.time)}
+    </div>
+
+    {/* Remaining Time / Max Time */}
+    <div className="timer-countdown-display">
+      {stopwatch.time > 0 || elementTimer.time > 0 ? (
+        <>Remaining: {dualTimerMode ? getRemainingFromElement(elementTimer.time, maxTime) : stopwatch.getRemainingTime()}</>
+      ) : (
+        <>Max Time: {maxTime}</>
+      )}
+    </div>
+
+    {/* Timer Controls */}
+    <div className="timer-controls-flutter">
+      {dualTimerMode ? (
+        <DualTimerControls
+          searchIsRunning={stopwatch.isRunning}
+          elementIsRunning={elementTimer.isRunning}
+          searchTime={stopwatch.time}
+          onStart={onDualStart}
+          onPause={onDualPause}
+          onResume={onDualResume}
+          onResumeAll={onDualResumeAll}
+          onReset={onDualReset}
+        />
+      ) : (
+        <SingleTimerControls
+          isRunning={stopwatch.isRunning}
+          time={stopwatch.time}
+          isTimeExpired={stopwatch.isTimeExpired()}
+          onStart={stopwatch.start}
+          onStop={onSingleStop}
+          onReset={stopwatch.reset}
+        />
+      )}
+    </div>
+  </div>
+);
 
 // ==========================================================================
 // MAIN COMPONENT
@@ -117,12 +308,19 @@ export const UKCNoseworkScoresheet: React.FC = () => {
   // ==========================================================================
 
   const [searchTime, setSearchTime] = useState<string>('');
+  const [elementTime, setElementTime] = useState<string>('');
 
   // Default max time for UKC Nosework (3 minutes)
   const maxTime = '3:00.00';
 
+  // Determine if we need dual timer mode
+  const dualTimerMode = useMemo(
+    () => isDualTimerLevel(currentEntry?.level),
+    [currentEntry?.level]
+  );
+
   // ==========================================================================
-  // STOPWATCH (using extracted hook)
+  // STOPWATCH (Search Time - pausable)
   // ==========================================================================
 
   const stopwatch = useStopwatch({
@@ -133,6 +331,11 @@ export const UKCNoseworkScoresheet: React.FC = () => {
     onTimeExpired: (formattedTime) => {
       // Auto-fill the time field when timer expires
       setSearchTime(formattedTime);
+      if (dualTimerMode) {
+        // Also capture element time
+        setElementTime(elementTimer.formatTime(elementTimer.time));
+        elementTimer.stop();
+      }
       // Auto-set result to NQ with Max Time reason
       setQualifying('NQ');
       setNonQualifyingReason('Max Time');
@@ -140,14 +343,64 @@ export const UKCNoseworkScoresheet: React.FC = () => {
   });
 
   // ==========================================================================
-  // TIMER CONTROLS
+  // ELEMENT TIMER (continuous - for Superior/Master/Elite)
   // ==========================================================================
 
-  const handleStopTimer = useCallback(() => {
+  const elementTimer = useElementTimer();
+
+  // ==========================================================================
+  // TIMER CONTROLS - SINGLE MODE (Novice/Advanced)
+  // ==========================================================================
+
+  const handleSingleStop = useCallback(() => {
     stopwatch.pause();
-    // Automatically copy time to search time field
     setSearchTime(stopwatch.formatTime(stopwatch.time));
   }, [stopwatch]);
+
+  // ==========================================================================
+  // TIMER CONTROLS - DUAL MODE (Superior/Master/Elite)
+  // ==========================================================================
+
+  // Start both timers
+  const handleDualStart = useCallback(() => {
+    stopwatch.start();
+    elementTimer.start();
+  }, [stopwatch, elementTimer]);
+
+  // Pause search only (element continues)
+  const handleDualPause = useCallback(() => {
+    stopwatch.pause();
+    // Update search time display
+    setSearchTime(stopwatch.formatTime(stopwatch.time));
+  }, [stopwatch]);
+
+  // Resume search only
+  const handleDualResume = useCallback(() => {
+    stopwatch.start();
+  }, [stopwatch]);
+
+  // Finish - stop BOTH timers
+  const handleDualFinish = useCallback(() => {
+    stopwatch.pause();
+    elementTimer.stop();
+    // Capture both times
+    setSearchTime(stopwatch.formatTime(stopwatch.time));
+    setElementTime(elementTimer.formatTime(elementTimer.time));
+  }, [stopwatch, elementTimer]);
+
+  // Resume both timers (after Finish, for edge cases)
+  const handleDualResumeAll = useCallback(() => {
+    stopwatch.start();
+    elementTimer.resume();
+  }, [stopwatch, elementTimer]);
+
+  // Reset both timers
+  const handleDualReset = useCallback(() => {
+    stopwatch.reset();
+    elementTimer.reset();
+    setSearchTime('');
+    setElementTime('');
+  }, [stopwatch, elementTimer]);
 
   // ==========================================================================
   // INPUT HELPERS
@@ -255,37 +508,19 @@ export const UKCNoseworkScoresheet: React.FC = () => {
             </div>
 
             {/* Timer Section */}
-            <div className="scoresheet-timer-card">
-              <button
-                className="timer-btn-reset"
-                onClick={stopwatch.reset}
-                disabled={stopwatch.isRunning}
-                title={stopwatch.isRunning ? "Reset disabled while timer is running" : "Reset timer"}
-              >
-                ⟲
-              </button>
-
-              <div className={`timer-display-large ${stopwatch.shouldShow30SecondWarning() ? 'warning' : ''} ${stopwatch.isTimeExpired() ? 'expired' : ''}`}>
-                {stopwatch.formatTime(stopwatch.time)}
-              </div>
-              <div className="timer-countdown-display">
-                {stopwatch.time > 0 ? (
-                  <>Remaining: {stopwatch.getRemainingTime()}</>
-                ) : (
-                  <>Max Time: {maxTime}</>
-                )}
-              </div>
-              <div className="timer-controls-flutter">
-                <TimerControls
-                  isRunning={stopwatch.isRunning}
-                  time={stopwatch.time}
-                  isTimeExpired={stopwatch.isTimeExpired()}
-                  onStart={stopwatch.start}
-                  onStop={handleStopTimer}
-                  onReset={stopwatch.reset}
-                />
-              </div>
-            </div>
+            <TimerSection
+              dualTimerMode={dualTimerMode}
+              stopwatch={stopwatch}
+              elementTimer={elementTimer}
+              onDualReset={handleDualReset}
+              onDualStart={handleDualStart}
+              onDualPause={handleDualPause}
+              onDualResume={handleDualResume}
+              onDualFinish={handleDualFinish}
+              onDualResumeAll={handleDualResumeAll}
+              onSingleStop={handleSingleStop}
+              maxTime={maxTime}
+            />
 
             {/* Timer Warning Message */}
             {warningMessage && (
@@ -416,6 +651,7 @@ export const UKCNoseworkScoresheet: React.FC = () => {
               faultCount={faultCount}
               nonQualifyingReason={nonQualifyingReason}
               calculateTotalTime={() => searchTime}
+              elementTime={dualTimerMode ? elementTime : undefined}
             />
           </div>
         </div>

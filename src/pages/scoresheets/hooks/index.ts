@@ -22,3 +22,6 @@ export type {
   EntryNavigationConfig,
   EntryNavigationReturn
 } from './useEntryNavigation';
+
+export { useElementTimer } from './useElementTimer';
+export type { UseElementTimerReturn } from './useElementTimer';

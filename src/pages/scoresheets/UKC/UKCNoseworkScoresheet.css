@@ -146,3 +146,123 @@
     padding: var(--token-space-xl);
   }
 }
+
+/* ==========================================================================
+   UKC MOBILE OPTIMIZATIONS
+   ========================================================================== */
+
+/* More compact results section on mobile */
+.scoresheet .results-section {
+  padding: var(--token-space-md);
+  margin-bottom: var(--token-space-sm);
+}
+
+/* Desktop: restore padding */
+@media (min-width: 640px) {
+  .scoresheet .results-section {
+    padding: var(--token-space-xl);
+    margin-bottom: var(--token-space-lg);
+  }
+}
+
+/* ==========================================================================
+   DUAL TIMER MODE - Superior/Master/Elite
+   ========================================================================== */
+
+/* Element Time Row - above main timer display */
+.element-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--token-space-lg);
+  margin-bottom: var(--token-space-lg);
+  padding: var(--token-space-md) var(--token-space-lg);
+  background: var(--muted);
+  border-radius: var(--token-space-md);
+}
+
+.element-time-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--scoresheet-text-secondary);
+}
+
+.element-time-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--scoresheet-text);
+  min-width: 80px;
+}
+
+.element-time-value.running {
+  color: var(--status-checked-in);
+}
+
+/* Finish Button - amber/orange to signal "end of run" */
+.timer-btn-finish {
+  padding: var(--token-space-sm) var(--token-space-lg);
+  border-radius: var(--token-space-md);
+  border: none;
+  background: #f59e0b;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 36px;
+}
+
+.timer-btn-finish:hover {
+  background: #d97706;
+  transform: scale(1.02);
+}
+
+.timer-btn-finish:active {
+  transform: scale(0.98);
+}
+
+/* Dual Timer Controls - horizontal layout for Resume + Reset after Finish */
+.dual-timer-controls {
+  display: flex;
+  gap: var(--token-space-md);
+  justify-content: center;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.dual-timer-controls .timer-btn-start {
+  flex: 1;
+  min-width: 0;
+  padding-left: var(--token-space-md);
+  padding-right: var(--token-space-md);
+}
+
+/* Light theme adjustments for dual timer */
+.theme-light .element-time-row {
+  background: var(--muted);
+}
+
+.theme-light .element-time-value.running {
+  color: #059669;
+}
+
+/* Desktop: Larger element time display */
+@media (min-width: 640px) {
+  .element-time-row {
+    gap: var(--token-space-xl);
+    padding: var(--token-space-lg) var(--token-space-xl);
+  }
+
+  .element-time-value {
+    font-size: 1.5rem;
+    min-width: 100px;
+  }
+
+  .timer-btn-finish {
+    padding: var(--token-space-md) var(--token-space-xl);
+    font-size: 15px;
+    min-height: 40px;
+  }
+}

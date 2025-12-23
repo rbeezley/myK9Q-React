@@ -41,6 +41,8 @@ export interface ScoreConfirmationDialogProps {
   nonQualifyingReason: string;
   /** Calculate total time function */
   calculateTotalTime: () => string;
+  /** Element Time for UKC Nosework Superior/Master/Elite levels (optional) */
+  elementTime?: string;
 }
 
 /**
@@ -76,7 +78,8 @@ export const ScoreConfirmationDialog: React.FC<ScoreConfirmationDialogProps> = (
   areas,
   faultCount,
   nonQualifyingReason,
-  calculateTotalTime
+  calculateTotalTime,
+  elementTime
 }) => {
   if (!isOpen) return null;
 
@@ -140,9 +143,19 @@ export const ScoreConfirmationDialog: React.FC<ScoreConfirmationDialogProps> = (
             ) : (
               /* Single area: show time */
               <div className="score-item time-container">
-                <span className="item-label">Time</span>
+                <span className="item-label">{elementTime ? 'Search Time' : 'Time'}</span>
                 <span className="item-value time-value">
                   {isNonQualifying(qualifying) ? '0:00.00' : (areas[0]?.time || calculateTotalTime())}
+                </span>
+              </div>
+            )}
+
+            {/* Element Time - UKC Nosework Superior/Master/Elite */}
+            {elementTime && (
+              <div className="score-item time-container element-time">
+                <span className="item-label">Element Time</span>
+                <span className="item-value time-value">
+                  {isNonQualifying(qualifying) ? '0:00.00' : elementTime}
                 </span>
               </div>
             )}
