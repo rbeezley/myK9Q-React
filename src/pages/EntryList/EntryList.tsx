@@ -202,10 +202,12 @@ export const EntryList: React.FC = () => {
   }, [showContext?.org, showContext?.competition_type, classId]);
 
   // Set dog in ring status
+  // IMPORTANT: Pass entry's current status to markInRing so it can be restored on cancel
   const setDogInRingStatus = useCallback(async (dogId: number, inRing: boolean) => {
     try {
+      const currentDog = localEntries.find(entry => entry.id === dogId);
+
       if (inRing) {
-        const currentDog = localEntries.find(entry => entry.id === dogId);
         if (currentDog?.status !== 'in-ring') {
           const otherEntries = localEntries.filter(entry => entry.id !== dogId && entry.status === 'in-ring');
           if (otherEntries.length > 0) {
@@ -214,11 +216,11 @@ export const EntryList: React.FC = () => {
         }
       }
 
-      const currentDog = localEntries.find(entry => entry.id === dogId);
       // Check using status field (not deprecated inRing property)
       const isCurrentlyInRing = currentDog?.status === 'in-ring';
       if (isCurrentlyInRing !== inRing) {
-        await markInRing(dogId, inRing);
+        // Pass the entry's current status so it can be saved and restored on cancel
+        await markInRing(dogId, inRing, currentDog?.status);
       }
       return true;
     } catch (error) {
@@ -307,11 +309,16 @@ export const EntryList: React.FC = () => {
     setActiveStatusPopup(null);
 
     if (status === 'in-ring') {
+      // Get entry's current status before updating so it can be restored on cancel
+      const currentEntry = localEntries.find(entry => entry.id === entryId);
+      const currentStatus = currentEntry?.status;
+
       setLocalEntries(prev => prev.map(entry =>
-        entry.id === entryId ? { ...entry, inRing: true } : entry
+        entry.id === entryId ? { ...entry, inRing: true, status: 'in-ring' } : entry
       ));
       try {
-        await handleMarkInRing(entryId);
+        // Pass current status so it can be restored if scoresheet is canceled
+        await handleMarkInRing(entryId, currentStatus);
       } catch (error) {
         logger.error('Failed to mark in-ring:', error);
       }
@@ -341,7 +348,7 @@ export const EntryList: React.FC = () => {
     } catch (error) {
       logger.error('Failed to update status:', error);
     }
-  }, [handleMarkInRing, handleMarkCompleted, handleStatusChangeHook]);
+  }, [handleMarkInRing, handleMarkCompleted, handleStatusChangeHook, localEntries]);
 
   // Status click handler
   const handleStatusClick = useCallback((e: React.MouseEvent, entryId: number) => {

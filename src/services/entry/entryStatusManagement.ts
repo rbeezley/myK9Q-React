@@ -178,24 +178,35 @@ export async function markInRing(
     if (inRing) {
       // ENTERING RING: Save current status before changing to 'in-ring'
       // This allows restoring when scoresheet is canceled (e.g., wrong dog clicked)
-      let currentStatus: EntryStatus;
 
-      if (knownPreviousStatus) {
-        // Use the provided status (caller knows it from entry data)
-        currentStatus = knownPreviousStatus;
-        logger.log(`💡 [markInRing] Using provided previousStatus: '${currentStatus}'`);
+      // CRITICAL: Check if we already have a saved status for this entry.
+      // This handles the race condition where EntryList saves the status first,
+      // then the scoresheet also calls markInRing. We don't want to overwrite
+      // the correct saved status with 'in-ring'.
+      const existingSavedStatus = previousStatusStore.get(entryId);
+      if (existingSavedStatus) {
+        logger.log(`⚡ [markInRing] Entry ${entryId} already has saved status '${existingSavedStatus}' - keeping it (not overwriting with '${knownPreviousStatus || 'cache read'}')`);
       } else {
-        // Fall back to reading from cache (may be stale or missing)
-        const manager = getReplicationManager();
-        const entriesTable = manager?.getTable('entries');
-        const currentEntry = await entriesTable?.get(String(entryId)) as Entry | undefined;
-        currentStatus = (currentEntry?.entry_status as EntryStatus) || 'no-status';
-        logger.log(`📖 [markInRing] Read status from cache: '${currentStatus}' (entry ${currentEntry ? 'found' : 'NOT found'})`);
-      }
+        // No saved status yet - determine what to save
+        let currentStatus: EntryStatus;
 
-      // Only save if not already in-ring (shouldn't happen, but be safe)
-      if (currentStatus !== 'in-ring') {
-        savePreviousStatus(entryId, currentStatus);
+        if (knownPreviousStatus) {
+          // Use the provided status (caller knows it from entry data)
+          currentStatus = knownPreviousStatus;
+          logger.log(`💡 [markInRing] Using provided previousStatus: '${currentStatus}'`);
+        } else {
+          // Fall back to reading from cache (may be stale or missing)
+          const manager = getReplicationManager();
+          const entriesTable = manager?.getTable('entries');
+          const currentEntry = await entriesTable?.get(String(entryId)) as Entry | undefined;
+          currentStatus = (currentEntry?.entry_status as EntryStatus) || 'no-status';
+          logger.log(`📖 [markInRing] Read status from cache: '${currentStatus}' (entry ${currentEntry ? 'found' : 'NOT found'})`);
+        }
+
+        // Only save if not already in-ring (shouldn't happen, but be safe)
+        if (currentStatus !== 'in-ring') {
+          savePreviousStatus(entryId, currentStatus);
+        }
       }
 
       newStatus = 'in-ring';

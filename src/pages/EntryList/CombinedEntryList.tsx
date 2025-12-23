@@ -259,11 +259,16 @@ export const CombinedEntryList: React.FC = () => {
     setActiveStatusPopup(null);
 
     if (newStatus === 'in-ring') {
+      // Get entry's current status before updating so it can be restored on cancel
+      const currentEntry = localEntries.find(entry => entry.id === entryId);
+      const currentStatus = currentEntry?.status;
+
       setLocalEntries(prev => prev.map(entry =>
         entry.id === entryId ? { ...entry, status: 'in-ring' } : entry
       ));
       try {
-        await handleMarkInRing(entryId);
+        // Pass current status so it can be restored if scoresheet is canceled
+        await handleMarkInRing(entryId, currentStatus);
       } catch (error) {
         logger.error('Mark in-ring failed:', error);
         refresh();
@@ -302,7 +307,7 @@ export const CombinedEntryList: React.FC = () => {
       ));
       refresh();
     }
-  }, [handleMarkInRing, handleMarkCompleted, handleStatusChangeHook, entries, refresh]);
+  }, [handleMarkInRing, handleMarkCompleted, handleStatusChangeHook, entries, localEntries, refresh]);
 
   // Reset menu handlers
   const handleResetMenuClick = useCallback((e: React.MouseEvent, entryId: number) => {

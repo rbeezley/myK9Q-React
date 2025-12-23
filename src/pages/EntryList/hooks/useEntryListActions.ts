@@ -86,12 +86,15 @@ const { getReplicationManager } = await import('../../../services/replication');
 
   /**
    * Mark entry as in-ring (for manual ring management)
+   * @param entryId - Entry to mark as in-ring
+   * @param currentStatus - Entry's current status (optional, for restoration on cancel)
    */
   const handleMarkInRing = useCallback(
-    async (entryId: number) => {
+    async (entryId: number, currentStatus?: _Entry['status']) => {
       // Sync with server in background (silently fails if offline)
       try {
-        await markInRing(entryId, true);
+        // Pass currentStatus so it can be restored if scoresheet is canceled
+        await markInRing(entryId, true, currentStatus);
         // Real-time subscription will update the cache when database confirms
       } catch (error) {
         logger.error('Error marking entry in-ring in background:', error);

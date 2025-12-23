@@ -83,26 +83,31 @@ export const useEntryNavigation = ({
 
   /**
    * Set dog in ring status, clearing other in-ring dogs first
+   *
+   * IMPORTANT: We pass the entry's current status to markInRing so it can be
+   * restored when the scoresheet is canceled (user clicked wrong dog).
    */
   const setDogInRingStatus = useCallback(async (dogId: number, inRing: boolean) => {
     try {
+      const currentDog = localEntries.find(entry => entry.id === dogId);
+
       if (inRing) {
-        const currentDog = localEntries.find(entry => entry.id === dogId);
         if (currentDog?.status !== 'in-ring') {
           const otherEntries = localEntries.filter(entry => entry.id !== dogId && entry.status === 'in-ring');
           if (otherEntries.length > 0) {
             await Promise.all(
+              // Pass each entry's current status so it can be restored if needed
               otherEntries.map(entry => markInRing(entry.id, false))
             );
           }
         }
       }
 
-      const currentDog = localEntries.find(entry => entry.id === dogId);
       // Check using status field (not deprecated inRing property)
       const isCurrentlyInRing = currentDog?.status === 'in-ring';
       if (isCurrentlyInRing !== inRing) {
-        await markInRing(dogId, inRing);
+        // Pass the entry's current status so it can be saved and restored on cancel
+        await markInRing(dogId, inRing, currentDog?.status);
       }
       return true;
     } catch (error) {
