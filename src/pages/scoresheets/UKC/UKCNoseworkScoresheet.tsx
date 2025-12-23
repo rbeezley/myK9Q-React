@@ -27,6 +27,7 @@ import { ScoreConfirmationDialog } from '../components/ScoreConfirmationDialog';
 
 import '../BaseScoresheet.css';
 import '../AKC/AKCScentWorkScoresheet-Flutter.css';
+import '../AKC/AKCScentWorkScoresheet-JudgeDialog.css';
 import './UKCNoseworkScoresheet.css';
 
 // ==========================================================================
@@ -319,33 +320,6 @@ export const UKCNoseworkScoresheet: React.FC = () => {
                 <div className="max-time-display">
                   Max: {maxTime}
                 </div>
-              </div>
-            </div>
-
-            {/* Fault Counter - UKC Specific */}
-            <div className="scoresheet-time-card fault-section">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 600, color: 'var(--scoresheet-text-secondary)' }}>Faults</h3>
-              <div className="fault-counter">
-                <button
-                  className="fault-btn decrement"
-                  onClick={() => setFaultCount(prev => Math.max(0, prev - 1))}
-                  disabled={faultCount === 0}
-                >
-                  -
-                </button>
-                <div className="fault-count">{faultCount}</div>
-                <button
-                  className="fault-btn increment"
-                  onClick={() => setFaultCount(prev => prev + 1)}
-                >
-                  +
-                </button>
-              </div>
-              <div className="fault-info">
-                {faultCount === 0 && <span className="info-text">No faults</span>}
-                {faultCount === 1 && <span className="info-text">1 fault</span>}
-                {faultCount === 2 && <span className="info-text">2 faults (still qualifying)</span>}
-                {faultCount >= 3 && <span className="info-text warning">3+ faults (NQ)</span>}
               </div>
             </div>
 
