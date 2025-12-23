@@ -127,12 +127,17 @@ export async function submitBatchScores(
  * IMPORTANT: Does not overwrite 'completed' status - only changes 'no-status' <-> 'in-ring'
  *
  * **Phase 2 Task 2.2**: Delegates to entryStatusManagement module
+ *
+ * @param entryId - The entry ID
+ * @param inRing - true to mark in-ring, false to remove from ring
+ * @param knownPreviousStatus - Optional: pass the current status when known (avoids cache lookup issues)
  */
 export async function markInRing(
   entryId: number,
-  inRing: boolean = true
+  inRing: boolean = true,
+  knownPreviousStatus?: import('@/stores/entryStore').EntryStatus
 ): Promise<boolean> {
-  return markInRingFromStatusModule(entryId, inRing);
+  return markInRingFromStatusModule(entryId, inRing, knownPreviousStatus);
 }
 
 /**

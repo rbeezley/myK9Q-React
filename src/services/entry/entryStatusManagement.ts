@@ -116,10 +116,12 @@ async function shouldSkipInRingUpdate(entryId: number, inRing: boolean): Promise
  */
 export async function markInRing(
   entryId: number,
-  inRing: boolean = true
+  inRing: boolean = true,
+  /** Optional: pass the current status when known (avoids cache lookup issues) */
+  knownPreviousStatus?: EntryStatus
 ): Promise<boolean> {
-   
-  logger.log(`🏟️ [markInRing] Called with entryId=${entryId}, inRing=${inRing}`);
+
+  logger.log(`🏟️ [markInRing] Called with entryId=${entryId}, inRing=${inRing}, knownPreviousStatus=${knownPreviousStatus || 'not provided'}`);
 
   try {
     // OPTIMIZATION: Check local cache first to avoid redundant DB calls
@@ -176,10 +178,20 @@ export async function markInRing(
     if (inRing) {
       // ENTERING RING: Save current status before changing to 'in-ring'
       // This allows restoring when scoresheet is canceled (e.g., wrong dog clicked)
-      const manager = getReplicationManager();
-      const entriesTable = manager?.getTable('entries');
-      const currentEntry = await entriesTable?.get(String(entryId)) as Entry | undefined;
-      const currentStatus = (currentEntry?.entry_status as EntryStatus) || 'no-status';
+      let currentStatus: EntryStatus;
+
+      if (knownPreviousStatus) {
+        // Use the provided status (caller knows it from entry data)
+        currentStatus = knownPreviousStatus;
+        logger.log(`💡 [markInRing] Using provided previousStatus: '${currentStatus}'`);
+      } else {
+        // Fall back to reading from cache (may be stale or missing)
+        const manager = getReplicationManager();
+        const entriesTable = manager?.getTable('entries');
+        const currentEntry = await entriesTable?.get(String(entryId)) as Entry | undefined;
+        currentStatus = (currentEntry?.entry_status as EntryStatus) || 'no-status';
+        logger.log(`📖 [markInRing] Read status from cache: '${currentStatus}' (entry ${currentEntry ? 'found' : 'NOT found'})`);
+      }
 
       // Only save if not already in-ring (shouldn't happen, but be safe)
       if (currentStatus !== 'in-ring') {

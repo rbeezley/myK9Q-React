@@ -149,8 +149,9 @@ export const AKCFastCatScoresheet: React.FC = () => {
         setCurrentEntry(pending[0]);
 
         // Mark dog as in-ring when scoresheet opens
+        // Pass current status so it can be restored if scoresheet is canceled
         if (pending[0].id) {
-          markInRing(pending[0].id, true).catch(error => {
+          markInRing(pending[0].id, true, pending[0].status).catch(error => {
             logger.error('Failed to mark dog in-ring on scoresheet open:', error);
           });
         }

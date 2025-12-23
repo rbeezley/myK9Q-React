@@ -81,7 +81,8 @@ export function loadFromRouteState(
   );
 
   // Mark in ring in background (fire-and-forget)
-  markInRing(passedEntry.id, true).catch(console.error);
+  // Pass current status so it can be restored if scoresheet is canceled
+  markInRing(passedEntry.id, true, passedEntry.status).catch(console.error);
 
   return {
     entry: passedEntry,
@@ -242,7 +243,8 @@ export async function loadFromIndexedDB(
   // Initialize areas
   let areas: AreaScore[] = [];
   if (targetEntry) {
-    await markInRing(targetEntry.id, true);
+    // Pass current status so it can be restored if scoresheet is canceled
+    await markInRing(targetEntry.id, true, targetEntry.status);
     areas = initializeAreas(
       targetEntry.element || '',
       targetEntry.level || '',
