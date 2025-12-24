@@ -6,41 +6,51 @@ VBA module for syncing UKC Nosework trial data with myK9Q via Supabase.
 
 | File | Purpose |
 |------|---------|
-| `mod_myK9Qv3.bas` | **Production** - New v3 module (to be created) |
-| `mod_myK9Q_legacy.bas` | **Reference only** - Old module for field mapping reference |
+| `mod_myK9Qv3.bas` | **Production** - UKC Nosework integration module |
+| `JsonConverter.bas` | **Required** - VBA-JSON library for REST API |
 
 ## Status
 
-**In Progress** - Converting from legacy module to v3 architecture.
+**Complete** - All functions tested and working (December 2024).
 
-## Conversion Notes
+## Tested Functions
 
-The v3 module will be based on the AKC Scent Work template with UKC-specific adjustments.
+| Function | Status |
+|----------|--------|
+| Activate license key (Upload Show) | ✅ |
+| Delete show | ✅ |
+| Update show details | ✅ |
+| Upload trial | ✅ |
+| Delete trial | ✅ |
+| Upload class | ✅ |
+| Download results | ✅ |
+| Delete class | ✅ |
 
-### Key Differences from AKC
+## Key Differences from AKC Module
 
-| Aspect | UKC Legacy | AKC v3 (target) |
-|--------|------------|-----------------|
-| **API Method** | ODBC linked tables | REST API |
-| **Supabase Project** | `ggreahsjqzombkvagxle` (old) | `yyzgjyiqgmjzyhzkqdfx` (v3) |
-| **Tables** | `public_tbl_*_queue` | `shows`, `trials`, `classes`, `entries` |
+| Aspect | UKC | AKC |
+|--------|-----|-----|
 | **Organization** | `"UKC Nosework"` | `"AKC Scent Work"` |
-| **Class Division** | `Division` field | `Section` field |
-| **Time Limits** | Single `time_limit` | 3 area-specific limits |
+| **Show Type** | Hardcoded "Regular" | From database field |
+| **Run Order Field** | `ExhibitorRunOrder` | `ExhibitorOrder` |
+| **Time Field** | `ElementTime` | `AreaTime1`, `AreaTime2`, `AreaTime3` |
+| **Breed Field** | `BreedID_FK` | `AKCBreedID_FK` |
+| **Fault Fields** | `FaultCA`, `FaultIR`, `FaultFR`, `FaultAR` | `FaultDS` |
+| **NQ Reason** | `Disqualified` | `Withdrawn` |
+| **Entry Status** | Not used | `entry_status` field |
+| **Placement Calc** | `Class_Placements` called after download | Not called |
 
-### UKC Levels
+## UKC Levels
+
 Novice, Advanced, Superior, Excellent, Master, Elite
 
-### Conversion Checklist
-- [ ] Copy AKC module as base
-- [ ] Change organization to `"UKC Nosework"`
-- [ ] Adjust field mappings (Division → Section)
-- [ ] Verify UKC levels match database
-- [ ] Keep single time limit (UKC doesn't use multi-area)
-- [ ] Test upload/download cycle
-- [ ] Test scored entry protection
+## Implementation Notes
+
+- Download results calls `Class_Placements` after updating entries (uses `TempVars!tmpClassID`)
+- Scored entries are protected from re-upload
+- Uses REST API via Supabase (project: `yyzgjyiqgmjzyhzkqdfx`)
 
 ## See Also
 
-- [AKC Scent Work module](../akc-scent-work/) - Template for v3 architecture
+- [AKC Scent Work module](../akc-scent-work/) - Similar architecture
 - [Access Integration Overview](../README.md) - Common patterns
