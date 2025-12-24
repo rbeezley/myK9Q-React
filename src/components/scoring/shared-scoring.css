@@ -1443,6 +1443,28 @@ button.choice-chip.danger.selected {
   text-align: center;
 }
 
+.fault-count-display.at-limit {
+  color: var(--token-error-contrast);
+}
+
+.fault-limit-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+.fault-limit-warning {
+  margin-top: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--token-space-md);
+  color: var(--token-error-contrast);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
 /* Reason Selection Section */
 .reason-selection {
   flex-direction: column;

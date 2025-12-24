@@ -41,7 +41,7 @@ export interface EntryNavigationConfig {
   /** Whether this is a Nationals scoresheet (affects area initialization) */
   isNationals?: boolean;
   /** Sport type for scoring session */
-  sportType?: 'AKC_SCENT_WORK' | 'AKC_SCENT_WORK_NATIONAL' | 'AKC_FASTCAT' | 'UKC_NOSEWORK';
+  sportType?: 'AKC_SCENT_WORK' | 'AKC_SCENT_WORK_NATIONAL' | 'AKC_FASTCAT' | 'UKC_NOSEWORK' | 'ASCA_SCENT_DETECTION';
   /** Callback when entry is loaded and areas should be initialized */
   onEntryLoaded?: (entry: Entry, areas: AreaScore[]) => void;
   /** Callback to set trial date */
@@ -300,8 +300,8 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
   // ==========================================================================
 
   const getMaxTimeForArea = useCallback((areaIndex: number): string => {
-    return getMaxTimeForAreaHelper(currentEntry, areaIndex);
-  }, [currentEntry]);
+    return getMaxTimeForAreaHelper(currentEntry, areaIndex, sportType);
+  }, [currentEntry, sportType]);
 
   // ==========================================================================
   // RETURN

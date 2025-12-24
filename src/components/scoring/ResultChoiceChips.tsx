@@ -1,7 +1,8 @@
 /**
  * Result Choice Chips Component
  *
- * Mobile-friendly choice chips for Nationals and Regular show results
+ * Mobile-friendly choice chips for Nationals and Regular show results.
+ * Supports sport-specific NQ/EX reasons for AKC, UKC, and ASCA.
  */
 
 import React from 'react';
@@ -9,6 +10,50 @@ import './shared-scoring.css';
 
 type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
 // type AllResults = NationalsResult | 'NQ' | 'Withdrawn';
+
+type SportType = 'AKC_SCENT_WORK' | 'AKC_SCENT_WORK_NATIONAL' | 'AKC_FASTCAT' | 'UKC_NOSEWORK' | 'ASCA_SCENT_DETECTION';
+
+// Sport-specific NQ reasons
+const NQ_REASONS: Record<string, string[]> = {
+  default: [
+    'Incorrect Call',
+    'Max Time',
+    'Point to Hide',
+    'Harsh Correction',
+    'Significant Disruption'
+  ],
+  ASCA_SCENT_DETECTION: [
+    'Incorrect Alert',
+    'Max Time',
+    'No Finish Call',
+    'Finish with Unfound Hides',
+    'Dog Eliminated in Area',
+    'Dog Stopped Working',
+    'Dog Destroyed Containers',
+    'Excessive Disturbance',
+    'Dog Damaged Property',
+    'Handler Couldnt Point to Hide'
+  ]
+};
+
+// Sport-specific Excused reasons
+const EXCUSED_REASONS: Record<string, string[]> = {
+  default: [
+    'Dog Eliminated in Area',
+    'Handler Request',
+    'Out of Control',
+    'Overly Stressed',
+    'Other'
+  ],
+  ASCA_SCENT_DETECTION: [
+    'Dog Showed Aggression',
+    'Dog Showed Stress/Fear',
+    'Harsh Handling',
+    'Poor Sportsmanship',
+    'Revealed Hide Location',
+    'Handler Request'
+  ]
+};
 
 interface ResultChoiceChipsProps {
   selectedResult: NationalsResult | null;
@@ -28,6 +73,26 @@ interface ResultChoiceChipsProps {
   excusedReason?: string;
   onExcusedReasonChange?: (reason: string) => void;
   isNationalsMode?: boolean; // Hide faults counter in nationals mode
+  sportType?: SportType; // Sport type for reason selection
+  level?: string; // Level for fault limit validation (ASCA)
+}
+
+/**
+ * Get the maximum allowed faults for a sport/level combination.
+ * ASCA: Novice/Open = 2 faults, Advanced/Excellent = 1 fault
+ * Others: No limit (returns Infinity)
+ */
+function getMaxFaults(sportType?: SportType, level?: string): number {
+  if (sportType === 'ASCA_SCENT_DETECTION' && level) {
+    const lvl = level.toLowerCase();
+    if (lvl.includes('novice') || lvl.includes('open')) {
+      return 2;
+    }
+    if (lvl.includes('advanced') || lvl.includes('excellent')) {
+      return 1;
+    }
+  }
+  return Infinity; // No limit for other sports
 }
 
 export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
@@ -44,25 +109,17 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
   onNQReasonChange,
   excusedReason = 'Dog Eliminated in Area',
   onExcusedReasonChange,
-  isNationalsMode = false
+  isNationalsMode = false,
+  sportType,
+  level
 }) => {
-  // NQ Reason options
-  const nqReasons = [
-    'Incorrect Call',
-    'Max Time',
-    'Point to Hide',
-    'Harsh Correction',
-    'Significant Disruption'
-  ];
+  // Get sport-specific reasons
+  const nqReasons = NQ_REASONS[sportType || ''] || NQ_REASONS.default;
+  const excusedReasons = EXCUSED_REASONS[sportType || ''] || EXCUSED_REASONS.default;
 
-  // Excused Reason options
-  const excusedReasons = [
-    'Dog Eliminated in Area',
-    'Handler Request',
-    'Out of Control',
-    'Overly Stressed',
-    'Other'
-  ];
+  // Get max faults for sport/level
+  const maxFaults = getMaxFaults(sportType, level);
+  const isAtMaxFaults = faultCount >= maxFaults;
 
   return (
     <div className="result-choice-chips-container">
@@ -114,7 +171,12 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
       {/* Fault Counter - show when Qualified is selected (but not in nationals mode) */}
       {(selectedResult === 'Qualified' || selectedResultInternal === 'Q') && onFaultCountChange && !isNationalsMode && (
         <div className="fault-counter-section">
-          <h3>Faults Count</h3>
+          <h3>
+            Faults Count
+            {maxFaults !== Infinity && (
+              <span className="fault-limit-label"> (max {maxFaults})</span>
+            )}
+          </h3>
           <div className="fault-counter">
             <button
               className="fault-btn-counter"
@@ -123,14 +185,23 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
             >
               -
             </button>
-            <span className="fault-count-display">{faultCount}</span>
+            <span className={`fault-count-display ${isAtMaxFaults ? 'at-limit' : ''}`}>
+              {faultCount}
+            </span>
             <button
               className="fault-btn-counter"
               onClick={() => onFaultCountChange(faultCount + 1)}
+              disabled={isAtMaxFaults}
+              title={isAtMaxFaults ? `Maximum ${maxFaults} faults allowed` : undefined}
             >
               +
             </button>
           </div>
+          {isAtMaxFaults && (
+            <div className="fault-limit-warning">
+              At maximum faults for {level} level
+            </div>
+          )}
         </div>
       )}
 

@@ -1,483 +1,420 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { CompetitorCard } from '../../../components/scoring/CompetitorCard';
-import { MultiTimer } from '../../../components/scoring/MultiTimer';
-import { useScoringStore, useEntryStore, useOfflineQueueStore } from '../../../stores';
-import { markInRing } from '../../../services/entryService';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useOptimisticScoring } from '../../../hooks/useOptimisticScoring';
-import { HamburgerMenu } from '../../../components/ui/HamburgerMenu';
-import { SyncIndicator } from '../../../components/ui';
-import { ClipboardCheck } from 'lucide-react';
-import { ensureReplicationManager } from '../../../utils/replicationHelper';
-import type { Entry as ReplicatedEntry } from '../../../services/replication/tables/ReplicatedEntriesTable';
-import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
-import type { Entry } from '../../../stores/entryStore';
-import { logger } from '@/utils/logger';
+/**
+ * ASCA Scent Detection Scoresheet
+ *
+ * Australian Shepherd Club of America Scent Detection scoresheet.
+ * Based on AKC Scent Work scoresheet architecture.
+ *
+ * @see src/pages/scoresheets/AKC/AKCScentWorkScoresheet.tsx
+ */
+
+import React, { useCallback, useMemo } from 'react';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
+import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
+import { X, ClipboardCheck } from 'lucide-react';
+import { parseSmartTime } from '../../../utils/timeInputParsing';
+
+// Shared hooks from refactoring
+import { useScoresheetCore, useEntryNavigation, useStopwatch } from '../hooks';
+
+// Extracted components
+import { ScoreConfirmationDialog } from '../components/ScoreConfirmationDialog';
+
 import '../BaseScoresheet.css';
-import './ASCAScentDetectionScoresheet.css';
-
-type QualifyingResult = 'Q' | 'NQ' | 'E';
-
-interface SearchArea {
-  areaName: string;
-  time: string;
-  found: boolean;
-  alert: boolean;
-}
+import '../AKC/AKCScentWorkScoresheet-Flutter.css';
+import '../AKC/AKCScentWorkScoresheet-JudgeDialog.css';
+import '../../../styles/containers.css';
 
 export const ASCAScentDetectionScoresheet: React.FC = () => {
-  const { classId } = useParams<{ classId: string }>();
-  const navigate = useNavigate();
-  const { showContext } = useAuth();
-  
-  // Store hooks
+  // ==========================================================================
+  // SHARED HOOKS
+  // ==========================================================================
+
+  // Core scoresheet state management
+  const core = useScoresheetCore({ sportType: 'ASCA_SCENT_DETECTION' });
+
+  // Entry navigation and loading
+  const navigation = useEntryNavigation({
+    classId: core.classId,
+    entryId: core.entryId,
+    sportType: 'ASCA_SCENT_DETECTION',
+    onEntryLoaded: (entry, areas) => {
+      core.setAreas(areas);
+    },
+    onTrialDateLoaded: core.setTrialDate,
+    onTrialNumberLoaded: core.setTrialNumber,
+    onLoadingChange: core.setIsLoadingEntry
+  });
+
+  // Destructure for convenience
   const {
-    isScoring,
-    startScoringSession,
-    submitScore: _addScoreToSession,
-    moveToNextEntry,
-    moveToPreviousEntry,
-    endScoringSession
-  } = useScoringStore();
+    areas,
+    qualifying, setQualifying,
+    nonQualifyingReason, setNonQualifyingReason,
+    faultCount, setFaultCount,
+    isSubmitting,
+    showConfirmation, setShowConfirmation,
+    isLoadingEntry,
+    trialDate, trialNumber,
+    isSyncing, hasError,
+    calculateTotalTime,
+    handleAreaUpdate,
+    submitScore,
+    navigateBackWithRingCleanup,
+    CelebrationModal
+  } = core;
 
-  const {
-    currentClassEntries,
-    currentEntry,
-    setCurrentClassEntries,
-    setCurrentEntry,
-    markAsScored: _markAsScored,
-    getPendingEntries
-  } = useEntryStore();
+  const { currentEntry, getMaxTimeForArea } = navigation;
 
-  const { addToQueue: _addToQueue, isOnline } = useOfflineQueueStore();
+  // Settings for voice announcements
+  const settings = useSettingsStore(state => state.settings);
 
-  // Optimistic scoring hook
-  const { submitScoreOptimistically, isSyncing, hasError } = useOptimisticScoring();
+  // ==========================================================================
+  // STOPWATCH (using extracted hook)
+  // ==========================================================================
 
-  // Local state - ASCA typically has single search areas
-  const [searchAreas, setSearchAreas] = useState<SearchArea[]>([
-    { areaName: 'Search Area', time: '', found: false, alert: false }
-  ]);
-  const [qualifying, setQualifying] = useState<QualifyingResult>('Q');
-  const [nonQualifyingReason, setNonQualifyingReason] = useState<string>('');
-  const [totalTime, setTotalTime] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  
-  // Timer configuration - ASCA typically allows more time
-  const timerAreas = searchAreas.map(area => ({
-    name: area.areaName,
-    maxTime: 4 * 60 * 1000 // 4 minutes in milliseconds
-  }));
+  // Get the next empty area index for determining max time
+  const getNextEmptyAreaIndex = useCallback((): number => {
+    return areas.findIndex(area => !area.time);
+  }, [areas]);
 
-  // Load entries function - defined before useEffect
-  const loadEntries = async () => {
-    if (!classId || !showContext?.licenseKey) return;
+  // Get max time for the active area
+  const activeAreaMaxTime = useMemo(() => {
+    const activeAreaIndex = getNextEmptyAreaIndex();
+    const areaIndex = activeAreaIndex >= 0 ? activeAreaIndex : 0;
+    return getMaxTimeForArea(areaIndex);
+  }, [getNextEmptyAreaIndex, getMaxTimeForArea]);
 
-    try {
-      // Load from replicated cache (direct replacement, no feature flags)
-// Ensure replication manager is initialized (handles recovery scenarios)
-      const manager = await ensureReplicationManager();
-
-      const entriesTable = manager.getTable('entries');
-      const classesTable = manager.getTable('classes');
-
-      if (!entriesTable || !classesTable) {
-        throw new Error('Required tables not registered');
+  // Use the extracted stopwatch hook
+  const stopwatch = useStopwatch({
+    maxTime: activeAreaMaxTime,
+    level: currentEntry?.level,
+    enableVoiceAnnouncements: settings.voiceAnnouncements,
+    enableTimerCountdown: settings.announceTimerCountdown,
+    onTimeExpired: (formattedTime) => {
+      // For single-area classes, auto-fill the time field when timer expires
+      if (areas.length === 1) {
+        handleAreaUpdate(0, 'time', formattedTime);
       }
-
-      // Get class information
-      const classData = await classesTable.get(classId) as Class | undefined;
-      if (!classData) {
-        throw new Error(`Class ${classId} not found in cache`);
-      }
-
-      // Get all entries for this class
-      const allEntries = await entriesTable.getAll() as ReplicatedEntry[];
-      const classEntries = allEntries.filter(entry => entry.class_id === classId);
-
-// Transform to Entry format for store
-      const transformedEntries: Entry[] = classEntries.map(entry => ({
-        id: parseInt(entry.id),
-        armband: entry.armband_number,
-        callName: entry.dog_call_name || 'Unknown',
-        breed: entry.dog_breed || 'Unknown',
-        handler: entry.handler_name || 'Unknown',
-        isScored: entry.is_scored || false,
-        status: (entry.entry_status as Entry['status']) || 'no-status',
-        classId: parseInt(entry.class_id),
-        className: `${classData.element} ${classData.level}`,
-        element: classData.element,
-        level: classData.level,
-        section: classData.section,
-      }));
-
-      setCurrentClassEntries(parseInt(classId));
-
-      // Set first pending entry as current
-      const pending = transformedEntries.filter(e => !e.isScored);
-      if (pending.length > 0) {
-        setCurrentEntry(pending[0]);
-
-        // Mark dog as in-ring when scoresheet opens
-        // Pass current status so it can be restored if scoresheet is canceled
-        if (pending[0].id) {
-          markInRing(pending[0].id, true, pending[0].status).catch(error => {
-            logger.error('Failed to mark dog in-ring on scoresheet open:', error);
-          });
-        }
-
-        // Start scoring session if not already started
-        if (!isScoring) {
-          startScoringSession(
-            parseInt(classId),
-            pending[0].className,
-            'ASCA_SCENT_DETECTION',
-            showContext.licenseKey,
-            transformedEntries.length
-          );
-        }
-      }
-    } catch (error) {
-      logger.error('Error loading entries:', error);
+      // Auto-set result to NQ with Max Time reason when timer expires
+      setQualifying('NQ');
+      setNonQualifyingReason('Max Time');
     }
-  };
+  });
 
-  // Load class entries on mount
-  useEffect(() => {
-    if (classId && showContext?.licenseKey) {
-      loadEntries();
+  // ==========================================================================
+  // TIMER CONTROLS
+  // ==========================================================================
+
+  const handleStopTimer = useCallback(() => {
+    stopwatch.pause();
+    // For single-area classes, automatically copy time to search time field
+    if (areas.length === 1) {
+      handleAreaUpdate(0, 'time', stopwatch.formatTime(stopwatch.time));
     }
-  }, [classId, showContext, loadEntries]);
+  }, [stopwatch, areas.length, handleAreaUpdate]);
 
-  // Clear in-ring status when leaving scoresheet
-  useEffect(() => {
-    return () => {
-      if (currentEntry?.id) {
-        markInRing(currentEntry.id, false).catch(error => {
-          logger.error('Failed to clear in-ring status on unmount:', error);
-        });
-      }
-    };
-  }, []); // Fixed: removed currentEntry?.id dependency
-  
-  const handleAreaUpdate = (areaIndex: number, field: keyof SearchArea, value: SearchArea[keyof SearchArea]) => {
-    setSearchAreas(prev => prev.map((area, index) => 
-      index === areaIndex ? { ...area, [field]: value } : area
-    ));
+  const recordTimeForArea = useCallback((areaIndex: number) => {
+    handleAreaUpdate(areaIndex, 'time', stopwatch.formatTime(stopwatch.time));
+    stopwatch.reset(); // Auto-reset stopwatch after recording
+  }, [stopwatch, handleAreaUpdate]);
+
+  // ==========================================================================
+  // INPUT HELPERS
+  // ==========================================================================
+
+  const clearTimeInput = (index: number) => {
+    handleAreaUpdate(index, 'time', '');
   };
-  
-  const calculateTotalTime = () => {
-    const times = searchAreas
-      .filter(area => area.time && area.found)
-      .map(area => {
-        const [minutes, seconds] = area.time.split(':').map(parseFloat);
-        return (minutes * 60) + seconds;
-      });
-    
-    if (times.length === 0) return '';
-    
-    const total = times.reduce((sum, time) => sum + time, 0);
-    const totalMinutes = Math.floor(total / 60);
-    const totalSeconds = (total % 60).toFixed(2);
-    
-    return `${totalMinutes}:${totalSeconds.padStart(5, '0')}`;
+
+  const handleSmartTimeInput = (index: number, rawInput: string) => {
+    handleAreaUpdate(index, 'time', rawInput);
   };
-  
-  const calculateQualifying = (): QualifyingResult => {
-    const foundCount = searchAreas.filter(area => area.found && area.alert).length;
-    
-    // ASCA Scent Detection qualifying logic
-    if (foundCount >= 1) return 'Q'; // Need at least 1 correct find and alert
-    return 'NQ';
+
+  const handleTimeInputBlur = (index: number, rawInput: string) => {
+    const parsedTime = parseSmartTime(rawInput);
+    handleAreaUpdate(index, 'time', parsedTime);
   };
-  
-  const handleSubmit = () => {
-    const calculatedTotal = calculateTotalTime();
-    setTotalTime(calculatedTotal);
-    
-    const calculatedQualifying = qualifying === 'Q' ? calculateQualifying() : qualifying;
-    setQualifying(calculatedQualifying);
-    
-    setShowConfirmation(true);
-  };
-  
-  const confirmSubmit = async () => {
+
+  // ==========================================================================
+  // NAVIGATION & SUBMIT
+  // ==========================================================================
+
+  const handleNavigateWithRingCleanup = useCallback(() => {
+    navigateBackWithRingCleanup(currentEntry);
+  }, [navigateBackWithRingCleanup, currentEntry]);
+
+  const handleEnhancedSubmit = async () => {
     if (!currentEntry) return;
-
-    setShowConfirmation(false);
-
-    const finalQualifying = qualifying === 'Q' ? calculateQualifying() : qualifying;
-    const finalTotalTime = totalTime || calculateTotalTime();
-
-    // Prepare area results
-    const areaResults: Record<string, string> = {};
-    searchAreas.forEach(area => {
-      areaResults[area.areaName.toLowerCase()] = `${area.time}${area.found ? ' FOUND' : ' NOT FOUND'}${area.alert ? ' ALERT' : ' NO ALERT'}`;
-    });
-
-    // Submit score optimistically
-    await submitScoreOptimistically({
-      entryId: currentEntry.id,
-      classId: parseInt(classId!),
-      armband: currentEntry.armband,
-      className: currentEntry.className,
-      scoreData: {
-        resultText: finalQualifying,
-        searchTime: finalTotalTime,
-        nonQualifyingReason: finalQualifying !== 'Q' ? nonQualifyingReason : undefined,
-        areas: areaResults,
-      },
-      onSuccess: async () => {
-// Remove from ring
-        if (currentEntry?.id) {
-          try {
-            await markInRing(currentEntry.id, false);
-} catch (error) {
-            logger.error('❌ Failed to remove dog from ring:', error);
-          }
-        }
-
-        // Move to next entry
-        const pendingEntries = getPendingEntries();
-        if (pendingEntries.length > 0) {
-          setCurrentEntry(pendingEntries[0]);
-          moveToNextEntry();
-
-          // Reset form
-          setSearchAreas([
-            { areaName: 'Search Area', time: '', found: false, alert: false }
-          ]);
-          setQualifying('Q');
-          setNonQualifyingReason('');
-          setTotalTime('');
-        } else {
-          // All entries scored
-          endScoringSession();
-          navigate(-1);
-        }
-      },
-      onError: (error) => {
-        logger.error('❌ ASCA Scent Detection score submission failed:', error);
-        alert(`Failed to submit score: ${error.message}`);
-        setIsSubmitting(false);
-      }
-    });
+    await submitScore(currentEntry);
   };
-  
-  const handlePrevious = () => {
-    const currentIndex = currentClassEntries.findIndex(e => e.id === currentEntry?.id);
-    if (currentIndex > 0) {
-      setCurrentEntry(currentClassEntries[currentIndex - 1]);
-      moveToPreviousEntry();
-    }
-  };
-  
-  const handleNext = () => {
-    const currentIndex = currentClassEntries.findIndex(e => e.id === currentEntry?.id);
-    if (currentIndex < currentClassEntries.length - 1) {
-      setCurrentEntry(currentClassEntries[currentIndex + 1]);
-      moveToNextEntry();
-    }
-  };
-  
-  if (!currentEntry) {
+
+  // ==========================================================================
+  // COMPUTED VALUES
+  // ==========================================================================
+
+  const warningMessage = stopwatch.getWarningMessage();
+  const isAllTimesComplete = areas.every(area => area.time && area.time !== '');
+
+  // ==========================================================================
+  // CONDITIONAL RENDERING
+  // ==========================================================================
+
+  if (isLoadingEntry) {
     return (
       <div className="scoresheet-container">
-        <div className="no-entries">
-          <h2>No pending entries</h2>
-          <button onClick={() => navigate(-1)}>Back to Class List</button>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          Loading...
         </div>
       </div>
     );
   }
-  
-  const currentIndex = currentClassEntries.findIndex(e => e.id === currentEntry.id) + 1;
-  const allAreasScored = searchAreas.every(area => area.time && area.time !== '');
-  
+
+  if (!currentEntry) {
+    return null;
+  }
+
   return (
-    <div className="scoresheet-container asca-scent-detection">
-      <header className="page-header scoresheet-header">
-        <HamburgerMenu />
-        <h1>
-          <ClipboardCheck className="title-icon" />
-          ASCA Scent Detection
-        </h1>
-        <div className="sync-status">
-          {isOnline ? (
-            <span className="online">● Online</span>
-          ) : (
-            <span className="offline">● Offline</span>
-          )}
-        </div>
-      </header>
-      
-      <div className="scoresheet-content">
-        <CompetitorCard
-          entry={currentEntry}
-          currentPosition={currentIndex}
-          totalEntries={currentClassEntries.length}
-        />
-        
-        {/* Multi-Area Timer */}
-        <div className="timer-section">
-          <MultiTimer
-            areas={timerAreas}
-            layout="horizontal"
-            showGlobalControls={true}
-          />
-        </div>
-        
-        {/* Area Scoring */}
-        <div className="area-scoring">
-          <h3>Search Results</h3>
-          {searchAreas.map((area, index) => (
-            <div key={area.areaName} className="area-card">
-              <div className="area-header">
-                <h4>{area.areaName}</h4>
-              </div>
-              
-              <div className="area-inputs">
-                <div className="time-input">
-                  <label>Time</label>
-                  <input
-                    type="text"
-                    placeholder="M:SS.ms"
-                    value={area.time}
-                    onChange={(e) => handleAreaUpdate(index, 'time', e.target.value)}
-                  />
-                </div>
-                
-                <div className="result-controls">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={area.found}
-                      onChange={(e) => handleAreaUpdate(index, 'found', e.target.checked)}
-                    />
-                    Target Found
-                  </label>
-                  
-                  {area.found && (
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={area.alert}
-                        onChange={(e) => handleAreaUpdate(index, 'alert', e.target.checked)}
-                      />
-                      Proper Alert
-                    </label>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Total Time Display */}
-        <div className="total-time-section">
-          <h3>Total Time: {calculateTotalTime()}</h3>
-          <p>Automatic calculation based on search times</p>
-        </div>
-        
-        {/* Qualifying Section */}
-        <div className="qualifying-section">
-          <label>Qualifying Result</label>
-          <div className="qualifying-buttons">
-            <button
-              className={`qual-button ${qualifying === 'Q' ? 'active' : ''}`}
-              onClick={() => setQualifying('Q')}
-            >
-              Q
-            </button>
-            <button
-              className={`qual-button ${qualifying === 'NQ' ? 'active' : ''}`}
-              onClick={() => setQualifying('NQ')}
-            >
-              NQ
-            </button>
-            <button
-              className={`qual-button ${qualifying === 'E' ? 'active' : ''}`}
-              onClick={() => setQualifying('E')}
-            >
-              E
-            </button>
-          </div>
-        </div>
-        
-        {qualifying !== 'Q' && (
-          <div className="reason-section">
-            <label htmlFor="reason">Non-Qualifying Reason</label>
-            <textarea
-              id="reason"
-              value={nonQualifyingReason}
-              onChange={(e) => setNonQualifyingReason(e.target.value)}
-              placeholder="Enter reason for NQ/E..."
-              rows={3}
+    <>
+      {CelebrationModal}
+      <div className="scoresheet-container">
+        <div className="scoresheet">
+          {/* Header */}
+          <header className="page-header mobile-header">
+            <HamburgerMenu
+              backNavigation={{
+                label: "Back to Entry List",
+                action: handleNavigateWithRingCleanup
+              }}
+              currentPage="entries"
             />
-          </div>
-        )}
-        
-        <div className="action-buttons">
-          <button
-            className="nav-button"
-            onClick={handlePrevious}
-            disabled={currentIndex === 1}
-          >
-            Previous
-          </button>
-
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              className="submit-button"
-              onClick={handleSubmit}
-              disabled={!allAreasScored || isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Score'}
-            </button>
-            {isSyncing && <SyncIndicator status="syncing" />}
-            {hasError && <SyncIndicator status="error" />}
-          </div>
-
-          <button
-            className="nav-button"
-            onClick={handleNext}
-            disabled={currentIndex === currentClassEntries.length}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-      
-      {/* Confirmation Dialog */}
-      {showConfirmation && (
-        <div className="confirmation-overlay">
-          <div className="confirmation-dialog">
-            <h2>Confirm Score</h2>
-            <div className="confirmation-details">
-              <p><strong>Dog:</strong> {currentEntry.callName} (#{currentEntry.armband})</p>
-              <p><strong>Total Time:</strong> {totalTime}</p>
-              <p><strong>Result:</strong> {qualifying}</p>
-              {searchAreas.filter(a => a.found).map((area, index) => (
-                <p key={index}>
-                  <strong>{area.areaName}:</strong> {area.time} 
-                  {area.alert ? ' ✓ Alert' : ' ✗ No Alert'}
-                </p>
-              ))}
-              {nonQualifyingReason && (
-                <p><strong>Reason:</strong> {nonQualifyingReason}</p>
-              )}
+            <div className="header-content">
+              <h1>
+                <ClipboardCheck className="title-icon" />
+                ASCA Scent Detection
+              </h1>
+              <div className="header-trial-info">
+                <span>{trialDate}</span>
+                <span className="trial-separator">•</span>
+                <span>Trial {trialNumber}</span>
+                <span className="trial-separator">•</span>
+                <span>{currentEntry.element} {currentEntry.level}</span>
+              </div>
             </div>
-            <div className="confirmation-buttons">
-              <button onClick={() => setShowConfirmation(false)}>Cancel</button>
-              <button onClick={confirmSubmit} className="confirm-button">
-                Confirm
+          </header>
+
+          {/* Content Wrapper */}
+          <div className="scoresheet-content-wrapper">
+            {/* Dog Info Card */}
+            <div className="scoresheet-dog-info-card">
+              <ArmbandBadge number={currentEntry.armband} />
+              <div className="scoresheet-dog-details">
+                <div className="scoresheet-dog-name">{currentEntry.callName}</div>
+                <div className="scoresheet-dog-breed">{currentEntry.breed}</div>
+                <div className="scoresheet-dog-handler">Handler: {currentEntry.handler}</div>
+              </div>
+            </div>
+
+            {/* Timer Section */}
+            <div className="scoresheet-timer-card">
+              <button
+                className="timer-btn-reset"
+                onClick={stopwatch.reset}
+                disabled={stopwatch.isRunning}
+                title={stopwatch.isRunning ? "Reset disabled while timer is running" : "Reset timer"}
+              >
+                ⟲
+              </button>
+
+              <div className={`timer-display-large ${stopwatch.shouldShow30SecondWarning() ? 'warning' : ''} ${stopwatch.isTimeExpired() ? 'expired' : ''}`}>
+                {stopwatch.formatTime(stopwatch.time)}
+              </div>
+              <div className="timer-countdown-display">
+                {stopwatch.time > 0 ? (
+                  <>Remaining: {stopwatch.getRemainingTime()}</>
+                ) : (
+                  <>Max Time: {activeAreaMaxTime}</>
+                )}
+              </div>
+              <div className="timer-controls-flutter">
+                {stopwatch.isRunning ? (
+                  <button className="timer-btn-start stop" onClick={handleStopTimer}>
+                    Stop
+                  </button>
+                ) : stopwatch.time > 0 ? (
+                  stopwatch.isTimeExpired() ? (
+                    <button className="timer-btn-start reset" onClick={stopwatch.reset} title="Reset timer">
+                      Reset
+                    </button>
+                  ) : (
+                    <button className="timer-btn-start resume" onClick={stopwatch.start} title="Continue timing">
+                      Resume
+                    </button>
+                  )
+                ) : (
+                  <button className="timer-btn-start start" onClick={stopwatch.start}>
+                    Start
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Timer Warning Message */}
+            {warningMessage && (
+              <div className={`timer-warning ${warningMessage === 'Time Expired' ? 'expired' : 'warning'}`}>
+                {warningMessage}
+              </div>
+            )}
+
+            {/* Time Inputs */}
+            {areas.map((area, index) => (
+              <div key={index} className="scoresheet-time-card">
+                <div className="time-input-flutter">
+                  {areas.length > 1 && (
+                    <>
+                      {!area.time ? (
+                        <button
+                          className={`area-record-btn ${getNextEmptyAreaIndex() === index && stopwatch.time > 0 && !stopwatch.isRunning ? 'next-in-sequence' : ''}`}
+                          onClick={() => recordTimeForArea(index)}
+                          title={`Record time from stopwatch for Area ${index + 1}`}
+                        >
+                          Record Area {index + 1}
+                        </button>
+                      ) : (
+                        <div className="area-badge recorded">
+                          Area {index + 1}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <div className="scoresheet-time-input-wrapper">
+                    <input
+                      type="text"
+                      value={area.time || ''}
+                      onChange={(e) => handleSmartTimeInput(index, e.target.value)}
+                      onBlur={(e) => handleTimeInputBlur(index, e.target.value)}
+                      placeholder="Type: 12345 or 1:23.45"
+                      className={`scoresheet-time-input ${areas.length === 1 ? 'single-area' : ''}`}
+                    />
+                    {area.time && (
+                      <button
+                        type="button"
+                        className="scoresheet-time-clear-button"
+                        onClick={() => clearTimeInput(index)}
+                        title="Clear time"
+                      >
+                        <X size={16} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-time-display">
+                    Max: {getMaxTimeForArea(index)}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Results Section */}
+            <div className="results-section">
+              <ResultChoiceChips
+                selectedResult={
+                  qualifying === 'Q' ? 'Qualified' :
+                  qualifying === 'ABS' ? 'Absent' :
+                  qualifying === 'EX' ? 'Excused' :
+                  null
+                }
+                onResultChange={(result) => {
+                  if (result === 'Qualified') {
+                    setQualifying('Q');
+                  } else if (result === 'Absent') {
+                    setQualifying('ABS');
+                    setNonQualifyingReason('Absent');
+                  } else if (result === 'Excused') {
+                    setQualifying('EX');
+                    setNonQualifyingReason('Dog Showed Aggression');
+                  }
+                }}
+                showNQ={true}
+                showEX={true}
+                onNQClick={() => {
+                  setQualifying('NQ');
+                  setNonQualifyingReason('Incorrect Alert');
+                }}
+                onEXClick={() => {
+                  setQualifying('EX');
+                  setNonQualifyingReason('Dog Showed Aggression');
+                }}
+                selectedResultInternal={qualifying || ''}
+                faultCount={faultCount}
+                onFaultCountChange={setFaultCount}
+                nqReason={nonQualifyingReason}
+                onNQReasonChange={setNonQualifyingReason}
+                excusedReason={nonQualifyingReason}
+                onExcusedReasonChange={setNonQualifyingReason}
+                isNationalsMode={false}
+                sportType="ASCA_SCENT_DETECTION"
+                level={currentEntry?.level}
+              />
+            </div>
+
+            {/* Validation message */}
+            {qualifying === 'Q' && !isAllTimesComplete && (
+              <div style={{
+                padding: '8px 16px',
+                marginBottom: '8px',
+                backgroundColor: '#fef3c7',
+                border: '1px solid #f59e0b',
+                borderRadius: '6px',
+                color: '#92400e',
+                fontSize: '14px',
+                textAlign: 'center'
+              }}>
+                ⚠️ All area times must be completed for a Qualified score
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="scoresheet-actions">
+              <button className="scoresheet-btn-cancel" onClick={handleNavigateWithRingCleanup}>
+                Cancel
+              </button>
+              <button
+                className="scoresheet-btn-save"
+                onClick={() => setShowConfirmation(true)}
+                disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !isAllTimesComplete)}
+              >
+                {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>
+
+            {/* Sync Status */}
+            {(isSyncing || hasError) && (
+              <div style={{ textAlign: 'center', marginTop: '-8px', marginBottom: '8px' }}>
+                {isSyncing && <SyncIndicator status="syncing" />}
+                {hasError && <SyncIndicator status="error" />}
+              </div>
+            )}
+
+            {/* Confirmation Dialog */}
+            <ScoreConfirmationDialog
+              isOpen={showConfirmation}
+              onClose={() => setShowConfirmation(false)}
+              onConfirm={handleEnhancedSubmit}
+              isSubmitting={isSubmitting}
+              trialDate={trialDate}
+              trialNumber={trialNumber}
+              entry={currentEntry}
+              qualifying={qualifying}
+              areas={areas}
+              faultCount={faultCount}
+              nonQualifyingReason={nonQualifyingReason}
+              calculateTotalTime={calculateTotalTime}
+            />
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
+
+export default ASCAScentDetectionScoresheet;

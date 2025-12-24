@@ -299,11 +299,54 @@ export function getDefaultMaxTime(element: string, level: string): string {
 }
 
 /**
+ * ASCA Scent Detection max times.
+ * Times vary by both element and level.
+ *
+ * | Level     | Containers | Interior | Exterior | Vehicle |
+ * |-----------|-----------|----------|----------|---------|
+ * | Novice    | 2:30      | 2:30     | 2:30     | 2:30    |
+ * | Open      | 3:00      | 3:00     | 3:00     | 3:00    |
+ * | Advanced  | 3:00      | 5:00     | 3:00     | 3:00    |
+ * | Excellent | 4:00      | 6:00     | 4:00     | 4:00    |
+ */
+export function getASCADefaultMaxTime(element: string, level: string): string {
+  const elem = element?.toLowerCase() || '';
+  const lvl = level?.toLowerCase() || '';
+
+  // Novice - all elements 2:30
+  if (lvl.includes('novice')) {
+    return '2:30';
+  }
+
+  // Open - all elements 3:00
+  if (lvl.includes('open')) {
+    return '3:00';
+  }
+
+  // Advanced - Interior is 5:00, others are 3:00
+  if (lvl.includes('advanced')) {
+    if (elem.includes('interior')) return '5:00';
+    return '3:00';
+  }
+
+  // Excellent - Interior is 6:00, others are 4:00
+  if (lvl.includes('excellent')) {
+    if (elem.includes('interior')) return '6:00';
+    return '4:00';
+  }
+
+  // Default fallback
+  return '3:00';
+}
+
+/**
  * Get max time for a specific area, falling back to defaults.
+ * Supports sport-specific max times (e.g., ASCA has different times than AKC).
  */
 export function getMaxTimeForAreaHelper(
   entry: Entry | null,
-  areaIndex: number
+  areaIndex: number,
+  sportType?: string
 ): string {
   if (!entry) {
     return '3:00';
@@ -333,9 +376,13 @@ export function getMaxTimeForAreaHelper(
     }
   }
 
-  // Fallback to defaults
+  // Fallback to sport-specific defaults
   if (!maxTime || maxTime === '' || maxTime === '0:00') {
-    maxTime = getDefaultMaxTime(entry.element || '', entry.level || '');
+    if (sportType === 'ASCA_SCENT_DETECTION') {
+      maxTime = getASCADefaultMaxTime(entry.element || '', entry.level || '');
+    } else {
+      maxTime = getDefaultMaxTime(entry.element || '', entry.level || '');
+    }
   }
 
   return maxTime;

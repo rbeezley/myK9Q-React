@@ -34,7 +34,7 @@ export type ExtendedResult = QualifyingResult | NationalsResult;
  */
 export interface ScoresheetCoreConfig {
   /** Sport type identifier (for analytics/logging) */
-  sportType?: 'AKC_SCENT_WORK' | 'AKC_SCENT_WORK_NATIONAL' | 'AKC_FASTCAT' | 'UKC_NOSEWORK';
+  sportType?: 'AKC_SCENT_WORK' | 'AKC_SCENT_WORK_NATIONAL' | 'AKC_FASTCAT' | 'UKC_NOSEWORK' | 'ASCA_SCENT_DETECTION';
   /** Whether this is a Nationals-style scoresheet with extended results */
   isNationals?: boolean;
 }
