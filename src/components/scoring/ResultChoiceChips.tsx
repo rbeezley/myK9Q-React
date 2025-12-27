@@ -23,11 +23,22 @@ const NQ_REASONS: Record<string, string[]> = {
     'Significant Disruption'
   ],
   ASCA_SCENT_DETECTION: [
+    // 9.2.8 - Incorrect call (Alert, naming location, no Finish, Finish with unfound hides)
     'Incorrect Call',
-    'Exceeded Time Limit',
-    'Dog Soil Search Area',
-    'Excessive Disruption',
-    'Other'
+    // 9.2.2 - Exceeding maximum time
+    'Exceeded Max Time',
+    // 9.2.1 - Dog eliminates in search area
+    'Dog Eliminated in Area',
+    // 9.2.3 - Dog stops working and does not re-engage
+    'Dog Stopped Working',
+    // 9.2.4 - Dog destroys containers or boxes
+    'Destroyed Containers',
+    // 9.2.5 - Excessive disturbance of search area
+    'Excessive Disturbance',
+    // 9.2.6 - Dog scratches or damages vehicle/property
+    'Damaged Property',
+    // 9.2.7 - Handler cannot point to hide location
+    'Couldn\'t Point to Hide'
   ]
 };
 
@@ -41,11 +52,14 @@ const EXCUSED_REASONS: Record<string, string[]> = {
     'Other'
   ],
   ASCA_SCENT_DETECTION: [
-    'Extreme Stress',
-    'Harsh Correction',
-    'Sportsmanship',
-    'Handler Request',
-    'Other'
+    // 9.3.1 - Dog shows extreme pain, stress, fear or aggression
+    'Extreme Stress/Fear/Aggression',
+    // 9.3.2 - Harsh handling or corrections
+    'Harsh Handling',
+    // 9.3.3 - Poor sportsmanship
+    'Poor Sportsmanship',
+    // 9.3.4 - Revealing hide location to another exhibitor
+    'Revealed Hide Location'
   ]
 };
 
