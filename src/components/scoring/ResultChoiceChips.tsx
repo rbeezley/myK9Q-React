@@ -23,16 +23,11 @@ const NQ_REASONS: Record<string, string[]> = {
     'Significant Disruption'
   ],
   ASCA_SCENT_DETECTION: [
-    'Incorrect Alert',
-    'Max Time',
-    'No Finish Call',
-    'Finish with Unfound Hides',
-    'Dog Eliminated in Area',
-    'Dog Stopped Working',
-    'Dog Destroyed Containers',
-    'Excessive Disturbance',
-    'Dog Damaged Property',
-    'Handler Couldnt Point to Hide'
+    'Incorrect Call',
+    'Exceeded Time Limit',
+    'Dog Soil Search Area',
+    'Excessive Disruption',
+    'Other'
   ]
 };
 
@@ -46,12 +41,11 @@ const EXCUSED_REASONS: Record<string, string[]> = {
     'Other'
   ],
   ASCA_SCENT_DETECTION: [
-    'Dog Showed Aggression',
-    'Dog Showed Stress/Fear',
-    'Harsh Handling',
-    'Poor Sportsmanship',
-    'Revealed Hide Location',
-    'Handler Request'
+    'Extreme Stress',
+    'Harsh Correction',
+    'Sportsmanship',
+    'Handler Request',
+    'Other'
   ]
 };
 

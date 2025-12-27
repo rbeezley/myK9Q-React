@@ -331,18 +331,18 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
                     setNonQualifyingReason('Absent');
                   } else if (result === 'Excused') {
                     setQualifying('EX');
-                    setNonQualifyingReason('Dog Showed Aggression');
+                    setNonQualifyingReason('Extreme Stress');
                   }
                 }}
                 showNQ={true}
                 showEX={true}
                 onNQClick={() => {
                   setQualifying('NQ');
-                  setNonQualifyingReason('Incorrect Alert');
+                  setNonQualifyingReason('Incorrect Call');
                 }}
                 onEXClick={() => {
                   setQualifying('EX');
-                  setNonQualifyingReason('Dog Showed Aggression');
+                  setNonQualifyingReason('Extreme Stress');
                 }}
                 selectedResultInternal={qualifying || ''}
                 faultCount={faultCount}

@@ -248,7 +248,7 @@ Public Sub SyncShowViaAPI_v3(ByVal lngShowID As Long, ByVal strNote As String)
 
 32910   Set db = CurrentDb
         ' NOTE: UKC doesn't have ShowType field - removed from query, hardcoded as "Regular" in JSON
-32920   strSQL = "SELECT C.AKCClubName, C.Website AS ClubWebsite, S.MobileAppLicKey, S.startdate, S.enddate, S.showid, S.showname, S.eventurl, " & _
+32920   strSQL = "SELECT C.ClubName, C.Website AS ClubWebsite, S.MobileAppLicKey, S.startdate, S.enddate, S.showid, S.showname, S.eventurl, " & _
                   "P1.FullName AS Secretary, P1.Email AS SecretaryEmail, P1.phone AS SecretaryPhone, " & _
                   "P2.FullName AS Chairman, P2.Email AS ChairmanEmail, P2.phone AS ChairmanPhone, " & _
                   "S.SiteName, S.SiteAddress, S.SiteCity, ST.StateName, S.SiteZip " & _
@@ -273,7 +273,7 @@ Public Sub SyncShowViaAPI_v3(ByVal lngShowID As Long, ByVal strNote As String)
 33070   json = "{" & _
               """license_key"":""" & JsonSafe(Nz(rs!MobileAppLicKey, "")) & """," & _
               """show_name"":""" & JsonSafe(Nz(rs!ShowName, "")) & """," & _
-              """club_name"":""" & JsonSafe(Nz(rs!AKCClubName, "")) & """," & _
+              """club_name"":""" & JsonSafe(Nz(rs!ClubName, "")) & """," & _
               """start_date"":""" & Format(Nz(rs!StartDate, Now), "yyyy-mm-dd") & """," & _
               """end_date"":""" & Format(Nz(rs!EndDate, Now), "yyyy-mm-dd") & """," & _
               """organization"":""UKC Nosework""," & _
@@ -1399,7 +1399,7 @@ Public Sub UpdateShowDetails_v3()
 
 52540   If InStr(1, strmyK9Q, "Active and Valid") Then
 
-52550       strClubname = Nz(DLookup("AKCClubName", "tbl_Club", "ClubID = " & iClubID), "")
+52550       strClubname = Nz(DLookup("ClubName", "tbl_Club", "ClubID = " & iClubID), "")
 
             ' Progress Bar
 52560       DoCmd.OpenForm "frm_Progress_myK9Q", acNormal
