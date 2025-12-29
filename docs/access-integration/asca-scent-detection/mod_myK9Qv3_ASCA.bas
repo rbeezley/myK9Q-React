@@ -763,9 +763,16 @@ Public Sub myK9Q_Class_Result_Download_ASCA_v3()
           Dim classTimeLimit3Seconds As Double
           Dim rsClass As DAO.Recordset
 
+          ' Debug tracking variable
+          Dim strDebugStep As String
+          strDebugStep = "Initializing"
+
 42050     Set db = CurrentDb
+          strDebugStep = "Getting ClassID from form"
 42060     iClassID = Forms!frm_Class_Main.txtClassID
+          strDebugStep = "Getting ShowID via DLookup, TrialID=" & Nz(Forms!frm_Class_Main.txtTrialID, 0)
 42070     iShowID = DLookup("ShowID_FK", "tbl_Trial", "TrialID = " & Forms!frm_Class_Main.txtTrialID)
+          strDebugStep = "Got IDs: ClassID=" & iClassID & ", ShowID=" & iShowID
 
           ' ==========================================================
           ' SCORED ENTRIES PROTECTION CHECK (Protect Access scores)
@@ -776,6 +783,7 @@ Public Sub myK9Q_Class_Result_Download_ASCA_v3()
           Dim strClassName As String
           blnOverwriteAccessScores = False
 
+          strDebugStep = "Checking scored entries in Access"
           strScoredListAccess = CheckScoredEntriesInAccess_ASCA_v3(iClassID)
 
           If strScoredListAccess <> "" Then
@@ -799,19 +807,28 @@ Public Sub myK9Q_Class_Result_Download_ASCA_v3()
           End If
           ' ==========================================================
 
+          strDebugStep = "Opening progress form"
 42080     DoCmd.OpenForm "frm_Progress_myK9Q", acNormal
 42090     Forms!frm_Progress_myK9Q.lblCurrentTask.Caption = "Downloading ASCA results for Class ID: " & iClassID
 42100     Forms!frm_Progress_myK9Q.Repaint
 
+          strDebugStep = "Creating HTTP object"
 42110     Set http = CreateObject("MSXML2.ServerXMLHttp.6.0")
 
           ' --- Get the Class Time Limit First ---
-42120     http.Open "GET", SUPABASE_URL_2 & "/rest/v1/classes?select=time_limit_seconds,time_limit_area2_seconds,time_limit_area3_seconds&access_class_id=eq." & iClassID, False
+          strDebugStep = "Fetching class time limits from Supabase"
+          Dim strClassUrl As String
+          strClassUrl = SUPABASE_URL_2 & "/rest/v1/classes?select=time_limit_seconds,time_limit_area2_seconds,time_limit_area3_seconds&access_class_id=eq." & iClassID
+42120     http.Open "GET", strClassUrl, False
 42130     http.setRequestHeader "apikey", SUPABASE_KEY_2
 42140     http.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
+          strDebugStep = "Sending class time limit request"
 42150     http.send
+          strDebugStep = "Class request returned status: " & http.Status
 42160     If http.Status = 200 Then
+          strDebugStep = "Parsing class JSON response"
 42170         Set parsedClassJson = ParseJson(http.responseText)
+          strDebugStep = "Checking parsed class JSON"
 42180         If Not parsedClassJson Is Nothing And parsedClassJson.count > 0 Then
 42190             classTimeLimitSeconds = CDbl(Nz(parsedClassJson(1)("time_limit_seconds"), 0))
 42195             classTimeLimit2Seconds = CDbl(Nz(parsedClassJson(1)("time_limit_area2_seconds"), 0))
@@ -857,19 +874,31 @@ Public Sub myK9Q_Class_Result_Download_ASCA_v3()
 42210     End If
 
           ' --- Get all ENTRIES with their result data ---
-42220     http.Open "GET", SUPABASE_URL_2 & "/rest/v1/entries?select=access_entry_id,result_status,disqualification_reason,search_time_seconds,area1_time_seconds,area2_time_seconds,area3_time_seconds,total_faults,total_correct_finds,total_incorrect_finds,no_finish_count,is_scored,final_placement&access_class_id=eq." & iClassID, False
+          strDebugStep = "Fetching entries from Supabase"
+          Dim strEntriesUrl As String
+          strEntriesUrl = SUPABASE_URL_2 & "/rest/v1/entries?select=access_entry_id,result_status,disqualification_reason,search_time_seconds,area1_time_seconds,area2_time_seconds,area3_time_seconds,total_faults,total_correct_finds,total_incorrect_finds,no_finish_count,is_scored,final_placement&access_class_id=eq." & iClassID
+42220     http.Open "GET", strEntriesUrl, False
 42230     http.setRequestHeader "apikey", SUPABASE_KEY_2
 42240     http.setRequestHeader "Authorization", "Bearer " & SUPABASE_KEY_2
+          strDebugStep = "Sending entries request"
 42250     http.send
+          strDebugStep = "Entries request returned status: " & http.Status
 
-42260     If http.Status <> 200 Then GoTo Download_Exit
+42260     If http.Status <> 200 Then
+              strDebugStep = "Entries request FAILED with status: " & http.Status & " - " & http.responseText
+              GoTo Download_Exit
+          End If
 
 42440     DoCmd.SetWarnings False
 42430     jsonResponse = http.responseText
+          strDebugStep = "Got entries response, length: " & Len(Nz(jsonResponse, ""))
 42450     If Len(Nz(jsonResponse, "")) < 5 Then GoTo FinalizeDownload
 
+          strDebugStep = "Parsing entries JSON"
 42460     Set parsedJson = ParseJson(jsonResponse)
+          strDebugStep = "Parsed JSON, checking if valid"
 42470     If Not parsedJson Is Nothing And parsedJson.count > 0 Then
+          strDebugStep = "Processing " & parsedJson.count & " entries"
 42480         For Each dataItem In parsedJson
                   Dim accessEntryID As Long
 42490             accessEntryID = CLng(Nz(dataItem("access_entry_id"), 0))
@@ -893,8 +922,7 @@ Public Sub myK9Q_Class_Result_Download_ASCA_v3()
                                     "result_text = '" & JsonSafe(Nz(dataItem("result_status"), "None")) & "', " & _
                                     "CorrectCount = " & Nz(dataItem("total_correct_finds"), 0) & ", " & _
                                     "IncorrectCount = " & Nz(dataItem("total_incorrect_finds"), 0) & ", " & _
-                                    "FinishCount = " & Nz(dataItem("no_finish_count"), 0) & ", " & _
-                                    "FinishCall = " & IIf(Nz(dataItem("no_finish_count"), 0) > 0, -1, 0) & " " & _
+                                    "FinishCount = " & Nz(dataItem("no_finish_count"), 0) & " " & _
                                 "WHERE entryID = " & accessEntryID
 42550                     db.Execute strSQL, dbFailOnError
 
@@ -931,9 +959,12 @@ NextEntry:
 42740     End If
 
 FinalizeDownload:
+          strDebugStep = "Calling Class_Placements"
 42760     Call Class_Placements
 
+          strDebugStep = "Closing progress form"
 42770     DoCmd.Close acForm, "frm_Progress_myK9Q", acSaveNo
+          strDebugStep = "Requerying form"
 42780     Forms!frm_Class_Main.Requery
 42790     MsgBox "ASCA Download complete. " & updatedCount & " entries were updated.", vbInformation, "Download Complete"
 
@@ -946,12 +977,18 @@ Download_Exit:
 42840     Exit Sub
 
 Download_Error:
+          ' IMPORTANT: Capture error info BEFORE any cleanup operations clear it
+          Dim errNum As Long, errDesc As String
+          errNum = Err.Number
+          errDesc = Err.Description
+
 42850     On Error Resume Next
 42860     DoCmd.Close acForm, "frm_Progress_myK9Q", acSaveNo
 42870     On Error GoTo 0
 42880     MsgBox "An error occurred during ASCA download:" & vbCrLf & vbCrLf & _
-                   "Error Number: " & Err.Number & vbCrLf & _
-                   "Description: " & Err.Description, vbCritical, "Download Failed"
+                   "Step: " & strDebugStep & vbCrLf & vbCrLf & _
+                   "Error Number: " & errNum & vbCrLf & _
+                   "Description: " & errDesc, vbCritical, "Download Failed"
 42890     Resume Download_Exit
 End Sub
 
