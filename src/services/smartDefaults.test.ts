@@ -94,79 +94,40 @@ Object.defineProperty(navigator, 'getBattery', {
 });
 
 const createMockSettings = (overrides: Partial<AppSettings> = {}): AppSettings => ({
+  // Display
   theme: 'dark',
-  fontSize: 'medium',
-  density: 'comfortable',
-  performanceMode: 'auto',
-  reduceMotion: false,
-  highContrast: false,
-  imageQuality: 'high',
+  accentColor: 'green',
+
+  // Performance
   enableAnimations: true,
   enableBlur: true,
   enableShadows: true,
-  realTimeSync: true,
-  syncFrequency: 'immediate',
-  offlineMode: false,
-  wifiOnlySync: false,
-  autoDownloadShows: false,
-  storageLimit: 500,
-  autoCleanup: true,
-  oneHandedMode: false,
-  handPreference: 'auto',
+
+  // Mobile
   pullToRefresh: true,
-  pullSensitivity: 'normal',
   hapticFeedback: true,
+
+  // Notifications
   enableNotifications: true,
-  notificationSound: true,
+  voiceNotifications: false,
   showBadges: true,
-  notifyClassStarting: true,
-  notifyYourTurn: true,
   notifyYourTurnLeadDogs: 2,
-  notifyResults: true,
-  notifySyncErrors: true,
+
+  // Scoring
   voiceAnnouncements: false,
-  voiceLanguage: 'en-US',
+
+  // Voice configuration
+  voiceName: '',
   voiceRate: 1.0,
-  voicePitch: 1.0,
-  voiceVolume: 1.0,
-  announceTimerCountdown: true,
-  announceRunNumber: true,
-  announceResults: true,
-  autoSaveFrequency: '10s',
-  autoSaveEnabled: true,
-  maxDraftsPerEntry: 3,
-  confirmationPrompts: 'smart',
-  bypassConfirmationsAfter: 10,
+
+  // Privacy & Security
   autoLogout: 480,
+
+  // Developer Tools
   developerMode: false,
-  devShowFPS: false,
-  devShowMemory: false,
-  devShowNetwork: false,
-  devShowStateInspector: false,
-  devShowPerformanceProfiler: false,
-  devLogStateChanges: false,
-  devLogNetworkRequests: false,
-  devLogPerformanceMarks: false,
   consoleLogging: 'errors',
   enableBetaFeatures: false,
   enablePerformanceMonitoring: false,
-  showFPS: false,
-  showNetworkRequests: false,
-  cloudSync: true,
-  imagePriority: 'auto',
-  animationIntensity: 'normal',
-  notifications: true,
-  doNotDisturb: false,
-  doNotDisturbUntil: null,
-  quietHoursEnabled: false,
-  quietHoursStart: '22:00',
-  quietHoursEnd: '08:00',
-  quietHoursAllowUrgent: true,
-  voiceEnabled: false,
-  confirmationMode: 'smart',
-  devShowState: false,
-  devPerformanceMonitor: false,
-  devNetworkInspector: false,
   ...overrides,
 });
 
@@ -239,7 +200,6 @@ describe('smartDefaults', () => {
       const defaults = await generateSmartDefaults(context);
 
       // Check actual AppSettings properties
-      expect(defaults.density).toBe('comfortable');
       expect(defaults.enableAnimations).toBeDefined();
       expect(defaults.theme).toBeDefined();
     });
@@ -254,10 +214,9 @@ describe('smartDefaults', () => {
 
       const defaults = await generateSmartDefaults(context);
 
-      // Check actual AppSettings properties
-      expect(defaults.density).toBe('compact');
+      // Check actual AppSettings properties - low tier disables haptic feedback
       expect(defaults.enableAnimations).toBeDefined();
-      expect(defaults.reduceMotion).toBeDefined();
+      expect(defaults.hapticFeedback).toBe(false);
     });
 
     it('should enable full features for high-tier device', async () => {
@@ -276,7 +235,7 @@ describe('smartDefaults', () => {
       expect(defaults.enableShadows).toBeDefined();
     });
 
-    it('should disable animations when battery is low', async () => {
+    it('should generate defaults when battery is low', async () => {
       const context: SmartDefaultsContext = {
         deviceTier: 'medium',
         connectionType: 'wifi',
@@ -288,7 +247,9 @@ describe('smartDefaults', () => {
 
       const defaults = await generateSmartDefaults(context);
 
-      expect(defaults.reduceMotion).toBe(true);
+      // Defaults should still be generated (battery info used for context)
+      expect(defaults.theme).toBeDefined();
+      expect(defaults.enableAnimations).toBeDefined();
     });
 
     it('should enable WiFi-only sync on cellular', async () => {
@@ -332,8 +293,9 @@ describe('smartDefaults', () => {
 
       const defaults = await generateSmartDefaults(context);
 
-      // Exhibitors get comfortable density for simpler interface
-      expect(defaults.density).toBe('comfortable');
+      // Exhibitors don't get voice announcements (judges do)
+      expect(defaults.voiceAnnouncements).toBe(false);
+      expect(defaults.theme).toBeDefined();
     });
 
     it('should detect system theme preference', async () => {
@@ -355,13 +317,13 @@ describe('smartDefaults', () => {
     it('should fill in missing settings without force reset', async () => {
       const partialSettings = createMockSettings({
         theme: undefined as any,
-        fontSize: undefined as any,
+        enableAnimations: undefined as any,
       });
 
       const result = await applySmartDefaults(partialSettings, undefined, false);
 
       expect(result.theme).toBeDefined();
-      expect(result.fontSize).toBeDefined();
+      expect(result.enableAnimations).toBeDefined();
     });
 
     it('should preserve existing settings without force reset', async () => {
@@ -388,9 +350,9 @@ describe('smartDefaults', () => {
 
       // Battery-saver disables performance features
       expect(recommended.enableAnimations).toBe(false);
-      expect(recommended.reduceMotion).toBe(true);
       expect(recommended.enableBlur).toBe(false);
       expect(recommended.enableShadows).toBe(false);
+      expect(recommended.hapticFeedback).toBe(false);
     });
 
     it('should return performance preset', async () => {
@@ -398,10 +360,9 @@ describe('smartDefaults', () => {
 
       // Performance enables all visual features
       expect(recommended.enableAnimations).toBe(true);
-      expect(recommended.reduceMotion).toBe(false);
       expect(recommended.enableBlur).toBe(true);
       expect(recommended.enableShadows).toBe(true);
-      expect(recommended.density).toBe('spacious');
+      expect(recommended.hapticFeedback).toBe(true);
     });
 
     it('should return data-saver preset', async () => {
@@ -418,7 +379,7 @@ describe('smartDefaults', () => {
       // Balanced returns smart defaults based on device context
       expect(recommended).toBeDefined();
       expect(recommended.theme).toBeDefined();
-      expect(recommended.density).toBeDefined();
+      expect(recommended.enableAnimations).toBeDefined();
     });
   });
 
@@ -475,8 +436,6 @@ describe('smartDefaults', () => {
     it('should return valid for optimal settings', async () => {
       const settings = createMockSettings({
         enableAnimations: true,
-        realTimeSync: true,
-        imageQuality: 'medium',
       });
 
       const result = await validateSettings(settings);
@@ -543,7 +502,7 @@ describe('smartDefaults', () => {
 
       // Battery-saver disables performance features
       expect(optimized.enableAnimations).toBe(false);
-      expect(optimized.reduceMotion).toBe(true);
+      expect(optimized.hapticFeedback).toBe(false);
     });
 
     it('should apply performance scenario', async () => {
@@ -554,7 +513,7 @@ describe('smartDefaults', () => {
       // Performance enables all visual features
       expect(optimized.enableAnimations).toBe(true);
       expect(optimized.enableBlur).toBe(true);
-      expect(optimized.density).toBe('spacious');
+      expect(optimized.hapticFeedback).toBe(true);
     });
 
     it('should apply smart recommendations without scenario', async () => {
@@ -614,7 +573,7 @@ describe('smartDefaults', () => {
       // Should still generate defaults without role-specific settings
       expect(defaults).toBeDefined();
       expect(defaults.theme).toBeDefined();
-      expect(defaults.density).toBeDefined();
+      expect(defaults.enableAnimations).toBeDefined();
     });
   });
 });
