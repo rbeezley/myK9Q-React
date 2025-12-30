@@ -263,7 +263,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
               <Info size={18} className="settings-info-icon" />
               <p className="settings-info-text">
                 This overrides the show/trial default. To set defaults for all classes,
-                go to <strong>Trial Secretary → Results Control</strong>.
+                go to <strong>Secretary Tools → Results/Check-In Settings</strong>.
               </p>
             </div>
           </div>
