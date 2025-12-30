@@ -61,7 +61,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                             title: 'Test Notification',
                             content: 'This is a test notification to check styling on your device.',
                             showName: showContext?.showName || 'myK9Q',
-                            priority: 'normal',
+                            priority: 'urgent',  // Use urgent for test to trigger heads-up display
                             licenseKey: showContext?.licenseKey || 'test'
                         }
                     };
