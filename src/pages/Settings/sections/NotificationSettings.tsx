@@ -57,6 +57,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                     const message = {
                         type: 'SIMULATE_PUSH',
                         data: {
+                            id: `test-${Date.now()}`,  // Unique ID for each test notification
                             title: 'Test Notification',
                             content: 'This is a test notification to check styling on your device.',
                             showName: showContext?.showName || 'myK9Q',
