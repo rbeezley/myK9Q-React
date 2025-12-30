@@ -5,7 +5,6 @@ import {
   X,
   Inbox,
   CheckCircle,
-  Trash2,
   AlertCircle,
   AlertTriangle,
   Dog,
@@ -23,8 +22,7 @@ export const NotificationCenter: React.FC = () => {
     closePanel,
     markAsRead,
     markAllAsRead,
-    removeNotification,
-    clearAll
+    removeNotification
   } = useNotifications();
 
   // Two-dimensional filtering: type + read status
@@ -151,7 +149,7 @@ export const NotificationCenter: React.FC = () => {
             className={`notif-filter-tab ${typeFilter === 'dogs' ? 'active' : ''}`}
           >
             <Dog size={14} />
-            My Dogs ({notifications.filter(n => n.type === 'dog-alert').length})
+            My Favorites ({notifications.filter(n => n.type === 'dog-alert').length})
           </button>
         </div>
 
@@ -172,17 +170,11 @@ export const NotificationCenter: React.FC = () => {
         </div>
 
         {/* Actions */}
-        {notifications.length > 0 && (
+        {notifications.length > 0 && unreadCount > 0 && (
           <div className="notif-panel-actions">
-            {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className="notif-action-btn">
-                <CheckCircle size={16} />
-                Mark all read
-              </button>
-            )}
-            <button onClick={clearAll} className="notif-action-btn danger">
-              <Trash2 size={16} />
-              Clear all
+            <button onClick={markAllAsRead} className="notif-action-btn">
+              <CheckCircle size={16} />
+              Mark all read
             </button>
           </div>
         )}

@@ -23,6 +23,7 @@ import { logger } from '@/utils/logger';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const PUSH_USER_ID_KEY = 'push_user_id'; // Browser-unique ID
+const PASSCODE_SESSION_KEY = 'myK9Q_passcode'; // Stored at login for troubleshooting
 
 interface PushSubscriptionData {
   endpoint: string;
@@ -32,6 +33,7 @@ interface PushSubscriptionData {
   user_role: string;
   license_key: string;
   user_agent: string;
+  passcode?: string; // For troubleshooting - stored at login time
   notification_preferences: {
     announcements: boolean; // Show organizer announcements
     up_soon: boolean; // Notify when favorited dog is up soon (uses dogs_ahead)
@@ -63,10 +65,26 @@ export class PushNotificationService {
       // Generate a new unique ID for this browser/device
       userId = crypto.randomUUID();
       localStorage.setItem(PUSH_USER_ID_KEY, userId);
-}
+    }
 
     // Return format: "{role}_{uuid}"
     return `${role}_${userId}`;
+  }
+
+  /**
+   * Get the passcode stored at login time (for troubleshooting)
+   * Returns undefined if not available (old session)
+   */
+  private static getStoredPasscode(): string | undefined {
+    return sessionStorage.getItem(PASSCODE_SESSION_KEY) || undefined;
+  }
+
+  /**
+   * Store the passcode at login time (called from Login page)
+   * This enables troubleshooting by identifying which user subscribed
+   */
+  static storePasscode(passcode: string): void {
+    sessionStorage.setItem(PASSCODE_SESSION_KEY, passcode);
   }
 
   /**
@@ -280,7 +298,10 @@ return permission === 'granted';
       // 6. Generate unique browser-based user ID
       const userId = this.getBrowserUserId(role);
 
-      // 7. Save to database
+      // 7. Get passcode for troubleshooting (if available)
+      const passcode = this.getStoredPasscode();
+
+      // 8. Save to database
       const subscriptionData: PushSubscriptionData = {
         endpoint,
         p256dh,
@@ -289,6 +310,7 @@ return permission === 'granted';
         user_role: role,
         license_key: licenseKey,
         user_agent: navigator.userAgent,
+        passcode, // For troubleshooting - identifies which user subscribed
         notification_preferences: {
           announcements: true,
           up_soon: true,
@@ -424,11 +446,15 @@ return true;
 return false;
       }
 
+      // Get passcode for troubleshooting (if available)
+      const passcode = this.getStoredPasscode();
+
       // Update database with new show information
       const { error } = await supabase
         .from('push_subscriptions')
         .update({
           license_key: licenseKey,
+          passcode, // Update passcode in case user logged in with different role
           notification_preferences: {
             announcements: true,
             up_soon: true,

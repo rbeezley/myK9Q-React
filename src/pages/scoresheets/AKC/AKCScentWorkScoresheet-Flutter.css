@@ -391,13 +391,21 @@
   animation: flash 0.5s infinite;
 }
 
+/* Countdown ring - positioned in top-left corner */
+.timer-countdown-ring-corner {
+  position: absolute;
+  top: var(--token-space-lg);
+  left: var(--token-space-lg);
+  display: block;
+}
+
 .timer-countdown-display {
   font-size: var(--token-space-xl);
   font-weight: 500;
   color: var(--scoresheet-text-secondary);
-  margin-bottom: var(--token-space-lg);
   font-variant-numeric: tabular-nums;
   text-align: center;
+  margin-bottom: var(--token-space-lg);
 }
 
 .timer-controls-flutter {

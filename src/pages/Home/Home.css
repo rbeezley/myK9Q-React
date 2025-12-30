@@ -397,17 +397,21 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.75rem;
-  color: var(--text-light-gray);
-  font-weight: 400;
+  font-size: 0.625rem;  /* 10px - smaller to prevent wrapping on mobile */
+  white-space: nowrap;  /* Prevent text wrapping */
+  color: var(--token-text-secondary);
+  font-weight: 500;
   text-align: left;
   padding: var(--token-space-xs) 0;
-  opacity: 0.8;
+}
+
+.progress-row span {
+  font-size: 0.625rem;  /* 10px - override global span font-size */
 }
 
 .progress-row svg {
-  color: var(--text-light-gray);
-  stroke: var(--text-light-gray);
+  color: var(--token-text-secondary);
+  stroke: var(--token-text-secondary);
   fill: none;
   stroke-width: 2;
   flex-shrink: 0;

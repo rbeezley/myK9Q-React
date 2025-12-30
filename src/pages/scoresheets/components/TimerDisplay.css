@@ -62,6 +62,14 @@
   50% { opacity: 0.7; }
 }
 
+/* Countdown ring - positioned in top-left corner */
+.timer-countdown-ring-corner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: block;
+}
+
 .timer-countdown-display {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.9);

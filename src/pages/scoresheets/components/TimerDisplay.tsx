@@ -27,10 +27,16 @@ export interface TimerDisplayProps {
   warningState: TimerWarningState;
   /** Maximum time allowed (formatted as "M:SS") */
   maxTime: string;
+  /** Maximum time in milliseconds (for progress ring calculation) */
+  maxTimeMs?: number;
   /** Remaining time display (formatted as "M:SS") */
   remainingTime: string;
+  /** Remaining time in milliseconds (for progress ring calculation) */
+  remainingTimeMs?: number;
   /** Warning message to display (if any) */
   warningMessage?: string;
+  /** Show circular progress ring around timer (default: true) */
+  showProgressRing?: boolean;
   /** Handler for start/resume button */
   onStart: () => void;
   /** Handler for stop button */
@@ -81,8 +87,11 @@ export function TimerDisplay({
   isRunning,
   warningState,
   maxTime,
+  maxTimeMs,
   remainingTime,
+  remainingTimeMs,
   warningMessage,
+  showProgressRing = true,
   onStart,
   onStop,
   onReset
@@ -95,10 +104,61 @@ export function TimerDisplay({
     return `${minutes}:${seconds.padStart(5, '0')}`;
   };
 
+  // Countdown ring values for corner position
+  const cornerRingSize = 40;
+  const strokeWidth = 4;
+  const cornerRadius = (cornerRingSize - strokeWidth) / 2;
+  const cornerCircumference = 2 * Math.PI * cornerRadius;
+
+  // Progress: 1 at start (full), 0 when time expired (empty) - COUNTDOWN style
+  const remainingMsValue = remainingTimeMs ?? 0;
+  const progress = maxTimeMs && maxTimeMs > 0 ? Math.max(0, remainingMsValue / maxTimeMs) : 1;
+  const cornerStrokeDashoffset = cornerCircumference * (1 - progress);
+  const remainingSeconds = remainingMsValue / 1000;
+
+  // Ring color based on remaining seconds
+  const getRingColor = (): string => {
+    if (remainingSeconds <= 0) return '#ef4444'; // Red - expired
+    if (remainingSeconds <= 30) return '#ef4444'; // Red - 30s warning
+    if (remainingSeconds <= 40) return '#f59e0b'; // Orange - 40s warning
+    return '#22c55e'; // Green
+  };
+
   return (
     <>
       <div className="scoresheet-timer-card">
-        {/* Reset button - always in top-right corner */}
+        {/* Countdown ring - top left corner */}
+        {showProgressRing && maxTimeMs && maxTimeMs > 0 && (
+          <svg
+            className="timer-countdown-ring-corner"
+            width={cornerRingSize}
+            height={cornerRingSize}
+            viewBox={`0 0 ${cornerRingSize} ${cornerRingSize}`}
+          >
+            <circle
+              cx={cornerRingSize / 2}
+              cy={cornerRingSize / 2}
+              r={cornerRadius}
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.2)"
+              strokeWidth={strokeWidth}
+            />
+            <circle
+              cx={cornerRingSize / 2}
+              cy={cornerRingSize / 2}
+              r={cornerRadius}
+              fill="none"
+              stroke={getRingColor()}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={cornerCircumference}
+              strokeDashoffset={cornerStrokeDashoffset}
+              transform={`rotate(-90 ${cornerRingSize / 2} ${cornerRingSize / 2})`}
+            />
+          </svg>
+        )}
+
+        {/* Reset button - top right corner */}
         <button
           className="timer-btn-reset"
           onClick={onReset}

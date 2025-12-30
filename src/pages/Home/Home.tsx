@@ -43,11 +43,21 @@ export const Home: React.FC = () => {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'armband' | 'name' | 'handler'>('armband');
-  // Initialize filterBy from navigation state if provided (e.g., from Show Dashboard)
+  // Initialize filterBy from: 1) navigation state, 2) sessionStorage, 3) 'all' default
+  // This ensures the tab persists when navigating away and back (e.g., after check-in)
   const locationState = location.state as { filter?: 'all' | 'favorites' } | null;
-  const [filterBy, setFilterBy] = useState<'all' | 'favorites'>(
-    locationState?.filter || 'all'
-  );
+  const [filterBy, setFilterBy] = useState<'all' | 'favorites'>(() => {
+    // Priority: navigation state > sessionStorage > default
+    if (locationState?.filter) return locationState.filter;
+    const savedFilter = sessionStorage.getItem('home_dog_filter');
+    if (savedFilter === 'all' || savedFilter === 'favorites') return savedFilter;
+    return 'all';
+  });
+
+  // Persist filter tab to sessionStorage so it survives navigation (e.g., checking in from Favorites)
+  useEffect(() => {
+    sessionStorage.setItem('home_dog_filter', filterBy);
+  }, [filterBy]);
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(() => {

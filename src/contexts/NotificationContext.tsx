@@ -135,6 +135,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return [];
   });
 
+  // Track dismissed announcement IDs (cleared from inbox but still exist in DB)
+  const [dismissedAnnouncementIds, setDismissedAnnouncementIds] = useState<Set<number>>(() => {
+    try {
+      const stored = localStorage.getItem('myK9Q_dismissed_announcements');
+      if (stored) {
+        return new Set(JSON.parse(stored));
+      }
+    } catch (error) {
+      logger.error('Error loading dismissed announcements:', error);
+    }
+    return new Set();
+  });
+
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   // isConnected now reflects service worker availability (for push notifications)
   // rather than Supabase real-time subscription status
@@ -149,14 +162,24 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [pushNotifications]);
 
+  // Save dismissed announcement IDs to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('myK9Q_dismissed_announcements', JSON.stringify([...dismissedAnnouncementIds]));
+    } catch (error) {
+      logger.error('Error saving dismissed announcements:', error);
+    }
+  }, [dismissedAnnouncementIds]);
+
   // Merge announcements with push notifications
   // Announcements from store take priority (they have authoritative read status)
   // Push notifications for dog-alerts are kept separately
   const notifications = useMemo(() => {
-    // Convert announcements to notification format (exclude expired)
+    // Convert announcements to notification format (exclude expired and dismissed)
     const now = new Date();
     const announcementNotifs = announcements
       .filter(a => !a.expires_at || new Date(a.expires_at) > now)
+      .filter(a => !dismissedAnnouncementIds.has(a.id))  // Filter out dismissed
       .map(a => announcementToNotification(a, currentShowName || undefined));
 
     // Get dog-alert push notifications (these don't come from announcements)
@@ -167,7 +190,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     merged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return merged.slice(0, MAX_NOTIFICATIONS);
-  }, [announcements, pushNotifications, currentShowName]);
+  }, [announcements, pushNotifications, currentShowName, dismissedAnnouncementIds]);
 
   // Calculate unread count
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -221,29 +244,35 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     );
   }, []);
 
-  // Remove notification
+  // Remove notification (dismiss from inbox)
   const removeNotification = useCallback((notificationId: string) => {
-    // For announcements, we just mark as read (can't delete from Inbox)
-    // For push notifications, we can remove from local state
     if (notificationId.startsWith('announcement_')) {
+      // Dismiss announcement from inbox (add to dismissed set)
       const announcementId = parseInt(notificationId.replace('announcement_', ''), 10);
       if (!isNaN(announcementId)) {
+        setDismissedAnnouncementIds(prev => new Set([...prev, announcementId]));
+        // Also mark as read
         markAnnouncementAsRead(announcementId);
       }
     } else {
+      // Remove push notification from local state
       setPushNotifications(prev => prev.filter(n => n.id !== notificationId));
     }
   }, [markAnnouncementAsRead]);
 
-  // Clear all notifications (push only - announcements persist in database)
+  // Clear all notifications (dismiss all from inbox)
   const clearAll = useCallback(() => {
-    // Mark all announcements as read
+    // Dismiss all announcements from inbox
+    const announcementIds = announcements.map(a => a.id);
+    setDismissedAnnouncementIds(prev => new Set([...prev, ...announcementIds]));
+
+    // Mark all as read
     const announcementStore = useAnnouncementStore.getState();
     announcementStore.markAllAsRead();
 
     // Clear push notifications
     setPushNotifications([]);
-  }, []);
+  }, [announcements]);
 
   // Panel controls
   const openPanel = useCallback(() => {

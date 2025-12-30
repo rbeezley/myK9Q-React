@@ -10,6 +10,7 @@ import { TransitionMessage } from '../../components/TransitionMessage/Transition
 import { LoadingSplash } from '../../components/SplashScreen/LoadingSplash';
 import { autoDownloadShow } from '../../services/autoDownloadService';
 import { prepareForOffline, wasRecentlyPrepared, type OfflinePreparationProgress } from '../../utils/chunkPrefetch';
+import PushNotificationService from '../../services/pushNotificationService';
 import './Login.css';
 
 export const Login: React.FC = () => {
@@ -288,6 +289,9 @@ inputRefs.current[0]?.focus();
           };
           login(fullPasscode, showDataWithType);
 
+          // Store passcode for push notification troubleshooting
+          PushNotificationService.storePasscode(fullPasscode);
+
           // 🚀 OFFLINE PREPARATION: Load chunks + sync data before navigating
           // Critical for judges who log in then walk to exterior areas (no wifi)
           await handlePostLoginPreparation(showDataWithType.licenseKey);
@@ -310,6 +314,9 @@ inputRefs.current[0]?.focus();
         showType: showData.competition_type
       };
       login(fullPasscode, showDataWithType);
+
+      // Store passcode for push notification troubleshooting
+      PushNotificationService.storePasscode(fullPasscode);
 
       // 🚀 OFFLINE PREPARATION: Load chunks + sync data before navigating
       // Critical for judges who log in then walk to exterior areas (no wifi)
