@@ -5,20 +5,14 @@
  * across the application. Supports both user settings and system preferences.
  */
 
-import { useSettingsStore } from '@/stores/settingsStore';
+// No longer depends on settingsStore - uses OS preference only
 
 /**
  * Check if reduced motion should be applied
- * Considers both system preference and user settings
+ * Based on OS system preference only
  */
 export function shouldReduceMotion(): boolean {
-  // Check user setting first
-  const settings = useSettingsStore.getState().settings;
-  if (settings.reduceMotion) {
-    return true;
-  }
-
-  // Check system preference
+  // Check system preference only
   if (typeof window !== 'undefined' && window.matchMedia) {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
@@ -291,25 +285,22 @@ export function addTransitionEndListener(
 
 /**
  * Hook-friendly function to subscribe to reduce motion changes
+ * Listens to OS system preference only
  */
 export function subscribeToReduceMotionChanges(callback: (reduced: boolean) => void): () => void {
-  // Subscribe to settings changes
-  const unsubscribeSettings = useSettingsStore.subscribe((state) => {
-    callback(state.settings.reduceMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  });
-
-  // Subscribe to system preference changes
+  // Subscribe to system preference changes only
   const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const handleChange = (e: MediaQueryListEvent) => {
-    const settings = useSettingsStore.getState().settings;
-    callback(settings.reduceMotion || e.matches);
+    callback(e.matches);
   };
+
+  // Call immediately with current value
+  callback(mediaQuery.matches);
 
   mediaQuery.addEventListener('change', handleChange);
 
   // Return cleanup function
   return () => {
-    unsubscribeSettings();
     mediaQuery.removeEventListener('change', handleChange);
   };
 }

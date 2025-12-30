@@ -16,6 +16,7 @@ import { logger } from '@/utils/logger';
 import { GeneralSettings } from './sections/GeneralSettings';
 import { AppearanceSettings } from './sections/AppearanceSettings';
 import { NotificationSettings } from './sections/NotificationSettings';
+import { VoiceSettingsSection } from './sections/VoiceSettingsSection';
 import { ScoringSettings } from './sections/ScoringSettings';
 import { PrivacySettings } from './sections/PrivacySettings';
 import { AdvancedSettings } from './sections/AdvancedSettings';
@@ -182,6 +183,11 @@ export function Settings() {
               onPushToggle={handlePushToggle}
               browserCompatibility={browserCompatibility}
             />
+          )}
+
+          {/* Voice Settings - visible to all users */}
+          {shouldShowSection('Notifications') && (
+            <VoiceSettingsSection />
           )}
 
           {/* Scoring settings only for judges/stewards/admins - not exhibitors */}

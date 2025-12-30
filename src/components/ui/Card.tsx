@@ -1,5 +1,4 @@
 import React from 'react';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import './shared-ui.css';
 
 interface CardProps {
@@ -9,6 +8,7 @@ interface CardProps {
   onClick?: () => void;
 }
 
+// Haptic feedback is handled globally by useGlobalHaptic hook
 export const Card: React.FC<CardProps> = ({
   children,
   className = '',
@@ -16,19 +16,11 @@ export const Card: React.FC<CardProps> = ({
   onClick
 }) => {
   const isClickable = variant === 'clickable' || !!onClick;
-  const haptic = useHapticFeedback();
-
-  const handleClick = () => {
-    if (isClickable) {
-      haptic.light();
-      onClick?.();
-    }
-  };
 
   return (
     <div
       className={`card ${variant} ${isClickable ? 'clickable' : ''} ${className}`}
-      onClick={handleClick}
+      onClick={onClick}
       style={{ cursor: isClickable ? 'pointer' : 'default' }}
     >
       {children}

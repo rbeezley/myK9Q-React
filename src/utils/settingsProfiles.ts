@@ -25,15 +25,9 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
   judge: {
     id: 'judge',
     name: 'Judge Mode',
-    description: 'Optimized for judges - larger text, performance focus, minimal distractions',
+    description: 'Optimized for judges - performance focus, minimal distractions',
     icon: '⚖️',
     settings: {
-      // Display - larger, clearer
-      fontSize: 'large',
-      density: 'spacious',
-      highContrast: false,
-      reduceMotion: true,
-
       // Performance - prioritize speed
       enableAnimations: false,
       enableBlur: false,
@@ -48,7 +42,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
-      // Scoring - quick and efficient
+      // Voice - scoring announcements off by default
       voiceAnnouncements: false,
 
       // Security - balanced
@@ -62,12 +56,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
     description: 'For exhibitors - notifications enabled, schedule focus, mobile optimized',
     icon: '🐕',
     settings: {
-      // Display - readable on mobile
-      fontSize: 'medium',
-      density: 'comfortable',
-      highContrast: false,
-      reduceMotion: false,
-
       // Performance - balanced
       enableAnimations: null, // auto-detect
       enableBlur: null,
@@ -82,7 +70,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
-      // Scoring - not typically used
+      // Voice - exhibitors don't have scoring
       voiceAnnouncements: false,
 
       // Security - standard
@@ -96,12 +84,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
     description: 'Read-only view - results focus, minimal notifications',
     icon: '👀',
     settings: {
-      // Display - comfortable viewing
-      fontSize: 'medium',
-      density: 'comfortable',
-      highContrast: false,
-      reduceMotion: false,
-
       // Performance - balance quality and speed
       enableAnimations: null,
       enableBlur: null,
@@ -116,7 +98,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
-      // Scoring - disabled
+      // Voice - spectators don't have scoring
       voiceAnnouncements: false,
 
       // Security - standard
@@ -130,12 +112,6 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
     description: 'Full control - all features enabled, developer tools available',
     icon: '⚙️',
     settings: {
-      // Display - professional
-      fontSize: 'medium',
-      density: 'comfortable',
-      highContrast: false,
-      reduceMotion: false,
-
       // Performance - all features on
       enableAnimations: true,
       enableBlur: true,
@@ -150,7 +126,7 @@ export const settingsProfiles: Record<ProfileType, SettingsProfile> = {
       voiceNotifications: false,
       notifyYourTurnLeadDogs: 3,
 
-      // Scoring - full control
+      // Voice - scoring announcements (admins can enable)
       voiceAnnouncements: false,
 
       // Security - standard

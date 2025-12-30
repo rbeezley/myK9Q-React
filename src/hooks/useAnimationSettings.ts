@@ -98,9 +98,8 @@ export function useAnimationSettings(): AnimationConfig {
       shadows = deviceTier === 'high';
     }
 
-    // Check reduce motion preference
-    const reducedMotion = settings.reduceMotion ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Check reduce motion preference (OS setting only)
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (reducedMotion) {
       enabled = false;

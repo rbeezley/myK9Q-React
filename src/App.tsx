@@ -16,6 +16,7 @@ import { usePushNotificationAutoSwitch } from './hooks/usePushNotificationAutoSw
 import { useOfflineQueueProcessor } from './hooks/useOfflineQueueProcessor';
 import { useServiceWorkerMessages } from './hooks/useServiceWorkerMessages';
 import { useAppInitialization } from './hooks/useAppInitialization';
+import { useGlobalHaptic } from './hooks/useGlobalHaptic';
 import { useAuth } from './contexts/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { subscriptionCleanup } from './services/subscriptionCleanup';
@@ -227,6 +228,9 @@ function AppWithAuth() {
 
   // Apply one-handed mode globally
   useOneHandedMode();
+
+  // Apply global haptic feedback for all button clicks
+  useGlobalHaptic();
 
   // Apply auto-logout timer
   const autoLogout = useAutoLogout();

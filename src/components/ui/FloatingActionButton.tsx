@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import './shared-ui.css';
 
 export interface FloatingActionButtonProps {
@@ -30,6 +29,7 @@ export interface FloatingActionButtonProps {
  * - 'right': Bottom right corner
  * - 'auto': Bottom right (default for right-handed majority)
  */
+// Haptic feedback is handled globally by useGlobalHaptic hook
 export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   icon,
   onClick,
@@ -37,22 +37,15 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   className = '',
   visible = true,
 }) => {
-  const haptic = useHapticFeedback();
-
   // Don't render if FAB is hidden
   if (!visible) {
     return null;
   }
 
-  const handleClick = () => {
-    haptic.medium();
-    onClick();
-  };
-
   return (
     <button
       className={`floating-action-button ${className}`}
-      onClick={handleClick}
+      onClick={onClick}
       aria-label={ariaLabel}
       type="button"
     >

@@ -327,7 +327,6 @@ export const UKCNoseworkScoresheet: React.FC = () => {
     maxTime: maxTime,
     level: currentEntry?.level,
     enableVoiceAnnouncements: settings.voiceAnnouncements,
-    enableTimerCountdown: settings.announceTimerCountdown,
     onTimeExpired: (formattedTime) => {
       // Auto-fill the time field when timer expires
       setSearchTime(formattedTime);

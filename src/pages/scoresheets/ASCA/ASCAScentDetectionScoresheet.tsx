@@ -90,7 +90,6 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
     maxTime: activeAreaMaxTime,
     level: currentEntry?.level,
     enableVoiceAnnouncements: settings.voiceAnnouncements,
-    enableTimerCountdown: settings.announceTimerCountdown,
     onTimeExpired: (formattedTime) => {
       // For single-area classes, auto-fill the time field when timer expires
       if (areas.length === 1) {

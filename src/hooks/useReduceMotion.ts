@@ -2,11 +2,10 @@
  * Reduce Motion Hook
  *
  * React hook for accessing and responding to reduce motion preferences.
- * Considers both user settings and system preferences.
+ * Uses system (OS) preference only.
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSettingsStore } from '@/stores/settingsStore';
 import {
   getAnimationConfig,
   subscribeToReduceMotionChanges,
@@ -17,25 +16,19 @@ import {
 type MotionPropValue = Record<string, unknown>;
 
 /**
- * Main hook for reduce motion preference
+ * Main hook for reduce motion preference (OS setting only)
  */
 export function useReduceMotion(): boolean {
-  const reduceMotion = useSettingsStore((state) => state.settings.reduceMotion);
-  const [prefersReduced] = useState(() => {
+  const [prefersReduced, setPrefersReduced] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
 
   useEffect(() => {
-    // Check system preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const handleChange = (e: MediaQueryListEvent) => {
-      // Force re-render by updating store or using a different state management approach
-      // For now, we rely on the store update to trigger re-renders
-      if (e.matches !== mediaQuery.matches) {
-        // System preference changed
-      }
+      setPrefersReduced(e.matches);
     };
 
     mediaQuery.addEventListener('change', handleChange);
@@ -45,8 +38,7 @@ export function useReduceMotion(): boolean {
     };
   }, []);
 
-  // Return true if either user setting or system preference is enabled
-  return reduceMotion || prefersReduced;
+  return prefersReduced;
 }
 
 /**
@@ -164,29 +156,10 @@ export function useReduceMotionListener(callback: (reduced: boolean) => void): v
 }
 
 /**
- * Hook for prefersReducedMotion media query only (no settings)
+ * Hook for prefersReducedMotion media query only
  */
 export function usePrefersReducedMotion(): boolean {
-  const [prefersReduced] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    const handleChange = (_e: MediaQueryListEvent) => {
-      // Media query changed - component will re-mount if needed
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, []);
-
-  return prefersReduced;
+  return useReduceMotion();
 }
 
 /**
@@ -293,12 +266,11 @@ export function useAnimationEnd(
  */
 export function useReduceMotionManager() {
   const reduced = useReduceMotion();
-  const prefersReduced = usePrefersReducedMotion();
   const scrollBehavior = useScrollBehavior();
 
   return {
     reduced,
-    prefersReduced,
+    prefersReduced: reduced,
     scrollBehavior,
     getDuration: (base: number) => (reduced ? 0 : base),
     getConfig: (duration = 300, easing = 'ease-out', delay = 0) =>

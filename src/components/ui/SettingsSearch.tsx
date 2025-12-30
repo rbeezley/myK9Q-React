@@ -365,14 +365,6 @@ export function SettingsSearch({
 export function useSearchableSettings(): SearchableSettingmatch[] {
   return useMemo(
     () => [
-      // Display settings (theme removed - now in hamburger menu only)
-      { id: 'fontSize', title: 'Font Size', description: 'Adjust text size for readability', category: 'Appearance', sectionId: 'appearance-section', keywords: ['text', 'size', 'accessibility'] },
-      { id: 'density', title: 'Spacing', description: 'How much space between elements', category: 'Appearance', sectionId: 'appearance-section', keywords: ['compact', 'comfortable', 'spacious'] },
-      { id: 'reduceMotion', title: 'Reduce Motion', description: 'Minimize animations and transitions', category: 'Appearance', sectionId: 'appearance-section', keywords: ['animation', 'accessibility', 'performance'] },
-      { id: 'highContrast', title: 'High Contrast', description: 'Increase color contrast for visibility', category: 'Appearance', sectionId: 'appearance-section', keywords: ['accessibility', 'contrast', 'visibility'] },
-
-      // Performance settings
-
       // Mobile settings
       { id: 'oneHandedMode', title: 'One-Handed Mode', description: 'Optimize for thumb reach', category: 'General', sectionId: 'general-section', keywords: ['accessibility', 'thumb', 'reachability'] },
       { id: 'handPreference', title: 'Hand Preference', description: 'Which hand do you use?', category: 'General', sectionId: 'general-section', keywords: ['left', 'right', 'hand'] },
@@ -383,7 +375,6 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
       // Notification settings
       { id: 'enableNotifications', title: 'Enable Notifications', description: 'Show push notifications', category: 'Notifications', sectionId: 'notifications-section', keywords: ['notifications', 'push', 'alerts'] },
       { id: 'notificationSound', title: 'Sound', description: 'Play sound with notifications', category: 'Notifications', sectionId: 'notifications-section', keywords: ['sound', 'audio', 'alerts'] },
-      { id: 'voiceNotifications', title: 'Voice Announcements', description: 'Speak notifications aloud', category: 'Notifications', sectionId: 'notifications-section', keywords: ['voice', 'speak', 'announce', 'audio', 'tts', 'text-to-speech'] },
       { id: 'showBadges', title: 'Badge Counter', description: 'Show number on app icon', category: 'Notifications', sectionId: 'notifications-section', keywords: ['badge', 'count', 'icon'] },
       { id: 'notifyClassStarting', title: 'Class Starting Soon', description: 'Notify when class is about to start', category: 'Notifications', sectionId: 'notifications-section', keywords: ['class', 'starting', 'alerts'] },
       { id: 'notifyYourTurn', title: 'Your Turn to Compete', description: 'Notify when it\'s your turn', category: 'Notifications', sectionId: 'notifications-section', keywords: ['turn', 'compete', 'alerts'] },
@@ -391,8 +382,11 @@ export function useSearchableSettings(): SearchableSettingmatch[] {
       { id: 'notifyConflicts', title: 'Schedule Conflicts', description: 'Notify about scheduling conflicts', category: 'Notifications', sectionId: 'notifications-section', keywords: ['conflicts', 'schedule', 'alerts'] },
       { id: 'notifySyncErrors', title: 'Sync Errors', description: 'Notify about sync problems', category: 'Notifications', sectionId: 'notifications-section', keywords: ['sync', 'errors', 'alerts'] },
 
-      // Scoring settings
-      { id: 'voiceAnnouncements', title: 'Voice Announcements', description: 'Speak timer warnings aloud', category: 'Scoring', sectionId: 'scoring-section', keywords: ['voice', 'audio', 'timer'] },
+      // Voice settings (Notifications - everyone)
+      { id: 'voiceNotifications', title: 'Voice Notifications', description: 'Speak push notifications aloud', category: 'Notifications', sectionId: 'notifications-section', keywords: ['voice', 'speak', 'announce', 'audio', 'tts', 'text-to-speech', 'notifications'] },
+
+      // Voice settings (Scoring - judges only)
+      { id: 'voiceAnnouncements', title: 'Voice Announcements (Scoring)', description: 'Speak timer warnings aloud', category: 'Scoring', sectionId: 'scoring-section', keywords: ['voice', 'speak', 'announce', 'audio', 'tts', 'text-to-speech', 'timer', 'scoring'] },
 
       // Privacy & Security settings
       { id: 'rememberMe', title: 'Remember Me', description: 'Stay logged in on this device', category: 'Privacy', sectionId: 'privacy-section', keywords: ['remember', 'login', 'session'] },

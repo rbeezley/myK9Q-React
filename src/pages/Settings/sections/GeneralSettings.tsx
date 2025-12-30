@@ -5,6 +5,20 @@ import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { Smartphone, RotateCcw } from 'lucide-react';
 
+/**
+ * Test vibration when haptic feedback is enabled
+ * Bypasses the setting check since we're testing the feature itself
+ */
+function testVibration(): void {
+    if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+        try {
+            navigator.vibrate([75, 100, 75]); // Double pulse to confirm it's working
+        } catch {
+            // Silent fail
+        }
+    }
+}
+
 interface GeneralSettingsProps {
     onShowOnboarding: () => void;
 }
@@ -21,7 +35,13 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ onShowOnboardi
                 action={
                     <SettingsToggle
                         checked={settings.hapticFeedback}
-                        onChange={(checked) => updateSettings({ hapticFeedback: checked })}
+                        onChange={(checked) => {
+                            updateSettings({ hapticFeedback: checked });
+                            // Test vibration when enabling to confirm it works
+                            if (checked) {
+                                testVibration();
+                            }
+                        }}
                     />
                 }
             />

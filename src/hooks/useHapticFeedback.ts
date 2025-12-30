@@ -34,14 +34,17 @@ interface HapticFeedbackAPI {
 /**
  * Haptic feedback patterns (in milliseconds)
  * Designed for dog show environment - quick, distinct, not annoying
+ *
+ * Note: Android devices often have a minimum vibration threshold (~50ms).
+ * Durations below 50ms may not be perceivable on many devices.
  */
 const HAPTIC_PATTERNS = {
-  light: 10,        // Quick tap - status changes, menu items
-  medium: 20,       // Button press - save, submit
-  heavy: 30,        // Important action - delete, reset
-  success: [10, 50, 10] as number[],  // Double pulse - score saved, check-in complete
-  error: [20, 50, 20, 50, 20] as number[],  // Triple pulse - validation error, failed sync
-  warning: [15, 100, 15] as number[],  // Pause pulse - time warning, conflict
+  light: 50,        // Quick tap - status changes, menu items
+  medium: 75,       // Button press - save, submit
+  heavy: 100,       // Important action - delete, reset
+  success: [50, 80, 50] as number[],  // Double pulse - score saved, check-in complete
+  error: [75, 80, 75, 80, 75] as number[],  // Triple pulse - validation error, failed sync
+  warning: [50, 150, 50] as number[],  // Pause pulse - time warning, conflict
 };
 
 /**

@@ -60,7 +60,7 @@ export const CheckInStatusBadge: React.FC<CheckInStatusBadgeProps> = ({
       icon={icon}
       clickable={clickable}
       onClick={handleClick}
-      className={className}
+      className={`${className} no-haptic`}
       asButton={asButton}
     />
   );

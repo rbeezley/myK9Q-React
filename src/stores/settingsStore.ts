@@ -15,10 +15,6 @@ export const SETTINGS_VERSION = '1.0.0';
 export interface AppSettings {
   // Display
   theme: 'light' | 'dark' | 'auto';
-  fontSize: 'small' | 'medium' | 'large';
-  reduceMotion: boolean;
-  highContrast: boolean;
-  density: 'compact' | 'comfortable' | 'spacious';
   accentColor: 'green' | 'blue' | 'orange' | 'purple';
 
   // Performance
@@ -32,15 +28,16 @@ export interface AppSettings {
 
   // Notifications
   enableNotifications: boolean;
-  voiceNotifications: boolean; // Speak push notifications aloud (your turn, results, etc.)
+  voiceNotifications: boolean; // Speak push notifications aloud (everyone can see this)
   showBadges: boolean;
   notifyYourTurnLeadDogs: 1 | 2 | 3 | 4 | 5; // How many dogs ahead to notify
 
-  // Scoring
-  voiceAnnouncements: boolean;
+  // Scoring (judges/stewards/admins only)
+  voiceAnnouncements: boolean; // Speak 30-second warning aloud (scoring section)
+
+  // Voice configuration (shared by notifications and scoring)
   voiceName: string; // Voice name to use (empty = browser default)
   voiceRate: number; // 0.5 to 2.0 (speed)
-  announceTimerCountdown: boolean; // Announce 30 second warning
 
   // Privacy & Security
   autoLogout: 480; // minutes, fixed at 8 hours
@@ -66,10 +63,6 @@ interface SettingsState {
 const defaultSettings: AppSettings = {
   // Display
   theme: 'auto',
-  fontSize: 'medium',
-  reduceMotion: false,
-  highContrast: false,
-  density: 'comfortable',
   accentColor: 'green',
 
   // Performance
@@ -89,9 +82,10 @@ const defaultSettings: AppSettings = {
 
   // Scoring
   voiceAnnouncements: false,
+
+  // Voice configuration
   voiceName: '', // Empty = browser default
   voiceRate: 1.0,
-  announceTimerCountdown: true,
 
   // Privacy & Security
   autoLogout: 480, // Default: 8 hours (typical trial length)
@@ -122,26 +116,6 @@ export const useSettingsStore = create<SettingsState>()(
             applyTheme(updates.theme);
           }
 
-          // Apply font size immediately
-          if (updates.fontSize) {
-            applyFontSize(updates.fontSize);
-          }
-
-          // Apply density immediately
-          if (updates.density) {
-            applyDensity(updates.density);
-          }
-
-          // Apply reduce motion immediately
-          if (updates.reduceMotion !== undefined) {
-            applyReduceMotion(updates.reduceMotion);
-          }
-
-          // Apply high contrast immediately
-          if (updates.highContrast !== undefined) {
-            applyHighContrast(updates.highContrast);
-          }
-
           // Apply accent color immediately
           if (updates.accentColor) {
             applyAccentColor(updates.accentColor);
@@ -151,10 +125,6 @@ export const useSettingsStore = create<SettingsState>()(
         resetSettings: () => {
           set({ settings: defaultSettings });
           applyTheme('auto');
-          applyFontSize('medium');
-          applyDensity('comfortable');
-          applyReduceMotion(false);
-          applyHighContrast(false);
           applyAccentColor('green');
         },
 
@@ -189,10 +159,6 @@ export const useSettingsStore = create<SettingsState>()(
             // Apply settings immediately
             const newSettings = get().settings;
             applyTheme(newSettings.theme);
-            applyFontSize(newSettings.fontSize);
-            applyDensity(newSettings.density);
-            applyReduceMotion(newSettings.reduceMotion);
-            applyHighContrast(newSettings.highContrast);
             applyAccentColor(newSettings.accentColor || 'green');
 
             return true;
@@ -228,68 +194,20 @@ function applyTheme(theme: 'light' | 'dark' | 'auto') {
 }
 
 /**
- * Apply font size to document
- */
-function applyFontSize(size: 'small' | 'medium' | 'large') {
-  const root = document.documentElement;
-  root.classList.remove('font-small', 'font-medium', 'font-large');
-  root.classList.add(`font-${size}`);
-}
-
-/**
- * Apply density to document
- */
-function applyDensity(density: 'compact' | 'comfortable' | 'spacious') {
-  const root = document.documentElement;
-  root.classList.remove('density-compact', 'density-comfortable', 'density-spacious');
-  root.classList.add(`density-${density}`);
-}
-
-/**
- * Apply reduce motion to document
- */
-function applyReduceMotion(enabled: boolean) {
-  const root = document.documentElement;
-  if (enabled) {
-    root.classList.add('reduce-motion');
-  } else {
-    root.classList.remove('reduce-motion');
-  }
-}
-
-/**
- * Apply high contrast mode to document
- */
-function applyHighContrast(enabled: boolean) {
-  const root = document.documentElement;
-  if (enabled) {
-    root.classList.add('high-contrast');
-  } else {
-    root.classList.remove('high-contrast');
-  }
-}
-
-/**
- * Initialize settings on app load
- * NOTE: Theme and theme color are initialized by blocking script in index.html
- * This only applies non-theme settings (font size, density, etc.)
- */
-export function initializeSettings() {
-  const { settings } = useSettingsStore.getState();
-  // Theme and theme color already applied by blocking script in index.html
-  // Only apply other visual settings here
-  applyFontSize(settings.fontSize);
-  applyDensity(settings.density);
-  applyReduceMotion(settings.reduceMotion);
-  applyHighContrast(settings.highContrast);
-  applyAccentColor(settings.accentColor || 'green');
-}
-
-/**
  * Apply accent color to document
  */
 function applyAccentColor(color: 'green' | 'blue' | 'orange' | 'purple') {
   const root = document.documentElement;
   root.classList.remove('accent-green', 'accent-blue', 'accent-orange', 'accent-purple');
   root.classList.add(`accent-${color}`);
+}
+
+/**
+ * Initialize settings on app load
+ * NOTE: Theme and theme color are initialized by blocking script in index.html
+ */
+export function initializeSettings() {
+  const { settings } = useSettingsStore.getState();
+  // Theme already applied by blocking script in index.html
+  applyAccentColor(settings.accentColor || 'green');
 }

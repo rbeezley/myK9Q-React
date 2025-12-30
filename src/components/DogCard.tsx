@@ -1,6 +1,5 @@
 import React from 'react';
 import { ArmbandBadge } from './ui';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import './DogCard.css';
 
 interface DogCardProps {
@@ -34,13 +33,9 @@ export const DogCard = React.memo<DogCardProps>(({
   onPrefetch,
   dragHandle,
 }) => {
-  const haptic = useHapticFeedback();
-
+  // Haptic feedback is handled globally by useGlobalHaptic hook
   const handleClick = () => {
-    if (onClick) {
-      haptic.light(); // Quick haptic for card tap
-      onClick();
-    }
+    onClick?.();
   };
 
   const handleMouseEnter = () => {

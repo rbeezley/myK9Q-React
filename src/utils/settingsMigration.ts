@@ -161,8 +161,7 @@ export function validateSettings(settings: unknown): settings is AppSettings {
   // Check for required fields (sample - adjust as needed)
   const requiredFields: (keyof AppSettings)[] = [
     'theme',
-    'fontSize',
-    'density',
+    'accentColor',
   ];
 
   for (const field of requiredFields) {

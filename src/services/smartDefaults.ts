@@ -98,7 +98,6 @@ export async function generateSmartDefaults(
   const defaults: Partial<AppSettings> = {
     // Animations - based on device tier
     enableAnimations: perfSettings.animations,
-    reduceMotion: context.deviceTier === 'low' || (context.batteryLevel !== undefined && context.batteryLevel < 0.2),
 
     // Visual Effects
     enableBlur: perfSettings.blurEffects,
@@ -106,16 +105,11 @@ export async function generateSmartDefaults(
 
     // Display Settings
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-    fontSize: 'medium',
-    density: context.deviceTier === 'low' ? 'compact' : 'comfortable',
 
     // Notification Settings
     enableNotifications: true,
     showBadges: true,
     notifyYourTurnLeadDogs: 3,
-
-    // Accessibility
-    highContrast: window.matchMedia('(prefers-contrast: high)').matches,
 
     // Scoring
     voiceAnnouncements: false,
@@ -156,11 +150,6 @@ function getRoleBasedDefaults(role?: string): Partial<AppSettings> {
   // Stewards may prefer quieter notifications
   if (role === 'steward') {
     defaults.voiceAnnouncements = false;
-  }
-
-  // Exhibitors get simpler interface
-  if (role === 'exhibitor') {
-    defaults.density = 'comfortable';
   }
 
   return defaults;
@@ -212,7 +201,6 @@ export async function getRecommendedSettings(
     case 'battery-saver':
       return {
         enableAnimations: false,
-        reduceMotion: true,
         enableBlur: false,
         enableShadows: false,
         hapticFeedback: false,
@@ -222,11 +210,9 @@ export async function getRecommendedSettings(
     case 'performance':
       return {
         enableAnimations: true,
-        reduceMotion: false,
         enableBlur: true,
         enableShadows: true,
         hapticFeedback: true,
-        density: 'spacious',
       };
 
     case 'data-saver':

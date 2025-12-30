@@ -381,7 +381,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
   const has30SecondAnnouncedRef = useRef(false);
 
   useEffect(() => {
-    if (!settings.voiceAnnouncements || !settings.announceTimerCountdown) {
+    if (!settings.voiceAnnouncements) {
       return;
     }
 
@@ -407,7 +407,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
     if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
-  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, settings.announceTimerCountdown, currentEntry?.level, getCurrentMaxTimeMs]);
+  }, [stopwatchTime, isStopwatchRunning, settings.voiceAnnouncements, currentEntry?.level, getCurrentMaxTimeMs]);
 
   // Set scoring active state
   useEffect(() => {

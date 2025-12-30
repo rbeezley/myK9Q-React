@@ -3,9 +3,22 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Bell, Mic, AlertCircle, CheckCircle, Send } from 'lucide-react';
+import { Bell, Mic, AlertCircle, CheckCircle, Send, Info } from 'lucide-react';
 import type { BrowserCompatibility } from '../components/PushNotificationSettings';
 import { useAuth } from '@/contexts/AuthContext';
+import voiceAnnouncementService from '@/services/voiceAnnouncementService';
+
+// Get user-friendly label for permission state
+function getPermissionLabel(state: NotificationPermission): { label: string; color: string } {
+    switch (state) {
+        case 'granted':
+            return { label: 'Allowed', color: 'var(--token-success, #10b981)' };
+        case 'denied':
+            return { label: 'Blocked', color: 'var(--token-error, #ef4444)' };
+        default:
+            return { label: 'Not Asked', color: 'var(--token-warning, #f59e0b)' };
+    }
+}
 
 interface NotificationSettingsProps {
     isPushSubscribed: boolean;
@@ -64,6 +77,14 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 });
             }
 
+            // Also trigger voice announcement if enabled
+            if (settings.voiceNotifications) {
+                const showName = showContext?.showName || 'myK9Q';
+                voiceAnnouncementService.testVoice(
+                    `${showName}: This is a test notification to check voice announcements on your device.`
+                );
+            }
+
             setTestSent(true);
             // Reset after 3 seconds
             setTimeout(() => setTestSent(false), 3000);
@@ -85,6 +106,22 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                         onChange={onPushToggle}
                         disabled={isSubscribing}
                     />
+                }
+            />
+
+            {/* Browser Permission Status - always visible for troubleshooting */}
+            <SettingsRow
+                icon={<Info size={20} />}
+                label="Browser Permission"
+                description="Your browser's notification setting"
+                action={
+                    <span style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: getPermissionLabel(permissionState).color
+                    }}>
+                        {getPermissionLabel(permissionState).label}
+                    </span>
                 }
             />
 
@@ -130,16 +167,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 </div>
             )}
 
-            {/* Test Notification - shown when notifications enabled and permission granted */}
-            {settings.enableNotifications && permissionState === 'granted' && (
-                <SettingsRow
-                    icon={<Send size={20} />}
-                    label={testSent ? 'Test Notification Sent!' : 'Test Notification'}
-                    description="Tap to send a sample notification"
-                    onClick={testSent ? undefined : handleTestNotification}
-                />
-            )}
-
             {/* Sub-settings */}
             {settings.enableNotifications && (
                 <>
@@ -179,6 +206,16 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                             />
                         }
                     />
+
+                    {/* Test Notification - at bottom for visibility */}
+                    {permissionState === 'granted' && (
+                        <SettingsRow
+                            icon={<Send size={20} />}
+                            label={testSent ? 'Test Notification Sent!' : 'Test Notification'}
+                            description="Tap to send a sample notification"
+                            onClick={testSent ? undefined : handleTestNotification}
+                        />
+                    )}
                 </>
             )}
         </SettingsSection>

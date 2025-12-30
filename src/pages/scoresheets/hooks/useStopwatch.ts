@@ -20,10 +20,8 @@ export interface UseStopwatchOptions {
   maxTime?: string;
   /** Current level (e.g., "Novice", "Master") - Master excludes 30-second warning */
   level?: string;
-  /** Enable voice announcements (from settings) */
+  /** Enable voice announcements including 30-second warning (from settings) */
   enableVoiceAnnouncements?: boolean;
-  /** Enable timer countdown announcements (from settings) */
-  enableTimerCountdown?: boolean;
   /** Callback when timer expires (auto-stop) */
   onTimeExpired?: (formattedTime: string) => void;
 }
@@ -37,6 +35,10 @@ export interface UseStopwatchReturn {
   formatTime: (milliseconds: number) => string;
   /** Get remaining time as "M:SS.ss" (or empty string if no max time) */
   getRemainingTime: () => string;
+  /** Get max time in milliseconds (for progress calculations) */
+  getMaxTimeMs: () => number;
+  /** Get remaining time in milliseconds */
+  getRemainingTimeMs: () => number;
   /** Start/resume the timer */
   start: () => void;
   /** Pause the timer (keeps current time) */
@@ -60,7 +62,6 @@ export interface UseStopwatchReturn {
  *   maxTime: "3:00",
  *   level: "Novice",
  *   enableVoiceAnnouncements: true,
- *   enableTimerCountdown: true,
  *   onTimeExpired: (time) => handleAreaUpdate(0, 'time', time)
  * });
  *
@@ -73,7 +74,6 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
     maxTime,
     level,
     enableVoiceAnnouncements = false,
-    enableTimerCountdown = false,
     onTimeExpired
   } = options;
 
@@ -112,17 +112,30 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
   };
 
   /**
+   * Get max time in milliseconds
+   */
+  const getMaxTimeMs = (): number => {
+    if (!maxTime) return 0;
+    const [minutes, seconds] = maxTime.split(':').map(parseFloat);
+    return (minutes * 60 + seconds) * 1000;
+  };
+
+  /**
+   * Get remaining time in milliseconds
+   */
+  const getRemainingTimeMs = (): number => {
+    if (!maxTime) return 0;
+    return Math.max(0, getMaxTimeMs() - time);
+  };
+
+  /**
    * Get remaining time formatted as "M:SS.ss"
    */
   const getRemainingTime = (): string => {
     if (!maxTime) return '';
 
-    // Parse max time string (format: "3:00" or "4:00")
-    const [minutes, seconds] = maxTime.split(':').map(parseFloat);
-    const maxTimeMs = (minutes * 60 + seconds) * 1000;
-
     // Calculate remaining time
-    const remainingMs = Math.max(0, maxTimeMs - time);
+    const remainingMs = getRemainingTimeMs();
     const remainingSeconds = remainingMs / 1000;
     const mins = Math.floor(remainingSeconds / 60);
     const secs = (remainingSeconds % 60).toFixed(2);
@@ -235,7 +248,7 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
 
   // Voice announcement for 30-second warning
   useEffect(() => {
-    if (!enableVoiceAnnouncements || !enableTimerCountdown || !maxTime) {
+    if (!enableVoiceAnnouncements || !maxTime) {
       return;
     }
 
@@ -268,7 +281,7 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
     if (remainingSeconds > 30 && has30SecondAnnouncedRef.current) {
       has30SecondAnnouncedRef.current = false;
     }
-  }, [time, isRunning, enableVoiceAnnouncements, enableTimerCountdown, level, maxTime]);
+  }, [time, isRunning, enableVoiceAnnouncements, level, maxTime]);
 
   // Set scoring active state to suppress push notification voices while timing
   useEffect(() => {
@@ -285,6 +298,8 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
     isRunning,
     formatTime,
     getRemainingTime,
+    getMaxTimeMs,
+    getRemainingTimeMs,
     start,
     pause,
     reset,

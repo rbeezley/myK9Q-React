@@ -1,9 +1,8 @@
 import React from 'react';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
-import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Moon, Sun, Type, Layout, Zap, Eye } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 
 export const AppearanceSettings: React.FC = () => {
     const { settings, updateSettings } = useSettingsStore();
@@ -68,82 +67,6 @@ export const AppearanceSettings: React.FC = () => {
                             />
                         ))}
                     </div>
-                }
-            />
-
-            {/* Font Size */}
-            <SettingsRow
-                icon={<Type size={20} />}
-                label="Font Size"
-                description="Adjust text size for readability"
-                action={
-                    <select
-                        value={settings.fontSize}
-                        onChange={(e) => updateSettings({ fontSize: e.target.value as 'small' | 'medium' | 'large' })}
-                        className="settings-select"
-                        style={{
-                            backgroundColor: 'var(--input-bg)',
-                            border: '1px solid var(--input-border)',
-                            color: 'var(--input-text)',
-                            padding: '6px 12px',
-                            borderRadius: '8px'
-                        }}
-                    >
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                    </select>
-                }
-            />
-
-            {/* Density */}
-            <SettingsRow
-                icon={<Layout size={20} />}
-                label="Spacing"
-                description="Compact or spacious layout"
-                action={
-                    <select
-                        value={settings.density}
-                        onChange={(e) => updateSettings({ density: e.target.value as 'compact' | 'comfortable' | 'spacious' })}
-                        className="settings-select"
-                        style={{
-                            backgroundColor: 'var(--input-bg)',
-                            border: '1px solid var(--input-border)',
-                            color: 'var(--input-text)',
-                            padding: '6px 12px',
-                            borderRadius: '8px'
-                        }}
-                    >
-                        <option value="compact">Compact</option>
-                        <option value="comfortable">Comfortable</option>
-                        <option value="spacious">Spacious</option>
-                    </select>
-                }
-            />
-
-            {/* Reduce Motion */}
-            <SettingsRow
-                icon={<Zap size={20} />}
-                label="Reduce Motion"
-                description="Minimize animations"
-                action={
-                    <SettingsToggle
-                        checked={settings.reduceMotion}
-                        onChange={(checked) => updateSettings({ reduceMotion: checked })}
-                    />
-                }
-            />
-
-            {/* High Contrast */}
-            <SettingsRow
-                icon={<Eye size={20} />}
-                label="High Contrast"
-                description="Increase visibility"
-                action={
-                    <SettingsToggle
-                        checked={settings.highContrast}
-                        onChange={(checked) => updateSettings({ highContrast: checked })}
-                    />
                 }
             />
         </SettingsSection>

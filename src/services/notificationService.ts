@@ -374,8 +374,8 @@ return null;
         navigator.vibrate(vibrationPattern);
       }
 
-      // Voice announcement if enabled (use voiceNotifications for push notifications)
-      // Suppress voice notifications if actively scoring to prevent interrupting timer announcements
+      // Voice announcement if enabled (uses global Voice Settings)
+      // Suppress voice if actively scoring to prevent interrupting timer announcements
       if (settings.voiceNotifications && !payload.silent && !voiceAnnouncementService.isScoringInProgress()) {
         this.announceNotification(payload);
       }
