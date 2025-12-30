@@ -15,7 +15,7 @@ import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
-import { parseOrganizationData } from '../../utils/organizationUtils';
+import { parseOrganizationData, hasRuleDefinedMaxTimes } from '../../utils/organizationUtils';
 import { supabase } from '../../lib/supabase';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { markInRing } from '../../services/entryService';
@@ -810,6 +810,7 @@ export const EntryList: React.FC = () => {
           onPrintCheckIn={handlePrintCheckIn}
           onPrintResults={handlePrintResults}
           onPrintScoresheet={handlePrintScoresheet}
+          hideMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || ''))}
         />
       )}
 
@@ -818,7 +819,7 @@ export const EntryList: React.FC = () => {
         <ClassRequirementsDialog
           isOpen={requirementsDialogOpen}
           onClose={() => setRequirementsDialogOpen(false)}
-          onSetMaxTime={() => {
+          onSetMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) ? undefined : () => {
             setRequirementsDialogOpen(false);
             setMaxTimeDialogOpen(true);
           }}

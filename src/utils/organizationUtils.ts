@@ -33,3 +33,26 @@ export const parseOrganizationData = (orgString: string): OrganizationData => {
 
   return result;
 };
+
+/**
+ * Check if max times are rule-defined (not settable by judges)
+ * Some organizations/activities have fixed max times in their rules,
+ * so the "Set Max Time" option should be hidden.
+ *
+ * Currently applies to:
+ * - ASCA (all activities) - fixed max times per level
+ * - UKC Nosework - fixed max times per level (3/4/5/6/6 min for Novice through Elite)
+ */
+export const hasRuleDefinedMaxTimes = (orgData: OrganizationData): boolean => {
+  // ASCA has rule-defined max times for all activities
+  if (orgData.organization === 'ASCA') {
+    return true;
+  }
+
+  // UKC Nosework has fixed max times per level
+  if (orgData.organization === 'UKC' && orgData.activity_type.toLowerCase().includes('nosework')) {
+    return true;
+  }
+
+  return false;
+};

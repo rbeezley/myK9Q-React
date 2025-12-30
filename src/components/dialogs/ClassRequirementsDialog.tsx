@@ -57,7 +57,7 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
   const { showContext } = useAuth();
   const [requirements, setRequirements] = useState<ClassRequirements | null>(null);
   const [loading, setLoading] = useState(false);
-  const [organization, setOrganization] = useState<'AKC' | 'UKC' | null>(null);
+  const [organization, setOrganization] = useState<'AKC' | 'UKC' | 'ASCA' | null>(null);
 
   useEffect(() => {
     if (isOpen && classData) {
@@ -83,12 +83,13 @@ export const ClassRequirementsDialog: React.FC<ClassRequirementsDialogProps> = (
       }
 
       const org = showData.organization;
-const isAKC = org.includes('AKC');
+      const isAKC = org.includes('AKC');
       const isUKC = org.includes('UKC');
-setOrganization(isAKC ? 'AKC' : isUKC ? 'UKC' : null);
+      const isASCA = org.includes('ASCA');
+      setOrganization(isAKC ? 'AKC' : isUKC ? 'UKC' : isASCA ? 'ASCA' : null);
 
       // Query the unified requirements table
-      const orgType = isAKC ? 'AKC' : isUKC ? 'UKC' : null;
+      const orgType = isAKC ? 'AKC' : isUKC ? 'UKC' : isASCA ? 'ASCA' : null;
       let requirementsData = null;
 
       if (orgType) {
@@ -244,12 +245,12 @@ setRequirements(requirementsData);
               </div>
               <div className="requirement-content">
                 <label>
-                  {requirements.organization === 'AKC' ? 'Required Calls' : 'Final Response'}
+                  {requirements.organization === 'UKC' ? 'Final Response' : 'Required Calls'}
                 </label>
                 <div className="requirement-value">
-                  {requirements.organization === 'AKC'
-                    ? requirements.required_calls || '-'
-                    : requirements.final_response || '-'}
+                  {requirements.organization === 'UKC'
+                    ? requirements.final_response || '-'
+                    : requirements.required_calls || '-'}
                 </div>
               </div>
             </div>

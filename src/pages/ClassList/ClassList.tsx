@@ -21,6 +21,7 @@ import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassOptionsDialog } from '../../components/dialogs/ClassOptionsDialog';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
+import { parseOrganizationData, hasRuleDefinedMaxTimes } from '../../utils/organizationUtils';
 import { ClassCard } from './ClassCard';
 import { ClassFilters } from './ClassFilters';
 import { useClassListData, ClassEntry, TrialInfo } from './hooks/useClassListData';
@@ -761,6 +762,7 @@ export const ClassList: React.FC = () => {
       {/* Class Options Dialog - Shared reusable component */}
       {(() => {
         const selectedClass = activePopup !== null ? classes.find(c => c.id === activePopup) : null;
+        const orgData = parseOrganizationData(showContext?.org || '');
         return (
           <ClassOptionsDialog
             isOpen={activePopup !== null}
@@ -824,6 +826,7 @@ export const ClassList: React.FC = () => {
                 handleGenerateScoresheet(selectedClass.id);
               }
             }}
+            hideMaxTime={hasRuleDefinedMaxTimes(orgData)}
           />
         );
       })()}
@@ -835,7 +838,7 @@ export const ClassList: React.FC = () => {
           setRequirementsDialogOpen(false);
           setSelectedClassForRequirements(null);
         }}
-        onSetMaxTime={() => {
+        onSetMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) ? undefined : () => {
           // Close requirements dialog and open max time dialog with same class
           setRequirementsDialogOpen(false);
           setSelectedClassForMaxTime(selectedClassForRequirements);
