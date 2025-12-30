@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { setClassVisibility } from '../../services/resultVisibilityService';
 import { PRESET_CONFIGS } from '../../types/visibility';
@@ -256,6 +256,15 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                   </label>
                 );
               })}
+            </div>
+
+            {/* Inheritance help tip */}
+            <div className="settings-info-box">
+              <Info size={18} className="settings-info-icon" />
+              <p className="settings-info-text">
+                This overrides the show/trial default. To set defaults for all classes,
+                go to <strong>Trial Secretary → Results Control</strong>.
+              </p>
             </div>
           </div>
 
