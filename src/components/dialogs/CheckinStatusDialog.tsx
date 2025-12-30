@@ -38,7 +38,7 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
   showDescriptions = false,
   showRingManagement = false
 }) => {
-  const { hasPermission: _hasPermission } = usePermission();
+  const { isExhibitor } = usePermission();
 
   const handleStatusSelect = (status: CheckinStatus) => {
     onStatusChange(status);
@@ -128,35 +128,38 @@ export const CheckinStatusDialog: React.FC<CheckinStatusDialogProps> = ({
           )}
         </div>
 
-        <div
-          className={showDescriptions ? "status-item status-come-to-gate" : "status-option status-come-to-gate"}
-          onMouseDown={() => handleStatusSelect('come-to-gate')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleStatusSelect('come-to-gate');
-            }
-          }}
-        >
-          {showDescriptions ? (
-            <>
-              <div className="status-icon">
-                <Bell />
-              </div>
-              <div className="status-content">
-                <label className="status-label">Come to Gate</label>
-                <div className="status-description">Gate steward calling exhibitor</div>
-              </div>
-            </>
-          ) : (
-            <>
-              <Bell className="popup-icon" />
-              <span className="status-text">Come to Gate</span>
-            </>
-          )}
-        </div>
+        {/* Come to Gate - hidden for exhibitors (only gate stewards/judges use this) */}
+        {!isExhibitor() && (
+          <div
+            className={showDescriptions ? "status-item status-come-to-gate" : "status-option status-come-to-gate"}
+            onMouseDown={() => handleStatusSelect('come-to-gate')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleStatusSelect('come-to-gate');
+              }
+            }}
+          >
+            {showDescriptions ? (
+              <>
+                <div className="status-icon">
+                  <Bell />
+                </div>
+                <div className="status-content">
+                  <label className="status-label">Come to Gate</label>
+                  <div className="status-description">Gate steward calling exhibitor</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Bell className="popup-icon" />
+                <span className="status-text">Come to Gate</span>
+              </>
+            )}
+          </div>
+        )}
 
         <div
           className={showDescriptions ? "status-item status-at-gate" : "status-option status-at-gate"}
