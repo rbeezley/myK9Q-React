@@ -3,7 +3,7 @@
  */
 
 import { vi } from 'vitest';
-import { useSettingsStore, AppSettings, SETTINGS_VERSION, initializeSettings } from './settingsStore';
+import { useSettingsStore, SETTINGS_VERSION, initializeSettings } from './settingsStore';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -27,7 +27,7 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock document.documentElement for theme/font/density application
+// Mock document.documentElement for theme application
 const mockClassList = {
   add: vi.fn(),
   remove: vi.fn(),
@@ -64,64 +64,43 @@ describe('settingsStore', () => {
     mockClassList.remove.mockClear();
     mockClassList.contains.mockClear();
 
-    // Reset store to defaults
+    // Reset store to defaults - matches actual AppSettings interface
     useSettingsStore.setState({
       settings: {
+        // Display
         theme: 'auto',
-        fontSize: 'medium',
-        reduceMotion: false,
-        highContrast: false,
-        density: 'comfortable',
-        performanceMode: 'auto',
-        imageQuality: 'high',
+        accentColor: 'green',
+
+        // Performance
         enableAnimations: null,
         enableBlur: null,
         enableShadows: null,
-        oneHandedMode: false,
-        handPreference: 'auto',
-        pullToRefresh: true,
-        pullSensitivity: 'normal',
+
+        // Mobile
+        pullToRefresh: false,
         hapticFeedback: true,
-        realTimeSync: true,
-        syncFrequency: 'immediate',
-        wifiOnlySync: false,
-        autoDownloadShows: false,
-        storageLimit: 500,
-        autoCleanup: true,
-        enableNotifications: true,
-        notificationSound: true,
+
+        // Notifications
+        enableNotifications: false,
+        voiceNotifications: false,
         showBadges: true,
-        notifyClassStarting: true,
-        notifyYourTurn: true,
-        notifyYourTurnLeadDogs: 2,
-        notifyResults: true,
-        notifySyncErrors: true,
+        notifyYourTurnLeadDogs: 3,
+
+        // Scoring
         voiceAnnouncements: false,
-        voiceLanguage: 'en-US',
+
+        // Voice configuration
+        voiceName: '',
         voiceRate: 1.0,
-        voicePitch: 1.0,
-        voiceVolume: 1.0,
-        announceTimerCountdown: true,
-        announceRunNumber: true,
-        announceResults: true,
-        autoSaveFrequency: '10s',
-        autoSaveEnabled: true,
-        maxDraftsPerEntry: 3,
-        confirmationPrompts: 'smart',
-        bypassConfirmationsAfter: 10,
+
+        // Privacy & Security
         autoLogout: 480,
+
+        // Developer Tools
         developerMode: false,
-        devShowFPS: false,
-        devShowMemory: false,
-        devShowNetwork: false,
-        devShowStateInspector: false,
-        devShowPerformanceProfiler: false,
-        devLogStateChanges: false,
-        devLogNetworkRequests: false,
-        devLogPerformanceMarks: false,
         consoleLogging: 'errors',
         enableBetaFeatures: false,
-        enablePerformanceMonitoring: false,
+        enablePerformanceMonitoring: true,
       },
     });
   });
@@ -139,24 +118,24 @@ describe('settingsStore', () => {
       const store = useSettingsStore.getState();
       store.updateSettings({
         theme: 'light',
-        fontSize: 'large',
-        density: 'spacious',
+        hapticFeedback: false,
+        accentColor: 'blue',
       });
 
       const state = useSettingsStore.getState();
       expect(state.settings.theme).toBe('light');
-      expect(state.settings.fontSize).toBe('large');
-      expect(state.settings.density).toBe('spacious');
+      expect(state.settings.hapticFeedback).toBe(false);
+      expect(state.settings.accentColor).toBe('blue');
     });
 
     it('should preserve other settings when updating', () => {
       const store = useSettingsStore.getState();
-      const originalSync = store.settings.realTimeSync;
+      const originalNotifications = store.settings.enableNotifications;
 
       store.updateSettings({ theme: 'dark' });
 
       const state = useSettingsStore.getState();
-      expect(state.settings.realTimeSync).toBe(originalSync);
+      expect(state.settings.enableNotifications).toBe(originalNotifications);
     });
 
     it('should apply theme immediately via CSS class', () => {
@@ -167,45 +146,26 @@ describe('settingsStore', () => {
       expect(mockClassList.add).toHaveBeenCalledWith('theme-dark');
     });
 
-    it('should apply font size immediately via CSS class', () => {
+    it('should apply accent color immediately via CSS class', () => {
       const store = useSettingsStore.getState();
-      store.updateSettings({ fontSize: 'large' });
-
-      expect(mockClassList.remove).toHaveBeenCalledWith('font-small', 'font-medium', 'font-large');
-      expect(mockClassList.add).toHaveBeenCalledWith('font-large');
-    });
-
-    it('should apply density immediately via CSS class', () => {
-      const store = useSettingsStore.getState();
-      store.updateSettings({ density: 'compact' });
+      store.updateSettings({ accentColor: 'blue' });
 
       expect(mockClassList.remove).toHaveBeenCalledWith(
-        'density-compact',
-        'density-comfortable',
-        'density-spacious'
+        'accent-green',
+        'accent-blue',
+        'accent-orange',
+        'accent-purple'
       );
-      expect(mockClassList.add).toHaveBeenCalledWith('density-compact');
+      expect(mockClassList.add).toHaveBeenCalledWith('accent-blue');
     });
 
-    it('should apply reduce motion immediately', () => {
+    it('should apply auto theme based on system preference', () => {
       const store = useSettingsStore.getState();
-      store.updateSettings({ reduceMotion: true });
+      store.updateSettings({ theme: 'auto' });
 
-      expect(mockClassList.add).toHaveBeenCalledWith('reduce-motion');
-    });
-
-    it('should remove reduce motion when disabled', () => {
-      const store = useSettingsStore.getState();
-      store.updateSettings({ reduceMotion: false });
-
-      expect(mockClassList.remove).toHaveBeenCalledWith('reduce-motion');
-    });
-
-    it('should apply high contrast immediately', () => {
-      const store = useSettingsStore.getState();
-      store.updateSettings({ highContrast: true });
-
-      expect(mockClassList.add).toHaveBeenCalledWith('high-contrast');
+      // Mock returns dark preference
+      expect(mockClassList.remove).toHaveBeenCalledWith('theme-light', 'theme-dark');
+      expect(mockClassList.add).toHaveBeenCalledWith('theme-dark');
     });
   });
 
@@ -216,8 +176,7 @@ describe('settingsStore', () => {
       // Change settings
       store.updateSettings({
         theme: 'dark',
-        fontSize: 'large',
-        density: 'compact',
+        accentColor: 'blue',
         hapticFeedback: false,
       });
 
@@ -226,8 +185,7 @@ describe('settingsStore', () => {
 
       const state = useSettingsStore.getState();
       expect(state.settings.theme).toBe('auto');
-      expect(state.settings.fontSize).toBe('medium');
-      expect(state.settings.density).toBe('comfortable');
+      expect(state.settings.accentColor).toBe('green');
       expect(state.settings.hapticFeedback).toBe(true);
     });
 
@@ -240,8 +198,7 @@ describe('settingsStore', () => {
 
       // Should apply auto theme (detects system preference)
       expect(mockClassList.remove).toHaveBeenCalledWith('theme-light', 'theme-dark');
-      expect(mockClassList.add).toHaveBeenCalledWith('font-medium');
-      expect(mockClassList.add).toHaveBeenCalledWith('density-comfortable');
+      expect(mockClassList.add).toHaveBeenCalledWith('accent-green');
     });
   });
 
@@ -273,13 +230,13 @@ describe('settingsStore', () => {
 
     it('should include all settings in export', () => {
       const store = useSettingsStore.getState();
-      store.updateSettings({ theme: 'dark', fontSize: 'large' });
+      store.updateSettings({ theme: 'dark', accentColor: 'purple' });
 
       const exported = store.exportSettings();
       const parsed = JSON.parse(exported);
 
       expect(parsed.settings.theme).toBe('dark');
-      expect(parsed.settings.fontSize).toBe('large');
+      expect(parsed.settings.accentColor).toBe('purple');
     });
 
     it('should format JSON with indentation', () => {
@@ -300,58 +257,24 @@ describe('settingsStore', () => {
         exportedAt: new Date().toISOString(),
         settings: {
           theme: 'dark',
-          fontSize: 'large',
-          density: 'spacious',
-          performanceMode: 'high',
-          imageQuality: 'low',
+          accentColor: 'blue',
           enableAnimations: false,
           enableBlur: false,
           enableShadows: false,
-          oneHandedMode: true,
-          handPreference: 'left',
-          pullToRefresh: false,
-          pullSensitivity: 'firm',
+          pullToRefresh: true,
           hapticFeedback: false,
-          realTimeSync: false,
-          syncFrequency: 'manual',
-          wifiOnlySync: true,
-          autoDownloadShows: true,
-          storageLimit: 1000,
-          autoCleanup: false,
-          enableNotifications: false,
-          notificationSound: false,
+          enableNotifications: true,
+          voiceNotifications: true,
           showBadges: false,
-          notifyClassStarting: false,
-          notifyYourTurn: false,
           notifyYourTurnLeadDogs: 5,
-          notifyResults: false,
-          notifySyncErrors: false,
           voiceAnnouncements: true,
-          voiceLanguage: 'es-ES',
+          voiceName: 'Alex',
           voiceRate: 1.5,
-          voicePitch: 1.2,
-          voiceVolume: 0.8,
-          announceTimerCountdown: false,
-          announceRunNumber: false,
-          announceResults: false,
-          autoSaveFrequency: '5m',
-          autoSaveEnabled: false,
-          maxDraftsPerEntry: 10,
-          confirmationPrompts: 'always',
-          bypassConfirmationsAfter: 50,
-          autoLogout: 240,
+          autoLogout: 480,
           developerMode: true,
-          devShowFPS: true,
-          devShowMemory: true,
-          devShowNetwork: true,
-          devShowStateInspector: true,
-          devShowPerformanceProfiler: true,
-          devLogStateChanges: true,
-          devLogNetworkRequests: true,
-          devLogPerformanceMarks: true,
           consoleLogging: 'all',
           enableBetaFeatures: true,
-          enablePerformanceMonitoring: true,
+          enablePerformanceMonitoring: false,
         },
       };
 
@@ -360,7 +283,7 @@ describe('settingsStore', () => {
       expect(result).toBe(true);
       const state = useSettingsStore.getState();
       expect(state.settings.theme).toBe('dark');
-      expect(state.settings.fontSize).toBe('large');
+      expect(state.settings.accentColor).toBe('blue');
     });
 
     it('should return false for invalid JSON', () => {
@@ -382,7 +305,7 @@ describe('settingsStore', () => {
       // Should have valid default settings
       const state = useSettingsStore.getState();
       expect(state.settings.theme).toBeDefined();
-      expect(state.settings.fontSize).toBeDefined();
+      expect(state.settings.accentColor).toBeDefined();
     });
 
     it('should apply imported settings immediately', () => {
@@ -393,10 +316,7 @@ describe('settingsStore', () => {
         settings: {
           ...store.settings,
           theme: 'light',
-          fontSize: 'small',
-          density: 'compact',
-          reduceMotion: true,
-          highContrast: true,
+          accentColor: 'orange',
         },
       };
 
@@ -405,22 +325,16 @@ describe('settingsStore', () => {
 
       store.importSettings(JSON.stringify(exportData));
 
-      // Should apply all visual settings
+      // Should apply visual settings
       expect(mockClassList.add).toHaveBeenCalledWith('theme-light');
-      expect(mockClassList.add).toHaveBeenCalledWith('font-small');
-      expect(mockClassList.add).toHaveBeenCalledWith('density-compact');
-      expect(mockClassList.add).toHaveBeenCalledWith('reduce-motion');
-      expect(mockClassList.add).toHaveBeenCalledWith('high-contrast');
+      expect(mockClassList.add).toHaveBeenCalledWith('accent-orange');
     });
 
     it('should handle legacy format without version', () => {
       const store = useSettingsStore.getState();
       const legacySettings = {
         theme: 'dark',
-        fontSize: 'medium',
-        density: 'comfortable',
-        performanceMode: 'auto',
-        // ... other required fields
+        accentColor: 'green',
       };
 
       // Should not throw error
@@ -430,20 +344,6 @@ describe('settingsStore', () => {
   });
 
   describe('initializeSettings', () => {
-    it('should apply non-theme settings on initialization', () => {
-      mockClassList.add.mockClear();
-      mockClassList.remove.mockClear();
-
-      initializeSettings();
-
-      // Should apply font size, density, etc. (theme is applied by blocking script in index.html)
-      expect(mockClassList.add).toHaveBeenCalled();
-      expect(mockClassList.remove).toHaveBeenCalled();
-      // Note: initializeSettings intentionally does NOT apply theme (done by blocking script)
-      expect(mockClassList.add).toHaveBeenCalledWith('font-medium');
-      expect(mockClassList.add).toHaveBeenCalledWith('density-comfortable');
-    });
-
     it('should apply accent color on initialization', () => {
       mockClassList.add.mockClear();
       initializeSettings();
@@ -478,19 +378,9 @@ describe('settingsStore', () => {
       expect(state.settings.theme).toBe('auto');
     });
 
-    it('should have correct default font size', () => {
+    it('should have correct default accent color', () => {
       const state = useSettingsStore.getState();
-      expect(state.settings.fontSize).toBe('medium');
-    });
-
-    it('should have correct default density', () => {
-      const state = useSettingsStore.getState();
-      expect(state.settings.density).toBe('comfortable');
-    });
-
-    it('should have correct default performance mode', () => {
-      const state = useSettingsStore.getState();
-      expect(state.settings.performanceMode).toBe('auto');
+      expect(state.settings.accentColor).toBe('green');
     });
 
     it('should have haptic feedback enabled by default', () => {
@@ -498,19 +388,14 @@ describe('settingsStore', () => {
       expect(state.settings.hapticFeedback).toBe(true);
     });
 
-    it('should have real-time sync enabled by default', () => {
+    it('should have notifications disabled by default', () => {
       const state = useSettingsStore.getState();
-      expect(state.settings.realTimeSync).toBe(true);
+      expect(state.settings.enableNotifications).toBe(false);
     });
 
-    it('should have notifications enabled by default', () => {
+    it('should notify when 3 dogs ahead by default', () => {
       const state = useSettingsStore.getState();
-      expect(state.settings.enableNotifications).toBe(true);
-    });
-
-    it('should notify when 2 dogs ahead by default', () => {
-      const state = useSettingsStore.getState();
-      expect(state.settings.notifyYourTurnLeadDogs).toBe(2);
+      expect(state.settings.notifyYourTurnLeadDogs).toBe(3);
     });
 
     it('should have 8-hour auto-logout by default', () => {
@@ -521,6 +406,11 @@ describe('settingsStore', () => {
     it('should have developer mode disabled by default', () => {
       const state = useSettingsStore.getState();
       expect(state.settings.developerMode).toBe(false);
+    });
+
+    it('should have performance monitoring enabled by default', () => {
+      const state = useSettingsStore.getState();
+      expect(state.settings.enablePerformanceMonitoring).toBe(true);
     });
   });
 
@@ -553,18 +443,18 @@ describe('settingsStore', () => {
         exportedAt: new Date().toISOString(),
         settings: {
           theme: 'dark',
-          fontSize: 'large',
-          // Missing other required fields
+          accentColor: 'purple',
+          // Missing other fields - repair will merge with defaults
         },
       };
 
       const result = store.importSettings(JSON.stringify(partialExport));
 
-      // Should succeed by merging with defaults
+      // Should succeed - repair merges partial settings with defaults
       expect(result).toBe(true);
       const state = useSettingsStore.getState();
       expect(state.settings.theme).toBe('dark');
-      expect(state.settings.density).toBeDefined(); // Should have default value
+      expect(state.settings.accentColor).toBe('purple');
     });
   });
 });

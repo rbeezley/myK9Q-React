@@ -362,7 +362,6 @@ describe('useStopwatch', () => {
           maxTime: '3:00',
           level: 'Novice',
           enableVoiceAnnouncements: true,
-          enableTimerCountdown: true
         })
       );
 
@@ -380,25 +379,6 @@ describe('useStopwatch', () => {
           maxTime: '3:00',
           level: 'Novice',
           enableVoiceAnnouncements: false,
-          enableTimerCountdown: true
-        })
-      );
-
-      act(() => {
-        result.current.start();
-        vi.advanceTimersByTime(150000);
-      });
-
-      expect(voiceAnnouncementService.announceTimeRemaining).not.toHaveBeenCalled();
-    });
-
-    test('should NOT announce when timer countdown is disabled', () => {
-      const { result } = renderHook(() =>
-        useStopwatch({
-          maxTime: '3:00',
-          level: 'Novice',
-          enableVoiceAnnouncements: true,
-          enableTimerCountdown: false
         })
       );
 

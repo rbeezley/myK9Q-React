@@ -1,53 +1,59 @@
 /**
  * Tests for VoiceSettingsSection Component
+ *
+ * This component provides shared voice configuration (voice selection, speed)
+ * for all voice features. The toggles to enable voice are in respective sections.
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VoiceSettingsSection } from './VoiceSettingsSection';
 import { useSettingsStore } from '@/stores/settingsStore';
+import voiceAnnouncementService from '@/services/voiceAnnouncementService';
 
 // Mock the settings store
 vi.mock('@/stores/settingsStore', () => ({
-  useSettingsStore: vi.fn()
+  useSettingsStore: vi.fn(),
 }));
 
-// Mock SpeechSynthesisUtterance (not available in jsdom)
-class MockSpeechSynthesisUtterance {
-  text: string;
-  rate: number = 1;
-  pitch: number = 1;
-  volume: number = 1;
-  voice: SpeechSynthesisVoice | null = null;
-  lang: string = '';
-  onend: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  onstart: (() => void) | null = null;
-
-  constructor(text: string = '') {
-    this.text = text;
-  }
-}
-
-// Install mock globally before tests
-(globalThis as any).SpeechSynthesisUtterance = MockSpeechSynthesisUtterance;
+// Mock the voice announcement service
+vi.mock('@/services/voiceAnnouncementService', () => ({
+  default: {
+    testVoice: vi.fn(),
+  },
+}));
 
 describe('VoiceSettingsSection', () => {
   const mockUpdateSettings = vi.fn();
   const mockGetVoices = vi.fn();
-  const mockCancel = vi.fn();
-  const mockSpeak = vi.fn();
 
   const defaultSettings = {
-    voiceAnnouncements: false,
     voiceName: '',
-    voiceRate: 1.0
+    voiceRate: 1.0,
   };
 
   const mockVoices: SpeechSynthesisVoice[] = [
-    { name: 'Alex', lang: 'en-US', voiceURI: 'Alex', localService: true, default: true } as SpeechSynthesisVoice,
-    { name: 'Samantha', lang: 'en-US', voiceURI: 'Samantha', localService: true, default: false } as SpeechSynthesisVoice,
-    { name: 'Google UK English Female', lang: 'en-GB', voiceURI: 'Google UK English Female', localService: false, default: false } as SpeechSynthesisVoice
+    {
+      name: 'Alex',
+      lang: 'en-US',
+      voiceURI: 'Alex',
+      localService: true,
+      default: true,
+    } as SpeechSynthesisVoice,
+    {
+      name: 'Samantha',
+      lang: 'en-US',
+      voiceURI: 'Samantha',
+      localService: true,
+      default: false,
+    } as SpeechSynthesisVoice,
+    {
+      name: 'Google UK English Female',
+      lang: 'en-GB',
+      voiceURI: 'Google UK English Female',
+      localService: false,
+      default: false,
+    } as SpeechSynthesisVoice,
   ];
 
   beforeEach(() => {
@@ -55,7 +61,7 @@ describe('VoiceSettingsSection', () => {
 
     (useSettingsStore as any).mockReturnValue({
       settings: defaultSettings,
-      updateSettings: mockUpdateSettings
+      updateSettings: mockUpdateSettings,
     });
 
     // Mock speechSynthesis
@@ -64,10 +70,10 @@ describe('VoiceSettingsSection', () => {
       writable: true,
       value: {
         getVoices: mockGetVoices,
-        cancel: mockCancel,
-        speak: mockSpeak,
-        onvoiceschanged: null
-      }
+        cancel: vi.fn(),
+        speak: vi.fn(),
+        onvoiceschanged: null,
+      },
     });
   });
 
@@ -77,85 +83,44 @@ describe('VoiceSettingsSection', () => {
       expect(screen.getByText('Voice Settings')).toBeInTheDocument();
     });
 
-    it('should render voice announcements toggle', () => {
+    it('should render voice dropdown', () => {
       render(<VoiceSettingsSection />);
-      expect(screen.getByText('Voice Announcements')).toBeInTheDocument();
-      expect(screen.getByText('Speak notifications aloud')).toBeInTheDocument();
-    });
-
-    it('should not show voice controls when announcements are disabled', () => {
-      render(<VoiceSettingsSection />);
-      expect(screen.queryByText('Voice')).not.toBeInTheDocument();
-      expect(screen.queryByText('Speech Rate')).not.toBeInTheDocument();
-      expect(screen.queryByText('Test Voice')).not.toBeInTheDocument();
-    });
-
-    it('should show voice controls when announcements are enabled', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<VoiceSettingsSection />);
-
       expect(screen.getByText('Voice')).toBeInTheDocument();
-      expect(screen.getByText('Speech Rate')).toBeInTheDocument();
+    });
+
+    it('should render speed slider', () => {
+      render(<VoiceSettingsSection />);
+      expect(screen.getByText('Speed: 1.0x')).toBeInTheDocument();
+    });
+
+    it('should render test voice option', () => {
+      render(<VoiceSettingsSection />);
       expect(screen.getByText('Test Voice')).toBeInTheDocument();
     });
   });
 
-  describe('Voice announcements toggle', () => {
-    it('should call updateSettings when toggled on', () => {
-      render(<VoiceSettingsSection />);
-
-      const toggle = screen.getByRole('checkbox');
-      fireEvent.click(toggle);
-
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ voiceAnnouncements: true });
-    });
-
-    it('should call updateSettings when toggled off', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<VoiceSettingsSection />);
-
-      const toggle = screen.getByRole('checkbox');
-      fireEvent.click(toggle);
-
-      expect(mockUpdateSettings).toHaveBeenCalledWith({ voiceAnnouncements: false });
-    });
-  });
-
   describe('Voice selection dropdown', () => {
-    beforeEach(() => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true },
-        updateSettings: mockUpdateSettings
-      });
-    });
-
-    it('should show loading message when no voices available', () => {
+    it('should show "Loading voices..." when no voices available', () => {
       mockGetVoices.mockReturnValue([]);
       render(<VoiceSettingsSection />);
-
       expect(screen.getByText('Loading voices...')).toBeInTheDocument();
     });
 
-    it('should render Browser Default option', () => {
+    it('should show "Choose speaker" when voices available', () => {
       render(<VoiceSettingsSection />);
-
-      expect(screen.getByRole('option', { name: 'Browser Default' })).toBeInTheDocument();
+      expect(screen.getByText('Choose speaker')).toBeInTheDocument();
     });
 
-    it('should render all available voices', () => {
+    it('should render Default option', () => {
       render(<VoiceSettingsSection />);
+      expect(screen.getByRole('option', { name: 'Default' })).toBeInTheDocument();
+    });
 
-      expect(screen.getByRole('option', { name: /Alex.*en-US/ })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: /Samantha.*en-US/ })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: /Google UK English Female.*en-GB/ })).toBeInTheDocument();
+    it('should render available English voices', () => {
+      render(<VoiceSettingsSection />);
+      expect(screen.getByRole('option', { name: 'Alex' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Samantha' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Google UK English Female' })).toBeInTheDocument();
     });
 
     it('should call updateSettings when voice is changed', () => {
@@ -177,8 +142,8 @@ describe('VoiceSettingsSection', () => {
 
     it('should select the current voice from settings', () => {
       (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true, voiceName: 'Samantha' },
-        updateSettings: mockUpdateSettings
+        settings: { ...defaultSettings, voiceName: 'Samantha' },
+        updateSettings: mockUpdateSettings,
       });
 
       render(<VoiceSettingsSection />);
@@ -189,26 +154,19 @@ describe('VoiceSettingsSection', () => {
   });
 
   describe('Speech rate slider', () => {
-    beforeEach(() => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true },
-        updateSettings: mockUpdateSettings
-      });
-    });
-
     it('should display current speech rate', () => {
       render(<VoiceSettingsSection />);
-      expect(screen.getByText('1.0x speed')).toBeInTheDocument();
+      expect(screen.getByText('Speed: 1.0x')).toBeInTheDocument();
     });
 
     it('should display updated speech rate', () => {
       (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true, voiceRate: 1.5 },
-        updateSettings: mockUpdateSettings
+        settings: { ...defaultSettings, voiceRate: 1.5 },
+        updateSettings: mockUpdateSettings,
       });
 
       render(<VoiceSettingsSection />);
-      expect(screen.getByText('1.5x speed')).toBeInTheDocument();
+      expect(screen.getByText('Speed: 1.5x')).toBeInTheDocument();
     });
 
     it('should call updateSettings when slider is moved', () => {
@@ -232,78 +190,40 @@ describe('VoiceSettingsSection', () => {
     it('should show min and max labels', () => {
       render(<VoiceSettingsSection />);
       expect(screen.getByText('0.5x')).toBeInTheDocument();
-      expect(screen.getByText('2.0x')).toBeInTheDocument();
+      expect(screen.getByText('2x')).toBeInTheDocument();
     });
   });
 
-  describe('Test voice button', () => {
-    beforeEach(() => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true },
-        updateSettings: mockUpdateSettings
-      });
+  describe('Test voice', () => {
+    it('should render test voice row', () => {
+      render(<VoiceSettingsSection />);
+      expect(screen.getByText('Test Voice')).toBeInTheDocument();
+      expect(screen.getByText('Tap to hear a sample')).toBeInTheDocument();
     });
 
-    it('should render test button', () => {
-      render(<VoiceSettingsSection />);
-      expect(screen.getByRole('button', { name: 'Test' })).toBeInTheDocument();
-    });
-
-    it('should cancel ongoing speech before testing', () => {
+    it('should call voiceAnnouncementService.testVoice when clicked', () => {
       render(<VoiceSettingsSection />);
 
-      const testButton = screen.getByRole('button', { name: 'Test' });
-      fireEvent.click(testButton);
+      const testRow = screen.getByText('Test Voice').closest('.settings-row');
+      if (testRow) {
+        fireEvent.click(testRow);
+      }
 
-      expect(mockCancel).toHaveBeenCalled();
-    });
-
-    it('should call speak with correct utterance', () => {
-      render(<VoiceSettingsSection />);
-
-      const testButton = screen.getByRole('button', { name: 'Test' });
-      fireEvent.click(testButton);
-
-      expect(mockSpeak).toHaveBeenCalled();
-      const utterance = mockSpeak.mock.calls[0][0];
-      expect(utterance.text).toBe('Your dog is up next in the ring.');
-      expect(utterance.rate).toBe(1.0);
-    });
-
-    it('should use custom speech rate', () => {
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true, voiceRate: 1.5 },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<VoiceSettingsSection />);
-
-      const testButton = screen.getByRole('button', { name: 'Test' });
-      fireEvent.click(testButton);
-
-      const utterance = mockSpeak.mock.calls[0][0];
-      expect(utterance.rate).toBe(1.5);
+      expect(voiceAnnouncementService.testVoice).toHaveBeenCalledWith(
+        'This is a test of your selected voice.'
+      );
     });
 
     it('should show "Speaking..." while testing', async () => {
       render(<VoiceSettingsSection />);
 
-      const testButton = screen.getByRole('button', { name: 'Test' });
-      fireEvent.click(testButton);
+      const testRow = screen.getByText('Test Voice').closest('.settings-row');
+      if (testRow) {
+        fireEvent.click(testRow);
+      }
 
       await waitFor(() => {
         expect(screen.getByText('Speaking...')).toBeInTheDocument();
-      });
-    });
-
-    it('should disable button while testing', async () => {
-      render(<VoiceSettingsSection />);
-
-      const testButton = screen.getByRole('button', { name: 'Test' });
-      fireEvent.click(testButton);
-
-      await waitFor(() => {
-        expect(testButton).toBeDisabled();
       });
     });
   });
@@ -330,28 +250,11 @@ describe('VoiceSettingsSection', () => {
     it('should handle missing speechSynthesis gracefully', () => {
       Object.defineProperty(window, 'speechSynthesis', {
         writable: true,
-        value: undefined
+        value: undefined,
       });
 
       render(<VoiceSettingsSection />);
       expect(screen.getByText('Voice Settings')).toBeInTheDocument();
-    });
-
-    it('should not crash when testing without speechSynthesis', () => {
-      Object.defineProperty(window, 'speechSynthesis', {
-        writable: true,
-        value: undefined
-      });
-
-      (useSettingsStore as any).mockReturnValue({
-        settings: { ...defaultSettings, voiceAnnouncements: true },
-        updateSettings: mockUpdateSettings
-      });
-
-      render(<VoiceSettingsSection />);
-
-      const testButton = screen.getByRole('button', { name: 'Test' });
-      expect(() => fireEvent.click(testButton)).not.toThrow();
     });
   });
 });
