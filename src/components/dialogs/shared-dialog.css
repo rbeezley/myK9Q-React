@@ -31,7 +31,7 @@
   max-width: 100%;  /* Mobile: full width */
   width: 100%;
   max-height: calc(100vh - var(--token-space-4xl));  /* Mobile: leave some breathing room */
-  overflow: visible;
+  overflow: hidden;  /* Prevent content overflow, let dialog-content scroll */
   display: flex;
   flex-direction: column;
 }
@@ -113,9 +113,10 @@
 
 /* Dialog Content */
 .dialog-content {
-  overflow-y: auto;
+  flex: 1;  /* Fill remaining space between header and footer */
+  overflow-y: auto;  /* Enable scrolling when content exceeds available space */
   padding: var(--token-space-xl);  /* Mobile: smaller padding */
-  max-height: calc(100vh - 200px);
+  min-height: 0;  /* Required for flex children to scroll properly */
 }
 
 /* Dialog Footer */
@@ -126,6 +127,7 @@
   border-top: 1px solid var(--border);
   background: var(--muted);
   border-radius: 0 0 0.75rem 0.75rem;  /* Mobile: match container radius */
+  flex-shrink: 0;  /* Don't shrink footer when content is long */
 }
 
 .theme-dark .dialog-footer {
