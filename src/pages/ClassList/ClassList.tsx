@@ -38,7 +38,8 @@ export const ClassList: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showContext, role: _role, logout: _logout } = useAuth();
-  const { hasPermission } = usePermission();
+  const { hasPermission, hasRole } = usePermission();
+  const canModifyClassSettings = hasRole(['admin', 'judge']);
   const hapticFeedback = useHapticFeedback();
   const { prefetch } = usePrefetch();
 
@@ -826,7 +827,8 @@ export const ClassList: React.FC = () => {
                 handleGenerateScoresheet(selectedClass.id);
               }
             }}
-            hideMaxTime={hasRuleDefinedMaxTimes(orgData)}
+            hideMaxTime={hasRuleDefinedMaxTimes(orgData) || !canModifyClassSettings}
+            hideSettings={!canModifyClassSettings}
           />
         );
       })()}
@@ -838,7 +840,7 @@ export const ClassList: React.FC = () => {
           setRequirementsDialogOpen(false);
           setSelectedClassForRequirements(null);
         }}
-        onSetMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) ? undefined : () => {
+        onSetMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) || !canModifyClassSettings ? undefined : () => {
           // Close requirements dialog and open max time dialog with same class
           setRequirementsDialogOpen(false);
           setSelectedClassForMaxTime(selectedClassForRequirements);

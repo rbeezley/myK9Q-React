@@ -43,7 +43,8 @@ export const EntryList: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
   const { showContext, role } = useAuth();
-  const { hasPermission } = usePermission();
+  const { hasPermission, hasRole } = usePermission();
+  const canModifyClassSettings = hasRole(['admin', 'judge']);
   const { prefetch } = usePrefetch();
 
   // Drag state ref - prevents sync-triggered refreshes during drag operations
@@ -810,7 +811,8 @@ export const EntryList: React.FC = () => {
           onPrintCheckIn={handlePrintCheckIn}
           onPrintResults={handlePrintResults}
           onPrintScoresheet={handlePrintScoresheet}
-          hideMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || ''))}
+          hideMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) || !canModifyClassSettings}
+          hideSettings={!canModifyClassSettings}
         />
       )}
 
@@ -819,7 +821,7 @@ export const EntryList: React.FC = () => {
         <ClassRequirementsDialog
           isOpen={requirementsDialogOpen}
           onClose={() => setRequirementsDialogOpen(false)}
-          onSetMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) ? undefined : () => {
+          onSetMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) || !canModifyClassSettings ? undefined : () => {
             setRequirementsDialogOpen(false);
             setMaxTimeDialogOpen(true);
           }}
