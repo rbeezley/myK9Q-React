@@ -415,8 +415,11 @@ async function handlePushNotification(event) {
     // Get current user's license key (tenant isolation)
     const currentLicense = self.currentLicenseKey;
 
-    // Only show notification if it's for the current show
-    if (currentLicense && licenseKey !== currentLicense) {
+    // Skip license check for test notifications (allows testing even if showContext isn't loaded)
+    const isTestNotification = licenseKey === 'test' || (data.id && String(data.id).startsWith('test-'));
+
+    // Only show notification if it's for the current show (or is a test notification)
+    if (currentLicense && licenseKey !== currentLicense && !isTestNotification) {
       console.log('🚫 Push notification ignored - different show');
       return;
     }
