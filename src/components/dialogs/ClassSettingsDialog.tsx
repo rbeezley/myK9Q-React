@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Settings, CheckCircle, AlertCircle, Info, LayoutGrid } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { setClassVisibility } from '../../services/resultVisibilityService';
 import { PRESET_CONFIGS } from '../../types/visibility';
 import type { VisibilityPreset } from '../../types/visibility';
 import { DialogContainer } from './DialogContainer';
+import { useAuth } from '../../contexts/AuthContext';
+import { parseOrganizationData } from '../../utils/organizationUtils';
 import { logger } from '@/utils/logger';
 import './shared-dialog.css';
 import './ClassSettingsDialog.css';
+
+interface AreaCountOptions {
+  min: number;
+  max: number;
+  isFlexible: boolean;
+}
 
 interface ClassSettingsDialogProps {
   isOpen: boolean;
@@ -28,11 +36,14 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
   classData,
   onSettingsUpdate
 }) => {
+  const { showContext } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selfCheckinEnabled, setSelfCheckinEnabled] = useState(false);
   const [resultsVisibility, setResultsVisibility] = useState<VisibilityPreset>('standard');
   const [plannedStartTime, setPlannedStartTime] = useState('');
+  const [areaCount, setAreaCount] = useState<number>(1);
+  const [areaCountOptions, setAreaCountOptions] = useState<AreaCountOptions | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -49,10 +60,10 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
     try {
       setLoading(true);
 
-      // Load self check-in setting and planned start time
+      // Load self check-in setting, planned start time, and area count
       const { data, error } = await supabase
         .from('classes')
-        .select('self_checkin_enabled, planned_start_time')
+        .select('self_checkin_enabled, planned_start_time, area_count')
         .eq('id', classData.id)
         .single();
 
@@ -64,6 +75,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
 
       if (data) {
         setSelfCheckinEnabled(data.self_checkin_enabled ?? true);
+        setAreaCount(data.area_count ?? 1);
 
         // Extract just the time portion from ISO timestamp (HH:MM format)
         if (data.planned_start_time) {
@@ -73,6 +85,30 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
           setPlannedStartTime(`${hours}:${minutes}`);
         } else {
           setPlannedStartTime('');
+        }
+      }
+
+      // Load area count options from class_requirements
+      const orgData = parseOrganizationData(showContext?.org || '');
+      const { data: requirementsData } = await supabase
+        .from('class_requirements')
+        .select('area_count, area_count_min, area_count_max')
+        .eq('organization', orgData.organization)
+        .eq('element', classData.element)
+        .eq('level', classData.level)
+        .maybeSingle();
+
+      if (requirementsData) {
+        const min = requirementsData.area_count_min ?? requirementsData.area_count ?? 1;
+        const max = requirementsData.area_count_max ?? requirementsData.area_count ?? 1;
+        setAreaCountOptions({
+          min,
+          max,
+          isFlexible: min !== max
+        });
+        // If class doesn't have area_count set, use the default from requirements
+        if (!data?.area_count && requirementsData.area_count) {
+          setAreaCount(requirementsData.area_count);
         }
       }
 
@@ -117,10 +153,16 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       const updateData: {
         self_checkin_enabled: boolean;
         planned_start_time: string | null;
+        area_count?: number;
       } = {
         self_checkin_enabled: selfCheckinEnabled,
         planned_start_time: plannedTimestamp
       };
+
+      // Include area_count if there's flexibility and it's been set
+      if (areaCountOptions?.isFlexible && areaCount) {
+        updateData.area_count = areaCount;
+      }
 
       const { error: checkinError } = await supabase
         .from('classes')
@@ -192,6 +234,40 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
               onChange={(e) => setPlannedStartTime(e.target.value)}
             />
           </div>
+
+          {/* Area Count Selection - Only show when judge can choose */}
+          {areaCountOptions?.isFlexible && (
+            <div className="settings-section">
+              <div className="settings-item">
+                <div className="settings-item-header">
+                  <label className="settings-label">
+                    <LayoutGrid size={16} className="settings-label-icon" />
+                    Number of Areas
+                  </label>
+                  <p className="settings-description">
+                    Choose between {areaCountOptions.min} or {areaCountOptions.max} search areas for this class
+                  </p>
+                </div>
+                <div className="settings-area-count-options">
+                  {Array.from(
+                    { length: areaCountOptions.max - areaCountOptions.min + 1 },
+                    (_, i) => areaCountOptions.min + i
+                  ).map((count) => (
+                    <button
+                      key={count}
+                      type="button"
+                      className={`settings-area-count-btn ${
+                        areaCount === count ? 'settings-area-count-btn--active' : ''
+                      }`}
+                      onClick={() => setAreaCount(count)}
+                    >
+                      {count} Area{count > 1 ? 's' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Check-in Mode Toggle */}
           <div className="settings-section">

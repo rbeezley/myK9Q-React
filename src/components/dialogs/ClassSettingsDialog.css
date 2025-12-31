@@ -67,6 +67,69 @@
   opacity: 0.85;
 }
 
+/* Label with Icon */
+.settings-label-icon {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: var(--token-space-xs);
+  color: var(--primary);
+}
+
+/* Area Count Selection */
+.settings-area-count-options {
+  display: flex;
+  gap: var(--token-space-sm);
+  flex-wrap: wrap;
+}
+
+.settings-area-count-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--token-space-md) var(--token-space-xl);
+  min-width: 90px;
+  background: var(--background);
+  border: 2px solid var(--border);
+  border-radius: var(--token-radius-md);
+  font-size: 0.875rem;
+  font-weight: var(--token-font-weight-medium);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-area-count-btn:hover {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+}
+
+.settings-area-count-btn--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 2px 6px rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
+.settings-area-count-btn--active:hover {
+  background: var(--primary);
+  opacity: 0.9;
+}
+
+.theme-dark .settings-area-count-btn {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.theme-dark .settings-area-count-btn:hover {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+.theme-dark .settings-area-count-btn--active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
 /* Time Input */
 .settings-time-input {
   width: 100%;
