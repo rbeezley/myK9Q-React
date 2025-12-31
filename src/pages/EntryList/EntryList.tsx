@@ -15,7 +15,7 @@ import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
-import { parseOrganizationData, hasRuleDefinedMaxTimes, applyFixedMaxTime } from '../../utils/organizationUtils';
+import { parseOrganizationData, hasRuleDefinedMaxTimes, tryApplyFixedMaxTime } from '../../utils/organizationUtils';
 import { supabase } from '../../lib/supabase';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { markInRing } from '../../services/entryService';
@@ -169,7 +169,7 @@ export const EntryList: React.FC = () => {
   }, [isRefreshing, hasCompletedInitialLoad]);
 
   // Auto-open MaxTimeDialog if max time not set and user can score (runs once per page load)
-  // For organizations with fixed times (ASCA, UKC), auto-apply the time instead
+  // Data-driven: try to auto-apply from class_requirements first, then show dialog if no fixed time
   useEffect(() => {
     // Only run this check once per page load
     if (hasCheckedMaxTime.current) return;
@@ -183,35 +183,28 @@ export const EntryList: React.FC = () => {
       // Mark that we've done the initial check
       hasCheckedMaxTime.current = true;
 
-      // If no max time set, check if we should auto-apply or show dialog
+      // If no max time set, try to auto-apply from database or show dialog
       if (!classInfo.timeLimit) {
         const orgData = parseOrganizationData(showContext?.org || '');
 
-        // Check if this organization has rule-defined fixed times
-        if (hasRuleDefinedMaxTimes(orgData)) {
-          // Auto-apply the fixed time from class_requirements
-          applyFixedMaxTime(
-            Number(classId),
-            orgData.organization,
-            classInfo.element,
-            classInfo.level
-          ).then((result) => {
-            if (result.applied) {
-              // Refresh to get the updated class info
-              logger.info(`✅ Auto-applied fixed max time: ${result.time_limit_seconds}s`);
-              refresh();
-            } else {
-              // Fixed time not found - show dialog as fallback
-              logger.warn(`⚠️ Could not auto-apply fixed time: ${result.error}`);
-              setMaxTimeRequiredWarning(true);
-              setMaxTimeDialogOpen(true);
-            }
-          });
-        } else {
-          // Organization uses judge-defined times - show dialog
-          setMaxTimeRequiredWarning(true);
-          setMaxTimeDialogOpen(true);
-        }
+        // Data-driven approach: try to apply fixed time from class_requirements
+        // This works for any organization that has time_limit_seconds populated
+        tryApplyFixedMaxTime(
+          Number(classId),
+          orgData.organization,
+          classInfo.element,
+          classInfo.level
+        ).then((result) => {
+          if (result.applied) {
+            // Fixed time found and applied - refresh to get updated class info
+            logger.info(`✅ Auto-applied fixed max time: ${result.time_limit_seconds}s`);
+            refresh();
+          } else {
+            // No fixed time in database - show dialog for judge to set time
+            setMaxTimeRequiredWarning(true);
+            setMaxTimeDialogOpen(true);
+          }
+        });
       }
     }
   }, [hasCompletedInitialLoad, classInfo, hasPermission, entries.length, showContext?.org, classId, refresh]);
@@ -265,13 +258,13 @@ export const EntryList: React.FC = () => {
       return;
     }
 
-    // Block scoring if max time not set - auto-apply if fixed, or show dialog
+    // Block scoring if max time not set - try to auto-apply from DB, or show dialog
     if (!classInfo?.timeLimit) {
       const orgData = parseOrganizationData(showContext?.org || '');
 
-      // For fixed-time orgs, auto-apply and then allow scoring
-      if (hasRuleDefinedMaxTimes(orgData) && classInfo) {
-        applyFixedMaxTime(
+      // Data-driven: try to apply fixed time from class_requirements
+      if (classInfo) {
+        tryApplyFixedMaxTime(
           Number(classId),
           orgData.organization,
           classInfo.element,
@@ -281,6 +274,7 @@ export const EntryList: React.FC = () => {
             refresh();
             // Note: User will need to click again after refresh
           } else {
+            // No fixed time - show dialog
             setMaxTimeRequiredWarning(true);
             setMaxTimeDialogOpen(true);
           }

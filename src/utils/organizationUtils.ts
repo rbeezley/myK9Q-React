@@ -53,6 +53,9 @@ export const parseOrganizationData = (orgString: string): OrganizationData => {
  * Currently applies to:
  * - ASCA (all activities) - fixed max times per level
  * - UKC Nosework - fixed max times per level (3/4/5/6/6 min for Novice through Elite)
+ *
+ * Note: This is used for UI decisions (hiding "Set Max Time" button).
+ * The actual fixed time data comes from class_requirements.time_limit_seconds.
  */
 export const hasRuleDefinedMaxTimes = (orgData: OrganizationData): boolean => {
   // ASCA has rule-defined max times for all activities
@@ -66,6 +69,30 @@ export const hasRuleDefinedMaxTimes = (orgData: OrganizationData): boolean => {
   }
 
   return false;
+};
+
+/**
+ * Try to apply fixed max time from class_requirements.
+ * This is the data-driven approach - if time_limit_seconds exists in the DB, apply it.
+ * Works for any organization where fixed times are defined.
+ *
+ * @returns FixedTimeResult with applied=true if time was applied, false otherwise
+ */
+export const tryApplyFixedMaxTime = async (
+  classId: number,
+  organization: string,
+  element: string,
+  level: string
+): Promise<FixedTimeResult> => {
+  // First check if fixed time exists in database
+  const fixedTime = await getFixedMaxTime(organization, element, level);
+
+  if (!fixedTime) {
+    return { applied: false, error: 'No fixed time in database' };
+  }
+
+  // Apply the fixed time to the class
+  return applyFixedMaxTime(classId, organization, element, level);
 };
 
 /**
