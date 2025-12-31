@@ -22,7 +22,7 @@ import { useScoresheetCore, useEntryNavigation, useStopwatch } from '../hooks';
 import { ScoreConfirmationDialog } from '../components/ScoreConfirmationDialog';
 
 import '../BaseScoresheet.css';
-import '../AKC/AKCScentWorkScoresheet-Flutter.css';
+import '../AKC/scoresheet-shared.css';
 import '../AKC/AKCScentWorkScoresheet-JudgeDialog.css';
 import '../../../styles/containers.css';
 

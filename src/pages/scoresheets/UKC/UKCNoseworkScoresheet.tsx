@@ -32,7 +32,7 @@ import { useScoresheetCore, useEntryNavigation, useStopwatch, useElementTimer } 
 import { ScoreConfirmationDialog } from '../components/ScoreConfirmationDialog';
 
 import '../BaseScoresheet.css';
-import '../AKC/AKCScentWorkScoresheet-Flutter.css';
+import '../AKC/scoresheet-shared.css';
 import '../AKC/AKCScentWorkScoresheet-JudgeDialog.css';
 import './UKCNoseworkScoresheet.css';
 

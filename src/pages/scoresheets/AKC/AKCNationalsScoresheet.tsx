@@ -50,7 +50,7 @@ import {
 
 import '../BaseScoresheet.css';
 import './AKCScentWorkScoresheet-Nationals.css';
-import './AKCScentWorkScoresheet-Flutter.css';
+import './scoresheet-shared.css';
 import './AKCScentWorkScoresheet-JudgeDialog.css';
 import '../../../styles/containers.css';
 import '../../../components/wireframes/NationalsWireframe.css';
