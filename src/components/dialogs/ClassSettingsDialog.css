@@ -130,6 +130,139 @@
   border-color: var(--primary);
 }
 
+/* Time Allocation Section */
+.settings-time-allocation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-lg);
+  padding: var(--token-space-lg);
+  background: var(--muted);
+  border-radius: var(--token-radius-md);
+  border: 1px solid var(--border);
+}
+
+.settings-time-allocation-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-time-allocation-inputs {
+  display: flex;
+  gap: var(--token-space-xl);
+  justify-content: center;
+}
+
+.settings-time-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--token-space-sm);
+}
+
+.settings-time-input-label {
+  font-size: 0.8125rem;
+  font-weight: var(--token-font-weight-medium);
+  color: var(--muted-foreground);
+}
+
+.settings-time-stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--token-radius-md);
+  padding: var(--token-space-xs);
+}
+
+.settings-time-stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--muted);
+  border: none;
+  border-radius: var(--token-radius-sm);
+  font-size: 1.25rem;
+  font-weight: var(--token-font-weight-semibold);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-time-stepper-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.settings-time-stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.settings-time-value {
+  min-width: 60px;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: var(--token-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.settings-time-total {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md);
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  border-radius: var(--token-radius-sm);
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.settings-time-total-value {
+  font-weight: var(--token-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-time-total--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--destructive);
+}
+
+.settings-time-total--error .settings-time-total-value {
+  color: var(--destructive);
+}
+
+/* Dark mode adjustments for time allocation */
+.theme-dark .settings-time-allocation {
+  background: var(--card);
+}
+
+.theme-dark .settings-time-stepper {
+  background: var(--muted);
+  border-color: var(--border);
+}
+
+.theme-dark .settings-time-stepper-btn {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .settings-time-stepper-btn:hover:not(:disabled) {
+  background: var(--primary);
+}
+
+.theme-dark .settings-time-total {
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
+}
+
+.theme-dark .settings-time-total--error {
+  background: rgba(239, 68, 68, 0.2);
+}
+
 /* Time Input */
 .settings-time-input {
   width: 100%;

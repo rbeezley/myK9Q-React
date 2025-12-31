@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, CheckCircle, AlertCircle, Info, LayoutGrid } from 'lucide-react';
+import { Settings, CheckCircle, AlertCircle, Info, LayoutGrid, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { setClassVisibility } from '../../services/resultVisibilityService';
 import { PRESET_CONFIGS } from '../../types/visibility';
@@ -15,7 +15,15 @@ interface AreaCountOptions {
   min: number;
   max: number;
   isFlexible: boolean;
+  maxTotalSeconds?: number; // Total time limit from class_requirements
 }
+
+// Helper to format seconds to M:SS display
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
 
 interface ClassSettingsDialogProps {
   isOpen: boolean;
@@ -44,6 +52,8 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
   const [plannedStartTime, setPlannedStartTime] = useState('');
   const [areaCount, setAreaCount] = useState<number>(1);
   const [areaCountOptions, setAreaCountOptions] = useState<AreaCountOptions | null>(null);
+  const [area1Seconds, setArea1Seconds] = useState<number>(0);
+  const [area2Seconds, setArea2Seconds] = useState<number>(0);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -60,10 +70,10 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
     try {
       setLoading(true);
 
-      // Load self check-in setting, planned start time, and area count
+      // Load self check-in setting, planned start time, area count, and time limits
       const { data, error } = await supabase
         .from('classes')
-        .select('self_checkin_enabled, planned_start_time, area_count')
+        .select('self_checkin_enabled, planned_start_time, area_count, time_limit_seconds, time_limit_area2_seconds')
         .eq('id', classData.id)
         .single();
 
@@ -76,6 +86,8 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       if (data) {
         setSelfCheckinEnabled(data.self_checkin_enabled ?? true);
         setAreaCount(data.area_count ?? 1);
+        setArea1Seconds(data.time_limit_seconds ?? 0);
+        setArea2Seconds(data.time_limit_area2_seconds ?? 0);
 
         // Extract just the time portion from ISO timestamp (HH:MM format)
         if (data.planned_start_time) {
@@ -88,11 +100,11 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         }
       }
 
-      // Load area count options from class_requirements
+      // Load area count options and max time from class_requirements
       const orgData = parseOrganizationData(showContext?.org || '');
       const { data: requirementsData } = await supabase
         .from('class_requirements')
-        .select('area_count, area_count_min, area_count_max')
+        .select('area_count, area_count_min, area_count_max, time_limit_seconds')
         .eq('organization', orgData.organization)
         .eq('element', classData.element)
         .eq('level', classData.level)
@@ -104,11 +116,21 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         setAreaCountOptions({
           min,
           max,
-          isFlexible: min !== max
+          isFlexible: min !== max,
+          maxTotalSeconds: requirementsData.time_limit_seconds ?? undefined
         });
         // If class doesn't have area_count set, use the default from requirements
         if (!data?.area_count && requirementsData.area_count) {
           setAreaCount(requirementsData.area_count);
+        }
+        // If class doesn't have time limits set, split the max evenly for 2 areas
+        if (min !== max && requirementsData.time_limit_seconds) {
+          if (!data?.time_limit_seconds && !data?.time_limit_area2_seconds) {
+            // Default: split time evenly between areas
+            const halfTime = Math.floor(requirementsData.time_limit_seconds / 2);
+            setArea1Seconds(halfTime);
+            setArea2Seconds(halfTime);
+          }
         }
       }
 
@@ -154,14 +176,35 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         self_checkin_enabled: boolean;
         planned_start_time: string | null;
         area_count?: number;
+        time_limit_seconds?: number;
+        time_limit_area2_seconds?: number | null;
       } = {
         self_checkin_enabled: selfCheckinEnabled,
         planned_start_time: plannedTimestamp
       };
 
-      // Include area_count if there's flexibility and it's been set
+      // Include area_count and time limits if there's flexibility
       if (areaCountOptions?.isFlexible && areaCount) {
         updateData.area_count = areaCount;
+
+        if (areaCount >= 2 && areaCountOptions.maxTotalSeconds) {
+          // Validate total doesn't exceed max
+          const total = area1Seconds + area2Seconds;
+          if (total > areaCountOptions.maxTotalSeconds) {
+            setErrorMessage(`Total time (${formatTime(total)}) exceeds maximum allowed (${formatTime(areaCountOptions.maxTotalSeconds)})`);
+            return;
+          }
+          if (area1Seconds <= 0 || area2Seconds <= 0) {
+            setErrorMessage('Both areas must have time allocated');
+            return;
+          }
+          updateData.time_limit_seconds = area1Seconds;
+          updateData.time_limit_area2_seconds = area2Seconds;
+        } else if (areaCount === 1) {
+          // Single area: use total time, clear area 2
+          updateData.time_limit_seconds = areaCountOptions.maxTotalSeconds;
+          updateData.time_limit_area2_seconds = null;
+        }
       }
 
       const { error: checkinError } = await supabase
@@ -264,6 +307,81 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       {count} Area{count > 1 ? 's' : ''}
                     </button>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Time Allocation - Only show when 2 areas selected */}
+          {areaCountOptions?.isFlexible && areaCount >= 2 && areaCountOptions.maxTotalSeconds && (
+            <div className="settings-section">
+              <div className="settings-time-allocation">
+                <div className="settings-time-allocation-header">
+                  <label className="settings-label">
+                    <Clock size={16} className="settings-label-icon" />
+                    Time Allocation
+                  </label>
+                  <p className="settings-description">
+                    Allocate {formatTime(areaCountOptions.maxTotalSeconds)} total between areas (max combined)
+                  </p>
+                </div>
+
+                <div className="settings-time-allocation-inputs">
+                  <div className="settings-time-input-group">
+                    <label className="settings-time-input-label">Area 1</label>
+                    <div className="settings-time-stepper">
+                      <button
+                        type="button"
+                        className="settings-time-stepper-btn"
+                        onClick={() => setArea1Seconds(prev => Math.max(30, prev - 30))}
+                        disabled={area1Seconds <= 30}
+                      >
+                        −
+                      </button>
+                      <span className="settings-time-value">{formatTime(area1Seconds)}</span>
+                      <button
+                        type="button"
+                        className="settings-time-stepper-btn"
+                        onClick={() => setArea1Seconds(prev => Math.min(areaCountOptions.maxTotalSeconds! - 30, prev + 30))}
+                        disabled={area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="settings-time-input-group">
+                    <label className="settings-time-input-label">Area 2</label>
+                    <div className="settings-time-stepper">
+                      <button
+                        type="button"
+                        className="settings-time-stepper-btn"
+                        onClick={() => setArea2Seconds(prev => Math.max(30, prev - 30))}
+                        disabled={area2Seconds <= 30}
+                      >
+                        −
+                      </button>
+                      <span className="settings-time-value">{formatTime(area2Seconds)}</span>
+                      <button
+                        type="button"
+                        className="settings-time-stepper-btn"
+                        onClick={() => setArea2Seconds(prev => Math.min(areaCountOptions.maxTotalSeconds! - 30, prev + 30))}
+                        disabled={area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total time display */}
+                <div className={`settings-time-total ${
+                  area1Seconds + area2Seconds > areaCountOptions.maxTotalSeconds ? 'settings-time-total--error' : ''
+                }`}>
+                  <span>Total:</span>
+                  <span className="settings-time-total-value">
+                    {formatTime(area1Seconds + area2Seconds)} / {formatTime(areaCountOptions.maxTotalSeconds)}
+                  </span>
                 </div>
               </div>
             </div>
