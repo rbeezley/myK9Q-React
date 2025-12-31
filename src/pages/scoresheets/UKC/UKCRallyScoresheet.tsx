@@ -446,7 +446,7 @@ export const UKCRallyScoresheet: React.FC = () => {
             </div>
             <div className="confirmation-buttons">
               <button onClick={() => setShowConfirmation(false)}>Cancel</button>
-              <button onClick={() => { haptic.success(); confirmSubmit(); }} className="confirm-button">
+              <button onClick={() => { haptic.success(); confirmSubmit(); }} className="confirm-button btn-primary">
                 Confirm
               </button>
             </div>

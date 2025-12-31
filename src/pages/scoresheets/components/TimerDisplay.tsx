@@ -161,7 +161,7 @@ export function TimerDisplay({
 
         {/* Reset button - top right corner */}
         <button
-          className="timer-btn-reset"
+          className="timer-btn-reset btn-destructive"
           onClick={() => { haptic.heavy(); onReset(); }}
           disabled={isRunning}
           title={isRunning ? "Reset disabled while timer is running" : "Reset timer"}
@@ -190,7 +190,7 @@ export function TimerDisplay({
           {isRunning ? (
             // Timer is running - show Stop button (centered)
             <button
-              className="timer-btn-start stop"
+              className="timer-btn-start stop btn-destructive"
               onClick={() => { haptic.heavy(); onStop(); }}
             >
               Stop
@@ -198,7 +198,7 @@ export function TimerDisplay({
           ) : time > 0 ? (
             // Timer is stopped with time recorded - show Resume button
             <button
-              className="timer-btn-start resume"
+              className="timer-btn-start resume btn-primary"
               onClick={() => { haptic.medium(); onStart(); }}
               title="Continue timing"
             >
@@ -207,7 +207,7 @@ export function TimerDisplay({
           ) : (
             // Timer is at zero - show Start button (centered)
             <button
-              className="timer-btn-start start"
+              className="timer-btn-start start btn-primary"
               onClick={() => { haptic.heavy(); onStart(); }}
             >
               Start

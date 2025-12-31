@@ -435,7 +435,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
                 Cancel
               </button>
               <button
-                className="scoresheet-btn-save"
+                className="scoresheet-btn-save btn-primary"
                 onClick={() => { haptic.medium(); setShowConfirmation(true); }}
                 disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !isAllTimesComplete)}
               >

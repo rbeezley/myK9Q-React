@@ -621,7 +621,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
           Cancel
         </button>
         <button
-          className="scoresheet-btn-save"
+          className="scoresheet-btn-save btn-primary"
           onClick={() => { haptic.medium(); setShowConfirmation(true); }}
           disabled={isSubmitting || !qualifying || (qualifying === 'Qualified' && !areas.every(area => area.time && area.time !== ''))}
         >

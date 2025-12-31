@@ -218,7 +218,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
             {/* Timer Section */}
             <div className="scoresheet-timer-card">
               <button
-                className="timer-btn-reset"
+                className="timer-btn-reset btn-destructive"
                 onClick={() => { haptic.heavy(); stopwatch.reset(); }}
                 disabled={stopwatch.isRunning}
                 title={stopwatch.isRunning ? "Reset disabled while timer is running" : "Reset timer"}
@@ -238,21 +238,21 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
               </div>
               <div className="timer-controls-flutter">
                 {stopwatch.isRunning ? (
-                  <button className="timer-btn-start stop" onClick={() => { haptic.heavy(); handleStopTimer(); }}>
+                  <button className="timer-btn-start stop btn-destructive" onClick={() => { haptic.heavy(); handleStopTimer(); }}>
                     Stop
                   </button>
                 ) : stopwatch.time > 0 ? (
                   stopwatch.isTimeExpired() ? (
-                    <button className="timer-btn-start reset" onClick={() => { haptic.heavy(); stopwatch.reset(); }} title="Reset timer">
+                    <button className="timer-btn-start reset btn-destructive" onClick={() => { haptic.heavy(); stopwatch.reset(); }} title="Reset timer">
                       Reset
                     </button>
                   ) : (
-                    <button className="timer-btn-start resume" onClick={() => { haptic.medium(); stopwatch.start(); }} title="Continue timing">
+                    <button className="timer-btn-start resume btn-primary" onClick={() => { haptic.medium(); stopwatch.start(); }} title="Continue timing">
                       Resume
                     </button>
                   )
                 ) : (
-                  <button className="timer-btn-start start" onClick={() => { haptic.heavy(); stopwatch.start(); }}>
+                  <button className="timer-btn-start start btn-primary" onClick={() => { haptic.heavy(); stopwatch.start(); }}>
                     Start
                   </button>
                 )}
@@ -379,7 +379,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
                 Cancel
               </button>
               <button
-                className="scoresheet-btn-save"
+                className="scoresheet-btn-save btn-primary"
                 onClick={() => { haptic.medium(); setShowConfirmation(true); }}
                 disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !isAllTimesComplete)}
               >

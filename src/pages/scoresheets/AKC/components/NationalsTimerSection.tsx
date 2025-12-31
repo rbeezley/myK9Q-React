@@ -38,7 +38,7 @@ export const NationalsTimerSection: React.FC<NationalsTimerSectionProps> = ({
     <>
       <div className="scoresheet-timer-card">
         <button
-          className="timer-btn-reset"
+          className="timer-btn-reset btn-destructive"
           onClick={() => { haptic.heavy(); onReset(); }}
           disabled={isStopwatchRunning}
           title={isStopwatchRunning ? "Reset disabled while timer is running" : "Reset timer"}
@@ -59,14 +59,14 @@ export const NationalsTimerSection: React.FC<NationalsTimerSectionProps> = ({
         <div className="timer-controls-flutter">
           {isStopwatchRunning ? (
             <button
-              className="timer-btn-start stop"
+              className="timer-btn-start stop btn-destructive"
               onClick={() => { haptic.heavy(); onStop(); }}
             >
               Stop
             </button>
           ) : stopwatchTime > 0 ? (
             <button
-              className="timer-btn-start resume"
+              className="timer-btn-start resume btn-primary"
               onClick={() => { haptic.medium(); onStart(); }}
               title="Continue timing"
             >
@@ -74,7 +74,7 @@ export const NationalsTimerSection: React.FC<NationalsTimerSectionProps> = ({
             </button>
           ) : (
             <button
-              className="timer-btn-start start"
+              className="timer-btn-start start btn-primary"
               onClick={() => { haptic.heavy(); onStart(); }}
             >
               Start
