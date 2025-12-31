@@ -425,9 +425,10 @@ async function handlePushNotification(event) {
     }
 
     // Determine notification type and priority
-    const isUrgent = data.priority === 'urgent';
+    const isDogAlert = data.type === 'dog-alert' || data.type === 'up_soon' || data.type === 'come_to_gate' || data.dogId;
+    // Dog alerts are always treated as urgent - missing your turn is critical!
+    const isUrgent = data.priority === 'urgent' || isDogAlert;
     const isHigh = data.priority === 'high';
-    const isDogAlert = data.type === 'dog-alert' || data.dogId;
 
     // Smart grouping strategy:
     // - Urgent alerts: unique tag (no grouping, always visible)

@@ -301,7 +301,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const classId = data.class_id || data.classId;
 
         // Determine priority for sound
-        const priority = (data.priority || 'normal') as 'normal' | 'high' | 'urgent';
+        // Dog alerts are always urgent - missing your turn is critical!
+        const isDogAlert = type === 'dog-alert';
+        const priority = isDogAlert ? 'urgent' : (data.priority || 'normal') as 'normal' | 'high' | 'urgent';
 
         // Add to notification center with normalized URL
         addNotification({
