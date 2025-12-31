@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { DogCard } from '../../../components/DogCard';
+import { haptic } from '@/hooks/useHapticFeedback';
 import type { AreaScore } from '../../../services/scoresheets/areaInitialization';
 
 export interface ScoreConfirmationDialogProps {
@@ -184,7 +185,7 @@ export const ScoreConfirmationDialog: React.FC<ScoreConfirmationDialogProps> = (
           </button>
           <button
             className="dialog-btn confirm"
-            onClick={onConfirm}
+            onClick={() => { haptic.success(); onConfirm(); }}
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Submitting...' : 'Confirm & Submit'}

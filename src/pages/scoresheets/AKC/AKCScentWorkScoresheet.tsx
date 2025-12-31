@@ -18,6 +18,7 @@ import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
 import { X, ClipboardCheck } from 'lucide-react';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
+import { haptic } from '@/hooks/useHapticFeedback';
 
 // Shared hooks from refactoring
 import { useScoresheetCore, useEntryNavigation, useStopwatch } from '../hooks';
@@ -435,7 +436,7 @@ export const AKCScentWorkScoresheet: React.FC = () => {
               </button>
               <button
                 className="scoresheet-btn-save"
-                onClick={() => setShowConfirmation(true)}
+                onClick={() => { haptic.medium(); setShowConfirmation(true); }}
                 disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !isAllTimesComplete)}
               >
                 {isSubmitting ? 'Saving...' : 'Save'}

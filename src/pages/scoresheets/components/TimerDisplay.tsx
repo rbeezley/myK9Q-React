@@ -8,6 +8,7 @@
  */
 
 import React from 'react';
+import { haptic } from '@/hooks/useHapticFeedback';
 import './TimerDisplay.css';
 
 /**
@@ -161,7 +162,7 @@ export function TimerDisplay({
         {/* Reset button - top right corner */}
         <button
           className="timer-btn-reset"
-          onClick={onReset}
+          onClick={() => { haptic.heavy(); onReset(); }}
           disabled={isRunning}
           title={isRunning ? "Reset disabled while timer is running" : "Reset timer"}
         >
@@ -190,7 +191,7 @@ export function TimerDisplay({
             // Timer is running - show Stop button (centered)
             <button
               className="timer-btn-start stop"
-              onClick={onStop}
+              onClick={() => { haptic.heavy(); onStop(); }}
             >
               Stop
             </button>
@@ -198,7 +199,7 @@ export function TimerDisplay({
             // Timer is stopped with time recorded - show Resume button
             <button
               className="timer-btn-start resume"
-              onClick={onStart}
+              onClick={() => { haptic.medium(); onStart(); }}
               title="Continue timing"
             >
               Resume
@@ -207,7 +208,7 @@ export function TimerDisplay({
             // Timer is at zero - show Start button (centered)
             <button
               className="timer-btn-start start"
-              onClick={onStart}
+              onClick={() => { haptic.heavy(); onStart(); }}
             >
               Start
             </button>

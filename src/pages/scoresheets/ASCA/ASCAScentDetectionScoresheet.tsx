@@ -13,6 +13,7 @@ import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips
 import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/ui';
 import { X, ClipboardCheck } from 'lucide-react';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
+import { haptic } from '@/hooks/useHapticFeedback';
 
 // Shared hooks from refactoring
 import { useScoresheetCore, useEntryNavigation, useStopwatch } from '../hooks';
@@ -218,7 +219,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
             <div className="scoresheet-timer-card">
               <button
                 className="timer-btn-reset"
-                onClick={stopwatch.reset}
+                onClick={() => { haptic.heavy(); stopwatch.reset(); }}
                 disabled={stopwatch.isRunning}
                 title={stopwatch.isRunning ? "Reset disabled while timer is running" : "Reset timer"}
               >
@@ -237,21 +238,21 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
               </div>
               <div className="timer-controls-flutter">
                 {stopwatch.isRunning ? (
-                  <button className="timer-btn-start stop" onClick={handleStopTimer}>
+                  <button className="timer-btn-start stop" onClick={() => { haptic.heavy(); handleStopTimer(); }}>
                     Stop
                   </button>
                 ) : stopwatch.time > 0 ? (
                   stopwatch.isTimeExpired() ? (
-                    <button className="timer-btn-start reset" onClick={stopwatch.reset} title="Reset timer">
+                    <button className="timer-btn-start reset" onClick={() => { haptic.heavy(); stopwatch.reset(); }} title="Reset timer">
                       Reset
                     </button>
                   ) : (
-                    <button className="timer-btn-start resume" onClick={stopwatch.start} title="Continue timing">
+                    <button className="timer-btn-start resume" onClick={() => { haptic.medium(); stopwatch.start(); }} title="Continue timing">
                       Resume
                     </button>
                   )
                 ) : (
-                  <button className="timer-btn-start start" onClick={stopwatch.start}>
+                  <button className="timer-btn-start start" onClick={() => { haptic.heavy(); stopwatch.start(); }}>
                     Start
                   </button>
                 )}
@@ -379,7 +380,7 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
               </button>
               <button
                 className="scoresheet-btn-save"
-                onClick={() => setShowConfirmation(true)}
+                onClick={() => { haptic.medium(); setShowConfirmation(true); }}
                 disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !isAllTimesComplete)}
               >
                 {isSubmitting ? 'Saving...' : 'Save'}

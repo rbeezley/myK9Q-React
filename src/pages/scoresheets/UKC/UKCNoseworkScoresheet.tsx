@@ -23,6 +23,7 @@ import { HamburgerMenu, SyncIndicator, ArmbandBadge } from '../../../components/
 import { ResultChoiceChips } from '../../../components/scoring/ResultChoiceChips';
 import { ClipboardCheck, X } from 'lucide-react';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
+import { haptic } from '@/hooks/useHapticFeedback';
 
 // Shared hooks from refactoring
 import { useScoresheetCore, useEntryNavigation, useStopwatch, useElementTimer } from '../hooks';
@@ -89,27 +90,27 @@ const SingleTimerControls: React.FC<SingleTimerControlsProps> = ({
 }) => {
   if (isRunning) {
     return (
-      <button className="timer-btn-start stop" onClick={onStop}>
+      <button className="timer-btn-start stop" onClick={() => { haptic.heavy(); onStop(); }}>
         Stop
       </button>
     );
   }
   if (time > 0 && isTimeExpired) {
     return (
-      <button className="timer-btn-start reset" onClick={onReset} title="Reset timer">
+      <button className="timer-btn-start reset" onClick={() => { haptic.heavy(); onReset(); }} title="Reset timer">
         Reset
       </button>
     );
   }
   if (time > 0) {
     return (
-      <button className="timer-btn-start resume" onClick={onStart} title="Continue timing">
+      <button className="timer-btn-start resume" onClick={() => { haptic.medium(); onStart(); }} title="Continue timing">
         Resume
       </button>
     );
   }
   return (
-    <button className="timer-btn-start start" onClick={onStart}>
+    <button className="timer-btn-start start" onClick={() => { haptic.heavy(); onStart(); }}>
       Start
     </button>
   );
@@ -137,7 +138,7 @@ const DualTimerControls: React.FC<DualTimerControlsProps> = ({
   // Not started yet
   if (searchTime === 0 && !searchIsRunning && !elementIsRunning) {
     return (
-      <button className="timer-btn-start start" onClick={onStart}>
+      <button className="timer-btn-start start" onClick={() => { haptic.heavy(); onStart(); }}>
         Start
       </button>
     );
@@ -147,10 +148,10 @@ const DualTimerControls: React.FC<DualTimerControlsProps> = ({
   if (!searchIsRunning && !elementIsRunning && searchTime > 0) {
     return (
       <div className="dual-timer-controls">
-        <button className="timer-btn-start resume" onClick={onResumeAll} title="Resume both timers">
+        <button className="timer-btn-start resume" onClick={() => { haptic.medium(); onResumeAll(); }} title="Resume both timers">
           Resume
         </button>
-        <button className="timer-btn-start reset" onClick={onReset} title="Reset both timers">
+        <button className="timer-btn-start reset" onClick={() => { haptic.heavy(); onReset(); }} title="Reset both timers">
           Reset
         </button>
       </div>
@@ -160,7 +161,7 @@ const DualTimerControls: React.FC<DualTimerControlsProps> = ({
   // Search paused, Element running (between alerts)
   if (!searchIsRunning && elementIsRunning) {
     return (
-      <button className="timer-btn-start resume" onClick={onResume} title="Resume search timing">
+      <button className="timer-btn-start resume" onClick={() => { haptic.medium(); onResume(); }} title="Resume search timing">
         Resume
       </button>
     );
@@ -168,7 +169,7 @@ const DualTimerControls: React.FC<DualTimerControlsProps> = ({
 
   // Both running (actively searching)
   return (
-    <button className="timer-btn-start stop" onClick={onPause} title="Pause search time (Element continues)">
+    <button className="timer-btn-start stop" onClick={() => { haptic.heavy(); onPause(); }} title="Pause search time (Element continues)">
       Pause
     </button>
   );
@@ -621,7 +622,7 @@ export const UKCNoseworkScoresheet: React.FC = () => {
               </button>
               <button
                 className="scoresheet-btn-save"
-                onClick={() => setShowConfirmation(true)}
+                onClick={() => { haptic.medium(); setShowConfirmation(true); }}
                 disabled={isSubmitting || !qualifying || (qualifying === 'Q' && !searchTime)}
               >
                 {isSubmitting ? 'Saving...' : 'Save'}

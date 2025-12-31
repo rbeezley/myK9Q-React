@@ -15,6 +15,7 @@ import type { Entry as ReplicatedEntry } from '../../../services/replication/tab
 import type { Class } from '../../../services/replication/tables/ReplicatedClassesTable';
 import type { Entry } from '../../../stores/entryStore';
 import { logger } from '@/utils/logger';
+import { haptic } from '@/hooks/useHapticFeedback';
 import '../BaseScoresheet.css';
 import './AKCFastCatScoresheet.css';
 
@@ -402,7 +403,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               className="submit-button"
-              onClick={handleSubmit}
+              onClick={() => { haptic.medium(); handleSubmit(); }}
               disabled={!runTime || isSubmitting}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Score'}
@@ -438,7 +439,7 @@ export const AKCFastCatScoresheet: React.FC = () => {
             </div>
             <div className="confirmation-buttons">
               <button onClick={() => setShowConfirmation(false)}>Cancel</button>
-              <button onClick={confirmSubmit} className="confirm-button">
+              <button onClick={() => { haptic.success(); confirmSubmit(); }} className="confirm-button">
                 Confirm
               </button>
             </div>

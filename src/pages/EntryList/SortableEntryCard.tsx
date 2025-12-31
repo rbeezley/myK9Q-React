@@ -16,6 +16,7 @@ import { Entry } from '../../stores/entryStore';
 import { UserPermissions } from '../../utils/auth';
 import { getStatusBorderClass } from './sortableEntryCardUtils';
 import { ResultBadges, StatusBadgeContent } from './SortableEntryCardComponents';
+import { haptic } from '@/hooks/useHapticFeedback';
 
 // ========================================
 // TYPES
@@ -92,7 +93,10 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
   const handleCardClick = () => {
     if (isDragMode) return; // Disable navigation in drag mode
     if (isLongPressRef.current) return; // Ignore click if it was a long press
-    if (hasPermission('canScore')) handleEntryClick(entry);
+    if (hasPermission('canScore')) {
+      haptic.medium();
+      handleEntryClick(entry);
+    }
   };
 
   // Long press handlers

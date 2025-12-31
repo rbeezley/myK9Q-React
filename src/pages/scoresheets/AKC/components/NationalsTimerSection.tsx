@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { formatStopwatchTime } from '../AKCNationalsScoresheetHelpers';
+import { haptic } from '@/hooks/useHapticFeedback';
 
 interface NationalsTimerSectionProps {
   stopwatchTime: number;
@@ -38,7 +39,7 @@ export const NationalsTimerSection: React.FC<NationalsTimerSectionProps> = ({
       <div className="scoresheet-timer-card">
         <button
           className="timer-btn-reset"
-          onClick={onReset}
+          onClick={() => { haptic.heavy(); onReset(); }}
           disabled={isStopwatchRunning}
           title={isStopwatchRunning ? "Reset disabled while timer is running" : "Reset timer"}
         >
@@ -59,14 +60,14 @@ export const NationalsTimerSection: React.FC<NationalsTimerSectionProps> = ({
           {isStopwatchRunning ? (
             <button
               className="timer-btn-start stop"
-              onClick={onStop}
+              onClick={() => { haptic.heavy(); onStop(); }}
             >
               Stop
             </button>
           ) : stopwatchTime > 0 ? (
             <button
               className="timer-btn-start resume"
-              onClick={onStart}
+              onClick={() => { haptic.medium(); onStart(); }}
               title="Continue timing"
             >
               Resume
@@ -74,7 +75,7 @@ export const NationalsTimerSection: React.FC<NationalsTimerSectionProps> = ({
           ) : (
             <button
               className="timer-btn-start start"
-              onClick={onStart}
+              onClick={() => { haptic.heavy(); onStart(); }}
             >
               Start
             </button>

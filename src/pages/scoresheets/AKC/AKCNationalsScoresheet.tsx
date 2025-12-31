@@ -21,6 +21,7 @@ import { X, ClipboardCheck } from 'lucide-react';
 import { nationalsScoring } from '../../../services/nationalsScoring';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
 import { parseSmartTime } from '../../../utils/timeInputParsing';
+import { haptic } from '@/hooks/useHapticFeedback';
 
 // Shared hooks from refactoring
 import { useScoresheetCore, useEntryNavigation } from '../hooks';
@@ -621,7 +622,7 @@ export const AKCNationalsScoresheet: React.FC = () => {
         </button>
         <button
           className="scoresheet-btn-save"
-          onClick={() => setShowConfirmation(true)}
+          onClick={() => { haptic.medium(); setShowConfirmation(true); }}
           disabled={isSubmitting || !qualifying || (qualifying === 'Qualified' && !areas.every(area => area.time && area.time !== ''))}
         >
           {isSubmitting ? 'Saving...' : 'Save'}
