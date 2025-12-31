@@ -91,6 +91,21 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Auto-balance time allocation: when one area changes, the other gets the remaining time
+  const updateArea1Time = (newSeconds: number) => {
+    const maxTotal = areaCountOptions?.maxTotalSeconds || 0;
+    const clampedSeconds = Math.max(30, Math.min(newSeconds, maxTotal - 30));
+    setArea1Seconds(clampedSeconds);
+    setArea2Seconds(maxTotal - clampedSeconds);
+  };
+
+  const updateArea2Time = (newSeconds: number) => {
+    const maxTotal = areaCountOptions?.maxTotalSeconds || 0;
+    const clampedSeconds = Math.max(30, Math.min(newSeconds, maxTotal - 30));
+    setArea2Seconds(clampedSeconds);
+    setArea1Seconds(maxTotal - clampedSeconds);
+  };
+
   // Load current settings when dialog opens
   useEffect(() => {
     if (isOpen && classData) {
@@ -367,7 +382,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       <button
                         type="button"
                         className="settings-time-stepper-btn"
-                        onClick={() => setArea1Seconds(prev => Math.max(30, prev - 30))}
+                        onClick={() => updateArea1Time(area1Seconds - 30)}
                         disabled={editingArea !== null || area1Seconds <= 30}
                       >
                         −
@@ -381,7 +396,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                           onBlur={() => {
                             const seconds = parseTimeInput(editValue);
                             if (seconds !== null && seconds >= 30) {
-                              setArea1Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                              updateArea1Time(seconds);
                             }
                             setEditingArea(null);
                           }}
@@ -389,7 +404,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                             if (e.key === 'Enter') {
                               const seconds = parseTimeInput(editValue);
                               if (seconds !== null && seconds >= 30) {
-                                setArea1Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                                updateArea1Time(seconds);
                               }
                               setEditingArea(null);
                             } else if (e.key === 'Escape') {
@@ -415,8 +430,8 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       <button
                         type="button"
                         className="settings-time-stepper-btn"
-                        onClick={() => setArea1Seconds(prev => Math.min(areaCountOptions.maxTotalSeconds! - 30, prev + 30))}
-                        disabled={editingArea !== null || area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
+                        onClick={() => updateArea1Time(area1Seconds + 30)}
+                        disabled={editingArea !== null || area2Seconds <= 30}
                       >
                         +
                       </button>
@@ -429,7 +444,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       <button
                         type="button"
                         className="settings-time-stepper-btn"
-                        onClick={() => setArea2Seconds(prev => Math.max(30, prev - 30))}
+                        onClick={() => updateArea2Time(area2Seconds - 30)}
                         disabled={editingArea !== null || area2Seconds <= 30}
                       >
                         −
@@ -443,7 +458,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                           onBlur={() => {
                             const seconds = parseTimeInput(editValue);
                             if (seconds !== null && seconds >= 30) {
-                              setArea2Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                              updateArea2Time(seconds);
                             }
                             setEditingArea(null);
                           }}
@@ -451,7 +466,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                             if (e.key === 'Enter') {
                               const seconds = parseTimeInput(editValue);
                               if (seconds !== null && seconds >= 30) {
-                                setArea2Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                                updateArea2Time(seconds);
                               }
                               setEditingArea(null);
                             } else if (e.key === 'Escape') {
@@ -477,8 +492,8 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                       <button
                         type="button"
                         className="settings-time-stepper-btn"
-                        onClick={() => setArea2Seconds(prev => Math.min(areaCountOptions.maxTotalSeconds! - 30, prev + 30))}
-                        disabled={editingArea !== null || area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
+                        onClick={() => updateArea2Time(area2Seconds + 30)}
+                        disabled={editingArea !== null || area1Seconds <= 30}
                       >
                         +
                       </button>
