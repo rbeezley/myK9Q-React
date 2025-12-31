@@ -88,12 +88,19 @@
   color: #667eea;
   border: none;
   border-radius: 12px;
-  padding: 12px 32px;
+  /* Fixed dimensions for consistent sizing across Start/Stop/Resume states */
+  width: 140px;
+  min-width: 140px;
+  height: 48px;
+  padding: 12px 24px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .timer-btn-start:hover {
