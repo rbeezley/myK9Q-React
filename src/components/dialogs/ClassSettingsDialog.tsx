@@ -25,6 +25,38 @@ const formatTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
+// Helper to parse M:SS or plain seconds input to total seconds
+const parseTimeInput = (input: string): number | null => {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // Handle M:SS format (e.g., "2:08", "3:30")
+  if (trimmed.includes(':')) {
+    const parts = trimmed.split(':');
+    if (parts.length === 2) {
+      const mins = parseInt(parts[0]) || 0;
+      const secs = parseInt(parts[1]) || 0;
+      if (secs >= 0 && secs < 60) {
+        return mins * 60 + secs;
+      }
+    }
+    return null;
+  }
+
+  // Handle plain number (treat as seconds if small, or could be minutes)
+  const num = parseFloat(trimmed);
+  if (!isNaN(num)) {
+    // If it's a decimal like 2.5, treat as minutes
+    if (trimmed.includes('.')) {
+      return Math.round(num * 60);
+    }
+    // Plain integer - if > 10, treat as seconds; otherwise as minutes
+    return num > 10 ? num : num * 60;
+  }
+
+  return null;
+};
+
 interface ClassSettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -54,6 +86,8 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
   const [areaCountOptions, setAreaCountOptions] = useState<AreaCountOptions | null>(null);
   const [area1Seconds, setArea1Seconds] = useState<number>(0);
   const [area2Seconds, setArea2Seconds] = useState<number>(0);
+  const [editingArea, setEditingArea] = useState<1 | 2 | null>(null);
+  const [editValue, setEditValue] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -334,16 +368,55 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                         type="button"
                         className="settings-time-stepper-btn"
                         onClick={() => setArea1Seconds(prev => Math.max(30, prev - 30))}
-                        disabled={area1Seconds <= 30}
+                        disabled={editingArea !== null || area1Seconds <= 30}
                       >
                         −
                       </button>
-                      <span className="settings-time-value">{formatTime(area1Seconds)}</span>
+                      {editingArea === 1 ? (
+                        <input
+                          type="text"
+                          className="settings-time-edit-input"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => {
+                            const seconds = parseTimeInput(editValue);
+                            if (seconds !== null && seconds >= 30) {
+                              setArea1Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                            }
+                            setEditingArea(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const seconds = parseTimeInput(editValue);
+                              if (seconds !== null && seconds >= 30) {
+                                setArea1Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                              }
+                              setEditingArea(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingArea(null);
+                            }
+                          }}
+                          autoFocus
+                          placeholder="M:SS"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="settings-time-value settings-time-value--editable"
+                          onClick={() => {
+                            setEditingArea(1);
+                            setEditValue(formatTime(area1Seconds));
+                          }}
+                          title="Tap to edit"
+                        >
+                          {formatTime(area1Seconds)}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="settings-time-stepper-btn"
                         onClick={() => setArea1Seconds(prev => Math.min(areaCountOptions.maxTotalSeconds! - 30, prev + 30))}
-                        disabled={area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
+                        disabled={editingArea !== null || area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
                       >
                         +
                       </button>
@@ -357,16 +430,55 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
                         type="button"
                         className="settings-time-stepper-btn"
                         onClick={() => setArea2Seconds(prev => Math.max(30, prev - 30))}
-                        disabled={area2Seconds <= 30}
+                        disabled={editingArea !== null || area2Seconds <= 30}
                       >
                         −
                       </button>
-                      <span className="settings-time-value">{formatTime(area2Seconds)}</span>
+                      {editingArea === 2 ? (
+                        <input
+                          type="text"
+                          className="settings-time-edit-input"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => {
+                            const seconds = parseTimeInput(editValue);
+                            if (seconds !== null && seconds >= 30) {
+                              setArea2Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                            }
+                            setEditingArea(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const seconds = parseTimeInput(editValue);
+                              if (seconds !== null && seconds >= 30) {
+                                setArea2Seconds(Math.min(seconds, areaCountOptions.maxTotalSeconds! - 30));
+                              }
+                              setEditingArea(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingArea(null);
+                            }
+                          }}
+                          autoFocus
+                          placeholder="M:SS"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="settings-time-value settings-time-value--editable"
+                          onClick={() => {
+                            setEditingArea(2);
+                            setEditValue(formatTime(area2Seconds));
+                          }}
+                          title="Tap to edit"
+                        >
+                          {formatTime(area2Seconds)}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="settings-time-stepper-btn"
                         onClick={() => setArea2Seconds(prev => Math.min(areaCountOptions.maxTotalSeconds! - 30, prev + 30))}
-                        disabled={area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
+                        disabled={editingArea !== null || area1Seconds + area2Seconds >= areaCountOptions.maxTotalSeconds}
                       >
                         +
                       </button>

@@ -209,6 +209,50 @@
   font-weight: var(--token-font-weight-semibold);
   font-variant-numeric: tabular-nums;
   color: var(--foreground);
+  background: transparent;
+  border: none;
+  padding: var(--token-space-xs) var(--token-space-sm);
+  cursor: default;
+}
+
+.settings-time-value--editable {
+  cursor: pointer;
+  border-radius: var(--token-radius-sm);
+  transition: all 0.15s ease;
+}
+
+.settings-time-value--editable:hover {
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  color: var(--primary);
+}
+
+.settings-time-value--editable:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.settings-time-edit-input {
+  width: 60px;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: var(--token-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  background: var(--background);
+  border: 2px solid var(--primary);
+  border-radius: var(--token-radius-sm);
+  padding: var(--token-space-xs) var(--token-space-sm);
+  font-family: inherit;
+}
+
+.settings-time-edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+}
+
+.theme-dark .settings-time-edit-input {
+  background: var(--card);
+  border-color: var(--primary);
 }
 
 .settings-time-total {
