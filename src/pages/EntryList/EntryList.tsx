@@ -15,7 +15,7 @@ import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
-import { parseOrganizationData, hasRuleDefinedMaxTimes } from '../../utils/organizationUtils';
+import { parseOrganizationData, hasRuleDefinedMaxTimes, applyFixedMaxTime } from '../../utils/organizationUtils';
 import { supabase } from '../../lib/supabase';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
 import { markInRing } from '../../services/entryService';
@@ -169,6 +169,7 @@ export const EntryList: React.FC = () => {
   }, [isRefreshing, hasCompletedInitialLoad]);
 
   // Auto-open MaxTimeDialog if max time not set and user can score (runs once per page load)
+  // For organizations with fixed times (ASCA, UKC), auto-apply the time instead
   useEffect(() => {
     // Only run this check once per page load
     if (hasCheckedMaxTime.current) return;
@@ -182,13 +183,38 @@ export const EntryList: React.FC = () => {
       // Mark that we've done the initial check
       hasCheckedMaxTime.current = true;
 
-      // If no max time set, auto-open the dialog with warning
+      // If no max time set, check if we should auto-apply or show dialog
       if (!classInfo.timeLimit) {
-        setMaxTimeRequiredWarning(true);
-        setMaxTimeDialogOpen(true);
+        const orgData = parseOrganizationData(showContext?.org || '');
+
+        // Check if this organization has rule-defined fixed times
+        if (hasRuleDefinedMaxTimes(orgData)) {
+          // Auto-apply the fixed time from class_requirements
+          applyFixedMaxTime(
+            Number(classId),
+            orgData.organization,
+            classInfo.element,
+            classInfo.level
+          ).then((result) => {
+            if (result.applied) {
+              // Refresh to get the updated class info
+              logger.info(`✅ Auto-applied fixed max time: ${result.time_limit_seconds}s`);
+              refresh();
+            } else {
+              // Fixed time not found - show dialog as fallback
+              logger.warn(`⚠️ Could not auto-apply fixed time: ${result.error}`);
+              setMaxTimeRequiredWarning(true);
+              setMaxTimeDialogOpen(true);
+            }
+          });
+        } else {
+          // Organization uses judge-defined times - show dialog
+          setMaxTimeRequiredWarning(true);
+          setMaxTimeDialogOpen(true);
+        }
       }
     }
-  }, [hasCompletedInitialLoad, classInfo, hasPermission, entries.length]);
+  }, [hasCompletedInitialLoad, classInfo, hasPermission, entries.length, showContext?.org, classId, refresh]);
 
   // Scoresheet route helper
   const getScoreSheetRoute = useCallback((entry: Entry): string => {
@@ -239,10 +265,30 @@ export const EntryList: React.FC = () => {
       return;
     }
 
-    // Block scoring if max time not set - show dialog instead
+    // Block scoring if max time not set - auto-apply if fixed, or show dialog
     if (!classInfo?.timeLimit) {
-      setMaxTimeRequiredWarning(true);
-      setMaxTimeDialogOpen(true);
+      const orgData = parseOrganizationData(showContext?.org || '');
+
+      // For fixed-time orgs, auto-apply and then allow scoring
+      if (hasRuleDefinedMaxTimes(orgData) && classInfo) {
+        applyFixedMaxTime(
+          Number(classId),
+          orgData.organization,
+          classInfo.element,
+          classInfo.level
+        ).then((result) => {
+          if (result.applied) {
+            refresh();
+            // Note: User will need to click again after refresh
+          } else {
+            setMaxTimeRequiredWarning(true);
+            setMaxTimeDialogOpen(true);
+          }
+        });
+      } else {
+        setMaxTimeRequiredWarning(true);
+        setMaxTimeDialogOpen(true);
+      }
       return;
     }
 
