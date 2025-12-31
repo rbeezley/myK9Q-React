@@ -12,6 +12,7 @@ import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
+import { AreaCountSelectionDialog, AreaCountRequirements } from '../../components/dialogs/AreaCountSelectionDialog';
 import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
@@ -98,9 +99,13 @@ export const EntryList: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isRecalculatingPlacements, setIsRecalculatingPlacements] = useState(false);
+  const [areaCountDialogOpen, setAreaCountDialogOpen] = useState(false);
+  const [areaCountRequirements, setAreaCountRequirements] = useState<AreaCountRequirements | null>(null);
 
   // Track if we've already checked for max time requirement (prevent re-triggering after save)
   const hasCheckedMaxTime = useRef(false);
+  // Track if we've already checked for area count requirement
+  const hasCheckedAreaCount = useRef(false);
 
   // Reset menu state
   const [activeResetMenu, setActiveResetMenu] = useState<number | null>(null);
@@ -208,6 +213,65 @@ export const EntryList: React.FC = () => {
       }
     }
   }, [hasCompletedInitialLoad, classInfo, hasPermission, entries.length, showContext?.org, classId, refresh]);
+
+  // Auto-open AreaCountSelectionDialog for ASCA classes with flexible area count
+  // Only for admin/judge roles - exhibitors should NOT see this dialog
+  useEffect(() => {
+    // Only run this check once per page load
+    if (hasCheckedAreaCount.current) return;
+
+    if (
+      hasCompletedInitialLoad &&
+      classInfo &&
+      hasRole(['admin', 'judge']) &&  // Only for admin/judge, not exhibitors
+      entries.length > 0
+    ) {
+      hasCheckedAreaCount.current = true;
+
+      const checkAreaCountRequirement = async () => {
+        const orgData = parseOrganizationData(showContext?.org || '');
+
+        // Check class_requirements for flexible area count
+        const { data: requirements } = await supabase
+          .from('class_requirements')
+          .select('area_count, area_count_min, area_count_max, time_limit_seconds')
+          .eq('organization', orgData.organization)
+          .eq('element', classInfo.element)
+          .eq('level', classInfo.level)
+          .maybeSingle();
+
+        if (!requirements) return;
+
+        const min = requirements.area_count_min ?? requirements.area_count ?? 1;
+        const max = requirements.area_count_max ?? requirements.area_count ?? 1;
+        const isFlexible = min !== max;
+
+        if (!isFlexible) return;
+
+        // Check if class already has area_count set
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('area_count')
+          .eq('id', Number(classId))
+          .single();
+
+        // If area_count is not set (null or undefined), show the dialog
+        if (!classData?.area_count) {
+          logger.info(`[EntryList] Class ${classId} needs area count selection (flexible: ${min}-${max})`);
+          setAreaCountRequirements({
+            min,
+            max,
+            maxTotalSeconds: requirements.time_limit_seconds ?? 300 // Default 5 min if not set
+          });
+          setAreaCountDialogOpen(true);
+        }
+      };
+
+      checkAreaCountRequirement().catch((error) => {
+        logger.error('Error checking area count requirement:', error);
+      });
+    }
+  }, [hasCompletedInitialLoad, classInfo, hasRole, entries.length, showContext?.org, classId]);
 
   // Scoresheet route helper
   const getScoreSheetRoute = useCallback((entry: Entry): string => {
@@ -940,6 +1004,29 @@ export const EntryList: React.FC = () => {
             entry_count: localEntries.length
           }}
           currentStatus={classInfo.classStatus || 'no-status'}
+        />
+      )}
+
+      {/* Area Count Selection Dialog - for ASCA classes with flexible area count */}
+      {classInfo && areaCountRequirements && (
+        <AreaCountSelectionDialog
+          isOpen={areaCountDialogOpen}
+          onClose={() => {
+            setAreaCountDialogOpen(false);
+            // Navigate back if user cancels without selecting
+            navigate(-1);
+          }}
+          classData={{
+            id: Number(classId),
+            element: classInfo.element,
+            level: classInfo.level,
+            class_name: classInfo.className
+          }}
+          areaCountRequirements={areaCountRequirements}
+          onSave={() => {
+            setAreaCountDialogOpen(false);
+            refresh();
+          }}
         />
       )}
 
