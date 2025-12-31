@@ -225,6 +225,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
         self_checkin_enabled: boolean;
         planned_start_time: string | null;
         area_count?: number;
+        area_count_confirmed?: boolean;
         time_limit_seconds?: number;
         time_limit_area2_seconds?: number | null;
       } = {
@@ -235,6 +236,7 @@ export const ClassSettingsDialog: React.FC<ClassSettingsDialogProps> = ({
       // Include area_count and time limits if there's flexibility
       if (areaCountOptions?.isFlexible && areaCount) {
         updateData.area_count = areaCount;
+        updateData.area_count_confirmed = true; // Mark that judge has explicitly chosen
 
         if (areaCount >= 2 && areaCountOptions.maxTotalSeconds) {
           // Validate total doesn't exceed max

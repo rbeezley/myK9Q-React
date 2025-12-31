@@ -92,10 +92,12 @@ export const AreaCountSelectionDialog: React.FC<AreaCountSelectionDialogProps> =
 
       const updateData: {
         area_count: number;
+        area_count_confirmed: boolean;
         time_limit_seconds: number;
         time_limit_area2_seconds: number | null;
       } = {
         area_count: areaCount,
+        area_count_confirmed: true, // Mark that judge has explicitly chosen
         time_limit_seconds: areaCount === 1 ? areaCountRequirements.maxTotalSeconds : area1Seconds,
         time_limit_area2_seconds: areaCount >= 2 ? area2Seconds : null
       };

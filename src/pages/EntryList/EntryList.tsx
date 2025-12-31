@@ -248,15 +248,16 @@ export const EntryList: React.FC = () => {
 
         if (!isFlexible) return;
 
-        // Check if class already has area_count set
+        // Check if class already has area_count_confirmed set
         const { data: classData } = await supabase
           .from('classes')
-          .select('area_count')
+          .select('area_count, area_count_confirmed')
           .eq('id', Number(classId))
           .single();
 
-        // If area_count is not set (null or undefined), show the dialog
-        if (!classData?.area_count) {
+        // If area_count_confirmed is not true, show the dialog
+        // This ensures judges are prompted even if area_count has a default value
+        if (!classData?.area_count_confirmed) {
           logger.info(`[EntryList] Class ${classId} needs area count selection (flexible: ${min}-${max})`);
           setAreaCountRequirements({
             min,
