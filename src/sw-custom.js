@@ -369,7 +369,7 @@ async function updateNotificationSummary(licenseKey, showName) {
         {
           body: `Tap to view all announcements`,
           icon: '/myK9Q-teal-192.png',
-          badge: '/myK9Q-teal-192.png',
+          badge: '/notification-badge.png',
           tag: `show-${licenseKey}-summary`,
           group: `show-${licenseKey}`,
           renotify: true,
@@ -491,7 +491,7 @@ async function handlePushNotification(event) {
     const notificationOptions = {
       body: data.content || data.title,
       icon: '/myK9Q-teal-192.png',
-      badge: '/myK9Q-teal-192.png',
+      badge: '/notification-badge.png',
       tag: notificationTag,
       group: notificationGroup,  // Enables grouping on Android/Chrome
       requireInteraction: isUrgent, // Persistent for urgent

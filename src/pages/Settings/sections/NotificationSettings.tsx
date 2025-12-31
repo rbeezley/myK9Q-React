@@ -73,7 +73,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 new Notification(`${showName}: Test Notification`, {
                     body: 'This is a test notification to check styling on your device.',
                     icon: '/myK9Q-teal-192.png',
-                    badge: '/myK9Q-teal-96.png',
+                    badge: '/notification-badge.png',
                     tag: `test-${Date.now()}`,
                 });
             }

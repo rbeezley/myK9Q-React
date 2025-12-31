@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <!-- Monochrome "Q" badge for Android notification status bar -->
+  <!-- White on transparent - Android will apply its own color -->
+  <text
+    x="48"
+    y="76"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="80"
+    font-weight="900"
+    fill="white"
+    text-anchor="middle"
+  >Q</text>
+</svg>
