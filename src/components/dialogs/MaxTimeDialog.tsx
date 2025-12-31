@@ -109,11 +109,12 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
       const isAKC = showData.organization.includes('AKC');
       const isUKC = showData.organization.includes('UKC');
+      const isASCA = showData.organization.includes('ASCA');
 
       // Query the unified requirements table for time range
       let requirementsData = null;
 
-      const org = isAKC ? 'AKC' : isUKC ? 'UKC' : null;
+      const org = isAKC ? 'AKC' : isUKC ? 'UKC' : isASCA ? 'ASCA' : null;
 
       if (org) {
         const { data, error } = await supabase
@@ -163,9 +164,17 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
   };
 
   const parseTimeRange = (timeText: string): { min: number; max: number } => {
-    // Handle formats like "1 - 3 minutes", "4 minutes", "1-3 minutes"
+    // Handle formats like "1 - 3 minutes", "4 minutes", "1-3 minutes", "2:30", "3:00"
     const cleanText = timeText.toLowerCase().replace(/minutes?/g, '').trim();
 
+    // Check for MM:SS format (e.g., "2:30", "3:00")
+    if (cleanText.match(/^\d+:\d{2}$/)) {
+      const [mins, secs] = cleanText.split(':').map(p => parseInt(p));
+      const totalMinutes = mins + (secs / 60);
+      return { min: totalMinutes, max: totalMinutes };
+    }
+
+    // Handle range format (e.g., "1 - 3", "1-3")
     if (cleanText.includes('-')) {
       const parts = cleanText.split('-').map(p => parseInt(p.trim()));
       return { min: parts[0] || 1, max: parts[1] || parts[0] || 3 };
