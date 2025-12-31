@@ -508,7 +508,9 @@ export const AKCNationalsScoresheet: React.FC = () => {
         showWarning={checkShow30SecondWarning()}
         isExpired={checkTimeExpired()}
         remainingTime={getRemainingTime()}
+        remainingTimeMs={Math.max(0, getCurrentMaxTimeMs() - stopwatchTime)}
         maxTimeDisplay={getMaxTimeForArea(getNextEmptyAreaIndex() >= 0 ? getNextEmptyAreaIndex() : 0)}
+        maxTimeMs={getCurrentMaxTimeMs()}
         warningMessage={getWarningMessage()}
         onReset={resetStopwatch}
         onStart={startStopwatch}

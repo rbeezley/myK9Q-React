@@ -217,6 +217,56 @@ export const ASCAScentDetectionScoresheet: React.FC = () => {
 
             {/* Timer Section */}
             <div className="scoresheet-timer-card">
+              {/* Countdown ring - top left corner */}
+              {(() => {
+                const maxTimeMs = stopwatch.getMaxTimeMs();
+                const remainingMs = stopwatch.getRemainingTimeMs();
+                const progress = maxTimeMs > 0 ? Math.max(0, remainingMs / maxTimeMs) : 1;
+                const remainingSeconds = remainingMs / 1000;
+                const ringSize = 40;
+                const strokeWidth = 4;
+                const radius = (ringSize - strokeWidth) / 2;
+                const circumference = 2 * Math.PI * radius;
+                const strokeDashoffset = circumference * (1 - progress);
+
+                const getRingColor = (): string => {
+                  if (remainingSeconds <= 0) return '#ef4444';
+                  if (remainingSeconds <= 30) return '#ef4444';
+                  if (remainingSeconds <= 40) return '#f59e0b';
+                  return '#22c55e';
+                };
+
+                return maxTimeMs > 0 ? (
+                  <svg
+                    className="timer-countdown-ring-corner"
+                    width={ringSize}
+                    height={ringSize}
+                    viewBox={`0 0 ${ringSize} ${ringSize}`}
+                  >
+                    <circle
+                      cx={ringSize / 2}
+                      cy={ringSize / 2}
+                      r={radius}
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.2)"
+                      strokeWidth={strokeWidth}
+                    />
+                    <circle
+                      cx={ringSize / 2}
+                      cy={ringSize / 2}
+                      r={radius}
+                      fill="none"
+                      stroke={getRingColor()}
+                      strokeWidth={strokeWidth}
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
+                    />
+                  </svg>
+                ) : null;
+              })()}
+
               <button
                 className="timer-btn-reset btn-destructive"
                 onClick={() => { haptic.heavy(); stopwatch.reset(); }}
