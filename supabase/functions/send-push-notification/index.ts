@@ -150,11 +150,16 @@ serve(async (req) => {
 
           // Send the raw payload to service worker
           // Service worker will build notification options from this payload
+          // Urgency levels: 'very-low', 'low', 'normal', 'high'
+          // 'high' urgency helps notifications break through DND and appear more prominently
+          const urgency = payload.type === 'up_soon' ? 'high' : 'normal'
+
           await webpush.sendNotification(
             pushSubscription,
             JSON.stringify(payload),
             {
               TTL: 3600, // 1 hour
+              urgency: urgency,
             }
           )
 
