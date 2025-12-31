@@ -62,7 +62,7 @@ export function loadFromRouteState(
   routeState: RouteState,
   isNationals: boolean
 ): FastPathResult {
-   
+
   logger.log('⚡ [useEntryNavigation] Using route state for instant load');
 
   const passedEntry = routeState.entry!;
@@ -74,10 +74,14 @@ export function loadFromRouteState(
     section: passedClassInfo.section
   };
 
+  // Use areaCountOverride if available (for ASCA where judge chooses area count)
   const areas = initializeAreas(
     passedEntry.element || '',
     passedEntry.level || '',
-    isNationals
+    {
+      isNationalsMode: isNationals,
+      areaCountOverride: passedEntry.areas
+    }
   );
 
   // Mark in ring in background (fire-and-forget)
@@ -192,6 +196,8 @@ export function transformEntries(
     timeLimit: classData.time_limit_seconds ? String(classData.time_limit_seconds) : undefined,
     timeLimit2: classData.time_limit_area2_seconds ? String(classData.time_limit_area2_seconds) : undefined,
     timeLimit3: classData.time_limit_area3_seconds ? String(classData.time_limit_area3_seconds) : undefined,
+    // Include area_count for ASCA Interior classes where judge chooses 1 or 2 areas
+    areas: classData.area_count ?? undefined,
   }));
 }
 
@@ -245,10 +251,14 @@ export async function loadFromIndexedDB(
   if (targetEntry) {
     // Pass current status so it can be restored if scoresheet is canceled
     await markInRing(targetEntry.id, true, targetEntry.status);
+    // Use areaCountOverride if available (for ASCA where judge chooses area count)
     areas = initializeAreas(
       targetEntry.element || '',
       targetEntry.level || '',
-      isNationals
+      {
+        isNationalsMode: isNationals,
+        areaCountOverride: targetEntry.areas
+      }
     );
   }
 

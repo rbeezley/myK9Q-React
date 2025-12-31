@@ -18,9 +18,22 @@ export interface AreaScore {
 }
 
 /**
+ * Options for area initialization
+ */
+export interface InitializeAreasOptions {
+  /** Whether this is a Nationals event (default: false) */
+  isNationalsMode?: boolean;
+  /**
+   * Override the area count (used for ASCA where judges can choose 1 or 2 areas).
+   * If provided, this takes precedence over the element/level-based calculation.
+   */
+  areaCountOverride?: number;
+}
+
+/**
  * Initialize search areas based on element, level, and show type
  *
- * **Regular Show Mode:**
+ * **Regular Show Mode (AKC):**
  * - **Interior**:
  *   - Novice/Advanced: 1 area
  *   - Excellent: 2 areas
@@ -30,13 +43,16 @@ export interface AreaScore {
  *   - Master: 2 areas
  * - **Container/Exterior/Buried**: 1 area (all levels)
  *
+ * **ASCA Interior Advanced/Excellent:**
+ * - Area count is judge's choice (1 or 2), passed via areaCountOverride
+ *
  * **Nationals Mode:**
  * - **All elements**: 1 area (except Handler Discrimination)
  * - **Handler Discrimination**: Follows regular show rules
  *
  * @param element - The scent work element (e.g., 'Interior', 'Container')
  * @param level - The class level (e.g., 'Novice', 'Excellent', 'Master')
- * @param isNationalsMode - Whether this is a Nationals event (default: false)
+ * @param isNationalsModeOrOptions - Boolean for backwards compatibility, or options object
  * @returns Array of initialized area scores
  *
  * @example
@@ -47,6 +63,13 @@ export interface AreaScore {
  *
  * // Regular show - Interior Excellent
  * initializeAreas('Interior', 'Excellent', false)
+ * // Returns: [
+ * //   { areaName: 'Interior Area 1', time: '', found: false, correct: false },
+ * //   { areaName: 'Interior Area 2', time: '', found: false, correct: false }
+ * // ]
+ *
+ * // ASCA Interior Advanced with 2 areas (judge's choice)
+ * initializeAreas('Interior', 'Advanced', { areaCountOverride: 2 })
  * // Returns: [
  * //   { areaName: 'Interior Area 1', time: '', found: false, correct: false },
  * //   { areaName: 'Interior Area 2', time: '', found: false, correct: false }
@@ -82,8 +105,14 @@ export interface AreaScore {
 export function initializeAreas(
   element: string,
   level: string,
-  isNationalsMode: boolean = false
+  isNationalsModeOrOptions: boolean | InitializeAreasOptions = false
 ): AreaScore[] {
+  // Handle backwards compatibility - accept boolean or options object
+  const options: InitializeAreasOptions = typeof isNationalsModeOrOptions === 'boolean'
+    ? { isNationalsMode: isNationalsModeOrOptions }
+    : isNationalsModeOrOptions;
+
+  const { isNationalsMode = false, areaCountOverride } = options;
   const elementLower = element?.toLowerCase() || '';
   const levelLower = level?.toLowerCase() || '';
 
@@ -109,7 +138,24 @@ export function initializeAreas(
     }
   }
 
-  // Regular show logic (non-nationals)
+  // Handle areaCountOverride (used for ASCA where judge chooses area count)
+  if (areaCountOverride !== undefined && areaCountOverride > 0) {
+    const displayElement = element || 'Search Area';
+    if (areaCountOverride === 1) {
+      return [
+        { areaName: displayElement, time: '', found: false, correct: false }
+      ];
+    }
+    // Generate numbered areas for count > 1
+    return Array.from({ length: areaCountOverride }, (_, i) => ({
+      areaName: `${displayElement} Area ${i + 1}`,
+      time: '',
+      found: false,
+      correct: false
+    }));
+  }
+
+  // Regular show logic (non-nationals) - AKC rules
   if (elementLower === 'interior') {
     if (levelLower === 'excellent') {
       return [
