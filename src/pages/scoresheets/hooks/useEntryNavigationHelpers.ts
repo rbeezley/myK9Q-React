@@ -55,13 +55,50 @@ export interface SlowPathResult {
 // ============================================================================
 
 /**
- * Load entry data from route state (instant load optimization).
- * This skips all IndexedDB operations for much faster rendering.
+ * Class settings that can be changed by judges and might be stale in entry cache.
  */
-export function loadFromRouteState(
+interface CurrentClassSettings {
+  areaCount?: number;
+  timeLimit?: number;
+  timeLimit2?: number;
+  timeLimit3?: number;
+}
+
+/**
+ * Fetch current class settings from IndexedDB.
+ * This ensures we always have the latest judge-configured values,
+ * even if the entry list cache is stale (e.g., after changing area count or time allocation).
+ */
+async function fetchCurrentClassSettings(classId: number): Promise<CurrentClassSettings> {
+  try {
+    const manager = await ensureReplicationManager();
+    const classesTable = manager.getTable('classes');
+    if (!classesTable) return {};
+
+    const classData = await classesTable.get(String(classId)) as Class | undefined;
+    if (!classData) return {};
+
+    return {
+      areaCount: classData.area_count ?? undefined,
+      timeLimit: classData.time_limit_seconds ?? undefined,
+      timeLimit2: classData.time_limit_area2_seconds ?? undefined,
+      timeLimit3: classData.time_limit_area3_seconds ?? undefined,
+    };
+  } catch (error) {
+    logger.warn('[fetchCurrentClassSettings] Error fetching class data:', error);
+    return {};
+  }
+}
+
+/**
+ * Load entry data from route state (instant load optimization).
+ * Still fetches current class settings to ensure scoresheet
+ * reflects any recent changes (area count, time allocation).
+ */
+export async function loadFromRouteState(
   routeState: RouteState,
   isNationals: boolean
-): FastPathResult {
+): Promise<FastPathResult> {
 
   logger.log('⚡ [useEntryNavigation] Using route state for instant load');
 
@@ -74,22 +111,38 @@ export function loadFromRouteState(
     section: passedClassInfo.section
   };
 
+  // Always fetch current class settings to handle:
+  // - ASCA classes where judge can change area count via Class Settings
+  // - Time allocation changes after entry list was loaded
+  // - Entry list cache being stale after settings change
+  const currentSettings = await fetchCurrentClassSettings(passedEntry.classId);
+  const areaCount = currentSettings.areaCount ?? passedEntry.areas;
+
   // Use areaCountOverride if available (for ASCA where judge chooses area count)
   const areas = initializeAreas(
     passedEntry.element || '',
     passedEntry.level || '',
     {
       isNationalsMode: isNationals,
-      areaCountOverride: passedEntry.areas
+      areaCountOverride: areaCount
     }
   );
+
+  // Update entry with current class settings for consistency
+  const updatedEntry = {
+    ...passedEntry,
+    areas: areaCount,
+    timeLimit: currentSettings.timeLimit !== undefined ? String(currentSettings.timeLimit) : passedEntry.timeLimit,
+    timeLimit2: currentSettings.timeLimit2 !== undefined ? String(currentSettings.timeLimit2) : passedEntry.timeLimit2,
+    timeLimit3: currentSettings.timeLimit3 !== undefined ? String(currentSettings.timeLimit3) : passedEntry.timeLimit3,
+  };
 
   // Mark in ring in background (fire-and-forget)
   // Pass current status so it can be restored if scoresheet is canceled
   markInRing(passedEntry.id, true, passedEntry.status).catch(console.error);
 
   return {
-    entry: passedEntry,
+    entry: updatedEntry,
     classInfo,
     areas
   };

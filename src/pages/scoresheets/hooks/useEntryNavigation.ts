@@ -186,8 +186,9 @@ export function useEntryNavigation(config: EntryNavigationConfig): EntryNavigati
     }
 
     // FAST PATH: Use entry data from route state if available (instant load)
+    // Note: Still fetches current area_count from class to handle ASCA settings changes
     if (routeState?.entry && routeState?.classInfo) {
-      const result = loadFromRouteState(routeState, isNationals);
+      const result = await loadFromRouteState(routeState, isNationals);
 
       setClassInfo(result.classInfo);
       setLocalEntries([result.entry]);
