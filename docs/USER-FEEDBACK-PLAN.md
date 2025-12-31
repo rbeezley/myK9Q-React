@@ -105,19 +105,20 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 **Files:** CSS in trial selector component
 
-### 9. Timer Visual Circle Missing (USER CONFIRMED: ADD BACK)
+### 9. Timer Visual Circle Missing - FIXED
 **Symptom:** Judge misses the continuous visual countdown circle that turned red at 30 seconds.
 
 **Context:** Previous version had visual countdown, new version apparently doesn't.
 
 **Decision:** User confirmed this should be added back - important for judges.
 
-**Implementation:**
-- Add circular progress indicator around timer
-- Color transition (green → yellow → red) as time decreases
-- Red at 30 seconds remaining for warning timing
+**Fix Applied:** Added progress ring to all scoresheets:
+- NationalsTimerSection (AKC Nationals)
+- ASCAScentDetectionScoresheet (ASCA)
+- UKCNoseworkScoresheet (UKC - both single and dual timer modes)
+- AKCScentWorkScoresheet already had it
 
-**Files:** Timer component in scoresheets
+**Commit:** `83c556f` - feat(timer): Add visual countdown progress ring to all scoresheets
 
 ### 10. Return to Favorites After Check-In
 **Symptom:** After "Check In All" from Favorites, returns to All Dogs instead of staying in Favorites.
@@ -231,7 +232,7 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 1. ~~Push notifications investigation (user selected this as priority)~~ - RESOLVED (user education)
 
 **Phase 2 - Judge Experience:**
-2. Timer visual circle (user confirmed: add back)
+2. ~~Timer visual circle (user confirmed: add back)~~ - FIXED
 
 **Phase 3 - Quick Wins:**
 3. Trial box text contrast
