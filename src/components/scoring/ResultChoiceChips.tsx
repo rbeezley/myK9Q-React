@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { haptic } from '@/hooks/useHapticFeedback';
 import './shared-scoring.css';
 
 type NationalsResult = 'Qualified' | 'Absent' | 'Excused';
@@ -138,7 +139,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
           className={`choice-chip success ${
             selectedResult === 'Qualified' ? 'selected' : ''
           }`}
-          onClick={() => onResultChange('Qualified')}
+          onClick={() => { haptic.medium(); onResultChange('Qualified'); }}
         >
           Qualified
         </button>
@@ -149,7 +150,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
             className={`choice-chip danger ${
               selectedResultInternal === 'NQ' ? 'selected' : ''
             }`}
-            onClick={onNQClick}
+            onClick={() => { haptic.medium(); onNQClick?.(); }}
           >
             NQ
           </button>
@@ -160,7 +161,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
           className={`choice-chip warning ${
             selectedResult === 'Absent' ? 'selected' : ''
           }`}
-          onClick={() => onResultChange('Absent')}
+          onClick={() => { haptic.medium(); onResultChange('Absent'); }}
         >
           Absent
         </button>
@@ -170,7 +171,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
           className={`choice-chip danger ${
             selectedResult === 'Excused' ? 'selected' : ''
           }`}
-          onClick={() => onResultChange('Excused')}
+          onClick={() => { haptic.medium(); onResultChange('Excused'); }}
         >
           Excused
         </button>
@@ -188,7 +189,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
           <div className="fault-counter">
             <button
               className="fault-btn-counter"
-              onClick={() => onFaultCountChange(Math.max(0, faultCount - 1))}
+              onClick={() => { haptic.light(); onFaultCountChange(Math.max(0, faultCount - 1)); }}
               disabled={faultCount === 0}
             >
               -
@@ -198,7 +199,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
             </span>
             <button
               className="fault-btn-counter"
-              onClick={() => onFaultCountChange(faultCount + 1)}
+              onClick={() => { haptic.light(); onFaultCountChange(faultCount + 1); }}
               disabled={isAtMaxFaults}
               title={isAtMaxFaults ? `Maximum ${maxFaults} faults allowed` : undefined}
             >
@@ -224,7 +225,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
                 className={`choice-chip small ${
                   nqReason === reason ? 'selected' : ''
                 } ${reason === 'Incorrect Call' ? 'primary' : 'secondary'}`}
-                onClick={() => onNQReasonChange(reason)}
+                onClick={() => { haptic.light(); onNQReasonChange(reason); }}
               >
                 {reason}
               </button>
@@ -244,7 +245,7 @@ export const ResultChoiceChips: React.FC<ResultChoiceChipsProps> = ({
                 className={`choice-chip small ${
                   excusedReason === reason ? 'selected' : ''
                 } ${reason === 'Dog Eliminated in Area' ? 'primary' : 'secondary'}`}
-                onClick={() => onExcusedReasonChange(reason)}
+                onClick={() => { haptic.light(); onExcusedReasonChange(reason); }}
               >
                 {reason}
               </button>

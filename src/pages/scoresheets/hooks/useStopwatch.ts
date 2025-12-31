@@ -14,6 +14,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import voiceAnnouncementService from '../../../services/voiceAnnouncementService';
+import { notificationSoundService } from '../../../services/notificationSoundService';
 
 export interface UseStopwatchOptions {
   /** Maximum time in "MM:SS" format (e.g., "3:00", "4:00") */
@@ -246,9 +247,9 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
     setIsRunning(false);
   };
 
-  // Voice announcement for 30-second warning
+  // Voice announcement and chime for 30-second warning
   useEffect(() => {
-    if (!enableVoiceAnnouncements || !maxTime) {
+    if (!maxTime) {
       return;
     }
 
@@ -270,10 +271,16 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
     const remainingMs = maxTimeMs - time;
     const remainingSeconds = Math.floor(remainingMs / 1000);
 
-    // Announce when crossing the 30-second threshold (prevents race condition)
+    // Announce/chime when crossing the 30-second threshold (prevents race condition)
     // Trigger when: 29 < remaining <= 30 seconds
     if (remainingSeconds <= 30 && remainingSeconds > 29 && !has30SecondAnnouncedRef.current) {
-      voiceAnnouncementService.announceTimeRemaining(30);
+      // Always play chime (respects notification sound setting)
+      notificationSoundService.playTimerWarningChime();
+
+      // Also announce voice if voice announcements enabled
+      if (enableVoiceAnnouncements) {
+        voiceAnnouncementService.announceTimeRemaining(30);
+      }
       has30SecondAnnouncedRef.current = true;
     }
 

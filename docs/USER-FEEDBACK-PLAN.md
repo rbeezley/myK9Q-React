@@ -73,9 +73,17 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 **Root Cause:** The `useGlobalHaptic` hook only triggers vibration for buttons with specific CSS classes (`btn-primary`, `btn-destructive`). Timer and Save buttons were missing these classes.
 
-**Fix Applied:** Added `btn-destructive` to Stop/Reset buttons and `btn-primary` to Start/Resume/Save/Submit/Confirm buttons across all scoresheets.
+**Fix Applied (Phase 1):** Added `btn-destructive` to Stop/Reset buttons and `btn-primary` to Start/Resume/Save/Submit/Confirm buttons across all scoresheets.
 
-**Commit:** `06bd3c7` - fix(haptic): Add CSS classes for global haptic feedback on scoresheet buttons
+**Fix Applied (Phase 2):** Added direct haptic feedback to ResultChoiceChips component:
+- Qualified, NQ, Absent, Excused buttons: `haptic.medium()`
+- Fault counter +/- buttons: `haptic.light()`
+- NQ reason buttons: `haptic.light()`
+- Excused reason buttons: `haptic.light()`
+
+**Commits:**
+- `06bd3c7` - fix(haptic): Add CSS classes for global haptic feedback on scoresheet buttons
+- (pending) - feat(haptic): Add haptic feedback to result choice chips and reason buttons
 
 ### 6. "Clear All" Does Nothing
 **Symptom:** Clicking "Clear All" in Inbox did nothing visible.
@@ -118,7 +126,11 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 - UKCNoseworkScoresheet (UKC - both single and dual timer modes)
 - AKCScentWorkScoresheet already had it
 
-**Commit:** `83c556f` - feat(timer): Add visual countdown progress ring to all scoresheets
+**Additional Enhancement:** Added audible 30-second warning chime that plays regardless of voice announcement settings (respects notification sound setting). This provides an audible alert at the 30-second mark for judges who may not have voice announcements enabled.
+
+**Commits:**
+- `83c556f` - feat(timer): Add visual countdown progress ring to all scoresheets
+- (pending) - feat(timer): Add 30-second warning chime independent of voice announcements
 
 ### 10. Return to Favorites After Check-In
 **Symptom:** After "Check In All" from Favorites, returns to All Dogs instead of staying in Favorites.

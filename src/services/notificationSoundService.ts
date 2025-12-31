@@ -175,6 +175,50 @@ class NotificationSoundService {
     this.lastPlayTime = 0;
     await this.playNotificationSound(priority);
   }
+
+  /**
+   * Play a 30-second warning chime for timer
+   * This plays regardless of voice announcement settings
+   * but respects the overall notification sound setting
+   */
+  async playTimerWarningChime(): Promise<void> {
+    // Check if notifications/sounds are enabled at the system level
+    const { settings } = useSettingsStore.getState();
+    if (!settings.enableNotifications) {
+      return;
+    }
+
+    // Allow more frequent plays for timer warnings (500ms min)
+    const now = Date.now();
+    if (now - this.lastPlayTime < 500) {
+      return;
+    }
+    this.lastPlayTime = now;
+
+    const ctx = this.initAudioContext();
+    if (!ctx) return;
+
+    // Resume audio context if suspended (browser autoplay policy)
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume();
+      } catch (error) {
+        logger.warn('Could not resume audio context:', error);
+        return;
+      }
+    }
+
+    try {
+      // Distinctive warning chime: descending tones (feels like "time running out")
+      await this.playTone(ctx, 1047, 0.12, 0.35);  // C6
+      await this.delay(50);
+      await this.playTone(ctx, 880, 0.12, 0.35);   // A5
+      await this.delay(50);
+      await this.playTone(ctx, 784, 0.18, 0.3);    // G5
+    } catch (error) {
+      logger.error('Error playing timer warning chime:', error);
+    }
+  }
 }
 
 export const notificationSoundService = NotificationSoundService.getInstance();
