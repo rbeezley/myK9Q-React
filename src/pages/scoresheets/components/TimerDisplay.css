@@ -91,6 +91,7 @@
   /* Fixed dimensions for consistent sizing across Start/Stop/Resume states */
   width: 140px;
   min-width: 140px;
+  max-width: 140px;
   height: 48px;
   padding: 12px 24px;
   font-size: 16px;
@@ -101,6 +102,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .timer-btn-start:hover {
