@@ -3,10 +3,11 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Bell, Mic, AlertCircle, CheckCircle, Send, Info } from 'lucide-react';
+import { Bell, Mic, AlertCircle, CheckCircle, Send, Info, Volume2 } from 'lucide-react';
 import type { BrowserCompatibility } from '../components/PushNotificationSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
+import { notificationSoundService } from '@/services/notificationSoundService';
 
 // Get user-friendly label for permission state
 function getPermissionLabel(state: NotificationPermission): { label: string; color: string } {
@@ -77,6 +78,9 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                     tag: `test-${Date.now()}`,
                 });
             }
+
+            // Play notification sound
+            notificationSoundService.testSound('urgent');
 
             // Also trigger voice announcement if enabled
             if (settings.voiceNotifications) {
@@ -205,6 +209,46 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                                 checked={settings.voiceNotifications}
                                 onChange={(checked) => updateSettings({ voiceNotifications: checked })}
                             />
+                        }
+                    />
+
+                    {/* Sound Preview */}
+                    <SettingsRow
+                        icon={<Volume2 size={20} />}
+                        label="Preview Alert Sounds"
+                        description="Tap to hear notification chimes"
+                        action={
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={() => notificationSoundService.testSound('normal')}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        border: '1px solid var(--input-border)',
+                                        background: 'var(--input-bg)',
+                                        color: 'var(--text-primary)',
+                                        fontSize: '12px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Normal
+                                </button>
+                                <button
+                                    onClick={() => notificationSoundService.testSound('urgent')}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        border: '1px solid var(--token-error)',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        color: 'var(--token-error)',
+                                        fontSize: '12px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Urgent
+                                </button>
+                            </div>
                         }
                     />
 

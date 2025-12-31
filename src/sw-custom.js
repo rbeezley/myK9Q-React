@@ -497,7 +497,15 @@ async function handlePushNotification(event) {
       requireInteraction: isUrgent, // Persistent for urgent
       renotify: !isUrgent && notificationGroup !== undefined, // Re-alert for grouped notifications
       silent: false,
-      vibrate: isUrgent ? [200, 100, 200, 100, 200] : [100],
+      // More aggressive vibration patterns for better awareness
+      // Urgent: Long attention-grabbing pattern (vibrate-pause-vibrate-pause-vibrate-pause-vibrate)
+      // High: Strong double pulse
+      // Normal: Noticeable triple pulse
+      vibrate: isUrgent
+        ? [300, 100, 300, 100, 300, 100, 300]  // 4 strong pulses for urgent
+        : isHigh
+          ? [250, 100, 250, 100, 250]  // 3 pulses for high priority
+          : [150, 75, 150, 75, 150],   // 3 lighter pulses for normal
       data: {
         url: data.url || '/announcements',
         licenseKey: licenseKey,

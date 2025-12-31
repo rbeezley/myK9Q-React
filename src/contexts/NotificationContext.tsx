@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { logger } from '@/utils/logger';
 import { useAnnouncementStore, type Announcement } from '@/stores/announcementStore';
+import { notificationSoundService } from '@/services/notificationSoundService';
 
 /**
  * Validates and fixes notification URLs.
@@ -299,12 +300,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Extract classId from payload (supports both snake_case and camelCase)
         const classId = data.class_id || data.classId;
 
+        // Determine priority for sound
+        const priority = (data.priority || 'normal') as 'normal' | 'high' | 'urgent';
+
         // Add to notification center with normalized URL
         addNotification({
           announcementId: data.id || data.announcement_id || 0,
           title: data.title || 'Notification',
           content: data.body || data.content || '',
-          priority: (data.priority || 'normal') as 'normal' | 'high' | 'urgent',
+          priority,
           type,
           // Use normalizeNotificationUrl to fix malformed URLs from legacy triggers
           url: normalizeNotificationUrl(data.url, classId),
@@ -314,6 +318,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           licenseKey: data.license_key || data.licenseKey || '',
           showName: data.show_name || data.showName
         });
+
+        // Play notification sound (when app is in foreground)
+        notificationSoundService.playNotificationSound(priority);
       }
     };
 
