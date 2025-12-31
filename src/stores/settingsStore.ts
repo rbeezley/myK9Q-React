@@ -76,7 +76,7 @@ const defaultSettings: AppSettings = {
 
   // Notifications
   enableNotifications: false, // Default: disabled (users must explicitly opt-in)
-  voiceNotifications: false, // Default: disabled (users must opt-in)
+  voiceNotifications: true, // Default: enabled (helps users who miss visual notifications)
   showBadges: true,
   notifyYourTurnLeadDogs: 3, // Default: notify when 3 dogs ahead
 

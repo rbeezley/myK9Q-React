@@ -82,7 +82,7 @@ describe('settingsStore', () => {
 
         // Notifications
         enableNotifications: false,
-        voiceNotifications: false,
+        voiceNotifications: true,
         showBadges: true,
         notifyYourTurnLeadDogs: 3,
 
