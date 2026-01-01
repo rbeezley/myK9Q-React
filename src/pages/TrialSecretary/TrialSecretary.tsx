@@ -14,13 +14,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { HamburgerMenu, CompactOfflineIndicator, TabBar, FilterTriggerButton } from '../../components/ui';
 import type { Tab } from '../../components/ui';
-import { ClipboardList, Users, MoreVertical, Plus, Settings, Eye, Sliders } from 'lucide-react';
+import { ClipboardList, Users, MoreVertical, Plus, Settings, Eye, Sliders, FileText } from 'lucide-react';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ScheduleBoard } from './components/ScheduleBoard';
 import { ResultsControlTab } from './components/ResultsControlTab';
+import { CheckInStatusReport } from './components/CheckInStatusReport';
 import './TrialSecretary.css';
 
-type TabType = 'kanban' | 'schedule' | 'results';
+type TabType = 'kanban' | 'schedule' | 'results' | 'reports';
 
 export function TrialSecretary() {
   const { role, showContext } = useAuth();
@@ -52,8 +53,9 @@ export function TrialSecretary() {
   // Tab configuration for TabBar component
   const tabs: Tab[] = useMemo(() => [
     { id: 'schedule', label: 'Volunteers', icon: <Users size={16} /> },
-    { id: 'kanban', label: 'To-Do Board', icon: <ClipboardList size={16} /> },
-    { id: 'results', label: 'Results/Check-In Settings', icon: <Sliders size={16} /> },
+    { id: 'kanban', label: 'Tasks', icon: <ClipboardList size={16} /> },
+    { id: 'reports', label: 'Reports', icon: <FileText size={16} /> },
+    { id: 'results', label: 'Settings', icon: <Sliders size={16} /> },
   ], []);
 
   // Clear trigger after it's been consumed
@@ -172,6 +174,9 @@ export function TrialSecretary() {
             isFilterOpen={isFilterPanelOpen}
             onFilterClose={() => setIsFilterPanelOpen(false)}
           />
+        )}
+        {activeTab === 'reports' && showContext?.licenseKey && (
+          <CheckInStatusReport licenseKey={showContext.licenseKey} />
         )}
         {activeTab === 'results' && showContext?.licenseKey && (
           <ResultsControlTab

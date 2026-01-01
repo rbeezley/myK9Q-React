@@ -522,15 +522,38 @@ Three different color palettes existed for the same status values:
 
 ---
 
-## Secretary Tools Check-In Reports - 2025-12-31 19:50
+## Secretary Tools Check-In Reports - 2025-12-31 ✅ COMPLETE
 
-- **Add "Not Checked In" report to Secretary Tools** - Show exhibitors who haven't checked into any class. **Problem:** Secretaries need to identify potentially absent exhibitors or those not using myK9Q for day-of logistics and follow-up. **Files:** `src/pages/TrialSecretary/TrialSecretary.tsx` (add Reports tab), `src/components/reports/` (new report components). **Solution:** Trial-level report aggregating check-in status across all classes. Could expand to include: Partial Check-Ins report (checked into some but not all classes), Check-In Summary stats (X of Y exhibitors checked in, classes with 100% check-in).
+- **IMPLEMENTED:** Check-In Status Report added to Secretary Tools.
+
+**Features:**
+- ✅ Reports tab added to Secretary Tools page
+- ✅ Summary stats: Total Exhibitors, Not Checked In, Partial Check-In, Fully Checked In
+- ✅ Entry-level stats: X of Y entries checked in (percentage)
+- ✅ Collapsible sections for each category with exhibitor details
+- ✅ Shows armband, handler name, and class lists (pending vs checked-in)
+- ✅ Auto-refresh every 60 seconds with manual refresh button
+- ✅ Mobile-responsive layout
+
+**Files Created:**
+- [useCheckInReportData.ts](src/pages/TrialSecretary/hooks/useCheckInReportData.ts) - Data fetching hook
+- [CheckInStatusReport.tsx](src/pages/TrialSecretary/components/CheckInStatusReport.tsx) - Report component
+
+**Files Modified:**
+- [TrialSecretary.tsx](src/pages/TrialSecretary/TrialSecretary.tsx) - Added Reports tab
+- [TrialSecretary.css](src/pages/TrialSecretary/TrialSecretary.css) - Added report styles
 
 ---
 
-## Convert UKC Nosework Module to v3 Architecture - 2025-12-18
+## Offline Scoring Tab Movement Bug - 2026-01-01 14:27
 
-**Status:** Pending (waiting on AKC testing)
+- **Fix entries not moving to Completed tab after offline scoring** - Scored entries remain in Pending tab until sync completes, despite score being saved locally. **Problem:** When scoring offline, the entry card stays in the Pending tab even though the score was saved locally. The offline indicator correctly shows "1 pending change" and the entry moves to Completed only after going online and syncing. This breaks the workflow because timers can't track which dogs have already run and been scored. **Files:** `src/pages/EntryList/EntryList.tsx` (tab filtering logic), `src/stores/scoringStore.ts` (score state), `src/services/replication/tables/ReplicatedEntriesTable.ts` (local entry state). **Solution:** Tab filtering should check local/optimistic score state, not just Supabase-synced `has_valid_score` flag. When a score is saved offline, immediately update the local entry state so it appears in Completed tab.
+
+---
+
+## Convert UKC Nosework Module to v3 Architecture - 2025-12-18 ✅ COMPLETE
+
+**Status:** Completed
 
 **Context:**
 UKC Nosework has a legacy VBA module that uploads to an old Supabase project (used with Flutter app). Need to convert it to the v3 architecture pattern used by AKC Scent Work.
