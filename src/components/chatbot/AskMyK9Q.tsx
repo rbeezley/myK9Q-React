@@ -59,6 +59,7 @@ function parseOrgAndSport(orgString: string): { organizationCode: string; sportC
   const sportCodeMap: Record<string, string> = {
     'scent work': 'scent-work',
     'nosework': 'nosework',
+    'scent detection': 'SD',
     'obedience': 'obedience',
     'rally': 'rally',
     'fast cat': 'fast-cat',
