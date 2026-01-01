@@ -52,7 +52,7 @@ export const MAX_CHUNK_SIZE = 100;
 // ==================== Sync Engine ====================
 
 /** Interval between sync attempts when online (milliseconds) */
-export const SYNC_INTERVAL_MS = 30000; // 30 seconds
+export const SYNC_INTERVAL_MS = 60000; // 60 seconds (battery optimization)
 
 /** Backoff multiplier for retry attempts */
 export const SYNC_BACKOFF_MULTIPLIER = 2;

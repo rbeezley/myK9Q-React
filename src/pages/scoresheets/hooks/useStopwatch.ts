@@ -220,7 +220,7 @@ export function useStopwatch(options: UseStopwatchOptions = {}): UseStopwatchRet
           }
         }
       }
-    }, 10); // 10ms interval for smooth display
+    }, 100); // 100ms interval (10x/sec) - smooth display, better battery life
     setIntervalState(newInterval);
   };
 

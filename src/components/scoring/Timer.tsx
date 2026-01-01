@@ -46,7 +46,7 @@ export const Timer: React.FC<TimerProps> = ({
   
   const area = getAreaById(timerId);
   
-  // Update elapsed time every 10ms for precision
+  // Update elapsed time every 100ms (10x per second - smooth display, better battery)
   useEffect(() => {
     if (area?.isRunning) {
       intervalRef.current = setInterval(() => {
@@ -54,12 +54,12 @@ export const Timer: React.FC<TimerProps> = ({
         if (area.startTime) {
           const elapsed = now - area.startTime + (area.elapsedTime || 0);
           useTimerStore.setState(state => ({
-            areas: state.areas.map(a => 
+            areas: state.areas.map(a =>
               a.id === timerId ? { ...a, elapsedTime: elapsed } : a
             )
           }));
         }
-      }, 10);
+      }, 100);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

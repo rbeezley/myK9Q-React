@@ -87,13 +87,13 @@ export function useElementTimer(): UseElementTimerReturn {
     setIsRunning(true);
     startTimestampRef.current = Date.now();
 
-    // Update time every 10ms for smooth display
+    // Update time every 100ms (10x/sec) - smooth display, better battery life
     intervalRef.current = setInterval(() => {
       if (startTimestampRef.current !== null) {
         const elapsed = Date.now() - startTimestampRef.current + accumulatedTimeRef.current;
         setTime(elapsed);
       }
-    }, 10);
+    }, 100);
   }, [isRunning]);
 
   /**
@@ -126,13 +126,13 @@ export function useElementTimer(): UseElementTimerReturn {
     setIsRunning(true);
     startTimestampRef.current = Date.now();
 
-    // Continue updating time
+    // Continue updating time (100ms for better battery life)
     intervalRef.current = setInterval(() => {
       if (startTimestampRef.current !== null) {
         const elapsed = Date.now() - startTimestampRef.current + accumulatedTimeRef.current;
         setTime(elapsed);
       }
-    }, 10);
+    }, 100);
   }, [isRunning]);
 
   /**

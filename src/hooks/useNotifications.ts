@@ -223,9 +223,10 @@ export function useDNDToggle() {
   const [isActive, setIsActive] = useState(notificationService.isDNDActive());
 
   useEffect(() => {
+    // 30 second interval - DND status changes rarely (battery optimization)
     const interval = setInterval(() => {
       setIsActive(notificationService.isDNDActive());
-    }, 1000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
@@ -271,7 +272,8 @@ export function useBadgeCount() {
 
     updateCount();
 
-    const interval = setInterval(updateCount, 1000);
+    // 15 second interval - badge count doesn't need real-time updates (battery optimization)
+    const interval = setInterval(updateCount, 15000);
     return () => clearInterval(interval);
   }, []);
 

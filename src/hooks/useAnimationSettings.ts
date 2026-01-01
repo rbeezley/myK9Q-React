@@ -56,10 +56,13 @@ export function useAnimationSettings(): AnimationConfig {
     // Detect device tier
     getDeviceTier().then(setDeviceTier);
 
-    // Monitor FPS
+    // Measure FPS only for first 2 seconds, then stop (battery optimization)
+    // This gets an initial performance baseline without continuous CPU/GPU wake
     let rafId: number;
     let lastTime = performance.now();
     let frameCount = 0;
+    const startTime = performance.now();
+    const MEASUREMENT_DURATION = 2000; // Only measure for 2 seconds
 
     const measureFps = (currentTime: number) => {
       frameCount++;
@@ -71,7 +74,10 @@ export function useAnimationSettings(): AnimationConfig {
         lastTime = currentTime;
       }
 
-      rafId = requestAnimationFrame(measureFps);
+      // Stop measuring after 2 seconds to save battery
+      if (currentTime - startTime < MEASUREMENT_DURATION) {
+        rafId = requestAnimationFrame(measureFps);
+      }
     };
 
     rafId = requestAnimationFrame(measureFps);

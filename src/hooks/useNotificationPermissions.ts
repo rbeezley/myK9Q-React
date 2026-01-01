@@ -156,7 +156,8 @@ export function useNotificationPermissions(
     updateStatus();
 
     // Check periodically for permission changes (e.g., user changes in browser settings)
-    const interval = setInterval(updateStatus, 1000);
+    // 30 second interval is sufficient - permission changes are rare (battery optimization)
+    const interval = setInterval(updateStatus, 30000);
 
     return () => clearInterval(interval);
   }, [isSupported, getPermissionStatus, onPermissionChange]);
