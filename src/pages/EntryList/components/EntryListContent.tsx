@@ -6,6 +6,7 @@ import {
   closestCenter,
   SensorDescriptor,
   SensorOptions,
+  AutoScrollActivator,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -108,6 +109,16 @@ export const EntryListContent: React.FC<EntryListContentProps> = ({
       collisionDetection={closestCenter}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      autoScroll={{
+        // Enable scrolling as soon as dragging starts (not just when pointer near edge)
+        activator: AutoScrollActivator.Pointer,
+        // Start scrolling when within 100px of edge (more generous than default)
+        threshold: { x: 0, y: 0.15 },
+        // Faster acceleration for quicker scrolling to end of long lists
+        acceleration: 15,
+        // More frequent scroll updates for smoother experience
+        interval: 5,
+      }}
     >
       <SortableContext
         items={entries.map(e => e.id)}

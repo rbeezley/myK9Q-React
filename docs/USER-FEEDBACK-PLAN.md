@@ -9,12 +9,12 @@ Tester: Samsung Z-Fold 6 (Android)
 | Phase 1 - User Priority | ✅ Complete | Push notifications (user education) |
 | Phase 2 - Judge Experience | ✅ Complete | Timer visual circle, 30-second chime |
 | Phase 3 - Quick Wins | ✅ Complete | 5/5 complete |
-| Phase 4 - Investigate | 🔄 Partial | Settings ✅, Haptic ✅, 2 remaining |
-| Phase 5 - UX Improvements | ⏳ Pending | 0/2 complete |
-| Phase 6 - Feature Requests | ⏳ Pending | 0/2 complete |
-| Phase 7 - Content | ⏳ Pending | 0/1 complete |
+| Phase 4 - Investigate | ✅ Complete | Settings ✅, Haptic ✅, Font/Spacing ✅ (removed), Exhibitor Reset ✅ |
+| Phase 5 - UX Improvements | ✅ Complete | 2/2 complete |
+| Phase 6 - Feature Requests | ✅ Complete | 2/2 complete |
+| Phase 7 - Content | ✅ Complete | 1/1 complete |
 
-**Next Step:** Phase 4 - Font size/spacing investigation (#7)
+**All phases complete!**
 
 ---
 
@@ -56,24 +56,27 @@ When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark
 
 **Resolution:**
 1. User education - explicitly set theme to "Light" or "Dark" if a fixed theme is desired
-2. **UX Improvement:** Added 3-way theme toggle to hamburger menu (Light → Dark → Auto) with clear labels:
-   - ☀️ "Light Mode"
-   - 🌙 "Dark Mode"
-   - 📱 "Auto (System)"
+2. **UX Improvements:**
+   - Added 3-way theme toggle to hamburger menu (Light → Dark → Auto) with clear labels:
+     - ☀️ "Light Mode"
+     - 🌙 "Dark Mode"
+     - 📱 "Auto (System)"
+   - Added real-time system theme listener (Auto mode now responds immediately to OS changes)
+   - Menu stays open when cycling themes so user can see their selection
+   - Synced hamburger menu with settingsStore (was using separate localStorage)
 
-   This makes "Auto" discoverable and syncs with Settings page.
+**Commit:** `c2fae8f` - feat(theme): Add 3-way theme toggle with real-time system detection
 
-### 3. Exhibitor Can Reset Scores?
+### 3. Exhibitor Can Reset Scores? - ✅ FIXED (Bug Confirmed & Resolved)
 **Symptom:** User claims they could reset Daisy's score as exhibitor from Completed tab.
 
-**Investigation:**
-- Code shows `hasPermission('canScore')` guards the reset menu
-- Exhibitors have `canScore: false` in permission matrix
-- Need to verify if there's a bug or user misremembered their role
+**Investigation Result:** Bug confirmed! The reset button was shown for ALL scored entries without permission check.
 
-**Files to Check:**
-- `src/pages/EntryList/EntryList.tsx:178`
-- `src/pages/EntryList/components/ResetMenuPopup.tsx`
+**Root Cause:** `SortableEntryCard.tsx` showed `ResetButton` for any `entry.isScored === true` without checking `hasPermission('canScore')`.
+
+**Fix Applied:** Added permission guard - reset button now only appears for users with `canScore` permission (judges/admins).
+
+**File Changed:** `src/pages/EntryList/SortableEntryCard.tsx:183`
 
 ### 4. Push Notifications - RESOLVED (User Education)
 **Symptom:** User enabled notifications but never received any alerts.
@@ -115,12 +118,10 @@ When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark
 - If no announcements/push notifications, nothing visual changes
 - May need better feedback to user
 
-### 7. Font Size / Spacing Not Applying
+### 7. Font Size / Spacing Not Applying - ✅ RESOLVED (Feature Removed)
 **Symptom:** Font size changes had no visible effect. Spacing only worked on Settings screen.
 
-**Investigation:**
-- Check CSS variable application in `settingsStore.ts`
-- Verify `--font-size-*` variables are used across components
+**Resolution:** Font size, spacing, and high contrast options were removed from Settings. These features added complexity without providing consistent value.
 
 ---
 
@@ -157,23 +158,33 @@ When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark
 
 **Commit:** `cbd5b5e` - feat(feedback): Implement user feedback improvements
 
-### 11. Class Options Navigation
+### 11. Class Options Navigation - ✅ FIXED
 **Symptom:** After viewing Max Time dialog from Class Options, pressing X returns to class list instead of Class Options.
 
-**Fix:** Dialog close should return to parent dialog, not skip levels.
+**Root Cause:** When opening a sub-dialog (Requirements, Max Time, Settings, Status), the callback closed the ClassOptionsDialog before opening the child dialog. When child closed, parent was already gone.
 
-**Files:** `src/components/dialogs/ClassOptionsDialog.tsx`
+**Fix Applied:** Sub-dialog callbacks now return `false` to keep ClassOptionsDialog open. Child dialogs render on top, and when closed, ClassOptionsDialog is still visible underneath.
 
-### 12. Drag-and-Drop Run Order
+**Files Changed:**
+- `src/pages/EntryList/EntryList.tsx` - onRequirements, onSetMaxTime, onSettings, onStatus
+- `src/pages/ClassList/ClassList.tsx` - same callbacks
+
+### 12. Drag-and-Drop Run Order - ✅ FIXED
 **Symptoms:**
 - Can't drag to end of list in one motion (must scroll incrementally)
 - After dragging, doesn't return to top of list
 
-**Potential Fixes:**
-- Auto-scroll when dragging near edge
-- Scroll to top after drag operation completes
+**Fixes Applied:**
+1. **AutoScroll configuration** - Added aggressive auto-scroll to DndContext:
+   - Activator: Pointer (scrolls as soon as dragging)
+   - Threshold: 15% from edge triggers scroll
+   - Acceleration: 15x (faster than default)
+   - Interval: 5ms (smoother scrolling)
+2. **Scroll-to-top after drag** - Window scrolls smoothly to top after drag operation completes
 
-**Files:** `src/pages/EntryList/` drag-and-drop handlers
+**Files Changed:**
+- `src/pages/EntryList/components/EntryListContent.tsx` - autoScroll config
+- `src/pages/EntryList/hooks/useDragAndDropEntries.ts` - scroll-to-top
 
 ### 13. Tapping Class Title Shows Partial Screen
 **Symptom:** Tapping "Container Advanced" title shows popup with blank lines and time, then can swipe down.
@@ -200,15 +211,25 @@ When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark
 - `307cc91` - feat(ux): Add help tip for results visibility discoverability
 - `7406cc2` - fix(ux): Correct help tip to match actual tab name
 
-### 16. Show Passcode on Home Screen
+### 16. Show Passcode on Home Screen - ❌ DECLINED (Security Risk)
 **Request:** Display user's passcode to help memorization.
 
-**Consideration:** Security vs. convenience tradeoff. Could be optional in settings.
+**Decision:** Not implementing. If an exhibitor saw a judge's passcode on their screen, they could log in as the judge and modify scores. The security risk outweighs the convenience benefit.
 
-### 17. Check-In Sheet Shows Checked Status
+### 17. Check-In Sheet Shows Checked Status - ✅ FIXED
 **Request:** Check-in report should show which dogs are already checked in.
 
-**Implementation:** Add checked-in indicator to print report.
+**Implementation:** Added two-column approach:
+- **Gate column** - Empty checkbox for gate steward to manually mark arrivals
+- **myK9Q column** - Shows ✓ for dogs checked in via the app, empty checkbox otherwise
+
+This gives gate stewards both pieces of information:
+- See who already checked in digitally
+- Manual tracking column for physical arrivals at gate
+
+**Files Changed:**
+- `src/components/reports/CheckInSheet.tsx` - Added dual column headers and app check-in display
+- `src/components/reports/print-reports.css` - Added checkmark styling
 
 ### 18. "My Dogs" → "My Favorites" - ✅ FIXED
 **Request:** Rename Inbox section header for clarity.
@@ -221,12 +242,20 @@ When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark
 
 ## CONTENT UPDATES (Low Priority)
 
-### 19. AskQ Content Updates
-- Add note about adding Classes as Favorites
-- Add "Class Status" section explaining color meanings and clickable statuses
-- Clarify "How do I read the class status"
+### 19. AskQ Content Updates - ✅ FIXED
+- ~~Add note about adding Classes as Favorites~~ - ADDED
+- ~~Add "Class Status" section explaining color meanings and clickable statuses~~ - Already existed
+- ~~Clarify "How do I read the class status"~~ - Already documented
 
-**Files:** Edge function `ask-myk9q` knowledge base
+**Investigation:** Checked `chatbot_query_log` for actual user questions. Found users asked "How do I favorite a dog?" and "What do the status colors mean?" - both already documented. However, **class favoriting** was missing from the knowledge base.
+
+**Fix Applied:** Added new "Favorites (Dogs & Classes)" section to AskQ knowledge base:
+- How do I favorite a class? (new)
+- Why would I favorite a class? (new - explains judges/exhibitors use case)
+- Where do I see my favorites? (new - shows both dogs and classes)
+- Also added note about favoriting dogs for notifications
+
+**Edge Function:** `ask-myk9q` v16 deployed
 
 ---
 
@@ -271,19 +300,19 @@ When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark
 7. ~~Results visibility discoverability~~ - FIXED (`307cc91`)
 8. ~~Multi-area visual confirmation~~ - Already has `.area-badge.recorded` styling
 
-**Phase 4 - Investigate:** 🔄 IN PROGRESS
-9. ~~Settings persistence~~ - RESOLVED (user education - 'auto' follows device)
+**Phase 4 - Investigate:** ✅ COMPLETE
+9. ~~Settings persistence~~ - FIXED (`c2fae8f`) + user education
 10. ~~Haptic feedback~~ - FIXED (`06bd3c7`, `73046be`)
-11. **Font size/spacing application** ← NEXT
-12. Exhibitor reset verification
+11. ~~Font size/spacing application~~ - RESOLVED (feature removed)
+12. ~~Exhibitor reset verification~~ - FIXED (bug confirmed, permission guard added)
 
-**Phase 5 - UX Improvements:**
-13. Class Options navigation
-14. Drag-and-drop improvements
+**Phase 5 - UX Improvements:** ✅ COMPLETE
+13. ~~Class Options navigation~~ - FIXED (sub-dialogs keep parent open)
+14. ~~Drag-and-drop improvements~~ - FIXED (autoScroll config + scroll-to-top)
 
-**Phase 6 - Feature Requests:**
-15. Show passcode option
-16. Check-in sheet improvements
+**Phase 6 - Feature Requests:** ✅ COMPLETE
+15. ~~Show passcode option~~ - DECLINED (security risk)
+16. ~~Check-in sheet improvements~~ - FIXED (Gate + myK9Q dual columns)
 
-**Phase 7 - Content:**
-17. AskQ content updates
+**Phase 7 - Content:** ✅ COMPLETE
+17. ~~AskQ content updates~~ - FIXED (class favoriting documentation added)

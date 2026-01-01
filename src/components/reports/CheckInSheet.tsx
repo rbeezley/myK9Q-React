@@ -71,7 +71,8 @@ export const CheckInSheet: React.FC<CheckInSheetProps> = ({ classInfo, entries }
       <table className="print-table with-margin">
         <thead>
           <tr>
-            <th className="checkbox-col"></th>
+            <th className="checkbox-col">Gate</th>
+            <th className="checkbox-col">myK9Q</th>
             <th className="armband-col">Armband</th>
             <th className="callname-col">Call Name</th>
             <th className="breed-col">Breed</th>
@@ -82,8 +83,15 @@ export const CheckInSheet: React.FC<CheckInSheetProps> = ({ classInfo, entries }
         <tbody>
           {sortedEntries.map((entry) => (
             <tr key={entry.id}>
+              {/* Gate column - always empty checkbox for manual marking */}
               <td className="checkbox-cell">
                 <div className="checkbox-square"></div>
+              </td>
+              {/* myK9Q column - shows check mark if checked in via myK9Q app */}
+              <td className="checkbox-cell">
+                <div className={`checkbox-square ${entry.checkedIn ? 'checked' : ''}`}>
+                  {entry.checkedIn && <span className="checkmark">✓</span>}
+                </div>
               </td>
               <td className="armband-cell">{entry.armband}</td>
               <td className="callname-cell">{entry.callName}</td>

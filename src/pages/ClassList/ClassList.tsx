@@ -782,6 +782,7 @@ export const ClassList: React.FC = () => {
                 setSelectedClassForRequirements(selectedClass);
                 setRequirementsDialogOpen(true);
               }
+              return false;
             }}
             onSetMaxTime={() => {
               if (selectedClass) {
@@ -789,12 +790,14 @@ export const ClassList: React.FC = () => {
                 setMaxTimeDialogOpen(true);
                 setShowMaxTimeWarning(false);
               }
+              return false;
             }}
             onSettings={() => {
               if (selectedClass) {
                 setSelectedClassForSettings(selectedClass);
                 setSettingsDialogOpen(true);
               }
+              return false;
             }}
             onStatistics={() => {
               if (trialId && selectedClass) {
@@ -811,6 +814,7 @@ export const ClassList: React.FC = () => {
                 setSelectedClassForStatus(selectedClass);
                 setStatusDialogOpen(true);
               }
+              return false;
             }}
             onPrintCheckIn={() => {
               if (selectedClass) {

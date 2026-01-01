@@ -169,6 +169,15 @@
   height: var(--token-space-xl);
   border: var(--token-space-xs) solid #000;
   vertical-align: middle;
+  position: relative;
+  text-align: center;
+}
+
+.checkbox-square .checkmark {
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: var(--token-space-xl);
+  color: #000;
 }
 
 /* Results Sheet Specific */

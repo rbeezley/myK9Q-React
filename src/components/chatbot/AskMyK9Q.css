@@ -475,6 +475,112 @@
   animation: chatSpin 1s linear infinite;
 }
 
+/* Answer Badges (Source indicator + Tools) */
+.chat-answer-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  flex-wrap: wrap;
+}
+
+.chat-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px var(--token-space-sm);
+  border-radius: var(--token-space-sm);
+  font-size: 10px;
+  font-weight: var(--token-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.chat-source-badge.faq {
+  background-color: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.chat-source-badge.ai {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+/* Feedback Row (Rating + Report) */
+.chat-feedback-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-md);
+  flex-wrap: wrap;
+}
+
+/* Rating Section */
+.chat-rating-section {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+}
+
+.chat-rating-label {
+  font-size: var(--token-font-xs);
+  color: var(--token-text-secondary);
+}
+
+.chat-rating-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-sm);
+}
+
+.chat-rating-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--token-space-md);
+  color: var(--token-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-rating-btn:hover:not(:disabled) {
+  background-color: var(--muted);
+  border-color: var(--token-text-secondary);
+}
+
+.chat-rating-btn.thumbs-up:hover:not(:disabled),
+.chat-rating-btn.thumbs-up.selected {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: var(--token-success);
+  color: var(--token-success);
+}
+
+.chat-rating-btn.thumbs-down:hover:not(:disabled),
+.chat-rating-btn.thumbs-down.selected {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: var(--token-error);
+  color: var(--token-error);
+}
+
+.chat-rating-btn:disabled {
+  cursor: default;
+}
+
+.chat-rating-btn.selected {
+  cursor: default;
+}
+
+.chat-rating-thanks {
+  font-size: var(--token-font-xs);
+  color: var(--token-success);
+  font-weight: var(--token-font-weight-medium);
+  animation: chatFadeIn 0.2s ease-out;
+}
+
 /* Sources Section */
 .chat-sources {
   flex: 1;

@@ -81,6 +81,8 @@ export interface ChatResponse {
   answer: string;
   toolsUsed: string[];
   sources?: ChatSources;
+  source?: 'faq' | 'ai'; // Whether answer came from FAQ lookup or Claude AI
+  logId?: string; // For rating submission
   cached?: boolean;
 }
 
@@ -275,6 +277,39 @@ export class ChatbotService {
         toolsUsed: value.toolsUsed,
       })),
     };
+  }
+
+  /**
+   * Submit a rating for a chatbot response
+   *
+   * @param logId - The log entry ID from the response
+   * @param rating - Rating from 1-5 stars
+   * @returns Success status
+   */
+  static async submitRating(logId: string, rating: number): Promise<boolean> {
+    if (!logId || rating < 1 || rating > 5) {
+      logger.error('🤖 [ChatbotService] Invalid rating parameters:', { logId, rating });
+      return false;
+    }
+
+    try {
+      logger.log('🤖 [ChatbotService] Submitting rating:', { logId, rating });
+
+      const { error } = await supabase.functions.invoke('ask-myk9q', {
+        body: { action: 'rate', logId, rating },
+      });
+
+      if (error) {
+        logger.error('🤖 [ChatbotService] Rating submission error:', error);
+        return false;
+      }
+
+      logger.log('🤖 [ChatbotService] Rating submitted successfully');
+      return true;
+    } catch (err) {
+      logger.error('🤖 [ChatbotService] Rating submission failed:', err);
+      return false;
+    }
   }
 }
 

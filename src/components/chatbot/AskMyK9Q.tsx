@@ -15,6 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   HelpCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Sparkles,
+  Database,
 } from 'lucide-react';
 import {
   ChatbotService,
@@ -96,56 +100,113 @@ function getSourceCount(sources: ChatSources, sourceType: SourceType): number {
 interface AnswerSectionProps {
   response: ChatResponse;
   feedbackStatus: 'idle' | 'submitting' | 'success' | 'error';
+  ratingStatus: 'idle' | 'submitting' | 'submitted';
+  submittedRating: number | null;
   onReportIssue: () => void;
+  onRate: (rating: number) => void;
 }
 
 const AnswerSection: React.FC<AnswerSectionProps> = ({
   response,
   feedbackStatus,
+  ratingStatus,
+  submittedRating,
   onReportIssue,
+  onRate,
 }) => (
   <div className="chat-answer-section">
     <div className="chat-answer-header">
       <div className="chat-answer-label">Answer</div>
-      {response.toolsUsed && response.toolsUsed.length > 0 && (
-        <div className="chat-tools-used">
-          {response.toolsUsed.map((tool, idx) => (
-            <span key={idx} className={`chat-tool-badge ${tool}`}>
-              {formatToolName(tool)}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="chat-answer-badges">
+        {/* Source indicator - FAQ or AI */}
+        {response.source && (
+          <span className={`chat-source-badge ${response.source}`}>
+            {response.source === 'faq' ? (
+              <>
+                <Database size={12} />
+                <span>FAQ</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={12} />
+                <span>AI</span>
+              </>
+            )}
+          </span>
+        )}
+        {response.toolsUsed && response.toolsUsed.length > 0 && (
+          <div className="chat-tools-used">
+            {response.toolsUsed.map((tool, idx) => (
+              <span key={idx} className={`chat-tool-badge ${tool}`}>
+                {formatToolName(tool)}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
     <div className="chat-answer-text">{response.answer}</div>
-    <button
-      onClick={onReportIssue}
-      className={`chat-report-issue-btn ${feedbackStatus === 'success' ? 'success' : ''}`}
-      title={feedbackStatus === 'success' ? 'Issue reported' : 'Report an incorrect answer'}
-      disabled={feedbackStatus === 'submitting' || feedbackStatus === 'success'}
-    >
-      {feedbackStatus === 'submitting' ? (
-        <>
-          <Loader2 size={14} className="animate-spin" />
-          <span>Reporting...</span>
-        </>
-      ) : feedbackStatus === 'success' ? (
-        <>
-          <Check size={14} />
-          <span>Reported - Thanks!</span>
-        </>
-      ) : feedbackStatus === 'error' ? (
-        <>
-          <AlertCircle size={14} />
-          <span>Failed - Retry</span>
-        </>
-      ) : (
-        <>
-          <Flag size={14} />
-          <span>Report Issue</span>
-        </>
-      )}
-    </button>
+
+    {/* Rating and Feedback Row */}
+    <div className="chat-feedback-row">
+      {/* Thumbs up/down rating */}
+      <div className="chat-rating-section">
+        <span className="chat-rating-label">Was this helpful?</span>
+        <div className="chat-rating-buttons">
+          <button
+            onClick={() => onRate(5)}
+            className={`chat-rating-btn thumbs-up ${submittedRating === 5 ? 'selected' : ''}`}
+            disabled={ratingStatus !== 'idle'}
+            title="Helpful"
+            aria-label="Rate as helpful"
+          >
+            <ThumbsUp size={16} />
+          </button>
+          <button
+            onClick={() => onRate(1)}
+            className={`chat-rating-btn thumbs-down ${submittedRating === 1 ? 'selected' : ''}`}
+            disabled={ratingStatus !== 'idle'}
+            title="Not helpful"
+            aria-label="Rate as not helpful"
+          >
+            <ThumbsDown size={16} />
+          </button>
+          {ratingStatus === 'submitted' && (
+            <span className="chat-rating-thanks">Thanks!</span>
+          )}
+        </div>
+      </div>
+
+      {/* Report issue button */}
+      <button
+        onClick={onReportIssue}
+        className={`chat-report-issue-btn ${feedbackStatus === 'success' ? 'success' : ''}`}
+        title={feedbackStatus === 'success' ? 'Issue reported' : 'Report an incorrect answer'}
+        disabled={feedbackStatus === 'submitting' || feedbackStatus === 'success'}
+      >
+        {feedbackStatus === 'submitting' ? (
+          <>
+            <Loader2 size={14} className="animate-spin" />
+            <span>Reporting...</span>
+          </>
+        ) : feedbackStatus === 'success' ? (
+          <>
+            <Check size={14} />
+            <span>Reported</span>
+          </>
+        ) : feedbackStatus === 'error' ? (
+          <>
+            <AlertCircle size={14} />
+            <span>Failed</span>
+          </>
+        ) : (
+          <>
+            <Flag size={14} />
+            <span>Report</span>
+          </>
+        )}
+      </button>
+    </div>
   </div>
 );
 
@@ -295,6 +356,8 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
   const [_isOnline, setIsOnline] = useState(navigator.onLine);
   const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [ratingStatus, setRatingStatus] = useState<'idle' | 'submitting' | 'submitted'>('idle');
+  const [submittedRating, setSubmittedRating] = useState<number | null>(null);
   const [isFAQExpanded, setIsFAQExpanded] = useState(false);
   const [popularQuestions, setPopularQuestions] = useState<PopularQuestion[]>([]);
 
@@ -304,6 +367,8 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
 
   const handleSearch = useCallback(async (searchQuery: string) => {
     setFeedbackStatus('idle');
+    setRatingStatus('idle');
+    setSubmittedRating(null);
 
     if (!searchQuery.trim()) {
       return;
@@ -450,6 +515,34 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleRating = async (rating: number) => {
+    if (ratingStatus !== 'idle' || !response?.logId) {
+      // If no logId, we can't submit rating (e.g., cached response)
+      if (!response?.logId) {
+        logger.log('[AskMyK9Q] No logId available for rating');
+      }
+      return;
+    }
+
+    setRatingStatus('submitting');
+    setSubmittedRating(rating);
+
+    try {
+      const success = await ChatbotService.submitRating(response.logId, rating);
+      if (success) {
+        setRatingStatus('submitted');
+      } else {
+        // Reset on failure
+        setRatingStatus('idle');
+        setSubmittedRating(null);
+      }
+    } catch (err) {
+      logger.error('[AskMyK9Q] Rating submission error:', err);
+      setRatingStatus('idle');
+      setSubmittedRating(null);
+    }
+  };
+
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => {
@@ -582,7 +675,10 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
               <AnswerSection
                 response={response}
                 feedbackStatus={feedbackStatus}
+                ratingStatus={ratingStatus}
+                submittedRating={submittedRating}
                 onReportIssue={handleReportIssue}
+                onRate={handleRating}
               />
 
               {/* Sources Section */}

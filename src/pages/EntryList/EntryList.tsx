@@ -900,9 +900,9 @@ export const EntryList: React.FC = () => {
             completed_count: completedEntries.length,
             class_status: classInfo.classStatus
           }}
-          onRequirements={() => setRequirementsDialogOpen(true)}
-          onSetMaxTime={() => setMaxTimeDialogOpen(true)}
-          onSettings={() => setSettingsDialogOpen(true)}
+          onRequirements={() => { setRequirementsDialogOpen(true); return false; }}
+          onSetMaxTime={() => { setMaxTimeDialogOpen(true); return false; }}
+          onSettings={() => { setSettingsDialogOpen(true); return false; }}
           onStatistics={() => {
             if (completedEntries.length === 0) {
               setNoStatsDialogOpen(true);
@@ -912,7 +912,7 @@ export const EntryList: React.FC = () => {
               navigate(`/stats/trial/${classInfo.trialId}?classId=${classId}`);
             }
           }}
-          onStatus={() => setStatusDialogOpen(true)}
+          onStatus={() => { setStatusDialogOpen(true); return false; }}
           onPrintCheckIn={handlePrintCheckIn}
           onPrintResults={handlePrintResults}
           onPrintScoresheet={handlePrintScoresheet}

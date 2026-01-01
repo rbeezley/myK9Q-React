@@ -180,9 +180,9 @@ export const SortableEntryCard: React.FC<SortableEntryCardProps> = ({
               isDisabled={isCheckInDisabled}
               onClick={handleStatusBadgeClick}
             />
-          ) : (
+          ) : hasPermission('canScore') ? (
             <ResetButton onClick={handleResetClick} />
-          )
+          ) : undefined
         }
       />
     </div>

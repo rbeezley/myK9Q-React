@@ -229,6 +229,8 @@ export function useDragAndDropEntries({
       setTimeout(() => {
         isDraggingRef.current = false;
         setIsDragging(false);
+        // Scroll back to top after drag completes for better UX
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }, gracePeriodMs);
     }
   }, [localEntries, setLocalEntries, setManualOrder, isDraggingRef, gracePeriodMs]);

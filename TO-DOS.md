@@ -522,6 +522,12 @@ Three different color palettes existed for the same status values:
 
 ---
 
+## Secretary Tools Check-In Reports - 2025-12-31 19:50
+
+- **Add "Not Checked In" report to Secretary Tools** - Show exhibitors who haven't checked into any class. **Problem:** Secretaries need to identify potentially absent exhibitors or those not using myK9Q for day-of logistics and follow-up. **Files:** `src/pages/TrialSecretary/TrialSecretary.tsx` (add Reports tab), `src/components/reports/` (new report components). **Solution:** Trial-level report aggregating check-in status across all classes. Could expand to include: Partial Check-Ins report (checked into some but not all classes), Check-In Summary stats (X of Y exhibitors checked in, classes with 100% check-in).
+
+---
+
 ## Convert UKC Nosework Module to v3 Architecture - 2025-12-18
 
 **Status:** Pending (waiting on AKC testing)
