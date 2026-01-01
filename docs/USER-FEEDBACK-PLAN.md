@@ -2,6 +2,22 @@
 
 Tester: Samsung Z-Fold 6 (Android)
 
+## Progress Summary
+
+| Phase | Status | Items |
+|-------|--------|-------|
+| Phase 1 - User Priority | ✅ Complete | Push notifications (user education) |
+| Phase 2 - Judge Experience | ✅ Complete | Timer visual circle, 30-second chime |
+| Phase 3 - Quick Wins | ✅ Complete | 5/5 complete |
+| Phase 4 - Investigate | 🔄 Partial | Settings ✅, Haptic ✅, 2 remaining |
+| Phase 5 - UX Improvements | ⏳ Pending | 0/2 complete |
+| Phase 6 - Feature Requests | ⏳ Pending | 0/2 complete |
+| Phase 7 - Content | ⏳ Pending | 0/1 complete |
+
+**Next Step:** Phase 4 - Font size/spacing investigation (#7)
+
+---
+
 ## Feedback Categories
 
 I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to Investigate**, **UX Improvements**, **Feature Requests**, and **Positive Feedback / No Action Needed**.
@@ -31,17 +47,21 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 ## BUGS TO INVESTIGATE
 
-### 2. Settings Not Persisting
+### 2. Settings Not Persisting - ✅ RESOLVED (User Education + UX Improvement)
 **Symptom:** Dark/light mode and other settings reset each time user enters the app.
 
-**Investigation:**
-- Settings use Zustand persist middleware → `src/stores/settingsStore.ts`
-- Theme blocking script: `public/theme-init.js`
-- Possible timing issue with hydration
+**Root Cause:** Default theme is `'auto'` which follows device system preference.
 
-**Files to Check:**
-- `src/stores/settingsStore.ts:277-286` (initializeSettings)
-- `src/hooks/useAppInitialization.ts`
+When set to 'auto', the app uses `window.matchMedia('(prefers-color-scheme: dark)')` to detect the device's current preference. If the device switches between light/dark based on time of day or user toggle, the app follows.
+
+**Resolution:**
+1. User education - explicitly set theme to "Light" or "Dark" if a fixed theme is desired
+2. **UX Improvement:** Added 3-way theme toggle to hamburger menu (Light → Dark → Auto) with clear labels:
+   - ☀️ "Light Mode"
+   - 🌙 "Dark Mode"
+   - 📱 "Auto (System)"
+
+   This makes "Auto" discoverable and syncs with Settings page.
 
 ### 3. Exhibitor Can Reset Scores?
 **Symptom:** User claims they could reset Daisy's score as exhibitor from Completed tab.
@@ -106,14 +126,12 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 ## UX IMPROVEMENTS (Priority Order)
 
-### 8. Trial Box Text Too Dim
+### 8. Trial Box Text Too Dim - ✅ FIXED
 **Symptom:** Trial details under trial name are hard to read in both light and dark mode.
 
-**Fix:** Increase contrast of subtitle text in trial selector boxes.
+**Fix Applied:** Increased contrast of subtitle text in trial selector boxes.
 
-**Files:** CSS in trial selector component
-
-### 9. Timer Visual Circle Missing - FIXED
+### 9. Timer Visual Circle Missing - ✅ FIXED
 **Symptom:** Judge misses the continuous visual countdown circle that turned red at 30 seconds.
 
 **Context:** Previous version had visual countdown, new version apparently doesn't.
@@ -132,12 +150,12 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 - `83c556f` - feat(timer): Add visual countdown progress ring to all scoresheets
 - (pending) - feat(timer): Add 30-second warning chime independent of voice announcements
 
-### 10. Return to Favorites After Check-In
+### 10. Return to Favorites After Check-In - ✅ FIXED
 **Symptom:** After "Check In All" from Favorites, returns to All Dogs instead of staying in Favorites.
 
-**Fix:** Navigate back to Favorites tab after check-in operation.
+**Fix Applied:** Persist Favorites tab selection across navigation. Returns to Favorites after check-in operations.
 
-**Files:** Check-in handler in Home screen
+**Commit:** `cbd5b5e` - feat(feedback): Implement user feedback improvements
 
 ### 11. Class Options Navigation
 **Symptom:** After viewing Max Time dialog from Class Options, pressing X returns to class list instead of Class Options.
@@ -173,17 +191,14 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 **Investigation:** If user is seeing it again, localStorage may be clearing. Check if this is related to #2 (settings not persisting).
 
-### 15. Results Visibility - Improve Discoverability
+### 15. Results Visibility - Improve Discoverability - ✅ FIXED
 **Issue:** Feature already exists at Show level with inheritance to Trial and Class levels, but tester didn't find it.
 
-**Current:** Show → Trial → Class inheritance with override capability.
+**Fix Applied:** Added help tip explaining where to find results visibility settings.
 
-**Fix:** Improve UI/UX to make this setting more discoverable:
-- Add tooltip or info icon explaining inheritance
-- Consider inline help text in Admin settings
-- Possibly mention in AskQ content
-
-**Complexity:** Low - UX improvement only, no backend changes
+**Commits:**
+- `307cc91` - feat(ux): Add help tip for results visibility discoverability
+- `7406cc2` - fix(ux): Correct help tip to match actual tab name
 
 ### 16. Show Passcode on Home Screen
 **Request:** Display user's passcode to help memorization.
@@ -195,10 +210,12 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 **Implementation:** Add checked-in indicator to print report.
 
-### 18. "My Dogs" → "My Favorite Dogs"
+### 18. "My Dogs" → "My Favorites" - ✅ FIXED
 **Request:** Rename Inbox section header for clarity.
 
-**Files:** `src/components/notifications/NotificationCenter.tsx`
+**Fix Applied:** Renamed to "My Favorites" in NotificationCenter.
+
+**Commit:** `cbd5b5e` - feat(feedback): Implement user feedback improvements
 
 ---
 
@@ -240,32 +257,33 @@ I've categorized the 30+ pieces of feedback into: **Critical Bugs**, **Bugs to I
 
 ## RECOMMENDED IMPLEMENTATION ORDER
 
-**Phase 1 - User Priority:**
-1. ~~Push notifications investigation (user selected this as priority)~~ - RESOLVED (user education)
+**Phase 1 - User Priority:** ✅ COMPLETE
+1. ~~Push notifications investigation~~ - RESOLVED (user education)
 
-**Phase 2 - Judge Experience:**
-2. ~~Timer visual circle (user confirmed: add back)~~ - FIXED
+**Phase 2 - Judge Experience:** ✅ COMPLETE
+2. ~~Timer visual circle~~ - FIXED (`83c556f`)
+3. ~~30-second warning chime~~ - FIXED (`73046be`)
 
-**Phase 3 - Quick Wins:**
-3. Trial box text contrast
-4. "My Favorite Dogs" rename
-5. Return to Favorites after check-in
-6. Results visibility - improve discoverability (already exists, needs better UX)
-7. Multi-area scoring - add visual confirmation (optional UX improvement)
+**Phase 3 - Quick Wins:** ✅ COMPLETE
+4. ~~Trial box text contrast~~ - FIXED
+5. ~~"My Favorites" rename~~ - FIXED (`cbd5b5e`)
+6. ~~Return to Favorites after check-in~~ - FIXED (`cbd5b5e`)
+7. ~~Results visibility discoverability~~ - FIXED (`307cc91`)
+8. ~~Multi-area visual confirmation~~ - Already has `.area-badge.recorded` styling
 
-**Phase 4 - Investigate if Time Permits:**
-8. Settings persistence
-9. ~~Haptic feedback~~ - FIXED
-10. Font size/spacing application
-11. Exhibitor reset verification
+**Phase 4 - Investigate:** 🔄 IN PROGRESS
+9. ~~Settings persistence~~ - RESOLVED (user education - 'auto' follows device)
+10. ~~Haptic feedback~~ - FIXED (`06bd3c7`, `73046be`)
+11. **Font size/spacing application** ← NEXT
+12. Exhibitor reset verification
 
 **Phase 5 - UX Improvements:**
-12. Class Options navigation
-13. Drag-and-drop improvements
+13. Class Options navigation
+14. Drag-and-drop improvements
 
 **Phase 6 - Feature Requests:**
-14. Show passcode option
-15. Check-in sheet improvements
+15. Show passcode option
+16. Check-in sheet improvements
 
 **Phase 7 - Content:**
-16. AskQ content updates
+17. AskQ content updates

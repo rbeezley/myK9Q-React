@@ -194,6 +194,33 @@ function applyTheme(theme: 'light' | 'dark' | 'auto') {
 }
 
 /**
+ * Listen for system theme changes and update when in 'auto' mode
+ */
+let systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null;
+
+function setupSystemThemeListener() {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  // Remove existing listener if any
+  if (systemThemeListener) {
+    mediaQuery.removeEventListener('change', systemThemeListener);
+  }
+
+  // Create new listener
+  systemThemeListener = (e: MediaQueryListEvent) => {
+    const { settings } = useSettingsStore.getState();
+    if (settings.theme === 'auto') {
+      const root = document.documentElement;
+      root.classList.remove('theme-light', 'theme-dark');
+      root.classList.add(e.matches ? 'theme-dark' : 'theme-light');
+    }
+  };
+
+  // Add listener
+  mediaQuery.addEventListener('change', systemThemeListener);
+}
+
+/**
  * Apply accent color to document
  */
 function applyAccentColor(color: 'green' | 'blue' | 'orange' | 'purple') {
@@ -210,4 +237,6 @@ export function initializeSettings() {
   const { settings } = useSettingsStore.getState();
   // Theme already applied by blocking script in index.html
   applyAccentColor(settings.accentColor || 'green');
+  // Listen for system theme changes (for 'auto' mode)
+  setupSystemThemeListener();
 }

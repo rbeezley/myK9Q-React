@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Smartphone, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -47,12 +48,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [_isAnimating, setIsAnimating] = useState(false);
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
   const [isAskMyK9QOpen, setIsAskMyK9QOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
 
   const navigate = useNavigate();
+  const { settings, updateSettings } = useSettingsStore();
   const { showContext, role } = useAuth();
   const { unreadCount: _announcementUnreadCount, setLicenseKey, currentLicenseKey } = useAnnouncementStore();
   const { unreadCount, togglePanel } = useNotifications();
@@ -77,23 +75,32 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
     }
   }, [showContext, currentLicenseKey, setLicenseKey]);
 
-  // Apply theme to document
-  useEffect(() => {
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.remove('theme-light');
-      root.classList.add('theme-dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('theme-dark');
-      root.classList.add('theme-light');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
-
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
+  // Cycle through theme modes: light → dark → auto → light
+  const cycleTheme = () => {
+    const cycle: Record<string, 'light' | 'dark' | 'auto'> = {
+      light: 'dark',
+      dark: 'auto',
+      auto: 'light',
+    };
+    const nextTheme = cycle[settings.theme] || 'light';
+    updateSettings({ theme: nextTheme });
   };
+
+  // Get theme icon and label for current setting
+  const getThemeDisplay = () => {
+    switch (settings.theme) {
+      case 'light':
+        return { icon: Sun, label: 'Light Mode' };
+      case 'dark':
+        return { icon: Moon, label: 'Dark Mode' };
+      case 'auto':
+        return { icon: Smartphone, label: 'Auto (System)' };
+      default:
+        return { icon: Sun, label: 'Light Mode' };
+    }
+  };
+
+  const themeDisplay = getThemeDisplay();
 
   const handleMenuItemClick = (action: () => void) => {
     // Close menu first to prevent click-through to underlying elements
@@ -268,10 +275,10 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
               <button
                 className="menu-item"
-                onClick={() => handleMenuItemClick(toggleTheme)}
+                onClick={cycleTheme}
               >
-                {darkMode ? <Sun className="menu-icon" /> : <Moon className="menu-icon" />}
-                <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                <themeDisplay.icon className="menu-icon" />
+                <span>{themeDisplay.label}</span>
               </button>
 
               <button
