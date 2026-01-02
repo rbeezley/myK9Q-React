@@ -77,10 +77,6 @@
       // Set html background immediately to prevent flash
       html.style.backgroundColor = '#F8F7F4';
     }
-
-    // Also update meta theme-color to help Chrome with notification text color
-    // We always use teal (#14b8a6) regardless of theme to signal "light" to Chrome
-    updateMetaThemeColor('#14b8a6');
   }
 
   function updateMetaThemeColor(color) {
@@ -99,6 +95,15 @@
 
     // Add selected accent color class
     html.classList.add('accent-' + color);
+
+    // Update meta theme-color to match accent (affects browser chrome and mobile status bar)
+    var accentColors = {
+      green: '#14b8a6',  // teal
+      blue: '#3b82f6',
+      orange: '#f97316',
+      purple: '#8b5cf6'
+    };
+    updateMetaThemeColor(accentColors[color] || '#14b8a6');
   }
 
   /**

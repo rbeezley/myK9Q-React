@@ -221,12 +221,24 @@ function setupSystemThemeListener() {
 }
 
 /**
- * Apply accent color to document
+ * Apply accent color to document and update meta theme-color
  */
 function applyAccentColor(color: 'green' | 'blue' | 'orange' | 'purple') {
   const root = document.documentElement;
   root.classList.remove('accent-green', 'accent-blue', 'accent-orange', 'accent-purple');
   root.classList.add(`accent-${color}`);
+
+  // Update meta theme-color to match accent (affects browser chrome and mobile status bar)
+  const accentColors: Record<string, string> = {
+    green: '#14b8a6',  // teal
+    blue: '#3b82f6',
+    orange: '#f97316',
+    purple: '#8b5cf6'
+  };
+  const themeColor = accentColors[color] || '#14b8a6';
+  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+    meta.setAttribute('content', themeColor);
+  });
 }
 
 /**

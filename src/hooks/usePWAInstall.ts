@@ -23,9 +23,15 @@ interface BeforeInstallPromptEvent extends Event {
 
 interface UsePWAInstallReturn {
   /**
-   * Whether the app is currently installed as a PWA
+   * Whether the app is currently running as an installed PWA (standalone mode)
    */
   isInstalled: boolean;
+
+  /**
+   * Whether the user previously installed the app (persisted to localStorage)
+   * This remains true even when viewing in a browser after installation
+   */
+  wasInstalledBefore: boolean;
 
   /**
    * Whether the browser supports PWA installation and has a prompt available
@@ -60,10 +66,12 @@ interface UsePWAInstallReturn {
 }
 
 const DISMISS_KEY = 'pwa_install_dismissed';
+const INSTALLED_KEY = 'pwa_installed';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function usePWAInstall(): UsePWAInstallReturn {
   const [isInstalled, setIsInstalled] = useState(false);
+  const [wasInstalledBefore, setWasInstalledBefore] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -79,6 +87,20 @@ export function usePWAInstall(): UsePWAInstallReturn {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsInstalled(isStandalone);
+
+    // Check if previously installed (persisted in localStorage)
+    try {
+      const installedData = localStorage.getItem(INSTALLED_KEY);
+      if (installedData || isStandalone) {
+        setWasInstalledBefore(true);
+        // If currently in standalone, ensure localStorage is set
+        if (isStandalone && !installedData) {
+          localStorage.setItem(INSTALLED_KEY, JSON.stringify({ timestamp: Date.now() }));
+        }
+      }
+    } catch (error) {
+      logger.error('Error checking installed state:', error);
+    }
   }, []);
 
   /**
@@ -129,11 +151,18 @@ setInstallPrompt(e as BeforeInstallPromptEvent);
    */
   useEffect(() => {
     const handler = () => {
-setIsInstalled(true);
+      setIsInstalled(true);
+      setWasInstalledBefore(true);
       setInstallPrompt(null);
 
-      // Clear dismissed state on successful install
-      localStorage.removeItem(DISMISS_KEY);
+      // Persist installation to localStorage
+      try {
+        localStorage.setItem(INSTALLED_KEY, JSON.stringify({ timestamp: Date.now() }));
+        // Clear dismissed state on successful install
+        localStorage.removeItem(DISMISS_KEY);
+      } catch (error) {
+        logger.error('Error saving installed state:', error);
+      }
     };
 
     window.addEventListener('appinstalled', handler);
@@ -220,6 +249,7 @@ if (result.outcome === 'accepted') {
 
   return {
     isInstalled,
+    wasInstalledBefore,
     canInstall: !!installPrompt && !isInstalled,
     isDismissed,
     promptInstall,

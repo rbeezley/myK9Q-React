@@ -15,6 +15,7 @@ import { logger } from '@/utils/logger';
 // Sections
 import { GeneralSettings } from './sections/GeneralSettings';
 import { AppearanceSettings } from './sections/AppearanceSettings';
+import { InstallAppSettings } from './sections/InstallAppSettings';
 import { NotificationSettings } from './sections/NotificationSettings';
 import { VoiceSettingsSection } from './sections/VoiceSettingsSection';
 import { ScoringSettings } from './sections/ScoringSettings';
@@ -173,6 +174,10 @@ export function Settings() {
 
           {shouldShowSection('Appearance') && ( // Conditional rendering
             <AppearanceSettings />
+          )}
+
+          {shouldShowSection('Notifications') && ( // Conditional rendering
+            <InstallAppSettings />
           )}
 
           {shouldShowSection('Notifications') && ( // Conditional rendering
