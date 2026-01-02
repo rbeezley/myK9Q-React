@@ -140,7 +140,18 @@ export function useScheduleBoard() {
   // Class data from Supabase
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSyncing] = useState(false); // TODO: Track sync status for UI feedback
+  const [syncingCount, setSyncingCount] = useState(0);
+  const isSyncing = syncingCount > 0;
+
+  // Helper to wrap async sync operations and track in-flight count
+  const withSyncTracking = useCallback(async <T>(operation: () => Promise<T>): Promise<T | undefined> => {
+    setSyncingCount(c => c + 1);
+    try {
+      return await operation();
+    } finally {
+      setSyncingCount(c => c - 1);
+    }
+  }, []);
 
   // Schedule state
   const [roles, setRoles] = useState<ScheduleRole[]>([]);
@@ -214,13 +225,16 @@ export function useScheduleBoard() {
 
             // Migrate to Supabase in background
             isMigrating.current = true;
+            setSyncingCount(c => c + 1);
             migrateToSupabase(licenseKey, localRoles, localVolunteers, localClassAssignments, localGeneralAssignments)
               .then(() => {
                 isMigrating.current = false;
+                setSyncingCount(c => c - 1);
               })
               .catch(err => {
                 console.error('[useScheduleBoard] Migration failed:', err);
                 isMigrating.current = false;
+                setSyncingCount(c => c - 1);
               });
           } else {
             // No data anywhere, use defaults
@@ -373,24 +387,26 @@ export function useScheduleBoard() {
     setVolunteers(prev => [...prev, newVolunteer]);
 
     // Sync to Supabase
-    try {
-      const { error } = await supabase.from('volunteers').insert({
-        id: newVolunteer.id,
-        license_key: licenseKey,
-        name: newVolunteer.name,
-        phone: newVolunteer.phone || null,
-        is_exhibitor: newVolunteer.isExhibitor,
-        exhibitor_id: newVolunteer.exhibitorId || null,
-        entered_class_ids: newVolunteer.enteredClassIds || [],
-        notes: newVolunteer.notes || null,
-      });
+    withSyncTracking(async () => {
+      try {
+        const { error } = await supabase.from('volunteers').insert({
+          id: newVolunteer.id,
+          license_key: licenseKey,
+          name: newVolunteer.name,
+          phone: newVolunteer.phone || null,
+          is_exhibitor: newVolunteer.isExhibitor,
+          exhibitor_id: newVolunteer.exhibitorId || null,
+          entered_class_ids: newVolunteer.enteredClassIds || [],
+          notes: newVolunteer.notes || null,
+        });
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to add volunteer to Supabase:', error);
-      // Keep the optimistic update - localStorage backup ensures persistence
-    }
-  }, [licenseKey]);
+        if (error) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to add volunteer to Supabase:', error);
+        // Keep the optimistic update - localStorage backup ensures persistence
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   const updateVolunteer = useCallback(async (id: string, updates: Partial<Volunteer>) => {
     if (!licenseKey) return;
@@ -401,26 +417,28 @@ export function useScheduleBoard() {
     );
 
     // Sync to Supabase
-    try {
-      const dbUpdates: Partial<DbVolunteer> = {};
-      if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.phone !== undefined) dbUpdates.phone = updates.phone || null;
-      if (updates.isExhibitor !== undefined) dbUpdates.is_exhibitor = updates.isExhibitor;
-      if (updates.exhibitorId !== undefined) dbUpdates.exhibitor_id = updates.exhibitorId || null;
-      if (updates.enteredClassIds !== undefined) dbUpdates.entered_class_ids = updates.enteredClassIds;
-      if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    withSyncTracking(async () => {
+      try {
+        const dbUpdates: Partial<DbVolunteer> = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.phone !== undefined) dbUpdates.phone = updates.phone || null;
+        if (updates.isExhibitor !== undefined) dbUpdates.is_exhibitor = updates.isExhibitor;
+        if (updates.exhibitorId !== undefined) dbUpdates.exhibitor_id = updates.exhibitorId || null;
+        if (updates.enteredClassIds !== undefined) dbUpdates.entered_class_ids = updates.enteredClassIds;
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
 
-      const { error } = await supabase
-        .from('volunteers')
-        .update(dbUpdates)
-        .eq('id', id)
-        .eq('license_key', licenseKey);
+        const { error } = await supabase
+          .from('volunteers')
+          .update(dbUpdates)
+          .eq('id', id)
+          .eq('license_key', licenseKey);
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to update volunteer in Supabase:', error);
-    }
-  }, [licenseKey]);
+        if (error) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to update volunteer in Supabase:', error);
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   const deleteVolunteer = useCallback(async (id: string) => {
     if (!licenseKey) return;
@@ -441,18 +459,20 @@ export function useScheduleBoard() {
     );
 
     // Sync to Supabase (CASCADE will handle assignments)
-    try {
-      const { error } = await supabase
-        .from('volunteers')
-        .delete()
-        .eq('id', id)
-        .eq('license_key', licenseKey);
+    withSyncTracking(async () => {
+      try {
+        const { error } = await supabase
+          .from('volunteers')
+          .delete()
+          .eq('id', id)
+          .eq('license_key', licenseKey);
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to delete volunteer from Supabase:', error);
-    }
-  }, [licenseKey]);
+        if (error) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to delete volunteer from Supabase:', error);
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   // Class assignment management
   const assignToClass = useCallback(async (volunteerId: string, classId: number, roleId: string) => {
@@ -483,20 +503,22 @@ export function useScheduleBoard() {
     });
 
     // Sync to Supabase
-    try {
-      const { error } = await supabase.from('volunteer_class_assignments').insert({
-        id: generateId(),
-        license_key: licenseKey,
-        class_id: classId,
-        role_id: roleId,
-        volunteer_id: volunteerId,
-      });
+    withSyncTracking(async () => {
+      try {
+        const { error } = await supabase.from('volunteer_class_assignments').insert({
+          id: generateId(),
+          license_key: licenseKey,
+          class_id: classId,
+          role_id: roleId,
+          volunteer_id: volunteerId,
+        });
 
-      if (error && !error.message.includes('duplicate')) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to assign to class in Supabase:', error);
-    }
-  }, [licenseKey]);
+        if (error && !error.message.includes('duplicate')) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to assign to class in Supabase:', error);
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   const removeFromClass = useCallback(async (volunteerId: string, classId: number, roleId: string) => {
     if (!licenseKey) return;
@@ -515,20 +537,22 @@ export function useScheduleBoard() {
     );
 
     // Sync to Supabase
-    try {
-      const { error } = await supabase
-        .from('volunteer_class_assignments')
-        .delete()
-        .eq('license_key', licenseKey)
-        .eq('class_id', classId)
-        .eq('role_id', roleId)
-        .eq('volunteer_id', volunteerId);
+    withSyncTracking(async () => {
+      try {
+        const { error } = await supabase
+          .from('volunteer_class_assignments')
+          .delete()
+          .eq('license_key', licenseKey)
+          .eq('class_id', classId)
+          .eq('role_id', roleId)
+          .eq('volunteer_id', volunteerId);
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to remove class assignment from Supabase:', error);
-    }
-  }, [licenseKey]);
+        if (error) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to remove class assignment from Supabase:', error);
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   // General duty management
   const assignToGeneralDuty = useCallback(async (volunteerId: string, roleId: string) => {
@@ -558,19 +582,21 @@ export function useScheduleBoard() {
     });
 
     // Sync to Supabase
-    try {
-      const { error } = await supabase.from('volunteer_general_assignments').insert({
-        id: generateId(),
-        license_key: licenseKey,
-        role_id: roleId,
-        volunteer_id: volunteerId,
-      });
+    withSyncTracking(async () => {
+      try {
+        const { error } = await supabase.from('volunteer_general_assignments').insert({
+          id: generateId(),
+          license_key: licenseKey,
+          role_id: roleId,
+          volunteer_id: volunteerId,
+        });
 
-      if (error && !error.message.includes('duplicate')) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to assign to general duty in Supabase:', error);
-    }
-  }, [licenseKey]);
+        if (error && !error.message.includes('duplicate')) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to assign to general duty in Supabase:', error);
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   const removeFromGeneralDuty = useCallback(async (volunteerId: string, roleId: string) => {
     if (!licenseKey) return;
@@ -589,19 +615,21 @@ export function useScheduleBoard() {
     );
 
     // Sync to Supabase
-    try {
-      const { error } = await supabase
-        .from('volunteer_general_assignments')
-        .delete()
-        .eq('license_key', licenseKey)
-        .eq('role_id', roleId)
-        .eq('volunteer_id', volunteerId);
+    withSyncTracking(async () => {
+      try {
+        const { error } = await supabase
+          .from('volunteer_general_assignments')
+          .delete()
+          .eq('license_key', licenseKey)
+          .eq('role_id', roleId)
+          .eq('volunteer_id', volunteerId);
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to remove general assignment from Supabase:', error);
-    }
-  }, [licenseKey]);
+        if (error) throw error;
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to remove general assignment from Supabase:', error);
+      }
+    });
+  }, [licenseKey, withSyncTracking]);
 
   // Role management
   const updateRoles = useCallback(async (newRoles: ScheduleRole[]) => {
@@ -611,33 +639,35 @@ export function useScheduleBoard() {
     setRoles(newRoles);
 
     // Sync to Supabase - delete all and re-insert
-    try {
-      await supabase
-        .from('volunteer_roles')
-        .delete()
-        .eq('license_key', licenseKey);
+    withSyncTracking(async () => {
+      try {
+        await supabase
+          .from('volunteer_roles')
+          .delete()
+          .eq('license_key', licenseKey);
 
-      if (newRoles.length > 0) {
-        const { error } = await supabase.from('volunteer_roles').insert(
-          newRoles.map((role, index) => ({
-            id: role.id,
-            license_key: licenseKey,
-            name: role.name,
-            color: role.color,
-            is_ring_role: role.isRingRole,
-            is_active: role.isActive,
-            sort_order: index,
-          }))
-        );
+        if (newRoles.length > 0) {
+          const { error } = await supabase.from('volunteer_roles').insert(
+            newRoles.map((role, index) => ({
+              id: role.id,
+              license_key: licenseKey,
+              name: role.name,
+              color: role.color,
+              is_ring_role: role.isRingRole,
+              is_active: role.isActive,
+              sort_order: index,
+            }))
+          );
 
-        if (error) throw error;
+          if (error) throw error;
+        }
+      } catch (error) {
+        console.error('[useScheduleBoard] Failed to update roles in Supabase:', error);
+        // Revert on failure
+        setRoles(oldRoles);
       }
-    } catch (error) {
-      console.error('[useScheduleBoard] Failed to update roles in Supabase:', error);
-      // Revert on failure
-      setRoles(oldRoles);
-    }
-  }, [licenseKey, roles]);
+    });
+  }, [licenseKey, roles, withSyncTracking]);
 
   return {
     classes,
