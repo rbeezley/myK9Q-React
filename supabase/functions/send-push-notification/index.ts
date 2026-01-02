@@ -21,11 +21,25 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // @deno-types="npm:@types/web-push"
 import webpush from 'npm:web-push@3.6.7'
 
-// CORS restricted to production domain for security
-// This function requires trigger secret auth, but CORS provides defense-in-depth
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://app.myk9q.com',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  "https://myk9q.com",
+  "https://www.myk9q.com",
+  "https://app.myk9q.com",
+];
+
+/**
+ * Get CORS headers with dynamic origin checking
+ */
+function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
+  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)
+    ? requestOrigin
+    : ALLOWED_ORIGINS[0];
+
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+  };
 }
 
 interface NotificationPayload {
@@ -48,6 +62,9 @@ interface PushSubscription {
 }
 
 serve(async (req) => {
+  // Get CORS headers based on request origin
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })

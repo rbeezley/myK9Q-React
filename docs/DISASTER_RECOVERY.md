@@ -1,6 +1,6 @@
 # Disaster Recovery Runbook
 
-Last updated: 2025-12-09
+Last updated: 2026-01-02
 
 ## Quick Reference
 
@@ -59,12 +59,16 @@ psql -h NEW_HOST -U postgres -d postgres < backup.sql
 |----------|---------|
 | `send-push-notification` | Web Push notifications from DB triggers |
 | `search-rules-v2` | AI-powered rules search (Claude Haiku) |
+| `ask-myk9q` | AI chatbot for rules and show data queries |
+| `validate-passcode` | Server-side passcode validation with rate limiting |
 
 ### Redeploy Procedure
 ```bash
 # From project root
 npx supabase functions deploy send-push-notification
 npx supabase functions deploy search-rules-v2
+npx supabase functions deploy ask-myk9q
+npx supabase functions deploy validate-passcode
 ```
 
 ### Required Secrets (Set in Supabase Dashboard)
@@ -85,7 +89,8 @@ Navigate to: **Settings > Edge Functions > Secrets**
 
 ### Vercel Deployment
 - **Repo**: GitHub (auto-deploy on push)
-- **Domain**: app.myk9q.com
+- **Production Domain**: myk9q.com
+- **Staging Domain**: app.myk9q.com
 
 ### Redeploy Procedure
 ```bash
@@ -149,6 +154,8 @@ Update in:
   ```bash
   npx supabase functions deploy send-push-notification
   npx supabase functions deploy search-rules-v2
+  npx supabase functions deploy ask-myk9q
+  npx supabase functions deploy validate-passcode
   ```
 - [ ] **Update Vercel environment** with new Supabase URL/keys
 - [ ] **Trigger Vercel redeploy**
