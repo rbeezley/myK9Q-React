@@ -37,7 +37,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { logger } from '@/utils/logger';
 import { FAQSection } from './FAQSection';
-import { getFAQCount } from '../../data/faqContent';
+import { getFAQCount } from '@/services/faq';
 import './AskMyK9Q.css';
 
 interface AskMyK9QProps {
@@ -361,6 +361,12 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
   const [submittedRating, setSubmittedRating] = useState<number | null>(null);
   const [isFAQExpanded, setIsFAQExpanded] = useState(false);
   const [popularQuestions, setPopularQuestions] = useState<PopularQuestion[]>([]);
+  const [faqCount, setFaqCount] = useState<number>(0);
+
+  // Load FAQ count (async since it's from IndexedDB/Supabase)
+  useEffect(() => {
+    getFAQCount().then(setFaqCount).catch(() => setFaqCount(0));
+  }, []);
 
   const { organizationCode, sportCode } = showContext?.org
     ? parseOrgAndSport(showContext.org)
@@ -595,7 +601,6 @@ export const AskMyK9Q: React.FC<AskMyK9QProps> = ({ isOpen, onClose }) => {
     return null;
   }
 
-  const faqCount = getFAQCount();
   const hasResult = response?.answer || error;
 
   // Compute example queries for the input footer

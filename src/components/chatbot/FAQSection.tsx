@@ -2,7 +2,7 @@
  * FAQ Section Component
  *
  * Displays browsable FAQ content organized by category.
- * Works offline - content is bundled in the app.
+ * Content is fetched from Supabase and cached in IndexedDB for offline access.
  */
 
 import React, { useState } from 'react';
@@ -20,11 +20,14 @@ import {
   WifiOff,
   Settings,
   HelpCircle,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
-import { faqCategories, type FAQCategory } from '../../data/faqContent';
+import { useFAQ, type FAQIconName } from '@/services/faq';
 
 // Icon mapping for categories
-const categoryIcons: Record<FAQCategory['icon'], React.ComponentType<{ size?: number }>> = {
+const categoryIcons: Record<FAQIconName, React.ComponentType<{ size?: number }>> = {
   'rocket': Rocket,
   'search': Search,
   'check-circle': CheckCircle,
@@ -55,10 +58,8 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
 
-  // Filter categories if specified
-  const displayCategories = filterCategories
-    ? faqCategories.filter(cat => filterCategories.includes(cat.id))
-    : faqCategories;
+  // Load FAQ data from Supabase (cached in IndexedDB for offline)
+  const { categories: displayCategories, isLoading, error, refresh } = useFAQ(filterCategories);
 
   const toggleCategory = (categoryId: string) => {
     if (expandedCategory === categoryId) {
@@ -79,11 +80,59 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
     onAskAI?.(question);
   };
 
+  // Loading state
+  if (isLoading && displayCategories.length === 0) {
+    return (
+      <div className="faq-section faq-loading" style={{ maxHeight, padding: '2rem', textAlign: 'center' }}>
+        <Loader2 size={24} className="faq-spinner" style={{ animation: 'spin 1s linear infinite' }} />
+        <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading help content...</p>
+      </div>
+    );
+  }
+
+  // Error state with retry
+  if (error && displayCategories.length === 0) {
+    return (
+      <div className="faq-section faq-error" style={{ maxHeight, padding: '2rem', textAlign: 'center' }}>
+        <AlertCircle size={24} style={{ color: 'var(--token-error)' }} />
+        <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>{error}</p>
+        <button
+          onClick={() => refresh()}
+          style={{
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            background: 'var(--accent-primary)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <RefreshCw size={16} />
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (displayCategories.length === 0) {
+    return (
+      <div className="faq-section faq-empty" style={{ maxHeight, padding: '2rem', textAlign: 'center' }}>
+        <HelpCircle size={24} style={{ color: 'var(--text-secondary)' }} />
+        <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>No FAQ content available.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="faq-section" style={{ maxHeight, overflowY: 'auto' }}>
       <div className="faq-categories">
         {displayCategories.map((category) => {
-          const IconComponent = categoryIcons[category.icon];
+          const IconComponent = categoryIcons[category.icon] || HelpCircle;
           const isExpanded = expandedCategory === category.id;
 
           return (
