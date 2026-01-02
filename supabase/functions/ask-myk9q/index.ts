@@ -1018,6 +1018,7 @@ RESPONSE STYLE:
 - Include specific numbers and data from the tools
 - If data shows no results, say so clearly
 - Don't make up information not in the tool results
+- ONLY discuss results returned by the tools - do NOT mention or speculate about results from other dates, classes, or data not in the tool response
 
 For numerical data from rules (time limits, area sizes, hide counts), ALWAYS use the "measurements" field from the rules data, not numbers mentioned in the descriptive text.`,
     }),
