@@ -12,6 +12,25 @@ npm test             # Vitest tests
 npm run test:e2e     # Playwright E2E tests
 ```
 
+## Deployment Workflow
+
+**Branches:**
+- `develop` → deploys to **app.myk9q.com** (staging)
+- `main` → deploys to **myk9q.com** (production)
+
+**Default behavior:** Work on `develop` branch, push to staging for testing.
+
+**Workflow:**
+1. Make changes on `develop` branch
+2. Push to `develop` → auto-deploys to app.myk9q.com (staging)
+3. User tests on staging
+4. When user says "deploy to production" or "push to main" → merge `develop` into `main`
+
+**Edge Functions:** Supabase edge functions are shared (no branch separation). Deploy with:
+```bash
+npx supabase functions deploy <function-name>
+```
+
 ## Tech Stack
 - **React 19** + TypeScript (strict mode)
 - **Vite 5** with PWA plugin
