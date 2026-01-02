@@ -5,6 +5,9 @@ import { useEntryStore } from '../stores/entryStore';
 import { useScoringStore, type QualifyingResult } from '../stores/scoringStore';
 import { useOfflineQueueStore } from '../stores/offlineQueueStore';
 import { getSupabaseLicenseKey } from '../lib/supabase';
+import { replicatedEntriesTable } from '@/services/replication';
+import { convertResultTextToStatus } from '@/utils/transformationUtils';
+import { convertTimeToSeconds } from '@/services/entryTransformers';
 import { logger } from '@/utils/logger';
 
 /**
@@ -95,8 +98,32 @@ export function useOptimisticScoring() {
     // This makes the UI feel instant
     const optimisticResult = scoreData.resultText;
 
-    // Mark as scored in local store (legacy)
+    // Mark as scored in local store (legacy Zustand store)
     markAsScored(entryId, optimisticResult);
+
+    // CRITICAL: Also update the replicated entries cache (IndexedDB)
+    // This ensures the entry moves to Completed tab immediately, even when offline.
+    // Without this, EntryList (which reads from replication cache) won't see the update.
+    // Use queueMutation=false since offlineQueueStore handles the mutation queue separately.
+    try {
+      const resultStatus = convertResultTextToStatus(optimisticResult);
+      const searchTimeSeconds = scoreData.searchTime ? convertTimeToSeconds(scoreData.searchTime) : 0;
+
+      await replicatedEntriesTable.markAsScored(
+        String(entryId),
+        {
+          result_status: resultStatus,
+          search_time_seconds: searchTimeSeconds,
+          total_faults: scoreData.faultCount,
+        },
+        false // Don't queue mutation - offlineQueueStore handles this
+      );
+      logger.log(`✅ [useOptimisticScoring] Updated replicated cache for entry ${entryId}`);
+    } catch (cacheError) {
+      // Non-fatal: cache update failed but we can continue
+      // The entry will sync properly when back online
+      logger.warn(`⚠️ [useOptimisticScoring] Failed to update replicated cache:`, cacheError);
+    }
 
     // Add to scoring session for local tracking
     // Cast to QualifyingResult - resultText should match valid qualifying values at runtime

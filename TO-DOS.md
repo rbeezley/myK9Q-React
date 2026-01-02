@@ -545,9 +545,23 @@ Three different color palettes existed for the same status values:
 
 ---
 
-## Offline Scoring Tab Movement Bug - 2026-01-01 14:27
+## Offline Scoring Tab Movement Bug - 2026-01-01 14:27 ✅ COMPLETE
 
-- **Fix entries not moving to Completed tab after offline scoring** - Scored entries remain in Pending tab until sync completes, despite score being saved locally. **Problem:** When scoring offline, the entry card stays in the Pending tab even though the score was saved locally. The offline indicator correctly shows "1 pending change" and the entry moves to Completed only after going online and syncing. This breaks the workflow because timers can't track which dogs have already run and been scored. **Files:** `src/pages/EntryList/EntryList.tsx` (tab filtering logic), `src/stores/scoringStore.ts` (score state), `src/services/replication/tables/ReplicatedEntriesTable.ts` (local entry state). **Solution:** Tab filtering should check local/optimistic score state, not just Supabase-synced `has_valid_score` flag. When a score is saved offline, immediately update the local entry state so it appears in Completed tab.
+- **FIXED:** Entries now move to Completed tab immediately after offline scoring.
+
+**Root Cause:**
+- `useOptimisticScoring` updated Zustand store (`useEntryStore.markAsScored`)
+- But `EntryList` reads from `ReplicatedEntriesTable` cache (IndexedDB)
+- These are two separate data stores - the cache was never updated when offline
+
+**Solution:**
+- Added `replicatedEntriesTable.markAsScored()` call in `useOptimisticScoring.ts`
+- This updates the IndexedDB cache immediately when scoring
+- The existing subscription in `useEntryListData` detects the change and refreshes UI
+- Entry appears in Completed tab instantly, even when offline
+
+**Files Modified:**
+- [useOptimisticScoring.ts](src/hooks/useOptimisticScoring.ts) - Added replicated cache update after Zustand store update
 
 ---
 
