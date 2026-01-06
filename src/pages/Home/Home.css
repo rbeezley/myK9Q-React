@@ -801,41 +801,40 @@
   border-color: var(--token-error-contrast);
 }
 
+/* Empty state for no favorites - matches ClassList/EntryList pattern */
 .no-favorites {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--token-radius-xl);
-  padding: 3rem var(--token-space-4xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--token-space-4xl) var(--token-space-xl);
   text-align: center;
-  box-shadow: var(--token-shadow-md);
-}
-
-.theme-dark .no-favorites {
-  background: var(--card); /* Uses global card token */
-  box-shadow: var(--token-shadow-md);
+  min-height: 40vh;
+  margin: 0 auto;
+  max-width: 320px;
 }
 
 .no-favorites-icon {
-  width: 3rem;
-  height: 3rem;
-  color: var(--text-tertiary);
+  width: 48px;
+  height: 48px;
   margin: 0 auto var(--token-space-xl);
+  color: var(--token-text-tertiary, #64748b);
+  opacity: 0.6;
 }
 
 .no-favorites h3 {
-  margin: 0 0 var(--token-space-md) 0;
-  font-size: 1.125rem;
-  font-weight: 590;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--foreground);
-  line-height: 1.3;
+  margin: 0 0 var(--token-space-sm) 0;
+  letter-spacing: -0.01em;
 }
 
 .no-favorites p {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
   margin: 0;
-  font-size: 1rem;
-  color: var(--token-text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .entry-grid {
