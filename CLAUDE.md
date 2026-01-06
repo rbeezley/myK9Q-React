@@ -14,17 +14,20 @@ npm run test:e2e     # Playwright E2E tests
 
 ## Deployment Workflow
 
+**⚠️ CRITICAL: NEVER push to `main` without explicit user approval.**
+
 **Branches:**
 - `develop` → deploys to **app.myk9q.com** (staging)
 - `main` → deploys to **myk9q.com** (production)
 
-**Default behavior:** Work on `develop` branch, push to staging for testing.
-
 **Workflow:**
-1. Make changes on `develop` branch
-2. Push to `develop` → auto-deploys to app.myk9q.com (staging)
-3. User tests on staging
-4. When user says "deploy to production" or "push to main" → merge `develop` into `main`
+1. ALWAYS work on `develop` branch
+2. ONLY push to `develop` → auto-deploys to staging for user testing
+3. NEVER merge to `main` or push to `main` unless user explicitly says:
+   - "deploy to production"
+   - "push to main"
+   - "merge to main"
+4. When approved, merge `develop` into `main` and push
 
 **Edge Functions:** Supabase edge functions are shared (no branch separation). Deploy with:
 ```bash
