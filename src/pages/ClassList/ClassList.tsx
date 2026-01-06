@@ -673,18 +673,18 @@ export const ClassList: React.FC = () => {
       <div className="class-list-container">
         <div className="empty-state">
           <div className="empty-state-icon">
-            <List size={48} />
+            <List size={40} strokeWidth={1.5} />
           </div>
           <h2 className="empty-state-title">No Classes Yet</h2>
           {trialInfo?.trial_name && (
-            <p className="empty-state-trial-name">{trialInfo.trial_name}</p>
+            <p className="empty-state-context">{trialInfo.trial_name}</p>
           )}
           <p className="empty-state-message">
             This trial doesn't have any classes set up yet.
             Classes will appear here once they're added.
           </p>
           <div className="empty-state-action">
-            <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+            <button onClick={() => navigate(-1)}>
               <ArrowLeft size={16} />
               Go Back
             </button>

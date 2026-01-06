@@ -768,18 +768,18 @@ export const EntryList: React.FC = () => {
       <div className="entry-list-container">
         <div className="empty-state">
           <div className="empty-state-icon">
-            <Users size={48} />
+            <Users size={40} strokeWidth={1.5} />
           </div>
           <h2 className="empty-state-title">No Entries Yet</h2>
           {classInfo?.className && (
-            <p className="empty-state-class-name">{classInfo.className}</p>
+            <p className="empty-state-context">{classInfo.className}</p>
           )}
           <p className="empty-state-message">
             This class doesn't have any entries yet.
             Entries will appear once they are registered.
           </p>
           <div className="empty-state-action">
-            <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+            <button onClick={() => navigate(-1)}>
               <ArrowLeft size={16} />
               Go Back
             </button>
