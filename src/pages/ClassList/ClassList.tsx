@@ -671,118 +671,22 @@ export const ClassList: React.FC = () => {
   if (classes.length === 0 && !isLoading) {
     return (
       <div className="class-list-container">
-        <header className="page-header class-list-header">
-          <HamburgerMenu
-            currentPage="entries"
-            backNavigation={{
-              label: "Back to Home",
-              action: () => navigate('/home')
-            }}
-          />
-          <CompactOfflineIndicator />
-
-          <div className="trial-info">
-            <h1>
-              <List className="title-icon" />
-              {trialInfo.trial_name}
-            </h1>
-            <div className="trial-subtitle">
-              <div className="trial-info-row">
-                <div className="trial-details-group">
-                  <TrialDateBadge
-                    date={trialInfo.trial_date}
-                    trialNumber={trialInfo.trial_number}
-                    dateOnly={true}
-                  />
-                  <span className="trial-detail">
-                    Trial {trialInfo.trial_number}
-                  </span>
-                </div>
-              </div>
-            </div>
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <List size={48} />
           </div>
-
-          <div className="header-buttons">
-            <button
-              className="icon-button"
-              onClick={handleRefresh}
-              disabled={isRefreshing || isManualRefreshing}
-              aria-label="Refresh"
-            >
-              <RefreshCw className={`h-5 w-5 ${(isRefreshing || isManualRefreshing) ? 'rotating' : ''}`} />
-            </button>
-          </div>
-        </header>
-
-        {/* Empty state card - styled like dialogs but inline */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          padding: '2rem 1rem'
-        }}>
-          <div style={{
-            background: 'var(--card)',
-            borderRadius: '16px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-            border: '1px solid var(--border)',
-            padding: '2rem 1.5rem',
-            maxWidth: '360px',
-            width: '100%',
-            textAlign: 'center'
-          }}>
-            {/* Icon container - matching About dialog style */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginBottom: '1rem'
-            }}>
-              <div style={{
-                width: '72px',
-                height: '72px',
-                borderRadius: '16px',
-                background: 'var(--muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                border: '2px solid var(--border)'
-              }}>
-                <List size={32} style={{ color: 'var(--muted-foreground)' }} />
-              </div>
-            </div>
-
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: 'var(--foreground)',
-              marginBottom: '0.5rem'
-            }}>
-              No Classes Yet
-            </h2>
-
-            <p style={{
-              fontSize: '0.9375rem',
-              color: 'var(--muted-foreground)',
-              lineHeight: 1.6,
-              marginBottom: '1.5rem'
-            }}>
-              This trial doesn't have any classes set up yet. Classes will appear here once they're added.
-            </p>
-
-            <button
-              onClick={() => navigate('/home')}
-              className="primary-button"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1.5rem',
-                fontSize: '0.9375rem',
-                fontWeight: 500
-              }}
-            >
-              <ArrowLeft size={18} />
-              Back to Dashboard
+          <h2 className="empty-state-title">No Classes Yet</h2>
+          {trialInfo?.trial_name && (
+            <p className="empty-state-trial-name">{trialInfo.trial_name}</p>
+          )}
+          <p className="empty-state-message">
+            This trial doesn't have any classes set up yet.
+            Classes will appear here once they're added.
+          </p>
+          <div className="empty-state-action">
+            <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={16} />
+              Go Back
             </button>
           </div>
         </div>
