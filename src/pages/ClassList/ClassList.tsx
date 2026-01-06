@@ -630,7 +630,13 @@ export const ClassList: React.FC = () => {
   }
 
   // Show error state with retry button if fetch failed
-  if (fetchError) {
+  // BUT: "Could not find" errors typically mean empty data (no classes), not a real error
+  // So we let those fall through to the empty state handling below
+  const isEmptyDataError = fetchError?.message?.toLowerCase().includes('could not find') ||
+    fetchError?.message?.toLowerCase().includes('no rows') ||
+    fetchError?.message?.toLowerCase().includes('not found');
+
+  if (fetchError && !isEmptyDataError) {
     return (
       <div className="class-list-container">
         <ErrorState
