@@ -31,6 +31,7 @@ export function Settings() {
     showResetConfirm,
     showClearDataConfirm,
     isClearing,
+    isRefreshing,
     searchQuery,
     storageUsage,
     isPushSubscribed,
@@ -48,6 +49,7 @@ export function Settings() {
     handleDevModeTap,
     handlePushToggle,
     handleClearData,
+    handleRefreshAllData,
     handleExportData,
     handleExportSettings,
     handleImportClick,
@@ -212,7 +214,9 @@ export function Settings() {
               onClearData={() => setShowClearDataConfirm(true)}
               onExportSettings={handleExportSettings}
               onImportSettings={handleImportClick}
+              onRefreshAllData={handleRefreshAllData}
               isClearing={isClearing}
+              isRefreshing={isRefreshing}
             />
           )}
 
