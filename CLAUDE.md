@@ -169,6 +169,7 @@ npx supabase secrets set KEY=value      # Set secret
 ```
 
 ## Reference Docs
+- [PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md) - Full product scope, features, and roadmap
 - [DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md) - Views, functions, triggers, query patterns
 - [CSS_ARCHITECTURE.md](docs/CSS_ARCHITECTURE.md) - CSS patterns
 
