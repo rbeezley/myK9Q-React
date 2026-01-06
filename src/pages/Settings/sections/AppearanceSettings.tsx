@@ -20,11 +20,11 @@ export const AppearanceSettings: React.FC = () => {
             <SettingsRow
                 icon={settings.theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
                 label="Theme"
-                description={`Currently: ${settings.theme === 'auto' ? 'System Default' : settings.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}`}
+                description={`Currently: ${settings.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}`}
                 action={
                     <select
                         value={settings.theme}
-                        onChange={(e) => updateSettings({ theme: e.target.value as 'light' | 'dark' | 'auto' })}
+                        onChange={(e) => updateSettings({ theme: e.target.value as 'light' | 'dark' })}
                         className="settings-select"
                         style={{
                             backgroundColor: 'var(--input-bg)',
@@ -35,7 +35,6 @@ export const AppearanceSettings: React.FC = () => {
                             outline: 'none'
                         }}
                     >
-                        <option value="auto">Auto</option>
                         <option value="light">Light</option>
                         <option value="dark">Dark</option>
                     </select>

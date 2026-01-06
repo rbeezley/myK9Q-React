@@ -632,8 +632,8 @@
 .warning-banner {
   margin: var(--token-space-xl) 0;
   border-radius: var(--token-space-lg);
-  background: var(--status-setup);
-  border: var(--token-space-xs) solid #fef3c7;
+  background: #fef3c7;  /* Light amber background for readability */
+  border: var(--token-space-xs) solid #f59e0b;  /* Amber border */
   overflow: hidden;
 }
 
@@ -658,8 +658,8 @@
 }
 
 .validation-message {
-  background: var(--status-setup);
-  border-color: var(--status-setup);
+  background: #fef3c7;  /* Light amber background for readability */
+  border-color: #f59e0b;  /* Amber border */
 }
 
 .error-message {
@@ -687,7 +687,7 @@
 }
 
 .validation-message .message-icon {
-  color: var(--token-warning-contrast);
+  color: #92400e;  /* Dark amber - high contrast on orange */
 }
 
 .error-message .message-icon {
@@ -705,7 +705,7 @@
 }
 
 .validation-message .message-content p {
-  color: var(--token-warning-contrast);
+  color: #78350f;  /* Dark brown - high contrast on orange */
 }
 
 .error-message .message-content p {
@@ -726,7 +726,7 @@
 .warning-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--token-warning-contrast);
+  color: #92400e;  /* Dark amber - high contrast on orange */
   flex-shrink: 0;
   margin-top: var(--token-space-xs);
 }
@@ -737,7 +737,7 @@
 
 .warning-text p {
   margin: 0;
-  color: var(--token-warning-contrast);
+  color: #78350f;  /* Dark brown - high contrast on orange background */
   line-height: 1.5;
 }
 
@@ -751,30 +751,30 @@
 
 /* Dark mode support for warning banner */
 .theme-dark .warning-banner {
-  background: var(--token-warning-contrast);
-  border-color: var(--status-setup);
+  background: #451a03;  /* Dark amber - visible in dark mode */
+  border-color: #f59e0b;  /* Amber border */
 }
 
 .theme-dark .warning-icon {
-  color: var(--primary);
+  color: #fcd34d;  /* Light amber - high contrast on dark */
 }
 
 .theme-dark .warning-text p {
-  color: var(--primary);
+  color: #fef3c7;  /* Cream - high contrast on dark amber */
 }
 
 /* Message Banners Dark Mode */
 .theme-dark .validation-message {
-  background: var(--token-warning-contrast);
-  border-color: var(--status-setup);
+  background: #451a03;  /* Dark amber - visible in dark mode */
+  border-color: #f59e0b;  /* Amber border */
 }
 
 .theme-dark .validation-message .message-icon {
-  color: var(--primary);
+  color: #fcd34d;  /* Light amber - high contrast on dark */
 }
 
 .theme-dark .validation-message .message-content p {
-  color: var(--primary);
+  color: #fef3c7;  /* Cream - high contrast on dark amber */
 }
 
 .theme-dark .error-message {

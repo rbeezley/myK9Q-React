@@ -42,16 +42,9 @@
       settings = persistedData;
     }
 
-    // Apply theme mode (light/dark/auto)
-    const themeMode = settings.theme || 'auto';
-
-    if (themeMode === 'auto') {
-      // Detect system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyThemeClass(prefersDark ? 'dark' : 'light');
-    } else {
-      applyThemeClass(themeMode);
-    }
+    // Apply theme mode (light/dark only - 'auto' removed, fallback to 'light')
+    const themeMode = settings.theme || 'light';
+    applyThemeClass(themeMode === 'dark' ? 'dark' : 'light');
 
     // Apply accent color class (new system)
     const accentColor = settings.accentColor || 'green';

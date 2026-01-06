@@ -494,13 +494,26 @@ Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Lo
 34130         GoTo Exit_Sub
 34140     End If
 34150     Set http = Nothing
-          
+
+          ' Track seen (class_id, armband) combinations to prevent duplicates
+          Dim seenEntries As Scripting.Dictionary
+          Set seenEntries = New Scripting.Dictionary
+          Dim entryKey As String
+
 34160     recordsArray = "["
 34170     rs.MoveFirst
 34180     Do While Not rs.EOF
               Dim supaClassID As Long
 34190         supaClassID = classIdMap(CStr(rs!ClassID_FK))
 34200         If supaClassID > 0 Then
+                  ' Check for duplicate (class_id, armband) - skip if already seen
+                  entryKey = supaClassID & "_" & Nz(rs!Armband, 0)
+                  If seenEntries.Exists(entryKey) Then
+                      'Debug.Print "SKIPPING DUPLICATE: Class " & supaClassID & ", Armband " & rs!Armband
+                      GoTo NextEntry
+                  End If
+                  seenEntries.Add entryKey, True
+
 34210             json = "{" & _
                             """class_id"": " & supaClassID & "," & _
                             """armband_number"": " & Nz(rs!Armband, 0) & "," & _
@@ -576,8 +589,10 @@ Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Lo
               json = json & "}"
 34220             recordsArray = recordsArray & json & ","
 34230         End If
+NextEntry:
 34240         rs.MoveNext
 34250     Loop
+          Set seenEntries = Nothing
 34260     rs.Close
           
 34270     If Len(recordsArray) <= 1 Then GoTo Exit_Sub
@@ -594,7 +609,7 @@ Private Sub SyncEntriesViaAPI_v3(ByVal lngTrialID As Long, ByVal lngShowID As Lo
 Exit_Sub:
 34370     On Error Resume Next
 34380     Set db = Nothing: Set rs = Nothing: Set http = Nothing
-34390     Set classIdMap = Nothing
+34390     Set classIdMap = Nothing: Set seenEntries = Nothing
 34400     Exit Sub
 Error_Handler:
 34410     MsgBox "Error in SyncEntriesViaAPI_v3: " & Err.Description, vbCritical
@@ -640,12 +655,10 @@ Private Function GetSupabaseShowID_v3(ByVal licenseKey As String) As Long
 34670         Set parsedJson = ParseJson(jsonResponse)
               ' VBA doesn't short-circuit And, so use nested If to avoid error on Nothing
 34680         If Not parsedJson Is Nothing Then
-                  If parsedJson.count > 0 Then
-                      ' VBA-JSON returns Dictionary with numeric keys; use Val() for bigint conversion
-                      Dim firstKey As Variant
-                      firstKey = parsedJson.Keys()(0)
+                  If parsedJson.Count > 0 Then
+                      ' VBA-JSON returns a Collection for arrays (1-indexed)
                       Dim firstItem As Object
-                      Set firstItem = parsedJson(firstKey)
+                      Set firstItem = parsedJson(1)
                       GetSupabaseShowID_v3 = CLng(Val(firstItem("id")))
                   End If
               End If
@@ -676,12 +689,10 @@ Private Function GetSupabaseTrialID_v3(ByVal licenseKey As String, ByVal accessT
 34860         Set parsedJson = ParseJson(jsonResponse)
               ' VBA doesn't short-circuit And, so use nested If to avoid error on Nothing
 34870         If Not parsedJson Is Nothing Then
-                  If parsedJson.count > 0 Then
-                      ' VBA-JSON returns Dictionary with numeric keys; use Val() for bigint conversion
-                      Dim firstKey As Variant
-                      firstKey = parsedJson.Keys()(0)
+                  If parsedJson.Count > 0 Then
+                      ' VBA-JSON returns a Collection for arrays (1-indexed)
                       Dim firstItem As Object
-                      Set firstItem = parsedJson(firstKey)
+                      Set firstItem = parsedJson(1)
                       GetSupabaseTrialID_v3 = CLng(Val(firstItem("id")))
                   End If
               End If
@@ -714,12 +725,10 @@ Private Function GetSupabaseClassID_v3(ByVal licenseKey As String, ByVal accessC
 35070         Set parsedJson = ParseJson(jsonResponse)
               ' VBA doesn't short-circuit And, so use nested If to avoid error on Nothing
 35080         If Not parsedJson Is Nothing Then
-                  If parsedJson.count > 0 Then
-                      ' VBA-JSON returns Dictionary with numeric keys; use Val() for bigint conversion
-                      Dim firstKey As Variant
-                      firstKey = parsedJson.Keys()(0)
+                  If parsedJson.Count > 0 Then
+                      ' VBA-JSON returns a Collection for arrays (1-indexed)
                       Dim firstItem As Object
-                      Set firstItem = parsedJson(firstKey)
+                      Set firstItem = parsedJson(1)
                       GetSupabaseClassID_v3 = CLng(Val(firstItem("id")))
                   End If
               End If

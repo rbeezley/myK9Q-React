@@ -14,7 +14,7 @@ export const SETTINGS_VERSION = '1.0.0';
 
 export interface AppSettings {
   // Display
-  theme: 'light' | 'dark' | 'auto';
+  theme: 'light' | 'dark';
   accentColor: 'green' | 'blue' | 'orange' | 'purple';
 
   // Performance
@@ -62,7 +62,7 @@ interface SettingsState {
 
 const defaultSettings: AppSettings = {
   // Display
-  theme: 'auto',
+  theme: 'light',
   accentColor: 'green',
 
   // Performance
@@ -124,7 +124,7 @@ export const useSettingsStore = create<SettingsState>()(
 
         resetSettings: () => {
           set({ settings: defaultSettings });
-          applyTheme('auto');
+          applyTheme('light');
           applyAccentColor('green');
         },
 
@@ -179,45 +179,10 @@ export const useSettingsStore = create<SettingsState>()(
 /**
  * Apply theme to document
  */
-function applyTheme(theme: 'light' | 'dark' | 'auto') {
+function applyTheme(theme: 'light' | 'dark') {
   const root = document.documentElement;
-
-  if (theme === 'auto') {
-    // Detect system preference and apply appropriate class
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    root.classList.remove('theme-light', 'theme-dark');
-    root.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
-  } else {
-    root.classList.remove('theme-light', 'theme-dark');
-    root.classList.add(`theme-${theme}`);
-  }
-}
-
-/**
- * Listen for system theme changes and update when in 'auto' mode
- */
-let systemThemeListener: ((e: MediaQueryListEvent) => void) | null = null;
-
-function setupSystemThemeListener() {
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-  // Remove existing listener if any
-  if (systemThemeListener) {
-    mediaQuery.removeEventListener('change', systemThemeListener);
-  }
-
-  // Create new listener
-  systemThemeListener = (e: MediaQueryListEvent) => {
-    const { settings } = useSettingsStore.getState();
-    if (settings.theme === 'auto') {
-      const root = document.documentElement;
-      root.classList.remove('theme-light', 'theme-dark');
-      root.classList.add(e.matches ? 'theme-dark' : 'theme-light');
-    }
-  };
-
-  // Add listener
-  mediaQuery.addEventListener('change', systemThemeListener);
+  root.classList.remove('theme-light', 'theme-dark');
+  root.classList.add(`theme-${theme}`);
 }
 
 /**
@@ -249,6 +214,4 @@ export function initializeSettings() {
   const { settings } = useSettingsStore.getState();
   // Theme already applied by blocking script in index.html
   applyAccentColor(settings.accentColor || 'green');
-  // Listen for system theme changes (for 'auto' mode)
-  setupSystemThemeListener();
 }

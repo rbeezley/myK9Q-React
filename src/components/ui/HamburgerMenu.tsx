@@ -6,7 +6,7 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import { useAnnouncementStore } from '../../stores/announcementStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useSafeLogout } from '../../hooks/useSafeLogout';
-import { Menu, X, Home as HomeIcon, Inbox, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Smartphone, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
+import { Menu, X, Home as HomeIcon, Inbox, Monitor, Settings as SettingsIcon, BookOpen, Sun, Moon, Info, BarChart3, MessageSquare, Building2, Trophy, ClipboardList } from 'lucide-react';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { AskMyK9Q } from '../chatbot/AskMyK9Q';
 import { PendingScoresWarningDialog } from '../dialogs/PendingScoresWarningDialog';
@@ -75,29 +75,18 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
     }
   }, [showContext, currentLicenseKey, setLicenseKey]);
 
-  // Cycle through theme modes: light → dark → auto → light
+  // Toggle between light and dark theme
   const cycleTheme = () => {
-    const cycle: Record<string, 'light' | 'dark' | 'auto'> = {
-      light: 'dark',
-      dark: 'auto',
-      auto: 'light',
-    };
-    const nextTheme = cycle[settings.theme] || 'light';
+    const nextTheme = settings.theme === 'light' ? 'dark' : 'light';
     updateSettings({ theme: nextTheme });
   };
 
   // Get theme icon and label for current setting
   const getThemeDisplay = () => {
-    switch (settings.theme) {
-      case 'light':
-        return { icon: Sun, label: 'Light Mode' };
-      case 'dark':
-        return { icon: Moon, label: 'Dark Mode' };
-      case 'auto':
-        return { icon: Smartphone, label: 'Auto (System)' };
-      default:
-        return { icon: Sun, label: 'Light Mode' };
+    if (settings.theme === 'dark') {
+      return { icon: Moon, label: 'Dark Mode' };
     }
+    return { icon: Sun, label: 'Light Mode' };
   };
 
   const themeDisplay = getThemeDisplay();
