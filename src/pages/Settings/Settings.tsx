@@ -171,7 +171,11 @@ export function Settings() {
 
           {/* Sections */}
           {shouldShowSection('General') && ( // Conditional rendering
-            <GeneralSettings onShowOnboarding={handleShowOnboarding} />
+            <GeneralSettings
+              onShowOnboarding={handleShowOnboarding}
+              onRefreshAllData={handleRefreshAllData}
+              isRefreshing={isRefreshing}
+            />
           )}
 
           {shouldShowSection('Appearance') && ( // Conditional rendering
