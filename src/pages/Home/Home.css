@@ -801,41 +801,7 @@
   border-color: var(--token-error-contrast);
 }
 
-/* Empty state for no favorites - matches ClassList/EntryList pattern */
-.no-favorites {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--token-space-4xl) var(--token-space-xl);
-  text-align: center;
-  min-height: 40vh;
-  margin: 0 auto;
-  max-width: 320px;
-}
-
-.no-favorites-icon {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto var(--token-space-xl);
-  color: var(--token-text-tertiary, #64748b);
-  opacity: 0.6;
-}
-
-.no-favorites h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--foreground);
-  margin: 0 0 var(--token-space-sm) 0;
-  letter-spacing: -0.01em;
-}
-
-.no-favorites p {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  margin: 0;
-  line-height: 1.6;
-}
+/* No favorites empty state - styles in shared /styles/empty-state.css */
 
 .entry-grid {
   display: grid;

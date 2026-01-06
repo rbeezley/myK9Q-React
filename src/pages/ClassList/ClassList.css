@@ -1492,71 +1492,7 @@
   to { transform: rotate(360deg); }
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--token-space-4xl) var(--token-space-xl);
-  text-align: center;
-  min-height: 60vh;
-  margin: 0 auto;
-  max-width: 320px;
-}
-
-.empty-state-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--token-space-xl);
-  color: var(--token-text-tertiary, #64748b);
-  opacity: 0.6;
-}
-
-.empty-state-icon svg {
-  width: 48px;
-  height: 48px;
-}
-
-.empty-state-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--foreground);
-  margin: 0 0 var(--token-space-sm) 0;
-  letter-spacing: -0.01em;
-}
-
-.empty-state-trial-name {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--primary, #14b8a6);
-  margin: 0 0 var(--token-space-lg) 0;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.4;
-}
-
-.empty-state-message {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  margin: 0 0 var(--token-space-3xl) 0;
-  line-height: 1.6;
-}
-
-.empty-state-action .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--token-space-md);
-  padding: var(--token-space-lg) var(--token-space-2xl);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-.empty-state-action .btn:hover {
-  transform: translateY(-2px);
-}
+/* Empty state styles moved to shared /styles/empty-state.css */
 
 /* ========== COMPACT NO-ENTRIES STATE (inside class card) ========== */
 /* Override the full-page .no-entries styles when inside a class card */
