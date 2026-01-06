@@ -714,40 +714,77 @@ export const ClassList: React.FC = () => {
           </div>
         </header>
 
-        <div className="empty-state-container" style={{
+        {/* Empty state card - styled like dialogs but inline */}
+        <div style={{
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
           justifyContent: 'center',
-          padding: '3rem 1.5rem',
-          textAlign: 'center',
-          minHeight: '300px'
+          padding: '2rem 1rem'
         }}>
-          <List size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
-          <h2 style={{
-            fontSize: '1.25rem',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            marginBottom: '0.5rem'
+          <div style={{
+            background: 'var(--card)',
+            borderRadius: '16px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            border: '1px solid var(--border)',
+            padding: '2rem 1.5rem',
+            maxWidth: '360px',
+            width: '100%',
+            textAlign: 'center'
           }}>
-            No Classes Yet
-          </h2>
-          <p style={{
-            color: 'var(--text-secondary)',
-            maxWidth: '300px',
-            lineHeight: 1.5,
-            marginBottom: '1.5rem'
-          }}>
-            This trial doesn't have any classes set up yet. Classes will appear here once they're added.
-          </p>
-          <button
-            onClick={() => navigate('/home')}
-            className="primary-button"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <ArrowLeft size={16} />
-            Back to Dashboard
-          </button>
+            {/* Icon container - matching About dialog style */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: '1rem'
+            }}>
+              <div style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '16px',
+                background: 'var(--muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '2px solid var(--border)'
+              }}>
+                <List size={32} style={{ color: 'var(--muted-foreground)' }} />
+              </div>
+            </div>
+
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: 'var(--foreground)',
+              marginBottom: '0.5rem'
+            }}>
+              No Classes Yet
+            </h2>
+
+            <p style={{
+              fontSize: '0.9375rem',
+              color: 'var(--muted-foreground)',
+              lineHeight: 1.6,
+              marginBottom: '1.5rem'
+            }}>
+              This trial doesn't have any classes set up yet. Classes will appear here once they're added.
+            </p>
+
+            <button
+              onClick={() => navigate('/home')}
+              className="primary-button"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                fontSize: '0.9375rem',
+                fontWeight: 500
+              }}
+            >
+              <ArrowLeft size={18} />
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
