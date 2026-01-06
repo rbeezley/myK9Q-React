@@ -105,11 +105,10 @@
   padding-bottom: 100px; /* Space for fixed action buttons if needed */
 }
 
-/* Enhanced Card Components with Glass Morphism */
+/* Enhanced Card Components - Opaque backgrounds for reliable rendering */
 .scoresheet-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback - prevents flash */
+  border: 1px solid var(--border, #e5e7eb);
   border-radius: 1rem;
   padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
@@ -119,7 +118,7 @@
 }
 
 .theme-dark .scoresheet-card {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -148,18 +147,17 @@
 
 /* Dog Header Card - Enhanced */
 .dog-header-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1.25rem;
   padding: var(--token-space-4xl);
   box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border, #e5e7eb);
   position: relative;
   overflow: hidden;
 }
 
 .theme-dark .dog-header-card {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-md) var(--token-space-4xl) rgba(0, 0, 0, 0.3);
 }
 
@@ -268,17 +266,16 @@
 
 /* Enhanced Form Elements */
 .form-section {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1rem;
   padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border, #e5e7eb);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .theme-dark .form-section {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -406,16 +403,15 @@
 
 /* Qualifying/Result Buttons */
 .qualifying-section {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1rem;
   padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border, #e5e7eb);
 }
 
 .theme-dark .qualifying-section {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -493,17 +489,16 @@
 
 /* Reason Section */
 .reason-section {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1rem;
   padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border, #e5e7eb);
   animation: slideIn 0.3s ease;
 }
 
 .theme-dark .reason-section {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -536,12 +531,11 @@
 
 /* Action Buttons Section */
 .action-buttons {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1rem;
   padding: var(--token-space-3xl);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border, #e5e7eb);
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   gap: var(--token-space-xl);
@@ -549,7 +543,7 @@
 }
 
 .theme-dark .action-buttons {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
@@ -608,8 +602,7 @@
 }
 
 .confirmation-dialog {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1.25rem;
   padding: var(--token-space-4xl);
   max-width: 400px;
@@ -618,11 +611,11 @@
   overflow-y: auto;
   box-shadow: 0 var(--token-space-2xl) 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border, #e5e7eb);
 }
 
 .theme-dark .confirmation-dialog {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
 }
 
 @keyframes slideUp {
@@ -703,16 +696,15 @@
 .no-entries {
   text-align: center;
   padding: 3rem var(--token-space-4xl);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background: var(--card, #FEFDFB);  /* Opaque with fallback */
   border-radius: 1rem;
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border, #e5e7eb);
   margin: var(--token-space-4xl);
 }
 
 .theme-dark .no-entries {
-  background: var(--card); /* Uses global card token */
+  background: var(--card, #26292e);
   box-shadow: 0 var(--token-space-sm) var(--token-space-lg) rgba(0, 0, 0, 0.3);
 }
 
