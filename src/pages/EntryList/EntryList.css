@@ -1502,3 +1502,27 @@
 }
 
 /* Empty state styles moved to shared /styles/empty-state.css */
+
+/* ========== PLACEMENT INFO BANNER ========== */
+/* Shown when sorting by placement but no placements are calculated yet */
+
+.placement-info-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  margin: var(--token-space-sm) 0;
+  background: var(--info-bg, rgba(59, 130, 246, 0.1));
+  border-radius: var(--token-radius-md);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.placement-info-banner svg {
+  color: var(--info-text, #3b82f6);
+  flex-shrink: 0;
+}
+
+.theme-dark .placement-info-banner {
+  background: rgba(59, 130, 246, 0.15);
+}

@@ -646,7 +646,8 @@ export async function fetchFastestTimes(
       searchTimeSeconds: time.search_time_seconds,
       timeRank: currentRank,
       element: time.element,
-      level: time.level
+      level: time.level,
+      classId: time.class_id ? Number(time.class_id) : undefined
     };
   });
 

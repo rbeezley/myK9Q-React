@@ -6,17 +6,42 @@
  * The toggles to enable voice are in the respective sections (Notifications, Scoring).
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Volume2, MessageSquare } from 'lucide-react';
+import { Volume2, MessageSquare, Info } from 'lucide-react';
 import voiceAnnouncementService from '@/services/voiceAnnouncementService';
+
+/**
+ * Detect if running on iOS device
+ */
+function isIOSDevice(): boolean {
+    const ua = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+/**
+ * Detect if running as installed PWA (standalone mode)
+ */
+function isStandaloneMode(): boolean {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+}
 
 export function VoiceSettingsSection(): React.ReactElement {
     const { settings, updateSettings } = useSettingsStore();
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [isTesting, setIsTesting] = useState(false);
+
+    // Detect iOS + PWA limitation
+    const showIOSWarning = useMemo(() => {
+        return isIOSDevice();
+    }, []);
+
+    const isInstalledPWA = useMemo(() => {
+        return isStandaloneMode();
+    }, []);
 
     // Load available voices
     useEffect(() => {
@@ -50,6 +75,30 @@ export function VoiceSettingsSection(): React.ReactElement {
 
     return (
         <SettingsSection title="Voice Settings">
+            {/* iOS Voice Limitation Warning */}
+            {showIOSWarning && (
+                <div style={{
+                    display: 'flex',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: 'var(--warning-bg, rgba(251, 191, 36, 0.1))',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    alignItems: 'flex-start'
+                }}>
+                    <Info size={20} style={{ color: 'var(--warning-text, #d97706)', flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                        <strong style={{ color: 'var(--warning-text, #d97706)' }}>iOS Limitation:</strong>
+                        {' '}
+                        {isInstalledPWA ? (
+                            <>Voice announcements don&apos;t work when installed as an app. Open myK9Q in Safari browser to use voice features.</>
+                        ) : (
+                            <>Voice announcements may not work when this app is installed to your home screen. For reliable voice, use Safari browser directly.</>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <SettingsRow
                 icon={<MessageSquare size={20} />}
                 label="Voice"

@@ -83,6 +83,7 @@ export interface FastestTimeEntry {
   timeRank: number;  // Same rank for ties
   element?: string;
   level?: string;
+  classId?: number;  // For visibility filtering
 }
 
 // Filter state

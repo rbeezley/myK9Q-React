@@ -14,7 +14,7 @@ import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
 import { AreaCountSelectionDialog, AreaCountRequirements } from '../../components/dialogs/AreaCountSelectionDialog';
 import { replicatedClassesTable } from '@/services/replication';
-import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft, Info } from 'lucide-react';
 import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, ReportClassInfo, ScoresheetClassInfo } from '../../services/reportService';
 import { parseOrganizationData, hasRuleDefinedMaxTimes, tryApplyFixedMaxTime } from '../../utils/organizationUtils';
 import { supabase } from '../../lib/supabase';
@@ -738,6 +738,14 @@ export const EntryList: React.FC = () => {
     return options;
   }, [activeTab]);
 
+  // Check if any completed entries have placements (for user feedback)
+  const hasPlacementData = useMemo(() => {
+    return completedEntries.some(entry => entry.placement !== null && entry.placement !== undefined);
+  }, [completedEntries]);
+
+  // Show placement info when sorting by placement but no placements exist
+  const showPlacementInfo = sortOrder === 'placement' && !hasPlacementData && completedEntries.length > 0;
+
   const hasActiveFilters = searchTerm.length > 0 || sortOrder !== 'run';
 
   // Loading state - show spinner while we haven't completed initial load
@@ -821,6 +829,14 @@ export const EntryList: React.FC = () => {
         activeTab={activeTab}
         onTabChange={(tabId) => setActiveTab(tabId as TabType)}
       />
+
+      {/* Placement sort info - shown when sorting by placement but no placements calculated */}
+      {showPlacementInfo && (
+        <div className="placement-info-banner">
+          <Info size={16} />
+          <span>Placements are calculated when the class is marked as completed.</span>
+        </div>
+      )}
 
       <PullToRefresh onRefresh={() => refresh(true)} enabled threshold={80}>
         <div className="entry-list-scrollable">
