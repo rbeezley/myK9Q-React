@@ -661,6 +661,92 @@ export const ClassList: React.FC = () => {
     );
   }
 
+  // Show friendly empty state when trial exists but has no classes
+  if (classes.length === 0 && !isLoading) {
+    return (
+      <div className="class-list-container">
+        <header className="page-header class-list-header">
+          <HamburgerMenu
+            currentPage="entries"
+            backNavigation={{
+              label: "Back to Home",
+              action: () => navigate('/home')
+            }}
+          />
+          <CompactOfflineIndicator />
+
+          <div className="trial-info">
+            <h1>
+              <List className="title-icon" />
+              {trialInfo.trial_name}
+            </h1>
+            <div className="trial-subtitle">
+              <div className="trial-info-row">
+                <div className="trial-details-group">
+                  <TrialDateBadge
+                    date={trialInfo.trial_date}
+                    trialNumber={trialInfo.trial_number}
+                    dateOnly={true}
+                  />
+                  <span className="trial-detail">
+                    Trial {trialInfo.trial_number}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="header-buttons">
+            <button
+              className="icon-button"
+              onClick={handleRefresh}
+              disabled={isRefreshing || isManualRefreshing}
+              aria-label="Refresh"
+            >
+              <RefreshCw className={`h-5 w-5 ${(isRefreshing || isManualRefreshing) ? 'rotating' : ''}`} />
+            </button>
+          </div>
+        </header>
+
+        <div className="empty-state-container" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '3rem 1.5rem',
+          textAlign: 'center',
+          minHeight: '300px'
+        }}>
+          <List size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
+          <h2 style={{
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            marginBottom: '0.5rem'
+          }}>
+            No Classes Yet
+          </h2>
+          <p style={{
+            color: 'var(--text-secondary)',
+            maxWidth: '300px',
+            lineHeight: 1.5,
+            marginBottom: '1.5rem'
+          }}>
+            This trial doesn't have any classes set up yet. Classes will appear here once they're added.
+          </p>
+          <button
+            onClick={() => navigate('/home')}
+            className="primary-button"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`class-list-container ${isLoaded ? 'loaded' : ''}`} data-loaded={isLoaded}>
       {/* Enhanced Header with Trial Info */}
