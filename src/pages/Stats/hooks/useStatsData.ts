@@ -206,15 +206,32 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
         fetchTotalEntriesCount(context, licenseKey)
       ]);
 
+      // When restricting times, hide all time-based statistics
+      // This ensures non-admin/judge users can't see times from incomplete classes
+      const shouldHideTimes = context.restrictTimesToCompletedClasses ?? false;
+
+      // Strip time data from breed stats if restricting
+      const processedBreedStats = shouldHideTimes
+        ? breedStats.map(b => ({ ...b, averageTime: null, fastestTime: null }))
+        : breedStats;
+
+      // Strip time data from judge stats if restricting
+      const processedJudgeStats = shouldHideTimes
+        ? judgeStats.map(j => ({ ...j, averageQualifiedTime: null }))
+        : judgeStats;
+
       // Assemble final stats data
       setData({
         ...counts,
         ...rates,
-        ...timeStats,
+        // Hide aggregate time stats if restricting (they include incomplete class data)
+        averageTime: shouldHideTimes ? null : timeStats.averageTime,
+        medianTime: shouldHideTimes ? null : timeStats.medianTime,
         totalAllEntries,
+        // fastestTime from fastestTimesResult is already filtered by fetchFastestTimes
         fastestTime: fastestTimesResult.fastestTime,
-        breedStats,
-        judgeStats,
+        breedStats: processedBreedStats,
+        judgeStats: processedJudgeStats,
         cleanSweepDogs,
         fastestTimes: fastestTimesResult.fastestTimes
       });
