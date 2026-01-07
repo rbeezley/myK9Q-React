@@ -595,10 +595,16 @@ export async function fetchJudgeSummaryData(
 
 /**
  * Fetch and process fastest times
+ *
+ * @param context - Stats context with level and filters
+ * @param licenseKey - Show license key
+ * @param restrictToCompletedClasses - When true, only include times from completed classes
+ *                                     (for non-admin/judge users to respect visibility settings)
  */
 export async function fetchFastestTimes(
   context: StatsContext,
-  licenseKey: string
+  licenseKey: string,
+  restrictToCompletedClasses: boolean = false
 ): Promise<{ fastestTimes: FastestTimeEntry[]; fastestTime: FastestTimeEntry | null }> {
   let query = supabase
     .from('view_fastest_times')
@@ -616,9 +622,39 @@ export async function fetchFastestTimes(
   const { data, error } = await query;
   if (error) throw error;
 
+  // If restricting to completed classes, fetch class statuses and filter
+  let filteredData = data || [];
+  if (restrictToCompletedClasses && filteredData.length > 0) {
+    // Get unique class IDs from the results
+    const classIds = [...new Set(filteredData.map(d => d.class_id).filter(Boolean))];
+
+    if (classIds.length > 0) {
+      // Fetch class statuses
+      const { data: classData, error: classError } = await supabase
+        .from('classes')
+        .select('id, class_status, is_scoring_finalized')
+        .in('id', classIds);
+
+      if (classError) {
+        logger.error('Error fetching class statuses for visibility filter:', classError);
+      } else if (classData) {
+        // Build set of completed class IDs
+        const completedClassIds = new Set(
+          classData
+            .filter(c => c.class_status === 'completed' || c.is_scoring_finalized === true)
+            .map(c => c.id)
+        );
+
+        // Filter to only times from completed classes
+        filteredData = filteredData.filter(d => d.class_id && completedClassIds.has(d.class_id));
+        logger.log(`📊 Stats: Filtered fastest times to ${filteredData.length} entries from ${completedClassIds.size} completed classes`);
+      }
+    }
+  }
+
   // Filter to unique dogs (keep only fastest time per dog)
   const dogMap = new Map<string, FastestTimesQueryResult>();
-  for (const time of data || []) {
+  for (const time of filteredData) {
     const existing = dogMap.get(time.armband_number);
     if (!existing || time.search_time_seconds < existing.search_time_seconds) {
       dogMap.set(time.armband_number, time);

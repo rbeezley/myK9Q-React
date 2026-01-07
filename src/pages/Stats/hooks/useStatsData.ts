@@ -201,7 +201,7 @@ export function useStatsData(context: StatsContext): UseStatsDataReturn {
       const [breedStats, judgeStats, fastestTimesResult, cleanSweepDogs, totalAllEntries] = await Promise.all([
         fetchBreedStats(context, licenseKey, statsData),
         fetchJudgeStats(context, licenseKey),
-        fetchFastestTimes(context, licenseKey),
+        fetchFastestTimes(context, licenseKey, context.restrictTimesToCompletedClasses ?? false),
         fetchCleanSweepDogs(context, licenseKey),
         fetchTotalEntriesCount(context, licenseKey)
       ]);

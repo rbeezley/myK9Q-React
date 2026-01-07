@@ -107,6 +107,8 @@ export interface StatsContext {
   trialId?: string;
   classId?: string;
   filters: StatsFilters;
+  /** When true, time-based stats only include completed classes (for non-admin/judge users) */
+  restrictTimesToCompletedClasses?: boolean;
 }
 
 // Chart data formats for Recharts

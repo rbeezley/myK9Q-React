@@ -6,7 +6,6 @@ import { HamburgerMenu } from '../../components/ui/HamburgerMenu';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermission } from '../../hooks/usePermission';
 import { useStatsData } from './hooks/useStatsData';
-import { useCompletedClassIds } from './hooks/useCompletedClassIds';
 import { useStatsFilterOptions } from './hooks/useStatsFilterOptions';
 import { useLongPress } from '@/hooks/useLongPress';
 import { logger } from '@/utils/logger';
@@ -34,12 +33,6 @@ export const Stats: React.FC = () => {
   // Check if user can see unrestricted stats (admin/judge see all, others see filtered)
   const canSeeAllStats = hasRole(['admin', 'judge']);
 
-  // Get completed class IDs for filtering time-based stats (non-admin/judge only)
-  const completedClassIds = useCompletedClassIds({
-    showId: showContext?.showId,
-    enabled: !canSeeAllStats
-  });
-
   // Get filter options (uses cache-first strategy)
   const filterOptions = useStatsFilterOptions({
     licenseKey: showContext?.licenseKey,
@@ -62,10 +55,12 @@ export const Stats: React.FC = () => {
   }), [searchParams]);
 
   // Fetch stats data
+  // Non-admin/judge users only see times from completed classes (fair competition)
   const { data, isLoading, error, isOffline, refetch } = useStatsData({
     level,
     showId: showContext?.showId,
-    filters
+    filters,
+    restrictTimesToCompletedClasses: !canSeeAllStats
   });
 
   // Manual refresh state for visible feedback
@@ -166,17 +161,8 @@ export const Stats: React.FC = () => {
     );
   }
 
-  // Filter time-based stats for non-admin/judge users
-  // Only show times from completed classes to prevent unfair advantage in unknown-hide searches
-  const filteredFastestTimes = canSeeAllStats
-    ? data.fastestTimes
-    : data.fastestTimes.filter(ft => ft.classId && completedClassIds.has(ft.classId));
-
-  const filteredFastestTime = canSeeAllStats
-    ? data.fastestTime
-    : (data.fastestTime?.classId && completedClassIds.has(data.fastestTime.classId))
-      ? data.fastestTime
-      : null;
+  // Time-based stats are now filtered at the data fetch level (see restrictTimesToCompletedClasses)
+  // Non-admin/judge users only see times from completed classes to ensure fair competition
 
   // Get current class information for display
   const currentClass = filters.classId
@@ -263,7 +249,7 @@ export const Stats: React.FC = () => {
       <StatsSummaryCards
         data={data}
         filters={filters}
-        filteredFastestTime={filteredFastestTime}
+        filteredFastestTime={data.fastestTime}
       />
 
       {/* Charts Section */}
@@ -316,13 +302,13 @@ export const Stats: React.FC = () => {
       )}
 
       {/* Fastest Times Leaderboard */}
-      {filteredFastestTimes.length > 0 && (
+      {data.fastestTimes.length > 0 && (
         <div className="stats-section">
           <h2 className="section-title">Fastest Dogs</h2>
           <p className="section-subtitle">Top 20 dogs by their fastest qualifying time</p>
           <Suspense fallback={<div className="table-skeleton" />}>
             <FastestTimesTable
-              data={filteredFastestTimes}
+              data={data.fastestTimes}
               onDogClick={(armbandNumber) => navigate(`/dog/${armbandNumber}`)}
             />
           </Suspense>
