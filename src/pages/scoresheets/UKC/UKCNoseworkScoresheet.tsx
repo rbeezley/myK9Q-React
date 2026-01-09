@@ -364,8 +364,12 @@ export const UKCNoseworkScoresheet: React.FC = () => {
   const [searchTime, setSearchTime] = useState<string>('');
   const [elementTime, setElementTime] = useState<string>('');
 
-  // Default max time for UKC Nosework (3 minutes)
-  const maxTime = '3:00.00';
+  // Get max time from class settings (falls back to UKC default of 3 minutes)
+  const maxTime = useMemo(() => {
+    const time = navigation.getMaxTimeForArea(0);
+    // Ensure consistent format with centiseconds for display
+    return time.includes('.') ? time : `${time}.00`;
+  }, [navigation]);
 
   // Determine if we need dual timer mode
   const dualTimerMode = useMemo(
