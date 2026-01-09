@@ -38,12 +38,12 @@ fi
 # Step 3: Tests
 echo ""
 echo "3/3 Running tests..."
-npx vitest run --reporter=dot 2>&1
+npm test -- --run 2>&1 | tail -5
 if [ $? -ne 0 ]; then
   echo "   Tests failed. Please fix before committing."
   FAILED=1
 else
-  echo "   All tests passed!"
+  echo "   Tests passed!"
 fi
 
 # Final result

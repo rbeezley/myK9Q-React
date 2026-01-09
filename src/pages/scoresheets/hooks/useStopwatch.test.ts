@@ -367,7 +367,9 @@ describe('useStopwatch', () => {
 
       act(() => {
         result.current.start();
-        vi.advanceTimersByTime(150000); // Exactly 30s remaining
+        // Advance to exactly 32 seconds remaining (180 - 32 = 148s)
+        // The condition triggers when remainingSeconds is exactly 32
+        vi.advanceTimersByTime(148000);
       });
 
       expect(voiceAnnouncementService.announceTimeRemaining).toHaveBeenCalledWith(30);
