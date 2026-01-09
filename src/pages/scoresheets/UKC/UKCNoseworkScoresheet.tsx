@@ -632,18 +632,18 @@ export const UKCNoseworkScoresheet: React.FC = () => {
                     setNonQualifyingReason('Absent');
                   } else if (result === 'Excused') {
                     setQualifying('EX');
-                    setNonQualifyingReason('Excused');
+                    setNonQualifyingReason('Dog Eliminated in Area');
                   }
                 }}
                 showNQ={true}
                 showEX={true}
                 onNQClick={() => {
                   setQualifying('NQ');
-                  setNonQualifyingReason('Incorrect call selected');
+                  setNonQualifyingReason('Incorrect Call');
                 }}
                 onEXClick={() => {
                   setQualifying('EX');
-                  setNonQualifyingReason('Dog eliminated in area');
+                  setNonQualifyingReason('Dog Eliminated in Area');
                 }}
                 selectedResultInternal={qualifying || ''}
                 faultCount={faultCount}
