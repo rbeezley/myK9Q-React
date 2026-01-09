@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Entry } from '@/services/replication';
 import { logger } from '@/utils/logger';
+import { markUnscoredEntriesAsAbsent } from '@/services/entryService';
 import { HamburgerMenu, CompactOfflineIndicator, TrialDateBadge, RefreshIndicator, ErrorState, PullToRefresh, FilterPanel, FilterTriggerButton } from '../../components/ui';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -938,18 +939,40 @@ export const ClassList: React.FC = () => {
             }
           }
         }}
-        classData={selectedClassForStatus || {
+        classData={selectedClassForStatus ? {
+          id: selectedClassForStatus.id,
+          element: selectedClassForStatus.element,
+          level: selectedClassForStatus.level,
+          class_name: selectedClassForStatus.class_name,
+          class_status: selectedClassForStatus.class_status,
+          entry_count: selectedClassForStatus.entry_count,
+          scored_count: selectedClassForStatus.completed_count,
+          briefing_time: selectedClassForStatus.briefing_time,
+          break_until_time: selectedClassForStatus.break_until,
+          start_time: selectedClassForStatus.start_time
+        } : {
           id: 0,
           element: '',
           level: '',
           class_name: '',
           class_status: '',
           entry_count: 0,
+          scored_count: 0,
           briefing_time: undefined,
           break_until_time: undefined,
           start_time: undefined
         }}
         currentStatus={selectedClassForStatus?.class_status || ''}
+        onMarkAbsent={selectedClassForStatus ? async () => {
+          // Get all class IDs to mark (including paired class for combined A & B)
+          const classIds = selectedClassForStatus.pairedClassId
+            ? [selectedClassForStatus.id, selectedClassForStatus.pairedClassId]
+            : [selectedClassForStatus.id];
+
+          await markUnscoredEntriesAsAbsent(classIds);
+          // Refresh to show updated counts
+          await refetch();
+        } : undefined}
       />
 
       {/* Class Settings Dialog */}
