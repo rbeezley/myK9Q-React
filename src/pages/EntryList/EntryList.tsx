@@ -19,7 +19,7 @@ import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, R
 import { parseOrganizationData, hasRuleDefinedMaxTimes, tryApplyFixedMaxTime } from '../../utils/organizationUtils';
 import { supabase } from '../../lib/supabase';
 import { getScoresheetRoute } from '../../services/scoresheetRouter';
-import { markInRing } from '../../services/entryService';
+import { markInRing, markUnscoredEntriesAsAbsent } from '../../services/entryService';
 import { applyRunOrderPreset } from '../../services/runOrderService';
 import { manuallyRecalculatePlacements } from '../../services/placementService';
 import { preloadScoresheetByType } from '../../utils/scoresheetPreloader';
@@ -1018,9 +1018,14 @@ export const EntryList: React.FC = () => {
             level: classInfo.level,
             class_name: classInfo.className,
             class_status: classInfo.classStatus || 'no-status',
-            entry_count: localEntries.length
+            entry_count: localEntries.length,
+            scored_count: localEntries.filter(e => e.isScored).length
           }}
           currentStatus={classInfo.classStatus || 'no-status'}
+          onMarkAbsent={async () => {
+            await markUnscoredEntriesAsAbsent(Number(classId));
+            await refresh();
+          }}
         />
       )}
 

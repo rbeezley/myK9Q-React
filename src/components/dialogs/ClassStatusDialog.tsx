@@ -148,6 +148,7 @@ export const ClassStatusDialog: React.FC<ClassStatusDialogProps> = ({
 
   const handleStatusSelect = (statusId: string) => {
     const status = statusOptions.find(s => s.id === statusId);
+
     if (status?.needsTime) {
       setSelectedStatus(statusId);
     } else if (statusId === 'completed' && unscoredCount > 0 && onMarkAbsent) {
