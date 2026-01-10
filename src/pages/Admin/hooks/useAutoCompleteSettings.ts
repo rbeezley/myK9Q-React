@@ -62,7 +62,9 @@ export function useAutoCompleteSettings(): AutoCompleteSettingsResult {
   }, []);
 
   useEffect(() => {
-    fetchSettings();
+    void (async () => {
+      await fetchSettings();
+    })();
   }, [fetchSettings]);
 
   const handleSetTrialAutoComplete = useCallback(async (
