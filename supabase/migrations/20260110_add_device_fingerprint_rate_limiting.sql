@@ -116,6 +116,9 @@ BEGIN
 END;
 $$;
 
+-- Drop existing function first (return type is changing)
+DROP FUNCTION IF EXISTS admin_get_rate_limit_status(INTEGER);
+
 -- Update admin_get_rate_limit_status to show fingerprint info
 CREATE OR REPLACE FUNCTION admin_get_rate_limit_status(p_hours_back INTEGER DEFAULT 2)
 RETURNS TABLE (
