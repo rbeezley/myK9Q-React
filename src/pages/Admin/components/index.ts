@@ -16,3 +16,9 @@ export type { ResultVisibilitySectionProps } from './ResultVisibilitySection';
 
 export { SelfCheckinSection } from './SelfCheckinSection';
 export type { SelfCheckinSectionProps } from './SelfCheckinSection';
+
+export { AutoCompleteSection } from './AutoCompleteSection';
+export type { AutoCompleteSectionProps } from './AutoCompleteSection';
+
+export { RateLimitSection } from './RateLimitSection';
+export type { RateLimitSectionProps } from './RateLimitSection';

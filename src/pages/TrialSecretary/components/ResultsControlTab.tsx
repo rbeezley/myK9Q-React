@@ -21,6 +21,8 @@ import {
   useDialogs,
   useSelfCheckinSettings,
   useVisibilitySettings,
+  useAutoCompleteSettings,
+  useRateLimitSettings,
 } from '../../Admin/hooks';
 
 // Extracted components from Admin page
@@ -29,6 +31,8 @@ import {
   ClassesList,
   ResultVisibilitySection,
   SelfCheckinSection,
+  AutoCompleteSection,
+  RateLimitSection,
 } from '../../Admin/components';
 
 // Utils
@@ -84,6 +88,28 @@ export const ResultsControlTab: React.FC<ResultsControlTabProps> = ({
     handleSetTrialSelfCheckin,
     handleRemoveTrialSelfCheckin,
   } = useSelfCheckinSettings();
+
+  // Auto-complete stale classes settings
+  const {
+    trialAutoCompleteSettings,
+    autoCompleteSectionExpanded,
+    setAutoCompleteSectionExpanded,
+    handleSetTrialAutoComplete,
+    handleResetTrialAutoComplete,
+  } = useAutoCompleteSettings();
+
+  // Rate limit settings (admin only)
+  const {
+    rateLimits,
+    blockedCount,
+    isLoading: rateLimitLoading,
+    error: rateLimitError,
+    rateLimitSectionExpanded,
+    setRateLimitSectionExpanded,
+    fetchRateLimitStatus,
+    clearAllRateLimits,
+    clearIpRateLimit,
+  } = useRateLimitSettings();
 
   // Dialog management
   const {
@@ -240,6 +266,33 @@ export const ResultsControlTab: React.FC<ResultsControlTabProps> = ({
     });
   };
 
+  // Auto-complete handlers
+  const onSetTrialAutoComplete = async (trialId: number, enabled: boolean) => {
+    if (!requireAdminName(() => openAdminNameDialog(adminName, () => onSetTrialAutoComplete(trialId, enabled)))) return;
+    const result = await handleSetTrialAutoComplete(trialId, enabled, getTrialLabel(trialId));
+    setSuccessDialog({
+      isOpen: true,
+      title: result.success ? 'Auto-Complete Setting Updated!' : 'Error',
+      message: result.success
+        ? `Auto-complete stale classes is now ${enabled ? 'ENABLED' : 'DISABLED'} for ${getTrialLabel(trialId)}.`
+        : result.error || 'Failed to update auto-complete setting.',
+      details: []
+    });
+  };
+
+  const onResetTrialAutoComplete = async (trialId: number) => {
+    if (!requireAdminName(() => openAdminNameDialog(adminName, () => onResetTrialAutoComplete(trialId)))) return;
+    const result = await handleResetTrialAutoComplete(trialId, getTrialLabel(trialId));
+    setSuccessDialog({
+      isOpen: true,
+      title: result.success ? 'Auto-Complete Setting Reset!' : 'Error',
+      message: result.success
+        ? `${getTrialLabel(trialId)} will now use the default auto-complete setting (enabled).`
+        : result.error || 'Failed to reset auto-complete setting.',
+      details: []
+    });
+  };
+
   // Offline state
   if (isOffline) {
     return (
@@ -327,6 +380,27 @@ export const ResultsControlTab: React.FC<ResultsControlTabProps> = ({
         onSetShowSelfCheckin={onSetShowSelfCheckin}
         onSetTrialSelfCheckin={onSetTrialSelfCheckin}
         onRemoveTrialSelfCheckin={onRemoveTrialSelfCheckin}
+      />
+
+      <AutoCompleteSection
+        isExpanded={autoCompleteSectionExpanded}
+        onToggleExpanded={() => setAutoCompleteSectionExpanded(!autoCompleteSectionExpanded)}
+        trialAutoCompleteSettings={trialAutoCompleteSettings}
+        trials={trials}
+        onSetTrialAutoComplete={onSetTrialAutoComplete}
+        onResetTrialAutoComplete={onResetTrialAutoComplete}
+      />
+
+      <RateLimitSection
+        isExpanded={rateLimitSectionExpanded}
+        onToggleExpanded={() => setRateLimitSectionExpanded(!rateLimitSectionExpanded)}
+        rateLimits={rateLimits}
+        blockedCount={blockedCount}
+        isLoading={rateLimitLoading}
+        error={rateLimitError}
+        onRefresh={fetchRateLimitStatus}
+        onClearAll={clearAllRateLimits}
+        onClearIp={clearIpRateLimit}
       />
 
       <ClassesList

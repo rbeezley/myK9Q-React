@@ -21,3 +21,9 @@ export type { UseSelfCheckinSettingsReturn, Result } from './useSelfCheckinSetti
 
 export { useVisibilitySettings } from './useVisibilitySettings';
 export type { UseVisibilitySettingsReturn } from './useVisibilitySettings';
+
+export { useAutoCompleteSettings } from './useAutoCompleteSettings';
+export type { AutoCompleteSettingsResult } from './useAutoCompleteSettings';
+
+export { useRateLimitSettings } from './useRateLimitSettings';
+export type { RateLimitSettingsResult, RateLimitEntry } from './useRateLimitSettings';
