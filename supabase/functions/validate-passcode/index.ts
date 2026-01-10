@@ -4,7 +4,9 @@
 // Purpose: Server-side passcode validation with rate limiting
 //
 // Security Features:
-// - IP-based rate limiting (5 attempts per 15 min, 30 min block)
+// - Device fingerprint rate limiting (10 attempts per 15 min, 15 min block)
+//   Uses IP + device fingerprint to prevent one user's failures from
+//   blocking others at the same venue on shared WiFi
 // - Server-side passcode validation (bypasses client-side checks)
 // - Attempt logging for forensic analysis
 // - Protection against brute force attacks
@@ -124,6 +126,27 @@ function getClientIP(req: Request): string {
   return 'unknown'
 }
 
+// Generate device fingerprint from request headers
+// This differentiates devices even on the same network/IP
+async function generateDeviceFingerprint(req: Request): Promise<string> {
+  const userAgent = req.headers.get('user-agent') || ''
+  const acceptLanguage = req.headers.get('accept-language') || ''
+  const acceptEncoding = req.headers.get('accept-encoding') || ''
+
+  // Combine stable browser characteristics
+  const fingerprintSource = `${userAgent}|${acceptLanguage}|${acceptEncoding}`
+
+  // Hash the fingerprint for privacy and consistent length
+  const encoder = new TextEncoder()
+  const data = encoder.encode(fingerprintSource)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+  // Return first 16 chars of hash (sufficient for uniqueness)
+  return hashHex.substring(0, 16)
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -156,16 +179,20 @@ serve(async (req) => {
       )
     }
 
-    // Get client IP
+    // Get client IP and device fingerprint
     const clientIP = getClientIP(req)
     const userAgent = req.headers.get('user-agent') || 'unknown'
+    const deviceFingerprint = await generateDeviceFingerprint(req)
     const passcodePrefix = passcode.charAt(0).toLowerCase()
 
-    console.log(`[Auth] Login attempt from IP: ${clientIP}, prefix: ${passcodePrefix}`)
+    console.log(`[Auth] Login attempt from IP: ${clientIP}, device: ${deviceFingerprint}, prefix: ${passcodePrefix}`)
 
-    // Check rate limit
+    // Check rate limit (per-device, not just per-IP)
     const { data: rateLimitData, error: rateLimitError } = await supabaseClient
-      .rpc('check_login_rate_limit', { p_ip_address: clientIP })
+      .rpc('check_login_rate_limit', {
+        p_ip_address: clientIP,
+        p_device_fingerprint: deviceFingerprint
+      })
 
     if (rateLimitError) {
       console.error('[Auth] Rate limit check error:', rateLimitError)
@@ -183,7 +210,8 @@ serve(async (req) => {
         p_ip_address: clientIP,
         p_success: false,
         p_passcode_prefix: passcodePrefix,
-        p_user_agent: userAgent
+        p_user_agent: userAgent,
+        p_device_fingerprint: deviceFingerprint
       })
 
       return new Response(
@@ -237,7 +265,8 @@ serve(async (req) => {
       p_success: !!matchedShow,
       p_passcode_prefix: passcodePrefix,
       p_license_key: matchedShow?.license_key || null,
-      p_user_agent: userAgent
+      p_user_agent: userAgent,
+      p_device_fingerprint: deviceFingerprint
     })
 
     // If no match, return auth failure
@@ -246,7 +275,10 @@ serve(async (req) => {
 
       // Get updated rate limit info for response
       const { data: newRateLimitData } = await supabaseClient
-        .rpc('check_login_rate_limit', { p_ip_address: clientIP })
+        .rpc('check_login_rate_limit', {
+          p_ip_address: clientIP,
+          p_device_fingerprint: deviceFingerprint
+        })
       const newRateLimit = newRateLimitData?.[0] as RateLimitResult | undefined
 
       return new Response(
