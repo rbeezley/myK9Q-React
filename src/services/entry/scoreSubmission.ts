@@ -4,9 +4,11 @@ import { QueuedScore } from '@/stores/offlineQueueStore';
 import { convertTimeToSeconds } from '../entryTransformers';
 import { triggerImmediateEntrySync } from '../entryReplication';
 import { checkAndUpdateClassCompletion } from './classCompletionService';
+import { autoCompleteStaleClasses } from './autoCompleteStaleClasses';
 import { convertResultTextToStatus } from '@/utils/transformationUtils';
 import { determineAreasForClass } from '@/utils/classUtils';
 import { calculateTotalAreaTime } from '@/utils/calculationUtils';
+import { showToast } from '@/stores/toastStore';
 import { logger } from '@/utils/logger';
 
 /**
@@ -407,16 +409,30 @@ async function triggerBackgroundClassCompletion(
   logger.log(`🔄 [scoreSubmission] triggerBackgroundClassCompletion:`, { entryId, classId, pairedClassId });
 
   if (classId) {
-// Fire and forget - check class completion in background
+    // Fire and forget - check class completion in background
     // CRITICAL: Pass entryId to work around read replica lag
     (async () => {
       try {
         await checkAndUpdateClassCompletion(classId, pairedClassId, entryId);
-} catch (error) {
+
+        // Check for stale classes to auto-complete (different level, same judge)
+        // This runs after class completion check to ensure current class is up-to-date
+        const autoCompleted = await autoCompleteStaleClasses(classId);
+        if (autoCompleted.length > 0) {
+          // Show toast for each auto-completed class
+          for (const cls of autoCompleted) {
+            showToast(
+              `${cls.className} auto-completed (${cls.absentCount} marked absent)`,
+              'info',
+              6000
+            );
+          }
+        }
+      } catch (error) {
         logger.error('⚠️ [Background] Failed to check class completion:', error);
       }
     })();
-} else {
+  } else {
     // Fallback: Query database for class_id (backward compatibility)
 const { data: entryData } = await supabase
       .from('view_entry_class_join_normalized')
@@ -430,12 +446,23 @@ const { data: entryData } = await supabase
       (async () => {
         try {
           await checkAndUpdateClassCompletion(entryData.class_id, pairedClassId, entryId);
-} catch (error) {
+
+          // Check for stale classes to auto-complete (different level, same judge)
+          const autoCompleted = await autoCompleteStaleClasses(entryData.class_id);
+          if (autoCompleted.length > 0) {
+            for (const cls of autoCompleted) {
+              showToast(
+                `${cls.className} auto-completed (${cls.absentCount} marked absent)`,
+                'info',
+                6000
+              );
+            }
+          }
+        } catch (error) {
           logger.error('⚠️ [Background] Failed to check class completion:', error);
         }
       })();
-
-} else {
+    } else {
       logger.warn('⚠️ Could not fetch entry data for background processing');
     }
   }

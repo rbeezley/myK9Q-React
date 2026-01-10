@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { PWAInstallBanner } from '../PWAInstallBanner';
 import { DatabaseRecovery } from '../diagnostics/DatabaseRecovery';
 import { AutoLogoutWarning } from '../ui/AutoLogoutWarning';
+import { GlobalToast } from '../ui/GlobalToast';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { OfflineIndicator, OfflineQueueStatus } from '../ui';
 import { SubscriptionMonitor } from '../debug/SubscriptionMonitor';
@@ -49,6 +50,7 @@ export function MainLayout({ children, autoLogout }: MainLayoutProps) {
       )}
 
       <NotificationCenter />
+      <GlobalToast />
       <OfflineIndicator />
       <OfflineQueueStatus />
 

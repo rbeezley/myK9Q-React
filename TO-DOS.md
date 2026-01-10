@@ -603,3 +603,9 @@ UKC Nosework has a legacy VBA module that uploads to an old Supabase project (us
 - AKC template: [mod_myK9Qv3.bas](docs/access-integration/akc-scent-work/mod_myK9Qv3.bas)
 - Conversion notes: [README.md](docs/access-integration/ukc-nosework/README.md)
 
+---
+
+## Deploy Auto-Complete Stale Classes Feature - 2026-01-10 10:25
+
+- **Deploy auto-complete stale classes feature** - Auto-completes classes when judge moves to different level, preventing abandoned classes with unscored dogs. **Problem:** Clubs start scoring a class, move to next level without completing first class, leaving "in progress" classes with unscored dogs that are actually absent. **Files:** `supabase/migrations/20260110_add_auto_complete_stale_classes.sql`, `src/services/entry/autoCompleteStaleClasses.ts`, `src/services/entry/scoreSubmission.ts:418-430`, `src/stores/toastStore.ts`, `src/components/ui/GlobalToast.tsx`, `src/pages/Admin/components/AutoCompleteSection.tsx`, `src/pages/Admin/hooks/useAutoCompleteSettings.ts`. **Solution:** (1) Apply migration with `npx supabase db push`, (2) Commit and push to develop, (3) Test on staging - score dogs in one class, wait 15 min, score in different level with same judge, verify stale class auto-completes with toast, (4) Check Admin UI toggle in Trial Secretary → Results Control.
+
