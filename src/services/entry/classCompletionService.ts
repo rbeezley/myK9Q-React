@@ -166,21 +166,30 @@ async function updateSingleClassCompletion(
   // Count scored entries from the (now accurate) data source
   let scoredCount = entries.filter(e => e.is_scored).length;
   const scoredIds = entries.filter(e => e.is_scored).map(e => e.id);
+  const allEntryIds = entries.map(e => e.id);
 
-  // Only apply read replica lag adjustments when using server fallback
-  // Local cache is already accurate and doesn't need adjustment
-  if (!usedLocalCache) {
-    // Case 1: Just scored an entry - add to count if read replica missed it
-    if (justScoredEntryId && !scoredIds.includes(justScoredEntryId)) {
-      logger.log(`⚠️ [classCompletion] Read replica lag (score): entry ${justScoredEntryId} not in scored list, adding to count`);
-      scoredCount += 1;
-    }
+  // CRITICAL FIX: Always apply read replica lag adjustments
+  // Even when using local cache, it may be stale because:
+  // 1. useOptimisticScoring updates cache with is_scored = true
+  // 2. submitScore writes to Supabase PRIMARY
+  // 3. triggerImmediateEntrySync syncs FROM read replica (which hasn't caught up)
+  // 4. Local cache gets overwritten with stale is_scored = false!
+  // The justScoredEntryId hint ensures we count the entry correctly regardless.
+  //
+  // IMPORTANT: Only apply adjustment if the entry belongs to THIS class.
+  // For combined Novice A & B views, both classes are checked but only the
+  // class containing the entry should be adjusted.
 
-    // Case 2: Just reset an entry - remove from count if read replica still shows it as scored
-    if (justResetEntryId && scoredIds.includes(justResetEntryId)) {
-      logger.log(`⚠️ [classCompletion] Read replica lag (reset): entry ${justResetEntryId} still in scored list, removing from count`);
-      scoredCount -= 1;
-    }
+  // Case 1: Just scored an entry - add to count if it belongs to this class but isn't in scored list
+  if (justScoredEntryId && allEntryIds.includes(justScoredEntryId) && !scoredIds.includes(justScoredEntryId)) {
+    logger.log(`⚠️ [classCompletion] Read replica lag (score): entry ${justScoredEntryId} not in scored list, adding to count (usedLocalCache=${usedLocalCache})`);
+    scoredCount += 1;
+  }
+
+  // Case 2: Just reset an entry - remove from count if it belongs to this class and still shows as scored
+  if (justResetEntryId && allEntryIds.includes(justResetEntryId) && scoredIds.includes(justResetEntryId)) {
+    logger.log(`⚠️ [classCompletion] Read replica lag (reset): entry ${justResetEntryId} still in scored list, removing from count (usedLocalCache=${usedLocalCache})`);
+    scoredCount -= 1;
   }
 
   const totalCount = entries.length;
