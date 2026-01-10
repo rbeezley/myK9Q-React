@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingsRow } from '../components/SettingsRow';
 import { SettingsToggle } from '../components/SettingsToggle';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { Database, Download, Trash2, Terminal, RefreshCw } from 'lucide-react';
+import { Database, Download, Trash2, Terminal, RefreshCw, ShieldAlert } from 'lucide-react';
 import { formatBytes } from '@/services/dataExportService';
+import { useRateLimitSettings } from '@/pages/Admin/hooks/useRateLimitSettings';
 
 interface AdvancedSettingsProps {
     storageUsage: { estimated: number; quota: number; percentUsed: number; localStorageSize: number } | null;
@@ -28,6 +29,15 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     isRefreshing
 }) => {
     const { settings, updateSettings } = useSettingsStore();
+    const { clearAllRateLimits, isLoading: isClearingRateLimits } = useRateLimitSettings();
+    const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
+
+    const handleClearRateLimits = async () => {
+        const result = await clearAllRateLimits();
+        setRateLimitMessage(result.message);
+        // Clear message after 3 seconds
+        setTimeout(() => setRateLimitMessage(null), 3000);
+    };
 
     return (
         <SettingsSection title="Advanced (Admin)">
@@ -72,6 +82,14 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                 description="Permanently delete local data"
                 isDestructive
                 onClick={onClearData}
+            />
+
+            {/* Login Rate Limits */}
+            <SettingsRow
+                icon={<ShieldAlert size={20} />}
+                label={isClearingRateLimits ? "Clearing..." : "Clear Login Rate Limits"}
+                description={rateLimitMessage || "Unblock users locked out by failed login attempts"}
+                onClick={handleClearRateLimits}
             />
 
             {/* Developer Tools */}
