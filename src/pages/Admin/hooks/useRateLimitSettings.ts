@@ -77,6 +77,8 @@ export function useRateLimitSettings(): RateLimitSettingsResult {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
       });
 
@@ -115,6 +117,8 @@ export function useRateLimitSettings(): RateLimitSettingsResult {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           license_key: licenseKey,
@@ -160,6 +164,8 @@ export function useRateLimitSettings(): RateLimitSettingsResult {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           license_key: licenseKey,
