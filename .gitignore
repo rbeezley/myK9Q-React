@@ -135,3 +135,4 @@ testsprite_tests/
 # Generated analysis files
 codebase_improvement_suggestions.md
 lighthouse-report*.json
+tmpclaude-*-cwd
