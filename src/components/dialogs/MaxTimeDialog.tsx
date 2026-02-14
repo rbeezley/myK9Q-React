@@ -73,7 +73,9 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
       loadTimeRange();
       initializeTimes();
     }
-  }, [isOpen, classData]);
+    // Depend on classData.id (stable primitive) instead of classData (object literal
+    // recreated on every parent render) to prevent re-initialization mid-save
+  }, [isOpen, classData.id]);
 
   // Auto-focus first input when dialog opens and is not dictated time
   useEffect(() => {
@@ -223,9 +225,9 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         seconds = seconds % 60;
       }
 
-      // Cap at reasonable maximum (5 minutes)
-      if (minutes > 5) {
-        minutes = 5;
+      // Cap at display maximum (99 minutes) - actual validation done by validateTime()
+      if (minutes > 99) {
+        minutes = 99;
         seconds = 0;
       }
 
@@ -238,7 +240,7 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
 
     if (cleaned.length <= 2) {
       // 1-2 digits: treat as minutes
-      const minutes = Math.min(numValue, 5); // Cap at 5 minutes
+      const minutes = Math.min(numValue, 99); // Cap at display max - actual validation done by validateTime()
       return `${minutes.toString().padStart(2, '0')}:00`;
     } else if (cleaned.length === 3) {
       // 3 digits: first digit as minutes, last two as seconds (e.g., 130 = 1:30)
@@ -248,14 +250,14 @@ export const MaxTimeDialog: React.FC<MaxTimeDialogProps> = ({
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       } else {
         // Invalid seconds, treat as minutes
-        const totalMinutes = Math.min(Math.floor(numValue / 60), 5);
+        const totalMinutes = Math.min(Math.floor(numValue / 60), 99);
         return `${totalMinutes.toString().padStart(2, '0')}:00`;
       }
     } else {
       // 4+ digits: treat as MMSS format
       const minutes = Math.floor(numValue / 100);
       const seconds = numValue % 100;
-      const finalMinutes = Math.min(minutes, 5);
+      const finalMinutes = Math.min(minutes, 99);
       const finalSeconds = seconds < 60 ? seconds : 0;
       return `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}`;
     }
