@@ -76,7 +76,7 @@ body {
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: color-mix(in srgb, var(--primary) 85%, black);
 }
 
 /* Container - Above the fold */
