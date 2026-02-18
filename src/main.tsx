@@ -42,6 +42,32 @@ const isOnScoresheet = () => {
 };
 
 /**
+ * Apply a waiting service worker update: post SKIP_WAITING, show feedback, then reload.
+ */
+const applySwUpdate = async (toastRoot: ReactDOM.Root) => {
+  // Show "Updating..." state in the toast
+  toastRoot.render(
+    <UpdateToast onUpdate={() => {}} onLater={() => {}} isUpdating />
+  );
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration?.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      // Reload once the new SW activates
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    }
+    // Fallback: reload after a short delay regardless
+    setTimeout(() => window.location.reload(), 3000);
+  } catch {
+    // Fallback: just reload
+    setTimeout(() => window.location.reload(), 500);
+  }
+};
+
+/**
  * Show the PWA update toast.
  * Renders into a separate DOM root to keep it isolated from the main React app.
  */
@@ -55,8 +81,7 @@ const showUpdateToast = () => {
   const toastRoot = ReactDOM.createRoot(container);
 
   const handleUpdate = () => {
-    toastRoot.unmount();
-    updateSW(true);
+    applySwUpdate(toastRoot);
   };
 
   const handleLater = () => {
@@ -68,7 +93,7 @@ const showUpdateToast = () => {
   );
 };
 
-const updateSW = registerSW({
+registerSW({
   onNeedRefresh() {
     // In development, don't auto-prompt for refresh to avoid interrupting work
     if (import.meta.env.DEV) {

@@ -61,6 +61,11 @@
   color: var(--primary);
 }
 
+.update-toast-icon.updating {
+  background: color-mix(in srgb, var(--status-qualified) 15%, transparent);
+  color: var(--status-qualified);
+}
+
 .update-toast-content {
   flex: 1;
   min-width: 0;

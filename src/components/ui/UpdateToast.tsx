@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, CheckCircle } from 'lucide-react';
 import './UpdateToast.css';
 
 interface UpdateToastProps {
@@ -6,6 +6,8 @@ interface UpdateToastProps {
   onUpdate: () => void;
   /** Called when user taps "Later" */
   onLater: () => void;
+  /** Whether the update is currently being applied */
+  isUpdating?: boolean;
 }
 
 /**
@@ -13,14 +15,8 @@ interface UpdateToastProps {
  *
  * Displays a styled notification when a new app version is available.
  * Replaces the browser's native confirm() dialog with a branded experience.
- *
- * Features:
- * - Fixed position at bottom of screen
- * - Teal accent to match app branding
- * - "Update Now" and "Later" buttons
- * - Accessible with proper ARIA attributes
  */
-export function UpdateToast({ onUpdate, onLater }: UpdateToastProps) {
+export function UpdateToast({ onUpdate, onLater, isUpdating }: UpdateToastProps) {
   return (
     <div
       className="update-toast-overlay"
@@ -29,31 +25,35 @@ export function UpdateToast({ onUpdate, onLater }: UpdateToastProps) {
       aria-describedby="update-toast-message"
     >
       <div className="update-toast">
-        <div className="update-toast-icon">
-          <RefreshCw size={24} />
+        <div className={`update-toast-icon ${isUpdating ? 'updating' : ''}`}>
+          {isUpdating ? <CheckCircle size={24} /> : <RefreshCw size={24} />}
         </div>
 
         <div className="update-toast-content">
           <p id="update-toast-message" className="update-toast-message">
-            myK9Q has been updated! Tap to load new features.
+            {isUpdating
+              ? 'Updating... reloading shortly.'
+              : 'myK9Q has been updated! Tap to load new features.'}
           </p>
         </div>
 
-        <div className="update-toast-actions">
-          <button
-            className="update-toast-btn update-toast-btn-primary"
-            onClick={onUpdate}
-          >
-            Update Now
-          </button>
-          <button
-            className="update-toast-btn update-toast-btn-secondary"
-            onClick={onLater}
-            autoFocus
-          >
-            Later
-          </button>
-        </div>
+        {!isUpdating && (
+          <div className="update-toast-actions">
+            <button
+              className="update-toast-btn update-toast-btn-primary"
+              onClick={onUpdate}
+            >
+              Update Now
+            </button>
+            <button
+              className="update-toast-btn update-toast-btn-secondary"
+              onClick={onLater}
+              autoFocus
+            >
+              Later
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
