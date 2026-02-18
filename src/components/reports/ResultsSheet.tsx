@@ -4,6 +4,7 @@ import {
   formatReportDate,
   formatReportTime,
   sortByPlacement,
+  sortByArmband,
   getPlacementText,
   getResultStatusText,
   isQualified,
@@ -27,10 +28,11 @@ export interface ResultsSheetProps {
     activityType?: string;
   };
   entries: Entry[];
+  sortOrder?: 'placement' | 'armband';
 }
 
-export const ResultsSheet: React.FC<ResultsSheetProps> = ({ classInfo, entries }) => {
-  const sortedEntries = sortByPlacement(entries);
+export const ResultsSheet: React.FC<ResultsSheetProps> = ({ classInfo, entries, sortOrder }) => {
+  const sortedEntries = sortOrder === 'armband' ? sortByArmband(entries) : sortByPlacement(entries);
   const qualifiedCount = countQualified(sortedEntries);
   // Build title: "AKC Scent Work Preliminary Results" or fallback to element-based title
   const orgTitle = classInfo.organization && classInfo.activityType

@@ -6,7 +6,7 @@ import { usePrefetch } from '@/hooks/usePrefetch';
 import { ErrorState, TabBar, Tab, FilterPanel, SortOption } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
-import { ScoresheetPrintDialog } from '../../components/dialogs/ScoresheetPrintDialog';
+import { ScoresheetPrintDialog, type PrintSortOrder, type ScoresheetPrintDialogProps } from '../../components/dialogs/ScoresheetPrintDialog';
 import { Clock, CheckCircle, ArrowUpDown, Trophy, RefreshCw } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPresetScoped } from '../../services/runOrderService';
@@ -27,6 +27,12 @@ import {
 } from './components';
 import { logger } from '@/utils/logger';
 import './EntryList.css';
+
+/** Sort options for the results print dialog (Placement / Armband) */
+const RESULTS_SORT_OPTIONS: ScoresheetPrintDialogProps['options'] = {
+  primary: { label: 'Placement', sortOrder: 'placement' },
+  secondary: { label: 'Armband Number', sortOrder: 'armband' },
+};
 
 /**
  * Parse organization data from org string
@@ -90,7 +96,8 @@ export const CombinedEntryList: React.FC = () => {
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState(false);
   const [sortDialogOpen, setSortDialogOpen] = useState(false);
   const [sortDialogTitle, setSortDialogTitle] = useState('Print Scoresheet');
-  const [pendingPrintAction, setPendingPrintAction] = useState<((sortOrder: 'run-order' | 'armband') => void) | null>(null);
+  const [sortDialogOptions, setSortDialogOptions] = useState<ScoresheetPrintDialogProps['options']>(undefined);
+  const [pendingPrintAction, setPendingPrintAction] = useState<((sortOrder: PrintSortOrder) => void) | null>(null);
 
   // Filters using shared hook
   const {
@@ -386,14 +393,15 @@ export const CombinedEntryList: React.FC = () => {
   }, [currentEntries]);
 
   // Helper to open the sort order dialog for any print action
-  const openSortDialog = useCallback((title: string, action: (sortOrder: 'run-order' | 'armband') => void) => {
+  const openSortDialog = useCallback((title: string, action: (sortOrder: PrintSortOrder) => void, options?: ScoresheetPrintDialogProps['options']) => {
     setSortDialogTitle(title);
+    setSortDialogOptions(options);
     setPendingPrintAction(() => action);
     setSortDialogOpen(true);
   }, []);
 
   // Print handlers — Check-in sheets
-  const handlePrintCheckIn = useCallback((sortOrder: 'run-order' | 'armband') => {
+  const handlePrintCheckIn = useCallback((sortOrder: PrintSortOrder) => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -412,7 +420,7 @@ export const CombinedEntryList: React.FC = () => {
     generateCheckInSheet(reportClassInfo, entries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintCheckInSectionA = useCallback((sortOrder: 'run-order' | 'armband') => {
+  const handlePrintCheckInSectionA = useCallback((sortOrder: PrintSortOrder) => {
     if (!classInfo) return;
 
     const sectionAEntries = entries.filter(entry => entry.section === 'A');
@@ -432,7 +440,7 @@ export const CombinedEntryList: React.FC = () => {
     generateCheckInSheet(reportClassInfo, sectionAEntries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintCheckInSectionB = useCallback((sortOrder: 'run-order' | 'armband') => {
+  const handlePrintCheckInSectionB = useCallback((sortOrder: PrintSortOrder) => {
     if (!classInfo) return;
 
     const sectionBEntries = entries.filter(entry => entry.section === 'B');
@@ -452,7 +460,7 @@ export const CombinedEntryList: React.FC = () => {
     generateCheckInSheet(reportClassInfo, sectionBEntries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintResultsSectionA = useCallback(() => {
+  const handlePrintResultsSectionA = useCallback((sortOrder: PrintSortOrder = 'placement') => {
     if (!classInfo) return;
 
     const sectionAEntries = entries.filter(entry => entry.section === 'A');
@@ -469,10 +477,10 @@ export const CombinedEntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateResultsSheet(reportClassInfo, sectionAEntries);
+    generateResultsSheet(reportClassInfo, sectionAEntries, { sortOrder: sortOrder === 'armband' ? 'armband' : 'placement' });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintResultsSectionB = useCallback(() => {
+  const handlePrintResultsSectionB = useCallback((sortOrder: PrintSortOrder = 'placement') => {
     if (!classInfo) return;
 
     const sectionBEntries = entries.filter(entry => entry.section === 'B');
@@ -489,7 +497,7 @@ export const CombinedEntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateResultsSheet(reportClassInfo, sectionBEntries);
+    generateResultsSheet(reportClassInfo, sectionBEntries, { sortOrder: sortOrder === 'armband' ? 'armband' : 'placement' });
   }, [classInfo, showContext?.org, entries]);
 
   // Parse time limits from string format
@@ -526,7 +534,7 @@ export const CombinedEntryList: React.FC = () => {
     return { hidesText: undefined, distractionsText: undefined };
   };
 
-  const handlePrintScoresheetSectionA = useCallback(async (sortOrder: 'run-order' | 'armband') => {
+  const handlePrintScoresheetSectionA = useCallback(async (sortOrder: PrintSortOrder) => {
     if (!classInfo) return;
 
     const sectionAEntries = entries.filter(entry => entry.section === 'A');
@@ -554,7 +562,7 @@ export const CombinedEntryList: React.FC = () => {
     generateScoresheetReport(scoresheetClassInfo, sectionAEntries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintScoresheetSectionB = useCallback(async (sortOrder: 'run-order' | 'armband') => {
+  const handlePrintScoresheetSectionB = useCallback(async (sortOrder: PrintSortOrder) => {
     if (!classInfo) return;
 
     const sectionBEntries = entries.filter(entry => entry.section === 'B');
@@ -582,7 +590,7 @@ export const CombinedEntryList: React.FC = () => {
     generateScoresheetReport(scoresheetClassInfo, sectionBEntries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintScoresheetCombined = useCallback(async (sortOrder: 'run-order' | 'armband') => {
+  const handlePrintScoresheetCombined = useCallback(async (sortOrder: PrintSortOrder) => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -690,8 +698,8 @@ export const CombinedEntryList: React.FC = () => {
               groupLabel: 'Results',
               groupIcon: 'results',
               items: [
-                { label: 'Section A', onClick: handlePrintResultsSectionA, icon: 'results', disabled: completedEntries.filter(e => e.section === 'A').length === 0 },
-                { label: 'Section B', onClick: handlePrintResultsSectionB, icon: 'results', disabled: completedEntries.filter(e => e.section === 'B').length === 0 },
+                { label: 'Section A', onClick: () => openSortDialog('Print Results', handlePrintResultsSectionA, RESULTS_SORT_OPTIONS), icon: 'results', disabled: completedEntries.filter(e => e.section === 'A').length === 0 },
+                { label: 'Section B', onClick: () => openSortDialog('Print Results', handlePrintResultsSectionB, RESULTS_SORT_OPTIONS), icon: 'results', disabled: completedEntries.filter(e => e.section === 'B').length === 0 },
               ],
             },
             {
@@ -822,6 +830,7 @@ export const CombinedEntryList: React.FC = () => {
         isOpen={sortDialogOpen}
         onClose={() => setSortDialogOpen(false)}
         title={sortDialogTitle}
+        options={sortDialogOptions}
         onPrint={(sortOrder) => {
           setSortDialogOpen(false);
           pendingPrintAction?.(sortOrder);

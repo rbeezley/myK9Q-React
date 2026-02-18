@@ -1,20 +1,28 @@
 /**
- * ScoresheetPrintDialog
+ * SortOrderPrintDialog
  *
- * Lightweight dialog that appears when user clicks a scoresheet print option.
- * Asks the user to choose sort order: Run Order or Armband Order.
+ * Lightweight dialog that appears when user clicks a print option.
+ * Asks the user to choose sort order before printing.
+ * Supports configurable button labels for different report types.
  */
 
 import React from 'react';
-import { ClipboardList, ArrowUpDown, Hash } from 'lucide-react';
+import { ClipboardList, ArrowUpDown, Hash, Trophy } from 'lucide-react';
 import { DialogContainer } from './DialogContainer';
 import './shared-dialog.css';
+
+export type PrintSortOrder = 'run-order' | 'armband' | 'placement';
 
 export interface ScoresheetPrintDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onPrint: (sortOrder: 'run-order' | 'armband') => void;
+  onPrint: (sortOrder: PrintSortOrder) => void;
   title?: string;
+  /** Override the two button labels and sort values. Defaults to Run Order / Armband Number. */
+  options?: {
+    primary: { label: string; sortOrder: PrintSortOrder };
+    secondary: { label: string; sortOrder: PrintSortOrder };
+  };
 }
 
 export const ScoresheetPrintDialog: React.FC<ScoresheetPrintDialogProps> = ({
@@ -22,7 +30,13 @@ export const ScoresheetPrintDialog: React.FC<ScoresheetPrintDialogProps> = ({
   onClose,
   onPrint,
   title,
+  options,
 }) => {
+  const primary = options?.primary ?? { label: 'Run Order', sortOrder: 'run-order' as PrintSortOrder };
+  const secondary = options?.secondary ?? { label: 'Armband Number', sortOrder: 'armband' as PrintSortOrder };
+
+  const PrimaryIcon = primary.sortOrder === 'placement' ? Trophy : ArrowUpDown;
+
   return (
     <DialogContainer
       isOpen={isOpen}
@@ -37,19 +51,19 @@ export const ScoresheetPrintDialog: React.FC<ScoresheetPrintDialogProps> = ({
       <div className="dialog-actions" style={{ gap: '0.75rem' }}>
         <button
           className="btn btn-primary"
-          onClick={() => onPrint('run-order')}
+          onClick={() => onPrint(primary.sortOrder)}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
         >
-          <ArrowUpDown size={16} />
-          Run Order
+          <PrimaryIcon size={16} />
+          {primary.label}
         </button>
         <button
           className="btn btn-primary"
-          onClick={() => onPrint('armband')}
+          onClick={() => onPrint(secondary.sortOrder)}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
         >
           <Hash size={16} />
-          Armband Number
+          {secondary.label}
         </button>
       </div>
     </DialogContainer>

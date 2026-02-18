@@ -12,7 +12,7 @@ import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
-import { ScoresheetPrintDialog } from '../../components/dialogs/ScoresheetPrintDialog';
+import { ScoresheetPrintDialog, type PrintSortOrder, type ScoresheetPrintDialogProps } from '../../components/dialogs/ScoresheetPrintDialog';
 import { AreaCountSelectionDialog, AreaCountRequirements } from '../../components/dialogs/AreaCountSelectionDialog';
 import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft, Info } from 'lucide-react';
@@ -39,6 +39,12 @@ import {
   ResetMenuPopup,
 } from './components';
 // CSS imported in index.css to prevent FOUC
+
+/** Sort options for the results print dialog (Placement / Armband) */
+const RESULTS_SORT_OPTIONS: ScoresheetPrintDialogProps['options'] = {
+  primary: { label: 'Placement', sortOrder: 'placement' },
+  secondary: { label: 'Armband Number', sortOrder: 'armband' },
+};
 
 // eslint-disable-next-line complexity -- Large page component with many dialog/action handlers
 export const EntryList: React.FC = () => {
@@ -88,7 +94,10 @@ export const EntryList: React.FC = () => {
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [scoresheetPrintOpen, setScoresheetPrintOpen] = useState(false);
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [sortDialogTitle, setSortDialogTitle] = useState('Print Scoresheet');
+  const [sortDialogOptions, setSortDialogOptions] = useState<ScoresheetPrintDialogProps['options']>(undefined);
+  const [pendingPrintAction, setPendingPrintAction] = useState<((sortOrder: PrintSortOrder) => void) | null>(null);
   const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false);
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
   const [classOptionsDialogOpen, setClassOptionsDialogOpen] = useState(false);
@@ -590,7 +599,7 @@ export const EntryList: React.FC = () => {
   }, [classId, refresh]);
 
   // Print handlers
-  const handlePrintCheckIn = useCallback(() => {
+  const handlePrintCheckIn = useCallback((sortOrder: PrintSortOrder = 'run-order') => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -606,10 +615,10 @@ export const EntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateCheckInSheet(reportClassInfo, localEntries);
+    generateCheckInSheet(reportClassInfo, localEntries, { sortOrder });
   }, [classInfo, showContext?.org, localEntries]);
 
-  const handlePrintResults = useCallback(() => {
+  const handlePrintResults = useCallback((sortOrder: PrintSortOrder = 'placement') => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -625,10 +634,10 @@ export const EntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateResultsSheet(reportClassInfo, localEntries);
+    generateResultsSheet(reportClassInfo, localEntries, { sortOrder: sortOrder === 'armband' ? 'armband' : 'placement' });
   }, [classInfo, showContext?.org, localEntries]);
 
-  const handlePrintScoresheet = useCallback(async (sortOrder: 'run-order' | 'armband' = 'run-order') => {
+  const handlePrintScoresheet = useCallback(async (sortOrder: PrintSortOrder = 'run-order') => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -686,6 +695,13 @@ export const EntryList: React.FC = () => {
 
     generateScoresheetReport(scoresheetClassInfo, localEntries, { sortOrder });
   }, [classInfo, showContext?.org, localEntries]);
+
+  const openSortDialog = useCallback((title: string, action: (sortOrder: PrintSortOrder) => void, options?: ScoresheetPrintDialogProps['options']) => {
+    setSortDialogTitle(title);
+    setSortDialogOptions(options);
+    setPendingPrintAction(() => action);
+    setSortDialogOpen(true);
+  }, []);
 
   // Handler for status change from ClassStatusDialog
   const handleStatusDialogChange = useCallback(async (status: string, timeValue?: string) => {
@@ -819,9 +835,9 @@ export const EntryList: React.FC = () => {
           onRecalculatePlacements: handleRecalculatePlacements,
           onClassSettingsClick: () => setClassOptionsDialogOpen(true),
           printOptions: [
-            { label: 'Check-In Sheet', onClick: handlePrintCheckIn, icon: 'checkin' },
-            { label: 'Results Sheet', onClick: handlePrintResults, icon: 'results', disabled: completedEntries.length === 0 },
-            { label: 'Scoresheet', onClick: () => setScoresheetPrintOpen(true), icon: 'scoresheet' },
+            { label: 'Check-In Sheet', onClick: () => openSortDialog('Print Check-In Sheet', handlePrintCheckIn), icon: 'checkin' },
+            { label: 'Results Sheet', onClick: () => openSortDialog('Print Results', handlePrintResults, RESULTS_SORT_OPTIONS), icon: 'results', disabled: completedEntries.length === 0 },
+            { label: 'Scoresheet', onClick: () => openSortDialog('Print Scoresheet', handlePrintScoresheet), icon: 'scoresheet' },
           ],
         }}
       />
@@ -931,9 +947,9 @@ export const EntryList: React.FC = () => {
             }
           }}
           onStatus={() => { setStatusDialogOpen(true); return false; }}
-          onPrintCheckIn={handlePrintCheckIn}
-          onPrintResults={handlePrintResults}
-          onPrintScoresheet={() => setScoresheetPrintOpen(true)}
+          onPrintCheckIn={() => openSortDialog('Print Check-In Sheet', handlePrintCheckIn)}
+          onPrintResults={() => openSortDialog('Print Results', handlePrintResults, RESULTS_SORT_OPTIONS)}
+          onPrintScoresheet={() => openSortDialog('Print Scoresheet', handlePrintScoresheet)}
           hideMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) || !canModifyClassSettings}
           hideSettings={!canModifyClassSettings}
         />
@@ -1088,11 +1104,13 @@ export const EntryList: React.FC = () => {
       />
 
       <ScoresheetPrintDialog
-        isOpen={scoresheetPrintOpen}
-        onClose={() => setScoresheetPrintOpen(false)}
+        isOpen={sortDialogOpen}
+        onClose={() => setSortDialogOpen(false)}
+        title={sortDialogTitle}
+        options={sortDialogOptions}
         onPrint={(sortOrder) => {
-          setScoresheetPrintOpen(false);
-          handlePrintScoresheet(sortOrder);
+          setSortDialogOpen(false);
+          pendingPrintAction?.(sortOrder);
         }}
       />
     </div>

@@ -20,7 +20,7 @@ import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialo
 import { NoEntriesDialog } from '../../components/dialogs/NoEntriesDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassOptionsDialog } from '../../components/dialogs/ClassOptionsDialog';
-import { ScoresheetPrintDialog } from '../../components/dialogs/ScoresheetPrintDialog';
+import { ScoresheetPrintDialog, type PrintSortOrder } from '../../components/dialogs/ScoresheetPrintDialog';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { parseOrganizationData, hasRuleDefinedMaxTimes } from '../../utils/organizationUtils';
@@ -251,7 +251,7 @@ export const ClassList: React.FC = () => {
     }
   }, [handleResultsHook, showContext?.licenseKey, reportDeps]);
 
-  const handleGenerateScoresheet = useCallback(async (classId: number, sortOrder?: 'run-order' | 'armband') => {
+  const handleGenerateScoresheet = useCallback(async (classId: number, sortOrder?: PrintSortOrder) => {
     if (!showContext?.licenseKey) return;
     const result = await handleScoresheetHook(classId, reportDeps, sortOrder);
     if (!result.success && result.error) {

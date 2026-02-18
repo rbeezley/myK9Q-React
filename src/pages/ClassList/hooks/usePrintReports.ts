@@ -8,7 +8,7 @@
  */
 
 import { useCallback } from 'react';
-import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, type ReportClassInfo, type ScoresheetClassInfo } from '@/services/reportService';
+import { generateCheckInSheet, generateResultsSheet, generateScoresheetReport, type ReportClassInfo, type ScoresheetClassInfo, type ReportSortOrder } from '@/services/reportService';
 import { getClassEntries } from '@/services/entryService';
 import { parseOrganizationData } from '@/utils/organizationUtils';
 import { supabase } from '@/lib/supabase';
@@ -50,7 +50,7 @@ export interface UsePrintReportsReturn {
   handleGenerateScoresheet: (
     classId: number,
     deps: ReportDependencies,
-    sortOrder?: 'run-order' | 'armband'
+    sortOrder?: ReportSortOrder
   ) => Promise<ReportOperationResult>;
 }
 
@@ -242,7 +242,7 @@ export function usePrintReports(): UsePrintReportsReturn {
   const handleGenerateScoresheet = useCallback(async (
     classId: number,
     deps: ReportDependencies,
-    sortOrder?: 'run-order' | 'armband'
+    sortOrder?: ReportSortOrder
   ): Promise<ReportOperationResult> => {
     const { classes, trialInfo, licenseKey, organization, onComplete } = deps;
 

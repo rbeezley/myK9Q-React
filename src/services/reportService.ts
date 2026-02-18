@@ -8,6 +8,9 @@ import { ScoresheetReport, ScoresheetReportProps } from '../components/reports/S
 import { ShowFlyer, ShowFlyerProps } from '../components/reports/ShowFlyer';
 import { logger } from '@/utils/logger';
 
+/** Sort order for print reports */
+export type ReportSortOrder = 'run-order' | 'armband' | 'placement';
+
 /**
  * Report generation service
  * Opens a new window with the report and triggers print dialog
@@ -233,14 +236,17 @@ const generatePrintHTML = (title: string, content: string): string => {
 export const generateCheckInSheet = (
   classInfo: ReportClassInfo,
   entries: Entry[],
-  options?: { sortOrder?: 'run-order' | 'armband' }
+  options?: { sortOrder?: ReportSortOrder }
 ): void => {
   try {
+    // Map sortOrder: check-in sheets support 'run-order' or 'armband' (treat 'placement' as 'run-order')
+    const sortOrder = options?.sortOrder === 'armband' ? 'armband' : 'run-order';
+
     // Create props for CheckInSheet component
     const props: CheckInSheetProps = {
       classInfo,
       entries,
-      sortOrder: options?.sortOrder,
+      sortOrder,
     };
 
     // Render component to HTML string
@@ -273,7 +279,11 @@ export const generateCheckInSheet = (
 /**
  * Generate and print results sheet
  */
-export const generateResultsSheet = (classInfo: ReportClassInfo, entries: Entry[]): void => {
+export const generateResultsSheet = (
+  classInfo: ReportClassInfo,
+  entries: Entry[],
+  options?: { sortOrder?: 'placement' | 'armband' }
+): void => {
   try {
     // Filter to only scored entries
     const scoredEntries = entries.filter(entry => entry.isScored);
@@ -286,7 +296,8 @@ export const generateResultsSheet = (classInfo: ReportClassInfo, entries: Entry[
     // Create props for ResultsSheet component
     const props: ResultsSheetProps = {
       classInfo,
-      entries: scoredEntries
+      entries: scoredEntries,
+      sortOrder: options?.sortOrder
     };
 
     // Render component to HTML string
@@ -381,7 +392,7 @@ export interface ScoresheetClassInfo extends ReportClassInfo {
 export const generateScoresheetReport = (
   classInfo: ScoresheetClassInfo,
   entries: Entry[],
-  options?: { sortOrder?: 'run-order' | 'armband'; showSectionBadge?: boolean }
+  options?: { sortOrder?: ReportSortOrder; showSectionBadge?: boolean }
 ): void => {
   try {
     if (entries.length === 0) {
@@ -389,11 +400,14 @@ export const generateScoresheetReport = (
       return;
     }
 
+    // Map sortOrder: scoresheets support 'run-order' or 'armband' (treat 'placement' as 'run-order')
+    const sortOrder = options?.sortOrder === 'armband' ? 'armband' as const : 'run-order' as const;
+
     // Create props for ScoresheetReport component
     const props: ScoresheetReportProps = {
       classInfo,
       entries,
-      sortOrder: options?.sortOrder,
+      sortOrder,
       showSectionBadge: options?.showSectionBadge,
     };
 
