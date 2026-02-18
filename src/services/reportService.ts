@@ -5,6 +5,7 @@ import { CheckInSheet, CheckInSheetProps } from '../components/reports/CheckInSh
 import { ResultsSheet, ResultsSheetProps } from '../components/reports/ResultsSheet';
 import { DogResultsSheet, DogResultsSheetProps } from '../components/reports/DogResultsSheet';
 import { ScoresheetReport, ScoresheetReportProps } from '../components/reports/ScoresheetReport';
+import { ShowFlyer, ShowFlyerProps } from '../components/reports/ShowFlyer';
 import { logger } from '@/utils/logger';
 
 /**
@@ -130,6 +131,75 @@ const PRINT_STYLES = `
 
 @media print {
   .scoresheet-entry-row { border: 1px solid #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Show Flyer Styles */
+.show-flyer { padding: 0; }
+.flyer-page { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0.5in 1in; box-sizing: border-box; }
+.flyer-page-1 { justify-content: center; min-height: 9in; page-break-after: always; }
+.flyer-page-2 { justify-content: flex-start; align-items: flex-start; min-height: 9in; }
+
+/* Page 1 — Branding */
+.flyer-branding { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
+.flyer-logo { width: 140px; height: 140px; }
+.flyer-brand-name { font-size: 56px; font-weight: bold; color: #14b8a6; margin: 0.5rem 0 0 0; letter-spacing: -1px; }
+.flyer-tagline { font-size: 24px; color: #555; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.flyer-tagline-word { font-weight: 500; }
+.flyer-arrow { color: #14b8a6; font-weight: bold; font-size: 28px; }
+.flyer-show-name { font-size: 28px; font-weight: 600; text-align: center; margin: 0.75rem 0 0.25rem 0; color: #333; }
+.flyer-show-details { text-align: center; margin-bottom: 1.25rem; }
+.flyer-club-name { font-size: 18px; color: #555; margin: 0.25rem 0 0 0; font-weight: 500; }
+.flyer-show-dates { font-size: 16px; color: #777; margin: 0.25rem 0 0 0; }
+
+/* Page 1 — QR Code */
+.flyer-qr-section { text-align: center; margin: 1rem 0; }
+.flyer-qr-instruction { font-size: 18px; color: #555; margin-bottom: 1rem; }
+
+/* Page 1 — Passcode */
+.flyer-passcode-section { text-align: center; margin-top: 1.5rem; }
+.flyer-passcode-label { font-size: 18px; color: #555; margin-bottom: 0.5rem; }
+.flyer-passcode-value { font-size: 48px; font-weight: 700; letter-spacing: 8px; color: #14b8a6; font-family: 'Courier New', monospace; background: #f0fdfa; padding: 0.5rem 1.5rem; border-radius: 12px; border: 2px solid #14b8a6; display: inline-block; }
+.flyer-passcode-hint { font-size: 14px; color: #888; margin-top: 0.75rem; }
+.flyer-passcode-hint strong { color: #14b8a6; }
+
+/* Page 2 — Compact header */
+.flyer-branding-small { display: flex; flex-direction: row; gap: 0.5rem; margin-bottom: 1.5rem; align-items: center; width: 100%; }
+.flyer-logo-sm { width: 32px; height: 32px; }
+.flyer-brand-name-sm { font-size: 24px; font-weight: bold; color: #14b8a6; margin: 0; }
+.flyer-tagline-sm { font-size: 18px; color: #333; font-weight: 600; margin-left: 0.5rem; padding-left: 0.5rem; border-left: 2px solid #ccc; }
+.flyer-header-show { margin-left: auto; font-size: 13px; color: #888; font-weight: 500; }
+
+/* Page 2 — Feature grid */
+.guide-features { margin-bottom: 1.25rem; width: 100%; }
+.guide-features h3 { font-size: 18px; margin: 0 0 0.75rem 0; color: #333; border-bottom: 2px solid #14b8a6; padding-bottom: 0.25rem; }
+.guide-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.guide-feature-item { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.4rem 0.5rem; background: #f8f8f8; border-radius: 8px; }
+.guide-feature-icon { font-size: 22px; flex-shrink: 0; }
+.guide-feature-item strong { font-size: 13px; display: block; }
+.guide-feature-item p { font-size: 11px; color: #666; margin: 2px 0 0 0; }
+
+/* Page 2 — Guide sections */
+.guide-section { margin-bottom: 1.25rem; width: 100%; }
+.guide-section h3 { font-size: 16px; margin: 0 0 0.5rem 0; color: #333; border-bottom: 2px solid #14b8a6; padding-bottom: 0.25rem; }
+.guide-steps { margin: 0; padding-left: 1.5rem; font-size: 13px; line-height: 1.7; }
+.guide-steps strong { color: #14b8a6; }
+
+/* Page 2 — Footer stacked */
+.guide-footer { margin-top: auto; width: 100%; padding-top: 1.5rem; border-top: 1px solid #ddd; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-size: 14px; color: #666; }
+.guide-footer-url { font-weight: 600; color: #14b8a6; font-size: 14px; margin: 0; }
+.guide-contact { text-align: center; margin-top: 0.5rem; }
+.guide-contact-heading { font-weight: 600; color: #333; margin: 0 0 0.25rem 0; }
+.guide-contact-line { margin: 0.15rem 0; }
+.guide-contact-role { font-weight: 600; color: #14b8a6; }
+
+/* Flyer print overrides */
+@media print {
+  .flyer-page { padding: 0.25in 0.5in; }
+  .flyer-page-1 { min-height: auto; page-break-after: always; }
+  .flyer-page-2 { min-height: 9in; }
+  .flyer-passcode-value { background: #f0fdfa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .flyer-brand-name, .flyer-brand-name-sm, .flyer-arrow, .flyer-passcode-value, .flyer-passcode-hint strong, .guide-steps strong, .guide-footer-url, .guide-contact-role { color: #14b8a6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .guide-feature-item { background: #f8f8f8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 `;
 
@@ -336,5 +406,47 @@ export const generateScoresheetReport = (classInfo: ScoresheetClassInfo, entries
   } catch (error) {
     logger.error('Error generating scoresheet:', error);
     alert('Error generating scoresheet. Please try again.');
+  }
+};
+
+/**
+ * Generate and print show flyer (2-page handout with QR code)
+ */
+export const generateShowFlyer = (
+  showName: string,
+  exhibitorPasscode: string,
+  loginUrl: string,
+  options?: {
+    clubName?: string;
+    showDates?: string;
+    secretaryName?: string;
+    chairmanName?: string;
+  }
+): void => {
+  try {
+    const props: ShowFlyerProps = {
+      showName,
+      exhibitorPasscode,
+      loginUrl,
+      ...options,
+    };
+
+    const componentHTML = ReactDOMServer.renderToStaticMarkup(
+      React.createElement(ShowFlyer, props)
+    );
+
+    const htmlDoc = generatePrintHTML('Show Flyer - ' + showName, componentHTML);
+
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (printWindow) {
+      printWindow.document.write(htmlDoc);
+      printWindow.document.close();
+    } else {
+      logger.error('Failed to open print window. Please check popup blocker settings.');
+      alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
+    }
+  } catch (error) {
+    logger.error('Error generating show flyer:', error);
+    alert('Error generating show flyer. Please try again.');
   }
 };

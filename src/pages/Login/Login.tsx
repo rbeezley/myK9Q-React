@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { logger } from '@/utils/logger';
 import { authenticatePasscode } from '../../services/authService';
@@ -36,12 +36,27 @@ export const Login: React.FC = () => {
     'Warming up the judges...',
   ];
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const hapticFeedback = useHapticFeedback();
 
   // Focus first input on mount
   useEffect(() => {
 inputRefs.current[0]?.focus();
+  }, []);
+
+  // Pre-fill passcode from URL query parameter (e.g., ?code=e4b6c)
+  // Used by QR codes on show flyers for deep-link login
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    if (codeParam && codeParam.length === 5) {
+      const newPasscode = codeParam.toUpperCase().split('').slice(0, 5);
+      setPasscode(newPasscode);
+      // Auto-submit after a brief delay for visual feedback
+      setTimeout(() => {
+        handleSubmitWithPasscode(newPasscode);
+      }, 300);
+    }
   }, []);
 
   // Preload splash image for instant display during post-login loading
