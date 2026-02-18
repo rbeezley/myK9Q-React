@@ -7,7 +7,7 @@
  * Extracted from ClassList.tsx
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import type { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { ClassEntry } from './useClassListData';
 
@@ -90,6 +90,11 @@ export function useClassRealtime(
   refetch: () => void | Promise<void>,
   supabaseClient: SupabaseClient
 ): void {
+  // Debounce timer for entry changes — during active scoring, dozens of entry
+  // updates fire per minute. Without debouncing, each one triggers a full
+  // refetch causing constant re-renders and scroll jank on mobile.
+  const entryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Memoize the payload handler to avoid recreating on every render
   const handleRealtimeUpdate = useCallback((payload: SupabaseRealtimePayload) => {
     // For UPDATE events, update local state directly (optimistic update)
@@ -111,14 +116,26 @@ export function useClassRealtime(
     }
   }, [setClasses, refetch]);
 
+  // Debounced refetch for entry changes — coalesces rapid scoring updates
+  // into a single refetch after 1.5s of quiet
+  const debouncedEntryRefetch = useCallback(() => {
+    if (entryDebounceRef.current) {
+      clearTimeout(entryDebounceRef.current);
+    }
+    entryDebounceRef.current = setTimeout(() => {
+      refetch();
+      entryDebounceRef.current = null;
+    }, 1500);
+  }, [refetch]);
+
   // Set up real-time subscription
   useEffect(() => {
     // Don't subscribe if missing required data
     if (!trialId || !licenseKey) {
-return;
+      return;
     }
 
-// Create subscription channel - watch both classes and entries tables
+    // Create subscription channel - watch both classes and entries tables
     const subscription: RealtimeChannel = supabaseClient
       .channel(`class-list-trial-${trialId}`)
       .on(
@@ -138,15 +155,20 @@ return;
           table: 'entries'
         },
         (_payload) => {
-          // For entry changes, always refetch to update dog counts and status
-          refetch();
+          // Debounce entry refetches — during active scoring many entry
+          // updates arrive in rapid succession. Coalescing them prevents
+          // scroll-position-resetting re-renders on mobile.
+          debouncedEntryRefetch();
         }
       )
       .subscribe();
 
-// Cleanup function - unsubscribe on unmount or dependency change
+    // Cleanup function - unsubscribe on unmount or dependency change
     return () => {
-subscription.unsubscribe();
+      subscription.unsubscribe();
+      if (entryDebounceRef.current) {
+        clearTimeout(entryDebounceRef.current);
+      }
     };
-  }, [trialId, licenseKey, supabaseClient, handleRealtimeUpdate]);
+  }, [trialId, licenseKey, supabaseClient, handleRealtimeUpdate, debouncedEntryRefetch]);
 }

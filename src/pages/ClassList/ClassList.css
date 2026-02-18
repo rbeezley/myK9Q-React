@@ -10,6 +10,7 @@
 
 .class-list-container {
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height — avoids iOS address bar overlap */
   overflow: hidden;
   background: var(--secondary); /* Light: light gray background for better contrast with white containers */
   color: var(--foreground);
