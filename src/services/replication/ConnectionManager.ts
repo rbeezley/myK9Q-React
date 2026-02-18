@@ -44,10 +44,12 @@ const TABLES_WITH_LICENSE_KEY = new Set([
  * These either don't exist yet (dormant) or are views (can't use postgres_changes).
  */
 const SKIP_REALTIME_SUBSCRIPTION = new Set([
-  'view_stats_summary',      // Database view - can't subscribe to postgres_changes
-  'view_audit_log',          // Database view - can't subscribe to postgres_changes
-  'event_statistics',        // Dormant table - doesn't exist in database yet
-  'nationals_rankings',      // Dormant table - doesn't exist in database yet
+  'view_stats_summary',                    // Database view - can't subscribe to postgres_changes
+  'view_audit_log',                        // Database view - can't subscribe to postgres_changes
+  'event_statistics',                      // Dormant table - doesn't exist in database yet
+  'nationals_rankings',                    // Dormant table - doesn't exist in database yet
+  'trial_result_visibility_overrides',     // Low-frequency config, no license_key - sync handles it
+  'class_result_visibility_overrides',     // Low-frequency config, no license_key - sync handles it
 ]);
 
 /**
