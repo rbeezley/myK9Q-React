@@ -85,6 +85,7 @@ workbox-*.js
 
 # Claude Code
 .claude/skills/
+.claude/settings.json
 
 # Claude Flow generated files
 .claude/settings.local.json
