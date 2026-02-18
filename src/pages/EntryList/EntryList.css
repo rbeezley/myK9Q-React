@@ -383,6 +383,38 @@
   margin: var(--token-space-sm) 0;
 }
 
+/* Expandable group header in action menu */
+.action-menu-group-header {
+  width: 100%;
+  padding: var(--token-space-lg) var(--token-space-xl);
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--token-space-lg);
+}
+
+.action-menu-group-header:hover {
+  background: var(--muted);
+}
+
+.group-chevron {
+  margin-left: auto;
+  color: var(--muted-foreground);
+}
+
+/* Indented sub-items under an expanded group */
+.action-menu-subitem {
+  padding-left: calc(var(--token-space-xl) + var(--token-space-xl));
+  font-size: 0.8125rem;
+}
+
 /* ========== STATUS TABS ========== */
 
 /* Higher specificity to override any sticky positioning from shared styles */

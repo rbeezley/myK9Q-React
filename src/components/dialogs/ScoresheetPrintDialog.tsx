@@ -14,18 +14,20 @@ export interface ScoresheetPrintDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onPrint: (sortOrder: 'run-order' | 'armband') => void;
+  title?: string;
 }
 
 export const ScoresheetPrintDialog: React.FC<ScoresheetPrintDialogProps> = ({
   isOpen,
   onClose,
   onPrint,
+  title,
 }) => {
   return (
     <DialogContainer
       isOpen={isOpen}
       onClose={onClose}
-      title="Print Scoresheet"
+      title={title || 'Print Scoresheet'}
       icon={<ClipboardList size={20} />}
       maxWidth="340px"
     >

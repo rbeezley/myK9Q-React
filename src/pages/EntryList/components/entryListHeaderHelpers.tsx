@@ -7,7 +7,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   RefreshCw,
   MoreVertical,
@@ -16,7 +16,9 @@ import {
   ClipboardList,
   ListOrdered,
   Trophy,
-  Settings
+  Settings,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 // ============================================================================
@@ -30,6 +32,12 @@ export interface PrintOption {
   icon: 'checkin' | 'results' | 'scoresheet';
 }
 
+export interface PrintOptionGroup {
+  groupLabel: string;
+  groupIcon: 'checkin' | 'results' | 'scoresheet';
+  items: PrintOption[];
+}
+
 export interface ActionsMenuConfig {
   showRunOrder?: boolean;
   showRecalculatePlacements?: boolean;
@@ -38,7 +46,7 @@ export interface ActionsMenuConfig {
   onRunOrderClick?: () => void;
   onRecalculatePlacements?: () => void;
   onClassSettingsClick?: () => void;
-  printOptions: PrintOption[];
+  printOptions: (PrintOption | PrintOptionGroup)[];
 }
 
 // ============================================================================
@@ -62,6 +70,18 @@ interface ActionsDropdownMenuProps {
   };
 }
 
+/** Helper to render the icon for a given print option type */
+const PrintIcon: React.FC<{ icon: 'checkin' | 'results' | 'scoresheet' }> = ({ icon }) => {
+  if (icon === 'checkin') return <Printer className="h-4 w-4" />;
+  if (icon === 'scoresheet') return <ClipboardList className="h-4 w-4" />;
+  return <ClipboardCheck className="h-4 w-4" />;
+};
+
+/** Type guard: is this a group or a flat option? */
+function isPrintOptionGroup(item: PrintOption | PrintOptionGroup): item is PrintOptionGroup {
+  return 'groupLabel' in item;
+}
+
 export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
   isOpen,
   onToggle,
@@ -71,6 +91,8 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
   actionsMenu,
   refreshLongPressHandlers
 }) => {
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+
   const handleRefresh = () => {
     onClose();
     onRefresh();
@@ -93,7 +115,12 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
 
   const handlePrintOption = (option: PrintOption) => {
     onClose();
+    setExpandedGroup(null);
     option.onClick();
+  };
+
+  const toggleGroup = (label: string) => {
+    setExpandedGroup(prev => prev === label ? null : label);
   };
 
   return (
@@ -157,24 +184,45 @@ export const ActionsDropdownMenu: React.FC<ActionsDropdownMenuProps> = ({
           {/* Divider before print options */}
           <div className="menu-divider" />
 
-          {/* Print options */}
-          {actionsMenu.printOptions.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handlePrintOption(option)}
-              className="action-menu-item"
-              disabled={option.disabled}
-            >
-              {option.icon === 'checkin' ? (
-                <Printer className="h-4 w-4" />
-              ) : option.icon === 'scoresheet' ? (
-                <ClipboardList className="h-4 w-4" />
-              ) : (
-                <ClipboardCheck className="h-4 w-4" />
-              )}
-              {option.label}
-            </button>
-          ))}
+          {/* Print options — supports both flat items and expandable groups */}
+          {actionsMenu.printOptions.map((item, index) =>
+            isPrintOptionGroup(item) ? (
+              <React.Fragment key={index}>
+                <button
+                  className="action-menu-group-header"
+                  onClick={() => toggleGroup(item.groupLabel)}
+                >
+                  <PrintIcon icon={item.groupIcon} />
+                  {item.groupLabel}
+                  <span className="group-chevron">
+                    {expandedGroup === item.groupLabel
+                      ? <ChevronUp className="h-4 w-4" />
+                      : <ChevronDown className="h-4 w-4" />}
+                  </span>
+                </button>
+                {expandedGroup === item.groupLabel && item.items.map((sub, subIndex) => (
+                  <button
+                    key={subIndex}
+                    onClick={() => handlePrintOption(sub)}
+                    className="action-menu-item action-menu-subitem"
+                    disabled={sub.disabled}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </React.Fragment>
+            ) : (
+              <button
+                key={index}
+                onClick={() => handlePrintOption(item)}
+                className="action-menu-item"
+                disabled={item.disabled}
+              >
+                <PrintIcon icon={item.icon} />
+                {item.label}
+              </button>
+            )
+          )}
         </div>
       )}
     </div>

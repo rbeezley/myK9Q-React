@@ -230,12 +230,17 @@ const generatePrintHTML = (title: string, content: string): string => {
 /**
  * Generate and print check-in sheet
  */
-export const generateCheckInSheet = (classInfo: ReportClassInfo, entries: Entry[]): void => {
+export const generateCheckInSheet = (
+  classInfo: ReportClassInfo,
+  entries: Entry[],
+  options?: { sortOrder?: 'run-order' | 'armband' }
+): void => {
   try {
     // Create props for CheckInSheet component
     const props: CheckInSheetProps = {
       classInfo,
-      entries
+      entries,
+      sortOrder: options?.sortOrder,
     };
 
     // Render component to HTML string

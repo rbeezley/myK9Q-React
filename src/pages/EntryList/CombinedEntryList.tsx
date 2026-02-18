@@ -88,8 +88,9 @@ export const CombinedEntryList: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState(false);
-  const [scoresheetPrintOpen, setScoresheetPrintOpen] = useState(false);
-  const [scoresheetPrintTarget, setScoresheetPrintTarget] = useState<'A' | 'B' | 'combined'>('A');
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [sortDialogTitle, setSortDialogTitle] = useState('Print Scoresheet');
+  const [pendingPrintAction, setPendingPrintAction] = useState<((sortOrder: 'run-order' | 'armband') => void) | null>(null);
 
   // Filters using shared hook
   const {
@@ -384,8 +385,15 @@ export const CombinedEntryList: React.FC = () => {
     setSortOrder('run');
   }, [currentEntries]);
 
-  // Print handlers
-  const handlePrintCheckIn = useCallback(() => {
+  // Helper to open the sort order dialog for any print action
+  const openSortDialog = useCallback((title: string, action: (sortOrder: 'run-order' | 'armband') => void) => {
+    setSortDialogTitle(title);
+    setPendingPrintAction(() => action);
+    setSortDialogOpen(true);
+  }, []);
+
+  // Print handlers — Check-in sheets
+  const handlePrintCheckIn = useCallback((sortOrder: 'run-order' | 'armband') => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -401,7 +409,47 @@ export const CombinedEntryList: React.FC = () => {
       activityType: orgData.activity_type
     };
 
-    generateCheckInSheet(reportClassInfo, entries);
+    generateCheckInSheet(reportClassInfo, entries, { sortOrder });
+  }, [classInfo, showContext?.org, entries]);
+
+  const handlePrintCheckInSectionA = useCallback((sortOrder: 'run-order' | 'armband') => {
+    if (!classInfo) return;
+
+    const sectionAEntries = entries.filter(entry => entry.section === 'A');
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} Section A`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'A',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type
+    };
+
+    generateCheckInSheet(reportClassInfo, sectionAEntries, { sortOrder });
+  }, [classInfo, showContext?.org, entries]);
+
+  const handlePrintCheckInSectionB = useCallback((sortOrder: 'run-order' | 'armband') => {
+    if (!classInfo) return;
+
+    const sectionBEntries = entries.filter(entry => entry.section === 'B');
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const reportClassInfo: ReportClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} Section B`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'B',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeNameB || classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type
+    };
+
+    generateCheckInSheet(reportClassInfo, sectionBEntries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
   const handlePrintResultsSectionA = useCallback(() => {
@@ -629,12 +677,32 @@ export const CombinedEntryList: React.FC = () => {
           showRunOrder: hasPermission('canChangeRunOrder'),
           onRunOrderClick: () => setRunOrderDialogOpen(true),
           printOptions: [
-            { label: 'Check-In Sheet (A & B)', onClick: handlePrintCheckIn, icon: 'checkin' },
-            { label: 'Results - Section A', onClick: handlePrintResultsSectionA, icon: 'results', disabled: completedEntries.filter(e => e.section === 'A').length === 0 },
-            { label: 'Results - Section B', onClick: handlePrintResultsSectionB, icon: 'results', disabled: completedEntries.filter(e => e.section === 'B').length === 0 },
-            { label: 'Scoresheet - Section A', onClick: () => { setScoresheetPrintTarget('A'); setScoresheetPrintOpen(true); }, icon: 'scoresheet' },
-            { label: 'Scoresheet - Section B', onClick: () => { setScoresheetPrintTarget('B'); setScoresheetPrintOpen(true); }, icon: 'scoresheet' },
-            { label: 'Scoresheet - Combined A & B', onClick: () => { setScoresheetPrintTarget('combined'); setScoresheetPrintOpen(true); }, icon: 'scoresheet' },
+            {
+              groupLabel: 'Check-In Sheets',
+              groupIcon: 'checkin',
+              items: [
+                { label: 'Section A', onClick: () => openSortDialog('Print Check-In Sheet', handlePrintCheckInSectionA), icon: 'checkin' },
+                { label: 'Section B', onClick: () => openSortDialog('Print Check-In Sheet', handlePrintCheckInSectionB), icon: 'checkin' },
+                { label: 'Combined A & B', onClick: () => openSortDialog('Print Check-In Sheet', handlePrintCheckIn), icon: 'checkin' },
+              ],
+            },
+            {
+              groupLabel: 'Results',
+              groupIcon: 'results',
+              items: [
+                { label: 'Section A', onClick: handlePrintResultsSectionA, icon: 'results', disabled: completedEntries.filter(e => e.section === 'A').length === 0 },
+                { label: 'Section B', onClick: handlePrintResultsSectionB, icon: 'results', disabled: completedEntries.filter(e => e.section === 'B').length === 0 },
+              ],
+            },
+            {
+              groupLabel: 'Scoresheets',
+              groupIcon: 'scoresheet',
+              items: [
+                { label: 'Section A', onClick: () => openSortDialog('Print Scoresheet', handlePrintScoresheetSectionA), icon: 'scoresheet' },
+                { label: 'Section B', onClick: () => openSortDialog('Print Scoresheet', handlePrintScoresheetSectionB), icon: 'scoresheet' },
+                { label: 'Combined A & B', onClick: () => openSortDialog('Print Scoresheet', handlePrintScoresheetCombined), icon: 'scoresheet' },
+              ],
+            },
           ],
         }}
       />
@@ -751,13 +819,12 @@ export const CombinedEntryList: React.FC = () => {
       />
 
       <ScoresheetPrintDialog
-        isOpen={scoresheetPrintOpen}
-        onClose={() => setScoresheetPrintOpen(false)}
+        isOpen={sortDialogOpen}
+        onClose={() => setSortDialogOpen(false)}
+        title={sortDialogTitle}
         onPrint={(sortOrder) => {
-          setScoresheetPrintOpen(false);
-          if (scoresheetPrintTarget === 'A') handlePrintScoresheetSectionA(sortOrder);
-          else if (scoresheetPrintTarget === 'B') handlePrintScoresheetSectionB(sortOrder);
-          else handlePrintScoresheetCombined(sortOrder);
+          setSortDialogOpen(false);
+          pendingPrintAction?.(sortOrder);
         }}
       />
     </div>

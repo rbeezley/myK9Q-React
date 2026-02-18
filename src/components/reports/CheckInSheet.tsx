@@ -1,6 +1,6 @@
 import React from 'react';
 import { Entry } from '../../stores/entryStore';
-import { formatReportDate, sortByRunOrder, getOrgTitle } from './reportUtils';
+import { formatReportDate, sortByRunOrder, sortByArmband, getOrgTitle } from './reportUtils';
 
 export interface CheckInSheetProps {
   classInfo: {
@@ -15,10 +15,11 @@ export interface CheckInSheetProps {
     activityType?: string;
   };
   entries: Entry[];
+  sortOrder?: 'run-order' | 'armband';
 }
 
-export const CheckInSheet: React.FC<CheckInSheetProps> = ({ classInfo, entries }) => {
-  const sortedEntries = sortByRunOrder(entries);
+export const CheckInSheet: React.FC<CheckInSheetProps> = ({ classInfo, entries, sortOrder }) => {
+  const sortedEntries = sortOrder === 'armband' ? sortByArmband(entries) : sortByRunOrder(entries);
   // Build title: "AKC Scent Work Check-in" or fallback to element-based title
   const orgTitle = classInfo.organization && classInfo.activityType
     ? `${classInfo.organization} ${classInfo.activityType}`
