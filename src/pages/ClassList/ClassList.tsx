@@ -20,6 +20,7 @@ import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialo
 import { NoEntriesDialog } from '../../components/dialogs/NoEntriesDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassOptionsDialog } from '../../components/dialogs/ClassOptionsDialog';
+import { ScoresheetPrintDialog } from '../../components/dialogs/ScoresheetPrintDialog';
 import { getClassDisplayStatus } from '../../utils/statusUtils';
 import { getLevelSortOrder } from '../../lib/utils';
 import { parseOrganizationData, hasRuleDefinedMaxTimes } from '../../utils/organizationUtils';
@@ -125,6 +126,7 @@ export const ClassList: React.FC = () => {
 
   // No stats dialog state - shown when clicking Statistics for a class with no scored entries
   const [noStatsDialogOpen, setNoStatsDialogOpen] = useState(false);
+  const [scoresheetPrintOpen, setScoresheetPrintOpen] = useState(false);
   const [noStatsClassName, setNoStatsClassName] = useState<string | undefined>(undefined);
 
   // Search and sort states
@@ -249,9 +251,9 @@ export const ClassList: React.FC = () => {
     }
   }, [handleResultsHook, showContext?.licenseKey, reportDeps]);
 
-  const handleGenerateScoresheet = useCallback(async (classId: number) => {
+  const handleGenerateScoresheet = useCallback(async (classId: number, sortOrder?: 'run-order' | 'armband') => {
     if (!showContext?.licenseKey) return;
-    const result = await handleScoresheetHook(classId, reportDeps);
+    const result = await handleScoresheetHook(classId, reportDeps, sortOrder);
     if (!result.success && result.error) {
       alert(result.error);
     }
@@ -867,7 +869,7 @@ export const ClassList: React.FC = () => {
             }}
             onPrintScoresheet={() => {
               if (selectedClass) {
-                handleGenerateScoresheet(selectedClass.id);
+                setScoresheetPrintOpen(true);
               }
             }}
             hideMaxTime={hasRuleDefinedMaxTimes(orgData) || !canModifyClassSettings}
@@ -1027,6 +1029,17 @@ export const ClassList: React.FC = () => {
         onSortChange={(order) => setSortOrder(order as typeof sortOrder)}
         resultsLabel={`${filteredClasses.length} of ${groupedClasses.length} classes`}
         title="Search & Sort Classes"
+      />
+
+      <ScoresheetPrintDialog
+        isOpen={scoresheetPrintOpen}
+        onClose={() => setScoresheetPrintOpen(false)}
+        onPrint={(scoresheetSortOrder) => {
+          setScoresheetPrintOpen(false);
+          if (activePopup !== null) {
+            handleGenerateScoresheet(activePopup, scoresheetSortOrder);
+          }
+        }}
       />
     </div>
   );

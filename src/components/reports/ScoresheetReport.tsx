@@ -1,6 +1,6 @@
 import React from 'react';
 import { Entry } from '../../stores/entryStore';
-import { formatReportDate, sortByRunOrder, getOrgTitle } from './reportUtils';
+import { formatReportDate, sortByRunOrder, sortByArmband, getOrgTitle } from './reportUtils';
 
 export interface ScoresheetReportProps {
   classInfo: {
@@ -23,6 +23,8 @@ export interface ScoresheetReportProps {
     distractionsText?: string; // e.g., "None", "Non-food" - blank for Master
   };
   entries: Entry[];
+  sortOrder?: 'run-order' | 'armband';
+  showSectionBadge?: boolean;
 }
 
 /**
@@ -43,8 +45,8 @@ function formatTimeLimit(seconds: number | undefined): string {
  *
  * Layout based on standard AKC Scent Work scoresheet format.
  */
-export const ScoresheetReport: React.FC<ScoresheetReportProps> = ({ classInfo, entries }) => {
-  const sortedEntries = sortByRunOrder(entries);
+export const ScoresheetReport: React.FC<ScoresheetReportProps> = ({ classInfo, entries, sortOrder, showSectionBadge }) => {
+  const sortedEntries = sortOrder === 'armband' ? sortByArmband(entries) : sortByRunOrder(entries);
 
   // Build title
   const orgTitle = classInfo.organization && classInfo.activityType
@@ -111,7 +113,12 @@ export const ScoresheetReport: React.FC<ScoresheetReportProps> = ({ classInfo, e
           <div key={entry.id} className="scoresheet-entry-row">
             {/* Dog Info Column */}
             <div className="entry-info">
-              <div className="entry-armband">{entry.armband}</div>
+              <div className="entry-armband">
+                {entry.armband}
+                {showSectionBadge && entry.section && (
+                  <div className="entry-section-badge">{entry.section}</div>
+                )}
+              </div>
               <div className="entry-details">
                 <div className="entry-callname">{entry.callName}</div>
                 <div className="entry-reg">{entry.id ? `WS${entry.id}` : ''}</div>

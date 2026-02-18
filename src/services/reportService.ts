@@ -90,7 +90,8 @@ const PRINT_STYLES = `
 .scoresheet-entries { display: flex; flex-direction: column; gap: 0.4rem; }
 .scoresheet-entry-row { display: grid; grid-template-columns: 150px 140px 1fr 140px; gap: 0.5rem; border: 1px solid #000; padding: 0.5rem; page-break-inside: avoid; }
 .entry-info { display: flex; gap: 0.5rem; align-items: flex-start; }
-.entry-armband { font-size: 18px; font-weight: 700; min-width: 36px; }
+.entry-armband { font-size: 18px; font-weight: 700; min-width: 36px; text-align: center; }
+.entry-section-badge { font-size: 11px; font-weight: 600; color: #666; margin-top: 2px; text-align: center; }
 .entry-details { display: flex; flex-direction: column; gap: 2px; }
 .entry-callname { font-weight: 600; font-size: 12px; }
 .entry-reg { font-size: 9px; color: #666; }
@@ -372,7 +373,11 @@ export interface ScoresheetClassInfo extends ReportClassInfo {
  * Generate and print judge's scoresheet
  * Blank scoresheet for judges to record scores during trial
  */
-export const generateScoresheetReport = (classInfo: ScoresheetClassInfo, entries: Entry[]): void => {
+export const generateScoresheetReport = (
+  classInfo: ScoresheetClassInfo,
+  entries: Entry[],
+  options?: { sortOrder?: 'run-order' | 'armband'; showSectionBadge?: boolean }
+): void => {
   try {
     if (entries.length === 0) {
       alert('No entries to display in scoresheet.');
@@ -382,7 +387,9 @@ export const generateScoresheetReport = (classInfo: ScoresheetClassInfo, entries
     // Create props for ScoresheetReport component
     const props: ScoresheetReportProps = {
       classInfo,
-      entries
+      entries,
+      sortOrder: options?.sortOrder,
+      showSectionBadge: options?.showSectionBadge,
     };
 
     // Render component to HTML string

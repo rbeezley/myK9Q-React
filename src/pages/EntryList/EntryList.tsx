@@ -12,6 +12,7 @@ import { MaxTimeDialog } from '../../components/dialogs/MaxTimeDialog';
 import { ClassSettingsDialog } from '../../components/dialogs/ClassSettingsDialog';
 import { NoStatsDialog } from '../../components/dialogs/NoStatsDialog';
 import { ClassStatusDialog } from '../../components/dialogs/ClassStatusDialog';
+import { ScoresheetPrintDialog } from '../../components/dialogs/ScoresheetPrintDialog';
 import { AreaCountSelectionDialog, AreaCountRequirements } from '../../components/dialogs/AreaCountSelectionDialog';
 import { replicatedClassesTable } from '@/services/replication';
 import { Clock, CheckCircle, Trophy, ArrowUpDown, Users, ArrowLeft, Info } from 'lucide-react';
@@ -87,6 +88,7 @@ export const EntryList: React.FC = () => {
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState<boolean>(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [scoresheetPrintOpen, setScoresheetPrintOpen] = useState(false);
   const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false);
   const [runOrderDialogOpen, setRunOrderDialogOpen] = useState(false);
   const [classOptionsDialogOpen, setClassOptionsDialogOpen] = useState(false);
@@ -626,7 +628,7 @@ export const EntryList: React.FC = () => {
     generateResultsSheet(reportClassInfo, localEntries);
   }, [classInfo, showContext?.org, localEntries]);
 
-  const handlePrintScoresheet = useCallback(async () => {
+  const handlePrintScoresheet = useCallback(async (sortOrder: 'run-order' | 'armband' = 'run-order') => {
     if (!classInfo) return;
 
     const orgData = parseOrganizationData(showContext?.org || '');
@@ -682,7 +684,7 @@ export const EntryList: React.FC = () => {
       distractionsText
     };
 
-    generateScoresheetReport(scoresheetClassInfo, localEntries);
+    generateScoresheetReport(scoresheetClassInfo, localEntries, { sortOrder });
   }, [classInfo, showContext?.org, localEntries]);
 
   // Handler for status change from ClassStatusDialog
@@ -819,7 +821,7 @@ export const EntryList: React.FC = () => {
           printOptions: [
             { label: 'Check-In Sheet', onClick: handlePrintCheckIn, icon: 'checkin' },
             { label: 'Results Sheet', onClick: handlePrintResults, icon: 'results', disabled: completedEntries.length === 0 },
-            { label: 'Scoresheet', onClick: handlePrintScoresheet, icon: 'scoresheet' },
+            { label: 'Scoresheet', onClick: () => setScoresheetPrintOpen(true), icon: 'scoresheet' },
           ],
         }}
       />
@@ -931,7 +933,7 @@ export const EntryList: React.FC = () => {
           onStatus={() => { setStatusDialogOpen(true); return false; }}
           onPrintCheckIn={handlePrintCheckIn}
           onPrintResults={handlePrintResults}
-          onPrintScoresheet={handlePrintScoresheet}
+          onPrintScoresheet={() => setScoresheetPrintOpen(true)}
           hideMaxTime={hasRuleDefinedMaxTimes(parseOrganizationData(showContext?.org || '')) || !canModifyClassSettings}
           hideSettings={!canModifyClassSettings}
         />
@@ -1082,6 +1084,15 @@ export const EntryList: React.FC = () => {
         onClick={() => {
           setIsDragMode(false);
           setSortOrder('run');
+        }}
+      />
+
+      <ScoresheetPrintDialog
+        isOpen={scoresheetPrintOpen}
+        onClose={() => setScoresheetPrintOpen(false)}
+        onPrint={(sortOrder) => {
+          setScoresheetPrintOpen(false);
+          handlePrintScoresheet(sortOrder);
         }}
       />
     </div>

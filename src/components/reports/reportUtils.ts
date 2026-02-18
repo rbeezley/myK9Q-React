@@ -38,6 +38,11 @@ export const sortByRunOrder = (entries: Entry[]): Entry[] => {
   });
 };
 
+// Sort entries by armband number (ascending)
+export const sortByArmband = (entries: Entry[]): Entry[] => {
+  return [...entries].sort((a, b) => a.armband - b.armband);
+};
+
 // Sort entries by placement for results sheet
 // Qualified entries with numbered placements first, then Absent/Excused/NQ
 export const sortByPlacement = (entries: Entry[]): Entry[] => {

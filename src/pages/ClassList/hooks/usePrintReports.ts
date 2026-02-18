@@ -49,7 +49,8 @@ export interface UsePrintReportsReturn {
   ) => Promise<ReportOperationResult>;
   handleGenerateScoresheet: (
     classId: number,
-    deps: ReportDependencies
+    deps: ReportDependencies,
+    sortOrder?: 'run-order' | 'armband'
   ) => Promise<ReportOperationResult>;
 }
 
@@ -240,7 +241,8 @@ export function usePrintReports(): UsePrintReportsReturn {
    */
   const handleGenerateScoresheet = useCallback(async (
     classId: number,
-    deps: ReportDependencies
+    deps: ReportDependencies,
+    sortOrder?: 'run-order' | 'armband'
   ): Promise<ReportOperationResult> => {
     const { classes, trialInfo, licenseKey, organization, onComplete } = deps;
 
@@ -322,7 +324,7 @@ export function usePrintReports(): UsePrintReportsReturn {
       };
 
       // Generate scoresheet
-      generateScoresheetReport(scoresheetClassInfo, entries);
+      generateScoresheetReport(scoresheetClassInfo, entries, { sortOrder });
 
       // Call completion callback (e.g., close popup)
       onComplete?.();

@@ -6,6 +6,7 @@ import { usePrefetch } from '@/hooks/usePrefetch';
 import { ErrorState, TabBar, Tab, FilterPanel, SortOption } from '../../components/ui';
 import { CheckinStatusDialog } from '../../components/dialogs/CheckinStatusDialog';
 import { RunOrderDialog, RunOrderPreset } from '../../components/dialogs/RunOrderDialog';
+import { ScoresheetPrintDialog } from '../../components/dialogs/ScoresheetPrintDialog';
 import { Clock, CheckCircle, ArrowUpDown, Trophy, RefreshCw } from 'lucide-react';
 import { Entry } from '../../stores/entryStore';
 import { applyRunOrderPresetScoped } from '../../services/runOrderService';
@@ -87,6 +88,8 @@ export const CombinedEntryList: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isDragMode, setIsDragMode] = useState(false);
   const [selfCheckinDisabledDialog, setSelfCheckinDisabledDialog] = useState(false);
+  const [scoresheetPrintOpen, setScoresheetPrintOpen] = useState(false);
+  const [scoresheetPrintTarget, setScoresheetPrintTarget] = useState<'A' | 'B' | 'combined'>('A');
 
   // Filters using shared hook
   const {
@@ -475,7 +478,7 @@ export const CombinedEntryList: React.FC = () => {
     return { hidesText: undefined, distractionsText: undefined };
   };
 
-  const handlePrintScoresheetSectionA = useCallback(async () => {
+  const handlePrintScoresheetSectionA = useCallback(async (sortOrder: 'run-order' | 'armband') => {
     if (!classInfo) return;
 
     const sectionAEntries = entries.filter(entry => entry.section === 'A');
@@ -500,10 +503,10 @@ export const CombinedEntryList: React.FC = () => {
       distractionsText
     };
 
-    generateScoresheetReport(scoresheetClassInfo, sectionAEntries);
+    generateScoresheetReport(scoresheetClassInfo, sectionAEntries, { sortOrder });
   }, [classInfo, showContext?.org, entries]);
 
-  const handlePrintScoresheetSectionB = useCallback(async () => {
+  const handlePrintScoresheetSectionB = useCallback(async (sortOrder: 'run-order' | 'armband') => {
     if (!classInfo) return;
 
     const sectionBEntries = entries.filter(entry => entry.section === 'B');
@@ -528,7 +531,34 @@ export const CombinedEntryList: React.FC = () => {
       distractionsText
     };
 
-    generateScoresheetReport(scoresheetClassInfo, sectionBEntries);
+    generateScoresheetReport(scoresheetClassInfo, sectionBEntries, { sortOrder });
+  }, [classInfo, showContext?.org, entries]);
+
+  const handlePrintScoresheetCombined = useCallback(async (sortOrder: 'run-order' | 'armband') => {
+    if (!classInfo) return;
+
+    const orgData = parseOrganizationData(showContext?.org || '');
+    const { hidesText, distractionsText } = await fetchClassRequirements(orgData, classInfo.element, classInfo.level);
+
+    const scoresheetClassInfo: ScoresheetClassInfo = {
+      className: `${classInfo.element} ${classInfo.level} A & B`,
+      element: classInfo.element,
+      level: classInfo.level,
+      section: 'A & B',
+      trialDate: classInfo.trialDate || '',
+      trialNumber: classInfo.trialNumber || '',
+      judgeName: classInfo.judgeName || 'TBD',
+      organization: orgData.organization,
+      activityType: orgData.activity_type,
+      timeLimitSeconds: parseTimeLimit(classInfo.timeLimit),
+      timeLimitArea2Seconds: parseTimeLimit(classInfo.timeLimit2),
+      timeLimitArea3Seconds: parseTimeLimit(classInfo.timeLimit3),
+      areaCount: classInfo.areas,
+      hidesText,
+      distractionsText
+    };
+
+    generateScoresheetReport(scoresheetClassInfo, entries, { sortOrder, showSectionBadge: true });
   }, [classInfo, showContext?.org, entries]);
 
   // Tab configuration
@@ -602,8 +632,9 @@ export const CombinedEntryList: React.FC = () => {
             { label: 'Check-In Sheet (A & B)', onClick: handlePrintCheckIn, icon: 'checkin' },
             { label: 'Results - Section A', onClick: handlePrintResultsSectionA, icon: 'results', disabled: completedEntries.filter(e => e.section === 'A').length === 0 },
             { label: 'Results - Section B', onClick: handlePrintResultsSectionB, icon: 'results', disabled: completedEntries.filter(e => e.section === 'B').length === 0 },
-            { label: 'Scoresheet - Section A', onClick: handlePrintScoresheetSectionA, icon: 'scoresheet' },
-            { label: 'Scoresheet - Section B', onClick: handlePrintScoresheetSectionB, icon: 'scoresheet' },
+            { label: 'Scoresheet - Section A', onClick: () => { setScoresheetPrintTarget('A'); setScoresheetPrintOpen(true); }, icon: 'scoresheet' },
+            { label: 'Scoresheet - Section B', onClick: () => { setScoresheetPrintTarget('B'); setScoresheetPrintOpen(true); }, icon: 'scoresheet' },
+            { label: 'Scoresheet - Combined A & B', onClick: () => { setScoresheetPrintTarget('combined'); setScoresheetPrintOpen(true); }, icon: 'scoresheet' },
           ],
         }}
       />
@@ -716,6 +747,17 @@ export const CombinedEntryList: React.FC = () => {
         onClick={() => {
           setIsDragMode(false);
           setSortOrder('run');
+        }}
+      />
+
+      <ScoresheetPrintDialog
+        isOpen={scoresheetPrintOpen}
+        onClose={() => setScoresheetPrintOpen(false)}
+        onPrint={(sortOrder) => {
+          setScoresheetPrintOpen(false);
+          if (scoresheetPrintTarget === 'A') handlePrintScoresheetSectionA(sortOrder);
+          else if (scoresheetPrintTarget === 'B') handlePrintScoresheetSectionB(sortOrder);
+          else handlePrintScoresheetCombined(sortOrder);
         }}
       />
     </div>
