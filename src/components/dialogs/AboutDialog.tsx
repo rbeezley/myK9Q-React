@@ -23,6 +23,25 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
   // Read synchronously since localStorage is sync and component re-renders when isOpen changes
   const deviceId = isOpen ? localStorage.getItem(PUSH_USER_ID_KEY) : null;
 
+  const applyUpdate = useCallback(async () => {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration?.waiting) return;
+
+      // Tell the waiting SW to activate immediately
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+      // Reload once the new SW takes control
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    } catch (error) {
+      logger.warn('[About] Failed to apply update:', error);
+      // Fallback: just reload
+      window.location.reload();
+    }
+  }, []);
+
   const checkForUpdates = useCallback(async () => {
     if (!('serviceWorker' in navigator)) return;
 
@@ -166,7 +185,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
             {/* Check for Updates Button */}
             {'serviceWorker' in navigator && (
               <button
-                onClick={checkForUpdates}
+                onClick={updateStatus === 'update-available' ? applyUpdate : checkForUpdates}
                 disabled={updateStatus === 'checking'}
                 style={{
                   display: 'inline-flex',
@@ -207,7 +226,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
                 {updateStatus === 'update-available' && (
                   <>
                     <RefreshCw size={14} />
-                    Update Available!
+                    Tap to Update
                   </>
                 )}
               </button>
