@@ -219,7 +219,6 @@ const generatePrintHTML = (title: string, content: string): string => {
 <body class="print-preview">
   ${content}
   <script>
-    window.onload = function() { window.print(); };
     window.onafterprint = function() { setTimeout(function() { window.close(); }, 500); };
   </script>
 </body>
@@ -254,6 +253,7 @@ export const generateCheckInSheet = (classInfo: ReportClassInfo, entries: Entry[
     if (printWindow) {
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
     } else {
       logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
@@ -299,6 +299,7 @@ export const generateResultsSheet = (classInfo: ReportClassInfo, entries: Entry[
     if (printWindow) {
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
     } else {
       logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
@@ -343,6 +344,7 @@ export const generateDogResultsSheet = (dogInfo: DogResultsSheetProps['dogInfo']
     if (printWindow) {
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
     } else {
       logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
@@ -399,6 +401,7 @@ export const generateScoresheetReport = (classInfo: ScoresheetClassInfo, entries
     if (printWindow) {
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
     } else {
       logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
@@ -441,6 +444,7 @@ export const generateShowFlyer = (
     if (printWindow) {
       printWindow.document.write(htmlDoc);
       printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
     } else {
       logger.error('Failed to open print window. Please check popup blocker settings.');
       alert('Unable to open print window. Please check your browser\'s popup blocker settings.');
