@@ -282,24 +282,21 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: transparent;
-  /* Hide scrollbar in light mode */
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   border: 1px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
-  /* Show on hover */
+  background: rgba(0, 0, 0, 0.3);
   background-clip: padding-box;
 }
 
-/* Firefox scrollbar - hide in light mode */
+/* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  /* Hide scrollbar in light mode */
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 /* Firefox dark mode */

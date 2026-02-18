@@ -134,7 +134,11 @@ export function PullToRefresh({
     }
 
     // Prevent default scroll when pulling (only after activation threshold)
-    e.preventDefault();
+    // Check cancelable first — browser marks events non-cancelable once scrolling
+    // has started, and calling preventDefault on those logs console warnings.
+    if (e.cancelable) {
+      e.preventDefault();
+    }
 
     // Apply resistance (harder to pull as you go further)
     // Subtract activation threshold so progress starts from 0 after threshold
