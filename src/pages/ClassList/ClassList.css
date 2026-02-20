@@ -1073,9 +1073,8 @@
 }
 
 .class-info-button:hover {
-  background: linear-gradient(135deg, var(--accent-color, var(--primary)) 0%, var(--accent-color, var(--primary)) 100%);
-  color: white;
-  border-color: transparent;
+  color: var(--accent-color, var(--primary));
+  border-color: rgba(6, 182, 212, 0.3);
   transform: scale(1.1) rotate(-5deg);
   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
