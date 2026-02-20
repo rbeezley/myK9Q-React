@@ -119,7 +119,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   // State for class details - popover (desktop) or bottom sheet (mobile)
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
-  const infoIndicatorRef = useRef<HTMLDivElement>(null);
+  const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   // Class details data (shared between popover and bottom sheet)
   const classDetailsData = useMemo(() => ({
@@ -197,6 +197,24 @@ export const ClassCard: React.FC<ClassCardProps> = ({
           {/* Action buttons - positioned absolutely in top-right, horizontal layout */}
           <div className="class-actions">
             <button
+              ref={infoButtonRef}
+              className="class-info-button"
+              onMouseEnter={() => { if (!isTouchDevice) setShowDetailsPopup(true); }}
+              onMouseLeave={() => { if (!isTouchDevice) setShowDetailsPopup(false); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isTouchDevice) {
+                  setShowBottomSheet(true);
+                } else {
+                  setShowDetailsPopup(!showDetailsPopup);
+                }
+              }}
+              aria-label="Class details"
+            >
+              <Info className="info-icon" size={20} />
+            </button>
+
+            <button
               type="button"
               className={`favorite-button ${classEntry.is_favorite ? 'favorited' : ''} ${justToggledClassId === classEntry.id ? 'favorite-just-toggled' : ''}`}
               onClick={(e) => {
@@ -236,37 +254,9 @@ export const ClassCard: React.FC<ClassCardProps> = ({
 
           {/* Class name and metadata section */}
           <div className="class-title-section">
-            {/* Class name with info indicator for popup */}
-            <div
-              ref={infoIndicatorRef}
-              className="class-name-wrapper"
-              onMouseEnter={() => {
-                // Desktop: show popover on hover
-                if (!isTouchDevice) {
-                  setShowDetailsPopup(true);
-                }
-              }}
-              onMouseLeave={() => {
-                // Desktop: hide popover when mouse leaves
-                if (!isTouchDevice) {
-                  setShowDetailsPopup(false);
-                }
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isTouchDevice) {
-                  // Mobile: open bottom sheet on tap
-                  setShowBottomSheet(true);
-                } else {
-                  // Desktop fallback: toggle popover on click
-                  setShowDetailsPopup(!showDetailsPopup);
-                }
-              }}
-            >
+            {/* Class name */}
+            <div className="class-name-wrapper">
               <h3 className="class-name">{classEntry.class_name}</h3>
-              <span className="info-indicator" aria-hidden="true">
-                <Info size={12} />
-              </span>
             </div>
 
             {/* Desktop: Class Details Popover - renders via portal */}
@@ -274,7 +264,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({
               <ClassDetailsPopover
                 isOpen={showDetailsPopup}
                 onClose={() => setShowDetailsPopup(false)}
-                anchorRef={infoIndicatorRef}
+                anchorRef={infoButtonRef}
                 position="top"
                 data={classDetailsData}
               />
