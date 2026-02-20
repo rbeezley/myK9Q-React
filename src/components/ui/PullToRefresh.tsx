@@ -51,6 +51,10 @@ export function PullToRefresh({
   const startYRef = useRef(0);
   const currentYRef = useRef(0);
   const isPullingRef = useRef(false);
+  // Track if the user moved their finger upward during this touch gesture.
+  // If they did, they were trying to scroll — don't activate PTR even if
+  // they later reverse direction downward.
+  const hadUpwardMovementRef = useRef(false);
 
   // Store references to attached listeners for proper cleanup
   // This fixes the bug where removeEventListener fails because callback references change
@@ -72,6 +76,7 @@ export function PullToRefresh({
 
     startYRef.current = e.touches[0].pageY;
     currentYRef.current = startYRef.current;
+    hadUpwardMovementRef.current = false;
     // Don't set isPullingRef yet - wait for touchmove to confirm downward pull
     // This prevents interference when user touches at top but then scrolls normally
   }, [enabled, isRefreshing]);
@@ -89,6 +94,13 @@ export function PullToRefresh({
 
       currentYRef.current = e.touches[0].pageY;
       const deltaY = currentYRef.current - startYRef.current;
+
+      // If the finger ever moved upward, the user was trying to scroll.
+      // Don't activate PTR for this gesture even if they reverse direction.
+      if (deltaY < 0) {
+        hadUpwardMovementRef.current = true;
+      }
+      if (hadUpwardMovementRef.current) return;
 
       // Require minimum downward pull before activating PTR
       // Increased to 40px to prevent accidental activation during normal scrolling
@@ -161,6 +173,7 @@ export function PullToRefresh({
     const wasPulling = isPullingRef.current;
     isPullingRef.current = false;
     startYRef.current = 0; // Reset start position
+    hadUpwardMovementRef.current = false;
 
     if (!wasPulling) return;
 
