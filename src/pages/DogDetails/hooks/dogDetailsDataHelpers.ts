@@ -60,6 +60,42 @@ export interface TrialData {
 }
 
 // ============================================================================
+// Paired Class Utilities
+// ============================================================================
+
+/**
+ * Build a map of classId → pairedClassId for combined A/B section classes.
+ * Two classes are paired when they share the same trial_id + element + level
+ * but have opposite sections (A ↔ B).
+ *
+ * Used to calculate queue positions across combined A/B classes,
+ * since Novice A & B are typically run together with a shared run order.
+ */
+export function buildPairedClassMap(
+  classes: Iterable<ClassData>
+): Map<string, string> {
+  const map = new Map<string, string>();
+  const byKey = new Map<string, ClassData[]>();
+
+  for (const cls of classes) {
+    if (cls.section === 'A' || cls.section === 'B') {
+      const key = `${cls.trial_id}|${cls.element}|${cls.level}`;
+      if (!byKey.has(key)) byKey.set(key, []);
+      byKey.get(key)!.push(cls);
+    }
+  }
+
+  for (const group of byKey.values()) {
+    if (group.length === 2 && group[0].section !== group[1].section) {
+      map.set(String(group[0].id), String(group[1].id));
+      map.set(String(group[1].id), String(group[0].id));
+    }
+  }
+
+  return map;
+}
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
 
@@ -166,7 +202,7 @@ function buildClassEntry(
 }
 
 /**
- * Calculate queue position for an entry within its class.
+ * Calculate queue position for an entry within its class (or combined A/B classes).
  * Returns the number of dogs ahead in the queue (0 = next up).
  *
  * Queue logic:
@@ -174,19 +210,25 @@ function buildClassEntry(
  * - Excludes pulled entries from count
  * - Sorts by exhibitor_order (run order)
  * - Prioritizes in-ring entries (they're running, so 0 ahead for them)
+ * - When pairedClassMap is provided, includes entries from the paired A/B class
  */
 export function calculateQueuePosition(
   entry: RawEntryData,
-  allEntries: RawEntryData[]
+  allEntries: RawEntryData[],
+  pairedClassMap?: Map<string, string>
 ): number | undefined {
   // Skip if entry is already scored - no queue position needed
   if (entry.is_scored) {
     return undefined;
   }
 
-  // Get all entries for this class
+  // Get all entries for this class (and paired class if combined A/B)
   const classId = String(entry.class_id);
-  const classEntries = allEntries.filter(e => String(e.class_id) === classId);
+  const pairedClassId = pairedClassMap?.get(classId);
+  const classEntries = allEntries.filter(e => {
+    const eClassId = String(e.class_id);
+    return eClassId === classId || (pairedClassId != null && eClassId === pairedClassId);
+  });
 
   // Filter to only pending entries (not scored, not pulled)
   const pendingEntries = classEntries.filter(e =>
@@ -226,7 +268,8 @@ export async function processEntryToClassEntry(
   currentRole: UserRole | null | undefined,
   classData?: ClassData,
   trialData?: TrialData,
-  allEntries?: RawEntryData[]
+  allEntries?: RawEntryData[],
+  pairedClassMap?: Map<string, string>
 ): Promise<ClassEntry> {
   const checkInStatus = mapEntryStatus(entry.entry_status);
   const fields = extractDerivedFields(entry, classData, trialData);
@@ -242,7 +285,7 @@ export async function processEntryToClassEntry(
   });
 
   // Calculate queue position if we have all entries
-  const queuePosition = allEntries ? calculateQueuePosition(entry, allEntries) : undefined;
+  const queuePosition = allEntries ? calculateQueuePosition(entry, allEntries, pairedClassMap) : undefined;
 
   return buildClassEntry(entry, fields, checkInStatus, visibleFields, queuePosition);
 }
@@ -256,13 +299,14 @@ export async function processEntriesToClassEntries(
   currentRole: UserRole | null | undefined,
   classMap?: Map<string, ClassData>,
   trialMap?: Map<string, TrialData>,
-  allEntries?: RawEntryData[]
+  allEntries?: RawEntryData[],
+  pairedClassMap?: Map<string, string>
 ): Promise<ClassEntry[]> {
   return Promise.all(
     entries.map(async (entry) => {
       const classData = classMap?.get(String(entry.class_id));
       const trialData = classData && trialMap ? trialMap.get(String(classData.trial_id)) : undefined;
-      return processEntryToClassEntry(entry, licenseKey, currentRole, classData, trialData, allEntries);
+      return processEntryToClassEntry(entry, licenseKey, currentRole, classData, trialData, allEntries, pairedClassMap);
     })
   );
 }

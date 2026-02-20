@@ -19,6 +19,7 @@ import { loadFavoritesAsSet } from '@/utils/favoritesUtils';
 import { ensureReplicationManager } from '@/utils/replicationHelper';
 import type { Entry, Class, Trial } from '@/services/replication';
 import { logger } from '@/utils/logger';
+import { buildPairedClassMap, type ClassData } from '@/pages/DogDetails/hooks/dogDetailsDataHelpers';
 
 // ============================================================
 // TYPE DEFINITIONS
@@ -221,21 +222,27 @@ async function fetchShow(licenseKey: string): Promise<Show | null> {
 }
 
 /**
- * Calculate queue position for an entry within its class.
+ * Calculate queue position for an entry within its class (or combined A/B classes).
  * Returns the number of dogs ahead in the queue (0 = next up).
+ * When pairedClassMap is provided, includes entries from the paired A/B class.
  */
 function calculateQueuePosition(
   entry: Entry,
-  allShowEntries: Entry[]
+  allShowEntries: Entry[],
+  pairedClassMap?: Map<string, string>
 ): number | null {
   // Skip if entry is already scored - no queue position needed
   if (entry.is_scored) {
     return null;
   }
 
-  // Get all entries for this class
+  // Get all entries for this class (and paired class if combined A/B)
   const classId = String(entry.class_id);
-  const classEntries = allShowEntries.filter(e => String(e.class_id) === classId);
+  const pairedClassId = pairedClassMap?.get(classId);
+  const classEntries = allShowEntries.filter(e => {
+    const eClassId = String(e.class_id);
+    return eClassId === classId || (pairedClassId != null && eClassId === pairedClassId);
+  });
 
   // Filter to only pending entries (not scored, not pulled)
   const pendingEntries = classEntries.filter(e =>
@@ -297,13 +304,16 @@ async function calculateFavoriteEntries(
       }
     });
 
-    // Get class info for class names
+    // Get class info for class names and paired class detection
     const classesTable = manager.getTable('classes');
     const allClasses = classesTable ? ((await classesTable.getAll()) as Class[]) : [];
     const classMap = new Map<string, Class>();
     allClasses.forEach(cls => {
       classMap.set(String(cls.id), cls);
     });
+
+    // Build paired class map for combined A/B queue position calculation
+    const pairedClassMap = buildPairedClassMap(allClasses as unknown as ClassData[]);
 
     // Build favorite entries list
     const favorites: FavoriteEntry[] = [];
@@ -329,7 +339,7 @@ async function calculateFavoriteEntries(
           dogName: firstEntry.dog_call_name,
           nextClass: nextClassName,
           nextClassId: nextEntry ? (typeof nextEntry.class_id === 'string' ? parseInt(nextEntry.class_id, 10) : Number(nextEntry.class_id)) : null,
-          queuePosition: nextEntry ? calculateQueuePosition(nextEntry, showEntries) : null,
+          queuePosition: nextEntry ? calculateQueuePosition(nextEntry, showEntries, pairedClassMap) : null,
           isInRing: !!inRingEntry,
           isPending: pendingEntries.length > 0,
         });

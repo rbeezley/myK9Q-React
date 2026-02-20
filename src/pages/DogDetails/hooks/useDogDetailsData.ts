@@ -23,6 +23,7 @@ import type { Trial } from '../../../services/replication/tables/ReplicatedTrial
 import {
   extractDogInfo,
   processEntriesToClassEntries,
+  buildPairedClassMap,
   type ClassData,
   type TrialData
 } from './dogDetailsDataHelpers';
@@ -146,6 +147,9 @@ async function fetchDogDetails(
         const classMap = new Map<string, ClassData>(allClasses.map(c => [String(c.id), c as ClassData]));
         const trialMap = new Map<string, TrialData>(allTrials.map(t => [String(t.id), t as TrialData]));
 
+        // Build paired class map for combined A/B queue position calculation
+        const pairedClassMap = buildPairedClassMap(allClasses as ClassData[]);
+
         // Extract dog info and process entries using helpers
         // Pass allEntries to calculate queue position for each class
         const dogInfo = extractDogInfo(dogEntries[0]);
@@ -155,7 +159,8 @@ async function fetchDogDetails(
           currentRole,
           classMap,
           trialMap,
-          allEntries // Pass all entries for queue position calculation
+          allEntries, // Pass all entries for queue position calculation
+          pairedClassMap
         );
 
         return { dogInfo, classes: classesWithVisibility };
@@ -193,11 +198,28 @@ async function fetchDogDetails(
     // Get the unique class IDs from the dog's entries
     const classIds = [...new Set(entries.map(e => e.class_id))];
 
-    // Fetch all entries for those classes to calculate queue position
+    // Fetch class data to find paired A/B classes for combined queue position
+    const { data: dogClasses } = await supabase
+      .from('classes')
+      .select('id, element, level, section, trial_id')
+      .in('id', classIds);
+
+    const pairedClassMap = buildPairedClassMap((dogClasses || []) as ClassData[]);
+
+    // Expand class IDs to include paired classes (e.g., Novice A entries for a Novice B dog)
+    const expandedClassIds = [...classIds];
+    for (const cid of classIds) {
+      const pairedId = pairedClassMap.get(String(cid));
+      if (pairedId && !expandedClassIds.includes(Number(pairedId))) {
+        expandedClassIds.push(Number(pairedId));
+      }
+    }
+
+    // Fetch all entries for those classes (including paired) to calculate queue position
     const { data: allClassEntries, error: classEntriesError } = await supabase
       .from('view_entry_class_join_normalized')
       .select('id, class_id, armband_number, entry_status, is_scored, exhibitor_order')
-      .in('class_id', classIds)
+      .in('class_id', expandedClassIds)
       .eq('license_key', licenseKey);
 
     if (classEntriesError) {
@@ -212,7 +234,8 @@ async function fetchDogDetails(
       currentRole,
       undefined, // no classMap for Supabase fallback
       undefined, // no trialMap for Supabase fallback
-      allClassEntries || undefined // Pass all class entries for queue position
+      allClassEntries || undefined, // Pass all class entries for queue position
+      pairedClassMap
     );
 
     return { dogInfo, classes: classesWithVisibility };

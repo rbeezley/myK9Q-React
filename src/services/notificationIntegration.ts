@@ -235,13 +235,35 @@ return;
 
   /**
    * Called when an entry is marked as "in ring"
+   * Includes entries from paired A/B class for combined queue position.
    */
   private async onEntryInRing(entry: Entry): Promise<void> {
     const { settings } = useSettingsStore.getState();
 
-// Get the unscored entries in order
-    const { currentClassEntries } = useEntryStore.getState();
-    const unscoredEntries = currentClassEntries.filter(e => !e.isScored);
+    // Get entries - include paired A/B class entries for combined classes
+    const { currentClassEntries, entries: allStoreEntries } = useEntryStore.getState();
+    let combinedEntries = currentClassEntries;
+
+    // If this entry has a section (A or B), find and include paired class entries
+    if (entry.section === 'A' || entry.section === 'B') {
+      const pairedEntries = allStoreEntries.filter(e =>
+        e.classId !== entry.classId &&
+        e.element === entry.element &&
+        e.level === entry.level &&
+        (e.section === 'A' || e.section === 'B') &&
+        e.section !== entry.section
+      );
+      if (pairedEntries.length > 0) {
+        // Merge, dedup by entry id
+        const entryIds = new Set(currentClassEntries.map(e => e.id));
+        combinedEntries = [
+          ...currentClassEntries,
+          ...pairedEntries.filter(e => !entryIds.has(e.id))
+        ];
+      }
+    }
+
+    const unscoredEntries = combinedEntries.filter(e => !e.isScored);
     const currentIndex = unscoredEntries.findIndex(e => e.id === entry.id);
 
     if (currentIndex < 0) {
